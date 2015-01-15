@@ -26,3 +26,9 @@
 *.exe
 *.out
 *.app
+
+# Backup files
+*~
+
+# Build directories
+build/
