@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package>
+  <name>grl</name>
+  <version>0.0.0</version>
+  <description>The generic reinforcement learning package</description>
+  <maintainer email="w.caarls@tudelft.nl">Wouter Caarls</maintainer>
+  <author email="w.caarls@tudelft.nl">Wouter Caarls</author>
+  <license>TODO</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>roscpp</build_depend>
+  <build_depend>grl_msgs</build_depend>
+  <build_depend>eigen</build_depend>
+  <run_depend>roscpp</run_depend>
+  <run_depend>grl_msgs</run_depend>
+  <run_depend>eigen</run_depend>
+</package>

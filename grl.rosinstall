@@ -1,0 +1,6 @@
+- svn:
+        local-name: grl
+        uri: https://svn.3me.tudelft.nl/dbl-ros-pkg/catkin/grl
+- svn:
+        local-name: grl_msgs
+        uri: https://svn.3me.tudelft.nl/dbl-ros-pkg/catkin/grl_msgs
