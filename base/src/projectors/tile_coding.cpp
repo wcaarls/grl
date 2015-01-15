@@ -8,7 +8,7 @@ void TileCodingProjector::request(ConfigurationRequest *config)
 {
 }
 
-void TileCodingProjector::configure(const Configuration &config)
+void TileCodingProjector::configure(Configuration &config)
 {
   Vector res = config["resolution"];
 
@@ -60,7 +60,7 @@ ProjectionPtr TileCodingProjector::project(const Vector &in) const
   int coordinates[MAX_NUM_VARS + 1];   /* one interval number per relevant dimension */
   int num_coordinates = num_floats + 1;
   
-  grl_assert(num_floats == scaling_.size());
+  grl_assert(num_floats == (int)scaling_.size());
   
   IndexProjection *p = new IndexProjection();
   p->indices.resize(tilings_);

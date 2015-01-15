@@ -14,7 +14,7 @@ void loadPlugins(const char *pattern)
   printf("Looking for plugins in '%s'\n", pattern);
   
   glob(pattern, 0, NULL, &globbuf);
-  for (int ii=0; ii < globbuf.gl_pathc; ++ii)
+  for (size_t ii=0; ii < globbuf.gl_pathc; ++ii)
   { 
     printf("Loading plugin '%s'\n", globbuf.gl_pathv[ii]);
     if (!dlopen(globbuf.gl_pathv[ii], RTLD_NOW|RTLD_LOCAL))

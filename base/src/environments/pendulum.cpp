@@ -9,7 +9,7 @@ void PendulumDynamics::request(ConfigurationRequest *config)
 {
 }
 
-void PendulumDynamics::configure(const Configuration &config)
+void PendulumDynamics::configure(Configuration &config)
 {
   J_ = 0.000191;
   m_ = 0.055;
@@ -45,9 +45,14 @@ void PendulumSwingupTask::request(ConfigurationRequest *config)
 {
 }
 
-void PendulumSwingupTask::configure(const Configuration &config)
+void PendulumSwingupTask::configure(Configuration &config)
 {
   T_ = 2.99;
+
+  config.set("observation_min", VectorConstructor(0., -12*M_PI));
+  config.set("observation_max", VectorConstructor(2*M_PI, 12*M_PI));
+  config.set("action_min", VectorConstructor(-3));
+  config.set("action_max", VectorConstructor(3));
 }
 
 void PendulumSwingupTask::reconfigure(const Configuration &config)

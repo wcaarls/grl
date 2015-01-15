@@ -23,7 +23,7 @@ class GreedySampler : public Sampler
   public:
     // From Configurable
     virtual void request(ConfigurationRequest *config);
-    virtual void configure(const Configuration &config);
+    virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
   
     // From Sampler
@@ -45,7 +45,7 @@ class EpsilonGreedySampler : public GreedySampler
   public:
     // From Configurable
     virtual void request(ConfigurationRequest *config);
-    virtual void configure(const Configuration &config);
+    virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
   
     // From Sampler

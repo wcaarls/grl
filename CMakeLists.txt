@@ -8,12 +8,12 @@ if (NOT CMAKE_BUILD_TYPE)
 endif()
 
 # Choose YAML version
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(LIBYAMLCPP yaml-cpp)
-if (${LIBYAMLCPP_VERSION} VERSION_LESS 0.5)
+#find_package(PkgConfig REQUIRED)
+#pkg_check_modules(LIBYAMLCPP yaml-cpp)
+#if (${LIBYAMLCPP_VERSION} VERSION_LESS 0.5)
   message("-- Using included YAML library")
   set(GRL_YAML_MODULE externals/yaml-cpp)
-endif()
+#endif()
 
 # List of modules to build
 set(MODULES base

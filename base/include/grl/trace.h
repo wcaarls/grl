@@ -33,6 +33,7 @@ class Trace : public Configurable
 
       public:
         TraceIteratorImpl(iterator &it) : it_(it) { }
+        virtual ~TraceIteratorImpl() { }
 
         virtual const ProjectionPtr projection() const = 0;
         virtual double weight() const = 0;

@@ -44,7 +44,7 @@ class Configurable
     TYPEINFO("")
 
     virtual void request(ConfigurationRequest */*config*/) { }
-    virtual void configure(const Configuration &/*config*/) { }
+    virtual void configure(Configuration &/*config*/) { }
     virtual void reconfigure(const Configuration &/*config*/) { }
 };
 
@@ -64,10 +64,10 @@ class YAMLConfigurator
   
     Configurable *load(std::string file, Configuration *config)
     {
-      return load(YAML::LoadFile(file.c_str()), config);
+      return load(YAML::LoadFile(file.c_str()), config, "");
     }
   
-    Configurable *load(const YAML::Node &node, Configuration *config)
+    Configurable *load(const YAML::Node &node, Configuration *config, const std::string &path)
     {
       Configurable *obj=NULL;
       
@@ -84,55 +84,30 @@ class YAMLConfigurator
           return NULL;
         }
       }
-      
-      if (node["name"])
-      {
-        if (obj)
-          references_.set(node["name"].as<std::string>(), obj);
-        else
-        {
-          std::cerr << "Cannot name inconcrete object " << node["name"] << std::endl;
-          return NULL;
-        }
-      }
         
       for (YAML::const_iterator it = node.begin(); it != node.end(); ++it)
       {
         std::string key, value;
         key = it->first.as<std::string>();
         
-        if (key == "name" || key == "type" || key == "value")
+        if (key == "type")
           continue;
           
         if (it->second.IsMap())
         {
-          if (it->second["value"] && it->second["name"])
+          Configuration subcfg(*config);
+          
+          Configurable *subobj = load(it->second, &subcfg, path + key + "/");
+          
+          if (!subobj)
           {
-            value = toString(it->second["value"]);
-            std::cout << key << ": " << value << std::endl;
-            config->set(key, value);
-            
-            if (it->second["name"])
-              references_.set(it->second["name"].as<std::string>(), value);
+            safe_delete(&obj);
+            return NULL;
           }
-          else if (it->second["type"])
-          {
-            Configuration subcfg(*config);
-            
-            Configurable *subobj = load(it->second, &subcfg);
-            
-            if (!subobj)
-            {
-              safe_delete(&obj);
-              return NULL;
-            }
-            
-            std::cout << key << ": " << subobj << " (" << subobj->d_type() << ") " << std::endl;
-                    
-            config->set(key, subobj);
-          }
-          else
-            throw Exception("Child nodes must state either a type or a value");
+          
+          std::cout << path << key << ": " << subobj << " (type " << subobj->d_type() << ") " << std::endl;
+                  
+          config->set(key, subobj);
         }
         else
         {
@@ -140,14 +115,13 @@ class YAMLConfigurator
           
           if (references_.has(value))
           {
-            std::cout << key << ": " << references_[value].str() << " (" << value << ")" << std::endl;
-            config->set(key, references_[value]);
+            std::cout << path << key << ": " << references_[value].str() << " (from " << value << ")" << std::endl;
+            value = references_[value].str();
           }
           else
-          {
-            std::cout << key << ": " << value << std::endl;
-            config->set(key, value);
-          }
+            std::cout << path << key << ": " << value << std::endl;
+          
+          config->set(key, value);
         }
       }
       
@@ -155,6 +129,9 @@ class YAMLConfigurator
       
       if (obj)
         obj->configure(*config);
+        
+      for (Configuration::MapType::const_iterator ii=config->parameters().begin(); ii != config->parameters().end(); ++ii)
+        references_.set(path + ii->first, ii->second->str());
         
       return obj;
     }      

@@ -8,7 +8,7 @@ void OnlineLearningExperiment::request(ConfigurationRequest *config)
 {
 }
 
-void OnlineLearningExperiment::configure(const Configuration &config)
+void OnlineLearningExperiment::configure(Configuration &config)
 {
   agent_ = (Agent*)config["agent"].ptr();
   environment_ = (Environment*)config["environment"].ptr();

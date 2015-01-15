@@ -9,7 +9,7 @@ void ModeledEnvironment::request(ConfigurationRequest *config)
 {
 }
 
-void ModeledEnvironment::configure(const Configuration &config)
+void ModeledEnvironment::configure(Configuration &config)
 {
   model_ = (Model*)config["model"].ptr();
   task_ = (Task*)config["task"].ptr();
@@ -52,7 +52,7 @@ void DynamicalModel::request(ConfigurationRequest *config)
 {
 }
 
-void DynamicalModel::configure(const Configuration &config)
+void DynamicalModel::configure(Configuration &config)
 {
   dynamics_ = (Dynamics*)config["dynamics"].ptr();
   config.get("control_step", tau_, 0.05);

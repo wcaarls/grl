@@ -8,7 +8,7 @@ void QPolicy::request(ConfigurationRequest *config)
 {
 }
 
-void QPolicy::configure(const Configuration &config)
+void QPolicy::configure(Configuration &config)
 {
   discretizer_ = (Discretizer*)config["discretizer"].ptr();
   discretizer_->options(&variants_);

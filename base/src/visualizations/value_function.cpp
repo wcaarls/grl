@@ -13,7 +13,7 @@ void ValueFunctionVisualization::request(ConfigurationRequest *config)
 {
 }
 
-void ValueFunctionVisualization::configure(const Configuration &config)
+void ValueFunctionVisualization::configure(Configuration &config)
 {
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (Representation*)config["representation"].ptr();
@@ -123,16 +123,12 @@ void ValueFunctionVisualization::idle()
   // Redisplay  
   updated_ = true;
   refresh();
-  
-  std::cout << "Q: " << value_min << " - " << value_max << std::endl;
 }
 
 void ValueFunctionVisualization::draw()
 {
-  std::cout << "draw" << std::endl;
   if (updated_)
   {
-    std::cout << "drawing" << std::endl;
     if (!texture_)
       glGenTextures(1, &texture_);
   

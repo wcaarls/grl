@@ -10,6 +10,8 @@
 #include "yaml-cpp/node/iterator.h"
 #include "yaml-cpp/node/ptr.h"
 #include "yaml-cpp/node/type.h"
+#include "yaml-cpp/node/detail/fake_map.h"
+
 #include <boost/utility.hpp>
 #include <list>
 #include <utility>
@@ -97,7 +99,7 @@ namespace YAML
 			mutable std::size_t m_seqSize;
 			
 			// map
-			typedef std::map<node *, node *> node_map;
+			typedef fake_map<node *, node *> node_map;
 			node_map m_map;
 			
 			typedef std::pair<node *, node *> kv_pair;

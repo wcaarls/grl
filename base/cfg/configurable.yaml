@@ -1,41 +1,5 @@
 type: experiment/online_learning
 rate: 0
-agent:
-  type: agent/td
-  predictor:
-    type: predictor/sarsa
-    alpha: 0.2
-    gamma: 0.97
-    lambda: 0.65
-    projector:
-      name: proj
-      type: projector/tilecoding
-      tilings: 16
-      resolution: [ 0.31415, 3.1415, 3 ]
-      wrapping: [ 6.283, 0, 0 ]
-      memory:
-        name: mem
-        value: 8
-    representation:
-      name: rep
-      type: representation/parameterized/linear
-      memory: mem
-    trace:
-      type: trace/enumerated/replacing
-  policy:
-    name: pol
-    type: policy/q
-    projector: proj
-    representation: rep
-    discretizer:
-      name: disc
-      type: discretizer/uniform
-      min: action_min
-      max: action_max
-      steps: [3]
-    sampler:
-      type: sampler/epsilon_greedy
-      epsilon: 0.05
 environment:
   type: environment/modeled
   model:
@@ -45,20 +9,48 @@ environment:
     control_step: 0.03
   task:
     type: task/pendulum/swingup
+agent:
+  type: agent/td
+  predictor:
+    type: predictor/sarsa
+    alpha: 0.2
+    gamma: 0.97
+    lambda: 0.65
+    projector:
+      type: projector/tilecoding
+      tilings: 16
+      resolution: [ 0.31415, 3.1415, 3 ]
+      wrapping: [ 6.283, 0, 0 ]
+      memory: 8
+    representation:
+      type: representation/parameterized/linear
+      memory: agent/predictor/projector/memory
+    trace:
+      type: trace/enumerated/replacing
+  policy:
+    type: policy/q
+    projector: agent/predictor/projector
+    representation: agent/predictor/representation
+    discretizer:
+      type: discretizer/uniform
+      min: environment/task/action_min
+      max: environment/task/action_max
+      steps: [3]
+    sampler:
+      type: sampler/epsilon_greedy
+      epsilon: 0.05
 visualization:
   type: visualization/value_function
   visualizer:
     type: visualizer/glut
-  projector: proj
-  representation: rep
+  projector: agent/predictor/projector
+  representation: agent/predictor/representation
   policy:
     type: policy/q
-    projector: proj
-    representation: rep
-    discretizer: disc
+    discretizer: agent/policy/discretizer
     sampler:
       type: sampler/greedy
-  min: observation_min
-  max: observation_max
+  min: environment/task/observation_min
+  max: environment/task/observation_max
   points: 65536
  

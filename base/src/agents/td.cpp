@@ -8,7 +8,7 @@ void TDAgent::request(ConfigurationRequest *config)
 {
 }
 
-void TDAgent::configure(const Configuration &config)
+void TDAgent::configure(Configuration &config)
 {
   policy_ = (Policy*)config["policy"].ptr();
   predictor_ = (Predictor*)config["predictor"].ptr();

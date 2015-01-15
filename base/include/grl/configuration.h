@@ -101,9 +101,10 @@ class ConfigurationParameter
 
 class Configuration
 {
-  protected:
+  public:
     typedef std::map<std::string, const ConfigurationParameter*> MapType;
 
+  protected:
     mutable MapType parameters_;
 
   public:
@@ -196,6 +197,11 @@ class Configuration
       if (has(key))
         delete parameters_[key];
       parameters_[key] = new ConfigurationParameter(value);
+    }
+    
+    const MapType &parameters() const
+    {
+      return parameters_;
     }
 };
 

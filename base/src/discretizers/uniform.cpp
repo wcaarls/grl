@@ -8,7 +8,7 @@ void UniformDiscretizer::request(ConfigurationRequest *config)
 {
 }
 
-void UniformDiscretizer::configure(const Configuration &config)
+void UniformDiscretizer::configure(Configuration &config)
 {
   Vector min = config["min"];
   Vector max = config["max"];

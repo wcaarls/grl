@@ -8,6 +8,8 @@
 
 #include "yaml-cpp/dll.h"
 #include "yaml-cpp/node/ptr.h"
+#include "yaml-cpp/node/detail/fake_map.h"
+
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/utility/enable_if.hpp>
 #include <map>
@@ -35,7 +37,7 @@ namespace YAML
 		};
 		
 		typedef std::vector<node *> node_seq;
-		typedef std::map<node *, node *> node_map;
+		typedef fake_map<node *, node *> node_map;
 		
 		template<typename V>
 		struct node_iterator_type {

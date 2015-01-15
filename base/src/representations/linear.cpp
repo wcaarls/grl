@@ -8,10 +8,10 @@ void LinearRepresentation::request(ConfigurationRequest *config)
 {
 }
 
-void LinearRepresentation::configure(const Configuration &config)
+void LinearRepresentation::configure(Configuration &config)
 {
-  int memory;
-  config.get("memory", memory, 16);
+  size_t memory;
+  config.get("memory", memory, (size_t)16);
   config.get("outputs", outputs_, (size_t)1);
   
   Vector min, max;

@@ -9,7 +9,7 @@ void GreedySampler::request(ConfigurationRequest *config)
 {
 }
 
-void GreedySampler::configure(const Configuration &config)
+void GreedySampler::configure(Configuration &config)
 {
 }
 
@@ -53,7 +53,7 @@ void EpsilonGreedySampler::request(ConfigurationRequest *config)
 {
 }
 
-void EpsilonGreedySampler::configure(const Configuration &config)
+void EpsilonGreedySampler::configure(Configuration &config)
 {
   epsilon_ = config["epsilon"];
   rand_ = new Rand();

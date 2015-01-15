@@ -9,7 +9,7 @@ void SARSAPredictor::request(ConfigurationRequest *config)
 {
 }
 
-void SARSAPredictor::configure(const Configuration &config)
+void SARSAPredictor::configure(Configuration &config)
 {
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (Representation*)config["representation"].ptr();
@@ -57,7 +57,7 @@ void ExpectedSARSAPredictor::request(ConfigurationRequest *config)
 {
 }
 
-void ExpectedSARSAPredictor::configure(const Configuration &config)
+void ExpectedSARSAPredictor::configure(Configuration &config)
 {
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (Representation*)config["representation"].ptr();

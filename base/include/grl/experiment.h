@@ -40,7 +40,7 @@ class OnlineLearningExperiment : public Experiment
   public:
     // From Configurable
     virtual void request(ConfigurationRequest *config);
-    virtual void configure(const Configuration &config);
+    virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
 
     // From Experiment

@@ -35,7 +35,7 @@ class SARSAPredictor : public Predictor
   public:
     // From Configurable
     virtual void request(ConfigurationRequest *config);
-    virtual void configure(const Configuration &config);
+    virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
     
     // From Predictor
@@ -61,7 +61,7 @@ class ExpectedSARSAPredictor : public Predictor
   public:
     // From Configurable
     virtual void request(ConfigurationRequest *config);
-    virtual void configure(const Configuration &config);
+    virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
 
     // From Predictor
