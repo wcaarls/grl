@@ -26,7 +26,7 @@ class Mapping : public Configurable
     virtual Mapping *clone() const = 0;
 
     RepresentedQuantity quantity() const { return rq_; }
-    virtual void read(const ProjectionPtr &projection, Vector *result) const = 0;
+    virtual double read(const ProjectionPtr &projection, Vector *result) const = 0;
 };
 
 /// Approximates a Mapping.
@@ -58,8 +58,16 @@ class ParameterizedRepresentation : public Representation
   public:
     virtual ParameterizedRepresentation *clone() const = 0;
     virtual size_t size() const = 0;
-    virtual void get(Vector *params) const = 0;
-    virtual void set(const Vector &params) = 0;
+
+    virtual const Vector &params() const
+    {
+      return params_;
+    }
+    
+    virtual Vector &params()
+    {
+      return params_;
+    }
 };
 
 }

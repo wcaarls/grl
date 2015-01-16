@@ -31,7 +31,7 @@ class LinearRepresentation : public ParameterizedRepresentation
   
     // From ParameterizedRepresentation
     virtual LinearRepresentation *clone() const;
-    virtual void read(const ProjectionPtr &projection, Vector *result) const ;
+    virtual double read(const ProjectionPtr &projection, Vector *result) const ;
     virtual void write(const ProjectionPtr projection, const Vector &target, double alpha=1);
     virtual void update(const ProjectionPtr projection, const Vector &delta);
     
@@ -40,14 +40,14 @@ class LinearRepresentation : public ParameterizedRepresentation
       return params_.size()/outputs_;
     }
     
-    virtual void get(Vector *params) const
+    virtual const Vector &params() const
     {
-      *params = params_;
+      return params_;
     }
     
-    virtual void set(const Vector &params)
+    virtual Vector &params()
     {
-      params_ = params;
+      return params_;
     }
 };
 

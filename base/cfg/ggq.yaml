@@ -11,9 +11,17 @@ environment:
     type: task/pendulum/swingup
 agent:
   type: agent/td
+  policy:
+    type: policy/discrete/random
+    discretizer:
+      type: discretizer/uniform
+      min: environment/task/action_min
+      max: environment/task/action_max
+      steps: [3]
   predictor:
-    type: predictor/sarsa
+    type: predictor/ggq
     alpha: 0.2
+    eta: 0.01
     gamma: 0.97
     lambda: 0.65
     projector:
@@ -22,31 +30,27 @@ agent:
       resolution: [ 0.31415, 3.1415, 3 ]
       wrapping: [ 6.283, 0, 0 ]
       memory: 8
-    representation:
+    theta:
       type: representation/parameterized/linear
       memory: agent/predictor/projector/memory
-    trace:
-      type: trace/enumerated/replacing
-  policy:
-    type: policy/q
-    projector: agent/predictor/projector
-    representation: agent/predictor/representation
-    discretizer:
-      type: discretizer/uniform
-      min: environment/task/action_min
-      max: environment/task/action_max
-      steps: [3]
-    sampler:
-      type: sampler/epsilon_greedy
-      epsilon: 0.05
+    w:
+      type: representation/parameterized/linear
+      memory: agent/predictor/projector/memory
+      max: 0
+    policy:
+      type: policy/discrete/q
+      representation: agent/predictor/theta
+      discretizer: agent/policy/discretizer
+      sampler:
+        type: sampler/greedy
 visualization:
   type: visualization/value_function
   visualizer:
     type: visualizer/glut
   projector: agent/predictor/projector
-  representation: agent/predictor/representation
+  representation: agent/predictor/theta
   policy:
-    type: policy/q
+    type: policy/discrete/q
     discretizer: agent/policy/discretizer
     sampler:
       type: sampler/greedy

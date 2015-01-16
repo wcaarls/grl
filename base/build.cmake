@@ -12,9 +12,11 @@ add_library(${TARGET} SHARED
             ${SRC}/experiments/online_learning.cpp
 #            ${SRC}/policies/action.cpp
             ${SRC}/policies/q.cpp
+            ${SRC}/policies/random.cpp
 #            ${SRC}/predictors/ac.cpp
 #            ${SRC}/predictors/fqi.cpp
             ${SRC}/predictors/sarsa.cpp
+            ${SRC}/predictors/ggq.cpp
             ${SRC}/projectors/identity.cpp
             ${SRC}/projectors/tile_coding.cpp
 #            ${SRC}/representations/ann.cpp

@@ -22,6 +22,13 @@ class Policy : public Configurable
     virtual void act(const Vector &in, Vector *out) const = 0;
 };
 
+/// Maps states to a discrete set of actions.
+class DiscretePolicy : public Policy
+{
+  public:
+    virtual void distribution(const Vector &in, Vector *out) const = 0;
+};
+
 }
 
 #endif /* POLICY_H_ */

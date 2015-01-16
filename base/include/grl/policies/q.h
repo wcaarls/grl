@@ -18,10 +18,10 @@ namespace grl
 {
 
 /// Policy based on an rqStateActionValue Representation.
-class QPolicy : public Policy
+class QPolicy : public DiscretePolicy
 {
   public:
-    TYPEINFO("policy/q")
+    TYPEINFO("policy/discrete/q")
 
   protected:
     Discretizer *discretizer_;
@@ -37,10 +37,12 @@ class QPolicy : public Policy
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
 
-    // From Policy
+    // From DiscretePolicy
     virtual QPolicy *clone() const;
-    virtual void values(const Vector &in, Vector *out) const;
     virtual void act(const Vector &in, Vector *out) const;
+    virtual void distribution(const Vector &in, Vector *out) const;
+    
+    virtual void values(const Vector &in, Vector *out) const;
 };
 
 }

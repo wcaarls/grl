@@ -115,6 +115,7 @@ class RandGen
     static double get() { return instance()->get(); }
     static double getUniform(double a, double b) { return instance()->getUniform(a, b); }
     static double getNormal(double mu, double sigma) { return instance()->getNormal(mu, sigma); }
+    static double getInteger(size_t ma) { return instance()->getInteger(ma); }
 
     static Rand *instance()
     {

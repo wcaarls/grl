@@ -108,6 +108,7 @@ class YAMLConfigurator
           std::cout << path << key << ": " << subobj << " (type " << subobj->d_type() << ") " << std::endl;
                   
           config->set(key, subobj);
+          references_.set(path + key, subobj);
         }
         else
         {
@@ -122,6 +123,7 @@ class YAMLConfigurator
             std::cout << path << key << ": " << value << std::endl;
           
           config->set(key, value);
+          references_.set(path + key, value);
         }
       }
       

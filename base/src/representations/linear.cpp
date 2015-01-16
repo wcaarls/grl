@@ -44,7 +44,7 @@ LinearRepresentation *LinearRepresentation::clone() const
   return lr;
 }
 
-void LinearRepresentation::read(const ProjectionPtr &projection, Vector *result) const
+double LinearRepresentation::read(const ProjectionPtr &projection, Vector *result) const
 {
   Projection &p = *projection;
   
@@ -81,6 +81,8 @@ void LinearRepresentation::read(const ProjectionPtr &projection, Vector *result)
     else
       throw Exception("Unknown projection for LinearRepresentation");
   }
+  
+  return (*result)[0];
 }
 
 void LinearRepresentation::write(const ProjectionPtr projection, const Vector &target, double alpha)
