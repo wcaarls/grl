@@ -61,6 +61,15 @@ class IdentityProjector : public Projector
     }
 };
 
+class NeighborProjector : public Projector
+{
+  public:
+    TYPEINFO("projector/neighbor")
+
+  public:
+    virtual void push(class Sample *sample) = 0;
+};
+
 }
 
 #endif /* PROJECTOR_H_ */

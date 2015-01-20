@@ -87,24 +87,6 @@ struct IndexProjection : public Projection
   }
 };
 
-/// Search vector plus neighbor indices and distances (e.g. ANNProjector for LLRRepresentation)
-class NeighborProjection : public Projection
-{
-  Vector query;
-  std::vector<size_t> neighbors;
-  Vector weights;
-
-  virtual void ssub(const Projection &rhs)
-  {
-    const NeighborProjection &np = dynamic_cast<const NeighborProjection&>(rhs);
-    for (size_t ii=0; ii < neighbors.size(); ++ii)
-      for (size_t jj=0; jj < np.neighbors.size(); ++jj)
-        if (neighbors[ii] == np.neighbors[ii])
-          weights[ii] = 0.;
-  }
-
-};
-
 }
 
 #endif /* PROJECTION_H_ */

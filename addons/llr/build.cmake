@@ -3,6 +3,7 @@ set(TARGET addon_llr)
 
 # Build library
 add_library(${TARGET} SHARED
+            ${SRC}/ann.cpp
             ${SRC}/llr.cpp
            )
 
