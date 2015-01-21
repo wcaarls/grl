@@ -2,14 +2,14 @@
 #define GRL_ANN_PROJECTOR_H_
 
 #include <grl/projector.h>
-#include <grl/projections/neighbor.h>
+#include <grl/projections/sample.h>
 
 namespace grl {
 
-class ANNProjector : public NeighborProjector
+class ANNProjector : public SampleProjector
 {
   public:
-    TYPEINFO("projector/neighbor/ann")
+    TYPEINFO("projector/sample/ann")
 
   public:
     StorePtr store_;
@@ -26,7 +26,7 @@ class ANNProjector : public NeighborProjector
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
     
-    // From NeighborProjector
+    // From SampleProjector
     virtual ANNProjector *clone() const;
     virtual void push(Sample *sample);
     virtual ProjectionPtr project(const Vector &in) const;

@@ -8,6 +8,8 @@
 #ifndef LLR_REPRESENTATION_H_
 #define LLR_REPRESENTATION_H_
 
+#include <eigen3/Eigen/Dense>
+
 #include <grl/projector.h>
 #include <grl/representation.h>
 
@@ -20,9 +22,14 @@ class LLRRepresentation : public Representation
   public:
     TYPEINFO("representation/llr")
     
+    typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> Matrix;
+    typedef Eigen::Matrix<double, 1, Eigen::Dynamic>              RowVector;
+    typedef Eigen::Matrix<double, Eigen::Dynamic, 1>              ColumnVector;
+    
   protected:
-    NeighborProjector *projector_;
-    double ridge_;
+    SampleProjector *projector_;
+    double ridge_regression_factor_;
+    size_t outputs_;
 
   public:
     // From Configurable

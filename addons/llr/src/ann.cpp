@@ -74,15 +74,18 @@ ProjectionPtr ANNProjector::project(const Vector &in) const
   }
   
   // Return ProjectionPtr pointing to current store
-  NeighborProjection *projection = new NeighborProjection;
+  SampleProjection *projection = new SampleProjection;
   projection->store = store_;
   projection->query = in;
-  projection->neighbors.resize(neighbors_);
-  projection->distances.resize(neighbors_);
+  projection->samples.resize(neighbors_);
+  projection->weights.resize(neighbors_);
+  
+  double hSqr = pow(dd[neighbors_-1], 2);
+  
   for (size_t ii=0; ii < neighbors_; ++ii)
   {
-    projection->neighbors[ii] = nn_idx[ii];
-    projection->distances[ii] = dd[ii];
+    projection->samples[ii] = nn_idx[ii];
+    projection->weights[ii] = sqrt(exp(pow(dd[ii], 2)/hSqr));
   }
   
   return ProjectionPtr(projection);

@@ -61,10 +61,10 @@ class IdentityProjector : public Projector
     }
 };
 
-class NeighborProjector : public Projector
+class SampleProjector : public Projector
 {
   public:
-    TYPEINFO("projector/neighbor")
+    TYPEINFO("projector/sample")
 
   public:
     virtual void push(class Sample *sample) = 0;

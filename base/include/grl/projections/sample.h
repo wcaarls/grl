@@ -1,12 +1,12 @@
 /*
- * neighbor.h
+ * sample.h
  *
  *  Created on: Jul 30, 2014
  *      Author: wcaarls
  */
 
-#ifndef GRL_NEIGHBOR_PROJECTION_H_
-#define GRL_NEIGHBOR_PROJECTION_H_
+#ifndef GRL_SAMPLE_PROJECTION_H_
+#define GRL_SAMPLE_PROJECTION_H_
 
 #include <grl/mutex.h>
 #include <grl/projection.h>
@@ -147,29 +147,29 @@ class SampleStore : public Lockable
 typedef boost::shared_ptr<SampleStore> StorePtr;
 
 /// Search vector plus neighbor indices and distances (e.g. ANNProjector for LLRRepresentation)
-class NeighborProjection : public Projection
+class SampleProjection : public Projection
 {
   public:
     StorePtr store;
     Vector query;
-    std::vector<size_t> neighbors;
-    Vector distances;
+    std::vector<size_t> samples;
+    Vector weights;
     
-    virtual NeighborProjection *clone() const
+    virtual SampleProjection *clone() const
     {
-      return new NeighborProjection(*this);
+      return new SampleProjection(*this);
     }
 
     virtual void ssub(const Projection &rhs)
     {
-      const NeighborProjection &np = dynamic_cast<const NeighborProjection&>(rhs);
-      for (size_t ii=0; ii < neighbors.size(); ++ii)
-        for (size_t jj=0; jj < np.neighbors.size(); ++jj)
-          if (neighbors[ii] == np.neighbors[ii])
-            distances[ii] = -fabs(distances[ii]);
+      const SampleProjection &np = dynamic_cast<const SampleProjection&>(rhs);
+      for (size_t ii=0; ii < samples.size(); ++ii)
+        for (size_t jj=0; jj < np.samples.size(); ++jj)
+          if (samples[ii] == np.samples[ii])
+            weights[ii] = 0.;
     }
 };
 
 }
 
-#endif /* GRL_NEIGHBOR_PROJECTION_H_ */
+#endif /* GRL_SAMPLE_PROJECTION_H_ */
