@@ -10,6 +10,7 @@ add_library(${TARGET} SHARED
             ${SRC}/environments/modeled.cpp
             ${SRC}/environments/pendulum.cpp
             ${SRC}/experiments/online_learning.cpp
+            ${SRC}/experiments/approx_test.cpp
 #            ${SRC}/policies/action.cpp
             ${SRC}/policies/q.cpp
             ${SRC}/policies/random.cpp
@@ -22,6 +23,7 @@ add_library(${TARGET} SHARED
 #            ${SRC}/representations/ann.cpp
 #            ${SRC}/representations/dmp.cpp
             ${SRC}/representations/linear.cpp
+            ${SRC}/representations/multisine.cpp
             ${SRC}/samplers/greedy.cpp
             ${SRC}/traces/enumerated.cpp
             ${SRC}/visualizations/value_function.cpp

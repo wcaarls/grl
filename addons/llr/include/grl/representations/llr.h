@@ -32,6 +32,8 @@ class LLRRepresentation : public Representation
     size_t outputs_;
 
   public:
+    LLRRepresentation() : projector_(NULL), ridge_regression_factor_(0.00001), outputs_(1) { }
+  
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);

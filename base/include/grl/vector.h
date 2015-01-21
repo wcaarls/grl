@@ -198,6 +198,20 @@ inline Vector operator* (const Vector &a, const Vector &b)
   return c;
 }
 
+inline double sum (const Vector &a)
+{
+  double e = 0;
+  
+  for (size_t ii=0; ii < a.size(); ++ii)
+    e += a[ii];
+  return e;
+}
+
+inline double dot (const Vector &a, const Vector &b)
+{
+  return sum(a*b);
+}
+
 template <class T>
 inline void fromVector(const Vector &vector, T &to)
 {

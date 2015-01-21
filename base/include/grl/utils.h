@@ -9,8 +9,9 @@
 #define UTILS_H_
 
 #include <iostream>
+#include <grl/vector.h>
 
-#define grl_assert(x) do { if (!(x)) { std::cerr << __FILE__ << ":" << __LINE__ << ": Assertion '" << #x << " failed" << std::endl; abort(); } } while (0)
+#define grl_assert(x) do { if (!(x)) { std::cerr << __FILE__ << ":" << __LINE__ << ": Assertion '" << #x << "' failed" << std::endl; abort(); } } while (0)
 
 namespace grl
 {
@@ -84,6 +85,14 @@ class Rand
     {
       return a+get()*(b-a);
     }
+    
+    Vector getVector(size_t sz)
+    {
+      Vector v(sz);
+      for (size_t ii=0; ii < sz; ++ii)
+        v[ii] = getUniform(0, 1);
+      return v;
+    }
 
     double getNormal(double mu, double sigma)
     {
@@ -114,6 +123,7 @@ class RandGen
   public:
     static double get() { return instance()->get(); }
     static double getUniform(double a, double b) { return instance()->getUniform(a, b); }
+    static Vector getVector(size_t sz) { return instance()->getVector(sz); }
     static double getNormal(double mu, double sigma) { return instance()->getNormal(mu, sigma); }
     static double getInteger(size_t ma) { return instance()->getInteger(ma); }
 

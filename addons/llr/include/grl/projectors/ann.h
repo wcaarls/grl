@@ -10,6 +10,17 @@ class ANNProjector : public SampleProjector
 {
   public:
     TYPEINFO("projector/sample/ann")
+    
+    struct SampleRef
+    {
+      size_t index;
+      float dist;
+      
+      bool operator<(const SampleRef &rhs) const
+      {
+        return dist < rhs.dist;
+      }
+    };
 
   public:
     StorePtr store_;
@@ -19,6 +30,7 @@ class ANNProjector : public SampleProjector
     mutable ReadWriteLock rwlock_;
 
   public:
+    ANNProjector() : index_(NULL), max_samples_(0), dims_(1), bucket_size_(10), neighbors_(20), error_bound_(0.1) { }
     void reindex();
     
     // From Configurable

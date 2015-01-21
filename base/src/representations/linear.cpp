@@ -90,7 +90,7 @@ void LinearRepresentation::write(const ProjectionPtr projection, const Vector &t
   // TODO: Store read values and update those (for thread safety)
   Vector value;
   read(projection, &value);
-  Vector delta = value + alpha*(target-value);
+  Vector delta = alpha*(target-value);
   
   update(projection, delta);
 }

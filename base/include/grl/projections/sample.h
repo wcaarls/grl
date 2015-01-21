@@ -88,6 +88,8 @@ class SampleStore : public Lockable
       ReadGuard guard(rwlock_);
       SampleStore *ss = new SampleStore();
       
+      std::cout << "prune to " << max_samples << std::endl;
+      
       // Shallow copy
       ss->samples_ = samples_;
       
@@ -98,11 +100,11 @@ class SampleStore : public Lockable
       
         // Drop pruned samples
         ss->samples_.resize(max_samples);
-        
-        // Transfer ownership of remaining samples
-        for (size_t ii=0; ii < max_samples; ++ii)
-          (*ss)[ii]->owner = ss;
       }
+       
+      // Transfer ownership of remaining samples
+      for (size_t ii=0; ii < ss->samples_.size(); ++ii)
+        ss->samples_[ii]->owner = ss;
       
       return ss;
     }
@@ -152,7 +154,7 @@ class SampleProjection : public Projection
   public:
     StorePtr store;
     Vector query;
-    std::vector<size_t> samples;
+    std::vector<size_t> indices;
     Vector weights;
     
     virtual SampleProjection *clone() const
@@ -163,9 +165,9 @@ class SampleProjection : public Projection
     virtual void ssub(const Projection &rhs)
     {
       const SampleProjection &np = dynamic_cast<const SampleProjection&>(rhs);
-      for (size_t ii=0; ii < samples.size(); ++ii)
-        for (size_t jj=0; jj < np.samples.size(); ++jj)
-          if (samples[ii] == np.samples[ii])
+      for (size_t ii=0; ii < indices.size(); ++ii)
+        for (size_t jj=0; jj < np.indices.size(); ++jj)
+          if (indices[ii] == np.indices[ii])
             weights[ii] = 0.;
     }
 };
