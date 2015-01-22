@@ -6,6 +6,7 @@ add_library(${TARGET} SHARED
             ${SRC}/grl.cpp
 #            ${SRC}/agents/black_box.cpp
             ${SRC}/agents/td.cpp
+            ${SRC}/agents/dyna.cpp
             ${SRC}/discretizers/uniform.cpp
             ${SRC}/environments/modeled.cpp
             ${SRC}/environments/pendulum.cpp

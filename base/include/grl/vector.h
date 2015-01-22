@@ -212,6 +212,18 @@ inline double dot (const Vector &a, const Vector &b)
   return sum(a*b);
 }
 
+inline Vector extend(const Vector &a, const Vector &b)
+{
+  Vector c(a.size()+b.size());
+  
+  for (size_t ii=0; ii < a.size(); ++ii)
+    c[ii] = a[ii];
+  for (size_t ii=0; ii < b.size(); ++ii)
+    c[a.size()+ii] = b[ii];
+
+  return c;
+}
+
 template <class T>
 inline void fromVector(const Vector &vector, T &to)
 {

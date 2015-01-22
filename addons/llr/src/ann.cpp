@@ -99,6 +99,12 @@ ProjectionPtr ANNProjector::project(const Vector &in) const
       
       for (size_t ii=0; ii < index_samples; ++ii)
       {
+        if (nn_idx[ii] == ANN_NULL_IDX)
+        {
+          // Search failed
+          return ProjectionPtr(projection);
+        }
+      
         refs[ii].index = nn_idx[ii];
         refs[ii].dist = dd[ii];
       }
@@ -129,6 +135,6 @@ ProjectionPtr ANNProjector::project(const Vector &in) const
       projection->weights[ii] = sqrt(exp(-refs[ii].dist/hSqr));
     }
   }
-    
+
   return ProjectionPtr(projection);
 }

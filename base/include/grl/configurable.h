@@ -130,7 +130,10 @@ class YAMLConfigurator
       // TODO: Check config against request
       
       if (obj)
+      {
+        std::cout << "Configuring " << obj->d_type() << std::endl;
         obj->configure(*config);
+      }
         
       for (Configuration::MapType::const_iterator ii=config->parameters().begin(); ii != config->parameters().end(); ++ii)
         references_.set(path + ii->first, ii->second->str());

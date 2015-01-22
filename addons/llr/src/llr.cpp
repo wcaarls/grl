@@ -29,6 +29,8 @@ double LLRRepresentation::read(const ProjectionPtr &projection, Vector *result) 
 {
   SampleProjection *p = dynamic_cast<SampleProjection*>(projection.get());
   grl_assert(p);
+  
+  result->clear();
 
   // Convert query
   RowVector q(p->query.size()+1);
@@ -59,11 +61,11 @@ double LLRRepresentation::read(const ProjectionPtr &projection, Vector *result) 
   Matrix ATAL = At*A + Matrix::Identity(A.cols(), A.cols())*ridge_regression_factor_;
   Eigen::LLT<Matrix> decompATAL(ATAL);
   if (decompATAL.info() != Eigen::Success)
-    return false;
+    return 0.;
 
   Matrix r = decompATAL.solve(At);
   if (decompATAL.info() != Eigen::Success)
-    return false;
+    return 0.;
 
   RowVector y = q*(r*b);
   

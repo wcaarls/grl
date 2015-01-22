@@ -1,0 +1,87 @@
+type: experiment/online_learning
+rate: 0
+environment:
+  type: environment/modeled
+  model:
+    type: model/dynamical
+    dynamics:
+      type: dynamics/pendulum
+    control_step: 0.03
+  task:
+    type: task/pendulum/swingup
+agent:
+  type: agent/dyna
+  planning_steps: 20
+  wrapping: [ 6.283, 0 ]
+  predictor:
+    type: predictor/sarsa
+    alpha: 0.2
+    gamma: 0.97
+    lambda: 0.65
+    projector:
+      type: projector/tilecoding
+      tilings: 16
+      resolution: [ 0.31415, 3.1415, 3 ]
+      wrapping: [ 6.283, 0, 0 ]
+      memory: 8
+    representation:
+      type: representation/parameterized/linear
+      memory: agent/predictor/projector/memory
+    trace:
+      type: trace/enumerated/replacing
+  policy:
+    type: policy/discrete/q
+    projector: agent/predictor/projector
+    representation: agent/predictor/representation
+    discretizer:
+      type: discretizer/uniform
+      min: environment/task/action_min
+      max: environment/task/action_max
+      steps: [3]
+    sampler:
+      type: sampler/epsilon_greedy
+      epsilon: 0.05
+  model_agent:
+    type: agent/td
+    predictor:
+      type: predictor/sarsa
+      alpha: 0.02
+      gamma: agent/predictor/gamma
+      lambda: agent/predictor/lambda
+      projector: agent/predictor/projector
+      representation: agent/predictor/representation
+      trace:
+        type: trace/enumerated/replacing
+    policy:
+      type: policy/discrete/q
+      projector: agent/predictor/projector
+      representation: agent/predictor/representation
+      discretizer: agent/policy/discretizer
+      sampler: agent/policy/sampler
+  model_projector:
+    type: projector/sample/ann
+    samples: 100000
+    dims: 3
+    neighbors: 12
+    bucket_size: 10
+    error_bound: 0.01
+  model_representation:
+    type: representation/llr
+    ridge: 0.00001
+    outputs: 4
+    projector: agent/model_projector
+visualization:
+  type: visualization/value_function
+  visualizer:
+    type: visualizer/glut
+  projector: agent/predictor/projector
+  representation: agent/predictor/representation
+  policy:
+    type: policy/discrete/q
+    discretizer: agent/policy/discretizer
+    sampler:
+      type: sampler/greedy
+  min: environment/task/observation_min
+  max: environment/task/observation_max
+  points: 65536
+ 
