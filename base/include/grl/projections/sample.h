@@ -21,8 +21,8 @@ class Sample
   friend class SampleStore;
 
   public:
-    float in[SS_MAX_COORDS], out[SS_MAX_COORDS];
-    float relevance;
+    double in[SS_MAX_COORDS], out[SS_MAX_COORDS];
+    double relevance;
     
   private:
     class SampleStore *owner;
@@ -55,8 +55,9 @@ class SampleStore : public Lockable
     ReadWriteLock rwlock_;
     
   public:
-    SampleStore()
+    SampleStore(size_t sz=10000)
     {
+      samples_.reserve(sz);
     }
           
     ~SampleStore()
@@ -70,10 +71,9 @@ class SampleStore : public Lockable
     {
       ReadGuard guard(rwlock_);
     
-      SampleStore *ss = new SampleStore();
+      SampleStore *ss = new SampleStore(samples_.size());
       
       // Deep copy
-      ss->samples_.reserve(samples_.size());
       for (size_t ii=0; ii < samples_.size(); ++ii)
       {
         ss->samples_.push_back(new Sample(*samples_[ii]));
@@ -86,9 +86,7 @@ class SampleStore : public Lockable
     SampleStore *prune(size_t max_samples)
     {
       ReadGuard guard(rwlock_);
-      SampleStore *ss = new SampleStore();
-      
-      std::cout << "prune to " << max_samples << std::endl;
+      SampleStore *ss = new SampleStore(2*max_samples);
       
       // Shallow copy
       ss->samples_ = samples_;

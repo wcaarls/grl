@@ -80,7 +80,7 @@ void ApproxTestExperiment::run() const
     for (size_t jj=0; jj < out.size(); ++jj)
       (*os) << out[jj] << ", ";
     for (size_t jj=0; jj < app.size(); ++jj)
-      (*os) << out[jj] << ", ";
+      (*os) << app[jj] << ", ";
     (*os) << e << std::endl;
   }
 }

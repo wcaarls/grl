@@ -10,7 +10,7 @@ projector:
   dims: 2
   neighbors: 20
   bucket_size: 10
-  error_bound: 0.1
+  error_bound: 0.01
 representation:
   type: representation/llr
   ridge: 0.00001

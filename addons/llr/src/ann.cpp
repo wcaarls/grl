@@ -33,7 +33,7 @@ void ANNProjector::push(Sample *sample)
   store_->push_back(sample);
 
   // Should be in a separate thread
-  if ((store_->size() - indexed_samples_) > indexed_samples_)
+  if ((store_->size() - indexed_samples_) > std::min(indexed_samples_, (size_t)100))
   {
     rwlock_.unlock();
     reindex();
@@ -44,8 +44,6 @@ void ANNProjector::push(Sample *sample)
 
 void ANNProjector::reindex()
 {
-  std::cout << "reindex" << std::endl;
-
   // Create new pruned store
   StorePtr newstore = StorePtr(store_->prune(max_samples_));
 
@@ -82,8 +80,6 @@ ProjectionPtr ANNProjector::project(const Vector &in) const
          linear_samples = store_->size()-indexed_samples_,
          available_samples = std::min(neighbors_, index_samples+linear_samples);
          
-  std::cout << "i: " << index_samples << ", l: " << linear_samples << ", a: " << available_samples << std::endl;
-
   SampleProjection *projection = new SampleProjection;
   projection->store = store_;
   projection->query = in;
@@ -92,7 +88,7 @@ ProjectionPtr ANNProjector::project(const Vector &in) const
   {
     std::vector<SampleRef> refs(index_samples+linear_samples);
       
-    if (indexed_samples_)
+    if (index_samples)
     {
       // Search store using index
       ANNkd_tree_copy index(*index_);
@@ -101,7 +97,6 @@ ProjectionPtr ANNProjector::project(const Vector &in) const
       
       index.annkSearch(query, index_samples, nn_idx, dd, error_bound_);
       
-      refs.resize(index_samples);
       for (size_t ii=0; ii < index_samples; ++ii)
       {
         refs[ii].index = nn_idx[ii];
@@ -114,11 +109,10 @@ ProjectionPtr ANNProjector::project(const Vector &in) const
     {
       double dist=0;
       for (size_t dd=0; dd < dims_; ++dd)
-        dist += pow((*store_)[indexed_samples_+ii]->in[dd] - query[dd], 2);
-      dist = sqrt(dist);
+        dist += pow((*store_)[indexed_samples_+ii]->in[dd] - in[dd], 2);
       
-      refs[ii].index = ii;
-      refs[ii].dist = dist;
+      refs[index_samples+ii].index = indexed_samples_+ii;
+      refs[index_samples+ii].dist = dist;
     }
     
     std::sort(refs.begin(), refs.end());
@@ -127,12 +121,12 @@ ProjectionPtr ANNProjector::project(const Vector &in) const
     projection->indices.resize(available_samples);
     projection->weights.resize(available_samples);
     
-    double hSqr = pow(refs[available_samples-1].dist, 2);
+    double hSqr = refs[available_samples-1].dist;
     
     for (size_t ii=0; ii < available_samples; ++ii)
     {
       projection->indices[ii] = refs[ii].index;
-      projection->weights[ii] = sqrt(exp(pow(refs[ii].dist, 2)/hSqr));
+      projection->weights[ii] = sqrt(exp(-refs[ii].dist/hSqr));
     }
   }
     

@@ -53,7 +53,7 @@ double LLRRepresentation::read(const ProjectionPtr &projection, Vector *result) 
         b(ii, jj) = (*p->store)[p->indices[ii]]->out[jj]*p->weights[ii];
     }
   }
-
+  
   // Solve with ATA*x = ATb with QR
   Matrix At = A.transpose();  
   Matrix ATAL = At*A + Matrix::Identity(A.cols(), A.cols())*ridge_regression_factor_;
