@@ -32,6 +32,7 @@ class DynaAgent : public Agent
     
     Vector prev_obs_, prev_action_, wrapping_;
     size_t planning_steps_;
+    Vector observation_min_, observation_max_;
     
   public:
     DynaAgent() : policy_(NULL), predictor_(NULL), model_agent_(NULL), model_projector_(NULL), model_representation_(NULL), planning_steps_(1) { }

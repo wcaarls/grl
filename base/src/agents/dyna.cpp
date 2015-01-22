@@ -20,6 +20,9 @@ void DynaAgent::configure(Configuration &config)
   model_representation_ = (Representation*)config["model_representation"].ptr();
   
   wrapping_ = config["wrapping"];
+  
+  observation_min_ = config["observation_min"];
+  observation_max_ = config["observation_max"];
 }
 
 void DynaAgent::reconfigure(const Configuration &config)
@@ -75,7 +78,6 @@ void DynaAgent::end(double reward)
 
 void DynaAgent::learnModel(const Transition &t)
 {
-  ProjectionPtr p = model_projector_->project(extend(t.prev_obs, t.prev_action));
   Vector target;
   
   if (!t.obs.empty())
@@ -102,6 +104,7 @@ void DynaAgent::learnModel(const Transition &t)
     target.push_back(1);
   }
   
+  ProjectionPtr p = model_projector_->project(extend(t.prev_obs, t.prev_action));
   model_representation_->write(p, target);
 }
 
@@ -117,35 +120,53 @@ void DynaAgent::stepModel(const Vector &obs, const Vector &action, Vector *next,
  
   model_representation_->read(p, next);
   
-  for (size_t ii=0; ii < next->size(); ++ii)
+  bool valid = !next->empty();
+  for (size_t ii=0; ii < obs.size(); ++ii)
+  {
     (*next)[ii] += obs[ii];
     
+    if (wrapping_[ii])
+      (*next)[ii] = fmod(fmod((*next)[ii], wrapping_[ii]) + wrapping_[ii], wrapping_[ii]);
+    
+    if ((*next)[ii] < observation_min_[ii] || (*next)[ii] > observation_max_[ii])
+      valid = false;
+  }
+
   // Guard against failed model prediction
-  if (!next->empty())
+  if (valid)
   {
     *reward = (*next)[next->size()-2];  
     *terminal = (*next)[next->size()-1];
     next->resize(next->size()-2);
   }
+  else
+    next->clear();
 }
 
 void DynaAgent::runModel()
 {
-  Vector obs = prev_obs_, action;
+  Vector obs, action;
   int terminal=1;
+
+  size_t steps=0;
 
   for (size_t ii=0; ii < planning_steps_; ++ii)
   {
     if (terminal)
+    {
+      obs = prev_obs_;
       model_agent_->start(obs, &action);
+    }
       
     Vector next;
     double reward;
   
     stepModel(obs, action, &next, &reward, &terminal);
-
+    
+    obs = next;
+        
     // Guard against failed model prediction    
-    if (!next.empty())
+    if (!obs.empty())
     {
       if (terminal)
         model_agent_->end(reward);
@@ -154,5 +175,12 @@ void DynaAgent::runModel()
     }
     else
       terminal = 1;
+      
+    // Break episodes after a while
+    if (steps++ == 100)
+    {
+      steps = 0;
+      terminal = 1;
+    }
   }
 }

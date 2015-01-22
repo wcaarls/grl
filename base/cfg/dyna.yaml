@@ -11,8 +11,10 @@ environment:
     type: task/pendulum/swingup
 agent:
   type: agent/dyna
-  planning_steps: 20
+  planning_steps: 200
   wrapping: [ 6.283, 0 ]
+  observation_min: environment/task/observation_min
+  observation_max: environment/task/observation_max
   predictor:
     type: predictor/sarsa
     alpha: 0.2
