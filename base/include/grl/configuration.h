@@ -1,8 +1,28 @@
-/*
- * configuration.h
+/** \file configuration.h
+ * \brief Parameters for object configuration.
  *
- *  Created on: Nov 10, 2011
- *      Author: wcaarls
+ * \author    Wouter Caarls <wouter@caarls.org>
+ * \date      2015-01-22
+ *
+ * \copyright \verbatim
+ * Copyright (c) 2015, Wouter Caarls
+ * All rights reserved.
+ *
+ * This file is part of GRL, the Generic Reinforcement Learning library.
+ *
+ * GRL is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * \endverbatim
  */
 
 #ifndef GRL_CONFIGURATION_H_
@@ -50,6 +70,7 @@ class bad_param : public Exception
     bad_param(std::string which) throw() : Exception("Parameter '" + which + "' has an illegal value") { }
 };
 
+/// Configuration parameter.
 class ConfigurationParameter
 {
   protected:
@@ -99,6 +120,7 @@ class ConfigurationParameter
     }
 };
 
+/// Set of configuration parameters.
 class Configuration
 {
   public:

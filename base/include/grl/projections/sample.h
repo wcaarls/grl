@@ -1,8 +1,28 @@
-/*
- * sample.h
+/** \file sample.h
+ * \brief Sample-based projection header file.
  *
- *  Created on: Jul 30, 2014
- *      Author: wcaarls
+ * \author    Wouter Caarls <wouter@caarls.org>
+ * \date      2015-01-22
+ *
+ * \copyright \verbatim
+ * Copyright (c) 2015, Wouter Caarls
+ * All rights reserved.
+ *
+ * This file is part of GRL, the Generic Reinforcement Learning library.
+ *
+ * GRL is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * \endverbatim
  */
 
 #ifndef GRL_SAMPLE_PROJECTION_H_
@@ -16,6 +36,7 @@
 namespace grl
 {
 
+/// Supervised learning sample (input-output pair with relevance).
 class Sample
 {
   friend class SampleStore;
@@ -48,6 +69,13 @@ struct PointerLess
   }
 };
                              
+/// Sample database.
+/**
+ * Upon destruction, the database only deletes the samples which belong
+ * to it. When the database is copied (pruned), ownership transfers.
+ * Since samples store which database they use in a shared_ptr, it will
+ * remain valid throughout their lifetimes.
+ */
 class SampleStore : public Lockable
 {
   protected:
@@ -144,9 +172,10 @@ class SampleStore : public Lockable
     }
 };
 
+/// Shared pointer to a SampleStore.
 typedef boost::shared_ptr<SampleStore> StorePtr;
 
-/// Search vector plus neighbor indices and distances (e.g. ANNProjector for LLRRepresentation)
+/// Search vector plus neighbor indices and weights (e.g. ANNProjector for LLRRepresentation)
 class SampleProjection : public Projection
 {
   public:

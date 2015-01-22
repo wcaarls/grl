@@ -1,12 +1,32 @@
-/*
- * dyna_agent.h
+/** \file dyna.h
+ * \brief Dyna agent header file.
  *
- *  Created on: Jul 30, 2014
- *      Author: wcaarls
+ * \author    Wouter Caarls <wouter@caarls.org>
+ * \date      2015-01-22
+ *
+ * \copyright \verbatim
+ * Copyright (c) 2015, Wouter Caarls
+ * All rights reserved.
+ *
+ * This file is part of GRL, the Generic Reinforcement Learning library.
+ *
+ * GRL is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * \endverbatim
  */
 
-#ifndef DYNA_AGENT_H_
-#define DYNA_AGENT_H_
+#ifndef GRL_DYNA_AGENT_H_
+#define GRL_DYNA_AGENT_H_
 
 #include <grl/agent.h>
 #include <grl/policy.h>
@@ -17,7 +37,7 @@
 namespace grl
 {
 
-/// Dyna learning agent.
+/// Dyna model-based learning agent.
 class DynaAgent : public Agent
 {
   public:
@@ -57,4 +77,4 @@ class DynaAgent : public Agent
 
 }
 
-#endif /* DYNA_AGENT_H_ */
+#endif /* GRL_DYNA_AGENT_H_ */
