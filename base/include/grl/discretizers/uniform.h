@@ -41,6 +41,8 @@ class UniformDiscretizer : public Discretizer
     TYPEINFO("discretizer/uniform")
 
   protected:
+    Vector min_, max_, steps_;
+  
     std::vector<Vector> values_;
 
   public:

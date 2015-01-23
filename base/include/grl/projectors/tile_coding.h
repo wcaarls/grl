@@ -37,13 +37,15 @@ namespace grl
 class TileCodingProjector : public Projector
 {
   public:
-    TYPEINFO("projector/tilecoding")
+    TYPEINFO("projector/tile_coding")
     
   protected:
     int tilings_, memory_;
-    Vector scaling_, wrapping_;
+    Vector resolution_, scaling_, wrapping_;
     
   public:
+    TileCodingProjector() : tilings_(16), memory_(8*1024*1024) { }
+  
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);

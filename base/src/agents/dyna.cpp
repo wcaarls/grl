@@ -33,6 +33,16 @@ REGISTER_CONFIGURABLE(DynaAgent)
 
 void DynaAgent::request(ConfigurationRequest *config)
 {
+  config->push_back(CRP("planning_steps", "Number of planning steps per control step", planning_steps_, CRP::Configuration, 0));
+  config->push_back(CRP("wrapping", "Wrapping boundaries", wrapping_));
+  config->push_back(CRP("observation_min", "Lower limit on observations", observation_min_, CRP::System));
+  config->push_back(CRP("observation_max", "Upper limit on observations", observation_max_, CRP::System));
+
+  config->push_back(CRP("policy", "policy", "Control policy", policy_));
+  config->push_back(CRP("predictor", "predictor", "Value function predictor", predictor_));
+  config->push_back(CRP("model_agent", "agent", "Agent used for planning episodes", model_agent_));
+  config->push_back(CRP("model_projector", "projector", "Projector for transition model (should match representation)", model_projector_));
+  config->push_back(CRP("model_representation", "representation", "Representation for transition model", model_representation_));
 }
 
 void DynaAgent::configure(Configuration &config)

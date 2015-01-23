@@ -27,6 +27,9 @@
 #ifndef GRL_CONFIGURABLE_H_
 #define GRL_CONFIGURABLE_H_
 
+#include <limits.h>
+#include <float.h>
+
 #include <yaml-cpp/yaml.h>
 
 #include <grl/utils.h>
@@ -36,29 +39,62 @@
 namespace grl {
 
 /// Parameter requested by a Configurable object.
-class ConfigurationRequestParameter
+struct CRP
 {
-  std::string name, type;
-  bool required;
+  typedef enum {System, Configuration, Online} Mutability;
+
+  std::string name, type, description, value;
+  Mutability mutability;
   double min, max;
   std::vector<std::string> options;
   
-  ConfigurationRequestParameter(std::string _name, std::string _type="",
-    bool _required=false, double _min=0, double _max=0, std::vector<std::string> _options=std::vector<std::string>()) :
-    name(_name), type(_type), required(_required), min(_min), max(_max), options(_options)
+  CRP(std::string _name, std::string _type, std::string _description,
+      class Configurable *_value) :
+    name(_name), type(_type), description(_description), mutability(Configuration)
   {
-    if (min == max)
-    {
-      min = -std::numeric_limits<double>::infinity();
-      max =  std::numeric_limits<double>::infinity();
-    }
+    setValue(_value);
   }
+  
+  CRP(std::string _name, std::string _description,
+      int _value, Mutability _mutability=Configuration, int _min=0, int _max=INT_MAX) :
+    name(_name), type("int"), description(_description), mutability(_mutability), min(_min), max(_max)
+  {
+    setValue(_value);
+  }
+
+  CRP(std::string _name, std::string _description,
+      double _value, Mutability _mutability=Configuration, double _min=0., double _max=1.) :
+    name(_name), type("double"), description(_description), mutability(_mutability), min(_min), max(_max)
+  {
+    setValue(_value);
+  }
+  
+  CRP(std::string _name, std::string _description,
+      Vector _value, Mutability _mutability=Configuration) :
+    name(_name), type("vector"), description(_description), mutability(_mutability)
+  {
+    setValue(_value);
+  }
+
+  CRP(std::string _name, std::string _description,
+      std::string _value, Mutability _mutability=Configuration, 
+      std::vector<std::string> _options=std::vector<std::string>()) :
+    name(_name), type("string"), description(_description), value(_value), mutability(_mutability), options(_options)
+  { 
+  }
+  
+  protected:
+    template<class T>
+    void setValue(const T& v)
+    {
+      std::ostringstream oss;
+      oss << v;
+      value = oss.str();
+    }
 };
 
 /// Set of requested parameters.
-class ConfigurationRequest
-{
-};
+typedef std::vector<CRP> ConfigurationRequest;
 
 #define TYPEINFO(t)\
     static std::string s_type() { return t; }\
@@ -97,79 +133,7 @@ class YAMLConfigurator
       return load(YAML::LoadFile(file.c_str()), config, "");
     }
   
-    Configurable *load(const YAML::Node &node, Configuration *config, const std::string &path)
-    {
-      Configurable *obj=NULL;
-      
-      if (!node.IsMap())
-        throw Exception("Can only load YAML maps");
-        
-      if (node["type"])
-      {
-        obj = ConfigurableFactory::create(node["type"].as<std::string>());
-        
-        if (!obj)
-        {
-          std::cerr << "Requested unknown object type " << node["type"] << std::endl;
-          return NULL;
-        }
-      }
-        
-      for (YAML::const_iterator it = node.begin(); it != node.end(); ++it)
-      {
-        std::string key, value;
-        key = it->first.as<std::string>();
-        
-        if (key == "type")
-          continue;
-          
-        if (it->second.IsMap())
-        {
-          Configuration subcfg(*config);
-          
-          Configurable *subobj = load(it->second, &subcfg, path + key + "/");
-          
-          if (!subobj)
-          {
-            safe_delete(&obj);
-            return NULL;
-          }
-          
-          std::cout << path << key << ": " << subobj << " (type " << subobj->d_type() << ") " << std::endl;
-                  
-          config->set(key, subobj);
-          references_.set(path + key, subobj);
-        }
-        else
-        {
-          value = toString(it->second);
-          
-          if (references_.has(value))
-          {
-            std::cout << path << key << ": " << references_[value].str() << " (from " << value << ")" << std::endl;
-            value = references_[value].str();
-          }
-          else
-            std::cout << path << key << ": " << value << std::endl;
-          
-          config->set(key, value);
-          references_.set(path + key, value);
-        }
-      }
-      
-      // TODO: Check config against request
-      
-      if (obj)
-      {
-        std::cout << "Configuring " << obj->d_type() << std::endl;
-        obj->configure(*config);
-      }
-        
-      for (Configuration::MapType::const_iterator ii=config->parameters().begin(); ii != config->parameters().end(); ++ii)
-        references_.set(path + ii->first, ii->second->str());
-        
-      return obj;
-    }      
+    Configurable *load(const YAML::Node &node, Configuration *config, const std::string &path);
     
   protected:
     std::string toString(const YAML::Node &node)

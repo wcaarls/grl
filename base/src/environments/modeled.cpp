@@ -34,6 +34,8 @@ REGISTER_CONFIGURABLE(DynamicalModel)
 
 void ModeledEnvironment::request(ConfigurationRequest *config)
 {
+  config->push_back(CRP("model", "model", "Environment model", model_));
+  config->push_back(CRP("task", "task", "Task to perform in the environment (should match model)", task_));
 }
 
 void ModeledEnvironment::configure(Configuration &config)

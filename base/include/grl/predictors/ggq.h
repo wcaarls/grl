@@ -47,12 +47,14 @@ class GGQPredictor : public Predictor
     TYPEINFO("predictor/ggq")
 
   protected:
-    double alpha_, eta_, gamma_, lambda_;
+    double alpha_, eta_, gamma_;
     Projector *projector_;
     Representation *theta_, *w_;
     Policy *policy_;
 
   public:
+    GGQPredictor() : alpha_(0.2), eta_(0.1), gamma_(0.97), projector_(NULL), theta_(NULL), w_(NULL), policy_(NULL) { }
+  
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);

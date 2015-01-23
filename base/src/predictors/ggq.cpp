@@ -33,6 +33,14 @@ REGISTER_CONFIGURABLE(GGQPredictor)
 
 void GGQPredictor::request(ConfigurationRequest *config)
 {
+  config->push_back(CRP("alpha", "Learning rate", alpha_));
+  config->push_back(CRP("eta", "Relative secondary learning rate (actual is alpha*eta)", eta_));
+  config->push_back(CRP("gamma", "Discount rate", gamma_));
+
+  config->push_back(CRP("projector", "projector", "Projects observation-action pairs onto representation space", projector_));
+  config->push_back(CRP("theta", "representation", "Q-value representation", theta_));
+  config->push_back(CRP("w", "representation", "Secondary weights representation (should match theta)", w_));
+  config->push_back(CRP("policy", "policy/discrete/q", "Q-value based control policy", policy_));
 }
 
 void GGQPredictor::configure(Configuration &config)
@@ -45,7 +53,6 @@ void GGQPredictor::configure(Configuration &config)
   alpha_ = config["alpha"];
   eta_ = config["eta"];
   gamma_ = config["gamma"];
-  lambda_ = config["lambda"];
 }
 
 void GGQPredictor::reconfigure(const Configuration &config)
@@ -77,7 +84,7 @@ void GGQPredictor::update(const Transition &transition)
 
   // Update regular weights
   theta_->update(phi, VectorConstructor(alpha_*delta));
-  theta_->update(phi_next, VectorConstructor(-alpha_*gamma_*(1-lambda_)*dotwphi));
+  theta_->update(phi_next, VectorConstructor(-alpha_*gamma_*dotwphi));
   
   // Update extra weights
   w_->update(phi, VectorConstructor(alpha_*eta_*(delta - dotwphi)));

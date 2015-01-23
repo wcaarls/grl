@@ -45,6 +45,8 @@ class MultisineMapping : public Mapping
     Vector params_;
 
   public:
+    MultisineMapping() : outputs_(1), sines_(1), inputs_(1) { }
+  
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);

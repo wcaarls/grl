@@ -51,18 +51,20 @@ class ValueFunctionVisualization : public Visualization
     QPolicy *policy_;
   
     int state_dims_;
-    Vector state_min_, state_max_;
-    double epsilon_;
+    Vector state_min_, state_max_, dims_;
     int points_, dimpoints_, texpoints_;
     unsigned int texture_;
     unsigned char *data_;
     Vector dim_order_;
     double value_min_, value_max_;
     bool updated_;
-    std::vector<double> state_;
+    Vector state_;
   
   public:
-    ValueFunctionVisualization() : state_dims_(0), points_(0), texture_(0), value_min_(0), value_max_(0), updated_(true) { }
+    ValueFunctionVisualization() : state_dims_(0), points_(1048576), dimpoints_(0), texpoints_(0), texture_(0), data_(NULL), value_min_(0), value_max_(0), updated_(true)
+    {
+      dims_ = VectorConstructor(0., 1.);
+    }
     
     // From Configurable
     virtual void request(ConfigurationRequest *config);

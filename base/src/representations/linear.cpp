@@ -33,31 +33,37 @@ REGISTER_CONFIGURABLE(LinearRepresentation)
 
 void LinearRepresentation::request(ConfigurationRequest *config)
 {
+  config->push_back(CRP("memory", "Feature vector size", (int)memory_));
+  config->push_back(CRP("outputs", "Number of outputs", (int)outputs_));
+
+  config->push_back(CRP("min", "Lower initial value limit", min_));
+  config->push_back(CRP("max", "Upper initial value limit", max_));
 }
 
 void LinearRepresentation::configure(Configuration &config)
 {
-  size_t memory;
-  config.get("memory", memory, (size_t)16);
-  config.get("outputs", outputs_, (size_t)1);
+  memory_ = config["memory"];
+  outputs_ = config["outputs"];
   
-  Vector min, max;
-  min.resize(outputs_, 0.);
-  max.resize(outputs_, 1.);
+  min_ = config["min"];
+  if (min_.size() && min_.size() < outputs_)
+    min_.resize(outputs_, min_[0]);
+  if (min_.size() != outputs_)
+    throw bad_param("representation/linear:min");
   
-  config.get("min", min);
-  config.get("max", max);
+  max_ = config["max"];
+  if (max_.size() && max_.size() < outputs_)
+    max_.resize(outputs_, max_[0]);
+  if (max_.size() != outputs_)
+    throw bad_param("representation/linear:max");
 
-  grl_assert(min.size() == outputs_);
-  grl_assert(max.size() == outputs_);
-
-  params_.resize(memory * outputs_ * 1024*1024);
+  params_.resize(memory_ * outputs_);
   
   // Initialize memory
   Rand *rand = RandGen::instance();
-  for (size_t ii=0; ii < memory*1024*1024; ++ii)
+  for (size_t ii=0; ii < memory_; ++ii)
     for (size_t jj=0; jj < outputs_; ++jj)
-      params_[ii*outputs_+jj] = rand->getUniform(min[jj], max[jj]);
+      params_[ii*outputs_+jj] = rand->getUniform(min_[jj], max_[jj]);
 }
 
 void LinearRepresentation::reconfigure(const Configuration &config)

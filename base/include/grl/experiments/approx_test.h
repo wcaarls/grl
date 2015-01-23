@@ -51,6 +51,8 @@ class ApproxTestExperiment : public Experiment
     std::string file_;
 
   public:
+    ApproxTestExperiment() : projector_(NULL), representation_(NULL), mapping_(NULL), outputs_(1), train_samples_(1000), test_samples_(1000) { }
+  
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);

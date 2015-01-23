@@ -34,6 +34,8 @@ REGISTER_CONFIGURABLE(RandomDiscretePolicy)
 
 void RandomPolicy::request(ConfigurationRequest *config)
 {
+  config->push_back(CRP("min", "Lower action limit", min_));
+  config->push_back(CRP("max", "Upper action limit", max_));
 }
 
 void RandomPolicy::configure(Configuration &config)
@@ -41,7 +43,8 @@ void RandomPolicy::configure(Configuration &config)
   min_ = config["min"];
   max_ = config["max"];
   
-  grl_assert(min_.size() == max_.size());
+  if (min_.size() != max_.size())
+    throw bad_param("policy/random:{min,max}");
 }
 
 void RandomPolicy::reconfigure(const Configuration &config)
@@ -64,6 +67,7 @@ void RandomPolicy::act(const Vector &in, Vector *out) const
 
 void RandomDiscretePolicy::request(ConfigurationRequest *config)
 {
+  config->push_back(CRP("discretizer", "discretizer", "Action discretizer", discretizer_));
 }
 
 void RandomDiscretePolicy::configure(Configuration &config)

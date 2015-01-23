@@ -52,6 +52,8 @@ class QPolicy : public DiscretePolicy
     std::vector<Vector> variants_;
 
   public:
+    QPolicy() : discretizer_(NULL), projector_(NULL), representation_(NULL), sampler_(NULL) { }
+  
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);

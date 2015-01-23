@@ -38,6 +38,14 @@ REGISTER_CONFIGURABLE(ValueFunctionVisualization)
 
 void ValueFunctionVisualization::request(ConfigurationRequest *config)
 {
+  config->push_back(CRP("min", "Lower observation limit", state_min_));
+  config->push_back(CRP("max", "Upper observation limit", state_max_));
+  config->push_back(CRP("points", "Number of points to evaluate", points_));
+  config->push_back(CRP("dims", "Order of dimensions to visualize", dims_));
+
+  config->push_back(CRP("projector", "projector", "Projects observation-action pairs onto representation space", projector_));
+  config->push_back(CRP("representation", "representation", "Q-value representation", representation_));
+  config->push_back(CRP("policy", "policy/discrete/q", "Q-value based control policy", policy_));
 }
 
 void ValueFunctionVisualization::configure(Configuration &config)
@@ -52,14 +60,16 @@ void ValueFunctionVisualization::configure(Configuration &config)
   config.get("points", points_, 1048576);
 
   // Create point iteration order lookup table  
-  Vector dims = VectorConstructor(0., 1.);
-  config.get("dims", dims);
+  dims_ = config["dims"];
+  if (dims_.size() != 2)
+    throw bad_param("visualization/value_function:dims");
+  
   dim_order_.clear();
   for (int ii=0; ii < state_dims_; ++ii)
-    if (ii != dims[0] && ii != dims[1])
+    if (ii != dims_[0] && ii != dims_[1])
       dim_order_.push_back(ii);
-  dim_order_.push_back(dims[0]);
-  dim_order_.push_back(dims[1]);
+  dim_order_.push_back(dims_[0]);
+  dim_order_.push_back(dims_[1]);
   
   // Divide points among dimensions
   dimpoints_ = pow(points_, 1./state_dims_);

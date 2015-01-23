@@ -33,13 +33,16 @@ REGISTER_CONFIGURABLE(MultisineMapping)
 
 void MultisineMapping::request(ConfigurationRequest *config)
 {
+  config->push_back(CRP("inputs", "Number of input dimensions", (int)inputs_));
+  config->push_back(CRP("outputs", "Number of output dimensions", (int)outputs_));
+  config->push_back(CRP("sines", "Number of sines", (int)sines_));
 }
 
 void MultisineMapping::configure(Configuration &config)
 {
-  config.get("outputs", outputs_, (size_t)1);
-  config.get("sines", sines_, (size_t)1);
-  config.get("inputs", inputs_, (size_t)1);
+  outputs_ = config["outputs"];
+  sines_ = config["sines"];
+  inputs_ = config["inputs"];
 
   params_ = RandGen::getVector(p(outputs_, 0, 0, 0));
 

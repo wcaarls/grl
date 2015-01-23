@@ -48,6 +48,8 @@ class TDAgent : public Agent
     Vector prev_obs_, prev_action_;
     
   public:
+    TDAgent() : policy_(NULL), predictor_(NULL) { }
+  
     // From Configurable    
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);

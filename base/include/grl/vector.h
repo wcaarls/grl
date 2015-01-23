@@ -107,6 +107,13 @@ inline std::istream& operator >> (std::istream& is, std::vector<T>& v)
   // Read vector
   while (is.good())
   {
+    // Hack to read empty vectors fully
+    while (is.good() && ((c = is.get()) == ' ' || c == '\t'));
+    if (c == ']')
+      break;
+    else
+      is.putback(c);
+  
     T e;
     is >> e;
 

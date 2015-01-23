@@ -33,27 +33,30 @@ REGISTER_CONFIGURABLE(UniformDiscretizer)
 
 void UniformDiscretizer::request(ConfigurationRequest *config)
 {
+  config->push_back(CRP("min", "Lower limit", min_, CRP::System));
+  config->push_back(CRP("max", "Upper limit", max_, CRP::System));
+  config->push_back(CRP("steps", "Discretization steps per dimension", steps_));
 }
 
 void UniformDiscretizer::configure(Configuration &config)
 {
-  Vector min = config["min"];
-  Vector max = config["max"];
-  Vector steps = config["steps"];
+  min_ = config["min"];
+  max_ = config["max"];
+  steps_ = config["steps"];
   
   Vector range, delta;
 
-  range = max-min;
-  delta = range/(steps-1);
+  range = max_-min_;
+  delta = range/(steps_-1);
 
-  values_.resize(steps.size());
+  values_.resize(steps_.size());
 
-  for (size_t dd=0; dd < steps.size(); ++dd)
+  for (size_t dd=0; dd < steps_.size(); ++dd)
   {
-    values_[dd].resize(steps[dd]);
+    values_[dd].resize(steps_[dd]);
 
-    for (size_t vv=0; vv < steps[dd]; ++vv)
-      values_[dd][vv] = min[dd] + delta[dd] * vv;
+    for (size_t vv=0; vv < steps_[dd]; ++vv)
+      values_[dd][vv] = min_[dd] + delta[dd] * vv;
   }
 }
 

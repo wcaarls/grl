@@ -176,6 +176,16 @@ class RandGen
     }
 };
 
+template <typename T>
+inline bool convert(const std::string& str, T *obj)
+{
+  std::istringstream iss(str);
+
+  iss >> std::ws >> *obj >> std::ws;
+  
+  return iss.eof();
+}
+
 }
 
 #endif /* GRL_UTILS_H_ */

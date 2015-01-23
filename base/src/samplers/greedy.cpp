@@ -77,6 +77,7 @@ void GreedySampler::distribution(const Vector &values, Vector *distribution) con
 
 void EpsilonGreedySampler::request(ConfigurationRequest *config)
 {
+  config->push_back(CRP("epsilon", "Exploration rate", epsilon_));
 }
 
 void EpsilonGreedySampler::configure(Configuration &config)

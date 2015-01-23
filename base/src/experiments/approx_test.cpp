@@ -33,6 +33,16 @@ REGISTER_CONFIGURABLE(ApproxTestExperiment)
 
 void ApproxTestExperiment::request(ConfigurationRequest *config)
 {
+  config->push_back(CRP("train_samples", "Number of training samples", train_samples_, CRP::Configuration, 1));
+  config->push_back(CRP("test_samples", "Number of test samples", test_samples_, CRP::Configuration, 1));
+  config->push_back(CRP("file", "Output file (csv format)", file_));
+
+  config->push_back(CRP("min", "Lower limit for drawing samples", min_));
+  config->push_back(CRP("max", "Upper limit for drawing samples", max_));
+  
+  config->push_back(CRP("projector", "projector", "Projector (should match representation)", projector_));
+  config->push_back(CRP("representation", "representation", "Learned representation", representation_));
+  config->push_back(CRP("mapping", "mapping", "Function to learn", mapping_));
 }
 
 void ApproxTestExperiment::configure(Configuration &config)
@@ -41,14 +51,15 @@ void ApproxTestExperiment::configure(Configuration &config)
   representation_ = (Representation*)config["representation"].ptr();
   mapping_ = (Mapping*)config["mapping"].ptr();
   
-  config.get("train_samples", train_samples_, (size_t)1000);
-  config.get("test_samples", test_samples_, (size_t)1000);
-  config.get("file", file_);
+  train_samples_ = config["train_samples"];
+  test_samples_ = config["test_samples"];
+  file_ = config["file"].str();
   
-  config.get("min", min_, VectorConstructor(0.));
-  config.get("max", max_, VectorConstructor(1.));
+  min_ = config["min"];
+  max_ = config["max"];
   
-  grl_assert(min_.size() == max_.size());
+  if (min_.size() != max_.size())
+    throw bad_param("experiment/approx_test:{min,max}");
 }
 
 void ApproxTestExperiment::reconfigure(const Configuration &config)

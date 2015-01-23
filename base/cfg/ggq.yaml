@@ -21,15 +21,12 @@ agent:
   predictor:
     type: predictor/ggq
     alpha: 0.2
-    eta: 0.01
+    eta: 0.1
     gamma: 0.97
-    lambda: 0.65
     projector:
-      type: projector/tilecoding
-      tilings: 16
+      type: projector/tile_coding
       resolution: [ 0.31415, 3.1415, 3 ]
       wrapping: [ 6.283, 0, 0 ]
-      memory: 8
     theta:
       type: representation/parameterized/linear
       memory: agent/predictor/projector/memory

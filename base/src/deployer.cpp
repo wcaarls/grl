@@ -66,11 +66,6 @@ int main(int argc, char **argv)
   Configuration config, task_spec;
   YAMLConfigurator configurator;
   
-  task_spec.set("observation_min", VectorConstructor(0., -12*M_PI));
-  task_spec.set("observation_max", VectorConstructor(2*M_PI, 12*M_PI));
-  task_spec.set("action_min", VectorConstructor(-3.));
-  task_spec.set("action_max", VectorConstructor(3.));
-  
   configurator.populate(task_spec);
   
   Configurable *obj = configurator.load(argv[1], &config);

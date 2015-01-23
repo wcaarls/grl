@@ -46,10 +46,16 @@ class LinearRepresentation : public ParameterizedRepresentation
     TYPEINFO("representation/parameterized/linear")
     
   protected:
-    Vector params_;
-    size_t outputs_;
+    Vector min_, max_, params_;
+    size_t memory_, outputs_;
 
   public:
+    LinearRepresentation() : memory_(8*1024*1024), outputs_(1)
+    {
+      min_ = VectorConstructor(0.);
+      max_ = VectorConstructor(1.);
+    }
+  
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);

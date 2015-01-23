@@ -33,6 +33,13 @@ REGISTER_CONFIGURABLE(OnlineLearningExperiment)
 
 void OnlineLearningExperiment::request(ConfigurationRequest *config)
 {
+  config->push_back(CRP("runs", "Number of separate learning runs to perform", runs_, CRP::Configuration, 1));
+  config->push_back(CRP("trials", "Number of episodes per learning run", (int)trials_));
+  config->push_back(CRP("steps", "Number of steps per learning run", (int)steps_));
+  config->push_back(CRP("rate", "Control step frequency in Hz", (int)rate_, CRP::Online));
+  
+  config->push_back(CRP("agent", "agent", "Agent", agent_));
+  config->push_back(CRP("environment", "environment", "Environment in which the agent acts", environment_));
 }
 
 void OnlineLearningExperiment::configure(Configuration &config)
@@ -40,14 +47,15 @@ void OnlineLearningExperiment::configure(Configuration &config)
   agent_ = (Agent*)config["agent"].ptr();
   environment_ = (Environment*)config["environment"].ptr();
   
-  config.get("runs", runs_, (size_t)1);
-  config.get("trials", trials_, (size_t)0);
-  config.get("steps", steps_, (size_t)0);
-  config.get("rate", rate_, 0.);
+  runs_ = config["runs"];
+  trials_ = config["trials"];
+  steps_ = config["steps"];
+  rate_ = config["rate"];
 }
 
 void OnlineLearningExperiment::reconfigure(const Configuration &config)
 {
+  config.get("rate", rate_);
 }
 
 OnlineLearningExperiment *OnlineLearningExperiment::clone() const

@@ -33,27 +33,30 @@ REGISTER_CONFIGURABLE(TileCodingProjector)
 
 void TileCodingProjector::request(ConfigurationRequest *config)
 {
+  config->push_back(CRP("tilings", "Number of tilings", tilings_));
+  config->push_back(CRP("memory", "Hash table size", memory_));
+  
+  config->push_back(CRP("resolution", "Size of a single tile", resolution_));
+  config->push_back(CRP("wrapping", "Wrapping boundaries (must be multiple of resolution)", wrapping_));
 }
 
 void TileCodingProjector::configure(Configuration &config)
 {
-  Vector res = config["resolution"];
-
-  config.get("tilings", tilings_, 16);
-  config.get("memory", memory_, 8);
-  memory_ *= 1024*1024;
+  tilings_ = config["tilings"];
+  memory_ = config["memory"];
   
-  config.get("wrapping", wrapping_, Vector());
+  resolution_ = config["resolution"];
+  wrapping_ = config["wrapping"];
 
   if (wrapping_.empty())
-    wrapping_.resize(res.size(), 0.);
+    wrapping_.resize(resolution_.size(), 0.);
     
-  if (wrapping_.size() != res.size())
+  if (wrapping_.size() != resolution_.size())
     throw bad_param("projector/tile_coding:wrapping");
   
-  for (size_t ii=0; ii < res.size(); ++ii)
+  for (size_t ii=0; ii < resolution_.size(); ++ii)
   {
-    scaling_.push_back(tilings_/res[ii]);
+    scaling_.push_back(tilings_/resolution_[ii]);
     wrapping_[ii] *= scaling_[ii];
     if (fabs(wrapping_[ii]-round(wrapping_[ii])) > 0.001)
       throw bad_param("projector/tile_coding:wrapping");

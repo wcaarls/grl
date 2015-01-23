@@ -63,6 +63,8 @@ class EpsilonGreedySampler : public GreedySampler
     Rand *rand_;
 
   public:
+    EpsilonGreedySampler() : epsilon_(0.05) { }
+  
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);

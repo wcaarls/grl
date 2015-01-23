@@ -5,10 +5,8 @@ train_samples: 1000
 test_samples: 10000
 file: approx_test.txt
 projector:
-  type: projector/tilecoding
-  tilings: 16
+  type: projector/tile_coding
   resolution: [ 0.1,  0.1 ]
-  memory: 1
 representation:
   type: representation/parameterized/linear
   memory: projector/memory
