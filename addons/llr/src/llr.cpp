@@ -34,11 +34,16 @@ REGISTER_CONFIGURABLE(LLRRepresentation)
 
 void LLRRepresentation::request(ConfigurationRequest *config)
 {
+  config->push_back(CRP("outputs", "Number of output dimensions", outputs_, CRP::System, 1));
+  config->push_back(CRP("ridge", "Ridge regression (Tikhonov) factor", ridge_regression_factor_));
+
+  config->push_back(CRP("projector", "projector/sample", "Projector used to generate input for this representation", projector_));
 }
 
 void LLRRepresentation::configure(Configuration &config)
 {
   projector_ = (SampleProjector*)config["projector"].ptr();
+  
   ridge_regression_factor_ = config["ridge"];
   outputs_ = config["outputs"];
 }

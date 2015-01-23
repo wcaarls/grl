@@ -6,14 +6,10 @@ test_samples: 10000
 file: approx_test.txt
 projector:
   type: projector/sample/ann
-  samples: 100000
+  samples: train_samples
   dims: 2
-  neighbors: 20
-  bucket_size: 10
-  error_bound: 0.01
 representation:
   type: representation/llr
-  ridge: 0.00001
   outputs: 1
 mapping:
   type: mapping/multisine

@@ -35,7 +35,7 @@ void UniformDiscretizer::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("min", "Lower limit", min_, CRP::System));
   config->push_back(CRP("max", "Upper limit", max_, CRP::System));
-  config->push_back(CRP("steps", "Discretization steps per dimension", steps_));
+  config->push_back(CRP("steps", "Discretization steps per dimension", steps_, CRP::Configuration));
 }
 
 void UniformDiscretizer::configure(Configuration &config)
@@ -53,6 +53,9 @@ void UniformDiscretizer::configure(Configuration &config)
 
   for (size_t dd=0; dd < steps_.size(); ++dd)
   {
+    if (steps_[dd] < 1)
+      throw bad_param("discretizer/uniform:steps");
+  
     values_[dd].resize(steps_[dd]);
 
     for (size_t vv=0; vv < steps_[dd]; ++vv)

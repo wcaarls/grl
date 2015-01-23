@@ -34,6 +34,11 @@ REGISTER_CONFIGURABLE(ANNProjector)
 
 void ANNProjector::request(ConfigurationRequest *config)
 {
+  config->push_back(CRP("samples", "Maximum number of samples to store", max_samples_, CRP::Configuration, 100));
+  config->push_back(CRP("neighbors", "Number of neighbor indices to return", neighbors_, CRP::Configuration, 1));
+  config->push_back(CRP("bucket_size", "?", bucket_size_, CRP::Configuration, 1));
+  config->push_back(CRP("error_bound", "?", error_bound_, CRP::Configuration, 0., DBL_MAX));
+  config->push_back(CRP("dims", "Number of input dimensions", dims_, CRP::System, 1));
 }
 
 void ANNProjector::configure(Configuration &config)
