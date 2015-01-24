@@ -79,13 +79,18 @@ void ModeledEnvironment::step(const Vector &action, Vector *obs, double *reward,
 
 void DynamicalModel::request(ConfigurationRequest *config)
 {
+  config->push_back(CRP("control_step", "Control step time", tau_, CRP::Configuration, 0.001, DBL_MAX));
+  config->push_back(CRP("integration_steps", "Number of integration steps per control step", (int)steps_, CRP::Configuration, 1));
+
+  config->push_back(CRP("dynamics", "dynamics", "Equations of motion", dynamics_));
 }
 
 void DynamicalModel::configure(Configuration &config)
 {
   dynamics_ = (Dynamics*)config["dynamics"].ptr();
-  config.get("control_step", tau_, 0.05);
-  config.get("integration_steps", steps_, (size_t)5);
+  
+  tau_ = config["control_step"];
+  steps_ = config["integration_steps"];
 }
 
 void DynamicalModel::reconfigure(const Configuration &config)

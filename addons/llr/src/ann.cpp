@@ -101,7 +101,8 @@ ProjectionPtr ANNProjector::project(const Vector &in) const
 {
   ReadGuard guard(rwlock_);
 
-  grl_assert(in.size() == dims_);
+  if (in.size() != dims_)
+    throw bad_param("projector/sample/ann:dims");
   
   ANNcoord query[dims_];
   

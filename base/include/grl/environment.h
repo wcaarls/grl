@@ -111,6 +111,8 @@ class DynamicalModel : public Model
     size_t steps_;
 
   public:
+    DynamicalModel() : tau_(0.05), steps_(5) { }
+  
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);

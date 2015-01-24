@@ -65,7 +65,11 @@ MultisineMapping *MultisineMapping::clone() const
 double MultisineMapping::read(const ProjectionPtr &projection, Vector *result) const
 {
   VectorProjection *vp = dynamic_cast<VectorProjection*>(projection.get());
-  grl_assert(vp);
+  if (!vp)
+    throw bad_param("mapping/multisine requires a projector returning a VectorProjection");
+    
+  if (vp->vector.size() != inputs_)
+    throw bad_param("mapping/multisine:inputs (or matching projector)");
 
   result->resize(outputs_);
   

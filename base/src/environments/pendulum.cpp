@@ -58,6 +58,9 @@ PendulumDynamics *PendulumDynamics::clone() const
 
 void PendulumDynamics::eom(const Vector &state, const Vector &action, Vector *xd) const
 {
+  if (state.size() != 3 || action.size() != 1)
+    throw Exception("dynamics/pendulum requires a task/pendulum subclass");
+
   double a   = state[0];
   double ad  = state[1];
   double add = (1/J_)*(m_*g_*l_*sin(a)-b_*ad-(K_*K_/R_)*ad+(K_/R_)*action[0]);
@@ -101,6 +104,9 @@ void PendulumSwingupTask::start(Vector *state) const
 
 void PendulumSwingupTask::observe(const Vector &state, Vector *obs, int *terminal) const
 {
+  if (state.size() != 3)
+    throw Exception("task/pendulum/swingup requires dynamics/pendulum");
+
   double a = fmod(state[0]+M_PI, 2*M_PI);
   if (a < 0) a += 2*M_PI;
   
@@ -115,6 +121,9 @@ void PendulumSwingupTask::observe(const Vector &state, Vector *obs, int *termina
 
 bool PendulumSwingupTask::evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const
 {
+  if (state.size() != 3 || action.size() != 1 || next.size() != 3)
+    throw Exception("task/pendulum/swingup requires dynamics/pendulum");
+
   double a = fmod(next[0], 2*M_PI);
 
   *reward = -5*pow(a, 2) - 0.1*pow(next[1], 2) - 1*pow(action[0], 2);

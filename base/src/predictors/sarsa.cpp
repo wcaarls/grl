@@ -89,6 +89,15 @@ void SARSAPredictor::finalize()
 
 void ExpectedSARSAPredictor::request(ConfigurationRequest *config)
 {
+  config->push_back(CRP("alpha", "Learning rate", alpha_));
+  config->push_back(CRP("gamma", "Discount rate", gamma_));
+  config->push_back(CRP("lambda", "Trace decay rate", lambda_));
+
+  config->push_back(CRP("projector", "projector", "Projects observation-action pairs onto representation space", projector_));
+  config->push_back(CRP("representation", "representation", "Q-value representation", representation_));
+  config->push_back(CRP("policy", "policy/discrete/q", "Q-value based policy", policy_));
+  config->push_back(CRP("sampler", "sampler", "Target distribution", sampler_));
+  config->push_back(CRP("trace", "trace", "Trace of projections", trace_));
 }
 
 void ExpectedSARSAPredictor::configure(Configuration &config)

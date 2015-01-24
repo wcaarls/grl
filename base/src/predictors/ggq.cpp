@@ -40,7 +40,7 @@ void GGQPredictor::request(ConfigurationRequest *config)
   config->push_back(CRP("projector", "projector", "Projects observation-action pairs onto representation space", projector_));
   config->push_back(CRP("theta", "representation", "Q-value representation", theta_));
   config->push_back(CRP("w", "representation", "Secondary weights representation (should match theta)", w_));
-  config->push_back(CRP("policy", "policy/discrete/q", "Q-value based control policy", policy_));
+  config->push_back(CRP("policy", "policy/discrete/q", "Greedy target policy", policy_));
 }
 
 void GGQPredictor::configure(Configuration &config)

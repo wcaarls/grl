@@ -60,7 +60,9 @@ LLRRepresentation *LLRRepresentation::clone() const
 double LLRRepresentation::read(const ProjectionPtr &projection, Vector *result) const
 {
   SampleProjection *p = dynamic_cast<SampleProjection*>(projection.get());
-  grl_assert(p);
+  
+  if (!p)
+    throw Exception("representation/llr requires projector/sample");
   
   result->clear();
 
@@ -111,7 +113,11 @@ double LLRRepresentation::read(const ProjectionPtr &projection, Vector *result) 
 void LLRRepresentation::write(const ProjectionPtr projection, const Vector &target, double alpha)
 {
   SampleProjection *p = dynamic_cast<SampleProjection*>(projection.get());
-  grl_assert(p);
+  if (!p)
+    throw Exception("representation/llr requires projector/sample");
+    
+  if (target.size() != outputs_)
+    throw bad_param("representation/llr:outputs");
   
   // Push query on store
   Sample *sample = new Sample();

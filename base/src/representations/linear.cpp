@@ -49,13 +49,13 @@ void LinearRepresentation::configure(Configuration &config)
   if (min_.size() && min_.size() < outputs_)
     min_.resize(outputs_, min_[0]);
   if (min_.size() != outputs_)
-    throw bad_param("representation/linear:min");
+    throw bad_param("representation/parameterized/linear:min");
   
   max_ = config["max"];
   if (max_.size() && max_.size() < outputs_)
     max_.resize(outputs_, max_[0]);
   if (max_.size() != outputs_)
-    throw bad_param("representation/linear:max");
+    throw bad_param("representation/parameterized/linear:max");
 
   params_.resize(memory_ * outputs_);
   
@@ -98,6 +98,9 @@ double LinearRepresentation::read(const ProjectionPtr &projection, Vector *resul
     VectorProjection *vp = dynamic_cast<VectorProjection*>(&p);
     if (vp)
     {
+      if (vp->vector.size() != memory_)
+        throw bad_param("representation/parameterized/linear:memory (or matching projector)");
+    
       result->clear();
       result->resize(outputs_, 0);
       
@@ -112,7 +115,7 @@ double LinearRepresentation::read(const ProjectionPtr &projection, Vector *resul
         (*result)[jj] /= activation;
     }
     else
-      throw Exception("Unknown projection for LinearRepresentation");
+      throw Exception("representation/parameterized/linear requires a projector returning IndexProjection or VectorProjection");
   }
   
   return (*result)[0];
@@ -145,11 +148,14 @@ void LinearRepresentation::update(const ProjectionPtr projection, const Vector &
     VectorProjection *vp = dynamic_cast<VectorProjection*>(&p);
     if (vp)
     {
+      if (vp->vector.size() != memory_)
+        throw bad_param("representation/parameterized/linear:memory (or matching projector)");
+
       for (size_t ii=0; ii != vp->vector.size(); ++ii)
         for (size_t jj=0; jj < outputs_; ++jj)
           params_[ii*outputs_+jj] += vp->vector[ii]*delta[jj];
     }
     else
-      throw Exception("Unknown projection for LinearRepresentation");
+      throw Exception("representation/parameterized/linear requires a projector returning IndexProjection or VectorProjection");
   }
 }
