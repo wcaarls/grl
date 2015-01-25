@@ -1,0 +1,499 @@
+agent/dyna:
+  planning_steps:
+    type: int
+    description: Number of planning steps per control step
+    default: 1
+    mutability: configuration
+    min: 0
+    max: 2147483647
+  wrapping:
+    type: vector
+    description: Wrapping boundaries
+    default: "[  ]"
+    mutability: configuration
+  observation_min:
+    type: vector
+    description: Lower limit on observations
+    default: "[  ]"
+    mutability: system
+  observation_max:
+    type: vector
+    description: Upper limit on observations
+    default: "[  ]"
+    mutability: system
+  policy:
+    type: policy
+    description: Control policy
+    mutability: configuration
+  predictor:
+    type: predictor
+    description: Value function predictor
+    mutability: configuration
+  model_agent:
+    type: agent
+    description: Agent used for planning episodes
+    mutability: configuration
+  model_projector:
+    type: projector
+    description: Projector for transition model (should match representation)
+    mutability: configuration
+  model_representation:
+    type: representation
+    description: Representation for transition model
+    mutability: configuration
+agent/td:
+  policy:
+    type: policy
+    description: Control policy
+    mutability: configuration
+  predictor:
+    type: predictor
+    description: Value function predictor
+    mutability: configuration
+discretizer/uniform:
+  min:
+    type: vector
+    description: Lower limit
+    default: "[  ]"
+    mutability: system
+  max:
+    type: vector
+    description: Upper limit
+    default: "[  ]"
+    mutability: system
+  steps:
+    type: vector
+    description: Discretization steps per dimension
+    default: "[  ]"
+    mutability: configuration
+dynamics/pendulum: ~
+environment/modeled:
+  model:
+    type: model
+    description: Environment model
+    mutability: configuration
+  task:
+    type: task
+    description: Task to perform in the environment (should match model)
+    mutability: configuration
+experiment/approx_test:
+  train_samples:
+    type: int
+    description: Number of training samples
+    default: 1000
+    mutability: configuration
+    min: 1
+    max: 2147483647
+  test_samples:
+    type: int
+    description: Number of test samples
+    default: 1000
+    mutability: configuration
+    min: 1
+    max: 2147483647
+  file:
+    type: string
+    description: Output file (csv format)
+    default: ""
+    mutability: configuration
+  min:
+    type: vector
+    description: Lower limit for drawing samples
+    default: "[  ]"
+    mutability: configuration
+  max:
+    type: vector
+    description: Upper limit for drawing samples
+    default: "[  ]"
+    mutability: configuration
+  projector:
+    type: projector
+    description: Projector (should match representation)
+    mutability: configuration
+  representation:
+    type: representation
+    description: Learned representation
+    mutability: configuration
+  mapping:
+    type: mapping
+    description: Function to learn
+    mutability: configuration
+experiment/online_learning:
+  runs:
+    type: int
+    description: Number of separate learning runs to perform
+    default: 1
+    mutability: configuration
+    min: 1
+    max: 2147483647
+  trials:
+    type: int
+    description: Number of episodes per learning run
+    default: 0
+    mutability: configuration
+    min: 0
+    max: 2147483647
+  steps:
+    type: int
+    description: Number of steps per learning run
+    default: 0
+    mutability: configuration
+    min: 0
+    max: 2147483647
+  rate:
+    type: int
+    description: Control step frequency in Hz
+    default: 0
+    mutability: online
+    min: 0
+    max: 2147483647
+  agent:
+    type: agent
+    description: Agent
+    mutability: configuration
+  environment:
+    type: environment
+    description: Environment in which the agent acts
+    mutability: configuration
+mapping/multisine:
+  inputs:
+    type: int
+    description: Number of input dimensions
+    default: 1
+    mutability: configuration
+    min: 0
+    max: 2147483647
+  outputs:
+    type: int
+    description: Number of output dimensions
+    default: 1
+    mutability: configuration
+    min: 0
+    max: 2147483647
+  sines:
+    type: int
+    description: Number of sines
+    default: 1
+    mutability: configuration
+    min: 0
+    max: 2147483647
+model/dynamical:
+  control_step:
+    type: double
+    description: Control step time
+    default: 0.05
+    mutability: configuration
+    min: 0.001
+    max: 1.797693134862316e+308
+  integration_steps:
+    type: int
+    description: Number of integration steps per control step
+    default: 5
+    mutability: configuration
+    min: 1
+    max: 2147483647
+  dynamics:
+    type: dynamics
+    description: Equations of motion
+    mutability: configuration
+policy/discrete/q:
+  discretizer:
+    type: discretizer
+    description: Action discretizer
+    mutability: configuration
+  projector:
+    type: projector
+    description: Projects observation-action pairs onto representation space
+    mutability: configuration
+  representation:
+    type: representation
+    description: Q-value representation
+    mutability: configuration
+  sampler:
+    type: sampler
+    description: Samples actions from Q-values
+    mutability: configuration
+policy/discrete/random:
+  discretizer:
+    type: discretizer
+    description: Action discretizer
+    mutability: configuration
+policy/random:
+  min:
+    type: vector
+    description: Lower action limit
+    default: "[  ]"
+    mutability: configuration
+  max:
+    type: vector
+    description: Upper action limit
+    default: "[  ]"
+    mutability: configuration
+predictor/expected_sarsa:
+  alpha:
+    type: double
+    description: Learning rate
+    default: 0
+    mutability: configuration
+    min: 0
+    max: 1
+  gamma:
+    type: double
+    description: Discount rate
+    default: 0
+    mutability: configuration
+    min: 0
+    max: 1
+  lambda:
+    type: double
+    description: Trace decay rate
+    default: 0
+    mutability: configuration
+    min: 0
+    max: 1
+  projector:
+    type: projector
+    description: Projects observation-action pairs onto representation space
+    mutability: configuration
+  representation:
+    type: representation
+    description: Q-value representation
+    mutability: configuration
+  policy:
+    type: policy/discrete/q
+    description: Q-value based policy
+    mutability: configuration
+  sampler:
+    type: sampler
+    description: Target distribution
+    mutability: configuration
+  trace:
+    type: trace
+    description: Trace of projections
+    mutability: configuration
+predictor/ggq:
+  alpha:
+    type: double
+    description: Learning rate
+    default: 0.2
+    mutability: configuration
+    min: 0
+    max: 1
+  eta:
+    type: double
+    description: Relative secondary learning rate (actual is alpha*eta)
+    default: 0.1
+    mutability: configuration
+    min: 0
+    max: 1
+  gamma:
+    type: double
+    description: Discount rate
+    default: 0.97
+    mutability: configuration
+    min: 0
+    max: 1
+  projector:
+    type: projector
+    description: Projects observation-action pairs onto representation space
+    mutability: configuration
+  theta:
+    type: representation
+    description: Q-value representation
+    mutability: configuration
+  w:
+    type: representation
+    description: Secondary weights representation (should match theta)
+    mutability: configuration
+  policy:
+    type: policy/discrete/q
+    description: Greedy target policy
+    mutability: configuration
+predictor/sarsa:
+  alpha:
+    type: double
+    description: Learning rate
+    default: 0
+    mutability: configuration
+    min: 0
+    max: 1
+  gamma:
+    type: double
+    description: Discount rate
+    default: 0
+    mutability: configuration
+    min: 0
+    max: 1
+  lambda:
+    type: double
+    description: Trace decay rate
+    default: 0
+    mutability: configuration
+    min: 0
+    max: 1
+  projector:
+    type: projector
+    description: Projects observation-action pairs onto representation space
+    mutability: configuration
+  representation:
+    type: representation
+    description: Q-value representation
+    mutability: configuration
+  trace:
+    type: trace
+    description: Trace of projections
+    mutability: configuration
+projector/identity: ~
+projector/sample/ann:
+  samples:
+    type: int
+    description: Maximum number of samples to store
+    default: 0
+    mutability: configuration
+    min: 100
+    max: 2147483647
+  neighbors:
+    type: int
+    description: Number of neighbor indices to return
+    default: 20
+    mutability: configuration
+    min: 1
+    max: 2147483647
+  bucket_size:
+    type: int
+    description: "?"
+    default: 10
+    mutability: configuration
+    min: 1
+    max: 2147483647
+  error_bound:
+    type: double
+    description: "?"
+    default: 0.1
+    mutability: configuration
+    min: 0
+    max: 1.797693134862316e+308
+  dims:
+    type: int
+    description: Number of input dimensions
+    default: 1
+    mutability: system
+    min: 1
+    max: 2147483647
+projector/tile_coding:
+  tilings:
+    type: int
+    description: Number of tilings
+    default: 16
+    mutability: configuration
+    min: 0
+    max: 2147483647
+  memory:
+    type: int
+    description: Hash table size
+    default: 8388608
+    mutability: configuration
+    min: 0
+    max: 2147483647
+  resolution:
+    type: vector
+    description: Size of a single tile
+    default: "[  ]"
+    mutability: configuration
+  wrapping:
+    type: vector
+    description: Wrapping boundaries (must be multiple of resolution)
+    default: "[  ]"
+    mutability: configuration
+representation/llr:
+  outputs:
+    type: int
+    description: Number of output dimensions
+    default: 1
+    mutability: system
+    min: 1
+    max: 2147483647
+  ridge:
+    type: double
+    description: Ridge regression (Tikhonov) factor
+    default: 1e-05
+    mutability: configuration
+    min: 0
+    max: 1
+  projector:
+    type: projector/sample
+    description: Projector used to generate input for this representation
+    mutability: configuration
+representation/parameterized/linear:
+  memory:
+    type: int
+    description: Feature vector size
+    default: 8388608
+    mutability: configuration
+    min: 0
+    max: 2147483647
+  outputs:
+    type: int
+    description: Number of outputs
+    default: 1
+    mutability: configuration
+    min: 0
+    max: 2147483647
+  min:
+    type: vector
+    description: Lower initial value limit
+    default: "[ 0 ]"
+    mutability: configuration
+  max:
+    type: vector
+    description: Upper initial value limit
+    default: "[ 1 ]"
+    mutability: configuration
+sampler/epsilon_greedy:
+  epsilon:
+    type: double
+    description: Exploration rate
+    default: 0.05
+    mutability: configuration
+    min: 0
+    max: 1
+sampler/greedy: ~
+task/pendulum/swingup: ~
+trace/enumerated/accumulating: ~
+trace/enumerated/replacing: ~
+visualization/value_function:
+  min:
+    type: vector
+    description: Lower observation limit
+    default: "[  ]"
+    mutability: configuration
+  max:
+    type: vector
+    description: Upper observation limit
+    default: "[  ]"
+    mutability: configuration
+  points:
+    type: int
+    description: Number of points to evaluate
+    default: 1048576
+    mutability: configuration
+    min: 0
+    max: 2147483647
+  dims:
+    type: vector
+    description: Order of dimensions to visualize
+    default: "[ 0, 1 ]"
+    mutability: configuration
+  projector:
+    type: projector
+    description: Projects observation-action pairs onto representation space
+    mutability: configuration
+  representation:
+    type: representation
+    description: Q-value representation
+    mutability: configuration
+  policy:
+    type: policy/discrete/q
+    description: Q-value based control policy
+    mutability: configuration
+visualizer/glut: ~

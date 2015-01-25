@@ -35,9 +35,8 @@
 #define DECLARE_FACTORY(x)                            \
 class x ## Factory                                    \
 {                                                     \
-  private:                                            \
+  public:                                             \
     typedef std::map<std::string, x ## Factory*> Map; \
-    static Map &factories();                          \
                                                       \
   protected:                                          \
     x ## Factory(std::string name);                   \
@@ -45,6 +44,7 @@ class x ## Factory                                    \
                                                       \
   public:                                             \
     static x *create(std::string name);               \
+    static Map &factories();                          \
 };
 
 /// Define an object factory.

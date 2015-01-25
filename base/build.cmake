@@ -40,3 +40,10 @@ set (TARGET deployer)
 add_executable(${TARGET} ${SRC}/deployer.cpp)
 target_link_libraries(${TARGET} -ldl)
 grl_link_libraries(${TARGET} base)
+
+# Requestgen
+set (TARGET requestgen)
+add_executable(${TARGET} ${SRC}/requestgen.cpp)
+target_link_libraries(${TARGET} -ldl)
+grl_link_libraries(${TARGET} base)
+
