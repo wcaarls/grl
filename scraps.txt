@@ -1,0 +1,46 @@
+llr.cpp:
+
+//      if (sample->relevance > 1)
+      {
+        // Find real nearest neighbor
+        double mind=1000;
+        size_t minidx = 0;
+        for (size_t ii=0; ii < store->size(); ++ii)
+        {
+          Sample *neighbor = (*store)[ii];
+          
+          double d = 0;
+          for (size_t jj=0; jj < p->query.size(); ++jj)
+            d += pow(sample->in[jj]-neighbor->in[jj], 2);
+          if (d < mind)
+          {
+            mind = d;
+            minidx = ii;
+          }
+        }
+        
+        if (minidx != p->indices[0])
+        {
+          std::cout << "INDEX MISMATCH: " << sample->relevance << std::endl;
+          for (size_t ii=0; ii < p->query.size(); ++ii)
+            std::cout << sample->in[ii] << " ";
+          
+          std::cout << std::endl;
+        
+          neighbor = (*store)[p->indices[0]];
+          for (size_t ii=0; ii < p->query.size(); ++ii)
+            std::cout << neighbor->in[ii] << " ";
+          std::cout << " (" << p->indices[0] << ")" << std::endl;
+
+          neighbor = (*store)[p->indices[1]];
+          for (size_t ii=0; ii < p->query.size(); ++ii)
+            std::cout << neighbor->in[ii] << " ";
+          std::cout << " (" << p->indices[1] << ")" << std::endl;
+
+          Sample *neighbor = (*store)[minidx];
+          for (size_t ii=0; ii < p->query.size(); ++ii)
+            std::cout << neighbor->in[ii] << " ";
+          std::cout << " (" << minidx << ")" << std::endl;
+        }
+      }
+

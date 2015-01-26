@@ -79,6 +79,8 @@ class ModeledEnvironment : public Environment
     Vector state_;
 
   public:
+    ModeledEnvironment() : model_(NULL), task_(NULL) { }
+  
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
@@ -111,7 +113,7 @@ class DynamicalModel : public Model
     size_t steps_;
 
   public:
-    DynamicalModel() : tau_(0.05), steps_(5) { }
+    DynamicalModel() : dynamics_(NULL), tau_(0.05), steps_(5) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);

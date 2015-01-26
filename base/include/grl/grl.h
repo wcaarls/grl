@@ -59,6 +59,12 @@ struct Transition
     }
 };
 
+inline std::ostream &operator<<(std::ostream& os, const Transition& t)
+{
+  os << "{" << t.prev_obs << ", " << t.prev_action << "} - " << t.reward << " -> {" << t.obs << ", " << t.action << "}";
+  return os;
+}
+
 }
 
 #endif /* GRL_H_ */

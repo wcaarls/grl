@@ -69,6 +69,7 @@ class ANNProjector : public SampleProjector
     // From SampleProjector
     virtual ANNProjector *clone() const;
     virtual void push(Sample *sample);
+    virtual StorePtr store() { return store_; }
     virtual ProjectionPtr project(const Vector &in) const;
 };
 

@@ -29,6 +29,7 @@ add_library(${TARGET} SHARED
             ${SRC}/samplers/greedy.cpp
             ${SRC}/traces/enumerated.cpp
             ${SRC}/visualizations/value_function.cpp
+            ${SRC}/visualizations/sample.cpp
            )
 
 # Dependencies

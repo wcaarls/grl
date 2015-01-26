@@ -1,8 +1,8 @@
-/** \file value_function.h
- * \brief Value function visualization header file.
+/** \file sample.h
+ * \brief Sample visualization header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-01-22
+ * \date      2015-01-26
  *
  * \copyright \verbatim
  * Copyright (c) 2015, Wouter Caarls
@@ -25,43 +25,38 @@
  * \endverbatim
  */
 
-#ifndef GRL_VALUE_FUNCTION_VISUALIZATION_H_
-#define GRL_VALUE_FUNCTION_VISUALIZATION_H_
+#ifndef GRL_SAMPLE_VISUALIZATION_H_
+#define GRL_SAMPLE_VISUALIZATION_H_
 
 #include <string.h>
 #include <pthread.h>
 
 #include <grl/projector.h>
-#include <grl/representation.h>
-#include <grl/policies/q.h>
 #include <grl/visualization.h>
 
 namespace grl
 {
 
 /// Value function visualization.
-class ValueFunctionVisualization : public Visualization
+class SampleVisualization : public Visualization
 {
   public:
-    TYPEINFO("visualization/value_function")
+    TYPEINFO("visualization/sample")
 
   protected:
-    Projector *projector_;
-    Representation *representation_;
-    QPolicy *policy_;
+    SampleProjector *projector_;
   
-    int state_dims_;
-    Vector state_min_, state_max_, dims_;
-    int points_, dimpoints_, texpoints_;
+    int dim_;
+    Vector dims_, min_, max_;
+    int points_, dimpoints_;
     unsigned int texture_;
     unsigned char *data_;
     Vector dim_order_;
     double value_min_, value_max_;
     bool updated_;
-    Vector state_;
   
   public:
-    ValueFunctionVisualization() : projector_(NULL), representation_(NULL), policy_(NULL), state_dims_(0), points_(1048576), dimpoints_(0), texpoints_(0), texture_(0), data_(NULL), value_min_(0), value_max_(0), updated_(true)
+    SampleVisualization() : projector_(NULL), dim_(0), points_(1048576), dimpoints_(0), texture_(0), data_(NULL), value_min_(0), value_max_(0), updated_(true)
     {
       dims_ = VectorConstructor(0., 1.);
     }
@@ -79,4 +74,4 @@ class ValueFunctionVisualization : public Visualization
 
 }
 
-#endif /* GRL_VALUE_FUNCTION_VISUALIZATION_H_ */
+#endif /* GRL_SAMPLE_VISUALIZATION_H_ */

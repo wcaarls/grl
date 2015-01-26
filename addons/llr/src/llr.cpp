@@ -36,6 +36,7 @@ void LLRRepresentation::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("outputs", "Number of output dimensions", outputs_, CRP::System, 1));
   config->push_back(CRP("ridge", "Ridge regression (Tikhonov) factor", ridge_regression_factor_));
+  config->push_back(CRP("order", "Order of regression model", order_, CRP::Configuration, 0, 1));
 
   config->push_back(CRP("projector", "projector/sample", "Projector used to generate input for this representation", projector_));
 }
@@ -46,6 +47,7 @@ void LLRRepresentation::configure(Configuration &config)
   
   ridge_regression_factor_ = config["ridge"];
   outputs_ = config["outputs"];
+  order_ = config["order"];
 }
 
 void LLRRepresentation::reconfigure(const Configuration &config)
@@ -65,17 +67,46 @@ double LLRRepresentation::read(const ProjectionPtr &projection, Vector *result) 
     throw Exception("representation/llr requires projector/sample");
   
   result->clear();
-
+  
+  if (!order_)
+  {
+    // Zeroth-order regression (averaging)
+    Guard guard(*p->store);
+    
+    double weight = 0;
+    result->resize(outputs_, 0.);
+    
+    for (size_t ii=0; ii < p->indices.size(); ++ii)
+    {
+      weight += p->weights[ii];
+      for (size_t jj=0; jj < outputs_; ++jj)
+        (*result)[jj] += (*p->store)[p->indices[ii]]->out[jj]*p->weights[ii];
+    }
+    
+    if (weight)
+      for (size_t jj=0; jj < outputs_; ++jj)
+        (*result)[jj] /= weight;
+      
+    return (*result)[0];
+  }
+  
   // Convert query
   RowVector q(p->query.size()+1);
   
   for (size_t ii=0; ii < p->query.size(); ++ii)
     q[ii] = p->query[ii];
   q[p->query.size()] = 1.;
-
+  
   // Fill matrices A and b
   Matrix A(p->indices.size(), p->query.size()+1),
          b(p->indices.size(), outputs_);
+         
+  RowVector mib(outputs_), mab(outputs_);
+  for (size_t ii=0; ii < outputs_; ++ii)
+  {
+    mib[ii] = std::numeric_limits<double>::infinity();
+    mab[ii] = -std::numeric_limits<double>::infinity();
+  }
   
   {
     Guard guard(*p->store);
@@ -86,7 +117,12 @@ double LLRRepresentation::read(const ProjectionPtr &projection, Vector *result) 
       A(ii, p->query.size()) = p->weights[ii];
       
       for (size_t jj=0; jj < outputs_; ++jj)
-        b(ii, jj) = (*p->store)[p->indices[ii]]->out[jj]*p->weights[ii];
+      {
+        double o = (*p->store)[p->indices[ii]]->out[jj];
+        b(ii, jj) = o*p->weights[ii];
+        mib[jj] = fmin(mib[jj], o);
+        mab[jj] = fmax(mab[jj], o);
+      }
     }
   }
   
@@ -103,11 +139,17 @@ double LLRRepresentation::read(const ProjectionPtr &projection, Vector *result) 
 
   RowVector y = q*(r*b);
   
+  // Convert output
   result->resize(outputs_);
   for (size_t ii=0; ii < outputs_; ++ii)
     (*result)[ii] = y[ii];
- 
-  return y[0];
+    
+  // Avoid extrapolation
+  if (p->indices.size())
+    for (size_t ii=0; ii < outputs_; ++ii)
+      (*result)[ii] = fmin(fmax((*result)[ii], mib[ii]), mab[ii]);
+  
+  return (*result)[0];
 }
 
 void LLRRepresentation::write(const ProjectionPtr projection, const Vector &target, double alpha)
@@ -124,16 +166,63 @@ void LLRRepresentation::write(const ProjectionPtr projection, const Vector &targ
 
   for (size_t ii=0; ii < p->query.size(); ++ii)
     sample->in[ii] = p->query[ii];
-    
-  for (size_t ii=0; ii < target.size(); ++ii)
-    sample->out[ii] = target[ii];
-    
-  sample->relevance = 1.;
   
-  projector_->push(sample);
+  if (alpha < 1)
+  {
+    // Reinforcement learning: move sample neighborhood towards target value
+    Vector out;
+    read(projection, &out);
+    Vector delta = target-out;
+    
+    // Update new sample
+    for (size_t ii=0; ii < target.size(); ++ii)
+      sample->out[ii] = out[ii] + alpha*delta[ii];
+
+    // Update neighbors      
+    update(projection, alpha*delta);
+  
+    // Determine sample relevance
+    if (p->indices.size())
+    {
+      StorePtr store = projector_->store();
+      Guard guard(*store);
+      Sample *neighbor = (*store)[p->indices[0]];
+        
+      // Relevance based on euclidean distance
+      sample->relevance = 0;
+      for (size_t ii=0; ii < p->query.size(); ++ii)
+        sample->relevance += pow(sample->in[ii]-neighbor->in[ii], 2);
+    }
+    else
+      sample->relevance = 1.;
+  }
+  else
+  {
+    // Supervised learning: just add sample with target value
+    for (size_t ii=0; ii < target.size(); ++ii)
+      sample->out[ii] = target[ii];
+    sample->relevance = 1.;
+  }
+  
+  // Don't add identical samples
+  if (sample->relevance > 0.001)
+    projector_->push(sample);
+  else
+    delete sample;
 }
 
 void LLRRepresentation::update(const ProjectionPtr projection, const Vector &delta)
 {
+  SampleProjection *p = dynamic_cast<SampleProjection*>(projection.get());
+  if (!p)
+    throw Exception("representation/llr requires projector/sample");
+    
+  if (delta.size() != outputs_)
+    throw bad_param("representation/llr:outputs");
+
+  // Less contributing neighbors are updated less
+  for (size_t ii=0; ii < p->indices.size(); ++ii)
+    for (size_t jj=0; jj < outputs_; ++jj)
+      (*p->store)[p->indices[ii]]->out[jj] += delta[jj]*p->weights[ii];
 }
                 

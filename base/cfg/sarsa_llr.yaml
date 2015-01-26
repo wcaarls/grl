@@ -1,0 +1,61 @@
+type: experiment/online_learning
+rate: 0
+environment:  
+  type: environment/modeled
+  model:  
+    type: model/dynamical
+    control_step: 0.03
+    dynamics:  
+      type: dynamics/pendulum
+  task:  
+    type: task/pendulum/swingup
+agent:  
+  type: agent/td
+  policy:  
+    type: policy/discrete/q
+    representation:  
+      type: representation/llr
+      order: 0
+      projector:  
+        type: projector/sample/ann
+        samples: 1000
+        error_bound: 0
+        dims: 3
+    discretizer:  
+      type: discretizer/uniform
+      max: [ 3 ]
+      steps: [ 3 ]
+      min: [ -3 ]
+    projector: agent/policy/representation/projector
+    sampler:  
+      type: sampler/epsilon_greedy
+      epsilon: 0.5
+  predictor:  
+    type: predictor/sarsa
+    projector: agent/policy/representation/projector
+    trace:  
+      type: trace/enumerated/replacing
+    alpha: 0.2
+    representation: agent/policy/representation
+    gamma: 0.97
+    lambda: 0.65
+visualizer:
+  type: visualizer/glut
+visualization:
+  type: visualization/sample
+  projector: agent/predictor/projector
+  min: environment/task/observation_min
+  max: environment/task/observation_max
+  points: 65536
+#visualization2:
+#  type: visualization/value_function
+#  projector: agent/predictor/projector
+#  representation: agent/predictor/representation
+#  policy:
+#    type: policy/discrete/q
+#    discretizer: agent/policy/discretizer
+#    sampler:
+#      type: sampler/greedy
+#  min: environment/task/observation_min
+#  max: environment/task/observation_max
+#  points: 65536

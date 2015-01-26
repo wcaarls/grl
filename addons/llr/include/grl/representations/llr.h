@@ -49,10 +49,10 @@ class LLRRepresentation : public Representation
   protected:
     SampleProjector *projector_;
     double ridge_regression_factor_;
-    size_t outputs_;
+    size_t outputs_, order_;
 
   public:
-    LLRRepresentation() : projector_(NULL), ridge_regression_factor_(0.00001), outputs_(1) { }
+    LLRRepresentation() : projector_(NULL), ridge_regression_factor_(0.00001), outputs_(1), order_(1) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);

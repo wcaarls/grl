@@ -30,6 +30,7 @@
 
 #include <grl/configurable.h>
 #include <grl/projection.h>
+#include <grl/projections/sample.h>
 
 namespace grl
 {
@@ -89,6 +90,7 @@ class SampleProjector : public Projector
 
   public:
     virtual void push(class Sample *sample) = 0;
+    virtual StorePtr store() = 0;
 };
 
 }

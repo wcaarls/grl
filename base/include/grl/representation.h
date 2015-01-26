@@ -62,10 +62,10 @@ class Representation : public Mapping
       read(projection, &value);
       write(projection, value+delta);
     }
-    virtual void update(const Trace &trace, const Vector &delta)
+    virtual void update(const Trace &trace, const Vector &delta, double e=1.)
     {
       for (Trace::iterator ii=trace.begin(); ii != trace.end() && ii->weight() > 0.001; ++ii)
-        update(ii->projection(), ii->weight()*delta);
+        update(ii->projection(), ii->weight()*delta*e);
     }
 };
 

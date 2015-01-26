@@ -62,6 +62,12 @@ void ANNProjector::push(Sample *sample)
 {
   rwlock_.writeLock();
 
+  // HACK: avoid precise matches
+  if (sample->in[0])
+    sample->in[0] *= 1 + 0.001*RandGen::get();
+  else
+    sample->in[0] += 0.001*RandGen::get();
+
   store_->push_back(sample);
 
   // Should be in a separate thread
@@ -84,7 +90,7 @@ void ANNProjector::reindex()
   
   {
     WriteGuard guard(rwlock_);
-  
+
     store_ = newstore;
     safe_delete(&index_);
     index_ = newindex;

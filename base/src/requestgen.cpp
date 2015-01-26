@@ -2,7 +2,7 @@
  * \brief Generates requests.yaml from object requests.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-01-22
+ * \date      2015-01-25
  *
  * \copyright \verbatim
  * Copyright (c) 2015, Wouter Caarls

@@ -233,21 +233,21 @@ predictor/expected_sarsa:
   alpha:
     type: double
     description: Learning rate
-    default: 0
+    default: 0.2
     mutability: configuration
     min: 0
     max: 1
   gamma:
     type: double
     description: Discount rate
-    default: 0
+    default: 0.97
     mutability: configuration
     min: 0
     max: 1
   lambda:
     type: double
     description: Trace decay rate
-    default: 0
+    default: 0.65
     mutability: configuration
     min: 0
     max: 1
@@ -313,21 +313,21 @@ predictor/sarsa:
   alpha:
     type: double
     description: Learning rate
-    default: 0
+    default: 0.2
     mutability: configuration
     min: 0
     max: 1
   gamma:
     type: double
     description: Discount rate
-    default: 0
+    default: 0.97
     mutability: configuration
     min: 0
     max: 1
   lambda:
     type: double
     description: Trace decay rate
-    default: 0
+    default: 0.65
     mutability: configuration
     min: 0
     max: 1
@@ -420,6 +420,13 @@ representation/llr:
     mutability: configuration
     min: 0
     max: 1
+  order:
+    type: int
+    description: Order of regression model
+    default: 1
+    mutability: configuration
+    min: 0
+    max: 1
   projector:
     type: projector/sample
     description: Projector used to generate input for this representation
@@ -461,6 +468,40 @@ sampler/greedy: ~
 task/pendulum/swingup: ~
 trace/enumerated/accumulating: ~
 trace/enumerated/replacing: ~
+visualization/sample:
+  dims:
+    type: vector
+    description: Input dimensions to visualize
+    default: "[ 0, 1 ]"
+    mutability: configuration
+  min:
+    type: vector
+    description: Lower input dimension limit
+    default: "[  ]"
+    mutability: configuration
+  max:
+    type: vector
+    description: Upper input dimension limit
+    default: "[  ]"
+    mutability: configuration
+  dim:
+    type: int
+    description: Output dimension to visualize
+    default: 0
+    mutability: configuration
+    min: 0
+    max: 2147483647
+  points:
+    type: int
+    description: Texture size
+    default: 1048576
+    mutability: configuration
+    min: 0
+    max: 2147483647
+  projector:
+    type: projector/sample
+    description: Sample projector whose store to visualize
+    mutability: configuration
 visualization/value_function:
   min:
     type: vector

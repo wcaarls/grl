@@ -49,23 +49,18 @@ class Sample
     class SampleStore *owner;
 
   public:
-    bool operator<(const Sample &obj) const
+    bool operator>(const Sample &obj) const
     {
-      return relevance < obj.relevance;
-    }
-    
-    static bool less(Sample* const &lhs, Sample* const& rhs)
-    {
-      return *lhs < *rhs;
+      return relevance > obj.relevance;
     }
 };
 
 template<class T>
-struct PointerLess
+struct PointerGreater
 {
   bool operator()(T* const& lhs, T* const& rhs)
   {
-    return *lhs < *rhs;
+    return *lhs > *rhs;
   }
 };
                              
@@ -122,7 +117,7 @@ class SampleStore : public Lockable
       if (ss->size() > max_samples)
       {
         // Sort by relevance
-        std::sort(ss->samples_.begin(), ss->samples_.end(), PointerLess<Sample>());
+        std::sort(ss->samples_.begin(), ss->samples_.end(), PointerGreater<Sample>());
       
         // Drop pruned samples
         ss->samples_.resize(max_samples);

@@ -53,6 +53,8 @@ class SARSAPredictor : public Predictor
     Trace *trace_;
 
   public:
+    SARSAPredictor() : alpha_(0.2), gamma_(0.97), lambda_(0.65), projector_(NULL), representation_(NULL), trace_(NULL) { }
+  
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
@@ -80,6 +82,8 @@ class ExpectedSARSAPredictor : public Predictor
 
   public:
     // From Configurable
+    ExpectedSARSAPredictor() : alpha_(0.2), gamma_(0.97), lambda_(0.65), projector_(NULL), representation_(NULL), policy_(NULL), sampler_(NULL), trace_(NULL) { }
+     
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);

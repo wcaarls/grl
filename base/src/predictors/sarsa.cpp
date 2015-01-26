@@ -76,10 +76,14 @@ void SARSAPredictor::update(const Transition &transition)
   representation_->read(p, &q);
   representation_->read(pp, &qp);
 
-  double delta = transition.reward + gamma_*qp[0] - q[0];
+  double target = transition.reward + gamma_*qp[0];
+  double delta = target - q[0];
+  
+  representation_->write(p, VectorConstructor(target), alpha_);
 
+  // TODO: recently added point is not in trace
+  representation_->update(*trace_, VectorConstructor(alpha_*delta), gamma_*lambda_);
   trace_->add(p, gamma_*lambda_);
-  representation_->update(*trace_, VectorConstructor(alpha_*delta));
 }
 
 void SARSAPredictor::finalize()
@@ -143,10 +147,12 @@ void ExpectedSARSAPredictor::update(const Transition &transition)
   Vector q;
   representation_->read(p, &q);
 
-  double delta = transition.reward + gamma_*v - q[0];
+  double target = transition.reward + gamma_*v;
+  double delta = target - q[0];
 
+  representation_->write(p, VectorConstructor(target), alpha_);
+  representation_->update(*trace_, VectorConstructor(alpha_*delta), gamma_*lambda_);
   trace_->add(p, gamma_*lambda_);
-  representation_->update(*trace_, VectorConstructor(alpha_*delta));
 }
 
 void ExpectedSARSAPredictor::finalize()
