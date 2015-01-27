@@ -18,7 +18,7 @@ agent:
       order: 0
       projector:  
         type: projector/sample/ann
-        samples: 1000
+        samples: 10000
         error_bound: 0
         dims: 3
     discretizer:  
@@ -29,7 +29,7 @@ agent:
     projector: agent/policy/representation/projector
     sampler:  
       type: sampler/epsilon_greedy
-      epsilon: 0.5
+      epsilon: 0.05
   predictor:  
     type: predictor/sarsa
     projector: agent/policy/representation/projector
@@ -47,15 +47,15 @@ visualization:
   min: environment/task/observation_min
   max: environment/task/observation_max
   points: 65536
-#visualization2:
-#  type: visualization/value_function
-#  projector: agent/predictor/projector
-#  representation: agent/predictor/representation
-#  policy:
-#    type: policy/discrete/q
-#    discretizer: agent/policy/discretizer
-#    sampler:
-#      type: sampler/greedy
-#  min: environment/task/observation_min
-#  max: environment/task/observation_max
-#  points: 65536
+visualization2:
+  type: visualization/value_function
+  projector: agent/predictor/projector
+  representation: agent/predictor/representation
+  policy:
+    type: policy/discrete/q
+    discretizer: agent/policy/discretizer
+    sampler:
+      type: sampler/greedy
+  min: environment/task/observation_min
+  max: environment/task/observation_max
+  points: 1024

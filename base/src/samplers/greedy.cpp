@@ -52,18 +52,16 @@ size_t GreedySampler::sample(const Vector &values) const
 {
   size_t mai = 0;
 
-  for (size_t ii=0; ii < values.size(); ++ii)
-  {
+  for (size_t ii=1; ii < values.size(); ++ii)
     if (values[ii] > values[mai])
       mai = ii;
-  }
 
   return mai;
 }
 
 void GreedySampler::distribution(const Vector &values, Vector *distribution) const
 {
-  size_t mai = sample(values);
+  size_t mai = GreedySampler::sample(values);
   distribution->resize(values.size());
 
   for (size_t ii=0; ii < values.size(); ++ii)
