@@ -158,7 +158,7 @@ void DynaAgent::stepModel(const Vector &obs, const Vector &action, Vector *next,
   model_representation_->read(p, next);
   
   bool valid = !next->empty();
-  for (size_t ii=0; ii < obs.size(); ++ii)
+  for (size_t ii=0; ii < obs.size() && valid; ++ii)
   {
     (*next)[ii] += obs[ii];
     

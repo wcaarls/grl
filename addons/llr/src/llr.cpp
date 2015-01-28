@@ -67,6 +67,9 @@ double LLRRepresentation::read(const ProjectionPtr &projection, Vector *result) 
     throw Exception("representation/llr requires projector/sample");
   
   result->clear();
+
+  if (p->indices.empty())
+    return 0.;
   
   if (!order_)
   {
