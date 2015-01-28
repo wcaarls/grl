@@ -19,7 +19,8 @@ agent:
       projector:  
         type: projector/sample/ann
         samples: 10000
-        error_bound: 0
+        neighbors: 8
+        error_bound: 0.1
         dims: 3
     discretizer:  
       type: discretizer/uniform
