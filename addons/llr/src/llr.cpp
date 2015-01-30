@@ -175,6 +175,10 @@ void LLRRepresentation::write(const ProjectionPtr projection, const Vector &targ
     // Reinforcement learning: move sample neighborhood towards target value
     Vector out;
     read(projection, &out);
+    
+    if (out.empty())
+      out.resize(target.size(), 0.);
+    
     Vector delta = target-out;
     
     // Update new sample
@@ -187,9 +191,8 @@ void LLRRepresentation::write(const ProjectionPtr projection, const Vector &targ
     // Determine sample relevance
     if (p->indices.size())
     {
-      StorePtr store = projector_->store();
-      Guard guard(*store);
-      Sample *neighbor = (*store)[p->indices[0]];
+      Guard guard(*p->store);
+      Sample *neighbor = (*p->store)[p->indices[0]];
         
       // Relevance based on euclidean distance
       sample->relevance = 0;
@@ -223,9 +226,13 @@ void LLRRepresentation::update(const ProjectionPtr projection, const Vector &del
   if (delta.size() != outputs_)
     throw bad_param("representation/llr:outputs");
 
-  // Less contributing neighbors are updated less
-  for (size_t ii=0; ii < p->indices.size(); ++ii)
-    for (size_t jj=0; jj < outputs_; ++jj)
-      (*p->store)[p->indices[ii]]->out[jj] += delta[jj]*p->weights[ii];
+  {
+    Guard guard(*p->store);
+  
+    // Less contributing neighbors are updated less
+    for (size_t ii=0; ii < p->indices.size(); ++ii)
+      for (size_t jj=0; jj < outputs_; ++jj)
+        (*p->store)[p->indices[ii]]->out[jj] += delta[jj]*p->weights[ii];
+  }
 }
                 

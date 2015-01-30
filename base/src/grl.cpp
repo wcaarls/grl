@@ -26,6 +26,7 @@
  */
 
 #include <grl/configurable.h>
+#include <grl/projections/sample.h>
 #include <grl/visualization.h>
 
 using namespace grl;
@@ -48,7 +49,9 @@ DECLARE_TYPE_NAME(double)
 DECLARE_TYPE_NAME(Vector)
 DECLARE_TYPE_NAME(std::string)
 
-Visualizer *Visualizer::instance_;
+ReadWriteLock SampleStore::rwlock_;
+
+Visualizer *Visualizer::instance_ = NULL;
 
 pthread_once_t RandGen::once_ = PTHREAD_ONCE_INIT;
 pthread_mutex_t RandGen::mutex_;

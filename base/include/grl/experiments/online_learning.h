@@ -49,7 +49,7 @@ class OnlineLearningExperiment : public Experiment
     double rate_;
 
   public:
-    OnlineLearningExperiment() : runs_(1), trials_(0), steps_(0), rate_(0) { }
+    OnlineLearningExperiment() : agent_(NULL), environment_(NULL), runs_(1), trials_(0), steps_(0), rate_(0) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);

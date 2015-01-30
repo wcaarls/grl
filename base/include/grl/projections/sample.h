@@ -46,7 +46,7 @@ class Sample
     double relevance;
     
   private:
-    class SampleStore *owner;
+    size_t use_count;
 
   public:
     bool operator>(const Sample &obj) const
@@ -75,7 +75,7 @@ class SampleStore : public Lockable
 {
   protected:
     std::vector<Sample*> samples_;
-    ReadWriteLock rwlock_;
+    static ReadWriteLock rwlock_;
     
   public:
     SampleStore(size_t sz=10000)
@@ -86,7 +86,7 @@ class SampleStore : public Lockable
     ~SampleStore()
     {
       for (size_t ii=0; ii < samples_.size(); ++ii)
-        if (samples_[ii]->owner == this)
+        if (!--samples_[ii]->use_count)
           delete samples_[ii];
     }
   
@@ -100,7 +100,7 @@ class SampleStore : public Lockable
       for (size_t ii=0; ii < samples_.size(); ++ii)
       {
         ss->samples_.push_back(new Sample(*samples_[ii]));
-        ss->samples_.back()->owner = this;
+        ss->samples_.back()->use_count = 1;
       }
         
       return ss;
@@ -123,9 +123,9 @@ class SampleStore : public Lockable
         ss->samples_.resize(max_samples);
       }
        
-      // Transfer ownership of remaining samples
+      // Increase use count of remaining samples
       for (size_t ii=0; ii < ss->samples_.size(); ++ii)
-        ss->samples_[ii]->owner = ss;
+        ss->samples_[ii]->use_count++;
       
       return ss;
     }
@@ -134,7 +134,7 @@ class SampleStore : public Lockable
     {
       WriteGuard guard(rwlock_);
       
-      sample->owner = this;
+      sample->use_count = 1;
       samples_.push_back(sample);
     }
     

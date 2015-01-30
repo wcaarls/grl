@@ -29,6 +29,8 @@
 
 using namespace grl;
 
+unsigned char grl::grl_log_verbosity__ = 3;
+
 Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *config, const std::string &path)
 {
   Configurable *obj=NULL;
@@ -42,7 +44,7 @@ Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *conf
     
     if (!obj)
     {
-      std::cerr << "Object " << path << " requested unknown type " << node["type"] << std::endl;
+      ERROR("Object " << path << " requested unknown type " << node["type"]);
       return NULL;
     }
   }
@@ -67,7 +69,7 @@ Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *conf
         return NULL;
       }
       
-      std::cout << path << key << ": " << subobj << " (type " << subobj->d_type() << ") " << std::endl;
+      CRAWL(path << key << ": " << subobj << " (type " << subobj->d_type() << ") ");
               
       config->set(key, subobj);
       references_.set(path + key, subobj);
@@ -78,11 +80,11 @@ Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *conf
       
       if (references_.has(value))
       {
-        std::cout << path << key << ": " << references_[value].str() << " (from " << value << ")" << std::endl;
+        DEBUG(path << key << ": " << references_[value].str() << " (from " << value << ")");
         value = references_[value].str();
       }
       else
-        std::cout << path << key << ": " << value << std::endl;
+        INFO(path << key << ": " << value);
       
       config->set(key, value);
       references_.set(path + key, value);
@@ -109,13 +111,13 @@ Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *conf
         {
           if (i < request[ii].min || i > request[ii].max)
           {
-            std::cerr << "Parameter " << path << key << " ('" << value << "') is out of range " << request[ii].min << " - " << request[ii].max << std::endl;
+            ERROR("Parameter " << path << key << " ('" << value << "') is out of range " << request[ii].min << " - " << request[ii].max);
             return NULL;
           }
         }
         else
         {
-          std::cerr << "Parameter " << path << key << " ('" << value << "') should be an integer" << std::endl;
+          ERROR("Parameter " << path << key << " ('" << value << "') should be an integer");
           return NULL;
         }
       }
@@ -126,13 +128,13 @@ Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *conf
         {
           if (d < request[ii].min || d > request[ii].max)
           {
-            std::cerr << "Parameter " << path << key << " ('" << value << "') is out of range " << request[ii].min << " - " << request[ii].max << std::endl;
+            ERROR("Parameter " << path << key << " ('" << value << "') is out of range " << request[ii].min << " - " << request[ii].max);
             return NULL;
           }
         }
         else
         {
-          std::cerr << "Parameter " << path << key << " ('" << value << "') should be a floating point value" << std::endl;
+          ERROR("Parameter " << path << key << " ('" << value << "') should be a floating point value");
           return NULL;
         }
       }
@@ -141,7 +143,7 @@ Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *conf
         Vector v;
         if (!convert(value, &v))
         {
-          std::cerr << "Parameter " << path << key << " ('" << value << "') should be a vector" << std::endl;
+          ERROR("Parameter " << path << key << " ('" << value << "') should be a vector");
           return NULL;
         }
       }
@@ -178,32 +180,32 @@ Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *conf
       
           if (subobj->d_type().substr(0, type.size()) != type)
           {
-            std::cerr << "Parameter " << path << key << " should subclass " << type << std::endl;
+            ERROR("Parameter " << path << key << " should subclass " << type);
             return NULL;
           }
         }
         else
         {
-          std::cerr << "Parameter " << path << key << " ('" << value << "') should be an object (of type " << type << ")" << std::endl;
+          ERROR("Parameter " << path << key << " ('" << value << "') should be an object (of type " << type << ")");
           return NULL;
         }
       }
     }
     else if (type != "int" && type != "double" && type != "vector" && type != "string")
     {
-      std::cerr << "Object parameter " << path << key << " is undefined" << std::endl;
+      ERROR("Object parameter " << path << key << " is undefined");
       return NULL;
     }
     else
     {
-      std::cout << path << key << ": " << request[ii].value << " (default)" << std::endl;
+      INFO(path << key << ": " << request[ii].value << " (default)");
       config->set(key, request[ii].value);
     }
   }
   
   if (obj)
   {
-    std::cout << "Configuring " << obj->d_type() << std::endl;
+    DEBUG("Configuring " << obj->d_type());
     obj->configure(*config);
   }
     

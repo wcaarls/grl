@@ -49,6 +49,9 @@ void SampleVisualization::request(ConfigurationRequest *config)
 
 void SampleVisualization::configure(Configuration &config)
 {
+  if (!Visualizer::instance())
+    throw Exception("visualization/sample requires a configured visualizer to run");
+
   projector_ = (SampleProjector*)config["projector"].ptr();
 
   dims_ = config["dims"];

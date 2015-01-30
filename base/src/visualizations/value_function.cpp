@@ -50,6 +50,9 @@ void ValueFunctionVisualization::request(ConfigurationRequest *config)
 
 void ValueFunctionVisualization::configure(Configuration &config)
 {
+  if (!Visualizer::instance())
+    throw Exception("visualization/value_function requires a configured visualizer to run");
+
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (Representation*)config["representation"].ptr();
   policy_ = (QPolicy*)config["policy"].ptr();
@@ -116,8 +119,7 @@ void ValueFunctionVisualization::idle()
     {
       Vector action, q;
       policy_->act(ss, &action);
-      representation_->read(projector_->project(ss, action), &q);
-      v += q[0];
+      v += representation_->read(projector_->project(ss, action), &q);
       
       for (int dd=0; dd < state_dims_; ++dd)
       {

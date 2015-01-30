@@ -124,7 +124,8 @@ bool PendulumSwingupTask::evaluate(const Vector &state, const Vector &action, co
   if (state.size() != 3 || action.size() != 1 || next.size() != 3)
     throw Exception("task/pendulum/swingup requires dynamics/pendulum");
 
-  double a = fmod(next[0], 2*M_PI);
+  double a = fmod(fabs(next[0]), 2*M_PI);
+  if (a > M_PI) a -= 2*M_PI;
 
   *reward = -5*pow(a, 2) - 0.1*pow(next[1], 2) - 1*pow(action[0], 2);
   

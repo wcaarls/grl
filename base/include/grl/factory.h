@@ -60,7 +60,7 @@ x ## Factory::Map &x ## Factory::factories()          \
                                                       \
 x ## Factory::x ## Factory(std::string name)          \
 {                                                     \
-  std::cout << "registering " << name << std::endl;   \
+  DEBUG("Registering " << #x << ": " << name);        \
   factories()[name] = this;                           \
 }                                                     \
                                                       \
@@ -85,6 +85,7 @@ static class subx ## Factory : public x ## Factory    \
     subx ## Factory() : x ## Factory(name) { }        \
     virtual x *create()                               \
     {                                                 \
+      DEBUG("Creating " << #x << ": " << name);       \
       return new subx();                              \
     }                                                 \
 } subx ## _factory;

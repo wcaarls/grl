@@ -1,0 +1,83 @@
+type: experiment/online_learning
+rate: 0
+environment:
+  type: environment/modeled
+  model:
+    type: model/dynamical
+    dynamics:
+      type: dynamics/pendulum
+    control_step: 0.03
+  task:
+    type: task/pendulum/swingup
+agent:
+  type: agent/dyna
+  planning_steps: 200
+  wrapping: [ 6.283, 0 ]
+  observation_min: environment/task/observation_min
+  observation_max: environment/task/observation_max
+  predictor:
+    type: predictor/sarsa
+    alpha: 0.2
+    gamma: 0.97
+    lambda: 0.65
+    projector:  
+      type: projector/sample/ann
+      samples: 10000
+      neighbors: 8
+      error_bound: 0.1
+      dims: 3
+    representation:  
+      type: representation/llr
+      projector: agent/predictor/projector
+      order: 0
+    trace:
+      type: trace/enumerated/replacing
+  policy:
+    type: policy/discrete/q
+    projector: agent/predictor/projector
+    representation: agent/predictor/representation
+    discretizer:
+      type: discretizer/uniform
+      min: environment/task/action_min
+      max: environment/task/action_max
+      steps: [3]
+    sampler:
+      type: sampler/epsilon_greedy
+      epsilon: 0.05
+  model_agent:
+    type: agent/td
+    predictor:
+      type: predictor/sarsa
+      alpha: 0.02
+      gamma: agent/predictor/gamma
+      lambda: agent/predictor/lambda
+      projector: agent/predictor/projector
+      representation: agent/predictor/representation
+      trace:
+        type: trace/enumerated/replacing
+    policy:
+      type: policy/discrete/q
+      projector: agent/predictor/projector
+      representation: agent/predictor/representation
+      discretizer: agent/policy/discretizer
+      sampler: agent/policy/sampler
+  model_projector:
+    type: projector/sample/ann
+    samples: 100000
+    dims: 3
+    neighbors: 12
+    bucket_size: 10
+    error_bound: 0.01
+  model_representation:
+    type: representation/llr
+    ridge: 0.00001
+    outputs: 4
+    projector: agent/model_projector
+visualizer:
+  type: visualizer/glut
+visualization:
+  type: visualization/sample
+  projector: agent/predictor/projector
+  min: environment/task/observation_min
+  max: environment/task/observation_max
+  points: 65536

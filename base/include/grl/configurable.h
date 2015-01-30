@@ -100,9 +100,43 @@ typedef std::vector<CRP> ConfigurationRequest;
     static std::string s_type() { return t; }\
     virtual std::string d_type() { return t; }
 
+extern unsigned char grl_log_verbosity__;
+
+#define LOG(l, m) do { std::ostringstream oss; oss << m; log(l, oss); } while (0)
+
+#define ERROR(m) LOG(0, m)
+#define WARNING(m) LOG(1, m)
+#define NOTICE(m) LOG(2, m)
+#define INFO(m) LOG(3, m)
+#define DEBUG(m) LOG(4, m)
+#define CRAWL(m) LOG(5, m)
+
+inline void log(unsigned char level, const std::ostringstream &oss)
+{
+  if (level <= grl_log_verbosity__)
+  {
+    if (level < 2)
+      std::cerr << oss.str() << std::endl;
+    else
+      std::cout << oss.str() << std::endl;
+  }
+}
+
 /// Configurable object.
 class Configurable
 {
+  protected:
+    inline void log(unsigned char level, const std::ostringstream &oss)
+    {
+      if (level <= grl_log_verbosity__)
+      {
+        if (level < 2)
+          std::cerr << "[" << d_type() << "]: " << oss.str() << std::endl;
+        else
+          std::cout << "[" << d_type() << "]: " << oss.str() << std::endl;
+      }
+    }
+    
   public:
     virtual ~Configurable() { }
     

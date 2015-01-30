@@ -72,12 +72,9 @@ void SARSAPredictor::update(const Transition &transition)
   ProjectionPtr p = projector_->project(transition.prev_obs, transition.prev_action),
                 pp = projector_->project(transition.obs, transition.action);
 
-  Vector q, qp;
-  representation_->read(p, &q);
-  representation_->read(pp, &qp);
-
-  double target = transition.reward + gamma_*qp[0];
-  double delta = target - q[0];
+  Vector q;
+  double target = transition.reward + gamma_*representation_->read(pp, &q);
+  double delta = target - representation_->read(p, &q);
   
   representation_->write(p, VectorConstructor(target), alpha_);
 
@@ -145,10 +142,8 @@ void ExpectedSARSAPredictor::update(const Transition &transition)
     v += values[ii]*distribution[ii];
 
   Vector q;
-  representation_->read(p, &q);
-
   double target = transition.reward + gamma_*v;
-  double delta = target - q[0];
+  double delta = target - representation_->read(p, &q);
 
   representation_->write(p, VectorConstructor(target), alpha_);
   representation_->update(*trace_, VectorConstructor(alpha_*delta), gamma_*lambda_);

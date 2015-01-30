@@ -65,6 +65,8 @@ class RandomDiscretePolicy : public Policy
     std::vector<Vector> options_;
 
   public:
+    RandomDiscretePolicy() : discretizer_(NULL) { }
+  
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);

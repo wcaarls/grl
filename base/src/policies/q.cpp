@@ -72,10 +72,7 @@ void QPolicy::values(const Vector &in, Vector *out) const
   out->resize(variants_.size());
   Vector value;
   for (size_t ii=0; ii < variants_.size(); ++ii)
-  {
-    representation_->read(projections[ii], &value);
-    (*out)[ii] = value[0];
-  }
+    (*out)[ii] = representation_->read(projections[ii], &value);
 }
 
 void QPolicy::distribution(const Vector &in, Vector *out) const
