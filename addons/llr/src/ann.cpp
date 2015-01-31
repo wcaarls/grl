@@ -145,7 +145,7 @@ ProjectionPtr ANNProjector::project(const Vector &in) const
         }
       
         refs[ii].index = nn_idx[ii];
-        refs[ii].dist = dd[ii];
+        refs[ii].dist = (float)dd[ii];
       }
     }
 
@@ -157,7 +157,7 @@ ProjectionPtr ANNProjector::project(const Vector &in) const
         dist += pow((*store_)[indexed_samples_+ii]->in[dd] - in[dd], 2);
       
       refs[index_samples+ii].index = indexed_samples_+ii;
-      refs[index_samples+ii].dist = dist;
+      refs[index_samples+ii].dist = (float)dist;
     }
     
     std::sort(refs.begin(), refs.end());

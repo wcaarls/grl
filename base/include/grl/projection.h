@@ -64,7 +64,7 @@ struct VectorProjection : public Projection
     const VectorProjection &vp = dynamic_cast<const VectorProjection&>(rhs);
     assert(vector.size() == vp.vector.size());
     for (size_t ii=0; ii < vector.size(); ++ii)
-      vector[ii] = fmax(0, vector[ii]-vp.vector[ii]);
+      vector[ii] = std::max(0., vector[ii]-vp.vector[ii]);
   }
 };
 

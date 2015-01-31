@@ -62,7 +62,7 @@ class Mutex : public Lockable
     
     virtual bool trylock()
     {
-      return pthread_mutex_trylock(&mutex_);
+      return pthread_mutex_trylock(&mutex_)!=0;
     }
     
     virtual void unlock()
@@ -147,7 +147,9 @@ class ReadWriteLock
     {
       pthread_rwlockattr_t attr;
       pthread_rwlockattr_init(&attr);
+#ifndef WIN32
       pthread_rwlockattr_setkind_np(&attr, PTHREAD_RWLOCK_PREFER_WRITER_NONRECURSIVE_NP);
+#endif
       pthread_rwlock_init(&rwlock_, &attr);
     }
     

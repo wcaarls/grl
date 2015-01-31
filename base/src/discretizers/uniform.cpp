@@ -59,7 +59,7 @@ void UniformDiscretizer::configure(Configuration &config)
     if (steps_[dd] < 1)
       throw bad_param("discretizer/uniform:steps");
   
-    values_[dd].resize(steps_[dd]);
+    values_[dd].resize((unsigned int)steps_[dd]);
 
     for (size_t vv=0; vv < steps_[dd]; ++vv)
       values_[dd][vv] = min_[dd] + delta[dd] * vv;

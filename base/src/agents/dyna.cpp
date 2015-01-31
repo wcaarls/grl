@@ -173,7 +173,7 @@ void DynaAgent::stepModel(const Vector &obs, const Vector &action, Vector *next,
   if (valid)
   {
     *reward = (*next)[next->size()-2];  
-    *terminal = (*next)[next->size()-1];
+    *terminal = (int)(*next)[next->size()-1];
     next->resize(next->size()-2);
   }
   else

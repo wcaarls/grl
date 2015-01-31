@@ -28,8 +28,24 @@
 #ifndef GRL_UTILS_H_
 #define GRL_UTILS_H_
 
+#define _USE_MATH_DEFINES
+#include <math.h>
+#include <pthread.h>
 #include <iostream>
 #include <grl/vector.h>
+
+#ifdef WIN32
+#include <ctime>
+struct drand48_data { unsigned char dummy; };
+#define srand48_r(x, y) srand(x)
+#define drand48_r(x, y) do { *(y) = rand()/(RAND_MAX+1.); } while (0)
+#define lrand48() (rand()%RAND_MAX)
+void __stdcall Sleep(_In_ unsigned int dwMilliseconds);
+#define usleep(x) Sleep(((unsigned int)(x))/1000)
+inline int round( double r ) {
+    return (int)((r > 0.0) ? (r + 0.5) : (r - 0.5));
+}
+#endif
 
 #define grl_assert(x) do { if (!(x)) { std::cerr << __FILE__ << ":" << __LINE__ << ": Assertion '" << #x << "' failed" << std::endl; abort(); } } while (0)
 
@@ -145,7 +161,7 @@ class RandGen
     static double getUniform(double a, double b) { return instance()->getUniform(a, b); }
     static Vector getVector(size_t sz) { return instance()->getVector(sz); }
     static double getNormal(double mu, double sigma) { return instance()->getNormal(mu, sigma); }
-    static double getInteger(size_t ma) { return instance()->getInteger(ma); }
+    static size_t getInteger(size_t ma) { return instance()->getInteger(ma); }
 
     static Rand *instance()
     {

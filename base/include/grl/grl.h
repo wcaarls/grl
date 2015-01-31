@@ -28,10 +28,12 @@
 #ifndef GRL_H_
 #define GRL_H_
 
+#define _USE_MATH_DEFINES
+#include <math.h>
+
 #include <boost/shared_ptr.hpp>
 #include <vector>
 #include <assert.h>
-#include <math.h>
 
 #include <grl/vector.h>
 
