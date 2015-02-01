@@ -35,6 +35,9 @@ add_library(${TARGET} SHARED
 # Dependencies
 target_link_libraries(${TARGET} -lGL -lGLU -lpthread)
 grl_link_yaml(${TARGET})
+if (WIN32)
+  grl_link_libraries(${TARGET} externals/win32)
+endif()
 
 # Deployer
 set (TARGET deployer)

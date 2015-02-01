@@ -15,8 +15,13 @@ endif()
   set(GRL_YAML_MODULE externals/yaml-cpp)
 #endif()
 
+if (WIN32)
+  set(GRL_WIN32_MODULE externals/win32)
+endif()
+
 # List of modules to build
 set(MODULES base
+            ${GRL_WIN32_MODULE}
             ${GRL_YAML_MODULE}
             externals/ann
             externals/cma
