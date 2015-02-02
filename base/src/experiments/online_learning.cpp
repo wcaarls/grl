@@ -88,8 +88,8 @@ void OnlineLearningExperiment::run() const
       {
         if (rate_) usleep(1000000./rate_);
         
-//        std::cout << obs << ", " << action << std::endl;
-      
+        CRAWL(obs << ", " << action);
+
         environment_->step(action, &obs, &reward, &terminal);
         total_reward += reward;
         
@@ -101,7 +101,7 @@ void OnlineLearningExperiment::run() const
         ++ss;
       } while (!terminal);
       
-      std::cout << tt << ", " << ss << ", " << total_reward << std::endl;
+      INFO(tt << ", " << ss << ", " << total_reward);
     }
   }
 }

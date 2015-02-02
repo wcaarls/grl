@@ -98,9 +98,10 @@ typedef std::vector<CRP> ConfigurationRequest;
 
 #define TYPEINFO(t)\
     static std::string s_type() { return t; }\
-    virtual std::string d_type() { return t; }
+    virtual std::string d_type() const { return t; }
 
 extern unsigned char grl_log_verbosity__;
+extern const char *grl_log_levels__[];
 
 #define LOG(l, m) do { std::ostringstream oss; oss << m; log(l, oss); } while (0)
 
@@ -116,9 +117,9 @@ inline void log(unsigned char level, const std::ostringstream &oss)
   if (level <= grl_log_verbosity__)
   {
     if (level < 2)
-      std::cerr << oss.str() << std::endl;
+      std::cerr << grl_log_levels__[level] << " " << oss.str() << "\x1B[0m" << std::endl;
     else
-      std::cout << oss.str() << std::endl;
+      std::cout << grl_log_levels__[level] << " " << oss.str() << "\x1B[0m" << std::endl;
   }
 }
 
@@ -126,14 +127,14 @@ inline void log(unsigned char level, const std::ostringstream &oss)
 class Configurable
 {
   protected:
-    inline void log(unsigned char level, const std::ostringstream &oss)
+    inline void log(unsigned char level, const std::ostringstream &oss) const
     {
       if (level <= grl_log_verbosity__)
       {
         if (level < 2)
-          std::cerr << "[" << d_type() << "]: " << oss.str() << std::endl;
+          std::cerr << grl_log_levels__[level] << " " << d_type() << ": " << oss.str() << "\x1B[0m" << std::endl;
         else
-          std::cout << "[" << d_type() << "]: " << oss.str() << std::endl;
+          std::cout << grl_log_levels__[level] << " " << d_type() << ": " << oss.str() << "\x1B[0m" << std::endl;
       }
     }
     

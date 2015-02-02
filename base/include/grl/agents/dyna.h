@@ -50,7 +50,7 @@ class DynaAgent : public Agent
     Projector *model_projector_;
     Representation *model_representation_;
     
-    Vector prev_obs_, prev_action_, wrapping_;
+    Vector start_obs_, prev_obs_, prev_action_, wrapping_;
     size_t planning_steps_;
     Vector observation_min_, observation_max_;
     

@@ -41,7 +41,7 @@ void GLUTVisualizer::request(ConfigurationRequest *config)
 
 void GLUTVisualizer::configure(Configuration &config)
 {
-  std::cout << "Registering GLUT visualization engine" << std::endl;
+  NOTICE("Registering GLUT visualization engine");
   instance_ = this;
 
   continue_ = true;

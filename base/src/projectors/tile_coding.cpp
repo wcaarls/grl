@@ -91,7 +91,7 @@ ProjectionPtr TileCodingProjector::project(const Vector &in) const
   int num_coordinates = num_floats + 1;
   
   if (num_floats != (int)scaling_.size())
-    throw bad_param("representation/tile_coding:resolution");
+    throw bad_param("projector/tile_coding:resolution");
   
   IndexProjection *p = new IndexProjection();
   p->indices.resize(tilings_);

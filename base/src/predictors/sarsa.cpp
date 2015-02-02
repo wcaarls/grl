@@ -69,11 +69,12 @@ SARSAPredictor *SARSAPredictor::clone() const
 
 void SARSAPredictor::update(const Transition &transition)
 {
-  ProjectionPtr p = projector_->project(transition.prev_obs, transition.prev_action),
-                pp = projector_->project(transition.obs, transition.action);
-
+  ProjectionPtr p = projector_->project(transition.prev_obs, transition.prev_action);
   Vector q;
-  double target = transition.reward + gamma_*representation_->read(pp, &q);
+
+  double target = transition.reward;
+  if (!transition.obs.empty())
+    target += gamma_*representation_->read(projector_->project(transition.obs, transition.action), &q);
   double delta = target - representation_->read(p, &q);
   
   representation_->write(p, VectorConstructor(target), alpha_);

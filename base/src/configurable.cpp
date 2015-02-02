@@ -30,6 +30,7 @@
 using namespace grl;
 
 unsigned char grl::grl_log_verbosity__ = 3;
+const char *grl::grl_log_levels__[] = {"\x1B[31m\x1B[1m(ERR)\x1B[0m", "\x1B[33m\x1B[1m(WRN)\x1B[0m", "\x1B[34m\x1B[1m(NTC)\x1B[0m", "\x1B[32m\x1B[1m(INF)\x1B[0m", "\x1B[0m\x1B[1m(DBG)\x1B[0m", "\x1B[0m(CRL)"};
 
 Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *config, const std::string &path)
 {

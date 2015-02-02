@@ -1,3 +1,4 @@
+
 /** \file value_function.cpp
  * \brief Value function visualization source file.
  *
@@ -139,7 +140,9 @@ void ValueFunctionVisualization::idle()
     value_max = fmax(v, value_max);
     value_min = fmin(v, value_min);
   }
-  
+
+  CRAWL("Range " << value_min_ << " - " << value_max_);
+
   float value_range = value_max-value_min;
   
   // Create texture

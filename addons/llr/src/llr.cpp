@@ -188,27 +188,27 @@ void LLRRepresentation::write(const ProjectionPtr projection, const Vector &targ
     // Update neighbors      
     update(projection, alpha*delta);
   
-    // Determine sample relevance
-    if (p->indices.size())
-    {
-      Guard guard(*p->store);
-      Sample *neighbor = (*p->store)[p->indices[0]];
-        
-      // Relevance based on euclidean distance
-      sample->relevance = 0;
-      for (size_t ii=0; ii < p->query.size(); ++ii)
-        sample->relevance += pow(sample->in[ii]-neighbor->in[ii], 2);
-    }
-    else
-      sample->relevance = 1.;
   }
   else
   {
     // Supervised learning: just add sample with target value
     for (size_t ii=0; ii < target.size(); ++ii)
       sample->out[ii] = target[ii];
-    sample->relevance = 1.;
   }
+
+  // Determine sample relevance
+  if (p->indices.size())
+  {
+    Guard guard(*p->store);
+    Sample *neighbor = (*p->store)[p->indices[0]];
+
+    // Relevance based on euclidean distance
+    sample->relevance = 0;
+    for (size_t ii=0; ii < p->query.size(); ++ii)
+      sample->relevance += pow(sample->in[ii]-neighbor->in[ii], 2);
+  }
+  else
+    sample->relevance = 1.;
   
   // Don't add identical samples
   if (sample->relevance > 0.001)

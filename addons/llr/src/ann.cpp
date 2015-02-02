@@ -39,6 +39,7 @@ void ANNProjector::request(ConfigurationRequest *config)
   config->push_back(CRP("bucket_size", "?", bucket_size_, CRP::Configuration, 1));
   config->push_back(CRP("error_bound", "?", error_bound_, CRP::Configuration, 0., DBL_MAX));
   config->push_back(CRP("dims", "Number of input dimensions", dims_, CRP::System, 1));
+  config->push_back(CRP("scaling", "Input dimension scaling", scaling_));
 }
 
 void ANNProjector::configure(Configuration &config)
@@ -50,6 +51,13 @@ void ANNProjector::configure(Configuration &config)
   bucket_size_ = config["bucket_size"];
   error_bound_ = config["error_bound"];
   dims_ = config["dims"];
+  scaling_ = config["scaling"];
+
+  if (scaling_.empty())
+    scaling_.resize(dims_, 1.);
+
+  if (scaling_.size() != dims_)
+    throw bad_param("projector/sample/ann:scaling");
   
   indexed_samples_ = 0;
 }
@@ -112,8 +120,9 @@ ProjectionPtr ANNProjector::project(const Vector &in) const
   
   ANNcoord query[dims_];
   
+  // Scale input dimensions
   for (size_t ii=0; ii < dims_; ++ii)
-    query[ii] = in[ii];
+    query[ii] = scaling_[ii]*in[ii];
     
   size_t index_samples = std::min(neighbors_, indexed_samples_),
          linear_samples = store_->size()-indexed_samples_,
@@ -121,7 +130,7 @@ ProjectionPtr ANNProjector::project(const Vector &in) const
          
   SampleProjection *projection = new SampleProjection;
   projection->store = store_;
-  projection->query = in;
+  projection->query = scaling_*in;
 
   if (available_samples)
   {
@@ -154,7 +163,7 @@ ProjectionPtr ANNProjector::project(const Vector &in) const
     {
       double dist=0;
       for (size_t dd=0; dd < dims_; ++dd)
-        dist += pow((*store_)[indexed_samples_+ii]->in[dd] - in[dd], 2);
+        dist += pow((*store_)[indexed_samples_+ii]->in[dd] - query[dd], 2);
       
       refs[index_samples+ii].index = indexed_samples_+ii;
       refs[index_samples+ii].dist = (float)dist;

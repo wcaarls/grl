@@ -86,6 +86,7 @@ void DynaAgent::start(const Vector &obs, Vector *action)
   
   prev_obs_ = obs;
   prev_action_ = *action;
+  start_obs_ = obs;
 }
 
 void DynaAgent::step(const Vector &obs, double reward, Vector *action)
@@ -191,7 +192,7 @@ void DynaAgent::runModel()
   {
     if (terminal)
     {
-      obs = prev_obs_;
+      obs = start_obs_;
       model_agent_->start(obs, &action);
     }
       

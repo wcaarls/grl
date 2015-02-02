@@ -1,0 +1,54 @@
+type: experiment/online_learning
+rate: 0
+environment:
+  type: environment/modeled
+  model:
+    type: model/dynamical
+    dynamics:
+      type: dynamics/cart_pole
+  task:
+    type: task/cart_pole/swingup
+agent:
+  type: agent/td
+  predictor:
+    type: predictor/sarsa
+    alpha: 0.2
+    gamma: 0.97
+    lambda: 0.65
+    projector:
+      type: projector/tile_coding
+      resolution: [ 2.5, 2.5, 0.15708, 1.5708, 15 ]
+      wrapping: [ 0, 0, 6.2832, 0, 0 ]
+      memory: 67108864
+    representation:
+      type: representation/parameterized/linear
+      memory: agent/predictor/projector/memory
+    trace:
+      type: trace/enumerated/replacing
+  policy:
+    type: policy/discrete/q
+    projector: agent/predictor/projector
+    representation: agent/predictor/representation
+    discretizer:
+      type: discretizer/uniform
+      min: environment/task/action_min
+      max: environment/task/action_max
+      steps: [3]
+    sampler:
+      type: sampler/epsilon_greedy
+      epsilon: 0.05
+visualization:
+  type: visualization/value_function
+  visualizer:
+    type: visualizer/glut
+  projector: agent/predictor/projector
+  representation: agent/predictor/representation
+  policy:
+    type: policy/discrete/q
+    discretizer: agent/policy/discretizer
+    sampler:
+      type: sampler/greedy
+  min: environment/task/observation_min
+  max: environment/task/observation_max
+  points: 65536
+  dims: [0, 2]

@@ -11,6 +11,7 @@ add_library(${TARGET} SHARED
             ${SRC}/discretizers/uniform.cpp
             ${SRC}/environments/modeled.cpp
             ${SRC}/environments/pendulum.cpp
+            ${SRC}/environments/cart_pole.cpp
             ${SRC}/experiments/online_learning.cpp
             ${SRC}/experiments/approx_test.cpp
 #            ${SRC}/policies/action.cpp

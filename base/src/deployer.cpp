@@ -38,23 +38,33 @@ void loadPlugins(const char *pattern)
 {
   glob_t globbuf;
   
-  printf("Looking for plugins in '%s'\n", pattern);
-  
   glob(pattern, 0, NULL, &globbuf);
   for (size_t ii=0; ii < globbuf.gl_pathc; ++ii)
   { 
-    printf("Loading plugin '%s'\n", globbuf.gl_pathv[ii]);
+    NOTICE("Loading plugin '" << globbuf.gl_pathv[ii] << "'");
     if (!dlopen(globbuf.gl_pathv[ii], RTLD_NOW|RTLD_LOCAL))
-      fprintf(stderr, "Error loading plugin '%s': %s\n", globbuf.gl_pathv[ii], dlerror());
+      ERROR("Error loading plugin '" << globbuf.gl_pathv[ii] << "': " << dlerror());
   } 
 }
 
 int main(int argc, char **argv)
 {
-  if (argc < 2)
+  int c;
+  while ((c = getopt (argc, argv, "v")) != -1)
   {
-    cerr << "Usage:" << endl
-         << "  " << argv[0] << " <yaml file>" << endl;
+    switch (c)
+    {
+      case 'v':
+        grl_log_verbosity__++;
+        break;
+      default:
+        return 1;    
+    }
+  }
+
+  if (optind != argc-1)
+  {
+    ERROR("Usage: " << endl << "  " << argv[0] << " [options] <yaml file>");
     return 1;
   }
   
@@ -68,12 +78,12 @@ int main(int argc, char **argv)
   
   configurator.populate(task_spec);
   
-  Configurable *obj = configurator.load(argv[1], &config);
+  Configurable *obj = configurator.load(argv[optind], &config);
   Experiment *experiment = dynamic_cast<Experiment*>(obj);
   
   if (!experiment)
   {
-    cerr << "Configuration root must specify an experiment" << std::endl;
+    ERROR("Configuration root must specify an experiment");
     return 1;
   }
   

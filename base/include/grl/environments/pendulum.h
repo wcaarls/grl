@@ -63,6 +63,8 @@ class PendulumSwingupTask : public Task
     double T_;
   
   public:
+    PendulumSwingupTask() : T_(2.99) { }
+  
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
