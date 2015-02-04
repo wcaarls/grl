@@ -28,6 +28,7 @@ set(MODULES base
             externals/ics
             addons/cma
             addons/llr
+            addons/gl
             addons/glut
    )
 

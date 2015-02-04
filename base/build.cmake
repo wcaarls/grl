@@ -29,12 +29,10 @@ add_library(${TARGET} SHARED
             ${SRC}/representations/multisine.cpp
             ${SRC}/samplers/greedy.cpp
             ${SRC}/traces/enumerated.cpp
-            ${SRC}/visualizations/value_function.cpp
-            ${SRC}/visualizations/sample.cpp
            )
 
 # Dependencies
-target_link_libraries(${TARGET} -lGL -lGLU -lpthread)
+target_link_libraries(${TARGET} -lpthread)
 grl_link_yaml(${TARGET})
 if (WIN32)
   grl_link_libraries(${TARGET} externals/win32)
