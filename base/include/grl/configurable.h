@@ -47,31 +47,32 @@ struct CRP
   Mutability mutability;
   double min, max;
   std::vector<std::string> options;
+  bool optional;
   
   CRP(std::string _name, std::string _type, std::string _description,
-      class Configurable *_value) :
-    name(_name), type(_type), description(_description), mutability(Configuration)
+      class Configurable *_value, bool _optional=false) :
+    name(_name), type(_type), description(_description), optional(_optional)
   {
     setValue(_value);
   }
   
   CRP(std::string _name, std::string _description,
       int _value, Mutability _mutability=Configuration, int _min=0, int _max=INT_MAX) :
-    name(_name), type("int"), description(_description), mutability(_mutability), min(_min), max(_max)
+    name(_name), type("int"), description(_description), mutability(_mutability), min(_min), max(_max), optional(true)
   {
     setValue(_value);
   }
 
   CRP(std::string _name, std::string _description,
       double _value, Mutability _mutability=Configuration, double _min=0., double _max=1.) :
-    name(_name), type("double"), description(_description), mutability(_mutability), min(_min), max(_max)
+    name(_name), type("double"), description(_description), mutability(_mutability), min(_min), max(_max), optional(true)
   {
     setValue(_value);
   }
   
   CRP(std::string _name, std::string _description,
       Vector _value, Mutability _mutability=Configuration) :
-    name(_name), type("vector"), description(_description), mutability(_mutability)
+    name(_name), type("vector"), description(_description), mutability(_mutability), optional(true)
   {
     setValue(_value);
   }
@@ -79,7 +80,7 @@ struct CRP
   CRP(std::string _name, std::string _description,
       std::string _value, Mutability _mutability=Configuration, 
       std::vector<std::string> _options=std::vector<std::string>()) :
-    name(_name), type("string"), description(_description), value(_value), mutability(_mutability), options(_options)
+    name(_name), type("string"), description(_description), value(_value), mutability(_mutability), options(_options), optional(true)
   { 
   }
   

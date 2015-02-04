@@ -1,8 +1,8 @@
-/** \file online_learning.h
- * \brief Online learning experiment header file.
+/** \file fixed.h
+ * \brief Fixed-policy agent header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-01-22
+ * \date      2015-02-04
  *
  * \copyright \verbatim
  * Copyright (c) 2015, Wouter Caarls
@@ -25,42 +25,39 @@
  * \endverbatim
  */
 
-#ifndef GRL_ONLINE_LEARNING_EXPERIMENT_H_
-#define GRL_ONLINE_LEARNING_EXPERIMENT_H_
+#ifndef GRL_FIXED_AGENT_H_
+#define GRL_FIXED_AGENT_H_
 
 #include <grl/agent.h>
-#include <grl/environment.h>
-#include <grl/experiment.h>
+#include <grl/policy.h>
 
 namespace grl
 {
 
-/// Standard Agent-Environment interaction experiment.
-class OnlineLearningExperiment : public Experiment
+/// Fixed-policy agent.
+class FixedAgent : public Agent
 {
   public:
-    TYPEINFO("experiment/online_learning")
+    TYPEINFO("agent/fixed")
 
   protected:
-    Agent *agent_, *test_agent_;
-    Environment *environment_;
-
-    size_t runs_, trials_, steps_, test_interval_;
-    double rate_;
-
+    Policy *policy_;
+    
   public:
-    OnlineLearningExperiment() : agent_(NULL), test_agent_(NULL), environment_(NULL), runs_(1), trials_(0), steps_(0), test_interval_(0), rate_(0) { }
+    FixedAgent() : policy_(NULL) { }
   
-    // From Configurable
+    // From Configurable    
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
 
-    // From Experiment
-    virtual OnlineLearningExperiment *clone() const;
-    virtual void run() const;  
+    // From Agent
+    virtual FixedAgent *clone() const;
+    virtual void start(const Vector &obs, Vector *action);
+    virtual void step(const Vector &obs, double reward, Vector *action);
+    virtual void end(double reward);
 };
 
 }
 
-#endif /* GRL_ONLINE_LEARNING_EXPERIMENT_H_ */
+#endif /* GRL_FIXED_AGENT_H_ */

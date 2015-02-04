@@ -192,15 +192,15 @@ Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *conf
         }
       }
     }
-    else if (type != "int" && type != "double" && type != "vector" && type != "string")
-    {
-      ERROR("Object parameter " << path << key << " is undefined");
-      return NULL;
-    }
-    else
+    else if (request[ii].optional)
     {
       INFO(path << key << ": " << request[ii].value << " (default)");
       config->set(key, request[ii].value);
+    }
+    else
+    {
+      ERROR("Required parameter " << path << key << " is undefined");
+      return NULL;
     }
   }
   

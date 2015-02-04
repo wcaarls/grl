@@ -37,20 +37,27 @@ void OnlineLearningExperiment::request(ConfigurationRequest *config)
   config->push_back(CRP("trials", "Number of episodes per learning run", (int)trials_));
   config->push_back(CRP("steps", "Number of steps per learning run", (int)steps_));
   config->push_back(CRP("rate", "Control step frequency in Hz", (int)rate_, CRP::Online));
+  config->push_back(CRP("test_interval", "Number of episodes in between test trials", (int)test_interval_));
   
   config->push_back(CRP("agent", "agent", "Agent", agent_));
+  config->push_back(CRP("test_agent", "agent", "Agent to use in test trials", agent_, true));
   config->push_back(CRP("environment", "environment", "Environment in which the agent acts", environment_));
 }
 
 void OnlineLearningExperiment::configure(Configuration &config)
 {
   agent_ = (Agent*)config["agent"].ptr();
+  test_agent_ = (Agent*)config["test_agent"].ptr();
   environment_ = (Environment*)config["environment"].ptr();
   
   runs_ = config["runs"];
   trials_ = config["trials"];
   steps_ = config["steps"];
   rate_ = config["rate"];
+  test_interval_ = config["test_interval"];
+  
+  if (test_interval_ && !test_agent_)
+    throw bad_param("experiment/online_learning:test_agent");
 }
 
 void OnlineLearningExperiment::reconfigure(const Configuration &config)
@@ -80,10 +87,14 @@ void OnlineLearningExperiment::run() const
       Vector obs, action;
       double reward, total_reward=0;
       int terminal;
+      bool test = (test_interval_ && tt%(test_interval_+1) == test_interval_);
+
+      Agent *agent = agent_;      
+      if (test) agent = test_agent_;
       
       environment_->start(&obs);
       agent_->start(obs, &action);
-      
+  
       do
       {
         if (rate_) usleep(1000000./rate_);
@@ -94,14 +105,20 @@ void OnlineLearningExperiment::run() const
         total_reward += reward;
         
         if (terminal == 2)
-          agent_->end(reward);
+          agent->end(reward);
         else
-          agent_->step(obs, reward, &action);
+          agent->step(obs, reward, &action);
           
-        ++ss;
+        if (!test) ss++;
       } while (!terminal);
-      
-      INFO(tt << ", " << ss << ", " << total_reward);
+
+      if (test_interval_)
+      {
+        if (test)
+          INFO(tt+1-(tt+1)/(test_interval_+1) << ", " << ss << ", " << total_reward);
+      }
+      else
+        INFO(tt << ", " << ss << ", " << total_reward);
     }
   }
 }

@@ -154,46 +154,54 @@ def select(param, spec, path=[]):
     # Find registered parameters matching this type
     matches = findparams(spec["type"])
 
-    if len(matches):
-      # Ask to choose between registered parameters, or create a new object
-      options = list()
-      options.append('<new>')
-      options.extend(matches)
-      
+    # Ask to choose between registered parameters, or create a new object
+    options = list()
+    if spec["optional"]:
+      options.append('<default>')
+    options.append('<new>')
+    options.extend(matches)
+    
+    if len(options) > 1:
+      selection = selectlist(pstr, desc, options)
+    else:
+      selection = 0
+
+    if selection > spec["optional"]:
+      # Chose registered parameter
+      params['/'.join(path)] = params[options[selection]]
+      print
+      return
+    elif selection == spec["optional"]:
+      # Chose to create a new object
+      print pstr, ANSI_CLEARLINE
+      pstr = '\r' + ''.ljust(indent+2) + 'type: '
+      desc = '\n' + ''.ljust(indent+2) + spec["description"] + ANSI_CLEARLINE + ANSI_UP + '\r'
+        
+      # Find object factories matching this type
+      options = findrequests(spec["type"])
+
+      # Should exist
+      if not len(options):
+        raise KeyError(spec["type"])
+        
       selection = selectlist(pstr, desc, options)
 
-      if selection > 0:
-        # Chose registered parameter
-        params['/'.join(path)] = params[options[selection]]
-        print
-        return
-        
-    # Chose to create a new object
-    print pstr, ANSI_CLEARLINE
-    pstr = '\r' + ''.ljust(indent+2) + 'type: '
-    desc = '\n' + ''.ljust(indent+2) + spec["description"] + ANSI_CLEARLINE + ANSI_UP + '\r'
+      type = options[selection]
       
-    # Find object factories matching this type
-    options = findrequests(spec["type"])
+      # Register parameter
+      params['/'.join(path)] = type
+      print
 
-    # Should exist
-    if not len(options):
-      raise KeyError(spec["type"])
-      
-    selection = selectlist(pstr, desc, options)
-
-    type = options[selection]
-    
-    # Register parameter
-    params['/'.join(path)] = type
-    print
-
-    # Ask to choose values for the new object's parameters
-    if requests[type]:
-      for key in requests[type]:
-        newpath = path[:]
-        newpath.append(key)
-        select(key, requests[type][key], newpath)
+      # Ask to choose values for the new object's parameters
+      if requests[type]:
+        for key in requests[type]:
+          newpath = path[:]
+          newpath.append(key)
+          select(key, requests[type][key], newpath)
+    else:
+      # Chose not to set a value
+      print '\r' + ANSI_CLEARLINE,
+      return
   else:
     # Non-object type
     correct = False
@@ -264,5 +272,5 @@ requests = yaml.load(stream, OrderedDictYAMLLoader)
 params = dict()
 
 # Start selection from experiment
-spec = {'type': 'experiment', 'description':'Experiment to run'}
+spec = {'type': 'experiment', 'description':'Experiment to run', 'optional':0}
 select('experiment', spec)

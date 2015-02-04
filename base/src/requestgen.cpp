@@ -81,8 +81,8 @@ int main(int argc, char **argv)
       YAML::Node spec;
       spec["type"] = jj->type;
       spec["description"] = jj->description;
-      if (jj->type == "int" || jj->type == "double" || jj->type == "string" || jj->type == "vector")
-        spec["default"] = jj->value;
+      spec["default"] = jj->value;
+      spec["optional"] = (int)jj->optional;
       switch (jj->mutability)
       {
         case CRP::System:
