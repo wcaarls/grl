@@ -1,5 +1,6 @@
 type: experiment/online_learning
 rate: 0
+test_interval: 10
 environment:
   type: environment/modeled
   model:
@@ -37,6 +38,15 @@ agent:
     sampler:
       type: sampler/epsilon_greedy
       epsilon: 0.05
+test_agent:
+  type: agent/fixed
+  policy:
+    type: policy/discrete/q
+    projector: agent/policy/projector
+    representation: agent/policy/representation
+    discretizer: agent/policy/discretizer
+    sampler:
+      type: sampler/greedy
 visualization:
   type: visualization/value_function
   visualizer:

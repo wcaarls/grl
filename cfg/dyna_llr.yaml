@@ -1,5 +1,6 @@
 type: experiment/online_learning
 rate: 0
+test_interval: 1
 environment:
   type: environment/modeled
   model:
@@ -73,6 +74,15 @@ agent:
     ridge: 0.00001
     outputs: 4
     projector: agent/model_projector
+test_agent:
+  type: agent/fixed
+  policy:
+    type: policy/discrete/q
+    projector: agent/policy/projector
+    representation: agent/policy/representation
+    discretizer: agent/policy/discretizer
+    sampler:
+      type: sampler/greedy
 visualizer:
   type: visualizer/glut
 visualization:

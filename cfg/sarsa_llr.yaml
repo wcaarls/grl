@@ -1,5 +1,6 @@
 type: experiment/online_learning
 rate: 0
+test_interval: 10
 environment:  
   type: environment/modeled
   model:  
@@ -40,6 +41,15 @@ agent:
     representation: agent/policy/representation
     gamma: 0.97
     lambda: 0.65
+test_agent:
+  type: agent/fixed
+  policy:
+    type: policy/discrete/q
+    projector: agent/policy/projector
+    representation: agent/policy/representation
+    discretizer: agent/policy/discretizer
+    sampler:
+      type: sampler/greedy
 visualizer:
   type: visualizer/glut
 visualization:
@@ -48,15 +58,15 @@ visualization:
   min: environment/task/observation_min
   max: environment/task/observation_max
   points: 65536
-visualization2:
-  type: visualization/value_function
-  projector: agent/predictor/projector
-  representation: agent/predictor/representation
-  policy:
-    type: policy/discrete/q
-    discretizer: agent/policy/discretizer
-    sampler:
-      type: sampler/greedy
-  min: environment/task/observation_min
-  max: environment/task/observation_max
-  points: 1024
+#visualization2:
+#  type: visualization/value_function
+#  projector: agent/predictor/projector
+#  representation: agent/predictor/representation
+#  policy:
+#    type: policy/discrete/q
+#    discretizer: agent/policy/discretizer
+#    sampler:
+#      type: sampler/greedy
+#  min: environment/task/observation_min
+#  max: environment/task/observation_max
+#  points: 1024
