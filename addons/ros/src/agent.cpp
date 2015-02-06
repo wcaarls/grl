@@ -68,7 +68,7 @@ void ROSAgent::configure(Configuration &config)
   state_pub_ = nh_env_->advertise<mprl_msgs::StateReward>("rl_state_reward", 10, true);
   desc_pub_ = nh_env_->advertise<mprl_msgs::EnvDescription>("rl_env_description", 10, true);
   
-  spinner_ = new ros::AsyncSpinner(0);
+  spinner_ = new ros::AsyncSpinner(1);
   spinner_->start();
 
   mprl_msgs::EnvDescription descmsg;
@@ -125,8 +125,6 @@ void ROSAgent::start(const Vector &obs, Vector *action)
 
 void ROSAgent::step(const Vector &obs, double reward, Vector *action)
 {
-  Guard guard(mutex_);
-
   mprl_msgs::StateReward statemsg;
   statemsg.state.resize(obs.size());
   for (size_t ii=0; ii < obs.size(); ++ii)
@@ -137,9 +135,7 @@ void ROSAgent::step(const Vector &obs, double reward, Vector *action)
 
   state_pub_.publish(statemsg);
   
-  new_action_.wait(mutex_);
-  
-  *action = action_;
+  *action = action_reader_++;
 }
 
 void ROSAgent::end(double reward)
@@ -155,12 +151,11 @@ void ROSAgent::end(double reward)
 
 void ROSAgent::callbackAction(const mprl_msgs::Action::ConstPtr &actionmsg)
 {
-  Guard guard(mutex_);
+  Vector action;
+  toVector(actionmsg->action, action);
+  
+  if (action.size() != action_dims_)
+    ERROR("Action received through ROS (size " << action.size() << ") is not compatible with environment (size " << action_dims_ << ")");
 
-  toVector(actionmsg->action, action_);
-  
-  if (action_.size() != action_dims_)
-    ERROR("Action received through ROS (size " << action_.size() << ") is not compatible with environment (size " << action_dims_ << ")");
-  
-  new_action_.signal();  
+  action_writer_ += action;
 }

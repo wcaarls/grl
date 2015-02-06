@@ -3,6 +3,7 @@ rate: 0
 test_interval: 1
 environment:
   type: environment/ros
+  node: grl_env
 agent:
   type: agent/td
   predictor:

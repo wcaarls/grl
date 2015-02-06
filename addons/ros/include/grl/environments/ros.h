@@ -33,7 +33,8 @@
 #include <mprl_msgs/StateReward.h>
 #include <mprl_msgs/EnvDescription.h>
 
-#include <grl/mutex.h>
+#include <itc/queue.h>
+
 #include <grl/environment.h>
 
 namespace grl
@@ -46,17 +47,16 @@ class ROSEnvironment : public Environment
     TYPEINFO("environment/ros")
 
   protected:
-    Mutex mutex_;
-    Condition new_state_, new_description_;
+    itc::Queue<mprl_msgs::EnvDescription> desc_queue_;
+    itc::QueueReader<mprl_msgs::EnvDescription> desc_reader_;
+    itc::QueueWriter<mprl_msgs::EnvDescription> desc_writer_;
+    itc::Queue<mprl_msgs::StateReward> state_queue_;
+    itc::QueueReader<mprl_msgs::StateReward> state_reader_;
+    itc::QueueWriter<mprl_msgs::StateReward> state_writer_;
     bool running_;
     
     std::string node_, args_;
-
     size_t state_dims_;
-    Vector state_;
-    double reward_;
-    int terminal_;
-    mprl_msgs::EnvDescription description_;
   
     ros::NodeHandle *nh_agent_, *nh_env_;
     ros::Subscriber desc_sub_, state_sub_;
@@ -64,7 +64,14 @@ class ROSEnvironment : public Environment
     ros::AsyncSpinner *spinner_;
     
   public:
-    ROSEnvironment() : running_(false), state_dims_(0), reward_(0), terminal_(0), nh_agent_(NULL), nh_env_(NULL), spinner_(NULL) { }
+    ROSEnvironment() : running_(false), state_dims_(0), nh_agent_(NULL), nh_env_(NULL), spinner_(NULL)
+    {
+      desc_reader_ = desc_queue_.addReader();
+      desc_writer_ = desc_queue_.getWriter();
+      state_reader_ = state_queue_.addReader();
+      state_writer_ = state_queue_.getWriter();
+    }
+    
     ~ROSEnvironment()
     {
       safe_delete(&nh_agent_);

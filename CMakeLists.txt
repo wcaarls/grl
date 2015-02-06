@@ -26,6 +26,7 @@ set(MODULES base
             externals/ann
             externals/cma
             externals/ics
+            externals/itc
             addons/cma
             addons/llr
             addons/gl

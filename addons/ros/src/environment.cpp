@@ -39,8 +39,6 @@ void ROSEnvironment::request(ConfigurationRequest *config)
 
 void ROSEnvironment::configure(Configuration &config)
 {
-  Guard guard(mutex_);
-
   node_ = config["node"].str();
   args_ = config["args"].str();
   
@@ -57,34 +55,31 @@ void ROSEnvironment::configure(Configuration &config)
   state_sub_ = nh_env_->subscribe("rl_state_reward", 10, &ROSEnvironment::callbackState, this);
   desc_sub_ = nh_env_->subscribe("rl_env_description", 10, &ROSEnvironment::callbackDesc, this);
   
-  spinner_ = new ros::AsyncSpinner(0);
+  spinner_ = new ros::AsyncSpinner(1);
   spinner_->start();
   
   // Wait for description
   NOTICE("Waiting for description from ROS environment");
-  new_description_.wait(mutex_);
+  mprl_msgs::EnvDescription msg = desc_reader_++;
   
   Vector v;
 
-  toVector(description_.observation_min, v);
-  
-  std::cout << description_.observation_min << std::endl;
-  
+  toVector(msg.observation_min, v);
   state_dims_ = v.size();
   config.set("observation_min", v);
-  toVector(description_.observation_max, v);
+  toVector(msg.observation_max, v);
   config.set("observation_max", v);
-  toVector(description_.action_min, v);
+  toVector(msg.action_min, v);
   config.set("action_min", v);
-  toVector(description_.action_max, v);
+  toVector(msg.action_max, v);
   config.set("action_max", v);
 
-  config.set("reward_min", description_.reward_min);
-  config.set("reward_max", description_.reward_max);
+  config.set("reward_min", msg.reward_min);
+  config.set("reward_max", msg.reward_max);
 
-  config.set("stochastic", description_.stochastic);
-  config.set("episodic", description_.episodic);
-  config.set("title", description_.title);
+  config.set("stochastic", msg.stochastic);
+  config.set("episodic", msg.episodic);
+  config.set("title", msg.title);
 }
 
 void ROSEnvironment::reconfigure(const Configuration &config)
@@ -98,23 +93,17 @@ ROSEnvironment *ROSEnvironment::clone() const
 
 void ROSEnvironment::start(Vector *obs)
 {
-  Guard guard(mutex_);
-
   if (running_)
     throw Exception("Cannot start environment because ROS environment is still running");
-    
-  if (state_.empty())
-    new_state_.wait(mutex_);
-  
-  *obs = state_;
+
+  mprl_msgs::StateReward msg = state_reader_++;
+  toVector(msg.state, *obs);
   
   running_ = true;
 }
 
 void ROSEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)
 {
-  Guard guard(mutex_);
-
   if (!running_)
     throw Exception("Cannot step environment because ROS environment is not running");
   
@@ -122,39 +111,27 @@ void ROSEnvironment::step(const Vector &action, Vector *obs, double *reward, int
   fromVector(action, actionmsg.action);
   action_pub_.publish(actionmsg);
 
-  new_state_.wait(mutex_);
-
-  *obs = state_;
-  *reward = reward_; 
-  *terminal = terminal_;
+  mprl_msgs::StateReward msg = state_reader_++;
+  toVector(msg.state, *obs);
+  *reward = msg.reward;
+  *terminal = msg.terminal + msg.absorbing;
   
   if (*terminal)
-  {
     running_ = false;
-    state_.clear();
-  }
 }
 
 void ROSEnvironment::callbackDesc(const mprl_msgs::EnvDescription::ConstPtr &descmsg)
 {
-  Guard guard(mutex_);
-  
-  description_ = *descmsg;
-  
-  new_description_.signal();
+  desc_writer_ += *descmsg;
 }
 
 void ROSEnvironment::callbackState(const mprl_msgs::StateReward::ConstPtr &statemsg)
 {
-  Guard guard(mutex_);
+  Vector state;
+  toVector(statemsg->state, state);
   
-  toVector(statemsg->state, state_);
-  
-  if (state_.size() != state_dims_)
-    WARNING("Observation received through ROS (size " << state_.size() << ") is not compatible with description (size " << state_dims_ << ")");
+  if (state.size() && state_dims_ && state.size() != state_dims_)
+    WARNING("Observation received through ROS (size " << state.size() << ") is not compatible with description (size " << state_dims_ << ")");
       
-  reward_ = statemsg->reward;
-  terminal_ = statemsg->terminal + statemsg->absorbing;
-  
-  new_state_.signal();
+  state_writer_ += *statemsg; 
 }

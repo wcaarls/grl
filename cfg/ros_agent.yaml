@@ -11,6 +11,7 @@ environment:
     type: task/pendulum/swingup
 agent:
   type: agent/ros
+  node: grl_agent
   title: mops_sim
   observation_min: environment/task/observation_min
   observation_max: environment/task/observation_max

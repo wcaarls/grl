@@ -33,7 +33,8 @@
 #include <mprl_msgs/StateReward.h>
 #include <mprl_msgs/EnvDescription.h>
 
-#include <grl/mutex.h>
+#include <itc/queue.h>
+
 #include <grl/agent.h>
 
 namespace grl
@@ -46,17 +47,16 @@ class ROSAgent : public Agent
     TYPEINFO("agent/ros")
 
   protected:
-    Mutex mutex_;
-    Condition new_action_;
+    itc::Queue<Vector> action_queue_;
+    itc::QueueReader<Vector> action_reader_;
+    itc::QueueWriter<Vector> action_writer_;
     bool running_;
     
     std::string node_, args_, title_;
     Vector observation_min_, observation_max_, action_min_, action_max_;
     double reward_min_, reward_max_;
     int stochastic_, episodic_;
-    
     size_t action_dims_;
-    Vector action_;
 
     ros::NodeHandle *nh_agent_, *nh_env_;
     ros::Subscriber action_sub_;
@@ -64,7 +64,12 @@ class ROSAgent : public Agent
     ros::AsyncSpinner *spinner_;
     
   public:
-    ROSAgent() : running_(false), reward_min_(0), reward_max_(0), stochastic_(0), episodic_(0), action_dims_(0), nh_agent_(NULL), nh_env_(NULL), spinner_(NULL) { }
+    ROSAgent() : running_(false), reward_min_(0), reward_max_(0), stochastic_(0), episodic_(0), action_dims_(0), nh_agent_(NULL), nh_env_(NULL), spinner_(NULL)
+    {
+      action_reader_ = action_queue_.addReader();
+      action_writer_ = action_queue_.getWriter();
+    }
+    
     ~ROSAgent()
     {
       safe_delete(&nh_agent_);

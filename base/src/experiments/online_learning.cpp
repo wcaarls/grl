@@ -102,14 +102,15 @@ void OnlineLearningExperiment::run() const
         CRAWL(obs << ", " << action);
 
         environment_->step(action, &obs, &reward, &terminal);
+        
         total_reward += reward;
         
         if (terminal == 2)
           agent->end(reward);
-        else
+        else if (!obs.empty())
           agent->step(obs, reward, &action);
           
-        if (!test) ss++;
+        if (!test && !obs.empty()) ss++;
       } while (!terminal);
 
       if (test_interval_)
