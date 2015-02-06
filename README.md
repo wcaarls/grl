@@ -31,5 +31,5 @@ make
 
 # Running
 ```
-./deployer ../base/cfg/sarsa.yaml
+./deploy ../cfg/sarsa.yaml
 ```
