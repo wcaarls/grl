@@ -1,5 +1,5 @@
 # Setup build environment
-SET(TARGET ann)
+SET(TARGET external_ann)
 
 # Build library
 ADD_LIBRARY(${TARGET} SHARED

@@ -1,1 +1,1 @@
-target_link_libraries(${TARGET} cma)
+target_link_libraries(${TARGET} external_cma)

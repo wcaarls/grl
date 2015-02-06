@@ -1,5 +1,5 @@
 # Setup build environment
-set(TARGET ics)
+set(TARGET external_ics)
 
 # Make library
 add_library(${TARGET} SHARED

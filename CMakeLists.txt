@@ -30,40 +30,16 @@ set(MODULES base
             addons/llr
             addons/gl
             addons/glut
+            addons/ros
    )
-
-# Hack to find out which include directories and libraries
-# to pass on to catkin_package
-function(include_directories)
-  set(INCLUDE_DIRS ${INCLUDE_DIRS} ${ARGN} PARENT_SCOPE)
-  _include_directories(${ARGN})
-endfunction()
-
-function(target_link_libraries target)
-  set(LIBRARIES ${LIBRARIES} ${ARGN} PARENT_SCOPE)
-  _target_link_libraries(${target} ${ARGN})
-endfunction()
-
-add_custom_target(_grl_dummy)
-grl_link_libraries(_grl_dummy ${MODULES})
-list(REMOVE_DUPLICATES LIBRARIES)
-list(REMOVE_DUPLICATES INCLUDE_DIRS)
-list(REMOVE_ITEM INCLUDE_DIRS BEFORE AFTER SYSTEM)
-
-#message("-- grl include directories: ${INCLUDE_DIRS}")
-#message("-- grl link libraries: ${LIBRARIES}")
 
 # Is there a better way to find out if catkin_make was run?
 if(CATKIN_DEVEL_PREFIX)
-  find_package(catkin COMPONENTS roscpp grl_msgs)
+  find_package(catkin COMPONENTS roscpp mprl_msgs)
 endif()
 
 if (catkin_FOUND)
-  catkin_package(INCLUDE_DIRS ${INCLUDE_DIRS}
-                 LIBRARIES ${LIBRARIES}
-                 CATKIN_DEPENDS roscpp grl_msgs
-                 DEPENDS eigen
-                )
+  catkin_package(CATKIN_DEPENDS roscpp mprl_msgs)
   include_directories(${catkin_INCLUDE_DIRS})
 else()
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})

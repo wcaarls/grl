@@ -1,5 +1,5 @@
 # Setup build environment
-set(TARGET cma)
+set(TARGET external_cma)
 
 set_source_files_properties(${SRC}/cmaes.c PROPERTIES COMPILE_FLAGS -Wno-unused-result)
 

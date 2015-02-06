@@ -40,7 +40,7 @@ if (WIN32)
 endif()
 
 # Deployer
-set (TARGET deployer)
+set (TARGET deploy)
 add_executable(${TARGET} ${SRC}/deployer.cpp)
 target_link_libraries(${TARGET} -ldl)
 grl_link_libraries(${TARGET} base)
