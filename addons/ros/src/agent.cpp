@@ -35,6 +35,19 @@ void ROSAgent::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("node", "ROS node name", node_));
   config->push_back(CRP("args", "ROS command-line arguments", args_));
+  config->push_back(CRP("title", "Name of environment", title_));
+  
+  config->push_back(CRP("observation_min", "Lower limit on observations", observation_min_, CRP::System));
+  config->push_back(CRP("observation_max", "Upper limit on observations", observation_max_, CRP::System));
+  
+  config->push_back(CRP("action_min", "Lower limit on actions", action_min_, CRP::System));
+  config->push_back(CRP("action_max", "Upper limit on actions", action_max_, CRP::System));
+  
+  config->push_back(CRP("reward_min", "Lower limit on rewards", reward_min_, CRP::System, -DBL_MAX, DBL_MAX));
+  config->push_back(CRP("reward_max", "Upper limit on rewards", reward_max_, CRP::System, -DBL_MAX, DBL_MAX));
+
+  config->push_back(CRP("stochastic", "Whether the environment is stochastic", stochastic_, CRP::System, 0, 1));
+  config->push_back(CRP("episodic", "Whether the environment is episodic", episodic_, CRP::System, 0, 1));
 }
 
 void ROSAgent::configure(Configuration &config)
@@ -60,27 +73,25 @@ void ROSAgent::configure(Configuration &config)
 
   mprl_msgs::EnvDescription descmsg;
 
-  Vector v;
+  observation_min_ = config["observation_min"];
+  fromVector(observation_min_, descmsg.observation_min);
+  observation_max_ = config["observation_max"];
+  fromVector(observation_max_, descmsg.observation_max);
 
-  v = config["observation_min"];
-  fromVector(v, descmsg.observation_min);
-  v = config["observation_max"];
-  fromVector(v, descmsg.observation_max);
+  action_min_ = config["action_min"];
+  action_dims_ = action_min_.size();
+  fromVector(action_min_, descmsg.action_min);
+  action_max_ = config["action_max"];
+  fromVector(action_max_, descmsg.action_max);
 
-  v = config["action_min"];
-  action_dims_ = v.size();
-  fromVector(v, descmsg.action_min);
-  v = config["action_max"];
-  fromVector(v, descmsg.action_max);
+  descmsg.reward_min = reward_min_ = config["reward_min"];
+  descmsg.reward_max = reward_max_ = config["reward_max"];
 
-  descmsg.reward_min = config["reward_min"];
-  descmsg.reward_max = config["reward_max"];
+  descmsg.stochastic = stochastic_ = config["stochastic"];
+  descmsg.episodic = episodic_ = config["episodic"];
+  descmsg.title = title_ = config["title"].str();
 
-  descmsg.stochastic = config["stochastic"];
-  descmsg.episodic = config["episodic"];
-  descmsg.title = config["title"].str();
-
-  INFO("Publishing environment description to ROS");
+  NOTICE("Publishing environment description to ROS");
 
   desc_pub_.publish(descmsg);
   

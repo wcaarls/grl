@@ -1,5 +1,5 @@
 type: experiment/online_learning
-rate: 0
+rate: 20
 environment:
   type: environment/modeled
   model:

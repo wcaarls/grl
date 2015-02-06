@@ -61,7 +61,7 @@ void ROSEnvironment::configure(Configuration &config)
   spinner_->start();
   
   // Wait for description
-  INFO("Waiting for description from ROS environment");
+  NOTICE("Waiting for description from ROS environment");
   new_description_.wait(mutex_);
   
   Vector v;

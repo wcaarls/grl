@@ -50,7 +50,10 @@ class ROSAgent : public Agent
     Condition new_action_;
     bool running_;
     
-    std::string node_, args_;
+    std::string node_, args_, title_;
+    Vector observation_min_, observation_max_, action_min_, action_max_;
+    double reward_min_, reward_max_;
+    int stochastic_, episodic_;
     
     size_t action_dims_;
     Vector action_;
@@ -61,7 +64,7 @@ class ROSAgent : public Agent
     ros::AsyncSpinner *spinner_;
     
   public:
-    ROSAgent() : running_(false), action_dims_(0), nh_agent_(NULL), nh_env_(NULL), spinner_(NULL) { }
+    ROSAgent() : running_(false), reward_min_(0), reward_max_(0), stochastic_(0), episodic_(0), action_dims_(0), nh_agent_(NULL), nh_env_(NULL), spinner_(NULL) { }
     ~ROSAgent()
     {
       safe_delete(&nh_agent_);
