@@ -104,15 +104,9 @@ double LinearRepresentation::read(const ProjectionPtr &projection, Vector *resul
       result->clear();
       result->resize(outputs_, 0);
       
-      double activation=0;
       for (size_t ii=0; ii < vp->vector.size(); ++ii)
-      {
-        activation += vp->vector[ii];
         for (size_t jj=0; jj < outputs_; ++jj)
           (*result)[jj] += params_[ii*outputs_+jj]*vp->vector[ii];
-      }
-      for (size_t jj=0; jj < outputs_; ++jj)
-        (*result)[jj] /= activation;
     }
     else
       throw Exception("representation/parameterized/linear requires a projector returning IndexProjection or VectorProjection");
