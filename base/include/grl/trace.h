@@ -135,7 +135,7 @@ class EnumeratedTrace : public Trace
       }
     };
 
-    std::vector<ProjectionDecay> projections_;
+    std::deque<ProjectionDecay> projections_;
 
   public:
     /// EnumeratedTrace iterator.
@@ -193,22 +193,41 @@ class ReplacingEnumeratedTrace : public EnumeratedTrace
 {
   public:
     TYPEINFO("trace/enumerated/replacing")
+    
+  protected:
+    double total_decay_;
+    
+  public:
+    ReplacingEnumeratedTrace() : total_decay_(1.0) { }
+  
+    virtual ReplacingEnumeratedTrace *clone() const
+    {
+      ReplacingEnumeratedTrace *trace = new ReplacingEnumeratedTrace();
+      for (size_t ii=0; ii < size(); ++ii)
+       trace->projections_.push_back(projections_[ii].clone());
+      return trace;
+   }
 
-  virtual ReplacingEnumeratedTrace *clone() const
-  {
-    ReplacingEnumeratedTrace *trace = new ReplacingEnumeratedTrace();
-    for (size_t ii=0; ii < size(); ++ii)
-      trace->projections_.push_back(projections_[ii].clone());
-    return trace;
-  }
+    virtual void add(ProjectionPtr projection, double decay=1.0)
+    {
+      if (decay < 0.01)
+      {
+        projections_.clear();
+        total_decay_ = 1.0;
+      }
+    
+      for (size_t ii=0; ii < size(); ++ii)
+        projections_[ii].projection->ssub(*projection);
 
-  virtual void add(ProjectionPtr projection, double decay=1.0)
-  {
-    for (size_t ii=0; ii < size(); ++ii)
-      projections_[ii].projection->ssub(*projection);
-
-    projections_.push_back(ProjectionDecay(projection, decay));
-  }
+      projections_.push_back(ProjectionDecay(projection, decay));
+      total_decay_ *= decay;
+      
+      while (total_decay_ < 0.01 && projections_.size() > 1)
+      {
+        total_decay_ /= projections_.front().decay;
+        projections_.pop_front();
+      }
+    }
 };
 
 /// Accumulating eligibility Trace.
@@ -217,18 +236,37 @@ class AccumulatingEnumeratedTrace : public EnumeratedTrace
   public:
     TYPEINFO("trace/enumerated/accumulating")
 
-  virtual AccumulatingEnumeratedTrace *clone() const
-  {
-    AccumulatingEnumeratedTrace *trace = new AccumulatingEnumeratedTrace();
-    for (size_t ii=0; ii < size(); ++ii)
-      trace->projections_.push_back(projections_[ii].clone());
-    return trace;
-  }
+  protected:
+    double total_decay_;
+    
+  public:
+    AccumulatingEnumeratedTrace() : total_decay_(1.0) { }
+  
+    virtual AccumulatingEnumeratedTrace *clone() const
+    {
+      AccumulatingEnumeratedTrace *trace = new AccumulatingEnumeratedTrace();
+      for (size_t ii=0; ii < size(); ++ii)
+        trace->projections_.push_back(projections_[ii].clone());
+      return trace;
+    }
 
-  virtual void add(ProjectionPtr projection, double decay=1.0)
-  {
-    projections_.push_back(ProjectionDecay(projection, decay));
-  }
+    virtual void add(ProjectionPtr projection, double decay=1.0)
+    {
+      if (decay < 0.01)
+      {
+        projections_.clear();
+        total_decay_ = 1.0;
+      }
+    
+      projections_.push_back(ProjectionDecay(projection, decay));
+      total_decay_ *= decay;
+      
+      while (total_decay_ < 0.01 && projections_.size() > 1)
+      {
+        total_decay_ /= projections_.front().decay;
+        projections_.pop_front();
+      }
+    }
 };
 
 }
