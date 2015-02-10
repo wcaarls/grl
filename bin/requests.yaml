@@ -446,6 +446,36 @@ predictor/sarsa:
     default: 0
     optional: 0
     mutability: configuration
+projector/fourier:
+  min:
+    type: vector
+    description: Lower input dimension limit (for scaling)
+    default: "[  ]"
+    optional: 1
+    mutability: configuration
+  max:
+    type: vector
+    description: Upper input dimension limit (for scaling)
+    default: "[  ]"
+    optional: 1
+    mutability: configuration
+  order:
+    type: int
+    description: Order of approximation (bases per dimension)
+    default: 1
+    optional: 1
+    mutability: configuration
+    min: 0
+    max: 256
+  parity:
+    type: string
+    description: Whether to use odd or even bases
+    default: even
+    optional: 1
+    mutability: configuration
+    options:
+      - even
+      - odd
 projector/identity: ~
 projector/sample/ann:
   samples:
@@ -463,7 +493,7 @@ projector/sample/ann:
     optional: 1
     mutability: configuration
     min: 1
-    max: 2147483647
+    max: 64
   bucket_size:
     type: int
     description: "?"
@@ -487,7 +517,7 @@ projector/sample/ann:
     optional: 1
     mutability: system
     min: 1
-    max: 2147483647
+    max: 16
   scaling:
     type: vector
     description: Input dimension scaling

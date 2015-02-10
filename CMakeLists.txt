@@ -7,6 +7,8 @@ if (NOT CMAKE_BUILD_TYPE)
   message("-- Set default build type ${CMAKE_BUILD_TYPE}")
 endif()
 
+set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -Wno-unused-parameter)
+
 # Choose YAML version
 #find_package(PkgConfig REQUIRED)
 #pkg_check_modules(LIBYAMLCPP yaml-cpp)

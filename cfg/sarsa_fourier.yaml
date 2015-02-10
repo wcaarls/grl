@@ -22,6 +22,7 @@ agent:
       min: [ 0, -31, -3 ]
       max: [ 6.283, 31, 3 ]
       order: 3
+      parity: even
     representation:
       type: representation/parameterized/linear
       memory: agent/predictor/projector/memory

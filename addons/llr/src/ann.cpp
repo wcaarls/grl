@@ -28,6 +28,8 @@
 #include <ANN/ANN.h>
 #include <grl/projectors/ann.h>
 
+#define ANN_MAX_NEIGHBORS 64
+
 using namespace grl;
 
 REGISTER_CONFIGURABLE(ANNProjector)
@@ -35,10 +37,10 @@ REGISTER_CONFIGURABLE(ANNProjector)
 void ANNProjector::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("samples", "Maximum number of samples to store", max_samples_, CRP::Configuration, 100));
-  config->push_back(CRP("neighbors", "Number of neighbor indices to return", neighbors_, CRP::Configuration, 1));
+  config->push_back(CRP("neighbors", "Number of neighbor indices to return", neighbors_, CRP::Configuration, 1, ANN_MAX_NEIGHBORS));
   config->push_back(CRP("bucket_size", "?", bucket_size_, CRP::Configuration, 1));
   config->push_back(CRP("error_bound", "?", error_bound_, CRP::Configuration, 0., DBL_MAX));
-  config->push_back(CRP("dims", "Number of input dimensions", dims_, CRP::System, 1));
+  config->push_back(CRP("dims", "Number of input dimensions", dims_, CRP::System, 1, SS_MAX_COORDS));
   config->push_back(CRP("scaling", "Input dimension scaling", scaling_));
 }
 
@@ -118,7 +120,7 @@ ProjectionPtr ANNProjector::project(const Vector &in) const
   if (in.size() != dims_)
     throw bad_param("projector/sample/ann:dims");
   
-  ANNcoord query[dims_];
+  ANNcoord query[SS_MAX_COORDS];
   
   // Scale input dimensions
   for (size_t ii=0; ii < dims_; ++ii)
@@ -140,8 +142,8 @@ ProjectionPtr ANNProjector::project(const Vector &in) const
     {
       // Search store using index
       ANNkd_tree_copy index(*index_);
-      ANNidx nn_idx[neighbors_];
-      ANNdist dd[neighbors_];
+      ANNidx nn_idx[ANN_MAX_NEIGHBORS];
+      ANNdist dd[ANN_MAX_NEIGHBORS];
       
       index.annkSearch(query, index_samples, nn_idx, dd, error_bound_);
       

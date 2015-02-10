@@ -42,9 +42,10 @@ class FourierProjector : public Projector
   protected:
     Vector min_, max_, scaling_;
     size_t order_, dims_;
+    std::string parity_;
 
   public:
-    FourierProjector() : order_(1), dims_(0) { }
+    FourierProjector() : order_(1), dims_(0), parity_("even") { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);

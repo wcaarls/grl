@@ -104,7 +104,7 @@ int main(int argc, char **argv)
       else if (jj->type == "string" && !jj->options.empty())
       {
         YAML::Node options;
-        for (size_t kk=0; kk < options.size(); ++kk)
+        for (size_t kk=0; kk < jj->options.size(); ++kk)
           options.push_back(jj->options[kk]);
         spec["options"] = options;
       }
