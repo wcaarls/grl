@@ -184,6 +184,8 @@ Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *conf
             ERROR("Parameter " << path << key << " should subclass " << type);
             return NULL;
           }
+          
+          obj->children_.push_back(subobj);
         }
         else
         {

@@ -1,9 +1,9 @@
 type: experiment/online_learning
 rate: 0
-test_interval: 1
+test_interval: 10
 runs: 20
-steps: 2000
-output: dyna
+steps: 100000
+output: sarsa_bounded
 environment:
   type: environment/modeled
   model:
@@ -14,11 +14,7 @@ environment:
   task:
     type: task/pendulum/swingup
 agent:
-  type: agent/dyna
-  planning_steps: 200
-  wrapping: [ 6.283, 0 ]
-  observation_min: environment/task/observation_min
-  observation_max: environment/task/observation_max
+  type: agent/td
   predictor:
     type: predictor/sarsa
     alpha: 0.2
@@ -34,7 +30,8 @@ agent:
     trace:
       type: trace/enumerated/replacing
   policy:
-    type: policy/discrete/q
+    type: policy/discrete/q/bounded
+    bound: [3]
     projector: agent/predictor/projector
     representation: agent/predictor/representation
     discretizer:
@@ -45,39 +42,11 @@ agent:
     sampler:
       type: sampler/epsilon_greedy
       epsilon: 0.05
-  model_agent:
-    type: agent/td
-    predictor:
-      type: predictor/sarsa
-      alpha: 0.02
-      gamma: agent/predictor/gamma
-      lambda: agent/predictor/lambda
-      projector: agent/predictor/projector
-      representation: agent/predictor/representation
-      trace:
-        type: trace/enumerated/replacing
-    policy:
-      type: policy/discrete/q
-      projector: agent/predictor/projector
-      representation: agent/predictor/representation
-      discretizer: agent/policy/discretizer
-      sampler: agent/policy/sampler
-  model_projector:
-    type: projector/sample/ann
-    samples: 100000
-    dims: 3
-    neighbors: 12
-    bucket_size: 10
-    error_bound: 0.01
-  model_representation:
-    type: representation/llr
-    ridge: 0.00001
-    outputs: 4
-    projector: agent/model_projector
 test_agent:
   type: agent/fixed
   policy:
-    type: policy/discrete/q
+    type: policy/discrete/q/bounded
+    bound: [3]
     projector: agent/policy/projector
     representation: agent/policy/representation
     discretizer: agent/policy/discretizer

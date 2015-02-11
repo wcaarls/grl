@@ -25,6 +25,9 @@
  * \endverbatim
  */
 
+#include <iostream>
+#include <iomanip>
+
 #include <grl/experiments/online_learning.h>
 
 using namespace grl;
@@ -38,6 +41,7 @@ void OnlineLearningExperiment::request(ConfigurationRequest *config)
   config->push_back(CRP("steps", "Number of steps per learning run", (int)steps_));
   config->push_back(CRP("rate", "Control step frequency in Hz", (int)rate_, CRP::Online));
   config->push_back(CRP("test_interval", "Number of episodes in between test trials", (int)test_interval_));
+  config->push_back(CRP("output", "Output base filename", output_));
   
   config->push_back(CRP("agent", "agent", "Agent", agent_));
   config->push_back(CRP("test_agent", "agent", "Agent to use in test trials", agent_, true));
@@ -55,6 +59,7 @@ void OnlineLearningExperiment::configure(Configuration &config)
   steps_ = config["steps"];
   rate_ = config["rate"];
   test_interval_ = config["test_interval"];
+  output_ = config["output"].str();
   
   if (test_interval_ && !test_agent_)
     throw bad_param("experiment/online_learning:test_agent");
@@ -78,10 +83,19 @@ OnlineLearningExperiment *OnlineLearningExperiment::clone() const
   return ole;
 }
 
-void OnlineLearningExperiment::run() const
+void OnlineLearningExperiment::run()
 {
+  std::ofstream ofs;
+
   for (size_t rr=0; rr < runs_; ++rr)
   {
+    if (!output_.empty())
+    {
+      std::ostringstream oss;
+      oss << output_ << "-" << rr << ".txt";
+      ofs.open(oss.str().c_str());
+    }
+
     for (size_t ss=0, tt=0; (!trials_ || tt < trials_) && (!steps_ || ss < steps_); ++tt)
     { 
       Vector obs, action;
@@ -116,10 +130,31 @@ void OnlineLearningExperiment::run() const
       if (test_interval_)
       {
         if (test)
-          INFO(tt+1-(tt+1)/(test_interval_+1) << ", " << ss << ", " << total_reward);
+        {
+          std::ostringstream oss;
+          oss << std::setw(15) << tt+1-(tt+1)/(test_interval_+1) << std::setw(15) << ss << std::setw(15) << total_reward;
+          agent_->report(oss);
+        
+          INFO(oss.str());
+          if (ofs.is_open())
+            ofs << oss.str() << std::endl;
+        }
       }
       else
-        INFO(tt << ", " << ss << ", " << total_reward);
+      {
+        std::ostringstream oss;
+        oss << std::setw(15) << tt << std::setw(15) << ss << std::setw(15) << total_reward;
+        agent_->report(oss);
+        
+        INFO(oss.str());
+        if (ofs.is_open())
+          ofs << oss.str() << std::endl;
+      }
     }
+    
+    if (ofs.is_open())
+      ofs.close();
+      
+    reset();
   }
 }

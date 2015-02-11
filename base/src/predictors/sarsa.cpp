@@ -56,6 +56,8 @@ void SARSAPredictor::configure(Configuration &config)
 
 void SARSAPredictor::reconfigure(const Configuration &config)
 {
+  if (config.has("action") && config["action"].str() == "reset")
+    finalize();
 }
 
 SARSAPredictor *SARSAPredictor::clone() const

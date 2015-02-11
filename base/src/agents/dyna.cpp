@@ -25,6 +25,8 @@
  * \endverbatim
  */
 
+#include <iomanip>
+
 #include <grl/agents/dyna.h>
 
 using namespace grl;
@@ -64,6 +66,8 @@ void DynaAgent::configure(Configuration &config)
 
 void DynaAgent::reconfigure(const Configuration &config)
 {
+  if (config.has("action") && config["action"].str() == "reset")
+    planned_steps_ = 0;
 }
 
 DynaAgent *DynaAgent::clone() const
@@ -112,6 +116,11 @@ void DynaAgent::end(double reward)
   t.action = prev_action_;
   learnModel(t);
   runModel();
+}
+
+void DynaAgent::report(std::ostream &os) const
+{
+  os << std::setw(15) << planned_steps_;
 }
 
 void DynaAgent::learnModel(const Transition &t)
@@ -206,6 +215,8 @@ void DynaAgent::runModel()
     // Guard against failed model prediction    
     if (!obs.empty())
     {
+      planned_steps_++;
+    
       if (terminal)
         model_agent_->end(reward);
       else
@@ -222,3 +233,4 @@ void DynaAgent::runModel()
     }
   }
 }
+

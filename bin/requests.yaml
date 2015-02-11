@@ -30,7 +30,6 @@ agent/dyna:
     description: Control policy
     default: 0
     optional: 0
-    mutability: system
   predictor:
     type: predictor
     description: Value function predictor
@@ -46,13 +45,11 @@ agent/dyna:
     description: Projector for transition model (should match representation)
     default: 0
     optional: 0
-    mutability: system
   model_representation:
     type: representation
     description: Representation for transition model
     default: 0
     optional: 0
-    mutability: system
 agent/fixed:
   policy:
     type: policy
@@ -196,6 +193,12 @@ experiment/online_learning:
     mutability: configuration
     min: 0
     max: 2147483647
+  output:
+    type: string
+    description: Output base filename
+    default: ""
+    optional: 1
+    mutability: configuration
   agent:
     type: agent
     description: Agent
@@ -283,6 +286,37 @@ policy/discrete/q:
     description: Samples actions from Q-values
     default: 0
     optional: 0
+policy/discrete/q/bounded:
+  bound:
+    type: vector
+    description: Maximum action delta
+    default: "[  ]"
+    optional: 1
+    mutability: configuration
+  discretizer:
+    type: discretizer
+    description: Action discretizer
+    default: 0
+    optional: 0
+    mutability: configuration
+  projector:
+    type: projector
+    description: Projects observation-action pairs onto representation space
+    default: 0
+    optional: 0
+    mutability: configuration
+  representation:
+    type: representation
+    description: Q-value representation
+    default: 0
+    optional: 0
+    mutability: configuration
+  sampler:
+    type: sampler
+    description: Samples actions from Q-values
+    default: 0
+    optional: 0
+    mutability: configuration
 policy/discrete/random:
   discretizer:
     type: discretizer
@@ -332,7 +366,6 @@ predictor/expected_sarsa:
     description: Projects observation-action pairs onto representation space
     default: 0
     optional: 0
-    mutability: configuration
   representation:
     type: representation
     description: Q-value representation
@@ -353,7 +386,6 @@ predictor/expected_sarsa:
     description: Trace of projections
     default: 0
     optional: 0
-    mutability: configuration
 predictor/ggq:
   alpha:
     type: double
@@ -433,7 +465,6 @@ predictor/sarsa:
     description: Projects observation-action pairs onto representation space
     default: 0
     optional: 0
-    mutability: configuration
   representation:
     type: representation
     description: Q-value representation

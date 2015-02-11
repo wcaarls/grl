@@ -84,6 +84,10 @@ void ROSEnvironment::configure(Configuration &config)
 
 void ROSEnvironment::reconfigure(const Configuration &config)
 {
+  if (config.has("action") && config["action"].str() == "reset")
+  {
+    // TODO: send reset message to ROS agent
+  }
 }
 
 ROSEnvironment *ROSEnvironment::clone() const

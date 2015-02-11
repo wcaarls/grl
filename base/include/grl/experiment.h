@@ -39,7 +39,7 @@ class Experiment : public Configurable
   public:
     virtual ~Experiment() { }
     virtual Experiment *clone() const = 0;
-    virtual void run() const = 0;
+    virtual void run() = 0;
 };
 
 }

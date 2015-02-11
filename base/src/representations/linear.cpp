@@ -60,14 +60,23 @@ void LinearRepresentation::configure(Configuration &config)
   params_.resize(memory_ * outputs_);
   
   // Initialize memory
-  Rand *rand = RandGen::instance();
-  for (size_t ii=0; ii < memory_; ++ii)
-    for (size_t jj=0; jj < outputs_; ++jj)
-      params_[ii*outputs_+jj] = rand->getUniform(min_[jj], max_[jj]);
+  reset();
 }
 
 void LinearRepresentation::reconfigure(const Configuration &config)
 {
+  if (config.has("action") && config["action"].str() == "reset")
+  {
+    INFO("Initializing memory");
+  
+    params_.resize(memory_ * outputs_);
+
+    // Initialize memory
+    Rand *rand = RandGen::instance();
+    for (size_t ii=0; ii < memory_; ++ii)
+      for (size_t jj=0; jj < outputs_; ++jj)  
+        params_[ii*outputs_+jj] = rand->getUniform(min_[jj], max_[jj]);
+  }
 }
 
 LinearRepresentation *LinearRepresentation::clone() const

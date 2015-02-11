@@ -46,8 +46,6 @@ void ANNProjector::request(ConfigurationRequest *config)
 
 void ANNProjector::configure(Configuration &config)
 {
-  store_ = StorePtr(new SampleStore());
-  
   max_samples_ = config["samples"];
   neighbors_ = config["neighbors"];
   bucket_size_ = config["bucket_size"];
@@ -61,11 +59,19 @@ void ANNProjector::configure(Configuration &config)
   if (scaling_.size() != dims_)
     throw bad_param("projector/sample/ann:scaling");
   
-  indexed_samples_ = 0;
+  // Initialize memory
+  reset();
 }
 
 void ANNProjector::reconfigure(const Configuration &config)
 {
+  if (config.has("action") && config["action"].str() == "reset")
+  {
+    INFO("Initializing sample store");
+  
+    store_ = StorePtr(new SampleStore());
+    indexed_samples_ = 0;
+  }
 }
 
 void ANNProjector::push(Sample *sample)

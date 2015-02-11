@@ -51,11 +51,11 @@ class DynaAgent : public Agent
     Representation *model_representation_;
     
     Vector start_obs_, prev_obs_, prev_action_, wrapping_;
-    size_t planning_steps_;
+    size_t planning_steps_, planned_steps_;
     Vector observation_min_, observation_max_;
     
   public:
-    DynaAgent() : policy_(NULL), predictor_(NULL), model_agent_(NULL), model_projector_(NULL), model_representation_(NULL), planning_steps_(1) { }
+    DynaAgent() : policy_(NULL), predictor_(NULL), model_agent_(NULL), model_projector_(NULL), model_representation_(NULL), planning_steps_(1), planned_steps_(0) { }
   
     // From Configurable    
     virtual void request(ConfigurationRequest *config);
@@ -67,6 +67,7 @@ class DynaAgent : public Agent
     virtual void start(const Vector &obs, Vector *action);
     virtual void step(const Vector &obs, double reward, Vector *action);
     virtual void end(double reward);
+    virtual void report(std::ostream &os) const;
     
   protected:
     void learnModel(const Transition &t);

@@ -104,7 +104,7 @@ typedef std::vector<CRP> ConfigurationRequest;
 extern unsigned char grl_log_verbosity__;
 extern const char *grl_log_levels__[];
 
-#define LOG(l, m) do { std::ostringstream oss; oss << m; log(l, oss); } while (0)
+#define LOG(l, m) do { std::ostringstream __log_oss; __log_oss << m; log(l, __log_oss); } while (0)
 
 #define ERROR(m) LOG(0, m)
 #define WARNING(m) LOG(1, m)
@@ -127,6 +127,9 @@ inline void log(unsigned char level, const std::ostringstream &oss)
 /// Configurable object.
 class Configurable
 {
+  public:
+    std::vector<Configurable*> children_;
+
   protected:
     inline void log(unsigned char level, const std::ostringstream &oss) const
     {
@@ -147,6 +150,16 @@ class Configurable
     virtual void request(ConfigurationRequest * /*config*/) { }
     virtual void configure(Configuration &/*config*/) { }
     virtual void reconfigure(const Configuration &/*config*/) { }
+    
+    void reset()
+    {
+      Configuration config;
+      config.set("action", "reset");
+      reconfigure(config);
+      
+      for (size_t ii=0; ii < children_.size(); ++ii)
+        children_[ii]->reset();
+    }
 };
 
 DECLARE_FACTORY(Configurable)

@@ -101,6 +101,10 @@ void ROSAgent::configure(Configuration &config)
 
 void ROSAgent::reconfigure(const Configuration &config)
 {
+  if (config.has("action") && config["action"].str() == "reset")
+  {
+    // TODO: send reset message to ROS agent
+  }
 }
 
 ROSAgent *ROSAgent::clone() const

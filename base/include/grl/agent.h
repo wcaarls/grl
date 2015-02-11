@@ -42,6 +42,7 @@ class Agent : public Configurable
     virtual void start(const Vector &obs, Vector *action) = 0;
     virtual void step(const Vector &obs, double reward, Vector *action) = 0;
     virtual void end(double reward) = 0;
+    virtual void report(std::ostream &os) const { }
 };
 
 }

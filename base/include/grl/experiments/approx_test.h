@@ -60,7 +60,7 @@ class ApproxTestExperiment : public Experiment
 
     // From Experiment
     virtual ApproxTestExperiment *clone() const;
-    virtual void run() const;  
+    virtual void run();
 };
 
 }

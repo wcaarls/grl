@@ -75,7 +75,7 @@ ApproxTestExperiment *ApproxTestExperiment::clone() const
   return ate;
 }
 
-void ApproxTestExperiment::run() const
+void ApproxTestExperiment::run()
 {
   IdentityProjector *ip = new IdentityProjector();
 
