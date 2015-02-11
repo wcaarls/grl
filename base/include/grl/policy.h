@@ -39,14 +39,30 @@ class Policy : public Configurable
   public:
     virtual ~Policy() { }
     virtual Policy *clone() const = 0;
-    virtual void act(const Vector &in, Vector *out) const = 0;
+    virtual void act(const Vector &in, Vector *out) const
+    {
+      act(Vector(), Vector(), in, out);
+    }
+    
+    virtual void act(const Vector &prev_in, const Vector &prev_out, const Vector &in, Vector *out) const
+    {
+      act(in, out);
+    }
 };
 
 /// Maps states to a discrete set of actions.
 class DiscretePolicy : public Policy
 {
   public:
-    virtual void distribution(const Vector &in, Vector *out) const = 0;
+    virtual void distribution(const Vector &in, Vector *out) const
+    {
+      distribution(Vector(), Vector(), in, out);
+    }
+    
+    virtual void distribution(const Vector &prev_in, const Vector &prev_out, const Vector &in, Vector *out) const
+    {
+      distribution(in, out);
+    }
 };
 
 }

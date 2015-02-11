@@ -67,7 +67,7 @@ void TDAgent::start(const Vector &obs, Vector *action)
 
 void TDAgent::step(const Vector &obs, double reward, Vector *action)
 {
-  policy_->act(obs, action);
+  policy_->act(prev_obs_, prev_action_, obs, action);
   predictor_->update(Transition(prev_obs_, prev_action_, reward, obs, *action));
 
   prev_obs_ = obs;

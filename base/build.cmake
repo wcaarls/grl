@@ -17,6 +17,7 @@ add_library(${TARGET} SHARED
             ${SRC}/experiments/approx_test.cpp
 #            ${SRC}/policies/action.cpp
             ${SRC}/policies/q.cpp
+            ${SRC}/policies/bounded_q.cpp
             ${SRC}/policies/random.cpp
 #            ${SRC}/predictors/ac.cpp
 #            ${SRC}/predictors/fqi.cpp

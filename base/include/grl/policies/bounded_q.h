@@ -1,8 +1,8 @@
-/** \file fixed.h
- * \brief Fixed-policy agent header file.
+/** \file bounded_q.h
+ * \brief Bounded Q policy header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-02-04
+ * \date      2015-02-11
  *
  * \copyright \verbatim
  * Copyright (c) 2015, Wouter Caarls
@@ -25,40 +25,39 @@
  * \endverbatim
  */
 
-#ifndef GRL_FIXED_AGENT_H_
-#define GRL_FIXED_AGENT_H_
+#ifndef GRL_BOUNDED_Q_POLICY_H_
+#define GRL_BOUNDED_Q_POLICY_H_
 
-#include <grl/agent.h>
-#include <grl/policy.h>
+#include <grl/policies/q.h>
 
 namespace grl
 {
 
-/// Fixed-policy agent.
-class FixedAgent : public Agent
+/// Q Policy with bounded action deltas.
+class BoundedQPolicy : public QPolicy
 {
   public:
-    TYPEINFO("agent/fixed")
+    TYPEINFO("policy/discrete/q/bounded")
 
   protected:
-    Policy *policy_;
-    Vector prev_obs_, prev_action_;
-    
+    Vector bound_;
+
   public:
-    FixedAgent() : policy_(NULL) { }
-  
-    // From Configurable    
+    // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
 
-    // From Agent
-    virtual FixedAgent *clone() const;
-    virtual void start(const Vector &obs, Vector *action);
-    virtual void step(const Vector &obs, double reward, Vector *action);
-    virtual void end(double reward);
+    // From QPolicy
+    virtual BoundedQPolicy *clone() const;
+    virtual void act(const Vector &prev_in, const Vector &prev_out, const Vector &in, Vector *out) const;
+    virtual void distribution(const Vector &prev_in, const Vector &prev_out, const Vector &in, Vector *out) const;
+    
+  protected:
+    /// Filter out actions that lie outside bounds.
+    void filter(const Vector &prev_out, const Vector &qvalues, Vector *filtered, std::vector<size_t> *idx) const;
 };
 
 }
 
-#endif /* GRL_FIXED_AGENT_H_ */
+#endif /* GRL_BOUNDED_Q_POLICY_H_ */

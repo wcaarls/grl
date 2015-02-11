@@ -91,7 +91,7 @@ void DynaAgent::start(const Vector &obs, Vector *action)
 
 void DynaAgent::step(const Vector &obs, double reward, Vector *action)
 {
-  policy_->act(obs, action);
+  policy_->act(prev_obs_, prev_action_, obs, action);
   
   Transition t(prev_obs_, prev_action_, reward, obs, *action);
   predictor_->update(t);
