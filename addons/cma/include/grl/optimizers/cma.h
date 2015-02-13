@@ -2,7 +2,7 @@
  * \brief CMA-ES optimizer header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-01-22
+ * \date      2015-02-13
  *
  * \copyright \verbatim
  * Copyright (c) 2015, Wouter Caarls
@@ -28,8 +28,9 @@
 #ifndef CMA_OPTIMIZER_H_
 #define CMA_OPTIMIZER_H_
 
-#include <grl.h>
-#include <optimizer.h>
+#include <cma/cmaes.h>
+#include <grl/optimizer.h>
+#include <grl/policies/parameterized.h>
 
 namespace grl
 {
@@ -37,6 +38,30 @@ namespace grl
 /// Coverance matrix adaptation optimizer.
 class CMAOptimizer : public Optimizer
 {
+  public:
+    TYPEINFO("optimizer/cma")
+ 
+  protected:
+    ParameterizedPolicy *prototype_;
+    std::vector<ParameterizedPolicy*> policies_;
+    
+    cmaes_t evo_;
+    size_t population_, params_;
+    Vector fitness_;
+  
+  public:
+    CMAOptimizer() : prototype_(NULL), population_(0), params_(0) {}
+
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+    
+    // From Optimizer  
+    virtual CMAOptimizer *clone() const;
+    virtual size_t size() const { return population_; }
+    virtual Policy *request(size_t ii) const { return policies_[ii]; }
+    virtual void report(size_t ii, double reward);
 };
 
 }

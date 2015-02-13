@@ -2,7 +2,7 @@
  * \brief Black box optimization agent source file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-01-22
+ * \date      2015-02-13
  *
  * \copyright \verbatim
  * Copyright (c) 2015, Wouter Caarls
@@ -30,3 +30,73 @@
 using namespace grl;
 
 REGISTER_CONFIGURABLE(BlackBoxAgent)
+
+void BlackBoxAgent::request(ConfigurationRequest *config)
+{
+  config->push_back(CRP("episodes", "Number of episodes to evaluate policy", episodes_, CRP::Configuration, 1));
+  
+  config->push_back(CRP("optimizer", "optimizer", "Policy optimizer", optimizer_));
+}
+
+void BlackBoxAgent::configure(Configuration &config)
+{
+  optimizer_ = (Optimizer*)config["optimizer"].ptr();
+  episodes_ = config["episodes"];
+  
+  reset();
+}  
+
+void BlackBoxAgent::reconfigure(const Configuration &config)
+{
+  if (config.has("action") && config["action"].str() == "reset")
+  {
+    index_ = 0;
+    episode_ = -1;
+    reward_ = 0;
+  
+    policy_ = optimizer_->request(index_);
+  }
+}
+
+BlackBoxAgent *BlackBoxAgent::clone() const
+{
+  BlackBoxAgent *agent = new BlackBoxAgent(*this);
+  agent->policy_ = policy_->clone();
+  agent->optimizer_ = optimizer_->clone();
+  
+  return agent;
+}
+
+void BlackBoxAgent::start(const Vector &obs, Vector *action)
+{
+  if (++episode_ == episodes_)
+  {
+    optimizer_->report(index_, reward_);
+    
+    if (++index_ == optimizer_->size())
+      index_ = 0;
+
+    episode_ = 0;
+    reward_ = 0;
+    
+    policy_ = optimizer_->request(index_);
+  }
+
+  policy_->act(obs, action);
+  prev_obs_ = obs;
+  prev_action_ = *action;
+}
+
+void BlackBoxAgent::step(const Vector &obs, double reward, Vector *action)
+{
+  reward_ += reward;
+
+  policy_->act(prev_obs_, prev_action_, obs, action);
+  prev_obs_ = obs;
+  prev_action_ = *action;
+}
+
+void BlackBoxAgent::end(double reward)
+{
+  reward_ += reward;
+}

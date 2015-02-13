@@ -2,7 +2,7 @@
  * \brief CMA-ES optimizer source file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-01-22
+ * \date      2015-02-13
  *
  * \copyright \verbatim
  * Copyright (c) 2015, Wouter Caarls
@@ -24,3 +24,86 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * \endverbatim
  */
+
+#include <string.h>
+#include <cma/cmaes_interface.h>
+#include <grl/optimizers/cma.h>
+
+using namespace grl;	
+
+REGISTER_CONFIGURABLE(CMAOptimizer)
+
+void CMAOptimizer::request(ConfigurationRequest *config)
+{
+  config->push_back(CRP("population", "Population size", population_, CRP::Configuration, 0));
+
+  config->push_back(CRP("policy", "policy", "Control policy prototype", prototype_));
+}
+
+void CMAOptimizer::configure(Configuration &config)
+{
+  prototype_ = (ParameterizedPolicy*)config["policy"].ptr();
+  population_ = config["population"];
+  params_ = prototype_->size();
+  
+  if (!population_)
+    population_ = 4+floor(3*std::log(params_));
+  
+  policies_.resize(population_);
+  fitness_.resize(population_);
+  
+  for (size_t ii=0; ii < population_; ++ii)
+    policies_[ii] = prototype_->clone();
+    
+  reset();
+}
+
+void CMAOptimizer::reconfigure(const Configuration &config)
+{
+  if (config.has("action") && config["action"].str() == "reset")
+  {
+    Vector xstart = prototype_->params(), stddev;
+    stddev.resize(params_, 1.);
+    
+    INFO("Initializing CMA-ES optimizer with population size " << population_ << " (" << params_ << " parameters)");
+  
+    bzero(&evo_, sizeof(evo_));
+    cmaes_init(&evo_, params_, xstart.data(), stddev.data(), lrand48(), population_, "non");
+    
+    // Sample initial population
+    double *const *pop = cmaes_SamplePopulation(&evo_);
+    
+    for (size_t ii=0; ii < population_; ++ii)
+      memcpy(policies_[ii]->params().data(), pop[ii], params_*sizeof(double));
+  }
+}
+
+CMAOptimizer *CMAOptimizer::clone() const
+{
+  return NULL;
+}
+
+void CMAOptimizer::report(size_t ii, double reward)
+{
+  DEBUG(policies_[ii]->params() << " = " << reward);
+
+  // cmaes minimizes fitness
+  fitness_[ii] = -reward;
+  
+  if (ii == population_-1)
+  {
+    INFO("Updating search distribution");
+  
+    // Update search distribution  
+    cmaes_UpdateDistribution(&evo_, fitness_.data());
+    
+    const char *s = cmaes_TestForTermination(&evo_);
+    if (s) NOTICE(s);
+    
+    // Sample next population
+    double *const *pop = cmaes_SamplePopulation(&evo_);
+
+    for (size_t ii=0; ii < population_; ++ii)
+      memcpy(policies_[ii]->params().data(), pop[ii], params_*sizeof(double));
+  }
+}

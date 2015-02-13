@@ -81,9 +81,7 @@ void LinearRepresentation::reconfigure(const Configuration &config)
 
 LinearRepresentation *LinearRepresentation::clone() const
 {
-  LinearRepresentation *lr = new LinearRepresentation();
-  lr->params_ = params_;
-  return lr;
+  return new LinearRepresentation(*this);
 }
 
 double LinearRepresentation::read(const ProjectionPtr &projection, Vector *result) const

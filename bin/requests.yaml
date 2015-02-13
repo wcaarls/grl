@@ -1,3 +1,18 @@
+agent/black_box:
+  episodes:
+    type: int
+    description: Number of episodes to evaluate policy
+    default: 1
+    optional: 1
+    mutability: configuration
+    min: 1
+    max: 2147483647
+  optimizer:
+    type: optimizer
+    description: Policy optimizer
+    default: 0
+    optional: 0
+    mutability: configuration
 agent/dyna:
   planning_steps:
     type: int
@@ -281,6 +296,21 @@ model/dynamical:
     default: 0
     optional: 0
     mutability: configuration
+optimizer/cma:
+  population:
+    type: int
+    description: Population size
+    default: 0
+    optional: 1
+    mutability: configuration
+    min: 0
+    max: 2147483647
+  policy:
+    type: policy
+    description: Control policy prototype
+    default: 0
+    optional: 0
+    mutability: configuration
 policy/discrete/q:
   discretizer:
     type: discretizer
@@ -337,6 +367,47 @@ policy/discrete/random:
   discretizer:
     type: discretizer
     description: Action discretizer
+    default: 0
+    optional: 0
+policy/parameterized/continuous:
+  min:
+    type: vector
+    description: Lower action limit
+    default: "[  ]"
+    optional: 1
+    mutability: configuration
+  max:
+    type: vector
+    description: Upper action limit
+    default: "[  ]"
+    optional: 1
+    mutability: configuration
+  projector:
+    type: projector
+    description: Projects observations onto representation space
+    default: 0
+    optional: 0
+    mutability: configuration
+  representation:
+    type: representation/parameterized
+    description: Action representation
+    default: 0
+    optional: 0
+    mutability: configuration
+policy/parameterized/discrete:
+  discretizer:
+    type: discretizer
+    description: Action discretizer
+    default: 0
+    optional: 0
+  projector:
+    type: projector
+    description: Projects observation-action pairs onto representation space
+    default: 0
+    optional: 0
+  representation:
+    type: representation/parameterized
+    description: Probability representation
     default: 0
     optional: 0
 policy/random:

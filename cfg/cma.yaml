@@ -1,0 +1,30 @@
+type: experiment/online_learning
+environment:
+  type: environment/modeled
+  model:
+    type: model/dynamical
+    dynamics:
+      type: dynamics/pendulum
+    control_step: 0.03
+  task:
+    type: task/pendulum/swingup
+agent:  
+  type: agent/black_box
+  optimizer:  
+    type: optimizer/cma
+    policy:
+      type: policy/parameterized/continuous
+      min: [ -3 ]
+      max: [ 3 ]
+      projector:  
+        type: projector/fourier
+        min: [ 0, -31 ]
+        max: [ 6.283, 31 ]
+        order: 5
+      representation:  
+        type: representation/parameterized/linear
+        memory: agent/optimizer/policy/projector/memory
+        min: -1
+        max: 1
+
+        

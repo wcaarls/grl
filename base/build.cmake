@@ -4,7 +4,7 @@ set(TARGET grl)
 # Make library
 add_library(${TARGET} SHARED
             ${SRC}/grl.cpp
-#            ${SRC}/agents/black_box.cpp
+            ${SRC}/agents/black_box.cpp
             ${SRC}/agents/td.cpp
             ${SRC}/agents/dyna.cpp
             ${SRC}/agents/fixed.cpp
@@ -15,7 +15,7 @@ add_library(${TARGET} SHARED
             ${SRC}/environments/cart_pole.cpp
             ${SRC}/experiments/online_learning.cpp
             ${SRC}/experiments/approx_test.cpp
-#            ${SRC}/policies/action.cpp
+            ${SRC}/policies/parameterized.cpp
             ${SRC}/policies/q.cpp
             ${SRC}/policies/bounded_q.cpp
             ${SRC}/policies/random.cpp

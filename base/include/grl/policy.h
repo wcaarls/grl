@@ -54,6 +54,8 @@ class Policy : public Configurable
 class DiscretePolicy : public Policy
 {
   public:
+    virtual DiscretePolicy *clone() const = 0;
+    
     virtual void distribution(const Vector &in, Vector *out) const
     {
       distribution(Vector(), Vector(), in, out);
@@ -63,6 +65,16 @@ class DiscretePolicy : public Policy
     {
       distribution(in, out);
     }
+};
+
+class ParameterizedPolicy : public Policy
+{
+  public:
+    virtual ParameterizedPolicy *clone() const = 0;
+    
+    virtual size_t size() const = 0;
+    virtual const Vector &params() const = 0;
+    virtual Vector &params() = 0;
 };
 
 }

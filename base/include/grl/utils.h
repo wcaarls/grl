@@ -202,6 +202,26 @@ inline bool convert(const std::string& str, T *obj)
   return iss.eof();
 }
 
+// Sample from distribution
+inline size_t sample(Vector dist)
+{
+  double sum = 0;
+  for (size_t ii=0; ii < dist.size(); ++ii)
+    sum += dist[ii];
+    
+  double r = RandGen::get()*sum;
+  
+  sum = 0;
+  for (size_t ii=0; ii < dist.size(); ++ii)
+  {
+    sum += dist[ii];
+    if (r < sum)
+      return ii;
+  }
+  
+  return dist.size()-1;
+}
+
 }
 
 #endif /* GRL_UTILS_H_ */

@@ -72,22 +72,12 @@ class Representation : public Mapping
 /// Representation that allows for parameter access.
 class ParameterizedRepresentation : public Representation
 {
-  protected:
-    Vector params_;
-
   public:
     virtual ParameterizedRepresentation *clone() const = 0;
-    virtual size_t size() const = 0;
-
-    virtual const Vector &params() const
-    {
-      return params_;
-    }
     
-    virtual Vector &params()
-    {
-      return params_;
-    }
+    virtual size_t size() const = 0;
+    virtual const Vector &params() const = 0;
+    virtual Vector &params() = 0;
 };
 
 }

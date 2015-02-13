@@ -2,7 +2,7 @@
  * \brief Black box optimization agent header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-01-22
+ * \date      2015-02-13
  *
  * \copyright \verbatim
  * Copyright (c) 2015, Wouter Caarls
@@ -30,6 +30,7 @@
 
 #include <grl/agent.h>
 #include <grl/policy.h>
+#include <grl/optimizer.h>
 
 namespace grl
 {
@@ -42,7 +43,25 @@ class BlackBoxAgent : public Agent
 
   protected:
     Policy *policy_;
-    size_t ii;
+    Optimizer *optimizer_;
+    size_t index_, episode_, episodes_;
+    double reward_;
+
+    Vector prev_obs_, prev_action_;
+    
+   public:
+     BlackBoxAgent() : policy_(NULL), optimizer_(NULL), index_(0), episode_(0), episodes_(1), reward_(0) { }
+     
+    // From Configurable    
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+
+    // From Agent
+    virtual BlackBoxAgent *clone() const;
+    virtual void start(const Vector &obs, Vector *action);
+    virtual void step(const Vector &obs, double reward, Vector *action);
+    virtual void end(double reward);
 };
 
 }
