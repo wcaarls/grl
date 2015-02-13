@@ -42,6 +42,7 @@ void OnlineLearningExperiment::request(ConfigurationRequest *config)
   config->push_back(CRP("rate", "Control step frequency in Hz", (int)rate_, CRP::Online));
   config->push_back(CRP("test_interval", "Number of episodes in between test trials", (int)test_interval_));
   config->push_back(CRP("output", "Output base filename", output_));
+  config->push_back(CRP("seed", "Seed for random number generator (0=randomize)", seed_));
   
   config->push_back(CRP("agent", "agent", "Agent", agent_));
   config->push_back(CRP("test_agent", "agent", "Agent to use in test trials", agent_, true));
@@ -60,6 +61,12 @@ void OnlineLearningExperiment::configure(Configuration &config)
   rate_ = config["rate"];
   test_interval_ = config["test_interval"];
   output_ = config["output"].str();
+  seed_ = config["seed"];
+  
+  if (seed_)
+    srand48(seed_);
+  else
+    srand48(time(NULL));
   
   if (test_interval_ && !test_agent_)
     throw bad_param("experiment/online_learning:test_agent");
@@ -95,7 +102,7 @@ void OnlineLearningExperiment::run()
       oss << output_ << "-" << rr << ".txt";
       ofs.open(oss.str().c_str());
     }
-
+    
     for (size_t ss=0, tt=0; (!trials_ || tt < trials_) && (!steps_ || ss < steps_); ++tt)
     { 
       Vector obs, action;
@@ -107,7 +114,7 @@ void OnlineLearningExperiment::run()
       if (test) agent = test_agent_;
       
       environment_->start(&obs);
-      agent_->start(obs, &action);
+      agent->start(obs, &action);
   
       do
       {

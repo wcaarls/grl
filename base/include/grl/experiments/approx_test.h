@@ -49,9 +49,10 @@ class ApproxTestExperiment : public Experiment
     Vector min_, max_;
     size_t outputs_, train_samples_, test_samples_;
     std::string file_;
+    int seed_;
 
   public:
-    ApproxTestExperiment() : projector_(NULL), representation_(NULL), mapping_(NULL), outputs_(1), train_samples_(1000), test_samples_(1000) { }
+    ApproxTestExperiment() : projector_(NULL), representation_(NULL), mapping_(NULL), outputs_(1), train_samples_(1000), test_samples_(1000), seed_(0) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);

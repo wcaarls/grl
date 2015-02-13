@@ -67,7 +67,7 @@ void LinearRepresentation::reconfigure(const Configuration &config)
 {
   if (config.has("action") && config["action"].str() == "reset")
   {
-    INFO("Initializing memory");
+    DEBUG("Initializing " << memory_ << " values between " << min_ << " and " << max_);
   
     params_.resize(memory_ * outputs_);
 

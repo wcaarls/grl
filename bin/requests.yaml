@@ -122,6 +122,14 @@ experiment/approx_test:
     default: ""
     optional: 1
     mutability: configuration
+  seed:
+    type: int
+    description: Seed for random number generator (0=randomize)
+    default: 0
+    optional: 1
+    mutability: configuration
+    min: 0
+    max: 2147483647
   min:
     type: vector
     description: Lower limit for drawing samples
@@ -199,6 +207,14 @@ experiment/online_learning:
     default: ""
     optional: 1
     mutability: configuration
+  seed:
+    type: int
+    description: Seed for random number generator (0=randomize)
+    default: 0
+    optional: 1
+    mutability: configuration
+    min: 0
+    max: 2147483647
   agent:
     type: agent
     description: Agent

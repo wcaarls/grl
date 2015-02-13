@@ -73,7 +73,7 @@ void GGQPredictor::update(const Transition &transition)
   
   // phi_next for greedy target policy
   Vector action;
-  policy_->act(transition.obs, &action);
+  policy_->act(transition.prev_obs, transition.prev_action, transition.obs, &action);
   ProjectionPtr phi_next = projector_->project(transition.obs, action);
 
   // temporal difference error
@@ -81,7 +81,7 @@ void GGQPredictor::update(const Transition &transition)
 
   // w^Tphi
   double dotwphi = w_->read(phi, &v);
-
+  
   // Update regular weights
   theta_->update(phi, VectorConstructor(alpha_*delta));
   theta_->update(phi_next, VectorConstructor(-alpha_*gamma_*dotwphi));

@@ -77,7 +77,7 @@ void ANNProjector::reconfigure(const Configuration &config)
 void ANNProjector::push(Sample *sample)
 {
   rwlock_.writeLock();
-
+  
   // HACK: avoid precise matches
   if (sample->in[0])
     sample->in[0] *= 1 + 0.001*RandGen::get();
@@ -87,7 +87,7 @@ void ANNProjector::push(Sample *sample)
   store_->push_back(sample);
 
   // Should be in a separate thread
-  if ((store_->size() - indexed_samples_) > std::min(indexed_samples_, (size_t)100))
+  if ((store_->size() - indexed_samples_) >= std::min(indexed_samples_, (size_t)100))
   {
     rwlock_.unlock();
     reindex();
@@ -100,6 +100,8 @@ void ANNProjector::reindex()
 {
   // Create new pruned store
   StorePtr newstore = StorePtr(store_->prune(max_samples_));
+  
+  DEBUG("Building kd-tree with " << newstore->size() << " samples");
 
   // Build new index using new store
   ANNkd_tree *newindex = new ANNkd_tree((ANNcoord**)newstore->samples(), newstore->size(), dims_, bucket_size_);

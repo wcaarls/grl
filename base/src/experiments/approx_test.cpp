@@ -36,6 +36,7 @@ void ApproxTestExperiment::request(ConfigurationRequest *config)
   config->push_back(CRP("train_samples", "Number of training samples", train_samples_, CRP::Configuration, 1));
   config->push_back(CRP("test_samples", "Number of test samples", test_samples_, CRP::Configuration, 1));
   config->push_back(CRP("file", "Output file (csv format)", file_));
+  config->push_back(CRP("seed", "Seed for random number generator (0=randomize)", seed_));
 
   config->push_back(CRP("min", "Lower limit for drawing samples", min_));
   config->push_back(CRP("max", "Upper limit for drawing samples", max_));
@@ -54,6 +55,12 @@ void ApproxTestExperiment::configure(Configuration &config)
   train_samples_ = config["train_samples"];
   test_samples_ = config["test_samples"];
   file_ = config["file"].str();
+  seed_ = config["seed"];
+  
+  if (seed_)
+    srand48(seed_);
+  else
+    srand48(time(NULL));
   
   min_ = config["min"];
   max_ = config["max"];

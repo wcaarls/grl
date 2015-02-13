@@ -1,5 +1,6 @@
 type: experiment/online_learning
 rate: 0
+test_interval: 10
 environment:
   type: environment/modeled
   model:
@@ -21,7 +22,7 @@ agent:
   predictor:
     type: predictor/ggq
     alpha: 0.2
-    eta: 0.1
+    eta: 0.01
     gamma: 0.97
     projector:
       type: projector/tile_coding
@@ -40,6 +41,9 @@ agent:
       discretizer: agent/policy/discretizer
       sampler:
         type: sampler/greedy
+test_agent:
+  type: agent/fixed
+  policy: agent/predictor/policy
 visualization:
   type: visualization/value_function
   visualizer:
