@@ -36,8 +36,8 @@ using namespace grl;
 
 void FieldVisualization::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("min", "Lower observation limit", state_min_));
-  config->push_back(CRP("max", "Upper observation limit", state_max_));
+  config->push_back(CRP("min", "Lower input dimension limit", state_min_));
+  config->push_back(CRP("max", "Upper input dimension limit", state_max_));
   config->push_back(CRP("points", "Number of points to evaluate", points_));
   config->push_back(CRP("dims", "Order of dimensions to visualize", dims_));
 }
@@ -45,7 +45,7 @@ void FieldVisualization::request(ConfigurationRequest *config)
 void FieldVisualization::configure(Configuration &config)
 {
   if (!Visualizer::instance())
-    throw Exception("visualization/value_function requires a configured visualizer to run");
+    throw Exception("visualization/field requires a configured visualizer to run");
 
   state_min_ = config["min"];
   state_max_ = config["max"];
@@ -55,7 +55,7 @@ void FieldVisualization::configure(Configuration &config)
   // Create point iteration order lookup table  
   dims_ = config["dims"];
   if (dims_.size() != 2)
-    throw bad_param("visualization/value_function:dims");
+    throw bad_param("visualization/field:dims");
   
   dim_order_.clear();
   for (int ii=0; ii < state_dims_; ++ii)

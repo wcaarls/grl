@@ -137,14 +137,6 @@ experiment/approx_test:
     default: ""
     optional: 1
     mutability: configuration
-  seed:
-    type: int
-    description: Seed for random number generator (0=randomize)
-    default: 0
-    optional: 1
-    mutability: configuration
-    min: 0
-    max: 2147483647
   min:
     type: vector
     description: Lower limit for drawing samples
@@ -222,14 +214,6 @@ experiment/online_learning:
     default: ""
     optional: 1
     mutability: configuration
-  seed:
-    type: int
-    description: Seed for random number generator (0=randomize)
-    default: 0
-    optional: 1
-    mutability: configuration
-    min: 0
-    max: 2147483647
   agent:
     type: agent
     description: Agent
@@ -306,7 +290,7 @@ optimizer/cma:
     min: 0
     max: 2147483647
   policy:
-    type: policy
+    type: policy/parameterized
     description: Control policy prototype
     default: 0
     optional: 0
@@ -702,6 +686,63 @@ representation/llr:
     default: 0
     optional: 0
     mutability: configuration
+representation/parameterized/ann:
+  input_min:
+    type: vector
+    description: Lower limit on inputs
+    default: "[  ]"
+    optional: 1
+    mutability: system
+  input_max:
+    type: vector
+    description: Upper limit on inputs
+    default: "[  ]"
+    optional: 1
+    mutability: system
+  output_min:
+    type: vector
+    description: Lower limit on outputs
+    default: "[  ]"
+    optional: 1
+    mutability: system
+  output_max:
+    type: vector
+    description: Upper limit on outputs
+    default: "[  ]"
+    optional: 1
+    mutability: system
+  hiddens:
+    type: int
+    description: Number of hidden nodes
+    default: 0
+    optional: 1
+    mutability: configuration
+    min: 0
+    max: 64
+  steepness:
+    type: double
+    description: Steepness of activation function
+    default: 5
+    optional: 1
+    mutability: configuration
+    min: 0
+    max: 1
+  bias:
+    type: int
+    description: Use bias nodes
+    default: 1
+    optional: 1
+    mutability: configuration
+    min: 0
+    max: 1
+  recurrent:
+    type: int
+    description: Feed hidden activation back as input
+    default: 0
+    optional: 1
+    mutability: configuration
+    min: 0
+    max: 1
 representation/parameterized/linear:
   memory:
     type: int
@@ -794,6 +835,88 @@ task/pendulum/swingup:
     max: 1
 trace/enumerated/accumulating: ~
 trace/enumerated/replacing: ~
+visualization/field/policy:
+  min:
+    type: vector
+    description: Lower input dimension limit
+    default: "[  ]"
+    optional: 1
+    mutability: configuration
+  max:
+    type: vector
+    description: Upper input dimension limit
+    default: "[  ]"
+    optional: 1
+    mutability: configuration
+  points:
+    type: int
+    description: Number of points to evaluate
+    default: 1048576
+    optional: 1
+    mutability: configuration
+    min: 0
+    max: 2147483647
+  dims:
+    type: vector
+    description: Order of dimensions to visualize
+    default: "[ 0, 1 ]"
+    optional: 1
+    mutability: configuration
+  policy:
+    type: policy
+    description: Control policy
+    default: 0
+    optional: 0
+  dim:
+    type: int
+    description: Action dimension to visualize
+    default: 0
+    optional: 1
+    mutability: online
+    min: 0
+    max: 2147483647
+visualization/field/value_function:
+  min:
+    type: vector
+    description: Lower input dimension limit
+    default: "[  ]"
+    optional: 1
+    mutability: configuration
+  max:
+    type: vector
+    description: Upper input dimension limit
+    default: "[  ]"
+    optional: 1
+    mutability: configuration
+  points:
+    type: int
+    description: Number of points to evaluate
+    default: 1048576
+    optional: 1
+    mutability: configuration
+    min: 0
+    max: 2147483647
+  dims:
+    type: vector
+    description: Order of dimensions to visualize
+    default: "[ 0, 1 ]"
+    optional: 1
+    mutability: configuration
+  projector:
+    type: projector
+    description: Projects observation-action pairs onto representation space
+    default: 0
+    optional: 0
+  representation:
+    type: representation
+    description: Q-value representation
+    default: 0
+    optional: 0
+  policy:
+    type: policy/discrete/q
+    description: Q-value based control policy
+    default: 0
+    optional: 0
 visualization/sample:
   dims:
     type: vector
@@ -832,51 +955,6 @@ visualization/sample:
   projector:
     type: projector/sample
     description: Sample projector whose store to visualize
-    default: 0
-    optional: 0
-    mutability: configuration
-visualization/value_function:
-  min:
-    type: vector
-    description: Lower observation limit
-    default: "[  ]"
-    optional: 1
-    mutability: configuration
-  max:
-    type: vector
-    description: Upper observation limit
-    default: "[  ]"
-    optional: 1
-    mutability: configuration
-  points:
-    type: int
-    description: Number of points to evaluate
-    default: 1048576
-    optional: 1
-    mutability: configuration
-    min: 0
-    max: 2147483647
-  dims:
-    type: vector
-    description: Order of dimensions to visualize
-    default: "[ 0, 1 ]"
-    optional: 1
-    mutability: configuration
-  projector:
-    type: projector
-    description: Projects observation-action pairs onto representation space
-    default: 0
-    optional: 0
-    mutability: configuration
-  representation:
-    type: representation
-    description: Q-value representation
-    default: 0
-    optional: 0
-    mutability: configuration
-  policy:
-    type: policy/discrete/q
-    description: Q-value based control policy
     default: 0
     optional: 0
     mutability: configuration
