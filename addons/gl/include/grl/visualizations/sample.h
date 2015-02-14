@@ -37,7 +37,7 @@
 namespace grl
 {
 
-/// Value function visualization.
+/// Sample visualization.
 class SampleVisualization : public Visualization
 {
   public:

@@ -37,7 +37,7 @@
 namespace grl
 {
 
-/// Value function visualization.
+/// Policy visualization.
 class PolicyVisualization : public FieldVisualization
 {
   public:

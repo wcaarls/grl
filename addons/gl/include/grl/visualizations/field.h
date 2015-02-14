@@ -36,7 +36,7 @@
 namespace grl
 {
 
-/// Value function visualization.
+/// Field visualization base class.
 class FieldVisualization : public Visualization
 {
   protected:
