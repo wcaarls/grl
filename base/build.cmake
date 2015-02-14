@@ -26,7 +26,7 @@ add_library(${TARGET} SHARED
             ${SRC}/projectors/identity.cpp
             ${SRC}/projectors/tile_coding.cpp
             ${SRC}/projectors/fourier.cpp
-#            ${SRC}/representations/ann.cpp
+            ${SRC}/representations/ann.cpp
 #            ${SRC}/representations/dmp.cpp
             ${SRC}/representations/linear.cpp
             ${SRC}/representations/multisine.cpp

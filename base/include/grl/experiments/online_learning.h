@@ -46,12 +46,11 @@ class OnlineLearningExperiment : public Experiment
     Environment *environment_;
 
     size_t runs_, trials_, steps_, test_interval_;
-    int seed_;
     double rate_;
     std::string output_;
 
   public:
-    OnlineLearningExperiment() : agent_(NULL), test_agent_(NULL), environment_(NULL), runs_(1), trials_(0), steps_(0), test_interval_(0), seed_(0), rate_(0) { }
+    OnlineLearningExperiment() : agent_(NULL), test_agent_(NULL), environment_(NULL), runs_(1), trials_(0), steps_(0), test_interval_(0), rate_(0) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);

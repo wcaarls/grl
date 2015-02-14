@@ -2,7 +2,7 @@
  * \brief Artificial neural network representation header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-01-22
+ * \date      2015-02-14
  *
  * \copyright \verbatim
  * Copyright (c) 2015, Wouter Caarls
@@ -38,6 +38,48 @@ class ANNRepresentation : public ParameterizedRepresentation
 {
   public:
     TYPEINFO("representation/parameterized/ann")
+
+  protected:
+    Vector input_min_, input_max_, output_min_, output_max_;
+    size_t inputs_, hiddens_, outputs_;
+    Vector weights_, state_;
+    double steepness_;
+    int bias_, recurrent_;
+
+  public:
+    ANNRepresentation() : inputs_(0), hiddens_(0), outputs_(0), steepness_(5), bias_(1), recurrent_(0) { }
+    
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+  
+    // From ParameterizedRepresentation
+    virtual ANNRepresentation *clone() const;
+    virtual double read(const ProjectionPtr &projection, Vector *result) const ;
+    virtual void write(const ProjectionPtr projection, const Vector &target, double alpha=1);
+    virtual void update(const ProjectionPtr projection, const Vector &delta);
+
+    virtual size_t size() const
+    {
+      return (inputs_+bias_+recurrent_)*hiddens_+(hiddens_+bias_)*outputs_;
+    }
+    
+    virtual const Vector &params() const
+    {
+      return weights_;
+    }
+    
+    virtual Vector &params()
+    {
+      return weights_;
+    }
+
+  protected:
+    inline double activate(double x) const
+    {
+      return 1/(1+exp(-steepness_*x));
+    }
 };
 
 }

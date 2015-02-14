@@ -1,0 +1,35 @@
+type: experiment/online_learning
+environment:
+  type: environment/modeled
+  model:
+    type: model/dynamical
+    dynamics:
+      type: dynamics/pendulum
+    control_step: 0.03
+  task:
+    type: task/pendulum/swingup
+agent:  
+  type: agent/black_box
+  optimizer:  
+    type: optimizer/cma
+    policy:
+      type: policy/parameterized/continuous
+      min: [ -3 ]
+      max: [ 3 ]
+      projector:  
+        type: projector/identity
+      representation:  
+        type: representation/parameterized/ann
+        input_min: environment/task/observation_min
+        input_max: environment/task/observation_max
+        output_min: environment/task/action_min
+        output_max: environment/task/action_max
+        hiddens: 5
+visualization:
+  type: visualization/field/policy
+  visualizer:
+    type: visualizer/glut
+  policy: agent/optimizer/policy
+  min: environment/task/observation_min
+  max: environment/task/observation_max
+  points: 65536

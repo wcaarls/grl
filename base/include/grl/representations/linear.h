@@ -24,12 +24,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * \endverbatim
  */
-/*
- * linear_representation.h
- *
- *  Created on: Jul 30, 2014
- *      Author: wcaarls
- */
 
 #ifndef GRL_LINEAR_REPRESENTATION_H_
 #define GRL_LINEAR_REPRESENTATION_H_
@@ -69,7 +63,7 @@ class LinearRepresentation : public ParameterizedRepresentation
     
     virtual size_t size() const
     {
-      return params_.size()/outputs_;
+      return params_.size();
     }
     
     virtual const Vector &params() const

@@ -49,13 +49,18 @@ void loadPlugins(const char *pattern)
 
 int main(int argc, char **argv)
 {
+  int seed = 0;
+
   int c;
-  while ((c = getopt (argc, argv, "v")) != -1)
+  while ((c = getopt (argc, argv, "vs:")) != -1)
   {
     switch (c)
     {
       case 'v':
         grl_log_verbosity__++;
+        break;
+      case 's':
+        seed = atoi(optarg);
         break;
       default:
         return 1;    
@@ -66,6 +71,17 @@ int main(int argc, char **argv)
   {
     ERROR("Usage: " << endl << "  " << argv[0] << " [options] <yaml file>");
     return 1;
+  }
+  
+  if (seed)
+  {
+    srand(seed);
+    srand48(seed);
+  }
+  else
+  {
+    srand(time(NULL));
+    srand48(time(NULL));
   }
   
   // Load plugins
