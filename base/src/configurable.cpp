@@ -61,7 +61,6 @@ Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *conf
     if (it->second.IsMap())
     {
       Configuration subcfg(*config);
-      
       Configurable *subobj = load(it->second, &subcfg, path + key + "/");
       
       if (!subobj)
@@ -79,16 +78,41 @@ Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *conf
     {
       value = toString(it->second);
       
-      if (references_.has(value))
+      if (value.size() >= 5 && value.substr(value.size()-5) == ".yaml")
       {
-        DEBUG(path << key << ": " << references_[value].str() << " (from " << value << ")");
-        value = references_[value].str();
+        Configuration subcfg(*config);
+        
+        if (!file_.empty())
+        {
+          size_t pathsep = file_.back().find_last_of('/');
+          if (pathsep != std::string::npos)
+            value = file_.back().substr(0, pathsep+1) + value;
+        }
+        
+        Configurable *subobj = load(value, &subcfg, path + key + "/");
+        
+        if (!subobj)
+        {
+          safe_delete(&obj);
+          return NULL;
+        }
+        
+        config->set(key, subobj);
+        references_.set(path + key, subobj);
       }
       else
-        INFO(path << key << ": " << value);
+      {
+        if (references_.has(value))
+        {
+          DEBUG(path << key << ": " << references_[value].str() << " (from " << value << ")");
+          value = references_[value].str();
+        }
+        else
+          INFO(path << key << ": " << value);
       
-      config->set(key, value);
-      references_.set(path + key, value);
+        config->set(key, value);
+        references_.set(path + key, value);
+      }
     }
   }
   

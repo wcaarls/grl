@@ -1,0 +1,8 @@
+type: environment/modeled
+model:
+  type: model/dynamical
+  dynamics:
+    type: dynamics/pendulum
+  control_step: 0.03
+task:
+  type: task/pendulum/swingup

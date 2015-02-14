@@ -170,6 +170,7 @@ class YAMLConfigurator
 {
   protected:
     Configuration references_;
+    std::vector<std::string> file_;
 
   public:
     void populate(const Configuration &config)
@@ -177,9 +178,15 @@ class YAMLConfigurator
       references_ = config;
     }
   
-    Configurable *load(std::string file, Configuration *config)
+    Configurable *load(std::string file, Configuration *config, const std::string &path="")
     {
-      return load(YAML::LoadFile(file.c_str()), config, "");
+      NOTICE("Loading " << file);
+      
+      file_.push_back(file);
+      Configurable *obj = load(YAML::LoadFile(file.c_str()), config, path);
+      file_.pop_back();
+      
+      return obj;
     }
   
     Configurable *load(const YAML::Node &node, Configuration *config, const std::string &path);
