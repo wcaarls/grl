@@ -50,7 +50,7 @@ test_agent:
     sampler:
       type: sampler/greedy
 visualization:
-  type: visualization/value_function
+  type: visualization/field/value_function
   visualizer:
     type: visualizer/glut
   projector: agent/predictor/projector

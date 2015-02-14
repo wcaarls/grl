@@ -1,8 +1,8 @@
-/** \file cma_optimizer.h
- * \brief CMA-ES optimizer header file.
+/** \file policy.h
+ * \brief Policy visualization header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-02-13
+ * \date      2015-02-14
  *
  * \copyright \verbatim
  * Copyright (c) 2015, Wouter Caarls
@@ -25,46 +25,40 @@
  * \endverbatim
  */
 
-#ifndef CMA_OPTIMIZER_H_
-#define CMA_OPTIMIZER_H_
+#ifndef GRL_POLICY_VISUALIZATION_H_
+#define GRL_POLICY_VISUALIZATION_H_
 
-#include <cma/cmaes.h>
-#include <grl/optimizer.h>
-#include <grl/policies/parameterized.h>
+#include <string.h>
+#include <pthread.h>
+
+#include <grl/policy.h>
+#include <grl/visualizations/field.h>
 
 namespace grl
 {
 
-/// Coverance matrix adaptation optimizer.
-class CMAOptimizer : public Optimizer
+/// Value function visualization.
+class PolicyVisualization : public FieldVisualization
 {
   public:
-    TYPEINFO("optimizer/cma")
- 
+    TYPEINFO("visualization/field/policy")
+
   protected:
-    ParameterizedPolicy *prototype_, *policy_;
-    std::vector<ParameterizedPolicy*> policies_;
-    
-    cmaes_t evo_;
-    size_t population_, params_;
-    Vector fitness_;
-    double best_reward_;
+    Policy *policy_;
+    size_t dim_;
   
   public:
-    CMAOptimizer() : prototype_(NULL), policy_(NULL), population_(0), params_(0), best_reward_(0) {}
-
+    PolicyVisualization() : policy_(NULL), dim_(0) { }
+    
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
-    
-    // From Optimizer  
-    virtual CMAOptimizer *clone() const;
-    virtual size_t size() const { return population_; }
-    virtual Policy *request(size_t ii) const { return policies_[ii]; }
-    virtual void report(size_t ii, double reward);
+  
+    // From FieldVisualization
+    virtual double value(const Vector &in) const;
 };
 
 }
 
-#endif /* CMA_OPTIMIZER_H_ */
+#endif /* GRL_POLICY_VISUALIZATION_H_ */

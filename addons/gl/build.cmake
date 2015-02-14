@@ -4,7 +4,9 @@ set(TARGET addon_gl)
 # Build library
 add_library(${TARGET} SHARED
             ${SRC}/sample.cpp
+            ${SRC}/field.cpp
             ${SRC}/value_function.cpp
+            ${SRC}/policy.cpp
            )
 
 # Add dependencies

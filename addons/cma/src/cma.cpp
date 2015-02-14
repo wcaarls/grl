@@ -37,12 +37,14 @@ void CMAOptimizer::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("population", "Population size", population_, CRP::Configuration, 0));
 
-  config->push_back(CRP("policy", "policy", "Control policy prototype", prototype_));
+  config->push_back(CRP("policy", "policy", "Control policy prototype", policy_));
 }
 
 void CMAOptimizer::configure(Configuration &config)
 {
-  prototype_ = (ParameterizedPolicy*)config["policy"].ptr();
+  policy_ = (ParameterizedPolicy*)config["policy"].ptr();
+  prototype_ = policy_->clone();
+  
   population_ = config["population"];
   params_ = prototype_->size();
   
@@ -75,6 +77,8 @@ void CMAOptimizer::reconfigure(const Configuration &config)
     
     for (size_t ii=0; ii < population_; ++ii)
       memcpy(policies_[ii]->params().data(), pop[ii], params_*sizeof(double));
+      
+    best_reward_ = -std::numeric_limits<double>::infinity();
   }
 }
 
@@ -85,7 +89,15 @@ CMAOptimizer *CMAOptimizer::clone() const
 
 void CMAOptimizer::report(size_t ii, double reward)
 {
-  DEBUG(policies_[ii]->params() << " = " << reward);
+  if (reward > best_reward_)
+  {
+    INFO(policies_[ii]->params() << " = " << reward);
+    
+    best_reward_ = reward;
+    memcpy(policy_->params().data(), policies_[ii]->params().data(), params_*sizeof(double));
+  }
+  else
+    DEBUG(policies_[ii]->params() << " = " << reward);
 
   // cmaes minimizes fitness
   fitness_[ii] = -reward;

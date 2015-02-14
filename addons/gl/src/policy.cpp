@@ -1,9 +1,8 @@
-
-/** \file value_function.cpp
- * \brief Value function visualization source file.
+/** \file policy.cpp
+ * \brief Policy visualization source file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-01-22
+ * \date      2015-02-14
  *
  * \copyright \verbatim
  * Copyright (c) 2015, Wouter Caarls
@@ -29,42 +28,43 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 
-#include <grl/visualizations/value_function.h>
+#include <grl/visualizations/policy.h>
 
 #define EPS 0.001
 
 using namespace grl;
 
-REGISTER_CONFIGURABLE(ValueFunctionVisualization) 
+REGISTER_CONFIGURABLE(PolicyVisualization) 
 
-void ValueFunctionVisualization::request(ConfigurationRequest *config)
+void PolicyVisualization::request(ConfigurationRequest *config)
 {
   FieldVisualization::request(config);
 
-  config->push_back(CRP("projector", "projector", "Projects observation-action pairs onto representation space", projector_));
-  config->push_back(CRP("representation", "representation", "Q-value representation", representation_));
-  config->push_back(CRP("policy", "policy/discrete/q", "Q-value based control policy", policy_));
+  config->push_back(CRP("policy", "policy", "Control policy", policy_));
+  
+  config->push_back(CRP("dim", "Action dimension to visualize", (int)dim_, CRP::Online, 0));
 }
 
-void ValueFunctionVisualization::configure(Configuration &config)
+void PolicyVisualization::configure(Configuration &config)
 {
   FieldVisualization::configure(config);
   
-  projector_ = (Projector*)config["projector"].ptr();
-  representation_ = (Representation*)config["representation"].ptr();
-  policy_ = (QPolicy*)config["policy"].ptr();
+  policy_ = (Policy*)config["policy"].ptr();
+  
+  dim_ = config["dim"];
   
   // Create window  
-  create("Value function");
+  create("Policy");
 }
 
-void ValueFunctionVisualization::reconfigure(const Configuration &config)
+void PolicyVisualization::reconfigure(const Configuration &config)
 {
 }
 
-double ValueFunctionVisualization::value(const Vector &in) const
+double PolicyVisualization::value(const Vector &in) const
 {
   Vector action, q;
   policy_->act(in, &action);
-  return representation_->read(projector_->project(in, action), &q);
+  
+  return action[dim_];
 }

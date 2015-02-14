@@ -50,10 +50,10 @@ test_agent:
     discretizer: agent/policy/discretizer
     sampler:
       type: sampler/greedy
+visualizer:
+  type: visualizer/glut
 visualization:
-  type: visualization/value_function
-  visualizer:
-    type: visualizer/glut
+  type: visualization/field/value_function
   projector: agent/predictor/projector
   representation: agent/predictor/representation
   policy:
@@ -64,4 +64,3 @@ visualization:
   min: environment/task/observation_min
   max: environment/task/observation_max
   points: 65536
- 

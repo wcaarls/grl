@@ -1,8 +1,8 @@
-/** \file cma_optimizer.h
- * \brief CMA-ES optimizer header file.
+/** \file field.h
+ * \brief Field visualization header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-02-13
+ * \date      2015-02-14
  *
  * \copyright \verbatim
  * Copyright (c) 2015, Wouter Caarls
@@ -25,46 +25,50 @@
  * \endverbatim
  */
 
-#ifndef CMA_OPTIMIZER_H_
-#define CMA_OPTIMIZER_H_
+#ifndef GRL_FIELD_VISUALIZATION_H_
+#define GRL_FIELD_VISUALIZATION_H_
 
-#include <cma/cmaes.h>
-#include <grl/optimizer.h>
-#include <grl/policies/parameterized.h>
+#include <string.h>
+#include <pthread.h>
+
+#include <grl/visualization.h>
 
 namespace grl
 {
 
-/// Coverance matrix adaptation optimizer.
-class CMAOptimizer : public Optimizer
+/// Value function visualization.
+class FieldVisualization : public Visualization
 {
-  public:
-    TYPEINFO("optimizer/cma")
- 
   protected:
-    ParameterizedPolicy *prototype_, *policy_;
-    std::vector<ParameterizedPolicy*> policies_;
-    
-    cmaes_t evo_;
-    size_t population_, params_;
-    Vector fitness_;
-    double best_reward_;
+    int state_dims_;
+    Vector state_min_, state_max_, dims_;
+    int points_, dimpoints_, texpoints_;
+    unsigned int texture_;
+    unsigned char *data_;
+    Vector dim_order_;
+    double value_min_, value_max_;
+    bool updated_;
   
   public:
-    CMAOptimizer() : prototype_(NULL), policy_(NULL), population_(0), params_(0), best_reward_(0) {}
-
+    FieldVisualization() : state_dims_(0), points_(1048576), dimpoints_(0), texpoints_(0), texture_(0), data_(NULL), value_min_(0), value_max_(0), updated_(true)
+    {
+      dims_ = VectorConstructor(0., 1.);
+    }
+    
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
+  
+    // From Visualization
+    virtual void draw(); 
+    virtual void idle();
+    virtual void reshape(int width, int height);
     
-    // From Optimizer  
-    virtual CMAOptimizer *clone() const;
-    virtual size_t size() const { return population_; }
-    virtual Policy *request(size_t ii) const { return policies_[ii]; }
-    virtual void report(size_t ii, double reward);
+  protected:
+    virtual double value(const Vector &in) const = 0;
 };
 
 }
 
-#endif /* CMA_OPTIMIZER_H_ */
+#endif /* GRL_FIELD_VISUALIZATION_H_ */

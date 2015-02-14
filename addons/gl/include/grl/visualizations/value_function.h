@@ -34,47 +34,32 @@
 #include <grl/projector.h>
 #include <grl/representation.h>
 #include <grl/policies/q.h>
-#include <grl/visualization.h>
+#include <grl/visualizations/field.h>
 
 namespace grl
 {
 
 /// Value function visualization.
-class ValueFunctionVisualization : public Visualization
+class ValueFunctionVisualization : public FieldVisualization
 {
   public:
-    TYPEINFO("visualization/value_function")
+    TYPEINFO("visualization/field/value_function")
 
   protected:
     Projector *projector_;
     Representation *representation_;
     QPolicy *policy_;
   
-    int state_dims_;
-    Vector state_min_, state_max_, dims_;
-    int points_, dimpoints_, texpoints_;
-    unsigned int texture_;
-    unsigned char *data_;
-    Vector dim_order_;
-    double value_min_, value_max_;
-    bool updated_;
-    Vector state_;
-  
   public:
-    ValueFunctionVisualization() : projector_(NULL), representation_(NULL), policy_(NULL), state_dims_(0), points_(1048576), dimpoints_(0), texpoints_(0), texture_(0), data_(NULL), value_min_(0), value_max_(0), updated_(true)
-    {
-      dims_ = VectorConstructor(0., 1.);
-    }
+    ValueFunctionVisualization() : projector_(NULL), representation_(NULL), policy_(NULL) { }
     
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
   
-    // From Visualization
-    virtual void draw(); 
-    virtual void idle();
-    virtual void reshape(int width, int height);
+    // From FieldVisualization
+    virtual double value(const Vector &in) const;
 };
 
 }

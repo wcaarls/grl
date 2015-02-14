@@ -59,7 +59,7 @@ visualization:
   max: environment/task/observation_max
   points: 65536
 #visualization2:
-#  type: visualization/value_function
+#  type: visualization/field/value_function
 #  projector: agent/predictor/projector
 #  representation: agent/predictor/representation
 #  policy:
