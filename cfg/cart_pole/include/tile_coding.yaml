@@ -1,0 +1,4 @@
+type: projector/tile_coding
+resolution: [ 2.5, 2.5, 0.15708, 1.5708, 15 ]
+wrapping: [ 0, 0, 6.2832, 0, 0 ]
+memory: 67108864

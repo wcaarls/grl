@@ -11,6 +11,7 @@ if (OPENGL_FOUND)
               ${SRC}/field.cpp
               ${SRC}/value_function.cpp
               ${SRC}/policy.cpp
+              ${SRC}/state.cpp
              )
 
   # Add dependencies

@@ -56,6 +56,9 @@ void ValueFunctionVisualization::configure(Configuration &config)
   
   // Create window  
   create("Value function");
+  
+  // Let's get this show on the road
+  start();
 }
 
 void ValueFunctionVisualization::reconfigure(const Configuration &config)

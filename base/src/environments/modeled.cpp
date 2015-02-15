@@ -36,12 +36,18 @@ void ModeledEnvironment::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("model", "model", "Environment model", model_));
   config->push_back(CRP("task", "task", "Task to perform in the environment (should match model)", task_));
+  
+  // Provides state
 }
 
 void ModeledEnvironment::configure(Configuration &config)
 {
   model_ = (Model*)config["model"].ptr();
   task_ = (Task*)config["task"].ptr();
+  
+  state_obj_ = new State();
+  
+  config.set("state", state_obj_);
 }
 
 void ModeledEnvironment::reconfigure(const Configuration &config)
@@ -64,6 +70,8 @@ void ModeledEnvironment::start(Vector *obs)
 
   task_->start(&state_);
   task_->observe(state_, obs, &terminal);
+  
+  state_obj_->set(state_);
 }
 
 void ModeledEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)
@@ -73,8 +81,9 @@ void ModeledEnvironment::step(const Vector &action, Vector *obs, double *reward,
   model_->step(state_, action, &next);
   task_->observe(next, obs, terminal);
   task_->evaluate(state_, action, next, reward);
-  
   state_ = next;
+  
+  state_obj_->set(state_);
 }
 
 void DynamicalModel::request(ConfigurationRequest *config)

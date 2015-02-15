@@ -92,12 +92,14 @@ int main(int argc, char **argv)
   
   configurator.populate(task_spec);
   
-  Configurable *obj = configurator.load(argv[optind], &config);
+  configurator.load(argv[optind], &config);
+  
+  Configurable *obj = (Configurable*)config["experiment"].ptr();
   Experiment *experiment = dynamic_cast<Experiment*>(obj);
   
   if (!experiment)
   {
-    ERROR("Configuration root must specify an experiment");
+    ERROR("Specified experiment has wrong type");
     return 1;
   }
   

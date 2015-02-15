@@ -55,6 +55,9 @@ void PolicyVisualization::configure(Configuration &config)
   
   // Create window  
   create("Policy");
+  
+  // Let's get this show on the road
+  start();
 }
 
 void PolicyVisualization::reconfigure(const Configuration &config)

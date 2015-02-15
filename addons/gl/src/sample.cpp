@@ -56,13 +56,13 @@ void SampleVisualization::configure(Configuration &config)
 
   dims_ = config["dims"];
   if (dims_.size() != 2)
-    throw bad_param("visualization/value_function:dims");
+    throw bad_param("visualization/sample:dims");
   min_ = config["min"];
   if (min_.size() != 2)
-    throw bad_param("visualization/value_function:min");
+    throw bad_param("visualization/sample:min");
   max_ = config["max"];
   if (max_.size() != 2)
-    throw bad_param("visualization/value_function:max");
+    throw bad_param("visualization/sample:max");
   dim_ = config["dim"];  
   points_ = config["points"];
   

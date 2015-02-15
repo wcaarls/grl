@@ -1,0 +1,30 @@
+experiment:
+  type: experiment/online_learning
+  rate: 0
+  test_interval: 10
+  environment: include/pendulum_swingup.yaml
+  agent:  
+    type: agent/td
+    predictor:
+      type: predictor/sarsa
+      alpha: 0.2
+      gamma: 0.97
+      lambda: 0.65
+      projector: include/ann_value_projector.yaml
+      representation:
+        type: representation/llr
+        order: 0
+      trace:  
+        type: trace/enumerated/replacing
+    policy: include/q_exploration_policy.yaml
+  test_agent:
+    type: agent/fixed
+    policy: include/q_greedy_policy.yaml
+visualizer:
+  type: visualizer/glut
+visualization:
+  type: visualization/sample
+  projector: experiment/agent/predictor/projector
+  min: experiment/environment/task/observation_min
+  max: experiment/environment/task/observation_max
+  points: 65536

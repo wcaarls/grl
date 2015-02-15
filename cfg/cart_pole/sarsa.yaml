@@ -1,0 +1,26 @@
+experiment:
+  type: experiment/online_learning
+  rate: 0
+  test_interval: 10
+  output: cart_pole_sarsa
+  environment: include/cart_pole_swingup.yaml
+  agent:
+    type: agent/td
+    predictor:
+      type: predictor/sarsa
+      alpha: 0.2
+      gamma: 0.97
+      lambda: 0.65
+      projector: include/tile_coding.yaml
+      representation:
+        type: representation/parameterized/linear
+        memory: experiment/agent/predictor/projector/memory
+      trace:
+        type: trace/enumerated/replacing
+    policy: include/q_exploration_policy.yaml
+  test_agent:
+    type: agent/fixed
+    policy: include/q_greedy_policy.yaml
+visualizer:
+  type: visualizer/glut
+visualization: include/viz_value_function.yaml

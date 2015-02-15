@@ -1,8 +1,8 @@
-/** \file field.h
- * \brief Field visualization header file.
+/** \file state.h
+ * \brief Simple state visualization header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-02-14
+ * \date      2015-02-15
  *
  * \copyright \verbatim
  * Copyright (c) 2015, Wouter Caarls
@@ -25,32 +25,30 @@
  * \endverbatim
  */
 
-#ifndef GRL_FIELD_VISUALIZATION_H_
-#define GRL_FIELD_VISUALIZATION_H_
+#ifndef GRL_STATE_VISUALIZATION_H_
+#define GRL_STATE_VISUALIZATION_H_
 
 #include <string.h>
+#include <pthread.h>
 
-#include <itc/itc.h>
+#include <grl/state.h>
 #include <grl/visualization.h>
 
 namespace grl
 {
 
-/// Field visualization base class.
-class FieldVisualization : public Visualization, public itc::Thread
+/// State visualization.
+class StateVisualization : public Visualization
 {
+  public:
+    TYPEINFO("visualization/state")
+
   protected:
-    int state_dims_;
-    Vector state_min_, state_max_, dims_;
-    int points_, dimpoints_, texpoints_;
-    unsigned int texture_;
-    unsigned char *data_;
-    Vector dim_order_;
-    double value_min_, value_max_;
-    bool updated_;
+    State *state_;
+    Vector dims_, min_, max_;
   
   public:
-    FieldVisualization() : state_dims_(0), points_(1048576), dimpoints_(0), texpoints_(0), texture_(0), data_(NULL), value_min_(0), value_max_(0), updated_(true)
+    StateVisualization() : state_(NULL)
     {
       dims_ = VectorConstructor(0., 1.);
     }
@@ -61,17 +59,11 @@ class FieldVisualization : public Visualization, public itc::Thread
     virtual void reconfigure(const Configuration &config);
   
     // From Visualization
+    virtual void idle(); 
     virtual void draw(); 
-    virtual void idle();
     virtual void reshape(int width, int height);
-    
-    // From itc::Thread
-    virtual void run();
-    
-  protected:
-    virtual double value(const Vector &in) const = 0;
 };
 
 }
 
-#endif /* GRL_FIELD_VISUALIZATION_H_ */
+#endif /* GRL_STATE_VISUALIZATION_H_ */

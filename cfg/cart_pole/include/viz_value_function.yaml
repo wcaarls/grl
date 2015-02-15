@@ -1,0 +1,7 @@
+type: visualization/field/value_function
+projector: experiment/agent/predictor/projector
+representation: experiment/agent/predictor/representation
+policy: q_greedy_policy.yaml
+min: experiment/environment/task/observation_min
+max: experiment/environment/task/observation_max
+points: 65536

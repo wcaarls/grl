@@ -1,0 +1,36 @@
+experiment:
+  type: experiment/online_learning
+  rate: 0
+  test_interval: 10
+  runs: 20
+  steps: 100000
+  output: sarsa
+  environment: include/pendulum_swingup.yaml
+  agent:
+    type: agent/td
+    predictor:
+      type: predictor/ggq
+      alpha: 0.2
+      eta: 0.01
+      gamma: 0.97
+      projector: include/tile_coding.yaml
+      representation:
+        type: representation/parameterized/linear
+        memory: experiment/agent/predictor/projector/memory
+      trace:
+        type: trace/enumerated/replacing
+      theta: experiment/agent/predictor/representation
+      w:
+        type: representation/parameterized/linear
+        memory: experiment/agent/predictor/projector/memory
+        max: 0
+      policy: include/q_greedy_policy.yaml
+    policy:
+      type: policy/discrete/random
+      discretizer: include/discretizer.yaml
+  test_agent:
+    type: agent/fixed
+    policy: include/q_greedy_policy.yaml
+visualizer:
+  type: visualizer/glut
+visualization: include/viz_value_function.yaml

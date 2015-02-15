@@ -1,0 +1,5 @@
+type: projector/sample/ann
+samples: 10000
+neighbors: 8
+error_bound: 0.1
+dims: 3

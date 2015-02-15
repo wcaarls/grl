@@ -29,6 +29,7 @@
 #define GRL_ENVIRONMENT_H_
 
 #include <grl/configurable.h>
+#include <grl/state.h>
 #include <grl/policy.h>
 
 namespace grl
@@ -77,9 +78,10 @@ class ModeledEnvironment : public Environment
     Model *model_;
     Task *task_;
     Vector state_;
+    State *state_obj_;
 
   public:
-    ModeledEnvironment() : model_(NULL), task_(NULL) { }
+    ModeledEnvironment() : model_(NULL), task_(NULL), state_obj_(NULL) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);

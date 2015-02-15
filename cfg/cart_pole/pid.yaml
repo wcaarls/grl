@@ -1,0 +1,14 @@
+experiment:
+  type: experiment/online_learning
+  rate: 20
+  environment: include/cart_pole_balancing.yaml
+  agent:
+    type: agent/fixed
+    policy:
+      type: policy/parameterized/pid
+      setpoint: [0, 0, 0, 0]
+      outputs: 1
+      p: [-10, -6, -50, -10]
+visualizer:
+  type: visualizer/glut
+visualization: include/viz_balancing_state.yaml

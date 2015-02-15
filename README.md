@@ -31,5 +31,5 @@ make
 
 # Running
 ```
-./deploy ../cfg/sarsa.yaml
+./deploy ../cfg/pendulum/sarsa.yaml
 ```

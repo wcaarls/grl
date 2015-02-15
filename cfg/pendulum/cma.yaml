@@ -1,0 +1,24 @@
+experiment:
+  type: experiment/online_learning
+  environment: include/pendulum_swingup.yaml
+  agent:  
+    type: agent/black_box
+    optimizer:  
+      type: optimizer/cma
+      policy:
+        type: policy/parameterized/action
+        min: [ -3 ]
+        max: [ 3 ]
+        projector:
+          type: projector/fourier
+          min: [ 0, -31 ]
+          max: [ 6.283, 31 ]
+          order: 5
+        representation:
+          type: representation/parameterized/linear
+          memory: experiment/agent/optimizer/policy/projector/memory
+          min: -1
+          max: 1
+visualizer:
+  type: visualizer/glut
+visualization: include/viz_policy.yaml

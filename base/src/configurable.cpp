@@ -93,6 +93,7 @@ Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *conf
         
         if (!subobj)
         {
+          ERROR("Subconfiguration " << value << " did not yield an object");
           safe_delete(&obj);
           return NULL;
         }
@@ -116,122 +117,122 @@ Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *conf
     }
   }
   
-  ConfigurationRequest request;
-  obj->request(&request);
-  
-  // Check configuration against request
-  for (size_t ii=0; ii < request.size(); ++ii)
+  if (obj)
   {
-    std::string key = request[ii].name;
-    std::string type = request[ii].type;
-  
-    if (config->has(key))
+    ConfigurationRequest request;
+    obj->request(&request);
+    
+    // Check configuration against request
+    for (size_t ii=0; ii < request.size(); ++ii)
     {
-      std::string value = (*config)[key].str();
-      
-      if (type == "int")
+      std::string key = request[ii].name;
+      std::string type = request[ii].type;
+    
+      if (config->has(key))
       {
-        int i;
-        if (convert(value, &i))
+        std::string value = (*config)[key].str();
+        
+        if (type == "int")
         {
-          if (i < request[ii].min || i > request[ii].max)
+          int i;
+          if (convert(value, &i))
           {
-            ERROR("Parameter " << path << key << " ('" << value << "') is out of range " << request[ii].min << " - " << request[ii].max);
-            return NULL;
-          }
-        }
-        else
-        {
-          ERROR("Parameter " << path << key << " ('" << value << "') should be an integer");
-          return NULL;
-        }
-      }
-      else if (type == "double")
-      {
-        double d;
-        if (convert(value, &d))
-        {
-          if (d < request[ii].min || d > request[ii].max)
-          {
-            ERROR("Parameter " << path << key << " ('" << value << "') is out of range " << request[ii].min << " - " << request[ii].max);
-            return NULL;
-          }
-        }
-        else
-        {
-          ERROR("Parameter " << path << key << " ('" << value << "') should be a floating point value");
-          return NULL;
-        }
-      }
-      else if (type == "vector")
-      {
-        Vector v;
-        if (!convert(value, &v))
-        {
-          ERROR("Parameter " << path << key << " ('" << value << "') should be a vector");
-          return NULL;
-        }
-      }
-      else if (type == "string")
-      {
-        if (!request[ii].options.empty())
-        {
-          bool found=false;
-          for (size_t jj=0; jj < request[ii].options.size(); ++jj)
-            if (value == request[ii].options[jj])
-              found = true;
-              
-          if (!found)
-          {
-            std::cerr << "Parameter " << path << key << " ('" << value << "') should be one of {";
-            for (size_t jj=0; jj < request[ii].options.size(); ++jj)
+            if (i < request[ii].min || i > request[ii].max)
             {
-              std::cerr << request[ii].options[jj];
-              if (jj < request[ii].options.size() - 1)
-                std::cerr << ", ";
+              ERROR("Parameter " << path << key << " ('" << value << "') is out of range " << request[ii].min << " - " << request[ii].max);
+              return NULL;
             }
-            std::cerr << "}" << std::endl;                
+          }
+          else
+          {
+            ERROR("Parameter " << path << key << " ('" << value << "') should be an integer");
             return NULL;
           }
         }
+        else if (type == "double")
+        {
+          double d;
+          if (convert(value, &d))
+          {
+            if (d < request[ii].min || d > request[ii].max)
+            {
+              ERROR("Parameter " << path << key << " ('" << value << "') is out of range " << request[ii].min << " - " << request[ii].max);
+              return NULL;
+            }
+          }
+          else
+          {
+            ERROR("Parameter " << path << key << " ('" << value << "') should be a floating point value");
+            return NULL;
+          }
+        }
+        else if (type == "vector")
+        {
+          Vector v;
+          if (!convert(value, &v))
+          {
+            ERROR("Parameter " << path << key << " ('" << value << "') should be a vector");
+            return NULL;
+          }
+        }
+        else if (type == "string")
+        {
+          if (!request[ii].options.empty())
+          {
+            bool found=false;
+            for (size_t jj=0; jj < request[ii].options.size(); ++jj)
+              if (value == request[ii].options[jj])
+                found = true;
+                
+            if (!found)
+            {
+              std::cerr << "Parameter " << path << key << " ('" << value << "') should be one of {";
+              for (size_t jj=0; jj < request[ii].options.size(); ++jj)
+              {
+                std::cerr << request[ii].options[jj];
+                if (jj < request[ii].options.size() - 1)
+                  std::cerr << ", ";
+              }
+              std::cerr << "}" << std::endl;                
+              return NULL;
+            }
+          }
+        }
+        else
+        {
+          if (value.substr(0, 2) == "0x")
+          {
+            Configurable *subobj = (Configurable*)strtol(value.c_str(), NULL, 0);
+            
+            std::string t = subobj->d_type();
+        
+            if (subobj->d_type().substr(0, type.size()) != type)
+            {
+              ERROR("Parameter " << path << key << " should subclass " << type);
+              return NULL;
+            }
+            
+            obj->children_.push_back(subobj);
+          }
+          else
+          {
+            ERROR("Parameter " << path << key << " ('" << value << "') should be an object (of type " << type << ")");
+            return NULL;
+          }
+        }
+      }
+      else if (request[ii].optional)
+      {
+        INFO(path << key << ": " << request[ii].value << " (default)");
+        config->set(key, request[ii].value);
       }
       else
       {
-        if (value.substr(0, 2) == "0x")
-        {
-          Configurable *subobj = (Configurable*)strtol(value.c_str(), NULL, 0);
-          
-          std::string t = subobj->d_type();
-      
-          if (subobj->d_type().substr(0, type.size()) != type)
-          {
-            ERROR("Parameter " << path << key << " should subclass " << type);
-            return NULL;
-          }
-          
-          obj->children_.push_back(subobj);
-        }
-        else
-        {
-          ERROR("Parameter " << path << key << " ('" << value << "') should be an object (of type " << type << ")");
-          return NULL;
-        }
+        ERROR("Required parameter " << path << key << " is undefined");
+        return NULL;
       }
     }
-    else if (request[ii].optional)
-    {
-      INFO(path << key << ": " << request[ii].value << " (default)");
-      config->set(key, request[ii].value);
-    }
-    else
-    {
-      ERROR("Required parameter " << path << key << " is undefined");
-      return NULL;
-    }
-  }
   
-  if (obj)
-  {
     DEBUG("Configuring " << obj->d_type());
     obj->configure(*config);
   }

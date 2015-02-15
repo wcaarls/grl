@@ -46,6 +46,8 @@ void OnlineLearningExperiment::request(ConfigurationRequest *config)
   config->push_back(CRP("agent", "agent", "Agent", agent_));
   config->push_back(CRP("test_agent", "agent", "Agent to use in test trials", agent_, true));
   config->push_back(CRP("environment", "environment", "Environment in which the agent acts", environment_));
+  
+  // Provides state
 }
 
 void OnlineLearningExperiment::configure(Configuration &config)
@@ -60,6 +62,10 @@ void OnlineLearningExperiment::configure(Configuration &config)
   rate_ = config["rate"];
   test_interval_ = config["test_interval"];
   output_ = config["output"].str();
+  
+  state_ = new State();
+  
+  config.set("state", state_);
   
   if (test_interval_ && !test_agent_)
     throw bad_param("experiment/online_learning:test_agent");
@@ -108,6 +114,7 @@ void OnlineLearningExperiment::run()
       
       environment_->start(&obs);
       agent->start(obs, &action);
+      state_->set(obs);
   
       do
       {
@@ -122,7 +129,10 @@ void OnlineLearningExperiment::run()
         if (terminal == 2)
           agent->end(reward);
         else if (!obs.empty())
+        {
           agent->step(obs, reward, &action);
+          state_->set(obs);
+        }
           
         if (!test && !obs.empty()) ss++;
       } while (!terminal);

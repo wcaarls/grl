@@ -86,69 +86,78 @@ void FieldVisualization::reshape(int width, int height)
   glMatrixMode(GL_MODELVIEW);
 }
 
-// TODO: split off into new thread
-void FieldVisualization::idle()
+void FieldVisualization::run()
 {
   float *field = new float[texpoints_];
-
   const Vector delta = (state_max_-state_min_)/(dimpoints_-1);
-
-  // Gather data
-  Vector ss = state_min_;
-  float value_max=-std::numeric_limits<float>::infinity(),
-        value_min= std::numeric_limits<float>::infinity();
   
-  for (int ii=0; ii < texpoints_; ++ii)
+  while (ok())
   {
-    float v = 0;//-std::numeric_limits<float>::infinity();
-  
-    for (int jj=0; jj < points_/texpoints_; ++jj)
-    {
-      v += value(ss);
-      
-      for (int dd=0; dd < state_dims_; ++dd)
-      {
-        int oo = dim_order_[dd];
+    // Gather data
+    Vector ss = state_min_;
+    float value_max=-std::numeric_limits<float>::infinity(),
+          value_min= std::numeric_limits<float>::infinity();
     
-        ss[oo] = ss[oo] + delta[oo];
-        if (ss[oo] > (state_max_[oo]+EPS))
-          ss[oo] = state_min_[oo];
-        else
-          break;
+    for (int ii=0; ii < texpoints_; ++ii)
+    {
+      float v = 0;//-std::numeric_limits<float>::infinity();
+    
+      for (int jj=0; jj < points_/texpoints_; ++jj)
+      {
+        v += value(ss);
+        
+        for (int dd=0; dd < state_dims_; ++dd)
+        {
+          int oo = dim_order_[dd];
+      
+          ss[oo] = ss[oo] + delta[oo];
+          if (ss[oo] > (state_max_[oo]+EPS))
+            ss[oo] = state_min_[oo];
+          else
+            break;
+        }
       }
+
+      v /= points_/texpoints_;
+
+      field[ii] = v;
+      value_max = fmax(v, value_max);
+      value_min = fmin(v, value_min);
     }
 
-    v /= points_/texpoints_;
+    CRAWL("Range " << value_min_ << " - " << value_max_);
 
-    field[ii] = v;
-    value_max = fmax(v, value_max);
-    value_min = fmin(v, value_min);
-  }
-
-  CRAWL("Range " << value_min_ << " - " << value_max_);
-
-  float value_range = value_max-value_min;
-  
-  // Create texture
-  for (int ii=0; ii < texpoints_; ++ii)
-  {
-    double v = (field[ii] - value_min)/value_range;
-    double v2 = 4*v;
+    float value_range = value_max-value_min;
     
-    // Jet colormap
-    data_[ii*3+0] = fmax(fmin(255*fmin(v2 - 1.5, -v2 + 4.5), 255), 0);
-    data_[ii*3+1] = fmax(fmin(255*fmin(v2 - 0.5, -v2 + 3.5), 255), 0);
-    data_[ii*3+2] = fmax(fmin(255*fmin(v2 + 0.5, -v2 + 2.5), 255), 0);
-  }
-  
-  delete[] field;
-  
-  value_min_ = value_min;
-  value_max_ = value_max;
+    // Create texture
+    for (int ii=0; ii < texpoints_; ++ii)
+    {
+      double v = (field[ii] - value_min)/value_range;
+      double v2 = 4*v;
+      
+      // Jet colormap
+      data_[ii*3+0] = fmax(fmin(255*fmin(v2 - 1.5, -v2 + 4.5), 255), 0);
+      data_[ii*3+1] = fmax(fmin(255*fmin(v2 - 0.5, -v2 + 3.5), 255), 0);
+      data_[ii*3+2] = fmax(fmin(255*fmin(v2 + 0.5, -v2 + 2.5), 255), 0);
+    }
+    
+    value_min_ = value_min;
+    value_max_ = value_max;
 
-  // Redisplay  
-  updated_ = true;
-  refresh();
+    // Redisplay  
+    updated_ = true;
+    
+    // Wait a bit
+    usleep(10000);
+  }
+
+  delete[] field;
+}
+
+void FieldVisualization::idle()
+{
+  if (updated_)
+    refresh();
 }
 
 void FieldVisualization::draw()
