@@ -33,6 +33,8 @@ add_library(${TARGET} SHARED
             ${SRC}/representations/multisine.cpp
             ${SRC}/samplers/greedy.cpp
             ${SRC}/traces/enumerated.cpp
+            ${SRC}/visualizations/pendulum.cpp
+            ${SRC}/visualizations/cart_pole.cpp
            )
 
 # Dependencies

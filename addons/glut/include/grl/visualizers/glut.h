@@ -61,10 +61,16 @@ class GLUTVisualizer : public Visualizer
     virtual void reconfigure(const Configuration &config);
     
     // From Visualizer
-    void createWindow(Visualization *window, const char *name);
-    void destroyWindow(Visualization *window, bool glutDestroy=true);
-    void refreshWindow(Visualization *window);
-    void swapWindow(Visualization *window);
+    virtual void createWindow(Visualization *window, const char *name);
+    virtual void destroyWindow(Visualization *window, bool glutDestroy=true);
+    virtual void refreshWindow(Visualization *window);
+    
+    virtual void swap();
+    virtual void clear();
+    virtual void initProjection(double x1, double x2, double y1, double y2);
+    virtual void drawLink(double x1, double y1, double x2, double y2);
+    virtual void drawMass(double x, double y);
+    virtual void drawJoint(double x, double y);
     
   protected:    
     ~GLUTVisualizer()
@@ -102,6 +108,8 @@ class GLUTVisualizer : public Visualizer
     
     static void reshape(int width, int height) 
     {
+      glViewport(0, 0, width, height);
+    
       Visualization* window = glutInstance()->getCurrentWindow();
       if (window)
         window->reshape(width, height);

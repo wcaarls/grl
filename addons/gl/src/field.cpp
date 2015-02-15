@@ -79,11 +79,7 @@ void FieldVisualization::reconfigure(const Configuration &config)
 
 void FieldVisualization::reshape(int width, int height)
 {
-  glViewport(0, 0, width, height);
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  gluOrtho2D(0, 0, 1, 1);
-  glMatrixMode(GL_MODELVIEW);
+  initProjection(-1, 1, -1, 1);
 }
 
 void FieldVisualization::run()
@@ -180,7 +176,7 @@ void FieldVisualization::draw()
     updated_ = false;
   }
 
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  clear();
   
   // Draw texture
   glEnable(GL_TEXTURE_2D);

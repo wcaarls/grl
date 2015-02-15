@@ -11,4 +11,4 @@ experiment:
       p: [-10, -6, -50, -10]
 visualizer:
   type: visualizer/glut
-visualization: include/viz_balancing_state.yaml
+visualization: include/viz_cart_pole.yaml

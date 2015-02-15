@@ -13,5 +13,5 @@ if (FREEGLUT_FOUND)
 
    # Add dependencies
    target_link_libraries(${TARGET} ${FREEGLUT_LIBRARIES})
-   grl_link_libraries(${TARGET} base)
+   grl_link_libraries(${TARGET} base addons/gl)
 endif()

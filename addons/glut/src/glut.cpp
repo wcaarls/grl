@@ -97,10 +97,46 @@ void GLUTVisualizer::refreshWindow(Visualization *window)
   glutPostWindowRedisplay(window->id());
 }
 
-void GLUTVisualizer::swapWindow(Visualization *window)
+void GLUTVisualizer::swap()
 {
-  // Window must be current context
   glutSwapBuffers();
+}
+
+void GLUTVisualizer::clear()
+{
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+void GLUTVisualizer::initProjection(double x1, double x2, double y1, double y2)
+{
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  gluOrtho2D(x1, x2, y1, y2);
+  glMatrixMode(GL_MODELVIEW);
+}
+
+void GLUTVisualizer::drawLink(double x1, double y1, double x2, double y2)
+{
+  glBegin(GL_LINES);
+    glVertex2d(x1, y1);
+    glVertex2d(x2, y2);
+  glEnd();
+}
+
+void GLUTVisualizer::drawMass(double x, double y)
+{
+   glBegin(GL_LINE_LOOP);
+     for (double phi=0; phi < 2*M_PI; phi+=M_PI/10)
+       glVertex2f(x+0.05*cos(phi),y+0.05*sin(phi));
+   glEnd();  
+}
+
+void GLUTVisualizer::drawJoint(double x, double y)
+{
+   glBegin(GL_LINE_LOOP);
+     for (double phi=0; phi < 2*M_PI; phi+=M_PI/10)
+       glVertex2f(x+0.05*cos(phi),y+0.05*sin(phi));
+   glEnd();  
 }
     
 void GLUTVisualizer::run()
@@ -127,7 +163,7 @@ void GLUTVisualizer::run()
     {
       glutCreateWindow((char*)new_window_name_);
       glutReshapeWindow(512, 512);
-      glutPositionWindow(0, 512);
+      glutPositionWindow(((glutGetWindow()-1)%2)*512, (((int)(glutGetWindow()-1))/2)*512);
      
       glutDisplayFunc(draw);
       glutReshapeFunc(reshape);

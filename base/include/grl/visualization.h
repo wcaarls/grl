@@ -51,8 +51,14 @@ class Visualization : public Configurable
     void create(const char *name);
     void destroy();
     void refresh();
+
     void swap();
-    
+    void clear();
+    void initProjection(double x1, double x2, double y1, double y2);
+    void drawLink(double x1, double y1, double x2, double y2);
+    void drawMass(double x, double y);
+    void drawJoint(double x, double y);
+        
     virtual void draw() { }
     virtual void idle() { }
     virtual void reshape(int width, int height) { }
@@ -75,7 +81,13 @@ class Visualizer : public Configurable
     virtual void createWindow(Visualization *window, const char *name) = 0;
     virtual void destroyWindow(Visualization *window, bool glutDestroy=true) = 0;
     virtual void refreshWindow(Visualization *window) = 0;
-    virtual void swapWindow(Visualization *window) = 0;
+
+    virtual void swap() = 0;
+    virtual void clear() = 0;
+    virtual void initProjection(double x1, double x2, double y1, double y2) = 0;
+    virtual void drawLink(double x1, double y1, double x2, double y2) = 0;
+    virtual void drawMass(double x, double y) = 0;
+    virtual void drawJoint(double x, double y) = 0;
 };
 
 inline Visualization::~Visualization()
@@ -100,7 +112,32 @@ inline void Visualization::refresh()
 
 inline void Visualization::swap()
 {
-  Visualizer::instance()->swapWindow(this);
+  Visualizer::instance()->swap();
+}
+
+inline void Visualization::clear()
+{
+  Visualizer::instance()->clear();
+}
+
+inline void Visualization::initProjection(double x1, double x2, double y1, double y2)
+{
+  Visualizer::instance()->initProjection(x1, x2, y1, y2);
+}
+
+inline void Visualization::drawLink(double x1, double y1, double x2, double y2)
+{
+  Visualizer::instance()->drawLink(x1, y1, x2, y2);
+}
+
+inline void Visualization::drawMass(double x, double y)
+{
+  Visualizer::instance()->drawMass(x, y);
+}
+
+inline void Visualization::drawJoint(double x, double y)
+{
+  Visualizer::instance()->drawJoint(x, y);
 }
 
 } /* namespace grl */

@@ -72,11 +72,7 @@ void StateVisualization::reconfigure(const Configuration &config)
 
 void StateVisualization::reshape(int width, int height)
 {
-  glViewport(0, 0, width, height);
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  gluOrtho2D(0, 0, 1, 1);
-  glMatrixMode(GL_MODELVIEW);
+  initProjection(-1, 1, -1, 1);
 }
 
 void StateVisualization::idle()
@@ -86,7 +82,7 @@ void StateVisualization::idle()
 
 void StateVisualization::draw()
 {
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  clear();
 
   const Vector state = state_->get();
   
