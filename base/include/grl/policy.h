@@ -39,11 +39,14 @@ class Policy : public Configurable
   public:
     virtual ~Policy() { }
     virtual Policy *clone() const = 0;
+    
+    /// Called at the beginning of an episode.
     virtual void act(const Vector &in, Vector *out) const
     {
       act(Vector(), Vector(), in, out);
     }
     
+    /// Called in subsequent steps.
     virtual void act(const Vector &prev_in, const Vector &prev_out, const Vector &in, Vector *out) const
     {
       act(in, out);

@@ -37,10 +37,10 @@ namespace grl
 {
 
 /// Policy based on a direct action representation
-class ContinuousParameterizedPolicy : public ParameterizedPolicy
+class ActionPolicy : public ParameterizedPolicy
 {
   public:
-    TYPEINFO("policy/parameterized/continuous")
+    TYPEINFO("policy/parameterized/action")
 
   protected:
     Projector *projector_;
@@ -49,7 +49,7 @@ class ContinuousParameterizedPolicy : public ParameterizedPolicy
     Vector min_, max_;
 
   public:
-    ContinuousParameterizedPolicy() : projector_(NULL), representation_(NULL) { }
+    ActionPolicy() : projector_(NULL), representation_(NULL) { }
     
     // From Configurable  
     virtual void request(ConfigurationRequest *config);
@@ -57,7 +57,7 @@ class ContinuousParameterizedPolicy : public ParameterizedPolicy
     virtual void reconfigure(const Configuration &config);
 
     // From Policy
-    virtual ContinuousParameterizedPolicy *clone() const;
+    virtual ActionPolicy *clone() const;
     virtual void act(const Vector &in, Vector *out) const;
     
     // From ParameterizedPolicy
@@ -68,10 +68,10 @@ class ContinuousParameterizedPolicy : public ParameterizedPolicy
 };
 
 /// Policy based on an action-probability representation.
-class DiscreteParameterizedPolicy : public ParameterizedPolicy
+class ProbabilityPolicy : public ParameterizedPolicy
 {
   public:
-    TYPEINFO("policy/parameterized/discrete")
+    TYPEINFO("policy/parameterized/probability")
 
   protected:
     Discretizer *discretizer_;
@@ -81,7 +81,7 @@ class DiscreteParameterizedPolicy : public ParameterizedPolicy
     std::vector<Vector> variants_;
 
   public:
-    DiscreteParameterizedPolicy() : discretizer_(NULL), projector_(NULL), representation_(NULL) { }
+    ProbabilityPolicy() : discretizer_(NULL), projector_(NULL), representation_(NULL) { }
   
     // From Configurable  
     virtual void request(ConfigurationRequest *config);
@@ -89,7 +89,7 @@ class DiscreteParameterizedPolicy : public ParameterizedPolicy
     virtual void reconfigure(const Configuration &config);
   
     // From Policy
-    virtual DiscreteParameterizedPolicy *clone() const;
+    virtual ProbabilityPolicy *clone() const;
     virtual void act(const Vector &in, Vector *out) const;
     
     // From ParameterizedPolicy

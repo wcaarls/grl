@@ -29,10 +29,10 @@
 
 using namespace grl;
 
-REGISTER_CONFIGURABLE(ContinuousParameterizedPolicy)
-REGISTER_CONFIGURABLE(DiscreteParameterizedPolicy)
+REGISTER_CONFIGURABLE(ActionPolicy)
+REGISTER_CONFIGURABLE(ProbabilityPolicy)
 
-void ContinuousParameterizedPolicy::request(ConfigurationRequest *config)
+void ActionPolicy::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("min", "Lower action limit", min_));
   config->push_back(CRP("max", "Upper action limit", max_));
@@ -41,7 +41,7 @@ void ContinuousParameterizedPolicy::request(ConfigurationRequest *config)
   config->push_back(CRP("representation", "representation/parameterized", "Action representation", representation_));
 }
 
-void ContinuousParameterizedPolicy::configure(Configuration &config)
+void ActionPolicy::configure(Configuration &config)
 {
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (ParameterizedRepresentation*)config["representation"].ptr();
@@ -50,22 +50,22 @@ void ContinuousParameterizedPolicy::configure(Configuration &config)
   max_ = config["max"];
   
   if (min_.size() != max_.size())
-    throw bad_param("policy/parameterized/continuous:{min,max}");
+    throw bad_param("policy/parameterized/action:{min,max}");
 }
 
-void ContinuousParameterizedPolicy::reconfigure(const Configuration &config)
+void ActionPolicy::reconfigure(const Configuration &config)
 {
 }
 
-ContinuousParameterizedPolicy *ContinuousParameterizedPolicy::clone() const
+ActionPolicy *ActionPolicy::clone() const
 {
-  ContinuousParameterizedPolicy *cpp = new ContinuousParameterizedPolicy(*this);
+  ActionPolicy *cpp = new ActionPolicy(*this);
   cpp->projector_ = projector_->clone();
   cpp->representation_ = representation_->clone();
   return cpp;
 }
 
-void ContinuousParameterizedPolicy::act(const Vector &in, Vector *out) const
+void ActionPolicy::act(const Vector &in, Vector *out) const
 {
   ProjectionPtr p = projector_->project(in);
   representation_->read(p, out);
@@ -73,21 +73,21 @@ void ContinuousParameterizedPolicy::act(const Vector &in, Vector *out) const
   if (!min_.empty())
   {
     if (out->size() != min_.size())
-      throw bad_param("policy/parameterized/continuous:{min,max}");
+      throw bad_param("policy/parameterized/action:{min,max}");
     
     for (size_t ii=0; ii < out->size(); ++ii)
       (*out)[ii] = fmin(fmax((*out)[ii], min_[ii]), max_[ii]);
   }
 }
 
-void DiscreteParameterizedPolicy::request(ConfigurationRequest *config)
+void ProbabilityPolicy::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("discretizer", "discretizer", "Action discretizer", discretizer_));
   config->push_back(CRP("projector", "projector", "Projects observation-action pairs onto representation space", projector_));
   config->push_back(CRP("representation", "representation/parameterized", "Probability representation", representation_));
 }
 
-void DiscreteParameterizedPolicy::configure(Configuration &config)
+void ProbabilityPolicy::configure(Configuration &config)
 {
   discretizer_ = (Discretizer*)config["discretizer"].ptr();
   discretizer_->options(&variants_);
@@ -96,20 +96,20 @@ void DiscreteParameterizedPolicy::configure(Configuration &config)
   representation_ = (ParameterizedRepresentation*)config["representation"].ptr();
 }
 
-void DiscreteParameterizedPolicy::reconfigure(const Configuration &config)
+void ProbabilityPolicy::reconfigure(const Configuration &config)
 {
 }
 
-DiscreteParameterizedPolicy *DiscreteParameterizedPolicy::clone() const
+ProbabilityPolicy *ProbabilityPolicy::clone() const
 {
-  DiscreteParameterizedPolicy *dpp = new DiscreteParameterizedPolicy(*this);
+  ProbabilityPolicy *dpp = new ProbabilityPolicy(*this);
   dpp->discretizer_ = discretizer_->clone();
   dpp->projector_ = projector_->clone();
   dpp->representation_ = representation_->clone();
   return dpp;
 }
 
-void DiscreteParameterizedPolicy::act(const Vector &in, Vector *out) const
+void ProbabilityPolicy::act(const Vector &in, Vector *out) const
 {
   std::vector<ProjectionPtr> projections;
   projector_->project(in, variants_, &projections);

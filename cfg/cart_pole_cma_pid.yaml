@@ -1,0 +1,27 @@
+type: experiment/online_learning
+environment:
+  type: environment/modeled
+  model:
+    type: model/dynamical
+    dynamics:
+      type: dynamics/cart_pole
+  task:
+    type: task/cart_pole/balancing
+agent:  
+  type: agent/black_box
+  episodes: 10
+  optimizer:  
+    type: optimizer/cma
+    policy:
+      type: policy/parameterized/pid
+      setpoint: [0, 0, 0, 0]
+      outputs: 1
+visualization:
+  type: visualization/field/policy
+  visualizer:
+    type: visualizer/glut
+  policy: agent/optimizer/policy
+  min: environment/task/observation_min
+  max: environment/task/observation_max
+  dims: [0, 2]
+  points: 65536

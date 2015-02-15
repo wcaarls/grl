@@ -19,6 +19,7 @@ add_library(${TARGET} SHARED
             ${SRC}/policies/q.cpp
             ${SRC}/policies/bounded_q.cpp
             ${SRC}/policies/random.cpp
+            ${SRC}/policies/pid.cpp
 #            ${SRC}/predictors/ac.cpp
 #            ${SRC}/predictors/fqi.cpp
             ${SRC}/predictors/sarsa.cpp
