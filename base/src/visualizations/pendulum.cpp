@@ -58,7 +58,7 @@ void PendulumVisualization::reconfigure(const Configuration &config)
 
 void PendulumVisualization::reshape(int width, int height)
 {
-  initProjection(-1, 1, -1, 1);
+  initProjection(-1.1, 1.1, -1.1, 1.1);
 }
 
 void PendulumVisualization::idle()
@@ -77,6 +77,7 @@ void PendulumVisualization::draw()
     double phi = -state[0]+M_PI/2;
   
     drawLink(0, 0, cos(phi), sin(phi));
+    drawJoint(0, 0);
     drawMass(cos(phi), sin(phi));
   }
 

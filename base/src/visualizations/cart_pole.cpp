@@ -58,7 +58,7 @@ void CartPoleVisualization::reconfigure(const Configuration &config)
 
 void CartPoleVisualization::reshape(int width, int height)
 {
-  initProjection(-1, 1, -1, 1);
+  initProjection(-1.1, 1.1, -1.1, 1.1);
 }
 
 void CartPoleVisualization::idle()
@@ -77,8 +77,8 @@ void CartPoleVisualization::draw()
     double phi = -state[2]+M_PI/2;
     double x = state[0]/2.4;
   
-    drawJoint(x, 0);
-    drawLink(x, 0, x+cos(phi), sin(phi));
+    drawLink(x, 0., x+cos(phi), sin(phi));
+    drawJoint(x, 0.);
     drawMass(x+cos(phi), sin(phi));
   }
 

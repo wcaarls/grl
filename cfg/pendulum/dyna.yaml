@@ -48,3 +48,4 @@ experiment:
 visualizer:
   type: visualizer/glut
 visualization: include/viz_value_function.yaml
+visualization: include/viz_pendulum.yaml

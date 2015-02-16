@@ -117,25 +117,43 @@ void GLUTVisualizer::initProjection(double x1, double x2, double y1, double y2)
 
 void GLUTVisualizer::drawLink(double x1, double y1, double x2, double y2)
 {
-  glBegin(GL_LINES);
-    glVertex2d(x1, y1);
-    glVertex2d(x2, y2);
+  double theta = atan2(y2-y1, x2-x1);
+
+  glColor3f(1., 0., 0.);
+  glBegin(GL_POLYGON);
+   for (double phi=0.5*M_PI; phi < 1.5*M_PI; phi+=M_PI/10)
+     glVertex2f(x1+0.025*cos(theta+phi),y1+0.025*sin(theta+phi));
+    
+   for (double phi=1.5*M_PI; phi < 2.5*M_PI; phi+=M_PI/10)
+     glVertex2f(x2+0.025*cos(theta+phi),y2+0.025*sin(theta+phi));
   glEnd();
 }
 
 void GLUTVisualizer::drawMass(double x, double y)
 {
+   glColor3f(1., 1., 1.);
    glBegin(GL_LINE_LOOP);
      for (double phi=0; phi < 2*M_PI; phi+=M_PI/10)
+       glVertex2f(x+0.05*cos(phi),y+0.05*sin(phi));
+   glEnd();  
+   glBegin(GL_POLYGON);
+     glVertex2f(x, y);
+     for (double phi=0; phi <= 0.5*M_PI; phi+=M_PI/10)
+       glVertex2f(x+0.05*cos(phi),y+0.05*sin(phi));
+   glEnd();  
+   glBegin(GL_POLYGON);
+     glVertex2f(x, y);
+     for (double phi=M_PI; phi <= 1.5*M_PI; phi+=M_PI/10)
        glVertex2f(x+0.05*cos(phi),y+0.05*sin(phi));
    glEnd();  
 }
 
 void GLUTVisualizer::drawJoint(double x, double y)
 {
-   glBegin(GL_LINE_LOOP);
+   glColor3f(1., 1., 1.);
+   glBegin(GL_POLYGON);
      for (double phi=0; phi < 2*M_PI; phi+=M_PI/10)
-       glVertex2f(x+0.05*cos(phi),y+0.05*sin(phi));
+       glVertex2f(x+0.0125*cos(phi),y+0.0125*sin(phi));
    glEnd();  
 }
     
