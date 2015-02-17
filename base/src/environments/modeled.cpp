@@ -122,13 +122,13 @@ void DynamicalModel::step(const Vector &state, const Vector &action, Vector *nex
   
   for (size_t ii=0; ii < steps_; ++ii)
   {
-    dynamics_->eom(state, action, &xd);
+    dynamics_->eom(*next, action, &xd);
     Vector k1 = h*xd;
-    dynamics_->eom(state + k1/2, action, &xd);
+    dynamics_->eom(*next + k1/2, action, &xd);
     Vector k2 = h*xd;
-    dynamics_->eom(state + k2/2, action, &xd);
+    dynamics_->eom(*next + k2/2, action, &xd);
     Vector k3 = h*xd;
-    dynamics_->eom(state + k3, action, &xd);
+    dynamics_->eom(*next + k3, action, &xd);
     Vector k4 = h*xd;
 
     *next = *next + (k1+2*k2+2*k3+k4)/6;
