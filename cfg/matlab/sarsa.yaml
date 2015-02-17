@@ -1,0 +1,28 @@
+agent:
+  type: agent/td
+  predictor:
+    type: predictor/sarsa
+    alpha: 0.2
+    gamma: 0.97
+    lambda: 0.65
+    projector:
+      type: projector/tile_coding
+      resolution: [ 0.31415, 3.1415, 3 ]
+      wrapping: [ 6.283, 0, 0 ]
+    representation:
+      type: representation/parameterized/linear
+      memory: agent/predictor/projector/memory
+    trace:
+      type: trace/enumerated/replacing
+  policy:
+    type: policy/discrete/q
+    projector: agent/predictor/projector
+    representation: agent/predictor/representation
+    discretizer:
+      type: discretizer/uniform
+      min: [-3]
+      max: [3]
+      steps: [3]
+    sampler:  
+      type: sampler/epsilon_greedy
+      epsilon: 0.05

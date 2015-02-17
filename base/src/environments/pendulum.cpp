@@ -80,10 +80,14 @@ void PendulumSwingupTask::configure(Configuration &config)
 {
   T_ = config["timeout"];
 
+  config.set("observation_dims", 2);
   config.set("observation_min", VectorConstructor(0., -12*M_PI));
   config.set("observation_max", VectorConstructor(2*M_PI, 12*M_PI));
+  config.set("action_dims", 1);
   config.set("action_min", VectorConstructor(-3));
   config.set("action_max", VectorConstructor(3));
+  config.set("reward_min", -5*pow(M_PI, 2) - 0.1*pow(12*M_PI, 2) - 1*pow(3, 2));
+  config.set("reward_max", 0);
 }
 
 void PendulumSwingupTask::reconfigure(const Configuration &config)

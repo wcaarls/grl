@@ -34,6 +34,7 @@ set(MODULES base
             addons/gl
             addons/glut
             addons/ros
+            addons/matlab
    )
 
 # Is there a better way to find out if catkin_make was run?

@@ -177,6 +177,11 @@ class YAMLConfigurator
     {
       references_ = config;
     }
+    
+    const Configuration &references() const
+    {
+      return references_;
+    }
   
     Configurable *load(std::string file, Configuration *config, const std::string &path="")
     {

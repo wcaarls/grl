@@ -96,11 +96,23 @@ void CartPoleSwingupTask::configure(Configuration &config)
   gamma_ = config["gamma"];
   T_ = config["timeout"];
 
+  config.set("observation_dims", 4);
   config.set("observation_min", VectorConstructor(-2.4, -10.0, 0.    , -10*M_PI));
   config.set("observation_max", VectorConstructor( 2.4,  10.0, 2*M_PI,  10*M_PI));
-
+  config.set("action_dims", 1);
   config.set("action_min", VectorConstructor(-15.));
   config.set("action_max", VectorConstructor( 15.));
+  
+  if (shaping_)
+  {
+    config.set("reward_min", -2*pow(2.4, 2) - 0.1*pow(10, 2) - pow(M_PI, 2) - 0.1*pow(10*M_PI, 2) + 1 - 100);
+    config.set("reward_max", 0);
+  }
+  else
+  {
+    config.set("reward_min", -2*pow(2.4, 2) - 0.1*pow(10, 2) - pow(M_PI, 2) - 0.1*pow(10*M_PI, 2) - 10000);
+    config.set("reward_max", 0);
+  }
 }
 
 void CartPoleSwingupTask::reconfigure(const Configuration &config)
@@ -190,11 +202,14 @@ void CartPoleBalancingTask::configure(Configuration &config)
 {
   T_ = config["timeout"];
 
+  config.set("observation_dims", 4);
   config.set("observation_min", VectorConstructor(-2.4, -5.0, M_PI-12*M_PI/180, -M_PI));
   config.set("observation_max", VectorConstructor( 2.4,  5.0, M_PI+12*M_PI/180,  M_PI));
-
+  config.set("action_dims", 1);
   config.set("action_min", VectorConstructor(-15.));
   config.set("action_max", VectorConstructor( 15.));
+  config.set("reward_min", 0);
+  config.set("reward_max", 1);
 }
 
 void CartPoleBalancingTask::reconfigure(const Configuration &config)
