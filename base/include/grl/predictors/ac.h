@@ -2,7 +2,7 @@
  * \brief Actor-critic predictor header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-01-22
+ * \date      2015-02-16
  *
  * \copyright \verbatim
  * Copyright (c) 2015, Wouter Caarls
@@ -28,32 +28,82 @@
 #ifndef GRL_AC_PREDICTOR_H_
 #define GRL_AC_PREDICTOR_H_
 
-#include <grl/representation.h>
 #include <grl/predictor.h>
+#include <grl/projector.h>
+#include <grl/representation.h>
+#include <grl/policy.h>
+#include <grl/discretizer.h>
 
 namespace grl
 {
 
-/// Actor-critic predictor for \link DeterministicActionPolicy DeterministicActionPolicies \endlink.
-class DeterministicACPredictor : public Predictor
+/// Actor-critic predictor for \link ActionPolicy ActionPolicies \endlink.
+class ActionACPredictor : public Predictor
 {
   public:
-    TYPEINFO("predictor/ac/deterministic")
+    TYPEINFO("predictor/ac/action")
 
   protected:
-    Representation *critic_;
-    Representation *actor_;
+    Projector *critic_projector_;
+    Representation *critic_representation_;
+    Trace *critic_trace_;
+    
+    Projector *actor_projector_;
+    Representation *actor_representation_;
+    Trace *actor_trace_;
+
+    double alpha_, beta_, gamma_, lambda_;
+    
+    Vector min_, max_;
+
+  public:  
+    ActionACPredictor() : critic_projector_(NULL), critic_representation_(NULL), critic_trace_(NULL),
+                          actor_projector_(NULL), actor_representation_(NULL), actor_trace_(NULL),
+                          alpha_(0.2), beta_(0.1), gamma_(0.97), lambda_(0.65) { }
+
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+    
+    // From Predictor
+    virtual ActionACPredictor *clone() const;
+    virtual void update(const Transition &transition);
+    virtual void finalize();
 };
 
-/// Actor-critic predictor for \link StochasticActionPolicy StochasticActionPolicies \endlink.
-class StochasticACPredictor : public Predictor
+/// Actor-critic predictor for \link ProbabilityPolicy ProbabilityPolicies \endlink.
+class ProbabilityACPredictor : public Predictor
 {
   public:
-    TYPEINFO("predictor/ac/stochastic")
+    TYPEINFO("predictor/ac/probability")
     
   protected:
-    Representation *critic_;
-    Representation *actor_;
+    Projector *critic_projector_;
+    Representation *critic_representation_;
+    Trace *critic_trace_;
+    
+    Projector *actor_projector_;
+    Representation *actor_representation_;
+    Trace *actor_trace_;
+    
+    Discretizer* discretizer_;
+
+    double alpha_, beta_, gamma_, lambda_;
+  public:
+    ProbabilityACPredictor() : critic_projector_(NULL), critic_representation_(NULL), critic_trace_(NULL),
+                               actor_projector_(NULL), actor_representation_(NULL), actor_trace_(NULL),
+                               alpha_(0.2), beta_(0.1), gamma_(0.97), lambda_(0.65) { }	
+  
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+    
+    // From Predictor
+    virtual ProbabilityACPredictor *clone() const;
+    virtual void update(const Transition &transition);
+    virtual void finalize();
 };
 
 }

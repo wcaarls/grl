@@ -1,8 +1,8 @@
-/** \file parameterized.h
- * \brief Parameterized action policy header file.
+/** \file action.h
+ * \brief Action and action-probability policies header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-02-13
+ * \date      2015-02-16
  *
  * \copyright \verbatim
  * Copyright (c) 2015, Wouter Caarls
@@ -25,21 +25,22 @@
  * \endverbatim
  */
 
-#ifndef GRL_PARAMETERIZED_POLICY_H_
-#define GRL_PARAMETERIZED_POLICY_H_
+#ifndef GRL_ACTION_POLICY_H_
+#define GRL_ACTION_POLICY_H_
 
 #include <grl/policy.h>
 #include <grl/projector.h>
 #include <grl/representation.h>
+#include <grl/discretizer.h>
 
 namespace grl
 {
 
 /// Policy based on a direct action representation
-class ParameterizedActionPolicy : public ParameterizedPolicy
+class ActionPolicy : public Policy
 {
   public:
-    TYPEINFO("policy/parameterized/action")
+    TYPEINFO("policy/action")
 
   protected:
     Projector *projector_;
@@ -48,7 +49,7 @@ class ParameterizedActionPolicy : public ParameterizedPolicy
     Vector min_, max_, sigma_;
 
   public:
-    ParameterizedActionPolicy() : projector_(NULL), representation_(NULL) { }
+    ActionPolicy() : projector_(NULL), representation_(NULL), sigma_(0) { }
     
     // From Configurable  
     virtual void request(ConfigurationRequest *config);
@@ -56,16 +57,36 @@ class ParameterizedActionPolicy : public ParameterizedPolicy
     virtual void reconfigure(const Configuration &config);
 
     // From Policy
-    virtual ParameterizedActionPolicy *clone() const;
+    virtual ActionPolicy *clone() const;
     virtual void act(const Vector &in, Vector *out) const;
+};
+
+/// Policy based on an action-probability representation.
+class ActionProbabilityPolicy : public Policy
+{
+  public:
+    TYPEINFO("policy/action_probability")
+
+  protected:
+    Discretizer *discretizer_;
+    Projector *projector_;
+    ParameterizedRepresentation *representation_;
     
-    // From ParameterizedPolicy
-    virtual size_t size() const { return representation_->size(); }
-    virtual const Vector &params() const { return representation_->params(); }
-    virtual Vector &params() { return representation_->params(); }
-    
+    std::vector<Vector> variants_;
+
+  public:
+    ActionProbabilityPolicy() : discretizer_(NULL), projector_(NULL), representation_(NULL) { }
+  
+    // From Configurable  
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+  
+    // From Policy
+    virtual ActionProbabilityPolicy *clone() const;
+    virtual void act(const Vector &in, Vector *out) const;
 };
 
 }
 
-#endif /* GRL_PARAMETERIZED_POLICY_H_ */
+#endif /* GRL_ACTION_POLICY_H_ */

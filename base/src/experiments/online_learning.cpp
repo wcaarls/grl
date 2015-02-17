@@ -115,14 +115,16 @@ void OnlineLearningExperiment::run()
       environment_->start(&obs);
       agent->start(obs, &action);
       state_->set(obs);
+
+      CRAWL(obs);
   
       do
       {
         if (rate_) usleep(1000000./rate_);
         
-        CRAWL(obs << ", " << action);
-
         environment_->step(action, &obs, &reward, &terminal);
+        
+        CRAWL(action << " - " << reward << " -> " << obs);
         
         total_reward += reward;
         
