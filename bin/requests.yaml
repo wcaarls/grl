@@ -295,6 +295,51 @@ optimizer/cma:
     default: 0
     optional: 0
     mutability: configuration
+policy/action:
+  min:
+    type: vector
+    description: Lower action limit
+    default: "[  ]"
+    optional: 1
+    mutability: configuration
+  max:
+    type: vector
+    description: Upper action limit
+    default: "[  ]"
+    optional: 1
+    mutability: configuration
+  sigma:
+    type: vector
+    description: Standard deviation of exploration distribution
+    default: "[  ]"
+    optional: 1
+    mutability: configuration
+  projector:
+    type: projector
+    description: Projects observations onto representation space
+    default: 0
+    optional: 0
+  representation:
+    type: representation
+    description: Action representation
+    default: 0
+    optional: 0
+policy/action_probability:
+  discretizer:
+    type: discretizer
+    description: Action discretizer
+    default: 0
+    optional: 0
+  projector:
+    type: projector
+    description: Projects observation-action pairs onto representation space
+    default: 0
+    optional: 0
+  representation:
+    type: representation/parameterized
+    description: Action-probability representation
+    default: 0
+    optional: 0
 policy/discrete/q:
   discretizer:
     type: discretizer
@@ -353,7 +398,7 @@ policy/discrete/random:
     description: Action discretizer
     default: 0
     optional: 0
-policy/parameterized/continuous:
+policy/parameterized/action:
   min:
     type: vector
     description: Lower action limit
@@ -363,6 +408,12 @@ policy/parameterized/continuous:
   max:
     type: vector
     description: Upper action limit
+    default: "[  ]"
+    optional: 1
+    mutability: configuration
+  sigma:
+    type: vector
+    description: Standard deviation of exploration distribution
     default: "[  ]"
     optional: 1
     mutability: configuration
@@ -378,22 +429,45 @@ policy/parameterized/continuous:
     default: 0
     optional: 0
     mutability: configuration
-policy/parameterized/discrete:
-  discretizer:
-    type: discretizer
-    description: Action discretizer
-    default: 0
-    optional: 0
-  projector:
-    type: projector
-    description: Projects observation-action pairs onto representation space
-    default: 0
-    optional: 0
-  representation:
-    type: representation/parameterized
-    description: Probability representation
-    default: 0
-    optional: 0
+policy/parameterized/pid:
+  setpoint:
+    type: vector
+    description: Setpoint
+    default: "[  ]"
+    optional: 1
+    mutability: online
+  outputs:
+    type: int
+    description: Number of outputs
+    default: 1
+    optional: 1
+    mutability: system
+    min: 1
+    max: 2147483647
+  p:
+    type: vector
+    description: P gains ([in1_out1, ..., in1_outN, ..., inN_out1, ..., inN_outN])
+    default: "[  ]"
+    optional: 1
+    mutability: online
+  i:
+    type: vector
+    description: I gains
+    default: "[  ]"
+    optional: 1
+    mutability: online
+  d:
+    type: vector
+    description: D gains (use P gain on velocity instead, if available)
+    default: "[  ]"
+    optional: 1
+    mutability: online
+  il:
+    type: vector
+    description: Integration limits
+    default: "[  ]"
+    optional: 1
+    mutability: online
 policy/random:
   min:
     type: vector
@@ -406,6 +480,144 @@ policy/random:
     description: Upper action limit
     default: "[  ]"
     optional: 1
+    mutability: configuration
+predictor/ac/action:
+  alpha:
+    type: double
+    description: Critic learning rate
+    default: 0.2
+    optional: 1
+    mutability: configuration
+    min: 0
+    max: 1
+  beta:
+    type: double
+    description: Actor learning rate
+    default: 0.1
+    optional: 1
+    mutability: configuration
+    min: 0
+    max: 1
+  gamma:
+    type: double
+    description: Discount rate
+    default: 0.97
+    optional: 1
+    mutability: configuration
+    min: 0
+    max: 1
+  lambda:
+    type: double
+    description: Trace decay rate
+    default: 0.65
+    optional: 1
+    mutability: configuration
+    min: 0
+    max: 1
+  critic_projector:
+    type: projector
+    description: Projects observations onto critic representation space
+    default: 0
+    optional: 0
+  critic_representation:
+    type: representation
+    description: Value function representation
+    default: 0
+    optional: 0
+  critic_trace:
+    type: trace
+    description: Trace of critic projections
+    default: 0
+    optional: 0
+  actor_projector:
+    type: projector
+    description: Projects observations onto actor representation space
+    default: 0
+    optional: 0
+  actor_representation:
+    type: representation
+    description: Action representation
+    default: 0
+    optional: 0
+  actor_trace:
+    type: trace
+    description: Trace of actor projections
+    default: 0
+    optional: 0
+predictor/ac/probability:
+  alpha:
+    type: double
+    description: Critic learning rate
+    default: 0.2
+    optional: 1
+    mutability: configuration
+    min: 0
+    max: 1
+  beta:
+    type: double
+    description: Actor learning rate
+    default: 0.1
+    optional: 1
+    mutability: configuration
+    min: 0
+    max: 1
+  gamma:
+    type: double
+    description: Discount rate
+    default: 0.97
+    optional: 1
+    mutability: configuration
+    min: 0
+    max: 1
+  lambda:
+    type: double
+    description: Trace decay rate
+    default: 0.65
+    optional: 1
+    mutability: configuration
+    min: 0
+    max: 1
+  critic_projector:
+    type: projector
+    description: Projects observations onto critic representation space
+    default: 0
+    optional: 0
+    mutability: configuration
+  critic_representation:
+    type: representation
+    description: Value function representation
+    default: 0
+    optional: 0
+    mutability: configuration
+  critic_trace:
+    type: trace
+    description: Trace of critic projections
+    default: 0
+    optional: 0
+    mutability: configuration
+  actor_projector:
+    type: projector
+    description: Projects observation-action pairs onto actor representation space
+    default: 0
+    optional: 0
+    mutability: configuration
+  actor_representation:
+    type: representation
+    description: Action-probability representation
+    default: 0
+    optional: 0
+    mutability: configuration
+  actor_trace:
+    type: trace
+    description: Trace of actor projections
+    default: 0
+    optional: 0
+    mutability: configuration
+  discretizer:
+    type: discretizer
+    description: Action discretizer
+    default: 0x1
+    optional: 0
     mutability: configuration
 predictor/expected_sarsa:
   alpha:
@@ -536,12 +748,12 @@ predictor/sarsa:
     description: Projects observation-action pairs onto representation space
     default: 0
     optional: 0
+    mutability: configuration
   representation:
     type: representation
     description: Q-value representation
     default: 0
     optional: 0
-    mutability: configuration
   trace:
     type: trace
     description: Trace of projections
@@ -799,7 +1011,7 @@ task/cart_pole/swingup:
     optional: 1
     mutability: configuration
     min: 0
-    max: 1
+    max: 1.797693134862316e+308
   randomization:
     type: int
     description: Start state randomization
@@ -832,9 +1044,15 @@ task/pendulum/swingup:
     optional: 1
     mutability: configuration
     min: 0
-    max: 1
+    max: 1.797693134862316e+308
 trace/enumerated/accumulating: ~
 trace/enumerated/replacing: ~
+visualization/cart_pole:
+  state:
+    type: state
+    description: Cart-pole state to visualize
+    default: 0
+    optional: 0
 visualization/field/policy:
   min:
     type: vector
@@ -917,6 +1135,12 @@ visualization/field/value_function:
     description: Q-value based control policy
     default: 0
     optional: 0
+visualization/pendulum:
+  state:
+    type: state
+    description: Pendulum state to visualize
+    default: 0
+    optional: 0
 visualization/sample:
   dims:
     type: vector
@@ -955,6 +1179,31 @@ visualization/sample:
   projector:
     type: projector/sample
     description: Sample projector whose store to visualize
+    default: 0
+    optional: 0
+    mutability: configuration
+visualization/state:
+  dims:
+    type: vector
+    description: Input dimensions to visualize
+    default: "[ 0, 1 ]"
+    optional: 1
+    mutability: configuration
+  min:
+    type: vector
+    description: Lower input dimension limit
+    default: "[  ]"
+    optional: 1
+    mutability: configuration
+  max:
+    type: vector
+    description: Upper input dimension limit
+    default: "[  ]"
+    optional: 1
+    mutability: configuration
+  state:
+    type: state
+    description: State to visualize
     default: 0
     optional: 0
     mutability: configuration

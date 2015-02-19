@@ -73,7 +73,7 @@ void PendulumDynamics::eom(const Vector &state, const Vector &action, Vector *xd
 
 void PendulumSwingupTask::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("timeout", "Episode timeout", T_, CRP::Configuration, 0.));
+  config->push_back(CRP("timeout", "Episode timeout", T_, CRP::Configuration, 0., DBL_MAX));
 }
 
 void PendulumSwingupTask::configure(Configuration &config)
