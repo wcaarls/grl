@@ -103,7 +103,7 @@ class GrlTopObject:
     self.frame = Frame(parent.frame)
     self.frame.grid(row=row, column=1, sticky=NW+E)
     self.frame.grid_columnconfigure(0, weight=1)
-    self.obj = GrlObject(self, {'type': '', 'description':'Top-level object', 'optional':0})
+    self.obj = GrlObject(self, {'type': '', 'description':'Top-level object', 'optional':0, 'mutability':'configuration'})
     self.removebutton = Button(
       parent.frame, text="-", command=partial(parent.remove, self)
       )
@@ -165,6 +165,8 @@ class GrlObject:
   def __init__(self, parent, spec):
     self.spec = spec
     self.type = Combobox(parent.frame, state="readonly", width=40)
+    if spec["mutability"] == "system":
+      self.type['style'] = 'System.TCombobox'
     self.type.bind('<<ComboboxSelected>>', self.select)
     self.type.grid(column=0, row=0, sticky=W+E)
     self.tooltip = ToolTip(self.type, text=spec['description'], delay=1000)
@@ -256,6 +258,8 @@ class GrlVariable:
     self.frame.grid(column=1, row=row, sticky=NW+E)
 
     self.value = Combobox(self.frame, width=40)
+    if spec["mutability"] == "system":
+      self.value['style'] = 'System.TCombobox'
     self.tooltip = ToolTip(self.value, text=spec['description'], delay=1000)
   
     if spec["type"] == 'int' and spec["max"]-spec["min"] < 10:
@@ -329,6 +333,9 @@ spec = {'type': '', 'description':'Experiment to run', 'optional':0}
 root = Tk()
 root.resizable(0,1)
 root.title('GRL configurator')
+
+s = Style()
+s.configure('System.TCombobox', fieldbackground='lightblue')
 
 app = GrlMain(root)
 

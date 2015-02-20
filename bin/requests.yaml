@@ -317,13 +317,13 @@ policy/action:
   min:
     type: vector
     description: Lower action limit
-    mutability: configuration
+    mutability: system
     default: "[  ]"
     optional: 1
   max:
     type: vector
     description: Upper action limit
-    mutability: configuration
+    mutability: system
     default: "[  ]"
     optional: 1
   sigma:
@@ -430,13 +430,13 @@ policy/parameterized/action:
   min:
     type: vector
     description: Lower action limit
-    mutability: configuration
+    mutability: system
     default: "[  ]"
     optional: 1
   max:
     type: vector
     description: Upper action limit
-    mutability: configuration
+    mutability: system
     default: "[  ]"
     optional: 1
   sigma:
@@ -500,13 +500,13 @@ policy/random:
   min:
     type: vector
     description: Lower action limit
-    mutability: configuration
+    mutability: system
     default: "[  ]"
     optional: 1
   max:
     type: vector
     description: Upper action limit
-    mutability: configuration
+    mutability: system
     default: "[  ]"
     optional: 1
 predictor/ac/action:
@@ -804,13 +804,13 @@ projector/fourier:
   min:
     type: vector
     description: Lower input dimension limit (for scaling)
-    mutability: configuration
+    mutability: system
     default: "[  ]"
     optional: 1
   max:
     type: vector
     description: Upper input dimension limit (for scaling)
-    mutability: configuration
+    mutability: system
     default: "[  ]"
     optional: 1
   order:
@@ -1003,7 +1003,7 @@ representation/parameterized/linear:
   memory:
     type: int
     description: Feature vector size
-    mutability: configuration
+    mutability: system
     default: 8388608
     optional: 1
     min: 0
@@ -1198,13 +1198,13 @@ visualization/field/policy:
   min:
     type: vector
     description: Lower input dimension limit
-    mutability: configuration
+    mutability: system
     default: "[  ]"
     optional: 1
   max:
     type: vector
     description: Upper input dimension limit
-    mutability: configuration
+    mutability: system
     default: "[  ]"
     optional: 1
   points:
@@ -1239,13 +1239,13 @@ visualization/field/value_function:
   min:
     type: vector
     description: Lower input dimension limit
-    mutability: configuration
+    mutability: system
     default: "[  ]"
     optional: 1
   max:
     type: vector
     description: Upper input dimension limit
-    mutability: configuration
+    mutability: system
     default: "[  ]"
     optional: 1
   points:
@@ -1297,13 +1297,13 @@ visualization/sample:
   min:
     type: vector
     description: Lower input dimension limit
-    mutability: configuration
+    mutability: system
     default: "[  ]"
     optional: 1
   max:
     type: vector
     description: Upper input dimension limit
-    mutability: configuration
+    mutability: system
     default: "[  ]"
     optional: 1
   dim:
@@ -1338,13 +1338,13 @@ visualization/state:
   min:
     type: vector
     description: Lower input dimension limit
-    mutability: configuration
+    mutability: system
     default: "[  ]"
     optional: 1
   max:
     type: vector
     description: Upper input dimension limit
-    mutability: configuration
+    mutability: system
     default: "[  ]"
     optional: 1
   state:

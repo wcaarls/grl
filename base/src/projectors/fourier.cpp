@@ -34,8 +34,8 @@ REGISTER_CONFIGURABLE(FourierProjector)
 
 void FourierProjector::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("min", "Lower input dimension limit (for scaling)", min_));
-  config->push_back(CRP("max", "Upper input dimension limit (for scaling)", max_));
+  config->push_back(CRP("min", "Lower input dimension limit (for scaling)", min_, CRP::System));
+  config->push_back(CRP("max", "Upper input dimension limit (for scaling)", max_, CRP::System));
   config->push_back(CRP("order", "Order of approximation (bases per dimension)", (int)order_, CRP::Configuration, 0, 256));
   
   std::vector<std::string> options;

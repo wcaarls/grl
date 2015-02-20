@@ -33,7 +33,7 @@ REGISTER_CONFIGURABLE(LinearRepresentation)
 
 void LinearRepresentation::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("memory", "Feature vector size", (int)memory_));
+  config->push_back(CRP("memory", "Feature vector size", (int)memory_, CRP::System));
   config->push_back(CRP("outputs", "Number of outputs", (int)outputs_));
 
   config->push_back(CRP("min", "Lower initial value limit", min_));

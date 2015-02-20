@@ -39,8 +39,8 @@ REGISTER_CONFIGURABLE(StateVisualization)
 void StateVisualization::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("dims", "Input dimensions to visualize", dims_));
-  config->push_back(CRP("min", "Lower input dimension limit", min_));
-  config->push_back(CRP("max", "Upper input dimension limit", max_));
+  config->push_back(CRP("min", "Lower input dimension limit", min_, CRP::System));
+  config->push_back(CRP("max", "Upper input dimension limit", max_, CRP::System));
 
   config->push_back(CRP("state", "state", "State to visualize", state_));
 }

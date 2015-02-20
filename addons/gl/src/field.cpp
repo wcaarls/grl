@@ -36,8 +36,8 @@ using namespace grl;
 
 void FieldVisualization::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("min", "Lower input dimension limit", state_min_));
-  config->push_back(CRP("max", "Upper input dimension limit", state_max_));
+  config->push_back(CRP("min", "Lower input dimension limit", state_min_, CRP::System));
+  config->push_back(CRP("max", "Upper input dimension limit", state_max_, CRP::System));
   config->push_back(CRP("points", "Number of points to evaluate", points_));
   config->push_back(CRP("dims", "Order of dimensions to visualize", dims_));
 }

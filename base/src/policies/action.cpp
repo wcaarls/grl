@@ -34,8 +34,8 @@ REGISTER_CONFIGURABLE(ActionProbabilityPolicy)
 
 void ActionPolicy::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("min", "Lower action limit", min_));
-  config->push_back(CRP("max", "Upper action limit", max_));
+  config->push_back(CRP("min", "Lower action limit", min_, CRP::System));
+  config->push_back(CRP("max", "Upper action limit", max_, CRP::System));
   config->push_back(CRP("sigma", "Standard deviation of exploration distribution", sigma_, CRP::Configuration));
 
   config->push_back(CRP("projector", "projector", "Projects observations onto representation space", projector_));
