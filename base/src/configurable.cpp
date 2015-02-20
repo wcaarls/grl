@@ -128,7 +128,11 @@ Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *conf
       std::string key = request[ii].name;
       std::string type = request[ii].type;
     
-      if (config->has(key))
+      if (request[ii].mutability == CRP::Provided)
+      {
+        // Do nothing here. It's not really a request.
+      }
+      else if (config->has(key))
       {
         std::string value = (*config)[key].str();
         

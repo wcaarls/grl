@@ -2,1047 +2,1187 @@ agent/black_box:
   episodes:
     type: int
     description: Number of episodes to evaluate policy
+    mutability: configuration
     default: 1
     optional: 1
-    mutability: configuration
     min: 1
     max: 2147483647
   optimizer:
     type: optimizer
     description: Policy optimizer
+    mutability: configuration
     default: 0
     optional: 0
-    mutability: configuration
 agent/dyna:
   planning_steps:
     type: int
     description: Number of planning steps per control step
+    mutability: configuration
     default: 1
     optional: 1
-    mutability: configuration
     min: 0
     max: 2147483647
   wrapping:
     type: vector
     description: Wrapping boundaries
+    mutability: configuration
     default: "[  ]"
     optional: 1
-    mutability: configuration
   observation_min:
     type: vector
     description: Lower limit on observations
+    mutability: system
     default: "[  ]"
     optional: 1
-    mutability: system
   observation_max:
     type: vector
     description: Upper limit on observations
+    mutability: system
     default: "[  ]"
     optional: 1
-    mutability: system
   policy:
     type: policy
     description: Control policy
+    mutability: configuration
     default: 0
     optional: 0
   predictor:
     type: predictor
     description: Value function predictor
+    mutability: configuration
     default: 0
     optional: 0
   model_agent:
     type: agent
     description: Agent used for planning episodes
+    mutability: configuration
     default: 0
     optional: 0
   model_projector:
     type: projector
     description: Projector for transition model (should match representation)
+    mutability: configuration
     default: 0
     optional: 0
   model_representation:
     type: representation
     description: Representation for transition model
+    mutability: configuration
     default: 0
     optional: 0
 agent/fixed:
   policy:
     type: policy
     description: Control policy
+    mutability: configuration
     default: 0
     optional: 0
 agent/td:
   policy:
     type: policy
     description: Control policy
+    mutability: configuration
     default: 0
     optional: 0
   predictor:
     type: predictor
     description: Value function predictor
+    mutability: configuration
     default: 0
     optional: 0
 discretizer/uniform:
   min:
     type: vector
     description: Lower limit
+    mutability: system
     default: "[  ]"
     optional: 1
-    mutability: system
   max:
     type: vector
     description: Upper limit
+    mutability: system
     default: "[  ]"
     optional: 1
-    mutability: system
   steps:
     type: vector
     description: Discretization steps per dimension
+    mutability: configuration
     default: "[  ]"
     optional: 1
-    mutability: configuration
 dynamics/cart_pole: ~
 dynamics/pendulum: ~
 environment/modeled:
   model:
     type: model
     description: Environment model
+    mutability: configuration
     default: 0
     optional: 0
   task:
     type: task
     description: Task to perform in the environment (should match model)
+    mutability: configuration
     default: 0
     optional: 0
+  state:
+    type: state
+    description: Current state of the model
+    mutability: provided
 experiment/approx_test:
   train_samples:
     type: int
     description: Number of training samples
+    mutability: configuration
     default: 1000
     optional: 1
-    mutability: configuration
     min: 1
     max: 2147483647
   test_samples:
     type: int
     description: Number of test samples
+    mutability: configuration
     default: 1000
     optional: 1
-    mutability: configuration
     min: 1
     max: 2147483647
   file:
     type: string
     description: Output file (csv format)
+    mutability: configuration
     default: ""
     optional: 1
-    mutability: configuration
   min:
     type: vector
     description: Lower limit for drawing samples
+    mutability: configuration
     default: "[  ]"
     optional: 1
-    mutability: configuration
   max:
     type: vector
     description: Upper limit for drawing samples
+    mutability: configuration
     default: "[  ]"
     optional: 1
-    mutability: configuration
   projector:
     type: projector
     description: Projector (should match representation)
+    mutability: configuration
     default: 0
     optional: 0
-    mutability: configuration
   representation:
     type: representation
     description: Learned representation
+    mutability: configuration
     default: 0
     optional: 0
-    mutability: configuration
   mapping:
     type: mapping
     description: Function to learn
+    mutability: configuration
     default: 0
     optional: 0
-    mutability: configuration
 experiment/online_learning:
   runs:
     type: int
     description: Number of separate learning runs to perform
+    mutability: configuration
     default: 1
     optional: 1
-    mutability: configuration
     min: 1
     max: 2147483647
   trials:
     type: int
     description: Number of episodes per learning run
+    mutability: configuration
     default: 0
     optional: 1
-    mutability: configuration
     min: 0
     max: 2147483647
   steps:
     type: int
     description: Number of steps per learning run
+    mutability: configuration
     default: 0
     optional: 1
-    mutability: configuration
     min: 0
     max: 2147483647
   rate:
     type: int
     description: Control step frequency in Hz
+    mutability: online
     default: 0
     optional: 1
-    mutability: online
     min: 0
     max: 2147483647
   test_interval:
     type: int
     description: Number of episodes in between test trials
+    mutability: configuration
     default: 0
     optional: 1
-    mutability: configuration
     min: 0
     max: 2147483647
   output:
     type: string
     description: Output base filename
+    mutability: configuration
     default: ""
     optional: 1
-    mutability: configuration
-  agent:
-    type: agent
-    description: Agent
-    default: 0
-    optional: 0
-    mutability: configuration
-  test_agent:
-    type: agent
-    description: Agent to use in test trials
-    default: 0
-    optional: 1
-    mutability: configuration
   environment:
     type: environment
     description: Environment in which the agent acts
+    mutability: configuration
     default: 0
     optional: 0
+  agent:
+    type: agent
+    description: Agent
     mutability: configuration
+    default: 0
+    optional: 0
+  test_agent:
+    type: agent
+    description: Agent to use in test trials
+    mutability: configuration
+    default: 0
+    optional: 1
+  state:
+    type: state
+    description: Current observed state of the environment
+    mutability: provided
 mapping/multisine:
   inputs:
     type: int
     description: Number of input dimensions
+    mutability: configuration
     default: 1
     optional: 1
-    mutability: configuration
     min: 0
     max: 2147483647
   outputs:
     type: int
     description: Number of output dimensions
+    mutability: configuration
     default: 1
     optional: 1
-    mutability: configuration
     min: 0
     max: 2147483647
   sines:
     type: int
     description: Number of sines
+    mutability: configuration
     default: 1
     optional: 1
-    mutability: configuration
     min: 0
     max: 2147483647
 model/dynamical:
   control_step:
     type: double
     description: Control step time
+    mutability: configuration
     default: 0.05
     optional: 1
-    mutability: configuration
     min: 0.001
     max: 1.797693134862316e+308
   integration_steps:
     type: int
     description: Number of integration steps per control step
+    mutability: configuration
     default: 5
     optional: 1
-    mutability: configuration
     min: 1
     max: 2147483647
   dynamics:
     type: dynamics
     description: Equations of motion
+    mutability: configuration
     default: 0
     optional: 0
-    mutability: configuration
 optimizer/cma:
   population:
     type: int
     description: Population size
+    mutability: configuration
     default: 0
     optional: 1
-    mutability: configuration
     min: 0
     max: 2147483647
   policy:
     type: policy/parameterized
     description: Control policy prototype
+    mutability: configuration
     default: 0
     optional: 0
-    mutability: configuration
 policy/action:
   min:
     type: vector
     description: Lower action limit
+    mutability: configuration
     default: "[  ]"
     optional: 1
-    mutability: configuration
   max:
     type: vector
     description: Upper action limit
+    mutability: configuration
     default: "[  ]"
     optional: 1
-    mutability: configuration
   sigma:
     type: vector
     description: Standard deviation of exploration distribution
+    mutability: configuration
     default: "[  ]"
     optional: 1
-    mutability: configuration
   projector:
     type: projector
     description: Projects observations onto representation space
+    mutability: configuration
     default: 0
     optional: 0
   representation:
     type: representation
     description: Action representation
+    mutability: configuration
     default: 0
     optional: 0
 policy/action_probability:
   discretizer:
     type: discretizer
     description: Action discretizer
+    mutability: configuration
     default: 0
     optional: 0
   projector:
     type: projector
     description: Projects observation-action pairs onto representation space
+    mutability: configuration
     default: 0
     optional: 0
   representation:
     type: representation/parameterized
     description: Action-probability representation
+    mutability: configuration
     default: 0
     optional: 0
 policy/discrete/q:
   discretizer:
     type: discretizer
     description: Action discretizer
+    mutability: configuration
     default: 0
     optional: 0
   projector:
     type: projector
     description: Projects observation-action pairs onto representation space
+    mutability: configuration
     default: 0
     optional: 0
   representation:
     type: representation
     description: Q-value representation
+    mutability: configuration
     default: 0
     optional: 0
   sampler:
     type: sampler
     description: Samples actions from Q-values
+    mutability: configuration
     default: 0
     optional: 0
 policy/discrete/q/bounded:
   bound:
     type: vector
     description: Maximum action delta
+    mutability: configuration
     default: "[  ]"
     optional: 1
-    mutability: configuration
   discretizer:
     type: discretizer
     description: Action discretizer
+    mutability: configuration
     default: 0
     optional: 0
-    mutability: configuration
   projector:
     type: projector
     description: Projects observation-action pairs onto representation space
+    mutability: configuration
     default: 0
     optional: 0
-    mutability: configuration
   representation:
     type: representation
     description: Q-value representation
+    mutability: configuration
     default: 0
     optional: 0
-    mutability: configuration
   sampler:
     type: sampler
     description: Samples actions from Q-values
+    mutability: configuration
     default: 0
     optional: 0
-    mutability: configuration
 policy/discrete/random:
   discretizer:
     type: discretizer
     description: Action discretizer
+    mutability: configuration
     default: 0
     optional: 0
 policy/parameterized/action:
   min:
     type: vector
     description: Lower action limit
+    mutability: configuration
     default: "[  ]"
     optional: 1
-    mutability: configuration
   max:
     type: vector
     description: Upper action limit
+    mutability: configuration
     default: "[  ]"
     optional: 1
-    mutability: configuration
   sigma:
     type: vector
     description: Standard deviation of exploration distribution
+    mutability: configuration
     default: "[  ]"
     optional: 1
-    mutability: configuration
   projector:
     type: projector
     description: Projects observations onto representation space
+    mutability: configuration
     default: 0
     optional: 0
-    mutability: configuration
   representation:
     type: representation/parameterized
     description: Action representation
+    mutability: configuration
     default: 0
     optional: 0
-    mutability: configuration
 policy/parameterized/pid:
   setpoint:
     type: vector
     description: Setpoint
+    mutability: online
     default: "[  ]"
     optional: 1
-    mutability: online
   outputs:
     type: int
     description: Number of outputs
+    mutability: system
     default: 1
     optional: 1
-    mutability: system
     min: 1
     max: 2147483647
   p:
     type: vector
     description: P gains ([in1_out1, ..., in1_outN, ..., inN_out1, ..., inN_outN])
+    mutability: online
     default: "[  ]"
     optional: 1
-    mutability: online
   i:
     type: vector
     description: I gains
+    mutability: online
     default: "[  ]"
     optional: 1
-    mutability: online
   d:
     type: vector
     description: D gains (use P gain on velocity instead, if available)
+    mutability: online
     default: "[  ]"
     optional: 1
-    mutability: online
   il:
     type: vector
     description: Integration limits
+    mutability: online
     default: "[  ]"
     optional: 1
-    mutability: online
 policy/random:
   min:
     type: vector
     description: Lower action limit
+    mutability: configuration
     default: "[  ]"
     optional: 1
-    mutability: configuration
   max:
     type: vector
     description: Upper action limit
+    mutability: configuration
     default: "[  ]"
     optional: 1
-    mutability: configuration
 predictor/ac/action:
   alpha:
     type: double
     description: Critic learning rate
+    mutability: configuration
     default: 0.2
     optional: 1
-    mutability: configuration
     min: 0
     max: 1
   beta:
     type: double
     description: Actor learning rate
+    mutability: configuration
     default: 0.1
     optional: 1
-    mutability: configuration
     min: 0
     max: 1
   gamma:
     type: double
     description: Discount rate
+    mutability: configuration
     default: 0.97
     optional: 1
-    mutability: configuration
     min: 0
     max: 1
   lambda:
     type: double
     description: Trace decay rate
+    mutability: configuration
     default: 0.65
     optional: 1
-    mutability: configuration
     min: 0
     max: 1
   critic_projector:
     type: projector
     description: Projects observations onto critic representation space
+    mutability: configuration
     default: 0
     optional: 0
   critic_representation:
     type: representation
     description: Value function representation
+    mutability: configuration
     default: 0
     optional: 0
   critic_trace:
     type: trace
     description: Trace of critic projections
+    mutability: configuration
     default: 0
     optional: 0
   actor_projector:
     type: projector
     description: Projects observations onto actor representation space
+    mutability: configuration
     default: 0
     optional: 0
   actor_representation:
     type: representation
     description: Action representation
+    mutability: configuration
     default: 0
     optional: 0
   actor_trace:
     type: trace
     description: Trace of actor projections
+    mutability: configuration
     default: 0
     optional: 0
 predictor/ac/probability:
   alpha:
     type: double
     description: Critic learning rate
+    mutability: configuration
     default: 0.2
     optional: 1
-    mutability: configuration
     min: 0
     max: 1
   beta:
     type: double
     description: Actor learning rate
+    mutability: configuration
     default: 0.1
     optional: 1
-    mutability: configuration
     min: 0
     max: 1
   gamma:
     type: double
     description: Discount rate
+    mutability: configuration
     default: 0.97
     optional: 1
-    mutability: configuration
     min: 0
     max: 1
   lambda:
     type: double
     description: Trace decay rate
+    mutability: configuration
     default: 0.65
     optional: 1
-    mutability: configuration
     min: 0
     max: 1
   critic_projector:
     type: projector
     description: Projects observations onto critic representation space
+    mutability: configuration
     default: 0
     optional: 0
-    mutability: configuration
   critic_representation:
     type: representation
     description: Value function representation
+    mutability: configuration
     default: 0
     optional: 0
-    mutability: configuration
   critic_trace:
     type: trace
     description: Trace of critic projections
+    mutability: configuration
     default: 0
     optional: 0
-    mutability: configuration
   actor_projector:
     type: projector
     description: Projects observation-action pairs onto actor representation space
+    mutability: configuration
     default: 0
     optional: 0
-    mutability: configuration
   actor_representation:
     type: representation
     description: Action-probability representation
+    mutability: configuration
     default: 0
     optional: 0
-    mutability: configuration
   actor_trace:
     type: trace
     description: Trace of actor projections
+    mutability: configuration
     default: 0
     optional: 0
-    mutability: configuration
   discretizer:
     type: discretizer
     description: Action discretizer
+    mutability: configuration
     default: 0x1
     optional: 0
-    mutability: configuration
 predictor/expected_sarsa:
   alpha:
     type: double
     description: Learning rate
+    mutability: configuration
     default: 0.2
     optional: 1
-    mutability: configuration
     min: 0
     max: 1
   gamma:
     type: double
     description: Discount rate
+    mutability: configuration
     default: 0.97
     optional: 1
-    mutability: configuration
     min: 0
     max: 1
   lambda:
     type: double
     description: Trace decay rate
+    mutability: configuration
     default: 0.65
     optional: 1
-    mutability: configuration
     min: 0
     max: 1
   projector:
     type: projector
     description: Projects observation-action pairs onto representation space
+    mutability: configuration
     default: 0
     optional: 0
   representation:
     type: representation
     description: Q-value representation
+    mutability: configuration
     default: 0
     optional: 0
   policy:
     type: policy/discrete/q
     description: Q-value based policy
+    mutability: configuration
     default: 0
     optional: 0
   sampler:
     type: sampler
     description: Target distribution
+    mutability: configuration
     default: 0
     optional: 0
   trace:
     type: trace
     description: Trace of projections
+    mutability: configuration
     default: 0
     optional: 0
 predictor/ggq:
   alpha:
     type: double
     description: Learning rate
+    mutability: configuration
     default: 0.2
     optional: 1
-    mutability: configuration
     min: 0
     max: 1
   eta:
     type: double
     description: Relative secondary learning rate (actual is alpha*eta)
+    mutability: configuration
     default: 0.1
     optional: 1
-    mutability: configuration
     min: 0
     max: 1
   gamma:
     type: double
     description: Discount rate
+    mutability: configuration
     default: 0.97
     optional: 1
-    mutability: configuration
     min: 0
     max: 1
   projector:
     type: projector
     description: Projects observation-action pairs onto representation space
+    mutability: configuration
     default: 0
     optional: 0
-    mutability: configuration
   theta:
     type: representation
     description: Q-value representation
+    mutability: configuration
     default: 0
     optional: 0
-    mutability: configuration
   w:
     type: representation
     description: Secondary weights representation (should match theta)
+    mutability: configuration
     default: 0
     optional: 0
-    mutability: configuration
   policy:
     type: policy/discrete/q
     description: Greedy target policy
+    mutability: configuration
     default: 0
     optional: 0
-    mutability: configuration
 predictor/sarsa:
   alpha:
     type: double
     description: Learning rate
+    mutability: configuration
     default: 0.2
     optional: 1
-    mutability: configuration
     min: 0
     max: 1
   gamma:
     type: double
     description: Discount rate
+    mutability: configuration
     default: 0.97
     optional: 1
-    mutability: configuration
     min: 0
     max: 1
   lambda:
     type: double
     description: Trace decay rate
+    mutability: configuration
     default: 0.65
     optional: 1
-    mutability: configuration
     min: 0
     max: 1
   projector:
     type: projector
     description: Projects observation-action pairs onto representation space
+    mutability: configuration
     default: 0
     optional: 0
-    mutability: configuration
   representation:
     type: representation
     description: Q-value representation
+    mutability: configuration
     default: 0
     optional: 0
   trace:
     type: trace
     description: Trace of projections
+    mutability: configuration
     default: 0
     optional: 0
-    mutability: configuration
 projector/fourier:
   min:
     type: vector
     description: Lower input dimension limit (for scaling)
+    mutability: configuration
     default: "[  ]"
     optional: 1
-    mutability: configuration
   max:
     type: vector
     description: Upper input dimension limit (for scaling)
+    mutability: configuration
     default: "[  ]"
     optional: 1
-    mutability: configuration
   order:
     type: int
     description: Order of approximation (bases per dimension)
+    mutability: configuration
     default: 1
     optional: 1
-    mutability: configuration
     min: 0
     max: 256
   parity:
     type: string
     description: Whether to use odd or even bases
+    mutability: configuration
     default: even
     optional: 1
-    mutability: configuration
     options:
       - even
       - odd
+  memory:
+    type: int
+    description: Feature vector size
+    mutability: provided
 projector/identity: ~
 projector/sample/ann:
   samples:
     type: int
     description: Maximum number of samples to store
+    mutability: configuration
     default: 0
     optional: 1
-    mutability: configuration
     min: 100
     max: 2147483647
   neighbors:
     type: int
     description: Number of neighbor indices to return
+    mutability: configuration
     default: 20
     optional: 1
-    mutability: configuration
     min: 1
     max: 64
   bucket_size:
     type: int
     description: "?"
+    mutability: configuration
     default: 10
     optional: 1
-    mutability: configuration
     min: 1
     max: 2147483647
   error_bound:
     type: double
     description: "?"
+    mutability: configuration
     default: 0.1
     optional: 1
-    mutability: configuration
     min: 0
     max: 1.797693134862316e+308
   dims:
     type: int
     description: Number of input dimensions
+    mutability: system
     default: 1
     optional: 1
-    mutability: system
     min: 1
     max: 16
   scaling:
     type: vector
     description: Input dimension scaling
+    mutability: configuration
     default: "[  ]"
     optional: 1
-    mutability: configuration
 projector/tile_coding:
   tilings:
     type: int
     description: Number of tilings
+    mutability: configuration
     default: 16
     optional: 1
-    mutability: configuration
     min: 0
     max: 2147483647
   memory:
     type: int
     description: Hash table size
+    mutability: configuration
     default: 8388608
     optional: 1
-    mutability: configuration
     min: 0
     max: 2147483647
   resolution:
     type: vector
     description: Size of a single tile
+    mutability: configuration
     default: "[  ]"
     optional: 1
-    mutability: configuration
   wrapping:
     type: vector
     description: Wrapping boundaries (must be multiple of resolution)
+    mutability: configuration
     default: "[  ]"
     optional: 1
-    mutability: configuration
 representation/llr:
   outputs:
     type: int
     description: Number of output dimensions
+    mutability: system
     default: 1
     optional: 1
-    mutability: system
     min: 1
     max: 2147483647
   ridge:
     type: double
     description: Ridge regression (Tikhonov) factor
+    mutability: configuration
     default: 1e-05
     optional: 1
-    mutability: configuration
     min: 0
     max: 1
   order:
     type: int
     description: Order of regression model
+    mutability: configuration
     default: 1
     optional: 1
-    mutability: configuration
     min: 0
     max: 1
   projector:
     type: projector/sample
     description: Projector used to generate input for this representation
+    mutability: configuration
     default: 0
     optional: 0
-    mutability: configuration
 representation/parameterized/ann:
   input_min:
     type: vector
     description: Lower limit on inputs
+    mutability: system
     default: "[  ]"
     optional: 1
-    mutability: system
   input_max:
     type: vector
     description: Upper limit on inputs
+    mutability: system
     default: "[  ]"
     optional: 1
-    mutability: system
   output_min:
     type: vector
     description: Lower limit on outputs
+    mutability: system
     default: "[  ]"
     optional: 1
-    mutability: system
   output_max:
     type: vector
     description: Upper limit on outputs
+    mutability: system
     default: "[  ]"
     optional: 1
-    mutability: system
   hiddens:
     type: int
     description: Number of hidden nodes
+    mutability: configuration
     default: 0
     optional: 1
-    mutability: configuration
     min: 0
     max: 64
   steepness:
     type: double
     description: Steepness of activation function
+    mutability: configuration
     default: 5
     optional: 1
-    mutability: configuration
     min: 0
     max: 1
   bias:
     type: int
     description: Use bias nodes
+    mutability: configuration
     default: 1
     optional: 1
-    mutability: configuration
     min: 0
     max: 1
   recurrent:
     type: int
     description: Feed hidden activation back as input
+    mutability: configuration
     default: 0
     optional: 1
-    mutability: configuration
     min: 0
     max: 1
 representation/parameterized/linear:
   memory:
     type: int
     description: Feature vector size
+    mutability: configuration
     default: 8388608
     optional: 1
-    mutability: configuration
     min: 0
     max: 2147483647
   outputs:
     type: int
     description: Number of outputs
+    mutability: configuration
     default: 1
     optional: 1
-    mutability: configuration
     min: 0
     max: 2147483647
   min:
     type: vector
     description: Lower initial value limit
+    mutability: configuration
     default: "[ 0 ]"
     optional: 1
-    mutability: configuration
   max:
     type: vector
     description: Upper initial value limit
+    mutability: configuration
     default: "[ 1 ]"
     optional: 1
-    mutability: configuration
 sampler/epsilon_greedy:
   epsilon:
     type: double
     description: Exploration rate
+    mutability: configuration
     default: 0.05
     optional: 1
-    mutability: configuration
     min: 0
     max: 1
 sampler/greedy: ~
 task/cart_pole/balancing:
+  observation_dims:
+    type: int
+    description: Number of observation dimensions
+    mutability: provided
+  observation_min:
+    type: vector
+    description: Lower limit on observations
+    mutability: provided
+  observation_max:
+    type: vector
+    description: Upper limit on observations
+    mutability: provided
+  action_dims:
+    type: int
+    description: Number of action dimensions
+    mutability: provided
+  action_min:
+    type: vector
+    description: Lower limit on actions
+    mutability: provided
+  action_max:
+    type: vector
+    description: Upper limit on actions
+    mutability: provided
+  reward_min:
+    type: double
+    description: Lower limit on immediate reward
+    mutability: provided
+  reward_max:
+    type: double
+    description: Upper limit on immediate reward
+    mutability: provided
   timeout:
     type: double
     description: Episode timeout
+    mutability: configuration
     default: 9.99
     optional: 1
-    mutability: configuration
     min: 0
     max: 1
 task/cart_pole/swingup:
+  observation_dims:
+    type: int
+    description: Number of observation dimensions
+    mutability: provided
+  observation_min:
+    type: vector
+    description: Lower limit on observations
+    mutability: provided
+  observation_max:
+    type: vector
+    description: Upper limit on observations
+    mutability: provided
+  action_dims:
+    type: int
+    description: Number of action dimensions
+    mutability: provided
+  action_min:
+    type: vector
+    description: Lower limit on actions
+    mutability: provided
+  action_max:
+    type: vector
+    description: Upper limit on actions
+    mutability: provided
+  reward_min:
+    type: double
+    description: Lower limit on immediate reward
+    mutability: provided
+  reward_max:
+    type: double
+    description: Upper limit on immediate reward
+    mutability: provided
   timeout:
     type: double
     description: Episode timeout
+    mutability: configuration
     default: 9.99
     optional: 1
-    mutability: configuration
     min: 0
     max: 1.797693134862316e+308
   randomization:
     type: int
     description: Start state randomization
+    mutability: online
     default: 0
     optional: 1
-    mutability: online
     min: 0
     max: 1
   shaping:
     type: int
     description: Whether to use reward shaping
+    mutability: configuration
     default: 0
     optional: 1
-    mutability: configuration
     min: 0
     max: 1
   gamma:
     type: double
     description: Discount rate for reward shaping
+    mutability: configuration
     default: 1
     optional: 1
-    mutability: configuration
     min: 0
     max: 1
 task/pendulum/swingup:
+  observation_dims:
+    type: int
+    description: Number of observation dimensions
+    mutability: provided
+  observation_min:
+    type: vector
+    description: Lower limit on observations
+    mutability: provided
+  observation_max:
+    type: vector
+    description: Upper limit on observations
+    mutability: provided
+  action_dims:
+    type: int
+    description: Number of action dimensions
+    mutability: provided
+  action_min:
+    type: vector
+    description: Lower limit on actions
+    mutability: provided
+  action_max:
+    type: vector
+    description: Upper limit on actions
+    mutability: provided
+  reward_min:
+    type: double
+    description: Lower limit on immediate reward
+    mutability: provided
+  reward_max:
+    type: double
+    description: Upper limit on immediate reward
+    mutability: provided
   timeout:
     type: double
     description: Episode timeout
+    mutability: configuration
     default: 2.99
     optional: 1
-    mutability: configuration
     min: 0
     max: 1.797693134862316e+308
 trace/enumerated/accumulating: ~
@@ -1051,160 +1191,166 @@ visualization/cart_pole:
   state:
     type: state
     description: Cart-pole state to visualize
+    mutability: configuration
     default: 0
     optional: 0
 visualization/field/policy:
   min:
     type: vector
     description: Lower input dimension limit
+    mutability: configuration
     default: "[  ]"
     optional: 1
-    mutability: configuration
   max:
     type: vector
     description: Upper input dimension limit
+    mutability: configuration
     default: "[  ]"
     optional: 1
-    mutability: configuration
   points:
     type: int
     description: Number of points to evaluate
-    default: 1048576
-    optional: 1
     mutability: configuration
+    default: 65536
+    optional: 1
     min: 0
     max: 2147483647
   dims:
     type: vector
     description: Order of dimensions to visualize
+    mutability: configuration
     default: "[ 0, 1 ]"
     optional: 1
-    mutability: configuration
   policy:
     type: policy
     description: Control policy
+    mutability: configuration
     default: 0
     optional: 0
   dim:
     type: int
     description: Action dimension to visualize
+    mutability: online
     default: 0
     optional: 1
-    mutability: online
     min: 0
     max: 2147483647
 visualization/field/value_function:
   min:
     type: vector
     description: Lower input dimension limit
+    mutability: configuration
     default: "[  ]"
     optional: 1
-    mutability: configuration
   max:
     type: vector
     description: Upper input dimension limit
+    mutability: configuration
     default: "[  ]"
     optional: 1
-    mutability: configuration
   points:
     type: int
     description: Number of points to evaluate
-    default: 1048576
-    optional: 1
     mutability: configuration
+    default: 65536
+    optional: 1
     min: 0
     max: 2147483647
   dims:
     type: vector
     description: Order of dimensions to visualize
+    mutability: configuration
     default: "[ 0, 1 ]"
     optional: 1
-    mutability: configuration
   projector:
     type: projector
     description: Projects observation-action pairs onto representation space
+    mutability: configuration
     default: 0
     optional: 0
   representation:
     type: representation
     description: Q-value representation
+    mutability: configuration
     default: 0
     optional: 0
   policy:
     type: policy/discrete/q
     description: Q-value based control policy
+    mutability: configuration
     default: 0
     optional: 0
 visualization/pendulum:
   state:
     type: state
     description: Pendulum state to visualize
+    mutability: configuration
     default: 0
     optional: 0
 visualization/sample:
   dims:
     type: vector
     description: Input dimensions to visualize
+    mutability: configuration
     default: "[ 0, 1 ]"
     optional: 1
-    mutability: configuration
   min:
     type: vector
     description: Lower input dimension limit
+    mutability: configuration
     default: "[  ]"
     optional: 1
-    mutability: configuration
   max:
     type: vector
     description: Upper input dimension limit
+    mutability: configuration
     default: "[  ]"
     optional: 1
-    mutability: configuration
   dim:
     type: int
     description: Output dimension to visualize
+    mutability: configuration
     default: 0
     optional: 1
-    mutability: configuration
     min: 0
     max: 2147483647
   points:
     type: int
     description: Texture size
+    mutability: configuration
     default: 1048576
     optional: 1
-    mutability: configuration
     min: 0
     max: 2147483647
   projector:
     type: projector/sample
     description: Sample projector whose store to visualize
+    mutability: configuration
     default: 0
     optional: 0
-    mutability: configuration
 visualization/state:
   dims:
     type: vector
     description: Input dimensions to visualize
+    mutability: configuration
     default: "[ 0, 1 ]"
     optional: 1
-    mutability: configuration
   min:
     type: vector
     description: Lower input dimension limit
+    mutability: configuration
     default: "[  ]"
     optional: 1
-    mutability: configuration
   max:
     type: vector
     description: Upper input dimension limit
+    mutability: configuration
     default: "[  ]"
     optional: 1
-    mutability: configuration
   state:
     type: state
     description: State to visualize
+    mutability: configuration
     default: 0
     optional: 0
-    mutability: configuration
 visualizer/glut: ~

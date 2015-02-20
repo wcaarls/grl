@@ -43,8 +43,7 @@ void FourierProjector::request(ConfigurationRequest *config)
   options.push_back("odd");
   
   config->push_back(CRP("parity", "Whether to use odd or even bases", parity_, CRP::Configuration, options));
-  
-  // Provides memory
+  config->push_back(CRP("memory", "int", "Feature vector size", CRP::Provided));
 }
 
 void FourierProjector::configure(Configuration &config)
@@ -59,6 +58,7 @@ void FourierProjector::configure(Configuration &config)
   dims_ = min_.size();
 
   order_ = config["order"];
+  
   config.set("memory", pow(order_+1, dims_));
   
   parity_ = config["parity"].str();

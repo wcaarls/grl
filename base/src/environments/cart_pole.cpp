@@ -83,6 +83,8 @@ void CartPoleDynamics::eom(const Vector &state, const Vector &action, Vector *xd
 
 void CartPoleSwingupTask::request(ConfigurationRequest *config)
 {
+  Task::request(config);
+
   config->push_back(CRP("timeout", "Episode timeout", T_, CRP::Configuration, 0., DBL_MAX));
   config->push_back(CRP("randomization", "Start state randomization", randomization_, CRP::Online, 0, 1));
   config->push_back(CRP("shaping", "Whether to use reward shaping", shaping_, CRP::Configuration, 0, 1));
@@ -195,6 +197,8 @@ double CartPoleSwingupTask::potential(const Vector &state) const
 
 void CartPoleBalancingTask::request(ConfigurationRequest *config)
 {
+  Task::request(config);
+
   config->push_back(CRP("timeout", "Episode timeout", T_, CRP::Configuration, 0.));
 }
 

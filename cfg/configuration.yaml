@@ -1,0 +1,72 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 0
+  steps: 100000
+  rate: 0
+  test_interval: 10
+  output: sarsa-tc-pendulum
+  environment: 
+    type: environment/modeled
+    model: 
+      type: model/dynamical
+      control_step: 0.03
+      integration_steps: 5
+      dynamics: 
+        type: dynamics/pendulum
+    task: 
+      type: task/pendulum/swingup
+      timeout: 2.99
+  agent: 
+    type: agent/td
+    policy: 
+      type: policy/discrete/q
+      discretizer: 
+        type: discretizer/uniform
+        min: experiment/environment/task/action_min
+        max: experiment/environment/task/action_max
+        steps: [3]
+      projector: 
+        type: projector/tile_coding
+        tilings: 16
+        memory: 8388608
+        resolution: [0.31415, 3.1415, 3]
+        wrapping: [6.283, 0, 0]
+      representation: 
+        type: representation/parameterized/linear
+        memory: experiment/agent/policy/projector/memory
+        outputs: 1
+        min: [0]
+        max: [1]
+      sampler: 
+        type: sampler/epsilon_greedy
+        epsilon: 0.05
+    predictor: 
+      type: predictor/sarsa
+      alpha: 0.2
+      gamma: 0.97
+      lambda: 0.65
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+      trace: 
+        type: trace/enumerated/replacing
+  test_agent: 
+    type: agent/fixed
+    policy: 
+      type: policy/discrete/q
+      discretizer: experiment/agent/policy/discretizer
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+      sampler: 
+        type: sampler/greedy
+visualizer: 
+  type: visualizer/glut
+visualization: 
+  type: visualization/field/value_function
+  min: experiment/environment/task/observation_min
+  max: experiment/environment/task/observation_max
+  points: 65536
+  dims: [0, 1]
+  projector: experiment/agent/policy/projector
+  representation: experiment/agent/policy/representation
+  policy: experiment/test_agent/policy

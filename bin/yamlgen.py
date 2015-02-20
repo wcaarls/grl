@@ -3,6 +3,7 @@
 import yaml
 import sys,tty,termios
 import readline
+from grllib import *
 
 KEY_ENTER = 13
 KEY_UP = 256
@@ -13,54 +14,6 @@ KEY_UNKNOWN = 511
 
 ANSI_UP = chr(27) + '[A'
 ANSI_CLEARLINE = chr(27) + '[K'
-
-import yaml
-import yaml.constructor
-
-try:
-    # included in standard lib from Python 2.7
-    from collections import OrderedDict
-except ImportError:
-    # try importing the backported drop-in replacement
-    # it's available on PyPI
-    from ordereddict import OrderedDict
-
-# https://gist.github.com/enaeseth/844388
-class OrderedDictYAMLLoader(yaml.Loader):
-    """
-    A YAML loader that loads mappings into ordered dictionaries.
-    """
-
-    def __init__(self, *args, **kwargs):
-        yaml.Loader.__init__(self, *args, **kwargs)
-
-        self.add_constructor(u'tag:yaml.org,2002:map', type(self).construct_yaml_map)
-        self.add_constructor(u'tag:yaml.org,2002:omap', type(self).construct_yaml_map)
-
-    def construct_yaml_map(self, node):
-        data = OrderedDict()
-        yield data
-        value = self.construct_mapping(node)
-        data.update(value)
-
-    def construct_mapping(self, node, deep=False):
-        if isinstance(node, yaml.MappingNode):
-            self.flatten_mapping(node)
-        else:
-            raise yaml.constructor.ConstructorError(None, None,
-                'expected a mapping node, but found %s' % node.id, node.start_mark)
-
-        mapping = OrderedDict()
-        for key_node, value_node in node.value:
-            key = self.construct_object(key_node, deep=deep)
-            try:
-                hash(key)
-            except TypeError, exc:
-                raise yaml.constructor.ConstructorError('while constructing a mapping',
-                    node.start_mark, 'found unacceptable key (%s)' % exc, key_node.start_mark)
-            value = self.construct_object(value_node, deep=deep)
-            mapping[key] = value
-        return mapping
 
 # http://stackoverflow.com/questions/22397289
 def getch():
@@ -99,33 +52,6 @@ def rlinput(prompt, prefill=''):
   finally:
      readline.set_startup_hook()
 
-def isobject(type):
-  """Returns true if the type is not a builtin type."""
-  if type in ['int','double','string','vector']:
-    return False
-  else:
-    return True
-
-def findrequests(type):
-  """Find parameter requests that match a certain type."""
-  matches = list()
-  
-  for key in requests:
-    if key[0:len(type)] == type:
-      matches.append(key)
-  
-  return matches
-
-def findparams(type):
-  """Find registered parameters that match a certain type."""
-  matches = list()
-
-  for key in params:
-    if params[key][0:len(type)] == type:
-      matches.append(key)
-
-  return matches
-
 def selectlist(pstr, desc, options):
   """Asks the user to select from a list of options."""
   inkey = 0
@@ -152,7 +78,7 @@ def select(param, spec, path=[]):
     # Object
     
     # Find registered parameters matching this type
-    matches = findparams(spec["type"])
+    matches = findparams(params, spec["type"])
 
     # Ask to choose between registered parameters, or create a new object
     options = list()
@@ -178,7 +104,7 @@ def select(param, spec, path=[]):
       desc = '\n' + ''.ljust(indent+2) + spec["description"] + ANSI_CLEARLINE + ANSI_UP + '\r'
         
       # Find object factories matching this type
-      options = findrequests(spec["type"])
+      options = findrequests(requests, spec["type"])
 
       # Should exist
       if not len(options):
@@ -197,7 +123,10 @@ def select(param, spec, path=[]):
         for key in requests[type]:
           newpath = path[:]
           newpath.append(key)
-          select(key, requests[type][key], newpath)
+          if requests[type][key]["mutability"] == "provided":
+            params['/'.join(newpath)] = requests[type][key]["type"]
+          else:
+            select(key, requests[type][key], newpath)
     else:
       # Chose not to set a value
       print '\r' + ANSI_CLEARLINE,
@@ -207,7 +136,7 @@ def select(param, spec, path=[]):
     correct = False
 
     # Find registered parameters matching this type
-    matches = findparams(spec["type"])
+    matches = findparams(params, spec["type"])
 
     # Ask to choose between registered parameters, default, or new value
     options = list()

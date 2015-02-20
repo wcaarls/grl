@@ -36,8 +36,8 @@ void ModeledEnvironment::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("model", "model", "Environment model", model_));
   config->push_back(CRP("task", "task", "Task to perform in the environment (should match model)", task_));
-  
-  // Provides state
+
+  config->push_back(CRP("state", "state", "Current state of the model", CRP::Provided));
 }
 
 void ModeledEnvironment::configure(Configuration &config)

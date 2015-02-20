@@ -63,6 +63,18 @@ class Task : public Configurable
     virtual Task *clone() const = 0;
 
   public:
+    virtual void request(ConfigurationRequest *config)
+    {
+      config->push_back(CRP("observation_dims", "int", "Number of observation dimensions", CRP::Provided));
+      config->push_back(CRP("observation_min", "vector", "Lower limit on observations", CRP::Provided));
+      config->push_back(CRP("observation_max", "vector", "Upper limit on observations", CRP::Provided));
+      config->push_back(CRP("action_dims", "int", "Number of action dimensions", CRP::Provided));
+      config->push_back(CRP("action_min", "vector", "Lower limit on actions", CRP::Provided));
+      config->push_back(CRP("action_max", "vector", "Upper limit on actions", CRP::Provided));
+      config->push_back(CRP("reward_min", "double", "Lower limit on immediate reward", CRP::Provided));
+      config->push_back(CRP("reward_max", "double", "Upper limit on immediate reward", CRP::Provided));
+    }    
+  
     virtual void start(Vector *state) const = 0;
     virtual void observe(const Vector &state, Vector *obs, int *terminal) const = 0;
     virtual bool evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const = 0;

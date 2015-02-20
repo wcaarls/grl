@@ -41,7 +41,7 @@ namespace grl {
 /// Parameter requested by a Configurable object.
 struct CRP
 {
-  typedef enum {System, Configuration, Online} Mutability;
+  typedef enum {Provided, System, Configuration, Online} Mutability;
 
   std::string name, type, description, value;
   Mutability mutability;
@@ -51,7 +51,7 @@ struct CRP
   
   CRP(std::string _name, std::string _type, std::string _description,
       class Configurable *_value, bool _optional=false) :
-    name(_name), type(_type), description(_description), optional(_optional)
+    name(_name), type(_type), description(_description), mutability(Configuration), optional(_optional)
   {
     setValue(_value);
   }
@@ -82,6 +82,14 @@ struct CRP
       std::vector<std::string> _options=std::vector<std::string>()) :
     name(_name), type("string"), description(_description), value(_value), mutability(_mutability), options(_options), optional(true)
   { 
+    // Provided parameters have the same signature as strings... Disambiguate.
+    if (mutability == Provided)
+    {
+      type = description;
+      description = value;
+      value = "";
+      options = std::vector<std::string>();
+    }
   }
   
   protected:

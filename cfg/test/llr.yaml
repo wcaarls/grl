@@ -12,9 +12,10 @@ experiment:
     outputs: 1
   projector:
     type: projector/sample/ann
-    samples: train_samples
+    samples: experiment/train_samples
     dims: 2
   representation:
     type: representation/llr
+    projector: experiment/projector
     outputs: 1
   

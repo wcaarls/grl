@@ -79,10 +79,11 @@ int main(int argc, char **argv)
       YAML::Node spec;
       spec["type"] = jj->type;
       spec["description"] = jj->description;
-      spec["default"] = jj->value;
-      spec["optional"] = (int)jj->optional;
       switch (jj->mutability)
       {
+        case CRP::Provided:
+          spec["mutability"] = "provided";
+          break;
         case CRP::System:
           spec["mutability"] = "system";
           break;
@@ -94,17 +95,23 @@ int main(int argc, char **argv)
           break;
       }
       
-      if (jj->type == "int" || jj->type == "double")
+      if (jj->mutability != CRP::Provided)
       {
-        spec["min"] = jj->min;
-        spec["max"] = jj->max;
-      }
-      else if (jj->type == "string" && !jj->options.empty())
-      {
-        YAML::Node options;
-        for (size_t kk=0; kk < jj->options.size(); ++kk)
-          options.push_back(jj->options[kk]);
-        spec["options"] = options;
+        spec["default"] = jj->value;
+        spec["optional"] = (int)jj->optional;
+        
+        if (jj->type == "int" || jj->type == "double")
+        {
+          spec["min"] = jj->min;
+          spec["max"] = jj->max;
+        }
+        else if (jj->type == "string" && !jj->options.empty())
+        {
+          YAML::Node options;
+          for (size_t kk=0; kk < jj->options.size(); ++kk)
+            options.push_back(jj->options[kk]);
+          spec["options"] = options;
+        }
       }
       
       type[jj->name] = spec;

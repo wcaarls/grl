@@ -15,7 +15,7 @@ experiment:
     resolution: [ 0.1,  0.1 ]
   representation:
     type: representation/parameterized/linear
-    memory: projector/memory
+    memory: experiment/projector/memory
     min: 0
     max: 0
   

@@ -43,11 +43,11 @@ void OnlineLearningExperiment::request(ConfigurationRequest *config)
   config->push_back(CRP("test_interval", "Number of episodes in between test trials", (int)test_interval_));
   config->push_back(CRP("output", "Output base filename", output_));
   
+  config->push_back(CRP("environment", "environment", "Environment in which the agent acts", environment_));
   config->push_back(CRP("agent", "agent", "Agent", agent_));
   config->push_back(CRP("test_agent", "agent", "Agent to use in test trials", agent_, true));
-  config->push_back(CRP("environment", "environment", "Environment in which the agent acts", environment_));
   
-  // Provides state
+  config->push_back(CRP("state", "state", "Current observed state of the environment", CRP::Provided));  
 }
 
 void OnlineLearningExperiment::configure(Configuration &config)

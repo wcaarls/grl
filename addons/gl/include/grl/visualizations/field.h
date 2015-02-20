@@ -50,7 +50,7 @@ class FieldVisualization : public Visualization, public itc::Thread
     bool updated_;
   
   public:
-    FieldVisualization() : state_dims_(0), points_(1048576), dimpoints_(0), texpoints_(0), texture_(0), data_(NULL), value_min_(0), value_max_(0), updated_(true)
+    FieldVisualization() : state_dims_(0), points_(65536), dimpoints_(0), texpoints_(0), texture_(0), data_(NULL), value_min_(0), value_max_(0), updated_(true)
     {
       dims_ = VectorConstructor(0., 1.);
     }
