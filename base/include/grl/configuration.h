@@ -154,11 +154,16 @@ class Configuration
           delete ii->second;
         parameters_.clear();
       
-        for (MapType::iterator ii=other.parameters_.begin(); ii != other.parameters_.end(); ++ii)
-          parameters_[ii->first] = new ConfigurationParameter(*ii->second);
+        merge(other);
       }
         
       return *this;
+    }
+    
+    void merge(const Configuration &other)
+    {
+      for (MapType::iterator ii=other.parameters_.begin(); ii != other.parameters_.end(); ++ii)
+        parameters_[ii->first] = new ConfigurationParameter(*ii->second);
     }
 
     bool has (const std::string &key) const

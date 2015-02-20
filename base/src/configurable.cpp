@@ -35,6 +35,7 @@ const char *grl::grl_log_levels__[] = {"\x1B[31m\x1B[1m(ERR)\x1B[0m", "\x1B[33m\
 Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *config, const std::string &path)
 {
   Configurable *obj=NULL;
+  Configuration objconfig;
   
   if (!node.IsMap())
     throw Exception("Can only load YAML maps");
@@ -60,7 +61,7 @@ Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *conf
       
     if (it->second.IsMap())
     {
-      Configuration subcfg(*config);
+      Configuration subcfg(objconfig);
       Configurable *subobj = load(it->second, &subcfg, path + key + "/");
       
       if (!subobj)
@@ -71,7 +72,7 @@ Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *conf
       
       CRAWL(path << key << ": " << subobj << " (type " << subobj->d_type() << ") ");
               
-      config->set(key, subobj);
+      objconfig.set(key, subobj);
       references_.set(path + key, subobj);
     }
     else
@@ -80,7 +81,7 @@ Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *conf
       
       if (value.size() >= 5 && value.substr(value.size()-5) == ".yaml")
       {
-        Configuration subcfg(*config);
+        Configuration subcfg(objconfig);
         
         if (!file_.empty())
         {
@@ -98,7 +99,7 @@ Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *conf
           return NULL;
         }
         
-        config->set(key, subobj);
+        objconfig.set(key, subobj);
         references_.set(path + key, subobj);
       }
       else
@@ -111,7 +112,7 @@ Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *conf
         else
           INFO(path << key << ": " << value);
       
-        config->set(key, value);
+        objconfig.set(key, value);
         references_.set(path + key, value);
       }
     }
@@ -132,9 +133,9 @@ Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *conf
       {
         // Do nothing here. It's not really a request.
       }
-      else if (config->has(key))
+      else if (objconfig.has(key))
       {
-        std::string value = (*config)[key].str();
+        std::string value = objconfig[key].str();
         
         if (type == "int")
         {
@@ -228,7 +229,7 @@ Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *conf
       else if (request[ii].optional)
       {
         INFO(path << key << ": " << request[ii].value << " (default)");
-        config->set(key, request[ii].value);
+        objconfig.set(key, request[ii].value);
       }
       else
       {
@@ -236,13 +237,30 @@ Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *conf
         return NULL;
       }
     }
+
+    // Check for unused variables
+    for (Configuration::MapType::const_iterator ii=objconfig.parameters().begin(); ii != objconfig.parameters().end(); ++ii)
+    {
+      bool found=false;
+
+      for (size_t jj=0; jj < request.size(); ++jj)
+        if (ii->first == request[jj].name)
+        {
+          found = true;
+          break;
+        }
+
+      if (!found)
+        WARNING("Spurious parameter " << path << ii->first);
+    }
   
     DEBUG("Configuring " << obj->d_type());
-    obj->configure(*config);
+    obj->configure(objconfig);
   }
     
-  for (Configuration::MapType::const_iterator ii=config->parameters().begin(); ii != config->parameters().end(); ++ii)
+  for (Configuration::MapType::const_iterator ii=objconfig.parameters().begin(); ii != objconfig.parameters().end(); ++ii)
     references_.set(path + ii->first, ii->second->str());
-    
+  
+  config->merge(objconfig);
   return obj;
 }      

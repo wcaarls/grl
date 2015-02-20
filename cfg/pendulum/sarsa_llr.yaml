@@ -13,6 +13,7 @@ experiment:
       projector: include/ann_q_projector.yaml
       representation:
         type: representation/llr
+        projector: experiment/agent/predictor/projector
         order: 0
       trace:  
         type: trace/enumerated/replacing

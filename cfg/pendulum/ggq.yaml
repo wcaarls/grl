@@ -23,7 +23,7 @@ experiment:
       w:
         type: representation/parameterized/linear
         memory: experiment/agent/predictor/projector/memory
-        max: 0
+        init_max: 0
       policy: include/q_greedy_policy.yaml
     policy:
       type: policy/discrete/random
