@@ -16,6 +16,14 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# Introduction
+
+GRL is a C++ reinforcement learning library that aims to easily allow
+evaluating different algorithms through a declarative configuration
+interface.
+
+![Configurator](/doc/grl.png)
+
 # Installation
 ```
 git clone https://github.com/wcaarls/grl.git
@@ -30,6 +38,16 @@ make
 ```
 
 # Running
+
+To directly perform an experiment, run
+
 ```
 ./deploy ../cfg/pendulum/sarsa.yaml
+```
+
+To start the configurator with an example configuration, run
+
+```
+cd ../bin
+./grl.py ../cfg/configuration.yaml
 ```
