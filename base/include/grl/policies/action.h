@@ -44,7 +44,7 @@ class ActionPolicy : public Policy
 
   protected:
     Projector *projector_;
-    ParameterizedRepresentation *representation_;
+    Representation *representation_;
     
     Vector min_, max_, sigma_;
 

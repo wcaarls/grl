@@ -3,7 +3,7 @@ experiment:
   rate: 0
   test_interval: 10
   runs: 20
-  steps: 100000
+  steps: 1000000
   output: sarsa
   environment: include/pendulum_swingup.yaml
   agent:

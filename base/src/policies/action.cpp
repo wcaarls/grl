@@ -34,8 +34,6 @@ REGISTER_CONFIGURABLE(ActionProbabilityPolicy)
 
 void ActionPolicy::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("min", "Lower action limit", min_, CRP::System));
-  config->push_back(CRP("max", "Upper action limit", max_, CRP::System));
   config->push_back(CRP("sigma", "Standard deviation of exploration distribution", sigma_, CRP::Configuration));
 
   config->push_back(CRP("projector", "projector", "Projects observations onto representation space", projector_));
@@ -45,19 +43,11 @@ void ActionPolicy::request(ConfigurationRequest *config)
 void ActionPolicy::configure(Configuration &config)
 {
   projector_ = (Projector*)config["projector"].ptr();
-  representation_ = (ParameterizedRepresentation*)config["representation"].ptr();
+  representation_ = (Representation*)config["representation"].ptr();
   
-  min_ = config["min"];
-  max_ = config["max"];
   sigma_ = config["sigma"];
   
-  if (min_.size() != max_.size())
-    throw bad_param("policy/action:{min,max}");
-
   if (sigma_.empty())
-    sigma_.resize(min_.size(), 0.);
-    
-  if (sigma_.size() != min_.size())
     throw bad_param("policy/action:sigma");
 }
 
@@ -80,20 +70,11 @@ void ActionPolicy::act(const Vector &in, Vector *out) const
   
   // Some representations may not always return a value.
   if (out->empty())
-    *out = (max_-min_)/2;
+    out->resize(sigma_.size(), 0.);
   
-  if (!min_.empty())
-  {
-    if (out->size() != min_.size())
-      throw bad_param("policy/action:{min,max}");
-    
-    for (size_t ii=0; ii < out->size(); ++ii)
-    {
-      if (sigma_[ii])
-        (*out)[ii] += RandGen::getNormal(0., sigma_[ii]);
-      (*out)[ii] = fmin(fmax((*out)[ii], min_[ii]), max_[ii]);
-    }
-  }
+  for (size_t ii=0; ii < out->size(); ++ii)
+    if (sigma_[ii])
+      (*out)[ii] += RandGen::getNormal(0., sigma_[ii]);
 }
 
 void ActionProbabilityPolicy::request(ConfigurationRequest *config)

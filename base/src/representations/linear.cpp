@@ -34,10 +34,13 @@ REGISTER_CONFIGURABLE(LinearRepresentation)
 void LinearRepresentation::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("memory", "Feature vector size", (int)memory_, CRP::System));
-  config->push_back(CRP("outputs", "Number of outputs", (int)outputs_));
+  config->push_back(CRP("outputs", "Number of outputs", (int)outputs_, CRP::System));
 
-  config->push_back(CRP("min", "Lower initial value limit", min_));
-  config->push_back(CRP("max", "Upper initial value limit", max_));
+  config->push_back(CRP("init_min", "Lower initial value limit", init_min_));
+  config->push_back(CRP("init_max", "Upper initial value limit", init_max_));
+  
+  config->push_back(CRP("output_min", "Lower output limit", output_min_, CRP::System));
+  config->push_back(CRP("output_max", "Upper output limit", output_max_, CRP::System));
 }
 
 void LinearRepresentation::configure(Configuration &config)
@@ -45,19 +48,31 @@ void LinearRepresentation::configure(Configuration &config)
   memory_ = config["memory"];
   outputs_ = config["outputs"];
   
-  min_ = config["min"];
-  if (min_.size() && min_.size() < outputs_)
-    min_.resize(outputs_, min_[0]);
-  if (min_.size() != outputs_)
-    throw bad_param("representation/parameterized/linear:min");
+  init_min_ = config["init_min"];
+  if (init_min_.size() && init_min_.size() < outputs_)
+    init_min_.resize(outputs_, init_min_[0]);
+  if (init_min_.size() != outputs_)
+    throw bad_param("representation/parameterized/linear:init_min");
   
-  max_ = config["max"];
-  if (max_.size() && max_.size() < outputs_)
-    max_.resize(outputs_, max_[0]);
-  if (max_.size() != outputs_)
+  init_max_ = config["init_max"];
+  if (init_max_.size() && init_max_.size() < outputs_)
+    init_max_.resize(outputs_, init_max_[0]);
+  if (init_max_.size() != outputs_)
     throw bad_param("representation/parameterized/linear:max");
 
   params_.resize(memory_ * outputs_);
+  
+  output_min_ = config["output_min"];
+  if (output_min_.empty())
+    output_min_.resize(outputs_, -DBL_MAX);
+  if (output_min_.size() != outputs_)
+    throw bad_param("representation/parameterized/linear:output_min");
+    
+  output_max_ = config["output_max"];
+  if (output_max_.empty())
+    output_max_.resize(outputs_, DBL_MAX);
+  if (output_max_.size() != outputs_)
+    throw bad_param("representation/parameterized/linear:output_max");
   
   // Initialize memory
   reset();
@@ -67,7 +82,7 @@ void LinearRepresentation::reconfigure(const Configuration &config)
 {
   if (config.has("action") && config["action"].str() == "reset")
   {
-    DEBUG("Initializing " << memory_ << " values between " << min_ << " and " << max_);
+    DEBUG("Initializing " << memory_ << " values between " << init_min_ << " and " << init_max_);
   
     params_.resize(memory_ * outputs_);
 
@@ -75,7 +90,7 @@ void LinearRepresentation::reconfigure(const Configuration &config)
     Rand *rand = RandGen::instance();
     for (size_t ii=0; ii < memory_; ++ii)
       for (size_t jj=0; jj < outputs_; ++jj)  
-        params_[ii*outputs_+jj] = rand->getUniform(min_[jj], max_[jj]);
+        params_[ii*outputs_+jj] = rand->getUniform(init_min_[jj], init_max_[jj]);
   }
 }
 
@@ -118,6 +133,9 @@ double LinearRepresentation::read(const ProjectionPtr &projection, Vector *resul
     else
       throw Exception("representation/parameterized/linear requires a projector returning IndexProjection or VectorProjection");
   }
+
+  for (size_t ii=0; ii < outputs_; ++ii)
+    (*result)[ii] = fmin(fmax((*result)[ii], output_min_[ii]), output_max_[ii]);
   
   return (*result)[0];
 }
@@ -142,7 +160,7 @@ void LinearRepresentation::update(const ProjectionPtr projection, const Vector &
     for (size_t ii=0; ii != ip->indices.size(); ++ii)
       for (size_t jj=0; jj < outputs_; ++jj)
         if (ip->indices[ii] != IndexProjection::invalid_index())
-          params_[ip->indices[ii]*outputs_+jj] += delta[jj];
+          params_[ip->indices[ii]*outputs_+jj] = fmin(fmax(params_[ip->indices[ii]*outputs_+jj] + delta[jj], output_min_[jj]), output_max_[jj]);
   }
   else
   {
@@ -154,7 +172,7 @@ void LinearRepresentation::update(const ProjectionPtr projection, const Vector &
 
       for (size_t ii=0; ii != vp->vector.size(); ++ii)
         for (size_t jj=0; jj < outputs_; ++jj)
-          params_[ii*outputs_+jj] += vp->vector[ii]*delta[jj];
+          params_[ii*outputs_+jj] = fmin(fmax(params_[ii*outputs_+jj] + vp->vector[ii]*delta[jj], output_min_[jj]), output_max_[jj]);
     }
     else
       throw Exception("representation/parameterized/linear requires a projector returning IndexProjection or VectorProjection");

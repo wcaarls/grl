@@ -11,9 +11,11 @@ from grllib import *
 from tooltip import *
 
 class GrlMain:
+  """Main window. Contains action buttons (save, run, add toplevel) and scrollable frame for GrlTopObjects."""
   def __init__(self, master):
     self.row = 0
 
+    # Scrollable frame for GrlTopObjects.
     self.canvas = Canvas(master, borderwidth=0)
     self.frame = Frame(self.canvas)
     self.vsb = Scrollbar(master, orient="vertical", command=self.canvas.yview)
@@ -23,9 +25,9 @@ class GrlMain:
     self.canvas.pack(side="left", fill="both", expand=True)
     self.canvas.create_window((4,4), window=self.frame, anchor="nw", 
                               tags="self.frame")
-
     self.frame.bind("<Configure>", self.OnFrameConfigure)
 
+    # Buttons
     self.savebutton = Button(
           self.frame, text="Save", command=self.save
           )
@@ -75,6 +77,7 @@ class GrlMain:
     self.refresh()
     
   def refresh(self):
+    """Recalculate available parameters at each level of the configuration tree."""
     global params
     params = dict()
   
@@ -95,6 +98,7 @@ class GrlMain:
       self.objlist[-1].load(item, config[item])
   
 class GrlTopObject:
+  """Top-level object. Contains editable name and frame for GrlObjects."""
   def __init__(self, parent, row):
     self.entry = Entry(parent.frame, width=10)
     self.entry.grid(row=row, column=0, sticky=NW)
@@ -134,6 +138,7 @@ class GrlTopObject:
     self.obj.load(config)
 
 class GrlSubObject:
+  """Sub-object. Contains fixed name label and frame for Object."""
   def __init__(self, parent, name, spec, row):
     self.name = name
     self.label = Label(parent.frame, text=name)
@@ -162,6 +167,7 @@ class GrlSubObject:
     self.obj.load(config)
   
 class GrlObject:
+  """Object. Contains type selector and frame for all subobjects."""
   def __init__(self, parent, spec):
     self.spec = spec
     self.type = Combobox(parent.frame, state="readonly", width=40)
@@ -180,6 +186,7 @@ class GrlObject:
     values.extend(findparams(params, self.spec["type"]))
     self.type['values'] = values
   
+    # Refresh subobjects
     for obj in self.objlist:
       obj.refresh(path)
 
@@ -200,12 +207,14 @@ class GrlObject:
     self.frame.destroy()
     
   def select(self, event):
+    # Delete previous subobjects
     for obj in self.objlist:
       obj.destroy()
     self.objlist = list()
 
     type = self.type.get()
     
+    # Add new ones
     row = 0
     if type in requests:
       if requests[type]:
@@ -217,15 +226,17 @@ class GrlObject:
             else:
               obj = GrlVariable(self, key, requests[type][key], row)
             self.objlist.append(obj)
-      else:
-        # Ugly hack to force re-layout
-        master = self.frame.master
-        self.frame.grid_forget()
-        self.frame.destroy()
-        self.frame = Frame(master)
-        self.frame.grid(column=0, row=1, sticky=W+E)
-        self.frame.grid_columnconfigure(1, weight=1)
+
+    if row == 0:
+      # Ugly hack to force re-layout
+      master = self.frame.master
+      self.frame.grid_forget()
+      self.frame.destroy()
+      self.frame = Frame(master)
+      self.frame.grid(column=0, row=1, sticky=W+E)
+      self.frame.grid_columnconfigure(1, weight=1)
         
+    # Recalculate parameters
     app.refresh()
     
   def write(self, output, indent):
@@ -248,6 +259,7 @@ class GrlObject:
         obj.load(config[obj.name])
     
 class GrlVariable:
+  """Non-object variable. Contains fixed name label and type-dependent entry field."""
   def __init__(self, parent, name, spec, row):
     self.spec = spec
     self.name = name
@@ -257,6 +269,7 @@ class GrlVariable:
     self.frame = Frame(parent.frame)
     self.frame.grid(column=1, row=row, sticky=NW+E)
 
+    # Every type has at least a combobox
     self.value = Combobox(self.frame, width=40)
     if spec["mutability"] == "system":
       self.value['style'] = 'System.TCombobox'
@@ -320,6 +333,7 @@ class GrlVariable:
     self.value.delete(0, END)
     self.value.insert(0, config)
 
+# Set up paths
 binpath = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 tempfile = "/tmp/grl." + str(os.getpid()) + ".yaml"
 savefile = "configuration.yaml"
@@ -330,13 +344,13 @@ requests = yaml.load(stream, OrderedDictYAMLLoader)
 params = dict()
 spec = {'type': '', 'description':'Experiment to run', 'optional':0}
 
+# Setup up windowing system
 root = Tk()
 root.resizable(0,1)
 root.title('GRL configurator')
+Style().configure('System.TCombobox', fieldbackground='lightblue')
 
-s = Style()
-s.configure('System.TCombobox', fieldbackground='lightblue')
-
+# Launch window
 app = GrlMain(root)
 
 # Load configuration, if specified
@@ -348,4 +362,5 @@ if len(sys.argv) > 1:
     conf = yaml.load(stream, OrderedDictYAMLLoader)
     app.load(conf)
 
+# Go
 root.mainloop()

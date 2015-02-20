@@ -40,14 +40,14 @@ class LinearRepresentation : public ParameterizedRepresentation
     TYPEINFO("representation/parameterized/linear")
     
   protected:
-    Vector min_, max_, params_;
+    Vector init_min_, init_max_, output_min_, output_max_, params_;
     size_t memory_, outputs_;
 
   public:
     LinearRepresentation() : memory_(8*1024*1024), outputs_(1)
     {
-      min_ = VectorConstructor(0.);
-      max_ = VectorConstructor(1.);
+      init_min_ = VectorConstructor(0.);
+      init_max_ = VectorConstructor(1.);
     }
   
     // From Configurable

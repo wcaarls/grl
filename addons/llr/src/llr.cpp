@@ -38,6 +38,9 @@ void LLRRepresentation::request(ConfigurationRequest *config)
   config->push_back(CRP("ridge", "Ridge regression (Tikhonov) factor", ridge_regression_factor_));
   config->push_back(CRP("order", "Order of regression model", order_, CRP::Configuration, 0, 1));
 
+  config->push_back(CRP("min", "Lower output limit", min_, CRP::System));
+  config->push_back(CRP("max", "Upper output limit", max_, CRP::System));
+
   config->push_back(CRP("projector", "projector/sample", "Projector used to generate input for this representation", projector_));
 }
 
@@ -48,6 +51,18 @@ void LLRRepresentation::configure(Configuration &config)
   ridge_regression_factor_ = config["ridge"];
   outputs_ = config["outputs"];
   order_ = config["order"];
+
+  min_ = config["min"];
+  max_ = config["max"];
+
+  if (min_.empty())
+    min_.resize(outputs_, -DBL_MAX);
+  if (min_.size() != outputs_)
+    throw bad_param("representation/llr:min");
+  if (max_.empty())
+    max_.resize(outputs_, DBL_MAX);
+  if (max_.size() != outputs_)
+    throw bad_param("representation/llr:max");
 }
 
 void LLRRepresentation::reconfigure(const Configuration &config)
@@ -150,7 +165,10 @@ double LLRRepresentation::read(const ProjectionPtr &projection, Vector *result) 
   // Avoid extrapolation
   if (p->indices.size())
     for (size_t ii=0; ii < outputs_; ++ii)
+    {
       (*result)[ii] = fmin(fmax((*result)[ii], mib[ii]), mab[ii]);
+      (*result)[ii] = fmin(fmax((*result)[ii], min_[ii]), max_[ii]);
+    }
   
   return (*result)[0];
 }
@@ -163,7 +181,7 @@ void LLRRepresentation::write(const ProjectionPtr projection, const Vector &targ
     
   if (target.size() != outputs_)
     throw bad_param("representation/llr:outputs");
-  
+    
   // Push query on store
   Sample *sample = new Sample();
 
@@ -183,7 +201,7 @@ void LLRRepresentation::write(const ProjectionPtr projection, const Vector &targ
     
     // Update new sample
     for (size_t ii=0; ii < target.size(); ++ii)
-      sample->out[ii] = out[ii] + alpha*delta[ii];
+      sample->out[ii] = fmin(fmax(out[ii] + alpha*delta[ii], min_[ii]), max_[ii]);
 
     // Update neighbors      
     update(projection, alpha*delta);
@@ -193,7 +211,7 @@ void LLRRepresentation::write(const ProjectionPtr projection, const Vector &targ
   {
     // Supervised learning: just add sample with target value
     for (size_t ii=0; ii < target.size(); ++ii)
-      sample->out[ii] = target[ii];
+      sample->out[ii] = fmin(fmax(target[ii], min_[ii]), max_[ii]);
   }
 
   // Determine sample relevance
@@ -232,7 +250,7 @@ void LLRRepresentation::update(const ProjectionPtr projection, const Vector &del
     // Less contributing neighbors are updated less
     for (size_t ii=0; ii < p->indices.size(); ++ii)
       for (size_t jj=0; jj < outputs_; ++jj)
-        (*p->store)[p->indices[ii]]->out[jj] += delta[jj]*p->weights[ii];
+        (*p->store)[p->indices[ii]]->out[jj] = fmin(fmax((*p->store)[p->indices[ii]]->out[jj] + delta[jj]*p->weights[ii], min_[jj]), max_[jj]);
   }
 }
                 

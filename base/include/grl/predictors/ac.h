@@ -59,7 +59,7 @@ class ActionACPredictor : public Predictor
   public:  
     ActionACPredictor() : critic_projector_(NULL), critic_representation_(NULL), critic_trace_(NULL),
                           actor_projector_(NULL), actor_representation_(NULL), actor_trace_(NULL),
-                          alpha_(0.2), beta_(0.1), gamma_(0.97), lambda_(0.65) { }
+                          alpha_(0.2), beta_(0.01), gamma_(0.97), lambda_(0.65) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);

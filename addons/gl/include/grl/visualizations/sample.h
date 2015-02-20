@@ -56,7 +56,7 @@ class SampleVisualization : public Visualization
     bool updated_;
   
   public:
-    SampleVisualization() : projector_(NULL), dim_(0), points_(1048576), dimpoints_(0), texture_(0), data_(NULL), value_min_(0), value_max_(0), updated_(true)
+    SampleVisualization() : projector_(NULL), dim_(0), points_(65536), dimpoints_(0), texture_(0), data_(NULL), value_min_(0), value_max_(0), updated_(true)
     {
       dims_ = VectorConstructor(0., 1.);
     }

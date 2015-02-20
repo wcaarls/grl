@@ -314,18 +314,6 @@ optimizer/cma:
     default: 0
     optional: 0
 policy/action:
-  min:
-    type: vector
-    description: Lower action limit
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  max:
-    type: vector
-    description: Upper action limit
-    mutability: system
-    default: "[  ]"
-    optional: 1
   sigma:
     type: vector
     description: Standard deviation of exploration distribution
@@ -427,18 +415,6 @@ policy/discrete/random:
     default: 0
     optional: 0
 policy/parameterized/action:
-  min:
-    type: vector
-    description: Lower action limit
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  max:
-    type: vector
-    description: Upper action limit
-    mutability: system
-    default: "[  ]"
-    optional: 1
   sigma:
     type: vector
     description: Standard deviation of exploration distribution
@@ -522,7 +498,7 @@ predictor/ac/action:
     type: double
     description: Actor learning rate
     mutability: configuration
-    default: 0.1
+    default: 0.01
     optional: 1
     min: 0
     max: 1
@@ -936,6 +912,18 @@ representation/llr:
     optional: 1
     min: 0
     max: 1
+  min:
+    type: vector
+    description: Lower output limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  max:
+    type: vector
+    description: Upper output limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
   projector:
     type: projector/sample
     description: Projector used to generate input for this representation
@@ -1011,22 +999,34 @@ representation/parameterized/linear:
   outputs:
     type: int
     description: Number of outputs
-    mutability: configuration
+    mutability: system
     default: 1
     optional: 1
     min: 0
     max: 2147483647
-  min:
+  init_min:
     type: vector
     description: Lower initial value limit
     mutability: configuration
     default: "[ 0 ]"
     optional: 1
-  max:
+  init_max:
     type: vector
     description: Upper initial value limit
     mutability: configuration
     default: "[ 1 ]"
+    optional: 1
+  output_min:
+    type: vector
+    description: Lower output limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  output_max:
+    type: vector
+    description: Upper output limit
+    mutability: system
+    default: "[  ]"
     optional: 1
 sampler/epsilon_greedy:
   epsilon:
@@ -1318,7 +1318,7 @@ visualization/sample:
     type: int
     description: Texture size
     mutability: configuration
-    default: 1048576
+    default: 65536
     optional: 1
     min: 0
     max: 2147483647
