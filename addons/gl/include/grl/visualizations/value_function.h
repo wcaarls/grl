@@ -52,7 +52,11 @@ class ValueFunctionVisualization : public FieldVisualization
   
   public:
     ValueFunctionVisualization() : projector_(NULL), representation_(NULL), policy_(NULL) { }
-    
+    ~ValueFunctionVisualization()
+    {
+      stopAndJoin();
+    }
+
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);

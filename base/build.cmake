@@ -39,7 +39,7 @@ add_library(${TARGET} SHARED
            )
 
 # Dependencies
-target_link_libraries(${TARGET} -lpthread)
+target_link_libraries(${TARGET} -lpthread -ldl)
 grl_link_yaml(${TARGET})
 if (WIN32)
   grl_link_libraries(${TARGET} externals/win32)
@@ -48,12 +48,10 @@ endif()
 # Deployer
 set (TARGET deploy)
 add_executable(${TARGET} ${SRC}/deployer.cpp)
-target_link_libraries(${TARGET} -ldl)
 grl_link_libraries(${TARGET} base)
 
 # Requestgen
 set (TARGET requestgen)
 add_executable(${TARGET} ${SRC}/requestgen.cpp)
-target_link_libraries(${TARGET} -ldl)
 grl_link_libraries(${TARGET} base)
 

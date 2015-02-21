@@ -25,29 +25,12 @@
  * \endverbatim
  */
 
-#include <glob.h>
-#include <dlfcn.h>
-
+#include <grl/grl.h>
 #include <grl/configurable.h>
 #include <grl/experiment.h>
 
 using namespace grl;
 using namespace std;
-
-void loadPlugins(const char *pattern)
-{
-  glob_t globbuf;
-  
-  printf("Looking for plugins in '%s'\n", pattern);
-  
-  glob(pattern, 0, NULL, &globbuf);
-  for (size_t ii=0; ii < globbuf.gl_pathc; ++ii)
-  { 
-    printf("Loading plugin '%s'\n", globbuf.gl_pathv[ii]);
-    if (!dlopen(globbuf.gl_pathv[ii], RTLD_NOW|RTLD_LOCAL))
-      fprintf(stderr, "Error loading plugin '%s': %s\n", globbuf.gl_pathv[ii], dlerror());
-  } 
-}
 
 int main(int argc, char **argv)
 {

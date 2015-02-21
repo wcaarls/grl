@@ -25,27 +25,12 @@
  * \endverbatim
  */
 
-#include <glob.h>
-#include <dlfcn.h>
-
+#include <grl/grl.h>
 #include <grl/configurable.h>
 #include <grl/experiment.h>
 
 using namespace grl;
 using namespace std;
-
-void loadPlugins(const char *pattern)
-{
-  glob_t globbuf;
-  
-  glob(pattern, 0, NULL, &globbuf);
-  for (size_t ii=0; ii < globbuf.gl_pathc; ++ii)
-  { 
-    NOTICE("Loading plugin '" << globbuf.gl_pathv[ii] << "'");
-    if (!dlopen(globbuf.gl_pathv[ii], RTLD_NOW|RTLD_LOCAL))
-      ERROR("Error loading plugin '" << globbuf.gl_pathv[ii] << "': " << dlerror());
-  } 
-}
 
 int main(int argc, char **argv)
 {
@@ -87,10 +72,8 @@ int main(int argc, char **argv)
   // Load plugins
   loadPlugins("libaddon*.so");
   
-  Configuration config, task_spec;
+  Configuration config;
   YAMLConfigurator configurator;
-  
-  configurator.populate(task_spec);
   
   configurator.load(argv[optind], &config);
   
@@ -104,6 +87,8 @@ int main(int argc, char **argv)
   }
   
   experiment->run();
+  
+  NOTICE("Exiting");
   
   return 0;
 }

@@ -7,8 +7,8 @@ environment:
     control_step: 0.03
   task:
     type: task/pendulum/swingup
-#visualizer:
-#  type: visualizer/glut
-#visualization:
-#  type: visualization/pendulum
-#  state: environment/state
+visualizer:
+  type: visualizer/glut
+visualization:
+  type: visualization/pendulum
+  state: environment/state

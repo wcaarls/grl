@@ -38,7 +38,10 @@ Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *conf
   Configuration objconfig;
   
   if (!node.IsMap())
-    throw Exception("Can only load YAML maps");
+  {
+    ERROR("Can only load YAML maps");
+    return NULL;
+  }
     
   if (node["type"])
   {
@@ -49,6 +52,8 @@ Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *conf
       ERROR("Object " << path << " requested unknown type " << node["type"]);
       return NULL;
     }
+    
+    objects_.push_back(obj);
   }
     
   for (YAML::const_iterator it = node.begin(); it != node.end(); ++it)
@@ -255,7 +260,15 @@ Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *conf
     }
   
     DEBUG("Configuring " << obj->d_type());
-    obj->configure(objconfig);
+    try
+    {
+      obj->configure(objconfig);
+    }
+    catch (std::exception e)
+    {
+      ERROR(e.what());
+      return NULL;
+    }
   }
     
   for (Configuration::MapType::const_iterator ii=objconfig.parameters().begin(); ii != objconfig.parameters().end(); ++ii)

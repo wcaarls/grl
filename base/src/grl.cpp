@@ -25,6 +25,9 @@
  * \endverbatim
  */
 
+#include <glob.h>
+#include <dlfcn.h>
+
 #include <grl/configurable.h>
 #include <grl/projections/sample.h>
 #include <grl/visualization.h>
@@ -56,3 +59,16 @@ Visualizer *Visualizer::instance_ = NULL;
 pthread_once_t RandGen::once_ = PTHREAD_ONCE_INIT;
 pthread_mutex_t RandGen::mutex_;
 pthread_key_t RandGen::key_;
+
+void grl::loadPlugins(const char *pattern)
+{
+  glob_t globbuf;
+  
+  glob(pattern, 0, NULL, &globbuf);
+  for (size_t ii=0; ii < globbuf.gl_pathc; ++ii)
+  { 
+    NOTICE("Loading plugin '" << globbuf.gl_pathv[ii] << "'");
+    if (!dlopen(globbuf.gl_pathv[ii], RTLD_NOW|RTLD_LOCAL))
+      ERROR("Error loading plugin '" << globbuf.gl_pathv[ii] << "': " << dlerror());
+  } 
+}

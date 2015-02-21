@@ -6,3 +6,8 @@ environment:
       type: dynamics/cart_pole
   task:
     type: task/cart_pole/swingup
+visualizer:
+  type: visualizer/glut
+visualization:
+  type: visualization/cart_pole
+  state: environment/state

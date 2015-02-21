@@ -177,10 +177,18 @@ DECLARE_FACTORY(Configurable)
 class YAMLConfigurator
 {
   protected:
+    std::vector<Configurable*> objects_;
     Configuration references_;
     std::vector<std::string> file_;
 
   public:
+    ~YAMLConfigurator()
+    {
+      for (int ii=objects_.size()-1; ii >= 0; --ii)
+        delete objects_[ii];
+
+      objects_.clear();
+    }
     void populate(const Configuration &config)
     {
       references_ = config;

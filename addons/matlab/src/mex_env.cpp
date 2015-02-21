@@ -25,11 +25,10 @@
  * \endverbatim
  */
 
-#include <glob.h>
-#include <dlfcn.h>
-
 #include <string.h>
 #include <mex.h>
+
+#include <grl/grl.h>
 
 #include <grl/matlab/memstring.h>
 #include <grl/matlab/convert.h>
@@ -39,20 +38,8 @@
 
 using namespace grl;
 
+static YAMLConfigurator *g_configurator=NULL;
 static Environment *g_env=NULL;
-
-void loadPlugins(const char *pattern)
-{
-  glob_t globbuf;
-  
-  glob(pattern, 0, NULL, &globbuf);
-  for (size_t ii=0; ii < globbuf.gl_pathc; ++ii)
-  { 
-    NOTICE("Loading plugin '" << globbuf.gl_pathv[ii] << "'");
-    if (!dlopen(globbuf.gl_pathv[ii], RTLD_NOW|RTLD_LOCAL))
-      ERROR("Error loading plugin '" << globbuf.gl_pathv[ii] << "': " << dlerror());
-  } 
-}
 
 void mexFunction(int nlhs, mxArray *plhs[ ],
                  int nrhs, const mxArray *prhs[ ])
@@ -80,17 +67,21 @@ void mexFunction(int nlhs, mxArray *plhs[ ],
       mexErrMsgTxt("Missing configuration file name.");
       
     Configuration config;
-    YAMLConfigurator configurator;
-    
-    configurator.load(file, &config);
+    g_configurator = new YAMLConfigurator;
+    g_configurator->load(file, &config);
   
-    Configurable *obj = (Configurable*)config["environment"].ptr();
+    Configurable *obj=NULL;
+    if (config.has("environment"))
+      obj = (Configurable*)config["environment"].ptr();
     g_env = dynamic_cast<Environment*>(obj);
     
     if (!g_env)
+    {
+      safe_delete(&g_configurator);
       mexErrMsgTxt("Configuration file does not specify a valid environment.");
+    }
 
-    plhs[0] = taskSpecToStruct(configurator.references());
+    plhs[0] = taskSpecToStruct(g_configurator->references());
 
     mexLock();
 
@@ -102,7 +93,7 @@ void mexFunction(int nlhs, mxArray *plhs[ ],
 
   if (!strcmp(func, "fini"))
   {
-    delete g_env;
+    safe_delete(&g_configurator);
     g_env = NULL;
     mexUnlock();
   }

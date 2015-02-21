@@ -49,6 +49,10 @@ class PolicyVisualization : public FieldVisualization
   
   public:
     PolicyVisualization() : policy_(NULL), dim_(0) { }
+    ~PolicyVisualization()
+    {
+      stopAndJoin();
+    }
     
     // From Configurable
     virtual void request(ConfigurationRequest *config);

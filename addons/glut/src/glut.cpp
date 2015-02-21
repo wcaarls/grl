@@ -202,6 +202,8 @@ void GLUTVisualizer::run()
     idle();
     usleep(1000);
   }
+  
+  glutExit();
 }
     
 Visualization *GLUTVisualizer::getCurrentWindow()
