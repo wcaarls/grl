@@ -22,24 +22,6 @@ agent/dyna:
     optional: 1
     min: 0
     max: 2147483647
-  wrapping:
-    type: vector
-    description: Wrapping boundaries
-    mutability: configuration
-    default: "[  ]"
-    optional: 1
-  observation_min:
-    type: vector
-    description: Lower limit on observations
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  observation_max:
-    type: vector
-    description: Upper limit on observations
-    mutability: system
-    default: "[  ]"
-    optional: 1
   policy:
     type: policy
     description: Control policy
@@ -52,21 +34,21 @@ agent/dyna:
     mutability: configuration
     default: 0
     optional: 0
+  model:
+    type: observation_model
+    description: Observation model used for planning
+    mutability: configuration
+    default: 0
+    optional: 0
+  model_predictor:
+    type: predictor/model
+    description: Model predictor
+    mutability: configuration
+    default: 0
+    optional: 1
   model_agent:
     type: agent
     description: Agent used for planning episodes
-    mutability: configuration
-    default: 0
-    optional: 0
-  model_projector:
-    type: projector
-    description: Projector for transition model (should match representation)
-    mutability: configuration
-    default: 0
-    optional: 0
-  model_representation:
-    type: representation
-    description: Representation for transition model
     mutability: configuration
     default: 0
     optional: 0
@@ -295,6 +277,87 @@ model/dynamical:
   dynamics:
     type: dynamics
     description: Equations of motion
+    mutability: configuration
+    default: 0
+    optional: 0
+observation_model/approximated:
+  wrapping:
+    type: vector
+    description: Wrapping boundaries
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  observation_min:
+    type: vector
+    description: Lower limit on observations
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  observation_max:
+    type: vector
+    description: Upper limit on observations
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  projector:
+    type: projector
+    description: Projector for transition model (|S|+|A| dimensions)
+    mutability: configuration
+    default: 0
+    optional: 0
+  representation:
+    type: representation
+    description: Representation for transition model (|S|+2 dimensions)
+    mutability: configuration
+    default: 0
+    optional: 0
+observation_model/fixed:
+  model:
+    type: model
+    description: Environment model
+    mutability: configuration
+    default: 0
+    optional: 0
+  task:
+    type: task
+    description: Task to perform in the environment (should match model)
+    mutability: configuration
+    default: 0
+    optional: 0
+observation_model/fixed_reward:
+  wrapping:
+    type: vector
+    description: Wrapping boundaries
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  observation_min:
+    type: vector
+    description: Lower limit on observations
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  observation_max:
+    type: vector
+    description: Upper limit on observations
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  projector:
+    type: projector
+    description: Projector for transition model (|S|+|A| dimensions)
+    mutability: configuration
+    default: 0
+    optional: 0
+  representation:
+    type: representation
+    description: Representation for transition model (|S|+2 dimensions)
+    mutability: configuration
+    default: 0
+    optional: 0
+  task:
+    type: task
+    description: Task to perform in the environment
     mutability: configuration
     default: 0
     optional: 0
@@ -730,6 +793,25 @@ predictor/ggq:
   policy:
     type: policy/discrete/q
     description: Greedy target policy
+    mutability: configuration
+    default: 0
+    optional: 0
+predictor/model:
+  wrapping:
+    type: vector
+    description: Wrapping boundaries
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  projector:
+    type: projector
+    description: Projector for transition model (|S|+|A| dimensions)
+    mutability: configuration
+    default: 0
+    optional: 0
+  representation:
+    type: representation
+    description: Representation for transition model (|S|+2 dimensions)
     mutability: configuration
     default: 0
     optional: 0

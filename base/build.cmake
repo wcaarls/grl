@@ -10,6 +10,7 @@ add_library(${TARGET} SHARED
             ${SRC}/agents/dyna.cpp
             ${SRC}/configurable.cpp
             ${SRC}/discretizers/uniform.cpp
+            ${SRC}/environments/observation.cpp
             ${SRC}/environments/modeled.cpp
             ${SRC}/environments/pendulum.cpp
             ${SRC}/environments/cart_pole.cpp
@@ -21,6 +22,7 @@ add_library(${TARGET} SHARED
             ${SRC}/policies/bounded_q.cpp
             ${SRC}/policies/parameterized.cpp
             ${SRC}/policies/pid.cpp
+            ${SRC}/predictors/model.cpp
             ${SRC}/predictors/sarsa.cpp
             ${SRC}/predictors/ggq.cpp
             ${SRC}/predictors/ac.cpp

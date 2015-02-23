@@ -77,7 +77,8 @@ class Task : public Configurable
   
     virtual void start(Vector *state) const = 0;
     virtual void observe(const Vector &state, Vector *obs, int *terminal) const = 0;
-    virtual bool evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const = 0;
+    virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const = 0;
+    virtual bool invert(const Vector &obs, Vector *state) const { return false; }
 };
 
 /// Environment that uses a transition model internally.

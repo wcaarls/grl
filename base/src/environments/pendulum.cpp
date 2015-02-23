@@ -126,7 +126,7 @@ void PendulumSwingupTask::observe(const Vector &state, Vector *obs, int *termina
     *terminal = 0;
 }
 
-bool PendulumSwingupTask::evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const
+void PendulumSwingupTask::evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const
 {
   if (state.size() != 3 || action.size() != 1 || next.size() != 3)
     throw Exception("task/pendulum/swingup requires dynamics/pendulum");
@@ -135,6 +135,13 @@ bool PendulumSwingupTask::evaluate(const Vector &state, const Vector &action, co
   if (a > M_PI) a -= 2*M_PI;
 
   *reward = -5*pow(a, 2) - 0.1*pow(next[1], 2) - 1*pow(action[0], 2);
+}
+
+bool PendulumSwingupTask::invert(const Vector &obs, Vector *state) const
+{
+  *state = obs;
+  (*state)[0] -= M_PI;
+  state->push_back(0.);
   
   return true;
 }

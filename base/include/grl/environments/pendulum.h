@@ -74,7 +74,8 @@ class PendulumSwingupTask : public Task
     virtual PendulumSwingupTask *clone() const;
     virtual void start(Vector *state) const;
     virtual void observe(const Vector &state, Vector *obs, int *terminal) const;
-    virtual bool evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const;
+    virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const;
+    virtual bool invert(const Vector &obs, Vector *state) const;
 };
 
 }

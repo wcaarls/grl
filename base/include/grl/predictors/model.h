@@ -1,8 +1,8 @@
-/** \file dyna.h
- * \brief Dyna agent header file.
+/** \file model.h
+ * \brief Model predictor header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-01-22
+ * \date      2015-02-23
  *
  * \copyright \verbatim
  * Copyright (c) 2015, Wouter Caarls
@@ -25,53 +25,42 @@
  * \endverbatim
  */
 
-#ifndef GRL_DYNA_AGENT_H_
-#define GRL_DYNA_AGENT_H_
+#ifndef GRL_MODEL_PREDICTOR_H_
+#define GRL_MODEL_PREDICTOR_H_
 
-#include <grl/agent.h>
-#include <grl/policy.h>
-#include <grl/predictors/model.h>
-#include <grl/environments/observation.h>
+#include <grl/predictor.h>
+#include <grl/projector.h>
+#include <grl/representation.h>
 
 namespace grl
 {
 
-/// Dyna model-based learning agent.
-class DynaAgent : public Agent
+/// Model predictor.
+class ModelPredictor : public Predictor
 {
   public:
-    TYPEINFO("agent/dyna")
+    TYPEINFO("predictor/model")
 
   protected:
-    Policy *policy_;
-    Predictor *predictor_;
+    Projector *projector_;
+    Representation *representation_;
     
-    ObservationModel *model_;
-    ModelPredictor *model_predictor_;
-    Agent *model_agent_;
-    
-    Vector start_obs_, prev_obs_, prev_action_;
-    size_t planning_steps_, planned_steps_;
-    
+    Vector wrapping_;
+
   public:
-    DynaAgent() : policy_(NULL), predictor_(NULL), model_(NULL), model_predictor_(NULL), model_agent_(NULL), planning_steps_(1), planned_steps_(0) { }
+    ModelPredictor() : projector_(NULL), representation_(NULL) { }
   
-    // From Configurable    
+    // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
-
-    // From Agent
-    virtual DynaAgent *clone() const;
-    virtual void start(const Vector &obs, Vector *action);
-    virtual void step(const Vector &obs, double reward, Vector *action);
-    virtual void end(double reward);
-    virtual void report(std::ostream &os) const;
     
-  protected:
-    void runModel();
+    // From Predictor
+    virtual ModelPredictor *clone() const;
+    virtual void update(const Transition &transition);
+    virtual void finalize();
 };
 
 }
 
-#endif /* GRL_DYNA_AGENT_H_ */
+#endif /* GRL_MODEL_PREDICTOR_H_ */
