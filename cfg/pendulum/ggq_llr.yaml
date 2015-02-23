@@ -2,21 +2,26 @@ experiment:
   type: experiment/online_learning
   rate: 0
   test_interval: 10
+  runs: 20
+  steps: 1000000
+  output: ggq_llr
   environment: include/pendulum_swingup.yaml
-  agent:  
+  agent:
     type: agent/td
     predictor:
-      type: predictor/sarsa
+      type: predictor/ggq
       alpha: 0.2
+      eta: 0.01
       gamma: 0.97
-      lambda: 0.65
       projector: include/ann_q_projector.yaml
       representation:
         type: representation/llr
         projector: experiment/agent/predictor/projector
-      trace:  
-        type: trace/enumerated/replacing
-    policy: include/q_exploration_policy.yaml
+        outputs: 2
+      policy: include/q_greedy_policy.yaml
+    policy:
+      type: policy/discrete/random
+      discretizer: include/discretizer.yaml
   test_agent:
     type: agent/fixed
     policy: include/q_greedy_policy.yaml
@@ -28,3 +33,12 @@ visualization:
   min: experiment/environment/task/observation_min
   max: experiment/environment/task/observation_max
   points: 65536
+  dim: 0
+visualization:
+  type: visualization/sample
+  projector: experiment/agent/predictor/projector
+  min: experiment/environment/task/observation_min
+  max: experiment/environment/task/observation_max
+  points: 65536
+  dim: 1
+

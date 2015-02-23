@@ -77,10 +77,15 @@ void GGQPredictor::update(const Transition &transition)
   // temporal difference error
   double target = transition.reward + gamma_*representation_->read(phi_next, &v);
   double delta = target - representation_->read(phi, &v);
+  
+  // w^Tphi
+  double dotwphi = 0.;
+  if (!v.empty())
+   dotwphi = v[1];
 
   // Update weights
   representation_->write(phi, VectorConstructor(target, delta), VectorConstructor(alpha_, alpha_*eta_));
-  representation_->update(phi_next, VectorConstructor(-alpha_*gamma_*v[1], 0.));
+  representation_->update(phi_next, VectorConstructor(-alpha_*gamma_*dotwphi, 0.));
 }
 
 void GGQPredictor::finalize()
