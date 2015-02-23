@@ -27,6 +27,7 @@
 
 #include <glob.h>
 #include <dlfcn.h>
+#include <libgen.h>
 
 #include <grl/configurable.h>
 #include <grl/projections/sample.h>
@@ -60,15 +61,34 @@ pthread_once_t RandGen::once_ = PTHREAD_ONCE_INIT;
 pthread_mutex_t RandGen::mutex_;
 pthread_key_t RandGen::key_;
 
-void grl::loadPlugins(const char *pattern)
+static void loadPlugins1(const std::string &pattern)
 {
   glob_t globbuf;
   
-  glob(pattern, 0, NULL, &globbuf);
+  glob(pattern.c_str(), 0, NULL, &globbuf);
   for (size_t ii=0; ii < globbuf.gl_pathc; ++ii)
   { 
     NOTICE("Loading plugin '" << globbuf.gl_pathv[ii] << "'");
     if (!dlopen(globbuf.gl_pathv[ii], RTLD_NOW|RTLD_LOCAL))
       ERROR("Error loading plugin '" << globbuf.gl_pathv[ii] << "': " << dlerror());
   } 
+}
+
+void grl::loadPlugins()                   
+{
+  std::string pattern;
+  char buf[PATH_MAX] = { 0 };   
+  
+  if (readlink("/proc/self/exe", buf, PATH_MAX) < 0)      
+    WARNING("Couldn't locate executable");
+
+  // For Deploy
+  pattern = dirname(buf);         
+  pattern = pattern + "/libaddon*.so";
+  loadPlugins1(pattern);
+
+  // For ROS
+  pattern = dirname(buf);         
+  pattern = pattern + "/../libaddon*.so";
+  loadPlugins1(pattern);
 }

@@ -17,13 +17,8 @@ experiment:
       representation:
         type: representation/parameterized/linear
         memory: experiment/agent/predictor/projector/memory
-      trace:
-        type: trace/enumerated/replacing
-      theta: experiment/agent/predictor/representation
-      w:
-        type: representation/parameterized/linear
-        memory: experiment/agent/predictor/projector/memory
-        init_max: 0
+        outputs: 2
+        init_max: [1, 0]
       policy: include/q_greedy_policy.yaml
     policy:
       type: policy/discrete/random

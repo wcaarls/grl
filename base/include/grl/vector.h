@@ -234,6 +234,15 @@ inline double sum (const Vector &a)
   return e;
 }
 
+inline double prod (const Vector &a)
+{
+  double e = 1;
+  
+  for (size_t ii=0; ii < a.size(); ++ii)
+    e *= a[ii];
+  return e;
+}
+
 inline double dot (const Vector &a, const Vector &b)
 {
   return sum(a*b);
