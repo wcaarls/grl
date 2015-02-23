@@ -76,19 +76,13 @@ static void loadPlugins1(const std::string &pattern)
 
 void grl::loadPlugins()                   
 {
-  std::string pattern;
-  char buf[PATH_MAX] = { 0 };   
-  
-  if (readlink("/proc/self/exe", buf, PATH_MAX) < 0)      
-    WARNING("Couldn't locate executable");
+  Dl_info dl_info;
+  dladdr((void *)grl::loadPlugins, &dl_info);
 
-  // For Deploy
-  pattern = dirname(buf);         
+  char buf[PATH_MAX] = { 0 };
+  strcpy(buf, dl_info.dli_fname);
+
+  std::string pattern = dirname(buf);
   pattern = pattern + "/libaddon*.so";
-  loadPlugins1(pattern);
-
-  // For ROS
-  pattern = dirname(buf);         
-  pattern = pattern + "/../libaddon*.so";
   loadPlugins1(pattern);
 }
