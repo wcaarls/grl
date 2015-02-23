@@ -140,8 +140,11 @@ double LinearRepresentation::read(const ProjectionPtr &projection, Vector *resul
   return (*result)[0];
 }
 
-void LinearRepresentation::write(const ProjectionPtr projection, const Vector &target, double alpha)
+void LinearRepresentation::write(const ProjectionPtr projection, const Vector &target, const Vector &alpha)
 {
+  if (target.size() != alpha.size())
+    throw Exception("Learning rate vector does not match target vector");
+
   // TODO: Store read values and update those (for thread safety)
   Vector value;
   read(projection, &value);

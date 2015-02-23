@@ -173,7 +173,7 @@ double LLRRepresentation::read(const ProjectionPtr &projection, Vector *result) 
   return (*result)[0];
 }
 
-void LLRRepresentation::write(const ProjectionPtr projection, const Vector &target, double alpha)
+void LLRRepresentation::write(const ProjectionPtr projection, const Vector &target, const Vector &alpha)
 {
   SampleProjection *p = dynamic_cast<SampleProjection*>(projection.get());
   if (!p)
@@ -182,13 +182,16 @@ void LLRRepresentation::write(const ProjectionPtr projection, const Vector &targ
   if (target.size() != outputs_)
     throw bad_param("representation/llr:outputs");
     
+  if (alpha.size() != target.size())
+    throw Exception("Learning rate vector does not match target vector");
+    
   // Push query on store
   Sample *sample = new Sample();
 
   for (size_t ii=0; ii < p->query.size(); ++ii)
     sample->in[ii] = p->query[ii];
   
-  if (alpha < 1)
+  if (prod(alpha) != 1)
   {
     // Reinforcement learning: move sample neighborhood towards target value
     Vector out;
@@ -201,7 +204,7 @@ void LLRRepresentation::write(const ProjectionPtr projection, const Vector &targ
     
     // Update new sample
     for (size_t ii=0; ii < target.size(); ++ii)
-      sample->out[ii] = fmin(fmax(out[ii] + alpha*delta[ii], min_[ii]), max_[ii]);
+      sample->out[ii] = fmin(fmax(out[ii] + alpha[ii]*delta[ii], min_[ii]), max_[ii]);
 
     // Update neighbors      
     update(projection, alpha*delta);

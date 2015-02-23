@@ -42,7 +42,7 @@ int main(int argc, char **argv)
   }
   
   // Load plugins
-  loadPlugins("libaddon*.so");
+  loadPlugins();
   
   ConfigurableFactory::Map factories = ConfigurableFactory::factories();
   YAML::Node node;

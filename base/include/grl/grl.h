@@ -67,7 +67,7 @@ inline std::ostream &operator<<(std::ostream& os, const Transition& t)
   return os;
 }
 
-void loadPlugins(const char *pattern);
+void loadPlugins();
 
 }
 

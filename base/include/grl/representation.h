@@ -55,7 +55,13 @@ class Representation : public Mapping
   public:
     virtual Representation *clone() const = 0;
 
-    virtual void write(const ProjectionPtr projection, const Vector &target, double alpha=1.) = 0;
+    virtual void write(const ProjectionPtr projection, const Vector &target, double alpha=1.)
+    {
+      Vector valpha;
+      valpha.resize(target.size(), alpha);
+      write(projection, target, valpha);
+    }
+    virtual void write(const ProjectionPtr projection, const Vector &target, const Vector &alpha) = 0;
     virtual void update(const ProjectionPtr projection, const Vector &delta)
     {
       Vector value;

@@ -58,7 +58,7 @@ class LinearRepresentation : public ParameterizedRepresentation
     // From ParameterizedRepresentation
     virtual LinearRepresentation *clone() const;
     virtual double read(const ProjectionPtr &projection, Vector *result) const ;
-    virtual void write(const ProjectionPtr projection, const Vector &target, double alpha=1);
+    virtual void write(const ProjectionPtr projection, const Vector &target, const Vector &alpha);
     virtual void update(const ProjectionPtr projection, const Vector &delta);
     
     virtual size_t size() const

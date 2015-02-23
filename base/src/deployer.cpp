@@ -70,7 +70,7 @@ int main(int argc, char **argv)
   }
   
   // Load plugins
-  loadPlugins("libaddon*.so");
+  loadPlugins();
   
   Configuration config;
   YAMLConfigurator configurator;

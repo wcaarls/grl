@@ -1,6 +1,4 @@
-% cd grl/build
-% addpath ../bin
-% grl_test
+addpath ../build
 
 grl_env('init', '../cfg/matlab/pendulum_swingup.yaml');
 grl_agent('init', '../cfg/matlab/sarsa.yaml');

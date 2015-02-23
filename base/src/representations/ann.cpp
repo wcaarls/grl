@@ -153,7 +153,7 @@ double ANNRepresentation::read(const ProjectionPtr &projection, Vector *result) 
   return (*result)[0];
 }
 
-void ANNRepresentation::write(const ProjectionPtr projection, const Vector &target, double alpha)
+void ANNRepresentation::write(const ProjectionPtr projection, const Vector &target, const Vector &alpha)
 {
   // TODO
 }

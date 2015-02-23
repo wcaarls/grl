@@ -38,16 +38,14 @@ void GGQPredictor::request(ConfigurationRequest *config)
   config->push_back(CRP("gamma", "Discount rate", gamma_));
 
   config->push_back(CRP("projector", "projector", "Projects observation-action pairs onto representation space", projector_));
-  config->push_back(CRP("theta", "representation", "Q-value representation", theta_));
-  config->push_back(CRP("w", "representation", "Secondary weights representation (should match theta)", w_));
+  config->push_back(CRP("representation", "representation", "(Q, w) representation", representation_));
   config->push_back(CRP("policy", "policy/discrete/q", "Greedy target policy", policy_));
 }
 
 void GGQPredictor::configure(Configuration &config)
 {
   projector_ = (Projector*)config["projector"].ptr();
-  theta_ = (Representation*)config["theta"].ptr();
-  w_ = (Representation*)config["w"].ptr();
+  representation_ = (Representation*)config["representation"].ptr();
   policy_ = (QPolicy*)config["policy"].ptr();
   
   alpha_ = config["alpha"];
@@ -77,17 +75,17 @@ void GGQPredictor::update(const Transition &transition)
   ProjectionPtr phi_next = projector_->project(transition.obs, action);
 
   // temporal difference error
-  double delta = transition.reward + gamma_*theta_->read(phi_next, &v) - theta_->read(phi, &v);
-
+  double target = transition.reward + gamma_*representation_->read(phi_next, &v);
+  double delta = target - representation_->read(phi, &v);
+  
   // w^Tphi
-  double dotwphi = w_->read(phi, &v);
-  
-  // Update regular weights
-  theta_->update(phi, VectorConstructor(alpha_*delta));
-  theta_->update(phi_next, VectorConstructor(-alpha_*gamma_*dotwphi));
-  
-  // Update extra weights
-  w_->update(phi, VectorConstructor(alpha_*eta_*(delta - dotwphi)));
+  double dotwphi = 0.;
+  if (!v.empty())
+   dotwphi = v[1];
+
+  // Update weights
+  representation_->write(phi, VectorConstructor(target, delta), VectorConstructor(alpha_, alpha_*eta_));
+  representation_->update(phi_next, VectorConstructor(-alpha_*gamma_*dotwphi, 0.));
 }
 
 void GGQPredictor::finalize()

@@ -49,7 +49,7 @@ void mexFunction(int nlhs, mxArray *plhs[ ],
   
   if (first)
   {
-    loadPlugins("libaddon*.so");
+    loadPlugins();
     first = false;
   }
 
