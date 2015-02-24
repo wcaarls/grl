@@ -206,7 +206,7 @@ void CartPoleBalancingTask::request(ConfigurationRequest *config)
 {
   Task::request(config);
 
-  config->push_back(CRP("timeout", "Episode timeout", T_, CRP::Configuration, 0.));
+  config->push_back(CRP("timeout", "Episode timeout", T_, CRP::Configuration, 0., DBL_MAX));
 }
 
 void CartPoleBalancingTask::configure(Configuration &config)
@@ -214,8 +214,8 @@ void CartPoleBalancingTask::configure(Configuration &config)
   T_ = config["timeout"];
 
   config.set("observation_dims", 4);
-  config.set("observation_min", VectorConstructor(-2.4, -5.0, M_PI-12*M_PI/180, -M_PI));
-  config.set("observation_max", VectorConstructor( 2.4,  5.0, M_PI+12*M_PI/180,  M_PI));
+  config.set("observation_min", VectorConstructor(-2.4, -5.0, -12*M_PI/180, -M_PI));
+  config.set("observation_max", VectorConstructor( 2.4,  5.0,  12*M_PI/180,  M_PI));
   config.set("action_dims", 1);
   config.set("action_min", VectorConstructor(-15.));
   config.set("action_max", VectorConstructor( 15.));

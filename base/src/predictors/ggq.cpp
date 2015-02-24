@@ -67,15 +67,19 @@ void GGQPredictor::update(const Transition &transition)
   Vector v;
   
   // phi (actual taken action)
-  ProjectionPtr phi = projector_->project(transition.prev_obs, transition.prev_action);
+  ProjectionPtr phi = projector_->project(transition.prev_obs, transition.prev_action), phi_next;
+  double target = transition.reward;
   
   // phi_next for greedy target policy
-  Vector action;
-  policy_->act(transition.prev_obs, transition.prev_action, transition.obs, &action);
-  ProjectionPtr phi_next = projector_->project(transition.obs, action);
+  if (!transition.obs.empty())
+  {
+    Vector action;
+    policy_->act(transition.prev_obs, transition.prev_action, transition.obs, &action);
+    phi_next = projector_->project(transition.obs, action);
+    target += gamma_*representation_->read(phi_next, &v);
+  }
 
   // temporal difference error
-  double target = transition.reward + gamma_*representation_->read(phi_next, &v);
   double delta = target - representation_->read(phi, &v);
   
   // w^Tphi
@@ -85,7 +89,9 @@ void GGQPredictor::update(const Transition &transition)
 
   // Update weights
   representation_->write(phi, VectorConstructor(target, delta), VectorConstructor(alpha_, alpha_*eta_));
-  representation_->update(phi_next, VectorConstructor(-alpha_*gamma_*dotwphi, 0.));
+  
+  if (!transition.obs.empty())
+    representation_->update(phi_next, VectorConstructor(-alpha_*gamma_*dotwphi, 0.));
 }
 
 void GGQPredictor::finalize()
