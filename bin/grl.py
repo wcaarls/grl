@@ -248,7 +248,9 @@ class GrlObject:
       print >>output, self.type.get()
       
   def load(self, config):
-    if type(config) is str:
+    if type(config) is NoneType:
+      return
+    elif type(config) is str:
       self.type.set(config)
     else:
       self.type.set(config["type"])
