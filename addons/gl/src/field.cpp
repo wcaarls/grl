@@ -40,6 +40,12 @@ void FieldVisualization::request(ConfigurationRequest *config)
   config->push_back(CRP("max", "Upper input dimension limit", state_max_, CRP::System));
   config->push_back(CRP("points", "Number of points to evaluate", points_));
   config->push_back(CRP("dims", "Order of dimensions to visualize", dims_));
+  
+  std::vector<std::string> options;
+  options.push_back("mean");
+  options.push_back("min");
+  options.push_back("max");
+  config->push_back(CRP("projection", "Method of projecting values onto 2d space", projection_str_, CRP::Online, options));
 }
 
 void FieldVisualization::configure(Configuration &config)
@@ -47,6 +53,12 @@ void FieldVisualization::configure(Configuration &config)
   if (!Visualizer::instance())
     throw Exception("visualization/field requires a configured visualizer to run");
 
+  projection_str_ = config["projection"].str();
+  if (projection_str_ == "mean")     projection_ = vpMean;
+  else if (projection_str_ == "min") projection_ = vpMin;
+  else if (projection_str_ == "max") projection_ = vpMax;
+  else throw bad_param("visualization/field:projection");
+  
   state_min_ = config["min"];
   state_max_ = config["max"];
   state_dims_ = state_min_.size();
@@ -71,10 +83,20 @@ void FieldVisualization::configure(Configuration &config)
   
   // Allocate texture
   data_ = (unsigned char*) malloc(texpoints_*3*sizeof(unsigned char));
+  
+  DEBUG("Delta: " << (state_max_-state_min_)/(dimpoints_-1));
 }
 
 void FieldVisualization::reconfigure(const Configuration &config)
 {
+  if (config.has("projection"))
+  {
+    projection_str_ = config["projection"].str();
+    if (projection_str_ == "sum")      projection_ = vpMean;
+    else if (projection_str_ == "min") projection_ = vpMin;
+    else if (projection_str_ == "max") projection_ = vpMax;
+    else throw bad_param("visualization/field:projection");
+  }
 }
 
 void FieldVisualization::reshape(int width, int height)
@@ -96,11 +118,36 @@ void FieldVisualization::run()
     
     for (int ii=0; ii < texpoints_; ++ii)
     {
-      float v = 0;//-std::numeric_limits<float>::infinity();
+      float v;
+    
+      switch (projection_)
+      {
+        case vpMean:
+        default:
+          v = 0;
+          break;
+        case vpMin:
+          v = std::numeric_limits<float>::infinity();
+          break;
+        case vpMax:
+          v = -std::numeric_limits<float>::infinity();
+          break;
+      }
     
       for (int jj=0; jj < points_/texpoints_; ++jj)
       {
-        v += value(ss);
+        switch (projection_)
+        {
+          case vpMean:
+            v += value(ss);
+            break;
+          case vpMin:
+            v = fmin(v, value(ss));
+            break;
+          case vpMax:
+            v = fmax(v, value(ss));
+            break;
+        }
         
         for (int dd=0; dd < state_dims_; ++dd)
         {
@@ -114,14 +161,15 @@ void FieldVisualization::run()
         }
       }
 
-      v /= points_/texpoints_;
+      if (projection_ == vpMean)
+        v /= points_/texpoints_;
 
       field[ii] = v;
       value_max = fmax(v, value_max);
       value_min = fmin(v, value_min);
     }
 
-    CRAWL("Range " << value_min_ << " - " << value_max_);
+    DEBUG("Range " << value_min_ << " - " << value_max_);
 
     float value_range = value_max-value_min;
     

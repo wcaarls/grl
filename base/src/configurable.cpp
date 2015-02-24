@@ -264,7 +264,7 @@ Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *conf
     {
       obj->configure(objconfig);
     }
-    catch (std::exception e)
+    catch (std::exception &e)
     {
       ERROR(e.what());
       return NULL;

@@ -40,6 +40,8 @@ namespace grl
 class FieldVisualization : public Visualization, public itc::Thread
 {
   protected:
+    enum ValueProjection { vpMean, vpMin, vpMax };
+  
     int state_dims_;
     Vector state_min_, state_max_, dims_;
     int points_, dimpoints_, texpoints_;
@@ -48,9 +50,11 @@ class FieldVisualization : public Visualization, public itc::Thread
     Vector dim_order_;
     double value_min_, value_max_;
     bool updated_;
+    std::string projection_str_;
+    ValueProjection projection_;
   
   public:
-    FieldVisualization() : state_dims_(0), points_(65536), dimpoints_(0), texpoints_(0), texture_(0), data_(NULL), value_min_(0), value_max_(0), updated_(true)
+    FieldVisualization() : state_dims_(0), points_(65536), dimpoints_(0), texpoints_(0), texture_(0), data_(NULL), value_min_(0), value_max_(0), updated_(true), projection_str_("mean"), projection_(vpMean)
     {
       dims_ = VectorConstructor(0., 1.);
     }

@@ -77,6 +77,11 @@ static void loadPlugins1(const std::string &pattern)
 void grl::loadPlugins()                   
 {
   Dl_info dl_info;
+  
+  // ISO C++ forbids casting between pointer-to-function and pointer-to-object
+  #ifdef __GNUC__
+  __extension__
+  #endif
   dladdr((void *)grl::loadPlugins, &dl_info);
 
   char buf[PATH_MAX] = { 0 };

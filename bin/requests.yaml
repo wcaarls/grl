@@ -760,7 +760,7 @@ predictor/ggq:
     type: double
     description: Relative secondary learning rate (actual is alpha*eta)
     mutability: configuration
-    default: 0.1
+    default: 0.01
     optional: 1
     min: 0
     max: 1
@@ -778,15 +778,9 @@ predictor/ggq:
     mutability: configuration
     default: 0
     optional: 0
-  theta:
+  representation:
     type: representation
-    description: Q-value representation
-    mutability: configuration
-    default: 0
-    optional: 0
-  w:
-    type: representation
-    description: Secondary weights representation (should match theta)
+    description: (Q, w) representation
     mutability: configuration
     default: 0
     optional: 0
@@ -1160,7 +1154,7 @@ task/cart_pole/balancing:
     default: 9.99
     optional: 1
     min: 0
-    max: 1
+    max: 1.797693134862316e+308
 task/cart_pole/swingup:
   observation_dims:
     type: int
@@ -1303,6 +1297,16 @@ visualization/field/policy:
     mutability: configuration
     default: "[ 0, 1 ]"
     optional: 1
+  projection:
+    type: string
+    description: Method of projecting values onto 2d space
+    mutability: online
+    default: mean
+    optional: 1
+    options:
+      - mean
+      - min
+      - max
   policy:
     type: policy
     description: Control policy
@@ -1344,6 +1348,16 @@ visualization/field/value_function:
     mutability: configuration
     default: "[ 0, 1 ]"
     optional: 1
+  projection:
+    type: string
+    description: Method of projecting values onto 2d space
+    mutability: online
+    default: mean
+    optional: 1
+    options:
+      - mean
+      - min
+      - max
   projector:
     type: projector
     description: Projects observation-action pairs onto representation space
