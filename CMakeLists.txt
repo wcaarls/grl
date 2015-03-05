@@ -17,13 +17,8 @@ set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -Wno-unused-parameter)
   set(GRL_YAML_MODULE externals/yaml-cpp)
 #endif()
 
-if (WIN32)
-  set(GRL_WIN32_MODULE externals/win32)
-endif()
-
 # List of modules to build
 set(MODULES base
-            ${GRL_WIN32_MODULE}
             ${GRL_YAML_MODULE}
             externals/ann
             externals/cma
@@ -35,6 +30,7 @@ set(MODULES base
             addons/glut
             addons/ros
             addons/matlab
+            addons/odesim
    )
 
 # Is there a better way to find out if catkin_make was run?

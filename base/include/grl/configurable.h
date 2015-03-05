@@ -242,6 +242,8 @@ class YAMLConfigurator
       else
         throw Exception("Unsupported YAML node type");
     }
+    
+    std::string parse(const std::string &value) const;
 };
 
 }

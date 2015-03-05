@@ -20,12 +20,15 @@ class GrlMain:
     self.frame = Frame(self.canvas)
     self.vsb = Scrollbar(master, orient="vertical", command=self.canvas.yview)
     self.canvas.configure(yscrollcommand=self.vsb.set)
-
+    
     self.vsb.pack(side="right", fill="y")
     self.canvas.pack(side="left", fill="both", expand=True)
     self.canvas.create_window((4,4), window=self.frame, anchor="nw", 
                               tags="self.frame")
     self.frame.bind("<Configure>", self.OnFrameConfigure)
+    
+    master.bind_all("<Button-4>", self.OnMousewheelUp)
+    master.bind_all("<Button-5>", self.OnMousewheelDown)
 
     # Buttons
     self.savebutton = Button(
@@ -50,6 +53,11 @@ class GrlMain:
 
     self.canvas['width'] = self.frame.winfo_width()
     self.canvas['height'] = self.frame.winfo_height()
+
+  def OnMousewheelUp(self, event):
+      self.canvas.yview_scroll(-1, "units")
+  def OnMousewheelDown(self, event):
+      self.canvas.yview_scroll(1, "units")
 
   def remove(self, child):
     child.destroy()
@@ -182,8 +190,8 @@ class GrlObject:
     self.objlist = list()
     
   def refresh(self, path):
-    values = findrequests(requests, self.spec["type"])
-    values.extend(findparams(params, self.spec["type"]))
+    values = sorted(findrequests(requests, self.spec["type"]))
+    values.extend(sorted(findparams(params, self.spec["type"])))
     self.type['values'] = values
   
     # Refresh subobjects
@@ -271,8 +279,13 @@ class GrlVariable:
     self.frame = Frame(parent.frame)
     self.frame.grid(column=1, row=row, sticky=NW+E)
 
+    # Combobox contents tracing
+    self.sv = StringVar()
+    self.sv.trace("w", self.validate)
+
     # Every type has at least a combobox
-    self.value = Combobox(self.frame, width=40)
+    self.value = Combobox(self.frame, width=40, textvariable=self.sv)
+    
     if spec["mutability"] == "system":
       self.value['style'] = 'System.TCombobox'
     self.tooltip = ToolTip(self.value, text=spec['description'], delay=1000)
@@ -296,6 +309,21 @@ class GrlVariable:
       self.value.grid(sticky=W+E)
       self.frame.grid_columnconfigure(0, weight=1)
       
+  def validate(self, name, index, mode):
+    value = str(self.value.get())
+    value = ''.join(value.split())
+    dflt = str(self.spec['default'])
+    dflt = ''.join(dflt.split())
+  
+    if self.spec["mutability"] == "system":
+      self.value['style'] = 'System.TCombobox'
+    elif value != dflt:
+      self.value['style'] = 'Changed.TCombobox'
+    else:
+      self.value['style'] = 'Default.TCombobox'
+      
+    return True
+      
   def change(self, value):
     self.value.delete(0, END)
     self.value.insert(0, value)
@@ -303,16 +331,14 @@ class GrlVariable:
   def refresh(self, path):
     if self.spec["type"] == 'int' and self.spec["max"]-self.spec["min"] < 10:
       values = range(self.spec["min"], self.spec["max"]+1)
-      values.extend(findparams(params, self.spec["type"]))
+      values.extend(sorted(findparams(params, self.spec["type"])))
       self.value['values'] = values
-    elif self.spec["type"] == 'double' and self.spec["max"]-self.spec["min"] < 1.0001:
-      self.value['values'] = findparams(params, self.spec["type"])
     elif self.spec["type"] == 'string' and "options" in self.spec and len(self.spec["options"]) > 0:
       values = self.spec["options"]
-      values.extend(findparams(params, self.spec["type"]))
+      values.extend(sorted(findparams(params, self.spec["type"])))
       self.value['values'] = values
     else:
-      self.value['values'] = findparams(params, self.spec["type"])
+      self.value['values'] = sorted(findparams(params, self.spec["type"]))
 
     params[path + "/" + self.name] = self.spec["type"]
 
@@ -350,7 +376,9 @@ spec = {'type': '', 'description':'Experiment to run', 'optional':0}
 root = Tk()
 root.resizable(0,1)
 root.title('GRL configurator')
+Style().configure('Default.TCombobox', fieldbackground='lightgreen')
 Style().configure('System.TCombobox', fieldbackground='lightblue')
+Style().configure('Changed.TCombobox', fieldbackground='white')
 
 # Launch window
 app = GrlMain(root)

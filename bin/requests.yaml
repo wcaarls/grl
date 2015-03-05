@@ -110,6 +110,45 @@ environment/modeled:
     type: state
     description: Current state of the model
     mutability: provided
+environment/ode:
+  xml:
+    type: string
+    description: XML configuration filename
+    mutability: configuration
+    default: ../addons/odesim/cfg/robot.xml
+    optional: 1
+  observation_dims:
+    type: int
+    description: Number of observation dimensions
+    mutability: provided
+  observation_min:
+    type: vector
+    description: Lower limit on observations
+    mutability: provided
+  observation_max:
+    type: vector
+    description: Upper limit on observations
+    mutability: provided
+  action_dims:
+    type: int
+    description: Number of action dimensions
+    mutability: provided
+  action_min:
+    type: vector
+    description: Lower limit on actions
+    mutability: provided
+  action_max:
+    type: vector
+    description: Upper limit on actions
+    mutability: provided
+  reward_min:
+    type: double
+    description: Lower limit on immediate reward
+    mutability: provided
+  reward_max:
+    type: double
+    description: Upper limit on immediate reward
+    mutability: provided
 experiment/approx_test:
   train_samples:
     type: int

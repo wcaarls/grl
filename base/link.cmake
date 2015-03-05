@@ -1,5 +1,2 @@
 target_link_libraries(${TARGET} grl -lpthread)
 grl_link_yaml(${TARGET})
-if (WIN32)
-  grl_link_libraries(${TARGET} externals/win32)
-endif()

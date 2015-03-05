@@ -109,6 +109,11 @@ class Rand
       r->rand_data_ = rand_data_;
       return r;
     }
+    
+    void init(long int seed)
+    {
+      srand48_r(seed, &rand_data_);
+    }
 
     double get()
     {

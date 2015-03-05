@@ -109,13 +109,15 @@ Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *conf
       }
       else
       {
+        value = parse(value);
+/*      
         if (references_.has(value))
         {
           DEBUG(path << key << ": " << references_[value].str() << " (from " << value << ")");
           value = references_[value].str();
         }
         else
-          INFO(path << key << ": " << value);
+*/          INFO(path << key << ": " << value);
       
         objconfig.set(key, value);
         references_.set(path + key, value);
@@ -277,3 +279,71 @@ Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *conf
   config->merge(objconfig);
   return obj;
 }      
+
+std::string YAMLConfigurator::parse(const std::string &value) const
+{
+  std::string v = value, id, expv;
+  
+  // Resolve references
+  for (size_t ii=0; ii < v.size(); ++ii)
+  {
+    if (!isalnum(v[ii]) && v[ii] != '/' && v[ii] != '_')
+    {
+      if (references_.has(id))
+        expv.insert(expv.size(), references_[id].str());
+      else
+        expv.insert(expv.size(), id);
+    
+      id.clear();
+      expv.push_back(v[ii]);
+    }
+    else
+      id.push_back(v[ii]);
+  }
+  
+  if (references_.has(id))
+    expv.insert(expv.size(), references_[id].str());
+  else
+    expv.insert(expv.size(), id);
+
+  // Do some light math
+  size_t c;
+  while ((c=expv.find('+')) != std::string::npos)
+  {
+    std::string left, right;
+    size_t start=c, end=c+1;
+    
+    // Right
+    for (size_t ii=c+1; ii < expv.size() && expv[ii] != '+'; ++ii, ++end)
+      right.push_back(expv[ii]);
+
+    // Left
+    for (int ii=c-1; ii >= 0 && expv[ii] != '+'; --ii, --start)
+      left.push_back(expv[ii]);
+
+    std::reverse(left.begin(), left.end());
+    
+    if (left.empty() || right.empty())
+      return value;
+      
+    // Parse values
+    std::istringstream iss;
+    Vector a, b, c;
+
+    iss.str(left);  iss >> a;
+    iss.str(right); iss >> b;
+    
+    // Perform operation
+    if (a.size() == 1 && b.size() == 1) c = a + b;
+    else                                c = extend(a, b);
+    
+    // Replace in original string
+    std::ostringstream oss;
+    if (c.size() == 1) oss << c[0];
+    else               oss << c;
+    
+    expv.replace(start, end-start, oss.str());
+  }
+  
+  return expv;
+}
