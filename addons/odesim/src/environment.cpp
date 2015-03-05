@@ -12,6 +12,13 @@ REGISTER_CONFIGURABLE(ODEEnvironment)
 
 // ** ODESTGEnvironment ***
 
+ODESTGEnvironment::~ODESTGEnvironment()
+{
+  simulator_.stop();
+  simulator_.deinit();
+  listener_.stopListening();
+}
+
 bool ODESTGEnvironment::configure(Configuration &config)
 {
   std::string xml = config["xml"].str();
@@ -200,6 +207,12 @@ void ODESTGEnvironment::step(const Vector &action, Vector *obs, double *reward, 
 
 // *** ODEEnvironment ***
 
+ODEEnvironment::~ODEEnvironment()
+{
+  app_->exit();
+  itc::Thread::stopAndJoin();
+}
+
 void ODEEnvironment::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("xml", "XML configuration filename", xml_));
@@ -251,11 +264,16 @@ void ODEEnvironment::run()
     ODEDialog dialog(env_);
 
     initialized_ = true;
-    
+  
     NOTICE("Starting Qt main loop");
     app_->exec();
     WARNING("Return from Qt main loop");
   }
   else
     initialized_ = true;
+    
+  while (ok()) usleep(10000);
+
+  safe_delete(&env_);
+  safe_delete(&app_);
 }

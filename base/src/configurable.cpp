@@ -110,14 +110,7 @@ Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *conf
       else
       {
         value = parse(value);
-/*      
-        if (references_.has(value))
-        {
-          DEBUG(path << key << ": " << references_[value].str() << " (from " << value << ")");
-          value = references_[value].str();
-        }
-        else
-*/          INFO(path << key << ": " << value);
+        INFO(path << key << ": " << value);
       
         objconfig.set(key, value);
         references_.set(path + key, value);

@@ -30,6 +30,7 @@ class ODESTGEnvironment: public QObject
     
   public:
     ODESTGEnvironment() : listener_(&simulator_), timeout_(0) { }
+    ~ODESTGEnvironment();
   
     bool configure(Configuration &config);
     void start(Vector *obs);
@@ -55,6 +56,7 @@ class ODEEnvironment: public grl::Environment, public itc::Thread
 
   public:
     ODEEnvironment() : app_(NULL), env_(NULL), config_(NULL), xml_("../addons/odesim/cfg/robot.xml"), initialized_(false) { }
+    ~ODEEnvironment();
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);
