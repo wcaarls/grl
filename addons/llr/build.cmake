@@ -1,11 +1,21 @@
 # Setup build environment
 set(TARGET addon_llr)
 
-# Build library
-add_library(${TARGET} SHARED
-            ${SRC}/ann.cpp
-            ${SRC}/llr.cpp
-           )
+find_package(PkgConfig)
 
-# Add dependencies
-grl_link_libraries(${TARGET} base externals/ann)
+if (PKG_CONFIG_FOUND)
+  pkg_check_modules(EIGEN3 eigen3)
+
+  if (EIGEN3_FOUND)
+    message("-- Building llr addon")
+
+    # Build library
+    add_library(${TARGET} SHARED
+                ${SRC}/ann.cpp
+                ${SRC}/llr.cpp
+               )
+
+    # Add dependencies
+    grl_link_libraries(${TARGET} base externals/ann)
+  endif()
+endif()
