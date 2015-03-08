@@ -25,9 +25,6 @@
  * \endverbatim
  */
 
-#include <GL/gl.h>
-#include <GL/glu.h>
-
 #include <grl/visualizations/cart_pole.h>
 
 #define EPS 0.001

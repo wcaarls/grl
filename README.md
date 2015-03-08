@@ -24,9 +24,20 @@ interface.
 
 ![Configurator](/doc/grl.png)
 
-# Installation
+# Installation (Ubuntu 14.04)
 ```
+sudo apt-get install git cmake g++ libboost-dev libeigen3-dev
 git clone https://github.com/wcaarls/grl.git
+```
+
+For the visualization, additionally install
+```
+sudo apt-get install libgl1-mesa-dev-lts-utopic freeglut3-dev
+```
+
+For the odesim environment, additionally install
+```
+sudo apt-get install libqt4-opengl-dev libtinyxml-dev libmuparser-dev libode-dev
 ```
 
 # Setup
@@ -45,7 +56,7 @@ To directly perform an experiment, run
 ./deploy ../cfg/pendulum/sarsa.yaml
 ```
 
-To start the configurator with an example configuration, run
+To start the configurator with an example configuration (requires python-tk), run
 
 ```
 cd ../bin
