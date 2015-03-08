@@ -45,6 +45,11 @@ For the odesim environment, additionally install
 sudo apt-get install libqt4-opengl-dev libtinyxml-dev libmuparser-dev libode-dev
 ```
 
+For the configurator, additionally install
+```
+sudo apt-get install python-yaml python-tk
+```
+
 # Setup
 ```
 mkdir build
@@ -61,7 +66,7 @@ To directly perform an experiment, run
 ./deploy ../cfg/pendulum/sarsa.yaml
 ```
 
-To start the configurator with an example configuration (requires python-tk), run
+To start the configurator with an example configuration, run
 
 ```
 cd ../bin
