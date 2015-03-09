@@ -32,16 +32,38 @@ using namespace grl;
 
 REGISTER_CONFIGURABLE(LLRRepresentation)
 
-void LLRRepresentation::request(ConfigurationRequest *config)
+void LLRRepresentation::request(const std::string &role, ConfigurationRequest *config)
 {
-  config->push_back(CRP("outputs", "Number of output dimensions", outputs_, CRP::System, 1));
   config->push_back(CRP("ridge", "Ridge regression (Tikhonov) factor", ridge_regression_factor_));
   config->push_back(CRP("order", "Order of regression model", order_, CRP::Configuration, 0, 1));
 
-  config->push_back(CRP("min", "Lower output limit", min_, CRP::System));
-  config->push_back(CRP("max", "Upper output limit", max_, CRP::System));
-
-  config->push_back(CRP("projector", "projector/sample", "Projector used to generate input for this representation", projector_));
+  if (role == "action")
+  {
+    config->push_back(CRP("outputs", "int.action_dims", "Number of output dimensions", outputs_, CRP::System, 1));
+    config->push_back(CRP("min", "vector.action_min", "Lower output limit", min_, CRP::System));
+    config->push_back(CRP("max", "vector.action_max", "Upper output limit", max_, CRP::System));
+    config->push_back(CRP("projector", "projector/sample.observation", "Projector used to generate input for this representation", projector_));
+  }
+  else if (role == "transition")
+  {
+    config->push_back(CRP("outputs", "int.observation_dims+2", "Number of output dimensions", outputs_, CRP::System, 1));
+    config->push_back(CRP("min", "Lower output limit", min_, CRP::System));
+    config->push_back(CRP("max", "Upper output limit", max_, CRP::System));
+    config->push_back(CRP("projector", "projector/sample.pair", "Projector used to generate input for this representation", projector_));
+  }
+  else
+  {
+    config->push_back(CRP("outputs", "Number of output dimensions", outputs_, CRP::System, 1));
+    config->push_back(CRP("min", "Lower output limit", min_, CRP::System));
+    config->push_back(CRP("max", "Upper output limit", max_, CRP::System));
+    
+    if (role == "state_value")
+      config->push_back(CRP("projector", "projector/sample.observation", "Projector used to generate input for this representation", projector_));
+    else if (role == "action_value")
+      config->push_back(CRP("projector", "projector/sample.pair", "Projector used to generate input for this representation", projector_));
+    else    
+      config->push_back(CRP("projector", "projector/sample", "Projector used to generate input for this representation", projector_));
+  }
 }
 
 void LLRRepresentation::configure(Configuration &config)

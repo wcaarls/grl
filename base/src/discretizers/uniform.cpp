@@ -31,10 +31,19 @@ using namespace grl;
 
 REGISTER_CONFIGURABLE(UniformDiscretizer)
 
-void UniformDiscretizer::request(ConfigurationRequest *config)
+void UniformDiscretizer::request(const std::string &role, ConfigurationRequest *config)
 {
-  config->push_back(CRP("min", "Lower limit", min_, CRP::System));
-  config->push_back(CRP("max", "Upper limit", max_, CRP::System));
+  if (role == "action")
+  {
+    config->push_back(CRP("min", "vector.action_min", "Lower limit", min_, CRP::System));
+    config->push_back(CRP("max", "vector.action_max", "Upper limit", max_, CRP::System));
+  }
+  else
+  {
+    config->push_back(CRP("min", "Lower limit", min_, CRP::System));
+    config->push_back(CRP("max", "Upper limit", max_, CRP::System));
+  }
+  
   config->push_back(CRP("steps", "Discretization steps per dimension", steps_, CRP::Configuration));
 }
 

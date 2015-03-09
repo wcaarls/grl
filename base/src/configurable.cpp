@@ -121,13 +121,14 @@ Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *conf
   if (obj)
   {
     ConfigurationRequest request;
-    obj->request(&request);
+    obj->request("", &request);
     
     // Check configuration against request
     for (size_t ii=0; ii < request.size(); ++ii)
     {
       std::string key = request[ii].name;
-      std::string type = request[ii].type;
+      std::string type, role;
+      CRP::split(request[ii].type, &type, &role);
     
       if (request[ii].mutability == CRP::Provided)
       {
@@ -320,11 +321,11 @@ std::string YAMLConfigurator::parse(const std::string &value) const
       return value;
       
     // Parse values
-    std::istringstream iss;
+    std::istringstream issa, issb;
     Vector a, b, c;
 
-    iss.str(left);  iss >> a;
-    iss.str(right); iss >> b;
+    issa.str(left);  issa >> a;
+    issb.str(right); issb >> b;
     
     // Perform operation
     if (a.size() == 1 && b.size() == 1) c = a + b;

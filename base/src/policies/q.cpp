@@ -33,9 +33,9 @@ REGISTER_CONFIGURABLE(QPolicy)
 
 void QPolicy::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("discretizer", "discretizer", "Action discretizer", discretizer_));
-  config->push_back(CRP("projector", "projector", "Projects observation-action pairs onto representation space", projector_));
-  config->push_back(CRP("representation", "representation", "Q-value representation", representation_));
+  config->push_back(CRP("discretizer", "discretizer.action", "Action discretizer", discretizer_));
+  config->push_back(CRP("projector", "projector.pair", "Projects observation-action pairs onto representation space", projector_));
+  config->push_back(CRP("representation", "representation.action_value", "Q-value representation", representation_));
   config->push_back(CRP("sampler", "sampler", "Samples actions from Q-values", sampler_));
 }
 

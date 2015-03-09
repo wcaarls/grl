@@ -33,9 +33,9 @@ REGISTER_CONFIGURABLE(ModelPredictor)
 
 void ModelPredictor::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("wrapping", "Wrapping boundaries", wrapping_));
-  config->push_back(CRP("projector", "projector", "Projector for transition model (|S|+|A| dimensions)", projector_));
-  config->push_back(CRP("representation", "representation", "Representation for transition model (|S|+2 dimensions)", representation_));
+  config->push_back(CRP("wrapping", "vector.wrapping", "Wrapping boundaries", wrapping_));
+  config->push_back(CRP("projector", "projector.pair", "Projector for transition model (|S|+|A| dimensions)", projector_));
+  config->push_back(CRP("representation", "representation.transition", "Representation for transition model (|S|+2 dimensions)", representation_));
 }
 
 void ModelPredictor::configure(Configuration &config)

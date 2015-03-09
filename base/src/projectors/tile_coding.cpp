@@ -34,10 +34,10 @@ REGISTER_CONFIGURABLE(TileCodingProjector)
 void TileCodingProjector::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("tilings", "Number of tilings", tilings_));
-  config->push_back(CRP("memory", "Hash table size", memory_));
+  config->push_back(CRP("memory", "int.memory", "Hash table size", memory_));
   
   config->push_back(CRP("resolution", "Size of a single tile", resolution_));
-  config->push_back(CRP("wrapping", "Wrapping boundaries (must be multiple of resolution)", wrapping_));
+  config->push_back(CRP("wrapping", "vector.wrapping", "Wrapping boundaries (must be multiple of resolution)", wrapping_));
 }
 
 void TileCodingProjector::configure(Configuration &config)

@@ -63,6 +63,13 @@ struct CRP
     setValue(_value);
   }
 
+  CRP(std::string _name, std::string _type, std::string _description,
+      int _value, Mutability _mutability=Configuration, int _min=0, int _max=INT_MAX) :
+    name(_name), type(_type), description(_description), mutability(_mutability), min(_min), max(_max), optional(true)
+  {
+    setValue(_value);
+  }
+  
   CRP(std::string _name, std::string _description,
       double _value, Mutability _mutability=Configuration, double _min=0., double _max=1.) :
     name(_name), type("double"), description(_description), mutability(_mutability), min(_min), max(_max), optional(true)
@@ -70,9 +77,23 @@ struct CRP
     setValue(_value);
   }
   
+  CRP(std::string _name, std::string _type, std::string _description,
+      double _value, Mutability _mutability=Configuration, double _min=0., double _max=1.) :
+    name(_name), type(_type), description(_description), mutability(_mutability), min(_min), max(_max), optional(true)
+  {
+    setValue(_value);
+  }
+  
   CRP(std::string _name, std::string _description,
       Vector _value, Mutability _mutability=Configuration) :
     name(_name), type("vector"), description(_description), mutability(_mutability), optional(true)
+  {
+    setValue(_value);
+  }
+
+  CRP(std::string _name, std::string _type, std::string _description,
+      Vector _value, Mutability _mutability=Configuration) :
+    name(_name), type(_type), description(_description), mutability(_mutability), optional(true)
   {
     setValue(_value);
   }
@@ -89,6 +110,20 @@ struct CRP
       description = value;
       value = "";
       options = std::vector<std::string>();
+    }
+  }
+  
+  inline static void split(const std::string type, std::string *base, std::string *role)
+  {
+    if (type.find('.') != std::string::npos)
+    {
+      *base = type.substr(0, type.find('.'));
+      *role = type.substr(base->size()+1);
+    }
+    else
+    {
+      *base = type;
+      *role = "";
     }
   }
   
@@ -156,6 +191,7 @@ class Configurable
     TYPEINFO("")
 
     virtual void request(ConfigurationRequest * /*config*/) { }
+    virtual void request(const std::string &role, ConfigurationRequest *config) { request(config); }
     virtual void configure(Configuration &/*config*/) { }
     virtual void reconfigure(const Configuration &/*config*/) { }
     

@@ -32,10 +32,29 @@ using namespace grl;
 
 REGISTER_CONFIGURABLE(FourierProjector)
 
-void FourierProjector::request(ConfigurationRequest *config)
+void FourierProjector::request(const std::string &role, ConfigurationRequest *config)
 {
-  config->push_back(CRP("min", "Lower input dimension limit (for scaling)", min_, CRP::System));
-  config->push_back(CRP("max", "Upper input dimension limit (for scaling)", max_, CRP::System));
+  if (role == "observation")
+  {
+    config->push_back(CRP("min", "vector.observation_min", "Lower input dimension limit (for scaling)", min_, CRP::System));
+    config->push_back(CRP("max", "vector.observation_max", "Upper input dimension limit (for scaling)", max_, CRP::System));
+  }
+  else if (role == "action")
+  {
+    config->push_back(CRP("min", "vector.action_min", "Lower input dimension limit (for scaling)", min_, CRP::System));
+    config->push_back(CRP("max", "vector.action_max", "Upper input dimension limit (for scaling)", max_, CRP::System));
+  }
+  else if (role == "pair")
+  {
+    config->push_back(CRP("min", "vector.observation_min+vector.action_min", "Lower input dimension limit (for scaling)", min_, CRP::System));
+    config->push_back(CRP("max", "vector.observation_max+vector.action_max", "Upper input dimension limit (for scaling)", max_, CRP::System));
+  }
+  else
+  {
+    config->push_back(CRP("min", "Lower input dimension limit (for scaling)", min_, CRP::System));
+    config->push_back(CRP("max", "Upper input dimension limit (for scaling)", max_, CRP::System));
+  }
+  
   config->push_back(CRP("order", "Order of approximation (bases per dimension)", (int)order_, CRP::Configuration, 0, 256));
   
   std::vector<std::string> options;
@@ -43,7 +62,7 @@ void FourierProjector::request(ConfigurationRequest *config)
   options.push_back("odd");
   
   config->push_back(CRP("parity", "Whether to use odd or even bases", parity_, CRP::Configuration, options));
-  config->push_back(CRP("memory", "int", "Feature vector size", CRP::Provided));
+  config->push_back(CRP("memory", "int.memory", "Feature vector size", CRP::Provided));
 }
 
 void FourierProjector::configure(Configuration &config)

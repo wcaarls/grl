@@ -34,14 +34,22 @@ using namespace grl;
 
 REGISTER_CONFIGURABLE(ANNProjector)
 
-void ANNProjector::request(ConfigurationRequest *config)
+void ANNProjector::request(const std::string &role, ConfigurationRequest *config)
 {
   config->push_back(CRP("samples", "Maximum number of samples to store", max_samples_, CRP::Configuration, 100));
   config->push_back(CRP("neighbors", "Number of neighbor indices to return", neighbors_, CRP::Configuration, 1, ANN_MAX_NEIGHBORS));
   config->push_back(CRP("bucket_size", "?", bucket_size_, CRP::Configuration, 1));
   config->push_back(CRP("error_bound", "?", error_bound_, CRP::Configuration, 0., DBL_MAX));
-  config->push_back(CRP("dims", "Number of input dimensions", dims_, CRP::System, 1, SS_MAX_COORDS));
   config->push_back(CRP("scaling", "Input dimension scaling", scaling_));
+  
+  if (role == "observation")
+    config->push_back(CRP("dims", "int.observation_dims", "Number of input dimensions", dims_, CRP::System, 1, SS_MAX_COORDS));
+  else if (role == "action")
+    config->push_back(CRP("dims", "int.action_dims", "Number of input dimensions", dims_, CRP::System, 1, SS_MAX_COORDS));
+  else if (role == "pair")
+    config->push_back(CRP("dims", "int.observation_dims+int.action_dims", "Number of input dimensions", dims_, CRP::System, 1, SS_MAX_COORDS));
+  else
+    config->push_back(CRP("dims", "Number of input dimensions", dims_, CRP::System, 1, SS_MAX_COORDS));
 }
 
 void ANNProjector::configure(Configuration &config)

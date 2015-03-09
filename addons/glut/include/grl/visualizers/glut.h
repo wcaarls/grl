@@ -75,8 +75,11 @@ class GLUTVisualizer : public Visualizer
   protected:    
     ~GLUTVisualizer()
     {
-      continue_ = false;
-      pthread_join(thread_, NULL);
+      if (continue_)
+      {
+        continue_ = false;
+        pthread_join(thread_, NULL);
+      }
     }
     
     void run();

@@ -56,7 +56,7 @@ class LLRRepresentation : public Representation
     LLRRepresentation() : projector_(NULL), ridge_regression_factor_(0.00001), outputs_(1), order_(1) { }
   
     // From Configurable
-    virtual void request(ConfigurationRequest *config);
+    virtual void request(const std::string &role, ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
   

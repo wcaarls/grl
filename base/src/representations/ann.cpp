@@ -34,17 +34,45 @@ using namespace grl;
 
 REGISTER_CONFIGURABLE(ANNRepresentation)
 
-void ANNRepresentation::request(ConfigurationRequest *config)
+void ANNRepresentation::request(const std::string &role, ConfigurationRequest *config)
 {
-  config->push_back(CRP("input_min", "Lower limit on inputs", input_min_, CRP::System));
-  config->push_back(CRP("input_max", "Upper limit on inputs", input_max_, CRP::System));
-  
-  config->push_back(CRP("output_min", "Lower limit on outputs", output_min_, CRP::System));
-  config->push_back(CRP("output_max", "Upper limit on outputs", output_max_, CRP::System));
+  if (role == "action")
+  {
+    config->push_back(CRP("input_min", "vector.observation_min", "Lower limit on inputs", input_min_, CRP::System));
+    config->push_back(CRP("input_max", "vector.observation_max", "Upper limit on inputs", input_max_, CRP::System));
+    config->push_back(CRP("output_min", "vector.action_min", "Lower limit on outputs", output_min_, CRP::System));
+    config->push_back(CRP("output_max", "vector.action_max", "Upper limit on outputs", output_max_, CRP::System));
+  }
+  else
+  {
+    if (role == "transition")
+    {
+      config->push_back(CRP("input_min", "vector.observation_min+vector.action_min", "Lower limit on inputs", input_min_, CRP::System));
+      config->push_back(CRP("input_max", "vector.observation_max+vector.action_max", "Upper limit on inputs", input_max_, CRP::System));
+    }
+    else if (role == "state_value")
+    {
+      config->push_back(CRP("input_min", "vector.observation_min", "Lower limit on inputs", input_min_, CRP::System));
+      config->push_back(CRP("input_max", "vector.observation_max", "Upper limit on inputs", input_max_, CRP::System));
+    }
+    else if (role == "action_value")
+    {
+      config->push_back(CRP("input_min", "vector.observation_min+vector.action_min", "Lower limit on inputs", input_min_, CRP::System));
+      config->push_back(CRP("input_max", "vector.observation_max+vector.action_max", "Upper limit on inputs", input_max_, CRP::System));
+    }
+    else
+    {
+      config->push_back(CRP("input_min", "Lower limit on inputs", input_min_, CRP::System));
+      config->push_back(CRP("input_max", "Upper limit on inputs", input_max_, CRP::System));
+    }
+    
+    config->push_back(CRP("output_min", "Lower limit on outputs", output_min_, CRP::System));
+    config->push_back(CRP("output_max", "Upper limit on outputs", output_max_, CRP::System));
+  }
   
   config->push_back(CRP("hiddens", "Number of hidden nodes", (int)hiddens_, CRP::Configuration, 0, MAX_NODES));
 
-  config->push_back(CRP("steepness", "Steepness of activation function", steepness_));
+  config->push_back(CRP("steepness", "Steepness of activation function", steepness_, CRP::Configuration, 0., DBL_MAX));
   config->push_back(CRP("bias", "Use bias nodes", bias_, CRP::Configuration, 0, 1));
   config->push_back(CRP("recurrent", "Feed hidden activation back as input", recurrent_, CRP::Configuration, 0, 1));
 }

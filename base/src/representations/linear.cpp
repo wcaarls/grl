@@ -31,16 +31,31 @@ using namespace grl;
 
 REGISTER_CONFIGURABLE(LinearRepresentation)
 
-void LinearRepresentation::request(ConfigurationRequest *config)
+void LinearRepresentation::request(const std::string &role, ConfigurationRequest *config)
 {
-  config->push_back(CRP("memory", "Feature vector size", (int)memory_, CRP::System));
-  config->push_back(CRP("outputs", "Number of outputs", (int)outputs_, CRP::System));
-
   config->push_back(CRP("init_min", "Lower initial value limit", init_min_));
   config->push_back(CRP("init_max", "Upper initial value limit", init_max_));
-  
-  config->push_back(CRP("output_min", "Lower output limit", output_min_, CRP::System));
-  config->push_back(CRP("output_max", "Upper output limit", output_max_, CRP::System));
+
+  config->push_back(CRP("memory", "int.memory", "Feature vector size", (int)memory_, CRP::System));
+
+  if (role == "action")
+  {
+    config->push_back(CRP("outputs", "int.action_dims", "Number of outputs", (int)outputs_, CRP::System));
+    config->push_back(CRP("output_min", "vector.action_min", "Lower output limit", output_min_, CRP::System));
+    config->push_back(CRP("output_max", "vector.action_max", "Upper output limit", output_max_, CRP::System));
+  }
+  else if (role == "transition")
+  {
+    config->push_back(CRP("outputs", "int.observation_dims+2", "Number of outputs", (int)outputs_, CRP::System));
+    config->push_back(CRP("output_min", "Lower output limit", output_min_, CRP::System));
+    config->push_back(CRP("output_max", "Upper output limit", output_max_, CRP::System));
+  }
+  else
+  {
+    config->push_back(CRP("outputs", "Number of outputs", (int)outputs_, CRP::System));
+    config->push_back(CRP("output_min", "Lower output limit", output_min_, CRP::System));
+    config->push_back(CRP("output_max", "Upper output limit", output_max_, CRP::System));
+  }
 }
 
 void LinearRepresentation::configure(Configuration &config)

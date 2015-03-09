@@ -39,7 +39,7 @@ REGISTER_CONFIGURABLE(PIDPolicy)
 void PIDPolicy::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("setpoint", "Setpoint", setpoint_, CRP::Online));
-  config->push_back(CRP("outputs", "Number of outputs", (int)outputs_, CRP::System, 1));
+  config->push_back(CRP("outputs", "int.action_dims", "Number of outputs", (int)outputs_, CRP::System, 1));
   
   config->push_back(CRP("p", "P gains ([in1_out1, ..., in1_outN, ..., inN_out1, ..., inN_outN])", p_, CRP::Online));
   config->push_back(CRP("i", "I gains", i_, CRP::Online));

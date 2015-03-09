@@ -43,6 +43,7 @@ class Visualization : public Configurable
     int id_;
 
   public:
+    Visualization() : id_(-1) { }
     virtual ~Visualization();
 
     void id(int _id) { id_ = _id; }
@@ -92,7 +93,8 @@ class Visualizer : public Configurable
 
 inline Visualization::~Visualization()
 {
-  destroy();
+  if (id_ != -1)
+    destroy();
 }
 
 inline void Visualization::create(const char *name)

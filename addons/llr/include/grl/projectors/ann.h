@@ -59,11 +59,11 @@ class ANNProjector : public SampleProjector
     mutable ReadWriteLock rwlock_;
 
   public:
-    ANNProjector() : index_(NULL), max_samples_(0), dims_(1), bucket_size_(10), neighbors_(20), error_bound_(0.1) { }
+    ANNProjector() : index_(NULL), max_samples_(1000), dims_(1), bucket_size_(10), neighbors_(20), error_bound_(0.1) { }
     void reindex();
     
     // From Configurable
-    virtual void request(ConfigurationRequest *config);
+    virtual void request(const std::string &role, ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
     

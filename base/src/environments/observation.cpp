@@ -79,12 +79,12 @@ void FixedObservationModel::step(const Vector &obs, const Vector &action, Vector
 
 void ApproximatedObservationModel::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("wrapping", "Wrapping boundaries", wrapping_));
-  config->push_back(CRP("observation_min", "Lower limit on observations", observation_min_, CRP::System));
-  config->push_back(CRP("observation_max", "Upper limit on observations", observation_max_, CRP::System));
+  config->push_back(CRP("wrapping", "vector.wrapping", "Wrapping boundaries", wrapping_));
+  config->push_back(CRP("observation_min", "vector.observation_min", "Lower limit on observations", observation_min_, CRP::System));
+  config->push_back(CRP("observation_max", "vector.observation_max", "Upper limit on observations", observation_max_, CRP::System));
 
-  config->push_back(CRP("projector", "projector", "Projector for transition model (|S|+|A| dimensions)", projector_));
-  config->push_back(CRP("representation", "representation", "Representation for transition model (|S|+2 dimensions)", representation_));
+  config->push_back(CRP("projector", "projector.pair", "Projector for transition model (|S|+|A| dimensions)", projector_));
+  config->push_back(CRP("representation", "representation.transition", "Representation for transition model (|S|+2 dimensions)", representation_));
 }
 
 void ApproximatedObservationModel::configure(Configuration &config)

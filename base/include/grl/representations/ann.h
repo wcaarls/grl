@@ -47,10 +47,10 @@ class ANNRepresentation : public ParameterizedRepresentation
     int bias_, recurrent_;
 
   public:
-    ANNRepresentation() : inputs_(0), hiddens_(0), outputs_(0), steepness_(5), bias_(1), recurrent_(0) { }
+    ANNRepresentation() : inputs_(0), hiddens_(10), outputs_(0), steepness_(5), bias_(1), recurrent_(0) { }
     
     // From Configurable
-    virtual void request(ConfigurationRequest *config);
+    virtual void request(const std::string &role, ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
   

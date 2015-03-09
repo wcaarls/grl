@@ -1,5 +1,6 @@
 import yaml
 import yaml.constructor
+import itertools
 
 try:
     # included in standard lib from Python 2.7
@@ -46,29 +47,67 @@ class OrderedDictYAMLLoader(yaml.Loader):
             mapping[key] = value
         return mapping
 
+def splittype(type):
+  """Splits type into base and role."""
+  temp = type.split('.')
+  if len(temp) == 1:
+    return temp[0], ''
+  else:
+    return temp[0], temp[1]
+
 def isobject(type):
   """Returns true if the type is not a builtin type."""
-  if type in ['int','double','string','vector']:
+  base, role = splittype(type)
+  
+  if base in ['int','double','string','vector']:
     return False
   else:
     return True
+
+def isnumber(type):
+  try:
+    float(type)
+    return True
+  except ValueError:
+    return False
 
 def findrequests(requests, type):
   """Find parameter requests that match a certain type."""
   matches = list()
   
-  for key in requests:
-    if key[0:len(type)] == type:
-      matches.append(key)
+  base, role = splittype(type)
   
-  return matches
+  for key in requests:
+    if key[0:len(base)] == base and (role == "" or key[-len(role):] == role):
+      keybase, keyrole = splittype(key)
+      matches.append(keybase)
+  
+  return sorted(list(set(matches)))
 
 def findparams(params, type):
   """Find registered parameters that match a certain type."""
+  components = type.split('+')
+  
+  pmatches = list()
+  
+  for c in components:
+    cmatches = list()
+    
+    if isnumber(c):
+      cmatches.append(c)
+    else:
+      base, role = splittype(c)
+      
+      for key in params:
+        if params[key][0:len(base)] == base and (role == "" or params[key][-len(role):] == role):
+          keybase, keyrole = splittype(key)
+          cmatches.append(keybase)
+        
+    pmatches.append(cmatches)
+
+  # Cartesian product
   matches = list()
+  for element in itertools.product(*pmatches):
+    matches.append('+'.join(element))
 
-  for key in params:
-    if params[key][0:len(type)] == type:
-      matches.append(key)
-
-  return matches
+  return sorted(list(set(matches)))

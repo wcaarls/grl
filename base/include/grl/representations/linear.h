@@ -51,7 +51,7 @@ class LinearRepresentation : public ParameterizedRepresentation
     }
   
     // From Configurable
-    virtual void request(ConfigurationRequest *config);
+    virtual void request(const std::string &role, ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
   

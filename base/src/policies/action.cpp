@@ -36,8 +36,8 @@ void ActionPolicy::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("sigma", "Standard deviation of exploration distribution", sigma_, CRP::Configuration));
 
-  config->push_back(CRP("projector", "projector", "Projects observations onto representation space", projector_));
-  config->push_back(CRP("representation", "representation", "Action representation", representation_));
+  config->push_back(CRP("projector", "projector.observation", "Projects observations onto representation space", projector_));
+  config->push_back(CRP("representation", "representation.action", "Action representation", representation_));
 }
 
 void ActionPolicy::configure(Configuration &config)

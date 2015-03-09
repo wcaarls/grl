@@ -65,14 +65,14 @@ class Task : public Configurable
   public:
     virtual void request(ConfigurationRequest *config)
     {
-      config->push_back(CRP("observation_dims", "int", "Number of observation dimensions", CRP::Provided));
-      config->push_back(CRP("observation_min", "vector", "Lower limit on observations", CRP::Provided));
-      config->push_back(CRP("observation_max", "vector", "Upper limit on observations", CRP::Provided));
-      config->push_back(CRP("action_dims", "int", "Number of action dimensions", CRP::Provided));
-      config->push_back(CRP("action_min", "vector", "Lower limit on actions", CRP::Provided));
-      config->push_back(CRP("action_max", "vector", "Upper limit on actions", CRP::Provided));
-      config->push_back(CRP("reward_min", "double", "Lower limit on immediate reward", CRP::Provided));
-      config->push_back(CRP("reward_max", "double", "Upper limit on immediate reward", CRP::Provided));
+      config->push_back(CRP("observation_dims", "int.observation_dims", "Number of observation dimensions", CRP::Provided));
+      config->push_back(CRP("observation_min", "vector.observation_min", "Lower limit on observations", CRP::Provided));
+      config->push_back(CRP("observation_max", "vector.observation_max", "Upper limit on observations", CRP::Provided));
+      config->push_back(CRP("action_dims", "int.action_dims", "Number of action dimensions", CRP::Provided));
+      config->push_back(CRP("action_min", "vector.action_min", "Lower limit on actions", CRP::Provided));
+      config->push_back(CRP("action_max", "vector.action_max", "Upper limit on actions", CRP::Provided));
+      config->push_back(CRP("reward_min", "double.reward_min", "Lower limit on immediate reward", CRP::Provided));
+      config->push_back(CRP("reward_max", "double.reward_max", "Upper limit on immediate reward", CRP::Provided));
     }    
   
     virtual void start(Vector *state) const = 0;

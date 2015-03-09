@@ -190,8 +190,8 @@ class GrlObject:
     self.objlist = list()
     
   def refresh(self, path):
-    values = sorted(findrequests(requests, self.spec["type"]))
-    values.extend(sorted(findparams(params, self.spec["type"])))
+    values = findrequests(requests, self.spec["type"])
+    values.extend(findparams(params, self.spec["type"]))
     self.type['values'] = values
   
     # Refresh subobjects
@@ -199,6 +199,12 @@ class GrlObject:
       obj.refresh(path)
 
     type = self.type.get()
+
+    # Augment type with role, if specified
+    base, role = splittype(self.spec["type"])
+    if role != "":
+      type = type + "." + role
+      
     params[path] = type
     
     # Add provided parameters
@@ -222,7 +228,12 @@ class GrlObject:
 
     type = self.type.get()
     
-    # Add new ones
+    # Augment type with role, if specified
+    base, role = splittype(self.spec["type"])
+    if role != "":
+      type = type + "." + role
+    
+    # Add new subobjects
     row = 0
     if type in requests:
       if requests[type]:
@@ -273,6 +284,7 @@ class GrlVariable:
   def __init__(self, parent, name, spec, row):
     self.spec = spec
     self.name = name
+    self.firstrefresh = True
     
     self.label = Label(parent.frame, text=name)
     self.label.grid(column=0, row=row, sticky=NW)
@@ -289,18 +301,20 @@ class GrlVariable:
     if spec["mutability"] == "system":
       self.value['style'] = 'System.TCombobox'
     self.tooltip = ToolTip(self.value, text=spec['description'], delay=1000)
+
+    type, role = splittype(self.spec["type"])
   
-    if spec["type"] == 'int' and spec["max"]-spec["min"] < 10:
+    if type == 'int' and spec["max"]-spec["min"] < 10:
       self.value.set(spec["default"])
       self.value.grid(sticky=W+E)
       self.frame.grid_columnconfigure(0, weight=1)
-    elif spec["type"] == 'double' and spec["max"]-spec["min"] < 1.0001:
+    elif type == 'double' and spec["max"]-spec["min"] < 1.0001:
       self.value.set(spec["default"])
       self.value.grid(column=0, row=0)
       self.scale = Scale(self.frame, from_=spec["min"], to=spec["max"], value=spec["default"], command=self.change)
       self.scale.grid(column=1, row=0, sticky=W+E)
       self.frame.grid_columnconfigure(1, weight=1)
-    elif spec["type"] == 'string' and "options" in spec and len(spec["options"]) > 0:
+    elif type == 'string' and "options" in spec and len(spec["options"]) > 0:
       self.value.set(spec["default"])
       self.value.grid(sticky=W+E)
       self.frame.grid_columnconfigure(0, weight=1)
@@ -321,7 +335,7 @@ class GrlVariable:
       self.value['style'] = 'Changed.TCombobox'
     else:
       self.value['style'] = 'Default.TCombobox'
-      
+    
     return True
       
   def change(self, value):
@@ -329,18 +343,27 @@ class GrlVariable:
     self.value.insert(0, value)
     
   def refresh(self, path):
-    if self.spec["type"] == 'int' and self.spec["max"]-self.spec["min"] < 10:
+    type, role = splittype(self.spec["type"])
+  
+    if type == 'int' and self.spec["max"]-self.spec["min"] < 10:
       values = range(self.spec["min"], self.spec["max"]+1)
-      values.extend(sorted(findparams(params, self.spec["type"])))
+      values.extend(findparams(params, self.spec["type"]))
       self.value['values'] = values
-    elif self.spec["type"] == 'string' and "options" in self.spec and len(self.spec["options"]) > 0:
+    elif type == 'string' and "options" in self.spec and len(self.spec["options"]) > 0:
       values = self.spec["options"]
-      values.extend(sorted(findparams(params, self.spec["type"])))
+      values.extend(findparams(params, self.spec["type"]))
       self.value['values'] = values
     else:
-      self.value['values'] = sorted(findparams(params, self.spec["type"]))
+      self.value['values'] = findparams(params, self.spec["type"])
 
-    params[path + "/" + self.name] = self.spec["type"]
+    # This actually requires refresh to be called every time a value changes...
+    if not self.value.get() in params:
+      params[path + "/" + self.name] = self.spec["type"]
+    
+    if self.firstrefresh and self.spec['mutability'] == 'system' and len(self.value['values']) == 1:
+      self.value.set(self.value['values'][0])
+        
+    self.firstrefresh = False
 
   def destroy(self):
     self.label.grid_forget()

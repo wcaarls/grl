@@ -48,7 +48,7 @@ void StateVisualization::request(ConfigurationRequest *config)
 void StateVisualization::configure(Configuration &config)
 {
   if (!Visualizer::instance())
-    throw Exception("visualization/sample requires a configured visualizer to run");
+    throw Exception("visualization/state requires a configured visualizer to run");
 
   state_ = (State*)config["state"].ptr();
 

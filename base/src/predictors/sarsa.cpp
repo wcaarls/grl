@@ -38,8 +38,8 @@ void SARSAPredictor::request(ConfigurationRequest *config)
   config->push_back(CRP("gamma", "Discount rate", gamma_));
   config->push_back(CRP("lambda", "Trace decay rate", lambda_));
 
-  config->push_back(CRP("projector", "projector", "Projects observation-action pairs onto representation space", projector_));
-  config->push_back(CRP("representation", "representation", "Q-value representation", representation_));
+  config->push_back(CRP("projector", "projector.pair", "Projects observation-action pairs onto representation space", projector_));
+  config->push_back(CRP("representation", "representation.action_value", "Q-value representation", representation_));
   config->push_back(CRP("trace", "trace", "Trace of projections", trace_));
 }
 

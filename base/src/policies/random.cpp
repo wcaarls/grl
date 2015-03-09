@@ -34,8 +34,8 @@ REGISTER_CONFIGURABLE(RandomDiscretePolicy)
 
 void RandomPolicy::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("min", "Lower action limit", min_, CRP::System));
-  config->push_back(CRP("max", "Upper action limit", max_, CRP::System));
+  config->push_back(CRP("min", "vector.action_min", "Lower action limit", min_, CRP::System));
+  config->push_back(CRP("max", "vector.action_max", "Upper action limit", max_, CRP::System));
 }
 
 void RandomPolicy::configure(Configuration &config)

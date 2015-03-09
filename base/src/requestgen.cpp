@@ -45,21 +45,77 @@ int main(int argc, char **argv)
   loadPlugins();
   
   ConfigurableFactory::Map factories = ConfigurableFactory::factories();
+  
+  // Initialize object list with base types
+  std::vector<std::string> objects;
+  for (ConfigurableFactory::Map::iterator ii=factories.begin(); ii != factories.end(); ++ii)
+    objects.push_back(ii->first);
+  
+  // Generate all required template instantiations
+  for (size_t ii=0; ii < objects.size(); ++ii)
+  {
+    std::string base, templ;
+    CRP::split(objects[ii], &base, &templ);
+    
+    Configurable *obj = ConfigurableFactory::create(base);
+
+    ConfigurationRequest request;
+    obj->request(templ, &request);
+    
+    for (ConfigurationRequest::iterator jj=request.begin(); jj != request.end(); ++jj)
+    {
+      CRP::split(jj->type, &base, &templ);
+      
+      if (!templ.empty())
+      {
+        // Find all matching objects
+        for (size_t kk=0; kk < objects.size(); ++kk)
+        {
+          // Don't match already instantiated objects
+          if (objects[kk].substr(0, base.size()) == base && objects[kk].find('.') == std::string::npos)
+          {
+            std::string instantiation = objects[kk] + "." + templ;
+          
+            // Avoid adding duplicates
+            bool found=false;
+            for (size_t ll=0; ll < objects.size(); ++ll)
+              if (objects[ll] == instantiation)
+              {
+                found = true;
+                break;
+              }
+      
+            if (!found)
+              objects.push_back(instantiation);
+          }
+        }
+      }
+    }
+    
+    delete obj;
+  }
+  
   YAML::Node node;
   
-  // Get requested parameters for all object factories
-  for (ConfigurableFactory::Map::iterator ii=factories.begin(); ii != factories.end(); ++ii)
+  // Get requested parameters for all objects
+  for (size_t ii=0; ii < objects.size(); ++ii)
   {
     YAML::Node type;
+    
+    std::string base, templ;
+    CRP::split(objects[ii], &base, &templ);
+    Configurable *obj = ConfigurableFactory::create(base);
   
     ConfigurationRequest request;
-    
-    Configurable *obj = ConfigurableFactory::create(ii->first);
-    obj->request(&request);
+    obj->request(templ, &request);
     
     for (ConfigurationRequest::iterator jj=request.begin(); jj != request.end(); ++jj)
     {
       YAML::Node spec;
+      
+      std::string base, templ;
+      CRP::split(jj->type, &base, &templ);
+      
       spec["type"] = jj->type;
       spec["description"] = jj->description;
       switch (jj->mutability)
@@ -83,12 +139,12 @@ int main(int argc, char **argv)
         spec["default"] = jj->value;
         spec["optional"] = (int)jj->optional;
         
-        if (jj->type == "int" || jj->type == "double")
+        if (base == "int" || base == "double")
         {
           spec["min"] = jj->min;
           spec["max"] = jj->max;
         }
-        else if (jj->type == "string" && !jj->options.empty())
+        else if (base == "string" && !jj->options.empty())
         {
           YAML::Node options;
           for (size_t kk=0; kk < jj->options.size(); ++kk)
@@ -100,9 +156,9 @@ int main(int argc, char **argv)
       type[jj->name] = spec;
     }
     
-    node[ii->first] = type;
+    node[objects[ii]] = type;
     
-    //delete obj;
+    delete obj;
   }
   
   std::ofstream ofs(argv[1]);

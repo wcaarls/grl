@@ -118,35 +118,35 @@ environment/ode:
     default: ../addons/odesim/cfg/robot.xml
     optional: 1
   observation_dims:
-    type: int
+    type: int.observation_dims
     description: Number of observation dimensions
     mutability: provided
   observation_min:
-    type: vector
+    type: vector.observation_min
     description: Lower limit on observations
     mutability: provided
   observation_max:
-    type: vector
+    type: vector.observation_max
     description: Upper limit on observations
     mutability: provided
   action_dims:
-    type: int
+    type: int.action_dims
     description: Number of action dimensions
     mutability: provided
   action_min:
-    type: vector
+    type: vector.action_min
     description: Lower limit on actions
     mutability: provided
   action_max:
-    type: vector
+    type: vector.action_max
     description: Upper limit on actions
     mutability: provided
   reward_min:
-    type: double
+    type: double.reward_min
     description: Lower limit on immediate reward
     mutability: provided
   reward_max:
-    type: double
+    type: double.reward_max
     description: Upper limit on immediate reward
     mutability: provided
 experiment/approx_test:
@@ -321,31 +321,31 @@ model/dynamical:
     optional: 0
 observation_model/approximated:
   wrapping:
-    type: vector
+    type: vector.wrapping
     description: Wrapping boundaries
     mutability: configuration
     default: "[  ]"
     optional: 1
   observation_min:
-    type: vector
+    type: vector.observation_min
     description: Lower limit on observations
     mutability: system
     default: "[  ]"
     optional: 1
   observation_max:
-    type: vector
+    type: vector.observation_max
     description: Upper limit on observations
     mutability: system
     default: "[  ]"
     optional: 1
   projector:
-    type: projector
+    type: projector.pair
     description: Projector for transition model (|S|+|A| dimensions)
     mutability: configuration
     default: 0
     optional: 0
   representation:
-    type: representation
+    type: representation.transition
     description: Representation for transition model (|S|+2 dimensions)
     mutability: configuration
     default: 0
@@ -365,31 +365,31 @@ observation_model/fixed:
     optional: 0
 observation_model/fixed_reward:
   wrapping:
-    type: vector
+    type: vector.wrapping
     description: Wrapping boundaries
     mutability: configuration
     default: "[  ]"
     optional: 1
   observation_min:
-    type: vector
+    type: vector.observation_min
     description: Lower limit on observations
     mutability: system
     default: "[  ]"
     optional: 1
   observation_max:
-    type: vector
+    type: vector.observation_max
     description: Upper limit on observations
     mutability: system
     default: "[  ]"
     optional: 1
   projector:
-    type: projector
+    type: projector.pair
     description: Projector for transition model (|S|+|A| dimensions)
     mutability: configuration
     default: 0
     optional: 0
   representation:
-    type: representation
+    type: representation.transition
     description: Representation for transition model (|S|+2 dimensions)
     mutability: configuration
     default: 0
@@ -423,13 +423,13 @@ policy/action:
     default: "[  ]"
     optional: 1
   projector:
-    type: projector
+    type: projector.observation
     description: Projects observations onto representation space
     mutability: configuration
     default: 0
     optional: 0
   representation:
-    type: representation
+    type: representation.action
     description: Action representation
     mutability: configuration
     default: 0
@@ -455,19 +455,19 @@ policy/action_probability:
     optional: 0
 policy/discrete/q:
   discretizer:
-    type: discretizer
+    type: discretizer.action
     description: Action discretizer
     mutability: configuration
     default: 0
     optional: 0
   projector:
-    type: projector
+    type: projector.pair
     description: Projects observation-action pairs onto representation space
     mutability: configuration
     default: 0
     optional: 0
   representation:
-    type: representation
+    type: representation.action_value
     description: Q-value representation
     mutability: configuration
     default: 0
@@ -486,19 +486,19 @@ policy/discrete/q/bounded:
     default: "[  ]"
     optional: 1
   discretizer:
-    type: discretizer
+    type: discretizer.action
     description: Action discretizer
     mutability: configuration
     default: 0
     optional: 0
   projector:
-    type: projector
+    type: projector.pair
     description: Projects observation-action pairs onto representation space
     mutability: configuration
     default: 0
     optional: 0
   representation:
-    type: representation
+    type: representation.action_value
     description: Q-value representation
     mutability: configuration
     default: 0
@@ -524,13 +524,13 @@ policy/parameterized/action:
     default: "[  ]"
     optional: 1
   projector:
-    type: projector
+    type: projector.observation
     description: Projects observations onto representation space
     mutability: configuration
     default: 0
     optional: 0
   representation:
-    type: representation/parameterized
+    type: representation/parameterized.action
     description: Action representation
     mutability: configuration
     default: 0
@@ -543,7 +543,7 @@ policy/parameterized/pid:
     default: "[  ]"
     optional: 1
   outputs:
-    type: int
+    type: int.action_dims
     description: Number of outputs
     mutability: system
     default: 1
@@ -576,13 +576,13 @@ policy/parameterized/pid:
     optional: 1
 policy/random:
   min:
-    type: vector
+    type: vector.action_min
     description: Lower action limit
     mutability: system
     default: "[  ]"
     optional: 1
   max:
-    type: vector
+    type: vector.action_max
     description: Upper action limit
     mutability: system
     default: "[  ]"
@@ -621,13 +621,13 @@ predictor/ac/action:
     min: 0
     max: 1
   critic_projector:
-    type: projector
+    type: projector.observation
     description: Projects observations onto critic representation space
     mutability: configuration
     default: 0
     optional: 0
   critic_representation:
-    type: representation
+    type: representation.state_value
     description: Value function representation
     mutability: configuration
     default: 0
@@ -639,13 +639,13 @@ predictor/ac/action:
     default: 0
     optional: 0
   actor_projector:
-    type: projector
+    type: projector.observation
     description: Projects observations onto actor representation space
     mutability: configuration
     default: 0
     optional: 0
   actor_representation:
-    type: representation
+    type: representation.action
     description: Action representation
     mutability: configuration
     default: 0
@@ -690,13 +690,13 @@ predictor/ac/probability:
     min: 0
     max: 1
   critic_projector:
-    type: projector
+    type: projector.observation
     description: Projects observations onto critic representation space
     mutability: configuration
     default: 0
     optional: 0
   critic_representation:
-    type: representation
+    type: representation.state_value
     description: Value function representation
     mutability: configuration
     default: 0
@@ -708,13 +708,13 @@ predictor/ac/probability:
     default: 0
     optional: 0
   actor_projector:
-    type: projector
+    type: projector.pair
     description: Projects observation-action pairs onto actor representation space
     mutability: configuration
     default: 0
     optional: 0
   actor_representation:
-    type: representation
+    type: representation.action_value
     description: Action-probability representation
     mutability: configuration
     default: 0
@@ -726,10 +726,10 @@ predictor/ac/probability:
     default: 0
     optional: 0
   discretizer:
-    type: discretizer
+    type: discretizer.action
     description: Action discretizer
     mutability: configuration
-    default: 0x1
+    default: 0
     optional: 0
 predictor/expected_sarsa:
   alpha:
@@ -812,13 +812,13 @@ predictor/ggq:
     min: 0
     max: 1
   projector:
-    type: projector
+    type: projector.pair
     description: Projects observation-action pairs onto representation space
     mutability: configuration
     default: 0
     optional: 0
   representation:
-    type: representation
+    type: representation.action_value
     description: (Q, w) representation
     mutability: configuration
     default: 0
@@ -831,19 +831,19 @@ predictor/ggq:
     optional: 0
 predictor/model:
   wrapping:
-    type: vector
+    type: vector.wrapping
     description: Wrapping boundaries
     mutability: configuration
     default: "[  ]"
     optional: 1
   projector:
-    type: projector
+    type: projector.pair
     description: Projector for transition model (|S|+|A| dimensions)
     mutability: configuration
     default: 0
     optional: 0
   representation:
-    type: representation
+    type: representation.transition
     description: Representation for transition model (|S|+2 dimensions)
     mutability: configuration
     default: 0
@@ -874,13 +874,13 @@ predictor/sarsa:
     min: 0
     max: 1
   projector:
-    type: projector
+    type: projector.pair
     description: Projects observation-action pairs onto representation space
     mutability: configuration
     default: 0
     optional: 0
   representation:
-    type: representation
+    type: representation.action_value
     description: Q-value representation
     mutability: configuration
     default: 0
@@ -922,7 +922,7 @@ projector/fourier:
       - even
       - odd
   memory:
-    type: int
+    type: int.memory
     description: Feature vector size
     mutability: provided
 projector/identity: ~
@@ -931,7 +931,7 @@ projector/sample/ann:
     type: int
     description: Maximum number of samples to store
     mutability: configuration
-    default: 0
+    default: 1000
     optional: 1
     min: 100
     max: 2147483647
@@ -959,6 +959,12 @@ projector/sample/ann:
     optional: 1
     min: 0
     max: 1.797693134862316e+308
+  scaling:
+    type: vector
+    description: Input dimension scaling
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
   dims:
     type: int
     description: Number of input dimensions
@@ -967,12 +973,6 @@ projector/sample/ann:
     optional: 1
     min: 1
     max: 16
-  scaling:
-    type: vector
-    description: Input dimension scaling
-    mutability: configuration
-    default: "[  ]"
-    optional: 1
 projector/tile_coding:
   tilings:
     type: int
@@ -983,7 +983,7 @@ projector/tile_coding:
     min: 0
     max: 2147483647
   memory:
-    type: int
+    type: int.memory
     description: Hash table size
     mutability: configuration
     default: 8388608
@@ -997,20 +997,12 @@ projector/tile_coding:
     default: "[  ]"
     optional: 1
   wrapping:
-    type: vector
+    type: vector.wrapping
     description: Wrapping boundaries (must be multiple of resolution)
     mutability: configuration
     default: "[  ]"
     optional: 1
 representation/llr:
-  outputs:
-    type: int
-    description: Number of output dimensions
-    mutability: system
-    default: 1
-    optional: 1
-    min: 1
-    max: 2147483647
   ridge:
     type: double
     description: Ridge regression (Tikhonov) factor
@@ -1027,6 +1019,14 @@ representation/llr:
     optional: 1
     min: 0
     max: 1
+  outputs:
+    type: int
+    description: Number of output dimensions
+    mutability: system
+    default: 1
+    optional: 1
+    min: 1
+    max: 2147483647
   min:
     type: vector
     description: Lower output limit
@@ -1074,7 +1074,7 @@ representation/parameterized/ann:
     type: int
     description: Number of hidden nodes
     mutability: configuration
-    default: 0
+    default: 10
     optional: 1
     min: 0
     max: 64
@@ -1085,7 +1085,7 @@ representation/parameterized/ann:
     default: 5
     optional: 1
     min: 0
-    max: 1
+    max: 1.797693134862316e+308
   bias:
     type: int
     description: Use bias nodes
@@ -1103,8 +1103,20 @@ representation/parameterized/ann:
     min: 0
     max: 1
 representation/parameterized/linear:
+  init_min:
+    type: vector
+    description: Lower initial value limit
+    mutability: configuration
+    default: "[ 0 ]"
+    optional: 1
+  init_max:
+    type: vector
+    description: Upper initial value limit
+    mutability: configuration
+    default: "[ 1 ]"
+    optional: 1
   memory:
-    type: int
+    type: int.memory
     description: Feature vector size
     mutability: system
     default: 8388608
@@ -1119,18 +1131,6 @@ representation/parameterized/linear:
     optional: 1
     min: 0
     max: 2147483647
-  init_min:
-    type: vector
-    description: Lower initial value limit
-    mutability: configuration
-    default: "[ 0 ]"
-    optional: 1
-  init_max:
-    type: vector
-    description: Upper initial value limit
-    mutability: configuration
-    default: "[ 1 ]"
-    optional: 1
   output_min:
     type: vector
     description: Lower output limit
@@ -1155,35 +1155,35 @@ sampler/epsilon_greedy:
 sampler/greedy: ~
 task/cart_pole/balancing:
   observation_dims:
-    type: int
+    type: int.observation_dims
     description: Number of observation dimensions
     mutability: provided
   observation_min:
-    type: vector
+    type: vector.observation_min
     description: Lower limit on observations
     mutability: provided
   observation_max:
-    type: vector
+    type: vector.observation_max
     description: Upper limit on observations
     mutability: provided
   action_dims:
-    type: int
+    type: int.action_dims
     description: Number of action dimensions
     mutability: provided
   action_min:
-    type: vector
+    type: vector.action_min
     description: Lower limit on actions
     mutability: provided
   action_max:
-    type: vector
+    type: vector.action_max
     description: Upper limit on actions
     mutability: provided
   reward_min:
-    type: double
+    type: double.reward_min
     description: Lower limit on immediate reward
     mutability: provided
   reward_max:
-    type: double
+    type: double.reward_max
     description: Upper limit on immediate reward
     mutability: provided
   timeout:
@@ -1196,35 +1196,35 @@ task/cart_pole/balancing:
     max: 1.797693134862316e+308
 task/cart_pole/swingup:
   observation_dims:
-    type: int
+    type: int.observation_dims
     description: Number of observation dimensions
     mutability: provided
   observation_min:
-    type: vector
+    type: vector.observation_min
     description: Lower limit on observations
     mutability: provided
   observation_max:
-    type: vector
+    type: vector.observation_max
     description: Upper limit on observations
     mutability: provided
   action_dims:
-    type: int
+    type: int.action_dims
     description: Number of action dimensions
     mutability: provided
   action_min:
-    type: vector
+    type: vector.action_min
     description: Lower limit on actions
     mutability: provided
   action_max:
-    type: vector
+    type: vector.action_max
     description: Upper limit on actions
     mutability: provided
   reward_min:
-    type: double
+    type: double.reward_min
     description: Lower limit on immediate reward
     mutability: provided
   reward_max:
-    type: double
+    type: double.reward_max
     description: Upper limit on immediate reward
     mutability: provided
   timeout:
@@ -1261,35 +1261,35 @@ task/cart_pole/swingup:
     max: 1
 task/pendulum/swingup:
   observation_dims:
-    type: int
+    type: int.observation_dims
     description: Number of observation dimensions
     mutability: provided
   observation_min:
-    type: vector
+    type: vector.observation_min
     description: Lower limit on observations
     mutability: provided
   observation_max:
-    type: vector
+    type: vector.observation_max
     description: Upper limit on observations
     mutability: provided
   action_dims:
-    type: int
+    type: int.action_dims
     description: Number of action dimensions
     mutability: provided
   action_min:
-    type: vector
+    type: vector.action_min
     description: Lower limit on actions
     mutability: provided
   action_max:
-    type: vector
+    type: vector.action_max
     description: Upper limit on actions
     mutability: provided
   reward_min:
-    type: double
+    type: double.reward_min
     description: Lower limit on immediate reward
     mutability: provided
   reward_max:
-    type: double
+    type: double.reward_max
     description: Upper limit on immediate reward
     mutability: provided
   timeout:
@@ -1311,13 +1311,13 @@ visualization/cart_pole:
     optional: 0
 visualization/field/policy:
   min:
-    type: vector
+    type: vector.observation_min
     description: Lower input dimension limit
     mutability: system
     default: "[  ]"
     optional: 1
   max:
-    type: vector
+    type: vector.observation_max
     description: Upper input dimension limit
     mutability: system
     default: "[  ]"
@@ -1362,13 +1362,13 @@ visualization/field/policy:
     max: 2147483647
 visualization/field/value_function:
   min:
-    type: vector
+    type: vector.observation_min
     description: Lower input dimension limit
     mutability: system
     default: "[  ]"
     optional: 1
   max:
-    type: vector
+    type: vector.observation_max
     description: Upper input dimension limit
     mutability: system
     default: "[  ]"
@@ -1398,13 +1398,13 @@ visualization/field/value_function:
       - min
       - max
   projector:
-    type: projector
+    type: projector.pair
     description: Projects observation-action pairs onto representation space
     mutability: configuration
     default: 0
     optional: 0
   representation:
-    type: representation
+    type: representation.action_value
     description: Q-value representation
     mutability: configuration
     default: 0
@@ -1489,3 +1489,808 @@ visualization/state:
     default: 0
     optional: 0
 visualizer/glut: ~
+projector/fourier.pair:
+  min:
+    type: vector.observation_min+vector.action_min
+    description: Lower input dimension limit (for scaling)
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  max:
+    type: vector.observation_max+vector.action_max
+    description: Upper input dimension limit (for scaling)
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  order:
+    type: int
+    description: Order of approximation (bases per dimension)
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 0
+    max: 256
+  parity:
+    type: string
+    description: Whether to use odd or even bases
+    mutability: configuration
+    default: even
+    optional: 1
+    options:
+      - even
+      - odd
+  memory:
+    type: int.memory
+    description: Feature vector size
+    mutability: provided
+projector/identity.pair: ~
+projector/sample/ann.pair:
+  samples:
+    type: int
+    description: Maximum number of samples to store
+    mutability: configuration
+    default: 1000
+    optional: 1
+    min: 100
+    max: 2147483647
+  neighbors:
+    type: int
+    description: Number of neighbor indices to return
+    mutability: configuration
+    default: 20
+    optional: 1
+    min: 1
+    max: 64
+  bucket_size:
+    type: int
+    description: "?"
+    mutability: configuration
+    default: 10
+    optional: 1
+    min: 1
+    max: 2147483647
+  error_bound:
+    type: double
+    description: "?"
+    mutability: configuration
+    default: 0.1
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
+  scaling:
+    type: vector
+    description: Input dimension scaling
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  dims:
+    type: int.observation_dims+int.action_dims
+    description: Number of input dimensions
+    mutability: system
+    default: 1
+    optional: 1
+    min: 1
+    max: 16
+projector/tile_coding.pair:
+  tilings:
+    type: int
+    description: Number of tilings
+    mutability: configuration
+    default: 16
+    optional: 1
+    min: 0
+    max: 2147483647
+  memory:
+    type: int.memory
+    description: Hash table size
+    mutability: configuration
+    default: 8388608
+    optional: 1
+    min: 0
+    max: 2147483647
+  resolution:
+    type: vector
+    description: Size of a single tile
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  wrapping:
+    type: vector.wrapping
+    description: Wrapping boundaries (must be multiple of resolution)
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+representation/llr.transition:
+  ridge:
+    type: double
+    description: Ridge regression (Tikhonov) factor
+    mutability: configuration
+    default: 1e-05
+    optional: 1
+    min: 0
+    max: 1
+  order:
+    type: int
+    description: Order of regression model
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 0
+    max: 1
+  outputs:
+    type: int.observation_dims+2
+    description: Number of output dimensions
+    mutability: system
+    default: 1
+    optional: 1
+    min: 1
+    max: 2147483647
+  min:
+    type: vector
+    description: Lower output limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  max:
+    type: vector
+    description: Upper output limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  projector:
+    type: projector/sample.pair
+    description: Projector used to generate input for this representation
+    mutability: configuration
+    default: 0
+    optional: 0
+representation/parameterized/ann.transition:
+  input_min:
+    type: vector.observation_min+vector.action_min
+    description: Lower limit on inputs
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  input_max:
+    type: vector.observation_max+vector.action_max
+    description: Upper limit on inputs
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  output_min:
+    type: vector
+    description: Lower limit on outputs
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  output_max:
+    type: vector
+    description: Upper limit on outputs
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  hiddens:
+    type: int
+    description: Number of hidden nodes
+    mutability: configuration
+    default: 10
+    optional: 1
+    min: 0
+    max: 64
+  steepness:
+    type: double
+    description: Steepness of activation function
+    mutability: configuration
+    default: 5
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
+  bias:
+    type: int
+    description: Use bias nodes
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 0
+    max: 1
+  recurrent:
+    type: int
+    description: Feed hidden activation back as input
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
+representation/parameterized/linear.transition:
+  init_min:
+    type: vector
+    description: Lower initial value limit
+    mutability: configuration
+    default: "[ 0 ]"
+    optional: 1
+  init_max:
+    type: vector
+    description: Upper initial value limit
+    mutability: configuration
+    default: "[ 1 ]"
+    optional: 1
+  memory:
+    type: int.memory
+    description: Feature vector size
+    mutability: system
+    default: 8388608
+    optional: 1
+    min: 0
+    max: 2147483647
+  outputs:
+    type: int.observation_dims+2
+    description: Number of outputs
+    mutability: system
+    default: 1
+    optional: 1
+    min: 0
+    max: 2147483647
+  output_min:
+    type: vector
+    description: Lower output limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  output_max:
+    type: vector
+    description: Upper output limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+projector/fourier.observation:
+  min:
+    type: vector.observation_min
+    description: Lower input dimension limit (for scaling)
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  max:
+    type: vector.observation_max
+    description: Upper input dimension limit (for scaling)
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  order:
+    type: int
+    description: Order of approximation (bases per dimension)
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 0
+    max: 256
+  parity:
+    type: string
+    description: Whether to use odd or even bases
+    mutability: configuration
+    default: even
+    optional: 1
+    options:
+      - even
+      - odd
+  memory:
+    type: int.memory
+    description: Feature vector size
+    mutability: provided
+projector/identity.observation: ~
+projector/sample/ann.observation:
+  samples:
+    type: int
+    description: Maximum number of samples to store
+    mutability: configuration
+    default: 1000
+    optional: 1
+    min: 100
+    max: 2147483647
+  neighbors:
+    type: int
+    description: Number of neighbor indices to return
+    mutability: configuration
+    default: 20
+    optional: 1
+    min: 1
+    max: 64
+  bucket_size:
+    type: int
+    description: "?"
+    mutability: configuration
+    default: 10
+    optional: 1
+    min: 1
+    max: 2147483647
+  error_bound:
+    type: double
+    description: "?"
+    mutability: configuration
+    default: 0.1
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
+  scaling:
+    type: vector
+    description: Input dimension scaling
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  dims:
+    type: int.observation_dims
+    description: Number of input dimensions
+    mutability: system
+    default: 1
+    optional: 1
+    min: 1
+    max: 16
+projector/tile_coding.observation:
+  tilings:
+    type: int
+    description: Number of tilings
+    mutability: configuration
+    default: 16
+    optional: 1
+    min: 0
+    max: 2147483647
+  memory:
+    type: int.memory
+    description: Hash table size
+    mutability: configuration
+    default: 8388608
+    optional: 1
+    min: 0
+    max: 2147483647
+  resolution:
+    type: vector
+    description: Size of a single tile
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  wrapping:
+    type: vector.wrapping
+    description: Wrapping boundaries (must be multiple of resolution)
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+representation/llr.action:
+  ridge:
+    type: double
+    description: Ridge regression (Tikhonov) factor
+    mutability: configuration
+    default: 1e-05
+    optional: 1
+    min: 0
+    max: 1
+  order:
+    type: int
+    description: Order of regression model
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 0
+    max: 1
+  outputs:
+    type: int.action_dims
+    description: Number of output dimensions
+    mutability: system
+    default: 1
+    optional: 1
+    min: 1
+    max: 2147483647
+  min:
+    type: vector.action_min
+    description: Lower output limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  max:
+    type: vector.action_max
+    description: Upper output limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  projector:
+    type: projector/sample.observation
+    description: Projector used to generate input for this representation
+    mutability: configuration
+    default: 0
+    optional: 0
+representation/parameterized/ann.action:
+  input_min:
+    type: vector.observation_min
+    description: Lower limit on inputs
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  input_max:
+    type: vector.observation_max
+    description: Upper limit on inputs
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  output_min:
+    type: vector.action_min
+    description: Lower limit on outputs
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  output_max:
+    type: vector.action_max
+    description: Upper limit on outputs
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  hiddens:
+    type: int
+    description: Number of hidden nodes
+    mutability: configuration
+    default: 10
+    optional: 1
+    min: 0
+    max: 64
+  steepness:
+    type: double
+    description: Steepness of activation function
+    mutability: configuration
+    default: 5
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
+  bias:
+    type: int
+    description: Use bias nodes
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 0
+    max: 1
+  recurrent:
+    type: int
+    description: Feed hidden activation back as input
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
+representation/parameterized/linear.action:
+  init_min:
+    type: vector
+    description: Lower initial value limit
+    mutability: configuration
+    default: "[ 0 ]"
+    optional: 1
+  init_max:
+    type: vector
+    description: Upper initial value limit
+    mutability: configuration
+    default: "[ 1 ]"
+    optional: 1
+  memory:
+    type: int.memory
+    description: Feature vector size
+    mutability: system
+    default: 8388608
+    optional: 1
+    min: 0
+    max: 2147483647
+  outputs:
+    type: int.action_dims
+    description: Number of outputs
+    mutability: system
+    default: 1
+    optional: 1
+    min: 0
+    max: 2147483647
+  output_min:
+    type: vector.action_min
+    description: Lower output limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  output_max:
+    type: vector.action_max
+    description: Upper output limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+discretizer/uniform.action:
+  min:
+    type: vector.action_min
+    description: Lower limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  max:
+    type: vector.action_max
+    description: Upper limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  steps:
+    type: vector
+    description: Discretization steps per dimension
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+representation/llr.action_value:
+  ridge:
+    type: double
+    description: Ridge regression (Tikhonov) factor
+    mutability: configuration
+    default: 1e-05
+    optional: 1
+    min: 0
+    max: 1
+  order:
+    type: int
+    description: Order of regression model
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 0
+    max: 1
+  outputs:
+    type: int
+    description: Number of output dimensions
+    mutability: system
+    default: 1
+    optional: 1
+    min: 1
+    max: 2147483647
+  min:
+    type: vector
+    description: Lower output limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  max:
+    type: vector
+    description: Upper output limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  projector:
+    type: projector/sample.pair
+    description: Projector used to generate input for this representation
+    mutability: configuration
+    default: 0
+    optional: 0
+representation/parameterized/ann.action_value:
+  input_min:
+    type: vector.observation_min+vector.action_min
+    description: Lower limit on inputs
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  input_max:
+    type: vector.observation_max+vector.action_max
+    description: Upper limit on inputs
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  output_min:
+    type: vector
+    description: Lower limit on outputs
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  output_max:
+    type: vector
+    description: Upper limit on outputs
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  hiddens:
+    type: int
+    description: Number of hidden nodes
+    mutability: configuration
+    default: 10
+    optional: 1
+    min: 0
+    max: 64
+  steepness:
+    type: double
+    description: Steepness of activation function
+    mutability: configuration
+    default: 5
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
+  bias:
+    type: int
+    description: Use bias nodes
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 0
+    max: 1
+  recurrent:
+    type: int
+    description: Feed hidden activation back as input
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
+representation/parameterized/linear.action_value:
+  init_min:
+    type: vector
+    description: Lower initial value limit
+    mutability: configuration
+    default: "[ 0 ]"
+    optional: 1
+  init_max:
+    type: vector
+    description: Upper initial value limit
+    mutability: configuration
+    default: "[ 1 ]"
+    optional: 1
+  memory:
+    type: int.memory
+    description: Feature vector size
+    mutability: system
+    default: 8388608
+    optional: 1
+    min: 0
+    max: 2147483647
+  outputs:
+    type: int
+    description: Number of outputs
+    mutability: system
+    default: 1
+    optional: 1
+    min: 0
+    max: 2147483647
+  output_min:
+    type: vector
+    description: Lower output limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  output_max:
+    type: vector
+    description: Upper output limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+representation/llr.state_value:
+  ridge:
+    type: double
+    description: Ridge regression (Tikhonov) factor
+    mutability: configuration
+    default: 1e-05
+    optional: 1
+    min: 0
+    max: 1
+  order:
+    type: int
+    description: Order of regression model
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 0
+    max: 1
+  outputs:
+    type: int
+    description: Number of output dimensions
+    mutability: system
+    default: 1
+    optional: 1
+    min: 1
+    max: 2147483647
+  min:
+    type: vector
+    description: Lower output limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  max:
+    type: vector
+    description: Upper output limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  projector:
+    type: projector/sample.observation
+    description: Projector used to generate input for this representation
+    mutability: configuration
+    default: 0
+    optional: 0
+representation/parameterized/ann.state_value:
+  input_min:
+    type: vector.observation_min
+    description: Lower limit on inputs
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  input_max:
+    type: vector.observation_max
+    description: Upper limit on inputs
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  output_min:
+    type: vector
+    description: Lower limit on outputs
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  output_max:
+    type: vector
+    description: Upper limit on outputs
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  hiddens:
+    type: int
+    description: Number of hidden nodes
+    mutability: configuration
+    default: 10
+    optional: 1
+    min: 0
+    max: 64
+  steepness:
+    type: double
+    description: Steepness of activation function
+    mutability: configuration
+    default: 5
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
+  bias:
+    type: int
+    description: Use bias nodes
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 0
+    max: 1
+  recurrent:
+    type: int
+    description: Feed hidden activation back as input
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
+representation/parameterized/linear.state_value:
+  init_min:
+    type: vector
+    description: Lower initial value limit
+    mutability: configuration
+    default: "[ 0 ]"
+    optional: 1
+  init_max:
+    type: vector
+    description: Upper initial value limit
+    mutability: configuration
+    default: "[ 1 ]"
+    optional: 1
+  memory:
+    type: int.memory
+    description: Feature vector size
+    mutability: system
+    default: 8388608
+    optional: 1
+    min: 0
+    max: 2147483647
+  outputs:
+    type: int
+    description: Number of outputs
+    mutability: system
+    default: 1
+    optional: 1
+    min: 0
+    max: 2147483647
+  output_min:
+    type: vector
+    description: Lower output limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  output_max:
+    type: vector
+    description: Upper output limit
+    mutability: system
+    default: "[  ]"
+    optional: 1

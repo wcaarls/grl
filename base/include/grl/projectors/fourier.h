@@ -48,7 +48,7 @@ class FourierProjector : public Projector
     FourierProjector() : order_(1), dims_(0), parity_("even") { }
 
     // From Configurable
-    virtual void request(ConfigurationRequest *config);
+    virtual void request(const std::string &role, ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
 

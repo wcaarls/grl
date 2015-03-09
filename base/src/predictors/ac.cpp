@@ -39,12 +39,12 @@ void ActionACPredictor::request(ConfigurationRequest *config)
   config->push_back(CRP("gamma", "Discount rate", gamma_));
   config->push_back(CRP("lambda", "Trace decay rate", lambda_));
 
-  config->push_back(CRP("critic_projector", "projector", "Projects observations onto critic representation space", critic_projector_));
-  config->push_back(CRP("critic_representation", "representation", "Value function representation", critic_representation_));
+  config->push_back(CRP("critic_projector", "projector.observation", "Projects observations onto critic representation space", critic_projector_));
+  config->push_back(CRP("critic_representation", "representation.state_value", "Value function representation", critic_representation_));
   config->push_back(CRP("critic_trace", "trace", "Trace of critic projections", critic_trace_));
 
-  config->push_back(CRP("actor_projector", "projector", "Projects observations onto actor representation space", actor_projector_));
-  config->push_back(CRP("actor_representation", "representation", "Action representation", actor_representation_));
+  config->push_back(CRP("actor_projector", "projector.observation", "Projects observations onto actor representation space", actor_projector_));
+  config->push_back(CRP("actor_representation", "representation.action", "Action representation", actor_representation_));
   config->push_back(CRP("actor_trace", "trace", "Trace of actor projections", actor_trace_));
 }
 
@@ -120,15 +120,15 @@ void ProbabilityACPredictor::request(ConfigurationRequest *config)
   config->push_back(CRP("gamma", "Discount rate", gamma_));
   config->push_back(CRP("lambda", "Trace decay rate", lambda_));
 
-  config->push_back(CRP("critic_projector", "projector", "Projects observations onto critic representation space", critic_projector_));
-  config->push_back(CRP("critic_representation", "representation", "Value function representation", critic_representation_));
+  config->push_back(CRP("critic_projector", "projector.observation", "Projects observations onto critic representation space", critic_projector_));
+  config->push_back(CRP("critic_representation", "representation.state_value", "Value function representation", critic_representation_));
   config->push_back(CRP("critic_trace", "trace", "Trace of critic projections", critic_trace_));
 
-  config->push_back(CRP("actor_projector", "projector", "Projects observation-action pairs onto actor representation space", actor_projector_));
-  config->push_back(CRP("actor_representation", "representation", "Action-probability representation", actor_representation_));
+  config->push_back(CRP("actor_projector", "projector.pair", "Projects observation-action pairs onto actor representation space", actor_projector_));
+  config->push_back(CRP("actor_representation", "representation.action_value", "Action-probability representation", actor_representation_));
   config->push_back(CRP("actor_trace", "trace", "Trace of actor projections", actor_trace_));
 
-  config->push_back(CRP("discretizer", "discretizer", "Action discretizer", discretizer_));
+  config->push_back(CRP("discretizer", "discretizer.action", "Action discretizer", discretizer_));
 }
 
 void ProbabilityACPredictor::configure(Configuration &config)
