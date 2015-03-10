@@ -25,7 +25,7 @@
  * \endverbatim
  */
 
-#ifndef GRL_PROJECTOR_H_
+#ifndef GRL_FOURIER_PROJECTOR_H_
 #define GRL_FOURIER_PROJECTOR_H_
 
 #include <grl/projector.h>

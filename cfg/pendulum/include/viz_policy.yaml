@@ -1,5 +1,0 @@
-type: visualization/field/policy
-policy: experiment/agent/optimizer/policy
-min: experiment/environment/task/observation_min
-max: experiment/environment/task/observation_max
-points: 65536

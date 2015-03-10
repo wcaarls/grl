@@ -49,7 +49,7 @@ class ActionPolicy : public Policy
     Vector min_, max_, sigma_;
 
   public:
-    ActionPolicy() : projector_(NULL), representation_(NULL), sigma_(0) { }
+    ActionPolicy() : projector_(NULL), representation_(NULL) { }
     
     // From Configurable  
     virtual void request(ConfigurationRequest *config);

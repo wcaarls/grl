@@ -43,13 +43,13 @@ void ANNProjector::request(const std::string &role, ConfigurationRequest *config
   config->push_back(CRP("scaling", "Input dimension scaling", scaling_));
   
   if (role == "observation")
-    config->push_back(CRP("dims", "int.observation_dims", "Number of input dimensions", dims_, CRP::System, 1, SS_MAX_COORDS));
+    config->push_back(CRP("inputs", "int.observation_dims", "Number of input dimensions", dims_, CRP::System, 1, SS_MAX_COORDS));
   else if (role == "action")
-    config->push_back(CRP("dims", "int.action_dims", "Number of input dimensions", dims_, CRP::System, 1, SS_MAX_COORDS));
+    config->push_back(CRP("inputs", "int.action_dims", "Number of input dimensions", dims_, CRP::System, 1, SS_MAX_COORDS));
   else if (role == "pair")
-    config->push_back(CRP("dims", "int.observation_dims+int.action_dims", "Number of input dimensions", dims_, CRP::System, 1, SS_MAX_COORDS));
+    config->push_back(CRP("inputs", "int.observation_dims+int.action_dims", "Number of input dimensions", dims_, CRP::System, 1, SS_MAX_COORDS));
   else
-    config->push_back(CRP("dims", "Number of input dimensions", dims_, CRP::System, 1, SS_MAX_COORDS));
+    config->push_back(CRP("inputs", "Number of input dimensions", dims_, CRP::System, 1, SS_MAX_COORDS));
 }
 
 void ANNProjector::configure(Configuration &config)
@@ -58,7 +58,7 @@ void ANNProjector::configure(Configuration &config)
   neighbors_ = config["neighbors"];
   bucket_size_ = config["bucket_size"];
   error_bound_ = config["error_bound"];
-  dims_ = config["dims"];
+  dims_ = config["inputs"];
   scaling_ = config["scaling"];
 
   if (scaling_.empty())

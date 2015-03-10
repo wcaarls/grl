@@ -1,0 +1,3 @@
+environment: 
+  type: environment/ode
+  xml: /home/wcaarls/src/grl/addons/odesim/cfg/robot.xml

@@ -1,4 +1,0 @@
-type: visualization/state
-state: experiment/state
-min: experiment/environment/task/observation_min
-max: experiment/environment/task/observation_max

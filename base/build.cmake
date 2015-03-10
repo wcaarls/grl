@@ -28,6 +28,7 @@ add_library(${TARGET} SHARED
             ${SRC}/predictors/ac.cpp
 #            ${SRC}/predictors/fqi.cpp
             ${SRC}/projectors/identity.cpp
+            ${SRC}/projectors/normalizing.cpp
             ${SRC}/projectors/tile_coding.cpp
             ${SRC}/projectors/fourier.cpp
             ${SRC}/representations/linear.cpp

@@ -1,7 +1,0 @@
-type: policy/discrete/q
-projector: experiment/agent/predictor/projector
-representation: experiment/agent/predictor/representation
-discretizer: discretizer.yaml
-sampler:  
-  type: sampler/epsilon_greedy
-  epsilon: 0.05

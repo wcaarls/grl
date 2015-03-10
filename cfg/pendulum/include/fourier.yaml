@@ -1,5 +1,0 @@
-type: projector/fourier
-min: [ 0, -31, -3 ]
-max: [ 6.283, 31, 3 ]
-order: 3
-parity: even

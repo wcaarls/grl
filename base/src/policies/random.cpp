@@ -34,14 +34,14 @@ REGISTER_CONFIGURABLE(RandomDiscretePolicy)
 
 void RandomPolicy::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("min", "vector.action_min", "Lower action limit", min_, CRP::System));
-  config->push_back(CRP("max", "vector.action_max", "Upper action limit", max_, CRP::System));
+  config->push_back(CRP("output_min", "vector.action_min", "Lower action limit", min_, CRP::System));
+  config->push_back(CRP("output_max", "vector.action_max", "Upper action limit", max_, CRP::System));
 }
 
 void RandomPolicy::configure(Configuration &config)
 {
-  min_ = config["min"];
-  max_ = config["max"];
+  min_ = config["output_min"];
+  max_ = config["output_max"];
   
   if (min_.size() != max_.size())
     throw bad_param("policy/random:{min,max}");

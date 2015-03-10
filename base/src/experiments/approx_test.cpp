@@ -37,8 +37,8 @@ void ApproxTestExperiment::request(ConfigurationRequest *config)
   config->push_back(CRP("test_samples", "Number of test samples", test_samples_, CRP::Configuration, 1));
   config->push_back(CRP("file", "Output file (csv format)", file_));
 
-  config->push_back(CRP("min", "Lower limit for drawing samples", min_));
-  config->push_back(CRP("max", "Upper limit for drawing samples", max_));
+  config->push_back(CRP("input_min", "Lower limit for drawing samples", min_));
+  config->push_back(CRP("input_max", "Upper limit for drawing samples", max_));
   
   config->push_back(CRP("projector", "projector", "Projector (should match representation)", projector_));
   config->push_back(CRP("representation", "representation", "Learned representation", representation_));
@@ -55,8 +55,8 @@ void ApproxTestExperiment::configure(Configuration &config)
   test_samples_ = config["test_samples"];
   file_ = config["file"].str();
   
-  min_ = config["min"];
-  max_ = config["max"];
+  min_ = config["input_min"];
+  max_ = config["input_max"];
   
   if (min_.size() != max_.size())
     throw bad_param("experiment/approx_test:{min,max}");

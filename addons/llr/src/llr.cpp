@@ -40,26 +40,26 @@ void LLRRepresentation::request(const std::string &role, ConfigurationRequest *c
   if (role == "action")
   {
     config->push_back(CRP("outputs", "int.action_dims", "Number of output dimensions", outputs_, CRP::System, 1));
-    config->push_back(CRP("min", "vector.action_min", "Lower output limit", min_, CRP::System));
-    config->push_back(CRP("max", "vector.action_max", "Upper output limit", max_, CRP::System));
+    config->push_back(CRP("output_min", "vector.action_min", "Lower output limit", min_, CRP::System));
+    config->push_back(CRP("output_max", "vector.action_max", "Upper output limit", max_, CRP::System));
     config->push_back(CRP("projector", "projector/sample.observation", "Projector used to generate input for this representation", projector_));
   }
   else if (role == "transition")
   {
     config->push_back(CRP("outputs", "int.observation_dims+2", "Number of output dimensions", outputs_, CRP::System, 1));
-    config->push_back(CRP("min", "Lower output limit", min_, CRP::System));
-    config->push_back(CRP("max", "Upper output limit", max_, CRP::System));
+    config->push_back(CRP("output_min", "Lower output limit", min_, CRP::System));
+    config->push_back(CRP("output_max", "Upper output limit", max_, CRP::System));
     config->push_back(CRP("projector", "projector/sample.pair", "Projector used to generate input for this representation", projector_));
   }
   else
   {
     config->push_back(CRP("outputs", "Number of output dimensions", outputs_, CRP::System, 1));
-    config->push_back(CRP("min", "Lower output limit", min_, CRP::System));
-    config->push_back(CRP("max", "Upper output limit", max_, CRP::System));
+    config->push_back(CRP("output_min", "Lower output limit", min_, CRP::System));
+    config->push_back(CRP("output_max", "Upper output limit", max_, CRP::System));
     
-    if (role == "state_value")
+    if (role == "value/state")
       config->push_back(CRP("projector", "projector/sample.observation", "Projector used to generate input for this representation", projector_));
-    else if (role == "action_value")
+    else if (role == "value/action")
       config->push_back(CRP("projector", "projector/sample.pair", "Projector used to generate input for this representation", projector_));
     else    
       config->push_back(CRP("projector", "projector/sample", "Projector used to generate input for this representation", projector_));
@@ -74,17 +74,17 @@ void LLRRepresentation::configure(Configuration &config)
   outputs_ = config["outputs"];
   order_ = config["order"];
 
-  min_ = config["min"];
-  max_ = config["max"];
+  min_ = config["output_min"];
+  max_ = config["output_max"];
 
   if (min_.empty())
     min_.resize(outputs_, -DBL_MAX);
   if (min_.size() != outputs_)
-    throw bad_param("representation/llr:min");
+    throw bad_param("representation/llr:output_min");
   if (max_.empty())
     max_.resize(outputs_, DBL_MAX);
   if (max_.size() != outputs_)
-    throw bad_param("representation/llr:max");
+    throw bad_param("representation/llr:output_max");
 }
 
 void LLRRepresentation::reconfigure(const Configuration &config)

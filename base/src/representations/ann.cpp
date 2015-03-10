@@ -38,33 +38,18 @@ void ANNRepresentation::request(const std::string &role, ConfigurationRequest *c
 {
   if (role == "action")
   {
-    config->push_back(CRP("input_min", "vector.observation_min", "Lower limit on inputs", input_min_, CRP::System));
-    config->push_back(CRP("input_max", "vector.observation_max", "Upper limit on inputs", input_max_, CRP::System));
+    config->push_back(CRP("inputs", "int.observation_dims", "Number of input dimensions", (int)inputs_, CRP::System, 1, MAX_NODES));
     config->push_back(CRP("output_min", "vector.action_min", "Lower limit on outputs", output_min_, CRP::System));
     config->push_back(CRP("output_max", "vector.action_max", "Upper limit on outputs", output_max_, CRP::System));
   }
   else
   {
-    if (role == "transition")
-    {
-      config->push_back(CRP("input_min", "vector.observation_min+vector.action_min", "Lower limit on inputs", input_min_, CRP::System));
-      config->push_back(CRP("input_max", "vector.observation_max+vector.action_max", "Upper limit on inputs", input_max_, CRP::System));
-    }
-    else if (role == "state_value")
-    {
-      config->push_back(CRP("input_min", "vector.observation_min", "Lower limit on inputs", input_min_, CRP::System));
-      config->push_back(CRP("input_max", "vector.observation_max", "Upper limit on inputs", input_max_, CRP::System));
-    }
-    else if (role == "action_value")
-    {
-      config->push_back(CRP("input_min", "vector.observation_min+vector.action_min", "Lower limit on inputs", input_min_, CRP::System));
-      config->push_back(CRP("input_max", "vector.observation_max+vector.action_max", "Upper limit on inputs", input_max_, CRP::System));
-    }
+    if (role == "transition" || role == "value/action")
+      config->push_back(CRP("inputs", "int.observation_dims+int.action_dims", "Number of input dimensions", (int)inputs_, CRP::System, 1));
+    else if (role == "value/state")
+      config->push_back(CRP("inputs", "int.observation_dims", "Number of input dimensions", (int)inputs_, CRP::System, 1));
     else
-    {
-      config->push_back(CRP("input_min", "Lower limit on inputs", input_min_, CRP::System));
-      config->push_back(CRP("input_max", "Upper limit on inputs", input_max_, CRP::System));
-    }
+      config->push_back(CRP("inputs", "Number of input dimensions", (int)inputs_, CRP::System, 1));
     
     config->push_back(CRP("output_min", "Lower limit on outputs", output_min_, CRP::System));
     config->push_back(CRP("output_max", "Upper limit on outputs", output_max_, CRP::System));
@@ -79,20 +64,15 @@ void ANNRepresentation::request(const std::string &role, ConfigurationRequest *c
 
 void ANNRepresentation::configure(Configuration &config)
 {
-  input_min_ = config["input_min"];
-  input_max_ = config["input_max"];
+  inputs_ = config["inputs"];
   output_min_ = config["output_min"];
   output_max_ = config["output_max"];
   
-  inputs_ = input_min_.size();
   outputs_ = output_min_.size();
   hiddens_ = config["hiddens"];
   if (!hiddens_)
     hiddens_ = ceil((inputs_+outputs_)/2.);
     
-  if (input_min_.size() != input_max_.size() || inputs_ > MAX_NODES)
-    throw bad_param("representation/parameterized/ann:{input_min,input_max}");
-
   if (output_min_.size() != output_max_.size() || outputs_ > MAX_NODES)
     throw bad_param("representation/parameterized/ann:{output_min,output_max}");
     
@@ -133,13 +113,9 @@ double ANNRepresentation::read(const ProjectionPtr &projection, Vector *result) 
   
   if (vp)
   {
-    double input[MAX_NODES], hidden[MAX_NODES], output[MAX_NODES];
+    double hidden[MAX_NODES], output[MAX_NODES];
     size_t hidden_params = inputs_+bias_+recurrent_;
     
-    // Normalize inputs
-    for (size_t ii=0; ii < inputs_; ++ii)
-      input[ii] = (vp->vector[ii]-input_min_[ii])/(input_max_[ii]-input_min_[ii])*2-1;
-      
     // Calculate hidden activation
     for (size_t hh=0; hh < hiddens_; ++hh)
     {
@@ -149,7 +125,7 @@ double ANNRepresentation::read(const ProjectionPtr &projection, Vector *result) 
       if (recurrent_) act += state_[hh]*w[inputs_+bias_]; // Recurrence
       
       for (size_t ii=0; ii < inputs_; ++ii)
-        act += w[ii]*input[ii];
+        act += w[ii]*vp->vector[ii];
         
       hidden[hh] = activate(act);
     }

@@ -38,9 +38,9 @@ REGISTER_CONFIGURABLE(StateVisualization)
 
 void StateVisualization::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("dims", "Input dimensions to visualize", dims_));
-  config->push_back(CRP("min", "Lower input dimension limit", min_, CRP::System));
-  config->push_back(CRP("max", "Upper input dimension limit", max_, CRP::System));
+  config->push_back(CRP("input_dims", "Input dimensions to visualize", dims_));
+  config->push_back(CRP("input_min", "Lower input dimension limit", min_, CRP::System));
+  config->push_back(CRP("input_max", "Upper input dimension limit", max_, CRP::System));
 
   config->push_back(CRP("state", "state", "State to visualize", state_));
 }
@@ -52,15 +52,15 @@ void StateVisualization::configure(Configuration &config)
 
   state_ = (State*)config["state"].ptr();
 
-  dims_ = config["dims"];
+  dims_ = config["input_dims"];
   if (dims_.size() != 2)
-    throw bad_param("visualization/state:dims");
-  min_ = config["min"];
+    throw bad_param("visualization/state:input_dims");
+  min_ = config["input_min"];
   if (min_.size() != 2)
-    throw bad_param("visualization/state:min");
-  max_ = config["max"];
+    throw bad_param("visualization/state:input_min");
+  max_ = config["input_max"];
   if (max_.size() != 2)
-    throw bad_param("visualization/state:max");
+    throw bad_param("visualization/state:input_max");
 
   // Create window  
   create("State");

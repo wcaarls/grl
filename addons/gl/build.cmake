@@ -9,7 +9,7 @@ if (OPENGL_FOUND)
   add_library(${TARGET} SHARED
               ${SRC}/sample.cpp
               ${SRC}/field.cpp
-              ${SRC}/value_function.cpp
+              ${SRC}/value.cpp
               ${SRC}/policy.cpp
               ${SRC}/state.cpp
              )

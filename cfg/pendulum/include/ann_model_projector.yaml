@@ -1,6 +1,0 @@
-type: projector/sample/ann
-samples: 100000
-dims: 3
-neighbors: 12
-bucket_size: 10
-error_bound: 0.01

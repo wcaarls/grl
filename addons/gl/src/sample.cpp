@@ -38,10 +38,10 @@ REGISTER_CONFIGURABLE(SampleVisualization)
 
 void SampleVisualization::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("dims", "Input dimensions to visualize", dims_));
-  config->push_back(CRP("min", "Lower input dimension limit", min_, CRP::System));
-  config->push_back(CRP("max", "Upper input dimension limit", max_, CRP::System));
-  config->push_back(CRP("dim", "Output dimension to visualize", dim_));
+  config->push_back(CRP("input_dims", "Input dimensions to visualize", dims_));
+  config->push_back(CRP("input_min", "Lower input dimension limit", min_, CRP::System));
+  config->push_back(CRP("input_max", "Upper input dimension limit", max_, CRP::System));
+  config->push_back(CRP("output_dim", "Output dimension to visualize", dim_));
   config->push_back(CRP("points", "Texture size", points_));
 
   config->push_back(CRP("projector", "projector/sample", "Sample projector whose store to visualize", projector_));
@@ -54,16 +54,16 @@ void SampleVisualization::configure(Configuration &config)
 
   projector_ = (SampleProjector*)config["projector"].ptr();
 
-  dims_ = config["dims"];
+  dims_ = config["input_dims"];
   if (dims_.size() != 2)
     throw bad_param("visualization/sample:dims");
-  min_ = config["min"];
+  min_ = config["input_min"];
   if (min_.size() != 2)
     throw bad_param("visualization/sample:min");
-  max_ = config["max"];
+  max_ = config["input_max"];
   if (max_.size() != 2)
     throw bad_param("visualization/sample:max");
-  dim_ = config["dim"];  
+  dim_ = config["output_dim"];  
   points_ = config["points"];
   
   // Divide points among dimensions

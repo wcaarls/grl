@@ -42,7 +42,7 @@ void PolicyVisualization::request(ConfigurationRequest *config)
 
   config->push_back(CRP("policy", "policy", "Control policy", policy_));
   
-  config->push_back(CRP("dim", "Action dimension to visualize", (int)dim_, CRP::Online, 0));
+  config->push_back(CRP("output_dim", "Action dimension to visualize", (int)dim_, CRP::Online, 0));
 }
 
 void PolicyVisualization::configure(Configuration &config)
@@ -51,7 +51,7 @@ void PolicyVisualization::configure(Configuration &config)
   
   policy_ = (Policy*)config["policy"].ptr();
   
-  dim_ = config["dim"];
+  dim_ = config["output_dim"];
   
   // Create window  
   create("Policy");

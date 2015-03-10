@@ -36,10 +36,10 @@ using namespace grl;
 
 void FieldVisualization::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("min", "vector.observation_min", "Lower input dimension limit", state_min_, CRP::System));
-  config->push_back(CRP("max", "vector.observation_max", "Upper input dimension limit", state_max_, CRP::System));
+  config->push_back(CRP("input_dims", "Input dimensions to visualize", dims_));
+  config->push_back(CRP("input_min", "Lower input dimension limit", state_min_, CRP::System));
+  config->push_back(CRP("input_max", "Upper input dimension limit", state_max_, CRP::System));
   config->push_back(CRP("points", "Number of points to evaluate", points_));
-  config->push_back(CRP("dims", "Order of dimensions to visualize", dims_));
   
   std::vector<std::string> options;
   options.push_back("mean");
@@ -59,15 +59,15 @@ void FieldVisualization::configure(Configuration &config)
   else if (projection_str_ == "max") projection_ = vpMax;
   else throw bad_param("visualization/field:projection");
   
-  state_min_ = config["min"];
-  state_max_ = config["max"];
+  state_min_ = config["input_min"];
+  state_max_ = config["input_max"];
   state_dims_ = state_min_.size();
   config.get("points", points_, 1048576);
 
   // Create point iteration order lookup table  
-  dims_ = config["dims"];
+  dims_ = config["input_dims"];
   if (dims_.size() != 2)
-    throw bad_param("visualization/field:dims");
+    throw bad_param("visualization/field:input_dims");
   
   dim_order_.clear();
   for (int ii=0; ii < state_dims_; ++ii)

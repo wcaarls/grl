@@ -40,7 +40,7 @@ class ANNRepresentation : public ParameterizedRepresentation
     TYPEINFO("representation/parameterized/ann")
 
   protected:
-    Vector input_min_, input_max_, output_min_, output_max_;
+    Vector output_min_, output_max_;
     size_t inputs_, hiddens_, outputs_;
     Vector weights_, state_;
     double steepness_;

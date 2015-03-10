@@ -172,13 +172,13 @@ experiment/approx_test:
     mutability: configuration
     default: ""
     optional: 1
-  min:
+  input_min:
     type: vector
     description: Lower limit for drawing samples
     mutability: configuration
     default: "[  ]"
     optional: 1
-  max:
+  input_max:
     type: vector
     description: Upper limit for drawing samples
     mutability: configuration
@@ -422,6 +422,18 @@ policy/action:
     mutability: configuration
     default: "[  ]"
     optional: 1
+  output_min:
+    type: vector.action_min
+    description: Lower limit on outputs
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  output_max:
+    type: vector.action_max
+    description: Upper limit on outputs
+    mutability: system
+    default: "[  ]"
+    optional: 1
   projector:
     type: projector.observation
     description: Projects observations onto representation space
@@ -467,7 +479,7 @@ policy/discrete/q:
     default: 0
     optional: 0
   representation:
-    type: representation.action_value
+    type: representation.value/action
     description: Q-value representation
     mutability: configuration
     default: 0
@@ -498,7 +510,7 @@ policy/discrete/q/bounded:
     default: 0
     optional: 0
   representation:
-    type: representation.action_value
+    type: representation.value/action
     description: Q-value representation
     mutability: configuration
     default: 0
@@ -521,6 +533,18 @@ policy/parameterized/action:
     type: vector
     description: Standard deviation of exploration distribution
     mutability: configuration
+    default: "[  ]"
+    optional: 1
+  output_min:
+    type: vector.action_min
+    description: Lower limit on outputs
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  output_max:
+    type: vector.action_max
+    description: Upper limit on outputs
+    mutability: system
     default: "[  ]"
     optional: 1
   projector:
@@ -575,13 +599,13 @@ policy/parameterized/pid:
     default: "[  ]"
     optional: 1
 policy/random:
-  min:
+  output_min:
     type: vector.action_min
     description: Lower action limit
     mutability: system
     default: "[  ]"
     optional: 1
-  max:
+  output_max:
     type: vector.action_max
     description: Upper action limit
     mutability: system
@@ -627,7 +651,7 @@ predictor/ac/action:
     default: 0
     optional: 0
   critic_representation:
-    type: representation.state_value
+    type: representation.value/state
     description: Value function representation
     mutability: configuration
     default: 0
@@ -696,7 +720,7 @@ predictor/ac/probability:
     default: 0
     optional: 0
   critic_representation:
-    type: representation.state_value
+    type: representation.value/state
     description: Value function representation
     mutability: configuration
     default: 0
@@ -714,7 +738,7 @@ predictor/ac/probability:
     default: 0
     optional: 0
   actor_representation:
-    type: representation.action_value
+    type: representation.value/action
     description: Action-probability representation
     mutability: configuration
     default: 0
@@ -818,7 +842,7 @@ predictor/ggq:
     default: 0
     optional: 0
   representation:
-    type: representation.action_value
+    type: representation.value/action
     description: (Q, w) representation
     mutability: configuration
     default: 0
@@ -880,7 +904,7 @@ predictor/sarsa:
     default: 0
     optional: 0
   representation:
-    type: representation.action_value
+    type: representation.value/action
     description: Q-value representation
     mutability: configuration
     default: 0
@@ -892,13 +916,13 @@ predictor/sarsa:
     default: 0
     optional: 0
 projector/fourier:
-  min:
+  input_min:
     type: vector
     description: Lower input dimension limit (for scaling)
     mutability: system
     default: "[  ]"
     optional: 1
-  max:
+  input_max:
     type: vector
     description: Upper input dimension limit (for scaling)
     mutability: system
@@ -926,6 +950,19 @@ projector/fourier:
     description: Feature vector size
     mutability: provided
 projector/identity: ~
+projector/normalizing:
+  input_min:
+    type: vector
+    description: Lower input dimension limit (for scaling)
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  input_max:
+    type: vector
+    description: Upper input dimension limit (for scaling)
+    mutability: system
+    default: "[  ]"
+    optional: 1
 projector/sample/ann:
   samples:
     type: int
@@ -965,7 +1002,7 @@ projector/sample/ann:
     mutability: configuration
     default: "[  ]"
     optional: 1
-  dims:
+  inputs:
     type: int
     description: Number of input dimensions
     mutability: system
@@ -1027,13 +1064,13 @@ representation/llr:
     optional: 1
     min: 1
     max: 2147483647
-  min:
+  output_min:
     type: vector
     description: Lower output limit
     mutability: system
     default: "[  ]"
     optional: 1
-  max:
+  output_max:
     type: vector
     description: Upper output limit
     mutability: system
@@ -1046,18 +1083,14 @@ representation/llr:
     default: 0
     optional: 0
 representation/parameterized/ann:
-  input_min:
-    type: vector
-    description: Lower limit on inputs
+  inputs:
+    type: int
+    description: Number of input dimensions
     mutability: system
-    default: "[  ]"
+    default: 0
     optional: 1
-  input_max:
-    type: vector
-    description: Upper limit on inputs
-    mutability: system
-    default: "[  ]"
-    optional: 1
+    min: 1
+    max: 2147483647
   output_min:
     type: vector
     description: Lower limit on outputs
@@ -1309,15 +1342,21 @@ visualization/cart_pole:
     mutability: configuration
     default: 0
     optional: 0
-visualization/field/policy:
-  min:
-    type: vector.observation_min
+visualization/field/policy/action:
+  input_dims:
+    type: vector
+    description: Input dimensions to visualize
+    mutability: configuration
+    default: "[ 0, 1 ]"
+    optional: 1
+  input_min:
+    type: vector
     description: Lower input dimension limit
     mutability: system
     default: "[  ]"
     optional: 1
-  max:
-    type: vector.observation_max
+  input_max:
+    type: vector
     description: Upper input dimension limit
     mutability: system
     default: "[  ]"
@@ -1330,12 +1369,6 @@ visualization/field/policy:
     optional: 1
     min: 0
     max: 2147483647
-  dims:
-    type: vector
-    description: Order of dimensions to visualize
-    mutability: configuration
-    default: "[ 0, 1 ]"
-    optional: 1
   projection:
     type: string
     description: Method of projecting values onto 2d space
@@ -1352,7 +1385,7 @@ visualization/field/policy:
     mutability: configuration
     default: 0
     optional: 0
-  dim:
+  output_dim:
     type: int
     description: Action dimension to visualize
     mutability: online
@@ -1360,15 +1393,21 @@ visualization/field/policy:
     optional: 1
     min: 0
     max: 2147483647
-visualization/field/value_function:
-  min:
-    type: vector.observation_min
+visualization/field/policy/value:
+  input_dims:
+    type: vector
+    description: Input dimensions to visualize
+    mutability: configuration
+    default: "[ 0, 1 ]"
+    optional: 1
+  input_min:
+    type: vector
     description: Lower input dimension limit
     mutability: system
     default: "[  ]"
     optional: 1
-  max:
-    type: vector.observation_max
+  input_max:
+    type: vector
     description: Upper input dimension limit
     mutability: system
     default: "[  ]"
@@ -1381,12 +1420,6 @@ visualization/field/value_function:
     optional: 1
     min: 0
     max: 2147483647
-  dims:
-    type: vector
-    description: Order of dimensions to visualize
-    mutability: configuration
-    default: "[ 0, 1 ]"
-    optional: 1
   projection:
     type: string
     description: Method of projecting values onto 2d space
@@ -1404,7 +1437,7 @@ visualization/field/value_function:
     default: 0
     optional: 0
   representation:
-    type: representation.action_value
+    type: representation.value/action
     description: Q-value representation
     mutability: configuration
     default: 0
@@ -1412,6 +1445,63 @@ visualization/field/value_function:
   policy:
     type: policy/discrete/q
     description: Q-value based control policy
+    mutability: configuration
+    default: 0
+    optional: 0
+visualization/field/value:
+  input_dims:
+    type: vector
+    description: Input dimensions to visualize
+    mutability: configuration
+    default: "[ 0, 1 ]"
+    optional: 1
+  input_min:
+    type: vector
+    description: Lower input dimension limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  input_max:
+    type: vector
+    description: Upper input dimension limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  points:
+    type: int
+    description: Number of points to evaluate
+    mutability: configuration
+    default: 65536
+    optional: 1
+    min: 0
+    max: 2147483647
+  projection:
+    type: string
+    description: Method of projecting values onto 2d space
+    mutability: online
+    default: mean
+    optional: 1
+    options:
+      - mean
+      - min
+      - max
+  output_dim:
+    type: int
+    description: Output dimension to visualize
+    mutability: online
+    default: 0
+    optional: 1
+    min: 0
+    max: 2147483647
+  projector:
+    type: projector
+    description: Projects inputs onto representation space
+    mutability: configuration
+    default: 0
+    optional: 0
+  representation:
+    type: representation
+    description: Value representation
     mutability: configuration
     default: 0
     optional: 0
@@ -1423,25 +1513,25 @@ visualization/pendulum:
     default: 0
     optional: 0
 visualization/sample:
-  dims:
+  input_dims:
     type: vector
     description: Input dimensions to visualize
     mutability: configuration
     default: "[ 0, 1 ]"
     optional: 1
-  min:
+  input_min:
     type: vector
     description: Lower input dimension limit
     mutability: system
     default: "[  ]"
     optional: 1
-  max:
+  input_max:
     type: vector
     description: Upper input dimension limit
     mutability: system
     default: "[  ]"
     optional: 1
-  dim:
+  output_dim:
     type: int
     description: Output dimension to visualize
     mutability: configuration
@@ -1464,19 +1554,19 @@ visualization/sample:
     default: 0
     optional: 0
 visualization/state:
-  dims:
+  input_dims:
     type: vector
     description: Input dimensions to visualize
     mutability: configuration
     default: "[ 0, 1 ]"
     optional: 1
-  min:
+  input_min:
     type: vector
     description: Lower input dimension limit
     mutability: system
     default: "[  ]"
     optional: 1
-  max:
+  input_max:
     type: vector
     description: Upper input dimension limit
     mutability: system
@@ -1490,13 +1580,13 @@ visualization/state:
     optional: 0
 visualizer/glut: ~
 projector/fourier.pair:
-  min:
+  input_min:
     type: vector.observation_min+vector.action_min
     description: Lower input dimension limit (for scaling)
     mutability: system
     default: "[  ]"
     optional: 1
-  max:
+  input_max:
     type: vector.observation_max+vector.action_max
     description: Upper input dimension limit (for scaling)
     mutability: system
@@ -1524,6 +1614,19 @@ projector/fourier.pair:
     description: Feature vector size
     mutability: provided
 projector/identity.pair: ~
+projector/normalizing.pair:
+  input_min:
+    type: vector.observation_min+vector.action_min
+    description: Lower input dimension limit (for scaling)
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  input_max:
+    type: vector.observation_max+vector.action_max
+    description: Upper input dimension limit (for scaling)
+    mutability: system
+    default: "[  ]"
+    optional: 1
 projector/sample/ann.pair:
   samples:
     type: int
@@ -1563,7 +1666,7 @@ projector/sample/ann.pair:
     mutability: configuration
     default: "[  ]"
     optional: 1
-  dims:
+  inputs:
     type: int.observation_dims+int.action_dims
     description: Number of input dimensions
     mutability: system
@@ -1625,13 +1728,13 @@ representation/llr.transition:
     optional: 1
     min: 1
     max: 2147483647
-  min:
+  output_min:
     type: vector
     description: Lower output limit
     mutability: system
     default: "[  ]"
     optional: 1
-  max:
+  output_max:
     type: vector
     description: Upper output limit
     mutability: system
@@ -1644,18 +1747,14 @@ representation/llr.transition:
     default: 0
     optional: 0
 representation/parameterized/ann.transition:
-  input_min:
-    type: vector.observation_min+vector.action_min
-    description: Lower limit on inputs
+  inputs:
+    type: int.observation_dims+int.action_dims
+    description: Number of input dimensions
     mutability: system
-    default: "[  ]"
+    default: 0
     optional: 1
-  input_max:
-    type: vector.observation_max+vector.action_max
-    description: Upper limit on inputs
-    mutability: system
-    default: "[  ]"
-    optional: 1
+    min: 1
+    max: 2147483647
   output_min:
     type: vector
     description: Lower limit on outputs
@@ -1742,13 +1841,13 @@ representation/parameterized/linear.transition:
     default: "[  ]"
     optional: 1
 projector/fourier.observation:
-  min:
+  input_min:
     type: vector.observation_min
     description: Lower input dimension limit (for scaling)
     mutability: system
     default: "[  ]"
     optional: 1
-  max:
+  input_max:
     type: vector.observation_max
     description: Upper input dimension limit (for scaling)
     mutability: system
@@ -1776,6 +1875,19 @@ projector/fourier.observation:
     description: Feature vector size
     mutability: provided
 projector/identity.observation: ~
+projector/normalizing.observation:
+  input_min:
+    type: vector.observation_min
+    description: Lower input dimension limit (for scaling)
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  input_max:
+    type: vector.observation_max
+    description: Upper input dimension limit (for scaling)
+    mutability: system
+    default: "[  ]"
+    optional: 1
 projector/sample/ann.observation:
   samples:
     type: int
@@ -1815,7 +1927,7 @@ projector/sample/ann.observation:
     mutability: configuration
     default: "[  ]"
     optional: 1
-  dims:
+  inputs:
     type: int.observation_dims
     description: Number of input dimensions
     mutability: system
@@ -1877,13 +1989,13 @@ representation/llr.action:
     optional: 1
     min: 1
     max: 2147483647
-  min:
+  output_min:
     type: vector.action_min
     description: Lower output limit
     mutability: system
     default: "[  ]"
     optional: 1
-  max:
+  output_max:
     type: vector.action_max
     description: Upper output limit
     mutability: system
@@ -1896,18 +2008,14 @@ representation/llr.action:
     default: 0
     optional: 0
 representation/parameterized/ann.action:
-  input_min:
-    type: vector.observation_min
-    description: Lower limit on inputs
+  inputs:
+    type: int.observation_dims
+    description: Number of input dimensions
     mutability: system
-    default: "[  ]"
+    default: 0
     optional: 1
-  input_max:
-    type: vector.observation_max
-    description: Upper limit on inputs
-    mutability: system
-    default: "[  ]"
-    optional: 1
+    min: 1
+    max: 64
   output_min:
     type: vector.action_min
     description: Lower limit on outputs
@@ -2012,7 +2120,7 @@ discretizer/uniform.action:
     mutability: configuration
     default: "[  ]"
     optional: 1
-representation/llr.action_value:
+representation/llr.value/action:
   ridge:
     type: double
     description: Ridge regression (Tikhonov) factor
@@ -2037,13 +2145,13 @@ representation/llr.action_value:
     optional: 1
     min: 1
     max: 2147483647
-  min:
+  output_min:
     type: vector
     description: Lower output limit
     mutability: system
     default: "[  ]"
     optional: 1
-  max:
+  output_max:
     type: vector
     description: Upper output limit
     mutability: system
@@ -2055,19 +2163,15 @@ representation/llr.action_value:
     mutability: configuration
     default: 0
     optional: 0
-representation/parameterized/ann.action_value:
-  input_min:
-    type: vector.observation_min+vector.action_min
-    description: Lower limit on inputs
+representation/parameterized/ann.value/action:
+  inputs:
+    type: int.observation_dims+int.action_dims
+    description: Number of input dimensions
     mutability: system
-    default: "[  ]"
+    default: 0
     optional: 1
-  input_max:
-    type: vector.observation_max+vector.action_max
-    description: Upper limit on inputs
-    mutability: system
-    default: "[  ]"
-    optional: 1
+    min: 1
+    max: 2147483647
   output_min:
     type: vector
     description: Lower limit on outputs
@@ -2112,7 +2216,7 @@ representation/parameterized/ann.action_value:
     optional: 1
     min: 0
     max: 1
-representation/parameterized/linear.action_value:
+representation/parameterized/linear.value/action:
   init_min:
     type: vector
     description: Lower initial value limit
@@ -2153,7 +2257,7 @@ representation/parameterized/linear.action_value:
     mutability: system
     default: "[  ]"
     optional: 1
-representation/llr.state_value:
+representation/llr.value/state:
   ridge:
     type: double
     description: Ridge regression (Tikhonov) factor
@@ -2178,13 +2282,13 @@ representation/llr.state_value:
     optional: 1
     min: 1
     max: 2147483647
-  min:
+  output_min:
     type: vector
     description: Lower output limit
     mutability: system
     default: "[  ]"
     optional: 1
-  max:
+  output_max:
     type: vector
     description: Upper output limit
     mutability: system
@@ -2196,19 +2300,15 @@ representation/llr.state_value:
     mutability: configuration
     default: 0
     optional: 0
-representation/parameterized/ann.state_value:
-  input_min:
-    type: vector.observation_min
-    description: Lower limit on inputs
+representation/parameterized/ann.value/state:
+  inputs:
+    type: int.observation_dims
+    description: Number of input dimensions
     mutability: system
-    default: "[  ]"
+    default: 0
     optional: 1
-  input_max:
-    type: vector.observation_max
-    description: Upper limit on inputs
-    mutability: system
-    default: "[  ]"
-    optional: 1
+    min: 1
+    max: 2147483647
   output_min:
     type: vector
     description: Lower limit on outputs
@@ -2253,7 +2353,7 @@ representation/parameterized/ann.state_value:
     optional: 1
     min: 0
     max: 1
-representation/parameterized/linear.state_value:
+representation/parameterized/linear.value/state:
   init_min:
     type: vector
     description: Lower initial value limit

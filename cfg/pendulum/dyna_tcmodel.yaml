@@ -4,7 +4,7 @@ experiment:
   trials: 0
   steps: 0
   rate: 0
-  test_interval: 10
+  test_interval: 1
   environment: 
     type: environment/modeled
     model: 
@@ -17,7 +17,8 @@ experiment:
       type: task/pendulum/swingup
       timeout: 2.99
   agent: 
-    type: agent/td
+    type: agent/dyna
+    planning_steps: 200
     policy: 
       type: policy/discrete/q
       discretizer: 
@@ -26,11 +27,11 @@ experiment:
         max: experiment/environment/task/action_max
         steps: [3]
       projector: 
-        type: projector/fourier
-        input_min: experiment/environment/task/observation_min+experiment/environment/task/action_min
-        input_max: experiment/environment/task/observation_max+experiment/environment/task/action_max
-        order: 3
-        parity: even
+        type: projector/tile_coding
+        tilings: 16
+        memory: 8388608
+        resolution: [0.31415, 3.1415, 3]
+        wrapping: [6.283, 0, 0]
       representation: 
         type: representation/parameterized/linear
         init_min: [0]
@@ -44,13 +45,49 @@ experiment:
         epsilon: 0.05
     predictor: 
       type: predictor/sarsa
-      alpha: 0.001
+      alpha: 0.2
       gamma: 0.97
-      lambda: 0
+      lambda: 0.65
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
       trace: 
         type: trace/enumerated/replacing
+    model: 
+      type: observation_model/approximated
+      wrapping: experiment/agent/policy/projector/wrapping
+      observation_min: experiment/environment/task/observation_min
+      observation_max: experiment/environment/task/observation_max
+      projector: 
+        type: projector/tile_coding
+        tilings: 16
+        memory: 8388608
+        resolution: experiment/agent/policy/projector/resolution
+        wrapping: experiment/agent/policy/projector/wrapping
+      representation: 
+        type: representation/parameterized/linear
+        init_min: [ 0 ]
+        init_max: [ 0 ]
+        memory: experiment/agent/model/projector/memory
+        outputs: experiment/environment/task/observation_dims+2
+        output_min: [  ]
+        output_max: [  ]
+    model_predictor: 
+      type: predictor/model
+      wrapping: experiment/agent/policy/projector/wrapping
+      projector: experiment/agent/model/projector
+      representation: experiment/agent/model/representation
+    model_agent: 
+      type: agent/td
+      policy: experiment/agent/policy
+      predictor: 
+        type: predictor/sarsa
+        alpha: 0.02
+        gamma: 0.97
+        lambda: 0
+        projector: experiment/agent/policy/projector
+        representation: experiment/agent/policy/representation
+        trace: 
+          type: trace/enumerated/replacing
   test_agent: 
     type: agent/fixed
     policy: 
@@ -64,7 +101,7 @@ visualizer:
   type: visualizer/glut
 visualization: 
   type: visualization/field/policy/value
-  input_dims: [ 0, 1 ]
+  input_dims: [0, 1]
   input_min: experiment/environment/task/observation_min
   input_max: experiment/environment/task/observation_max
   points: 65536

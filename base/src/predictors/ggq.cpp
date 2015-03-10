@@ -38,7 +38,7 @@ void GGQPredictor::request(ConfigurationRequest *config)
   config->push_back(CRP("gamma", "Discount rate", gamma_));
 
   config->push_back(CRP("projector", "projector.pair", "Projects observation-action pairs onto representation space", projector_));
-  config->push_back(CRP("representation", "representation.action_value", "(Q, w) representation", representation_));
+  config->push_back(CRP("representation", "representation.value/action", "(Q, w) representation", representation_));
   config->push_back(CRP("policy", "policy/discrete/q", "Greedy target policy", policy_));
 }
 
