@@ -117,3 +117,6 @@ add_library(yaml-cpp
 	${contrib_public_headers}
 	${contrib_private_headers}
 )
+
+install(TARGETS yaml-cpp DESTINATION lib)
+install(DIRECTORY ${SRC}/../include/yaml-cpp DESTINATION include)

@@ -1,5 +1,5 @@
 # Setup build environment
-set(TARGET external_ics)
+set(TARGET ics)
 
 find_package(ZLIB)
 
@@ -23,4 +23,7 @@ if (ZLIB_FOUND)
              )
 
   target_link_libraries(${TARGET} ${ZLIB_LIBRARIES})
+  install(TARGETS ${TARGET} DESTINATION lib)
+  file(GLOB ICS_INCLUDES ${SRC}/../include/*)
+  install(FILES ${ICS_INCLUDES} DESTINATION include)
 endif()

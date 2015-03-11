@@ -1,5 +1,5 @@
 # Setup build environment
-SET(TARGET external_ann)
+SET(TARGET ann)
 
 # Build library
 ADD_LIBRARY(${TARGET} SHARED
@@ -18,3 +18,5 @@ ADD_LIBRARY(${TARGET} SHARED
             ${SRC}/bd_fix_rad_search.cpp
             ${SRC}/perf.cpp
            )
+install(TARGETS ${TARGET} DESTINATION lib)
+install(DIRECTORY ${SRC}/../include/ANN DESTINATION include)

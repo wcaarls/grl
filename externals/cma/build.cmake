@@ -1,5 +1,5 @@
 # Setup build environment
-set(TARGET external_cma)
+set(TARGET cma)
 
 set_source_files_properties(${SRC}/cmaes.c PROPERTIES COMPILE_FLAGS -Wno-unused-result)
 
@@ -7,3 +7,5 @@ set_source_files_properties(${SRC}/cmaes.c PROPERTIES COMPILE_FLAGS -Wno-unused-
 add_library(${TARGET} SHARED
             ${SRC}/cmaes.c
            )
+install(TARGETS ${TARGET} DESTINATION lib)
+install(DIRECTORY ${SRC}/../include/cma DESTINATION include)

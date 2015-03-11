@@ -17,5 +17,7 @@ if (PKG_CONFIG_FOUND)
 
     # Add dependencies
     grl_link_libraries(${TARGET} base externals/ann)
+    install(TARGETS ${TARGET} DESTINATION lib/grl)
+    install(DIRECTORY ${SRC}/../include/grl DESTINATION include)
   endif()
 endif()

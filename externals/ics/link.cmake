@@ -1,1 +1,1 @@
-target_link_libraries(${TARGET} external_ics)
+target_link_libraries(${TARGET} ics)

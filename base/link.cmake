@@ -1,2 +1,2 @@
-target_link_libraries(${TARGET} grl -lpthread)
-grl_link_yaml(${TARGET})
+target_link_libraries(${TARGET} grl -lpthread -ldl)
+grl_link_libraries(${TARGET} externals/yaml-cpp)

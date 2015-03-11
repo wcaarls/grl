@@ -22,12 +22,3 @@ macro(grl_build_library target)
   endif()
   include(${CMAKE_CURRENT_SOURCE_DIR}/${target}/build.cmake)
 endmacro(grl_build_library)
-
-# Link to correct YAML
-macro(grl_link_yaml target)
-  if (DEFINED GRL_YAML_MODULE)
-    grl_link_libraries(${target} externals/yaml-cpp)
-  else()
-    target_link_libraries(${target} -lyaml-cpp)
-  endif()
-endmacro(grl_link_yaml)

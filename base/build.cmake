@@ -43,15 +43,23 @@ add_library(${TARGET} SHARED
 
 # Dependencies
 target_link_libraries(${TARGET} -lpthread -ldl)
-grl_link_yaml(${TARGET})
+grl_link_libraries(${TARGET} externals/yaml-cpp)
+install(TARGETS ${TARGET} DESTINATION lib)
+install(DIRECTORY ${SRC}/../include/grl DESTINATION include)
 
 # Deployer
-set (TARGET deploy)
+set (TARGET grld)
 add_executable(${TARGET} ${SRC}/deployer.cpp)
 grl_link_libraries(${TARGET} base)
+install(TARGETS ${TARGET} DESTINATION bin)
 
 # Requestgen
-set (TARGET requestgen)
+set (TARGET grlg)
 add_executable(${TARGET} ${SRC}/requestgen.cpp)
 grl_link_libraries(${TARGET} base)
+install(TARGETS ${TARGET} DESTINATION bin)
 
+add_custom_command(OUTPUT requests.yaml COMMAND grlg requests.yaml DEPENDS grlg)
+add_custom_target(requests ALL DEPENDS requests.yaml)
+
+install(FILES ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/requests.yaml DESTINATION bin)

@@ -87,7 +87,10 @@ void grl::loadPlugins()
   char buf[PATH_MAX] = { 0 };
   strcpy(buf, dl_info.dli_fname);
 
-  std::string pattern = dirname(buf);
-  pattern = pattern + "/libaddon*.so";
+  std::string path = dirname(buf);
+  std::string pattern = path + "/libaddon*.so";
+  loadPlugins1(pattern);
+
+  pattern = path + "/grl/libaddon*.so";
   loadPlugins1(pattern);
 }

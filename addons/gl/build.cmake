@@ -17,4 +17,6 @@ if (OPENGL_FOUND)
   # Add dependencies
   target_link_libraries(${TARGET} ${OPENGL_LIBRARIES})
   grl_link_libraries(${TARGET} base)
+  install(TARGETS ${TARGET} DESTINATION lib/grl)
+  install(DIRECTORY ${SRC}/../include/grl DESTINATION include)
 endif()

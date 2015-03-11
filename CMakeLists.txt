@@ -50,3 +50,5 @@ endif()
 foreach(module ${MODULES})
   grl_build_library(${module})
 endforeach()
+
+install(PROGRAMS bin/grlc bin/grlcc bin/grlq bin/grllib.py bin/tooltip.py DESTINATION bin)
