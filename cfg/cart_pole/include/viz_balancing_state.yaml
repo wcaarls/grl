@@ -1,4 +1,0 @@
-type: visualization/state
-state: experiment/state
-min: [ -2.4, -3.14159 ]
-max: [  2.4,  3.14159 ]

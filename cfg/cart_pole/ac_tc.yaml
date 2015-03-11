@@ -1,0 +1,98 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 0
+  steps: 0
+  rate: 0
+  test_interval: 0
+  environment: 
+    type: environment/modeled
+    model: 
+      type: model/dynamical
+      control_step: 0.05
+      integration_steps: 5
+      dynamics: 
+        type: dynamics/cart_pole
+    task: 
+      type: task/cart_pole/swingup
+      timeout: 9.99
+      randomization: 0
+      shaping: 0
+      gamma: 1
+  agent: 
+    type: agent/td
+    policy: 
+      type: policy/action
+      sigma: [ 1 ]
+      output_min: experiment/environment/task/action_min
+      output_max: experiment/environment/task/action_max
+      projector: 
+        type: projector/tile_coding
+        tilings: 16
+        memory: 8388608
+        resolution: [2.5, 2.5, 0.157075, 1.57075 ]
+        wrapping: [ 0, 0, 6.283, 0 ]
+      representation: 
+        type: representation/parameterized/linear
+        init_min: [ 0 ]
+        init_max: [ 1 ]
+        memory: experiment/agent/policy/projector/memory
+        outputs: experiment/environment/task/action_dims
+        output_min: experiment/environment/task/action_min
+        output_max: experiment/environment/task/action_max
+    predictor: 
+      type: predictor/ac/action
+      alpha: 0.2
+      beta: 0.01
+      gamma: 0.97
+      lambda: 0.65
+      critic_projector: 
+        type: projector/tile_coding
+        tilings: 16
+        memory: 8388608
+        resolution: experiment/agent/policy/projector/resolution
+        wrapping: experiment/agent/policy/projector/wrapping
+      critic_representation: 
+        type: representation/parameterized/linear
+        init_min: [ 0 ]
+        init_max: [ 1 ]
+        memory: 8388608
+        outputs: 1
+        output_min: [  ]
+        output_max: [  ]
+      critic_trace: 
+        type: trace/enumerated/replacing
+      actor_projector: experiment/agent/policy/projector
+      actor_representation: experiment/agent/policy/representation
+      actor_trace: 
+        type: trace/enumerated/replacing
+  test_agent: 
+    type: agent/fixed
+    policy: 
+      type: policy/action
+      sigma: [  ]
+      output_min: experiment/environment/task/action_min
+      output_max: experiment/environment/task/action_max
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+visualizer: 
+  type: visualizer/glut
+visualization: 
+  type: visualization/field/value
+  input_dims: [ 0, 1 ]
+  input_min: experiment/environment/task/observation_min
+  input_max: experiment/environment/task/observation_max
+  points: 65536
+  projection: mean
+  output_dim: 0
+  projector: experiment/agent/predictor/critic_projector
+  representation: experiment/agent/predictor/critic_representation
+visualization2: 
+  type: visualization/field/policy/action
+  input_dims: [ 0, 1 ]
+  input_min: experiment/environment/task/observation_min
+  input_max: experiment/environment/task/observation_max
+  points: 65536
+  projection: mean
+  policy: experiment/test_agent/policy
+  output_dim: 0

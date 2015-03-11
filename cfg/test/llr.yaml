@@ -1,7 +1,7 @@
 experiment:
   type: experiment/approx_test
-  min: [ 0, 0 ]
-  max: [ 1, 1 ]
+  input_min: [ 0, 0 ]
+  input_max: [ 1, 1 ]
   train_samples: 1000
   test_samples: 10000
   file: approx_test.txt
@@ -13,7 +13,7 @@ experiment:
   projector:
     type: projector/sample/ann
     samples: experiment/train_samples
-    dims: 2
+    inputs: 2
   representation:
     type: representation/llr
     projector: experiment/projector

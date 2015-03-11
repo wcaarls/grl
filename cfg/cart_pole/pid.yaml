@@ -1,14 +1,34 @@
-experiment:
+experiment: 
   type: experiment/online_learning
+  runs: 1
+  trials: 0
+  steps: 0
   rate: 20
-  environment: include/cart_pole_balancing.yaml
-  agent:
+  test_interval: 0
+  environment: 
+    type: environment/modeled
+    model: 
+      type: model/dynamical
+      control_step: 0.05
+      integration_steps: 5
+      dynamics: 
+        type: dynamics/cart_pole
+    task: 
+      type: task/cart_pole/balancing
+      timeout: 9.99
+  agent: 
     type: agent/fixed
-    policy:
+    policy: 
       type: policy/parameterized/pid
-      setpoint: [0, 0, 0, 0]
-      outputs: 1
+      setpoint: [ 0, 0, 0, 0 ]
+      outputs: experiment/environment/task/action_dims
       p: [-10, -6, -50, -10]
-visualizer:
+      i: [  ]
+      d: [  ]
+      il: [  ]
+  test_agent: experiment/agent
+visualizer: 
   type: visualizer/glut
-visualization: include/viz_cart_pole.yaml
+visualization: 
+  type: visualization/cart_pole
+  state: experiment/environment/state

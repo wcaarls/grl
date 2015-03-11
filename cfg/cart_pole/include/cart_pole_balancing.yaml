@@ -1,7 +1,0 @@
-type: environment/modeled
-model:
-  type: model/dynamical
-  dynamics:
-    type: dynamics/cart_pole
-task:
-  type: task/cart_pole/balancing

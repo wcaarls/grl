@@ -1,0 +1,35 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 0
+  steps: 0
+  rate: 0
+  test_interval: 10
+  environment: 
+    type: environment/modeled
+    model: 
+      type: model/dynamical
+      control_step: 0.05
+      integration_steps: 5
+      dynamics: 
+        type: dynamics/cart_pole
+    task: 
+      type: task/cart_pole/balancing
+      timeout: 9.99
+  agent: 
+    type: agent/black_box
+    episodes: 10
+    optimizer: 
+      type: optimizer/cma
+      population: 0
+      policy: 
+        type: policy/parameterized/pid
+        setpoint: [ 0,0,0,0 ]
+        outputs: experiment/environment/task/action_dims
+        p: [  ]
+        i: [  ]
+        d: [  ]
+        il: [  ]
+  test_agent: 
+    type: agent/fixed
+    policy: experiment/agent/optimizer/policy
