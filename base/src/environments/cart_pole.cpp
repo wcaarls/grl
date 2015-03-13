@@ -174,7 +174,7 @@ void CartPoleSwingupTask::evaluate(const Vector &state, const Vector &action, co
 bool CartPoleSwingupTask::invert(const Vector &obs, Vector *state) const
 {
   *state = obs;
-  (*state)[3] -= M_PI;
+  (*state)[2] -= M_PI;
   state->push_back(0.);
   
   return true;

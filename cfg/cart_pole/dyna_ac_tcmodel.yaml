@@ -4,7 +4,7 @@ experiment:
   trials: 0
   steps: 0
   rate: 0
-  test_interval: 0
+  test_interval: 1
   environment: 
     type: environment/modeled
     model: 
@@ -24,19 +24,19 @@ experiment:
     planning_steps: 2000
     policy: 
       type: policy/action
-      sigma: [ 1 ]
+      sigma: [5]
       output_min: experiment/environment/task/action_min
       output_max: experiment/environment/task/action_max
       projector: 
         type: projector/tile_coding
         tilings: 16
-        memory: 8388608
-        resolution: [2.5, 2.5, 0.157075, 1.57075 ]
-        wrapping: [ 0, 0, 6.283, 0 ]
+        memory: 67108864
+        resolution: [2.5, 2.5, 0.157075, 1.57075]
+        wrapping: [0, 0, 6.283, 0]
       representation: 
         type: representation/parameterized/linear
-        init_min: [ 0 ]
-        init_max: [ 1 ]
+        init_min: experiment/environment/task/action_min
+        init_max: experiment/environment/task/action_max
         memory: experiment/agent/policy/projector/memory
         outputs: experiment/environment/task/action_dims
         output_min: experiment/environment/task/action_min
@@ -50,12 +50,12 @@ experiment:
       critic_projector: experiment/agent/policy/projector
       critic_representation: 
         type: representation/parameterized/linear
-        init_min: [ 0 ]
-        init_max: [ 1 ]
+        init_min: [0]
+        init_max: [1]
         memory: experiment/agent/policy/projector/memory
         outputs: 1
-        output_min: [  ]
-        output_max: [  ]
+        output_min: []
+        output_max: []
       critic_trace: 
         type: trace/enumerated/replacing
       actor_projector: experiment/agent/policy/projector
@@ -69,18 +69,18 @@ experiment:
       observation_max: experiment/environment/task/observation_max
       projector: 
         type: projector/tile_coding
-        tilings: 16
-        memory: 8388608
-        resolution: [2.5, 2.5, 0.157075, 1.57075, 15 ]
-        wrapping: [ 0, 0, 6.283, 0, 0 ]
+        tilings: experiment/agent/policy/projector/tilings
+        memory: experiment/agent/policy/projector/memory
+        resolution: experiment/agent/policy/projector/resolution + experiment/environment/task/action_max
+        wrapping: experiment/agent/policy/projector/wrapping + 0
       representation: 
         type: representation/parameterized/linear
-        init_min: [ 0 ]
-        init_max: [ 1 ]
+        init_min: [0]
+        init_max: [0]
         memory: experiment/agent/model/projector/memory
         outputs: experiment/environment/task/observation_dims+2
-        output_min: [  ]
-        output_max: [  ]
+        output_min: []
+        output_max: []
       task: experiment/environment/task
     model_predictor: 
       type: predictor/model
@@ -94,8 +94,8 @@ experiment:
         type: predictor/ac/action
         alpha: 0.01
         beta: 0.0005
-        gamma: 0
-        lambda: 0.65
+        gamma: experiment/agent/predictor/gamma
+        lambda: 0
         critic_projector: experiment/agent/policy/projector
         critic_representation: experiment/agent/predictor/critic_representation
         critic_trace: 
@@ -113,3 +113,8 @@ experiment:
       output_max: experiment/environment/task/action_max
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
+visualizer: 
+  type: visualizer/glut
+visualization: 
+  type: visualization/cart_pole
+  state: experiment/environment/state
