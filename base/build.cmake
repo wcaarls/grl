@@ -14,6 +14,8 @@ add_library(${TARGET} SHARED
             ${SRC}/environments/modeled.cpp
             ${SRC}/environments/pendulum.cpp
             ${SRC}/environments/cart_pole.cpp
+            ${SRC}/environments/compass_walker/SWModel.cpp
+            ${SRC}/environments/compass_walker/compass_walker.cpp
             ${SRC}/experiments/approx_test.cpp
             ${SRC}/experiments/online_learning.cpp
             ${SRC}/policies/random.cpp
@@ -62,4 +64,4 @@ install(TARGETS ${TARGET} DESTINATION bin)
 add_custom_command(OUTPUT requests.yaml COMMAND grlg requests.yaml DEPENDS grlg)
 add_custom_target(requests ALL DEPENDS requests.yaml)
 
-install(FILES ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/requests.yaml DESTINATION bin)
+#install(FILES ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/requests.yaml DESTINATION bin)
