@@ -62,6 +62,9 @@ void ModelPredictor::update(const Transition &transition)
 {
   Vector target;
   
+  if (wrapping_.size() < transition.obs.size())
+    wrapping_.resize(transition.obs.size(), 0.);
+  
   if (!transition.obs.empty())
   {
     target = transition.obs-transition.prev_obs;
@@ -81,7 +84,7 @@ void ModelPredictor::update(const Transition &transition)
   else
   {
     // Absorbing state
-    target = transition.prev_obs;
+    target.resize(transition.prev_obs.size(), 0.);
     target.push_back(transition.reward);
     target.push_back(1);
   }

@@ -104,8 +104,8 @@ void CompassWalkerWalkTask::configure(Configuration &config)
   T_ = config["timeout"];
 
   config.set("observation_dims", 4);
-  config.set("observation_min", VectorConstructor(-0.5*M_PI, -0.5*M_PI, -M_PI, -M_PI));
-  config.set("observation_max", VectorConstructor( 0.5*M_PI,  0.5*M_PI,  M_PI,  M_PI));
+  config.set("observation_min", VectorConstructor(-M_PI, -M_PI, -M_PI, -M_PI));
+  config.set("observation_max", VectorConstructor( M_PI,  M_PI,  M_PI,  M_PI));
   config.set("action_dims", 1);
   config.set("action_min", VectorConstructor(-1.2));
   config.set("action_max", VectorConstructor( 1.2));

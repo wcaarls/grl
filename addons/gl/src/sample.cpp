@@ -90,7 +90,7 @@ void SampleVisualization::reshape(int width, int height)
 void SampleVisualization::idle()
 {
   float *value = new float[points_];
-  memset(value, 0, points_*sizeof(float));
+  memset(value, 0xFF, points_*sizeof(float));
 
   float value_max=-std::numeric_limits<float>::infinity(),
         value_min= std::numeric_limits<float>::infinity();
@@ -129,7 +129,7 @@ void SampleVisualization::idle()
     double v2 = 4*v;
     
     // Jet colormap
-    if (value[ii])
+    if (!isnan(value[ii]))
     {
       data_[ii*3+0] = fmax(fmin(255*fmin(v2 - 1.5, -v2 + 4.5), 255), 0);
       data_[ii*3+1] = fmax(fmin(255*fmin(v2 - 0.5, -v2 + 3.5), 255), 0);

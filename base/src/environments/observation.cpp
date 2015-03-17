@@ -92,10 +92,19 @@ void ApproximatedObservationModel::configure(Configuration &config)
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (Representation*)config["representation"].ptr();
 
-  wrapping_ = config["wrapping"];
-  
   observation_min_ = config["observation_min"];
   observation_max_ = config["observation_max"];
+  
+  if (observation_min_.empty() || observation_min_.size() != observation_max_.size())
+    throw bad_param("observation_model/approximated:{observation_min,observation_max}");
+  
+  wrapping_ = config["wrapping"];
+  
+  if (wrapping_.empty())
+    wrapping_.resize(observation_min_.size(), 0.);
+    
+  if (wrapping_.size() != observation_min_.size())
+    throw bad_param("observation_model/approximated:wrapping");
 }
 
 void ApproximatedObservationModel::reconfigure(const Configuration &config)

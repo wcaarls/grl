@@ -1400,6 +1400,13 @@ visualization/cart_pole:
     mutability: configuration
     default: 0
     optional: 0
+visualization/compass_walker:
+  state:
+    type: state
+    description: Compass walker state to visualize
+    mutability: configuration
+    default: 0
+    optional: 0
 visualization/field/policy/action:
   input_dims:
     type: vector
