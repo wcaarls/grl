@@ -1646,6 +1646,53 @@ visualization/sample:
     mutability: configuration
     default: 0
     optional: 0
+visualization/sample/random:
+  input_dims:
+    type: vector
+    description: Input dimensions to visualize
+    mutability: configuration
+    default: "[ 0, 1 ]"
+    optional: 1
+  input_min:
+    type: vector
+    description: Lower input dimension limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  input_max:
+    type: vector
+    description: Upper input dimension limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  output_dim:
+    type: int
+    description: Output dimension to visualize
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 2147483647
+  points:
+    type: int
+    description: Texture size
+    mutability: configuration
+    default: 65536
+    optional: 1
+    min: 0
+    max: 2147483647
+  projector:
+    type: projector
+    description: Projects inputs onto representation space
+    mutability: configuration
+    default: 0
+    optional: 0
+  representation:
+    type: representation
+    description: Value representation
+    mutability: configuration
+    default: 0
+    optional: 0
 visualization/state:
   input_dims:
     type: vector

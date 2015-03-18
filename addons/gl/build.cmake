@@ -8,6 +8,7 @@ if (OPENGL_FOUND)
   # Build library
   add_library(${TARGET} SHARED
               ${SRC}/sample.cpp
+              ${SRC}/random_sample.cpp
               ${SRC}/field.cpp
               ${SRC}/value.cpp
               ${SRC}/policy.cpp
