@@ -33,6 +33,7 @@ REGISTER_CONFIGURABLE(ModelPredictor)
 
 void ModelPredictor::request(ConfigurationRequest *config)
 {
+  config->push_back(CRP("differential", "int.differential", "Predict state deltas", differential_, CRP::Configuration, 0, 1));
   config->push_back(CRP("wrapping", "vector.wrapping", "Wrapping boundaries", wrapping_));
   config->push_back(CRP("projector", "projector.pair", "Projector for transition model (|S|+|A| dimensions)", projector_));
   config->push_back(CRP("representation", "representation.transition", "Representation for transition model (|S|+2 dimensions)", representation_));
@@ -43,6 +44,7 @@ void ModelPredictor::configure(Configuration &config)
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (Representation*)config["representation"].ptr();
   
+  differential_ = config["differential"];
   wrapping_ = config["wrapping"];
 }
 
@@ -67,7 +69,10 @@ void ModelPredictor::update(const Transition &transition)
   
   if (!transition.obs.empty())
   {
-    target = transition.obs-transition.prev_obs;
+    if (differential_)
+      target = transition.obs-transition.prev_obs;
+    else
+      target = transition.obs;
     
     for (size_t ii=0; ii < target.size(); ++ii)
       if (wrapping_[ii])

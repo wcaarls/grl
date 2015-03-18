@@ -45,10 +45,11 @@ class ModelPredictor : public Predictor
     Projector *projector_;
     Representation *representation_;
     
+    int differential_;
     Vector wrapping_;
 
   public:
-    ModelPredictor() : projector_(NULL), representation_(NULL) { }
+    ModelPredictor() : projector_(NULL), representation_(NULL), differential_(1) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);

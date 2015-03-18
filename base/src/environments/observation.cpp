@@ -79,6 +79,7 @@ void FixedObservationModel::step(const Vector &obs, const Vector &action, Vector
 
 void ApproximatedObservationModel::request(ConfigurationRequest *config)
 {
+  config->push_back(CRP("differential", "int.differential", "Predict state deltas", differential_, CRP::Configuration, 0, 1));
   config->push_back(CRP("wrapping", "vector.wrapping", "Wrapping boundaries", wrapping_));
   config->push_back(CRP("observation_min", "vector.observation_min", "Lower limit on observations", observation_min_, CRP::System));
   config->push_back(CRP("observation_max", "vector.observation_max", "Upper limit on observations", observation_max_, CRP::System));
@@ -98,6 +99,7 @@ void ApproximatedObservationModel::configure(Configuration &config)
   if (observation_min_.empty() || observation_min_.size() != observation_max_.size())
     throw bad_param("observation_model/approximated:{observation_min,observation_max}");
   
+  differential_ = config["differential"];
   wrapping_ = config["wrapping"];
   
   if (wrapping_.empty())
@@ -134,7 +136,8 @@ void ApproximatedObservationModel::step(const Vector &obs, const Vector &action,
   bool valid = !next->empty();
   for (size_t ii=0; ii < obs.size() && valid; ++ii)
   {
-    (*next)[ii] += obs[ii];
+    if (differential_)
+      (*next)[ii] += obs[ii];
     
     if (wrapping_[ii])
       (*next)[ii] = fmod(fmod((*next)[ii], wrapping_[ii]) + wrapping_[ii], wrapping_[ii]);
