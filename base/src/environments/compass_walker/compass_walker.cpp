@@ -177,8 +177,10 @@ void CompassWalkerWalkTask::evaluate(const Vector &state, const Vector &action, 
 
   *reward = -1;
 
+  // Instead of using LastHipX, which is non-Markov, assume the last step
+  // was just as long as this one.
   if (next[CompassWalker::siStanceLegChanged])
-    *reward += 50 * (next[CompassWalker::siLastHipX] - state[CompassWalker::siLastHipX]);
+    *reward += 50 * 4 * sin(next[CompassWalker::siStanceLegAngle]);
 
   if (cos(next[CompassWalker::siStanceLegAngle]) < 0)
     *reward += -50;
@@ -186,6 +188,16 @@ void CompassWalkerWalkTask::evaluate(const Vector &state, const Vector &action, 
 
 bool CompassWalkerWalkTask::invert(const Vector &obs, Vector *state) const
 {
-  // Unfortunately we cannot invert because siLastHipX is not observed
-  return false;
+  state->resize(8);
+  
+  (*state)[CompassWalker::siStanceLegAngle] = obs[CompassWalker::siStanceLegAngle];
+  (*state)[CompassWalker::siHipAngle] = obs[CompassWalker::siHipAngle];
+  (*state)[CompassWalker::siStanceLegAngleRate] = obs[CompassWalker::siStanceLegAngleRate];
+  (*state)[CompassWalker::siHipAngleRate] = obs[CompassWalker::siHipAngleRate];
+  (*state)[CompassWalker::siStanceFootX] = 0;
+  (*state)[CompassWalker::siStanceLegChanged] = false;
+  (*state)[CompassWalker::siLastHipX] = 0;
+  (*state)[CompassWalker::siTime] = 0;
+
+  return true;
 }

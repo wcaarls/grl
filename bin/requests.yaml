@@ -52,6 +52,10 @@ agent/dyna:
     mutability: configuration
     default: 0
     optional: 0
+  state:
+    type: state
+    description: Current observed state of planning
+    mutability: provided
 agent/fixed:
   policy:
     type: policy
@@ -337,6 +341,14 @@ model/dynamical:
     default: 0
     optional: 0
 observation_model/approximated:
+  differential:
+    type: int.differential
+    description: Predict state deltas
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 0
+    max: 1
   wrapping:
     type: vector.wrapping
     description: Wrapping boundaries
@@ -381,6 +393,14 @@ observation_model/fixed:
     default: 0
     optional: 0
 observation_model/fixed_reward:
+  differential:
+    type: int.differential
+    description: Predict state deltas
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 0
+    max: 1
   wrapping:
     type: vector.wrapping
     description: Wrapping boundaries
@@ -871,6 +891,14 @@ predictor/ggq:
     default: 0
     optional: 0
 predictor/model:
+  differential:
+    type: int.differential
+    description: Predict state deltas
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 0
+    max: 1
   wrapping:
     type: vector.wrapping
     description: Wrapping boundaries
