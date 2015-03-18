@@ -49,12 +49,13 @@ class DynaAgent : public Agent
     ObservationModel *model_;
     ModelPredictor *model_predictor_;
     Agent *model_agent_;
+    State *state_;
     
     Vector start_obs_, prev_obs_, prev_action_;
     size_t planning_steps_, planned_steps_;
     
   public:
-    DynaAgent() : policy_(NULL), predictor_(NULL), model_(NULL), model_predictor_(NULL), model_agent_(NULL), planning_steps_(1), planned_steps_(0) { }
+    DynaAgent() : policy_(NULL), predictor_(NULL), model_(NULL), model_predictor_(NULL), model_agent_(NULL), state_(NULL), planning_steps_(1), planned_steps_(0) { }
   
     // From Configurable    
     virtual void request(ConfigurationRequest *config);

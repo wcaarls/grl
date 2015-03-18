@@ -91,6 +91,7 @@ void SampleVisualization::idle()
 {
   float *value = new float[points_];
   memset(value, 0xFF, points_*sizeof(float));
+  int d0 = (int)dims_[0], d1 = (int)dims_[1];
 
   float value_max=-std::numeric_limits<float>::infinity(),
         value_min= std::numeric_limits<float>::infinity();
@@ -106,8 +107,12 @@ void SampleVisualization::idle()
     {
       Sample *s = (*store)[ii];
       
-      int dx = std::max(std::min((int)(dimpoints_*(s->in[(int)dims_[0]]-min_[0])/(max_[0]-min_[0])), dimpoints_-1), 0),
-          dy = std::max(std::min((int)(dimpoints_*(s->in[(int)dims_[1]]-min_[1])/(max_[1]-min_[1])), dimpoints_-1), 0);
+      if (s->in[d0] < min_[0] || s->in[d0] > max_[0] ||
+          s->in[d1] < min_[1] || s->in[d1] > max_[1])
+        continue;
+      
+      int dx = std::max(std::min((int)(dimpoints_*(s->in[d0]-min_[0])/(max_[0]-min_[0])), dimpoints_-1), 0),
+          dy = std::max(std::min((int)(dimpoints_*(s->in[d1]-min_[1])/(max_[1]-min_[1])), dimpoints_-1), 0);
           
       double v = s->out[dim_];
       

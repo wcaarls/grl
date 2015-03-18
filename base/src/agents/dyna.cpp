@@ -42,6 +42,8 @@ void DynaAgent::request(ConfigurationRequest *config)
   config->push_back(CRP("model", "observation_model", "Observation model used for planning", model_));
   config->push_back(CRP("model_predictor", "predictor/model", "Model predictor", model_predictor_, true));
   config->push_back(CRP("model_agent", "agent", "Agent used for planning episodes", model_agent_));
+  
+  config->push_back(CRP("state", "state", "Current observed state of planning", CRP::Provided));  
 }
 
 void DynaAgent::configure(Configuration &config)
@@ -54,6 +56,10 @@ void DynaAgent::configure(Configuration &config)
   model_ = (ObservationModel*)config["model"].ptr();
   model_predictor_ = (ModelPredictor*)config["model_predictor"].ptr();
   model_agent_ = (Agent*)config["model_agent"].ptr();
+
+  state_ = new State();
+  
+  config.set("state", state_);
 }
 
 void DynaAgent::reconfigure(const Configuration &config)
@@ -119,14 +125,15 @@ void DynaAgent::runModel()
 {
   Vector obs, action;
   int terminal=1;
-
   size_t steps=0;
 
   for (size_t ii=0; ii < planning_steps_; ++ii)
   {
     if (terminal)
     {
+      steps = 0;
       obs = start_obs_;
+      state_->set(obs);
       model_agent_->start(obs, &action);
     }
       
@@ -136,6 +143,7 @@ void DynaAgent::runModel()
     model_->step(obs, action, &next, &reward, &terminal);
     
     obs = next;
+    state_->set(obs);
         
     // Guard against failed model prediction    
     if (!obs.empty())
@@ -152,9 +160,6 @@ void DynaAgent::runModel()
       
     // Break episodes after a while
     if (steps++ == 100)
-    {
-      steps = 0;
       terminal = 1;
-    }
   }
 }
