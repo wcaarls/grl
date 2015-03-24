@@ -63,12 +63,12 @@ make
 To directly perform an experiment, run
 
 ```
-./deploy ../cfg/pendulum/sarsa.yaml
+./grld ../cfg/pendulum/sarsa_tc.yaml
 ```
 
-To start the configurator with an example configuration, run
+To start the configurator instead, run
 
 ```
 cd ../bin
-./grl.py ../cfg/configuration.yaml
+./grlc ../cfg/pendulum/sarsa_tc.yaml
 ```

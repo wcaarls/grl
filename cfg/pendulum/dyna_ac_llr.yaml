@@ -124,17 +124,17 @@ visualizer:
   type: visualizer/glut
 visualization: 
   type: visualization/sample
-  input_dims: [0, 1]
-  input_min: experiment/environment/task/observation_min
-  input_max: experiment/environment/task/observation_max
+  field_dims: [0, 1]
+  field_min: experiment/environment/task/observation_min
+  field_max: experiment/environment/task/observation_max
   output_dim: 0
   points: 65536
   projector: experiment/agent/predictor/critic_projector
 visualization2: 
   type: visualization/sample
-  input_dims: [ 0, 1 ]
-  input_min: experiment/environment/task/observation_min
-  input_max: experiment/environment/task/observation_max
+  field_dims: [ 0, 1 ]
+  field_min: experiment/environment/task/observation_min
+  field_max: experiment/environment/task/observation_max
   output_dim: 0
   points: 65536
   projector: experiment/agent/policy/projector

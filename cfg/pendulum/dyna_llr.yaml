@@ -28,10 +28,10 @@ experiment:
         steps: [3]
       projector: 
         type: projector/sample/ann
-        samples: 10000
+        samples: 4000
         neighbors: 8
         bucket_size: 10
-        error_bound: 0.1
+        error_bound: 0.01
         scaling: []
         inputs: experiment/environment/task/observation_dims+experiment/environment/task/action_dims
       representation: 
@@ -105,15 +105,15 @@ visualizer:
   type: visualizer/glut
 visualization: 
   type: visualization/sample
-  input_dims: [0, 1]
-  input_min: experiment/environment/task/observation_min
-  input_max: experiment/environment/task/observation_max
+  field_dims: [0, 1]
+  field_min: experiment/environment/task/observation_min
+  field_max: experiment/environment/task/observation_max
   output_dim: 0
   points: 65536
   projector: experiment/agent/policy/projector
 visualization2: 
   type: visualization/field/policy/action
-  input_dims: [0, 1]
+  field_dims: [0, 1]
   input_min: experiment/environment/task/observation_min
   input_max: experiment/environment/task/observation_max
   points: 65536

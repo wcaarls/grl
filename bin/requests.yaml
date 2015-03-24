@@ -1025,6 +1025,14 @@ projector/sample/ann:
     optional: 1
     min: 1
     max: 64
+  locality:
+    type: double
+    description: Locality of weighing function
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
   bucket_size:
     type: int
     description: "?"
@@ -1037,7 +1045,7 @@ projector/sample/ann:
     type: double
     description: "?"
     mutability: configuration
-    default: 0.1
+    default: 0.01
     optional: 1
     min: 0
     max: 1.797693134862316e+308
@@ -1436,9 +1444,9 @@ visualization/compass_walker:
     default: 0
     optional: 0
 visualization/field/policy/action:
-  input_dims:
+  field_dims:
     type: vector
-    description: Input dimensions to visualize
+    description: Dimensions to visualize
     mutability: configuration
     default: "[ 0, 1 ]"
     optional: 1
@@ -1487,9 +1495,9 @@ visualization/field/policy/action:
     min: 0
     max: 2147483647
 visualization/field/policy/value:
-  input_dims:
+  field_dims:
     type: vector
-    description: Input dimensions to visualize
+    description: Dimensions to visualize
     mutability: configuration
     default: "[ 0, 1 ]"
     optional: 1
@@ -1542,9 +1550,9 @@ visualization/field/policy/value:
     default: 0
     optional: 0
 visualization/field/value:
-  input_dims:
+  field_dims:
     type: vector
-    description: Input dimensions to visualize
+    description: Dimensions to visualize
     mutability: configuration
     default: "[ 0, 1 ]"
     optional: 1
@@ -1606,21 +1614,21 @@ visualization/pendulum:
     default: 0
     optional: 0
 visualization/sample:
-  input_dims:
+  field_dims:
     type: vector
-    description: Input dimensions to visualize
+    description: Dimensions to visualize
     mutability: configuration
     default: "[ 0, 1 ]"
     optional: 1
-  input_min:
+  field_min:
     type: vector
-    description: Lower input dimension limit
+    description: Lower visualization dimension limit
     mutability: system
     default: "[  ]"
     optional: 1
-  input_max:
+  field_max:
     type: vector
-    description: Upper input dimension limit
+    description: Upper visualization dimension limit
     mutability: system
     default: "[  ]"
     optional: 1
@@ -1647,9 +1655,9 @@ visualization/sample:
     default: 0
     optional: 0
 visualization/sample/random:
-  input_dims:
+  field_dims:
     type: vector
-    description: Input dimensions to visualize
+    description: Dimensions to visualize
     mutability: configuration
     default: "[ 0, 1 ]"
     optional: 1
@@ -1694,21 +1702,21 @@ visualization/sample/random:
     default: 0
     optional: 0
 visualization/state:
-  input_dims:
+  field_dims:
     type: vector
-    description: Input dimensions to visualize
+    description: Dimensions to visualize
     mutability: configuration
     default: "[ 0, 1 ]"
     optional: 1
-  input_min:
+  field_min:
     type: vector
-    description: Lower input dimension limit
+    description: Lower visualization dimension limit
     mutability: system
     default: "[  ]"
     optional: 1
-  input_max:
+  field_max:
     type: vector
-    description: Upper input dimension limit
+    description: Upper visualization dimension limit
     mutability: system
     default: "[  ]"
     optional: 1
@@ -1784,6 +1792,14 @@ projector/sample/ann.pair:
     optional: 1
     min: 1
     max: 64
+  locality:
+    type: double
+    description: Locality of weighing function
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
   bucket_size:
     type: int
     description: "?"
@@ -1796,7 +1812,7 @@ projector/sample/ann.pair:
     type: double
     description: "?"
     mutability: configuration
-    default: 0.1
+    default: 0.01
     optional: 1
     min: 0
     max: 1.797693134862316e+308
@@ -2045,6 +2061,14 @@ projector/sample/ann.observation:
     optional: 1
     min: 1
     max: 64
+  locality:
+    type: double
+    description: Locality of weighing function
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
   bucket_size:
     type: int
     description: "?"
@@ -2057,7 +2081,7 @@ projector/sample/ann.observation:
     type: double
     description: "?"
     mutability: configuration
-    default: 0.1
+    default: 0.01
     optional: 1
     min: 0
     max: 1.797693134862316e+308

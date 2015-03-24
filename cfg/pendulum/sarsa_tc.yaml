@@ -64,7 +64,7 @@ visualizer:
   type: visualizer/glut
 visualization: 
   type: visualization/field/policy/value
-  input_dims: [ 0, 1 ]
+  field_dims: [ 0, 1 ]
   input_min: experiment/environment/task/observation_min
   input_max: experiment/environment/task/observation_max
   points: 65536

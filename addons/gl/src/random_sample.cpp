@@ -38,7 +38,7 @@ REGISTER_CONFIGURABLE(RandomSampleVisualization)
 
 void RandomSampleVisualization::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("input_dims", "Input dimensions to visualize", dims_));
+  config->push_back(CRP("field_dims", "Dimensions to visualize", dims_));
   config->push_back(CRP("input_min", "Lower input dimension limit", min_, CRP::System));
   config->push_back(CRP("input_max", "Upper input dimension limit", max_, CRP::System));
   config->push_back(CRP("output_dim", "Output dimension to visualize", dim_));
@@ -56,9 +56,9 @@ void RandomSampleVisualization::configure(Configuration &config)
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (Representation*)config["representation"].ptr();
 
-  dims_ = config["input_dims"];
+  dims_ = config["field_dims"];
   if (dims_.size() != 2)
-    throw bad_param("visualization/sample/random:dims");
+    throw bad_param("visualization/sample/random:field_dims");
   min_ = config["input_min"];
   max_ = config["input_max"];
   if (min_.empty() || min_.size() != max_.size())

@@ -36,7 +36,7 @@ using namespace grl;
 
 void FieldVisualization::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("input_dims", "Input dimensions to visualize", dims_));
+  config->push_back(CRP("field_dims", "Dimensions to visualize", dims_));
   config->push_back(CRP("input_min", "Lower input dimension limit", state_min_, CRP::System));
   config->push_back(CRP("input_max", "Upper input dimension limit", state_max_, CRP::System));
   config->push_back(CRP("points", "Number of points to evaluate", points_));
@@ -65,9 +65,9 @@ void FieldVisualization::configure(Configuration &config)
   config.get("points", points_, 1048576);
 
   // Create point iteration order lookup table  
-  dims_ = config["input_dims"];
+  dims_ = config["field_dims"];
   if (dims_.size() != 2)
-    throw bad_param("visualization/field:input_dims");
+    throw bad_param("visualization/field:field_dims");
   
   dim_order_.clear();
   for (int ii=0; ii < state_dims_; ++ii)
