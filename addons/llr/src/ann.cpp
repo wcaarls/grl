@@ -38,6 +38,7 @@ void ANNProjector::request(const std::string &role, ConfigurationRequest *config
 {
   config->push_back(CRP("samples", "Maximum number of samples to store", max_samples_, CRP::Configuration, 100));
   config->push_back(CRP("neighbors", "Number of neighbor indices to return", neighbors_, CRP::Configuration, 1, ANN_MAX_NEIGHBORS));
+  config->push_back(CRP("locality", "Locality of weighing function", locality_, CRP::Configuration, 0., DBL_MAX));
   config->push_back(CRP("bucket_size", "?", bucket_size_, CRP::Configuration, 1));
   config->push_back(CRP("error_bound", "?", error_bound_, CRP::Configuration, 0., DBL_MAX));
   config->push_back(CRP("scaling", "Input dimension scaling", scaling_));
@@ -56,6 +57,7 @@ void ANNProjector::configure(Configuration &config)
 {
   max_samples_ = config["samples"];
   neighbors_ = config["neighbors"];
+  locality_ = config["locality"];
   bucket_size_ = config["bucket_size"];
   error_bound_ = config["error_bound"];
   dims_ = config["inputs"];
@@ -198,7 +200,7 @@ ProjectionPtr ANNProjector::project(const Vector &in) const
     for (size_t ii=0; ii < available_samples; ++ii)
     {
       projection->indices[ii] = refs[ii].index;
-      projection->weights[ii] = sqrt(exp(-refs[ii].dist/hSqr));
+      projection->weights[ii] = sqrt(exp(-locality_*refs[ii].dist/hSqr));
     }
   }
 

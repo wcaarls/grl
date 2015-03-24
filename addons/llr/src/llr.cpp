@@ -254,7 +254,7 @@ void LLRRepresentation::write(const ProjectionPtr projection, const Vector &targ
     sample->relevance = 1.;
   
   // Don't add identical samples
-  if (sample->relevance > 0.001)
+  if (sample->relevance > 0.000001)
     projector_->push(sample);
   else
     delete sample;

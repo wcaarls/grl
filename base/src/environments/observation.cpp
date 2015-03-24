@@ -150,7 +150,7 @@ void ApproximatedObservationModel::step(const Vector &obs, const Vector &action,
   if (valid)
   {
     *reward = (*next)[next->size()-2];  
-    *terminal = (int)(*next)[next->size()-1];
+    *terminal = 2*(RandGen::get() < (*next)[next->size()-1]);
     next->resize(next->size()-2);
   }
   else
