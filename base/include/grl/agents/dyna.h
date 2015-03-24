@@ -52,11 +52,13 @@ class DynaAgent : public Agent
     State *state_;
     
     Vector start_obs_, prev_obs_, prev_action_;
-    size_t planning_steps_, planned_steps_;
+    size_t planning_steps_, total_planned_steps_;
+    
     mutable double planning_reward_;
+    mutable size_t planned_steps_;
     
   public:
-    DynaAgent() : policy_(NULL), predictor_(NULL), model_(NULL), model_predictor_(NULL), model_agent_(NULL), state_(NULL), planning_steps_(1), planned_steps_(0), planning_reward_(0.) { }
+    DynaAgent() : policy_(NULL), predictor_(NULL), model_(NULL), model_predictor_(NULL), model_agent_(NULL), state_(NULL), planning_steps_(1), total_planned_steps_(0), planning_reward_(0.), planned_steps_(0) { }
   
     // From Configurable    
     virtual void request(ConfigurationRequest *config);

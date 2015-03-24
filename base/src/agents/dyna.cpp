@@ -118,8 +118,10 @@ void DynaAgent::end(double reward)
 
 void DynaAgent::report(std::ostream &os) const
 {
-  os << std::setw(15) << planned_steps_ << std::setw(15) << planning_reward_;
+  os << std::setw(15) << total_planned_steps_ << std::setw(15) << planning_reward_/planned_steps_;  
+  
   planning_reward_ = 0;
+  planned_steps_ = 0;
 }
 
 void DynaAgent::runModel()
@@ -149,14 +151,14 @@ void DynaAgent::runModel()
     // Guard against failed model prediction    
     if (!obs.empty())
     {
-      planned_steps_++;
-    
       if (terminal == 2)
         model_agent_->end(reward);
       else
         model_agent_->step(obs, reward, &action);
         
       planning_reward_ += reward;
+      planned_steps_++;
+      total_planned_steps_++;
     }
     else
       terminal = 1;

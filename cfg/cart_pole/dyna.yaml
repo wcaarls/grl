@@ -87,7 +87,7 @@ experiment:
       policy: experiment/agent/policy
       predictor: 
         type: predictor/sarsa
-        alpha: 0.02
+        alpha: 0.2
         gamma: experiment/agent/predictor/gamma
         lambda: 0
         projector: experiment/agent/policy/projector
