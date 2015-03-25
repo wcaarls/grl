@@ -133,8 +133,14 @@ void ApproximatedObservationModel::step(const Vector &obs, const Vector &action,
  
   representation_->read(p, next);
   
-  bool valid = !next->empty();
-  for (size_t ii=0; ii < obs.size() && valid; ++ii)
+  if (next->empty())
+    return;
+
+  *reward = (*next)[next->size()-2];
+  *terminal = 2*(RandGen::get() < (*next)[next->size()-1]);
+  next->resize(next->size()-2);
+  
+  for (size_t ii=0; ii < obs.size(); ++ii)
   {
     if (differential_)
       (*next)[ii] += obs[ii];
@@ -142,19 +148,13 @@ void ApproximatedObservationModel::step(const Vector &obs, const Vector &action,
     if (wrapping_[ii])
       (*next)[ii] = fmod(fmod((*next)[ii], wrapping_[ii]) + wrapping_[ii], wrapping_[ii]);
     
-    if ((*next)[ii] < observation_min_[ii] || (*next)[ii] > observation_max_[ii])
-      valid = false;
+    // Don't predict starting from outside observable interval
+    if (obs[ii] < observation_min_[ii] || obs[ii] > observation_max_[ii])
+    {
+      next->clear();
+      return;
+    }
   }
-
-  // Guard against failed model prediction
-  if (valid)
-  {
-    *reward = (*next)[next->size()-2];  
-    *terminal = 2*(RandGen::get() < (*next)[next->size()-1]);
-    next->resize(next->size()-2);
-  }
-  else
-    next->clear();
 }
 
 // FixedRewardObservationModel

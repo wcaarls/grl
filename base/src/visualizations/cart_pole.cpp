@@ -73,6 +73,9 @@ void CartPoleVisualization::draw()
   {
     double phi = -state[2]+M_PI/2;
     double x = state[0]/2.4;
+    
+    if (state.size() == 4)
+      phi += M_PI;
   
     drawLink(x, 0., x+cos(phi), sin(phi));
     drawJoint(x, 0.);
