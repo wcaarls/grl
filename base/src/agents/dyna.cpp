@@ -65,7 +65,7 @@ void DynaAgent::configure(Configuration &config)
 void DynaAgent::reconfigure(const Configuration &config)
 {
   if (config.has("action") && config["action"].str() == "reset")
-    planned_steps_ = 0;
+    total_planned_steps_ = 0;
 }
 
 DynaAgent *DynaAgent::clone() const
@@ -104,6 +104,9 @@ void DynaAgent::step(const Vector &obs, double reward, Vector *action)
 
   prev_obs_ = obs;
   prev_action_ = *action;  
+
+  actual_reward_ += reward;  
+  control_steps_++;
 }
 
 void DynaAgent::end(double reward)
@@ -114,14 +117,19 @@ void DynaAgent::end(double reward)
     model_predictor_->update(t);
   
   runModel();
+
+  actual_reward_ += reward;  
+  control_steps_++;
 }
 
 void DynaAgent::report(std::ostream &os) const
 {
-  os << std::setw(15) << total_planned_steps_ << std::setw(15) << planning_reward_/planned_steps_;  
+  os << std::setw(15) << actual_reward_/control_steps_ << std::setw(15) << planning_reward_/planned_steps_ << std::setw(15) << total_planned_steps_;
   
   planning_reward_ = 0;
   planned_steps_ = 0;
+  actual_reward_ = 0;
+  control_steps_ = 0;
 }
 
 void DynaAgent::runModel()

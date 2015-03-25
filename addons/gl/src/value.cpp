@@ -70,7 +70,10 @@ double ValueVisualization::value(const Vector &in) const
 {
   Vector v;
   representation_->read(projector_->project(in), &v);
-  return v[dim_];
+  if (v.empty())
+    return 0;
+  else
+    return v[dim_];
 }
 
 void PolicyValueVisualization::request(ConfigurationRequest *config)
