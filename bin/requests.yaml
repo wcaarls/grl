@@ -1063,6 +1063,55 @@ projector/sample/ann:
     optional: 1
     min: 1
     max: 16
+projector/sample/ertree:
+  samples:
+    type: int
+    description: Maximum number of samples to store
+    mutability: configuration
+    default: 100000
+    optional: 1
+    min: 100
+    max: 2147483647
+  trees:
+    type: int
+    description: Number of trees in the forest
+    mutability: configuration
+    default: 20
+    optional: 1
+    min: 1
+    max: 2147483647
+  splits:
+    type: int
+    description: Number of candidate splits
+    mutability: configuration
+    default: 5
+    optional: 1
+    min: 1
+    max: 2147483647
+  leaf_size:
+    type: int
+    description: Maximum number of samples in a leaf
+    mutability: configuration
+    default: 10
+    optional: 1
+    min: 1
+    max: 2147483647
+  inputs:
+    type: int
+    description: Number of input dimensions
+    mutability: system
+    default: 1
+    optional: 1
+    min: 1
+    max: 16
+  outputs:
+    type: int
+    description: Number of output dimensions
+    mutability: system
+    default: 1
+    optional: 1
+    min: 1
+    max: 16
 projector/tile_coding:
   tilings:
     type: int
@@ -1830,6 +1879,55 @@ projector/sample/ann.pair:
     optional: 1
     min: 1
     max: 16
+projector/sample/ertree.pair:
+  samples:
+    type: int
+    description: Maximum number of samples to store
+    mutability: configuration
+    default: 100000
+    optional: 1
+    min: 100
+    max: 2147483647
+  trees:
+    type: int
+    description: Number of trees in the forest
+    mutability: configuration
+    default: 20
+    optional: 1
+    min: 1
+    max: 2147483647
+  splits:
+    type: int
+    description: Number of candidate splits
+    mutability: configuration
+    default: 5
+    optional: 1
+    min: 1
+    max: 2147483647
+  leaf_size:
+    type: int
+    description: Maximum number of samples in a leaf
+    mutability: configuration
+    default: 10
+    optional: 1
+    min: 1
+    max: 2147483647
+  inputs:
+    type: int.observation_dims+int.action_dims
+    description: Number of input dimensions
+    mutability: system
+    default: 1
+    optional: 1
+    min: 1
+    max: 16
+  outputs:
+    type: int
+    description: Number of output dimensions
+    mutability: system
+    default: 1
+    optional: 1
+    min: 1
+    max: 16
 projector/tile_coding.pair:
   tilings:
     type: int
@@ -2094,6 +2192,55 @@ projector/sample/ann.observation:
   inputs:
     type: int.observation_dims
     description: Number of input dimensions
+    mutability: system
+    default: 1
+    optional: 1
+    min: 1
+    max: 16
+projector/sample/ertree.observation:
+  samples:
+    type: int
+    description: Maximum number of samples to store
+    mutability: configuration
+    default: 100000
+    optional: 1
+    min: 100
+    max: 2147483647
+  trees:
+    type: int
+    description: Number of trees in the forest
+    mutability: configuration
+    default: 20
+    optional: 1
+    min: 1
+    max: 2147483647
+  splits:
+    type: int
+    description: Number of candidate splits
+    mutability: configuration
+    default: 5
+    optional: 1
+    min: 1
+    max: 2147483647
+  leaf_size:
+    type: int
+    description: Maximum number of samples in a leaf
+    mutability: configuration
+    default: 10
+    optional: 1
+    min: 1
+    max: 2147483647
+  inputs:
+    type: int.observation_dims
+    description: Number of input dimensions
+    mutability: system
+    default: 1
+    optional: 1
+    min: 1
+    max: 16
+  outputs:
+    type: int
+    description: Number of output dimensions
     mutability: system
     default: 1
     optional: 1

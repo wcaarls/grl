@@ -158,9 +158,9 @@ void CompassWalkerWalkTask::observe(const Vector &state, Vector *obs, int *termi
 
   obs->resize(4);
   (*obs)[CompassWalker::siStanceLegAngle] = state[CompassWalker::siStanceLegAngle];
-  (*obs)[CompassWalker::siHipAngle] = state[CompassWalker::siHipAngle];
+  (*obs)[CompassWalker::siHipAngle] = state[CompassWalker::siHipAngle] - 2 * state[CompassWalker::siStanceLegAngle];
   (*obs)[CompassWalker::siStanceLegAngleRate] = state[CompassWalker::siStanceLegAngleRate];
-  (*obs)[CompassWalker::siHipAngleRate] = state[CompassWalker::siHipAngleRate];
+  (*obs)[CompassWalker::siHipAngleRate] = state[CompassWalker::siHipAngleRate] - 2 * state[CompassWalker::siStanceLegAngleRate];
   
   if (cos(state[CompassWalker::siStanceLegAngle]) < 0)
     *terminal = 2;
@@ -180,10 +180,10 @@ void CompassWalkerWalkTask::evaluate(const Vector &state, const Vector &action, 
   // Instead of using LastHipX, which is non-Markov, assume the last step
   // was just as long as this one.
   if (next[CompassWalker::siStanceLegChanged])
-    *reward += 50 * 4 * sin(next[CompassWalker::siStanceLegAngle]);
+    *reward += 1 + 50 * 4 * sin(next[CompassWalker::siStanceLegAngle]);
 
   if (cos(next[CompassWalker::siStanceLegAngle]) < 0)
-    *reward += -50;
+    *reward += -100;
 }
 
 bool CompassWalkerWalkTask::invert(const Vector &obs, Vector *state) const
@@ -191,9 +191,9 @@ bool CompassWalkerWalkTask::invert(const Vector &obs, Vector *state) const
   state->resize(8);
   
   (*state)[CompassWalker::siStanceLegAngle] = obs[CompassWalker::siStanceLegAngle];
-  (*state)[CompassWalker::siHipAngle] = obs[CompassWalker::siHipAngle];
+  (*state)[CompassWalker::siHipAngle] = obs[CompassWalker::siHipAngle] + 2 * obs[CompassWalker::siStanceLegAngle];
   (*state)[CompassWalker::siStanceLegAngleRate] = obs[CompassWalker::siStanceLegAngleRate];
-  (*state)[CompassWalker::siHipAngleRate] = obs[CompassWalker::siHipAngleRate];
+  (*state)[CompassWalker::siHipAngleRate] = obs[CompassWalker::siHipAngleRate] + 2 * obs[CompassWalker::siStanceLegAngleRate];
   (*state)[CompassWalker::siStanceFootX] = 0;
   (*state)[CompassWalker::siStanceLegChanged] = false;
   (*state)[CompassWalker::siLastHipX] = 0;

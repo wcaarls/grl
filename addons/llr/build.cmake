@@ -11,6 +11,7 @@ if (PKG_CONFIG_FOUND)
 
     # Build library
     add_library(${TARGET} SHARED
+                ${SRC}/ertree.cpp
                 ${SRC}/ann.cpp
                 ${SRC}/llr.cpp
                )
