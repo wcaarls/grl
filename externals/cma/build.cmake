@@ -8,4 +8,4 @@ add_library(${TARGET} SHARED
             ${SRC}/cmaes.c
            )
 install(TARGETS ${TARGET} DESTINATION lib)
-install(DIRECTORY ${SRC}/../include/cma DESTINATION include)
+install(DIRECTORY ${SRC}/../include/cma DESTINATION include FILES_MATCHING PATTERN "*.h")

@@ -50,7 +50,7 @@ if (PKG_CONFIG_FOUND AND QT4_FOUND)
     grl_link_libraries(${TARGET} base)
     target_link_libraries(${TARGET} ${QT_LIBRARIES} ${TINYXML_LIBRARIES} ${MUPARSER_LIBRARIES})
     install(TARGETS ${TARGET} DESTINATION lib/grl)
-    install(DIRECTORY ${SRC}/../include/grl DESTINATION include)
+    install(DIRECTORY ${SRC}/../include/grl DESTINATION include FILES_MATCHING PATTERN "*.h")
   endif()
 endif()
 

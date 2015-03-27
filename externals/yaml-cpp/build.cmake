@@ -119,4 +119,4 @@ add_library(yaml-cpp
 )
 
 install(TARGETS yaml-cpp DESTINATION lib)
-install(DIRECTORY ${SRC}/../include/yaml-cpp DESTINATION include)
+install(DIRECTORY ${SRC}/../include/yaml-cpp DESTINATION include FILES_MATCHING PATTERN "*.h")

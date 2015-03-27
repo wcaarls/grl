@@ -19,4 +19,4 @@ ADD_LIBRARY(${TARGET} SHARED
             ${SRC}/perf.cpp
            )
 install(TARGETS ${TARGET} DESTINATION lib)
-install(DIRECTORY ${SRC}/../include/ANN DESTINATION include)
+install(DIRECTORY ${SRC}/../include/ANN DESTINATION include FILES_MATCHING PATTERN "*.h")

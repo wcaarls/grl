@@ -18,6 +18,6 @@ if (PKG_CONFIG_FOUND)
     # Add dependencies
     grl_link_libraries(${TARGET} base externals/ann)
     install(TARGETS ${TARGET} DESTINATION lib/grl)
-    install(DIRECTORY ${SRC}/../include/grl DESTINATION include)
+    install(DIRECTORY ${SRC}/../include/grl DESTINATION include FILES_MATCHING PATTERN "*.h")
   endif()
 endif()
