@@ -1,0 +1,22 @@
+experiment:
+  type: experiment/approx_test
+  input_min: [ 0, 0 ]
+  input_max: [ 1, 1 ]
+  train_samples: 1000
+  test_samples: 10000
+  file: approx_test.txt
+  mapping:
+    type: mapping/multisine
+    inputs: 2
+    sines: 1
+    outputs: 1
+  projector:
+    type: projector/sample/ertree
+    samples: experiment/train_samples
+    inputs: experiment/mapping/inputs
+    outputs: experiment/mapping/outputs
+  representation:
+    type: representation/llr
+    projector: experiment/projector
+    outputs: experiment/mapping/outputs
+  

@@ -59,6 +59,15 @@ ERTreeNode::ERTreeNode(ERTree *tree, size_t *samples, size_t num_samples, Vector
       max[jj] = fmax(max[jj], store[samples_[ii]]->in[jj]);
     }
     
+  // Don't split if inputs have no variance
+  bool input_variance = false;
+  for (size_t jj=0; jj < tree->inputs(); ++jj)
+    if (min[jj] != max[jj])
+      input_variance = true;
+
+  if (!input_variance)
+    return;
+    
   // Find best split
   double best_score = -std::numeric_limits<double>::infinity();
   size_t best_samples_l = 0, best_samples_r = 0;
@@ -309,8 +318,13 @@ ProjectionPtr ERTreeProjector::project(const Vector &in) const
 {
   ReadGuard guard(rwlock_);
   
+  // Create projection  
+  SampleProjection *projection = new SampleProjection;
+  projection->store = store_;
+  projection->query = in;
+  
   if (!forest_)
-    return ProjectionPtr(new SampleProjection);
+    return ProjectionPtr(projection);
 
   if (in.size() != inputs_)
     throw bad_param("projector/sample/ertree:dims");
@@ -323,11 +337,8 @@ ProjectionPtr ERTreeProjector::project(const Vector &in) const
     std::vector<size_t> tree_neighbors = forest_[ii]->read(in);
     neighbors.insert(neighbors.end(), tree_neighbors.begin(), tree_neighbors.end());
   }
-
-  // Create projection  
-  SampleProjection *projection = new SampleProjection;
-  projection->store = store_;
-  projection->query = in;
+  
+  // Fill projection
   projection->indices = neighbors;
   projection->weights.resize(neighbors.size(), 1.);
 

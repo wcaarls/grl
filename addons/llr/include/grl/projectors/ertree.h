@@ -49,6 +49,11 @@ class ERTreeNode
   
   public:
     ERTreeNode(ERTree *tree, size_t *samples, size_t num_samples, Vector var);
+    ~ERTreeNode()
+    {
+      safe_delete(&left_);
+      safe_delete(&right_);
+    }
 
     std::vector<size_t> read(const Vector &input) const;
 };
@@ -76,6 +81,7 @@ class ERTree
     ~ERTree()
     {
       safe_delete_array(&samples_);
+      safe_delete(&root_);
     }
 
     StorePtr store() { return store_; }    
@@ -107,6 +113,16 @@ class ERTreeProjector : public SampleProjector
 
   public:
     ERTreeProjector() : forest_(NULL), max_samples_(100000), trees_(20), splits_(5), leaf_size_(10), inputs_(1), outputs_(1), indexed_samples_(0) { }
+    ~ERTreeProjector()
+    {
+      if (forest_)
+      {
+        for (size_t ii=0; ii < trees_; ++ii)
+          safe_delete(&forest_[ii]);
+        safe_delete_array(&forest_);
+      }
+    }
+    
     void reindex();
     
     // From Configurable

@@ -189,7 +189,7 @@ class SampleProjection : public Projection
       const SampleProjection &np = dynamic_cast<const SampleProjection&>(rhs);
       for (size_t ii=0; ii < indices.size(); ++ii)
         for (size_t jj=0; jj < np.indices.size(); ++jj)
-          if (indices[ii] == np.indices[ii])
+          if (indices[ii] == np.indices[jj])
             weights[ii] = 0.;
     }
 };
