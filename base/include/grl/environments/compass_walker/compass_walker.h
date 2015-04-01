@@ -38,7 +38,7 @@ class CompassWalker
 {
   public:
     enum stateIndex { siStanceLegAngle, siHipAngle, siStanceLegAngleRate, siHipAngleRate,
-                      siStanceFootX, siStanceLegChanged, siLastHipX, siTime };
+                      siStanceLegChanged, siStanceFootX, siLastHipX, siTime };
 };
 
 // Compass (simplest) walker model.
