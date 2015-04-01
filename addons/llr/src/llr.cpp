@@ -25,6 +25,8 @@
  * \endverbatim
  */
 
+#include <map>
+
 #include <grl/representations/llr.h>
 #include <grl/projections/sample.h>
 
@@ -36,6 +38,8 @@ void LLRRepresentation::request(const std::string &role, ConfigurationRequest *c
 {
   config->push_back(CRP("ridge", "Ridge regression (Tikhonov) factor", ridge_regression_factor_));
   config->push_back(CRP("order", "Order of regression model", order_, CRP::Configuration, 0, 1));
+  config->push_back(CRP("input_nominals", "Vector indicating which input dimensions are nominal", input_nominals_));
+  config->push_back(CRP("output_nominals", "Vector indicating which output dimensions are nominal", output_nominals_));
 
   if (role == "action")
   {
@@ -73,6 +77,11 @@ void LLRRepresentation::configure(Configuration &config)
   ridge_regression_factor_ = config["ridge"];
   outputs_ = config["outputs"];
   order_ = config["order"];
+  input_nominals_ = config["input_nominals"];
+  output_nominals_ = config["output_nominals"];
+
+  if (!output_nominals_.empty() && output_nominals_.size() != outputs_)
+    throw bad_param("representation/lrr:output_nominals");
 
   min_ = config["output_min"];
   max_ = config["output_max"];
@@ -108,6 +117,78 @@ double LLRRepresentation::read(const ProjectionPtr &projection, Vector *result) 
   if (p->indices.empty())
     return 0.;
   
+  std::vector<bool> eligible(p->indices.size(), true);
+
+  // Filter samples with different input nominal than query
+  if (!input_nominals_.empty())
+  {
+    Guard guard(*p->store);
+
+    if (input_nominals_.size() != p->query.size())
+      throw bad_param("representation/lrr:input_nominals");
+    
+    double query_nominal=0;
+    for (size_t jj=0; jj < p->query.size(); ++jj)
+      query_nominal +=p->query[jj]*input_nominals_[jj];
+    
+    for (size_t ii=0; ii < p->indices.size(); ++ii)
+    {
+      double *in = (*p->store)[p->indices[ii]]->in;
+      double nominal = 0;
+      
+      for (size_t jj=0; jj < p->query.size(); ++jj)
+        nominal += in[jj]*input_nominals_[jj];
+    
+      if (nominal != query_nominal)
+        eligible[ii] = false;
+    }
+  }
+
+  // Filter samples with different than most likely output nominal
+  if (!output_nominals_.empty())  
+  {
+    Guard guard(*p->store);
+
+    // Determine output nominals
+    Vector nominals(p->indices.size());
+    
+    for (size_t ii=0; ii < p->indices.size(); ++ii)
+    {
+      double *out = (*p->store)[p->indices[ii]]->out;
+      double nominal = 0;
+    
+      for (size_t jj=0; jj < outputs_; ++jj)
+        nominal += out[jj]*output_nominals_[jj];
+      nominals[ii] = nominal;
+    }
+  
+    // Determine most likely output nominal
+    std::map<double, double> nominal_weights;
+  
+    for (size_t ii=0; ii < p->indices.size(); ++ii)
+      nominal_weights[nominals[ii]] += p->weights[ii];
+    
+    double out_nominal = nominal_weights.begin()->first;
+    for (std::map<double, double>::iterator ii=nominal_weights.begin(); ii != nominal_weights.end(); ++ii)
+      if (ii->second > nominal_weights[out_nominal])
+        out_nominal = ii->first;
+
+    for (size_t ii=0; ii < nominals.size(); ++ii)
+      if (nominals[ii] != out_nominal)
+        eligible[ii] = false;
+  }
+  
+  // Apply filters
+  std::vector<size_t> indices;
+  Vector weights;
+  
+  for (size_t ii=0; ii < p->indices.size(); ++ii)
+    if (eligible[ii])
+    {
+      indices.push_back(p->indices[ii]);
+      weights.push_back(p->weights[ii]);
+    }
+
   if (!order_)
   {
     // Zeroth-order regression (averaging)
@@ -116,11 +197,11 @@ double LLRRepresentation::read(const ProjectionPtr &projection, Vector *result) 
     double weight = 0;
     result->resize(outputs_, 0.);
     
-    for (size_t ii=0; ii < p->indices.size(); ++ii)
+    for (size_t ii=0; ii < indices.size(); ++ii)
     {
-      weight += p->weights[ii];
+      weight += weights[ii];
       for (size_t jj=0; jj < outputs_; ++jj)
-        (*result)[jj] += (*p->store)[p->indices[ii]]->out[jj]*p->weights[ii];
+        (*result)[jj] += (*p->store)[indices[ii]]->out[jj]*weights[ii];
     }
     
     if (weight)
@@ -138,8 +219,8 @@ double LLRRepresentation::read(const ProjectionPtr &projection, Vector *result) 
   q[p->query.size()] = 1.;
   
   // Fill matrices A and b
-  Matrix A(p->indices.size(), p->query.size()+1),
-         b(p->indices.size(), outputs_);
+  Matrix A(indices.size(), p->query.size()+1),
+         b(indices.size(), outputs_);
          
   RowVector mib(outputs_), mab(outputs_);
   for (size_t ii=0; ii < outputs_; ++ii)
@@ -150,16 +231,16 @@ double LLRRepresentation::read(const ProjectionPtr &projection, Vector *result) 
   
   {
     Guard guard(*p->store);
-    for (size_t ii=0; ii < p->indices.size(); ++ii)
+    for (size_t ii=0; ii < indices.size(); ++ii)
     {
       for (size_t jj=0; jj < p->query.size(); ++jj)
-        A(ii, jj) = (*p->store)[p->indices[ii]]->in[jj]*p->weights[ii];
-      A(ii, p->query.size()) = p->weights[ii];
+        A(ii, jj) = (*p->store)[indices[ii]]->in[jj]*weights[ii];
+      A(ii, p->query.size()) = weights[ii];
       
       for (size_t jj=0; jj < outputs_; ++jj)
       {
-        double o = (*p->store)[p->indices[ii]]->out[jj];
-        b(ii, jj) = o*p->weights[ii];
+        double o = (*p->store)[indices[ii]]->out[jj];
+        b(ii, jj) = o*weights[ii];
         mib[jj] = fmin(mib[jj], o);
         mab[jj] = fmax(mab[jj], o);
       }
@@ -185,7 +266,7 @@ double LLRRepresentation::read(const ProjectionPtr &projection, Vector *result) 
     (*result)[ii] = y[ii];
     
   // Avoid extrapolation
-  if (p->indices.size())
+  if (indices.size())
     for (size_t ii=0; ii < outputs_; ++ii)
     {
       (*result)[ii] = fmin(fmax((*result)[ii], mib[ii]), mab[ii]);

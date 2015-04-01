@@ -50,7 +50,7 @@ class LLRRepresentation : public Representation
     SampleProjector *projector_;
     double ridge_regression_factor_;
     size_t outputs_, order_;
-    Vector min_, max_;
+    Vector min_, max_, input_nominals_, output_nominals_;
 
   public:
     LLRRepresentation() : projector_(NULL), ridge_regression_factor_(0.00001), outputs_(1), order_(1) { }

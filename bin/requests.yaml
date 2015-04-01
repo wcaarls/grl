@@ -1158,6 +1158,18 @@ representation/llr:
     optional: 1
     min: 0
     max: 1
+  input_nominals:
+    type: vector
+    description: Vector indicating which input dimensions are nominal
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  output_nominals:
+    type: vector
+    description: Vector indicating which output dimensions are nominal
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
   outputs:
     type: int
     description: Number of output dimensions
@@ -1974,6 +1986,18 @@ representation/llr.transition:
     optional: 1
     min: 0
     max: 1
+  input_nominals:
+    type: vector
+    description: Vector indicating which input dimensions are nominal
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  output_nominals:
+    type: vector
+    description: Vector indicating which output dimensions are nominal
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
   outputs:
     type: int.observation_dims+2
     description: Number of output dimensions
@@ -2292,6 +2316,18 @@ representation/llr.action:
     optional: 1
     min: 0
     max: 1
+  input_nominals:
+    type: vector
+    description: Vector indicating which input dimensions are nominal
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  output_nominals:
+    type: vector
+    description: Vector indicating which output dimensions are nominal
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
   outputs:
     type: int.action_dims
     description: Number of output dimensions
@@ -2448,6 +2484,18 @@ representation/llr.value/action:
     optional: 1
     min: 0
     max: 1
+  input_nominals:
+    type: vector
+    description: Vector indicating which input dimensions are nominal
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  output_nominals:
+    type: vector
+    description: Vector indicating which output dimensions are nominal
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
   outputs:
     type: int
     description: Number of output dimensions
@@ -2585,6 +2633,18 @@ representation/llr.value/state:
     optional: 1
     min: 0
     max: 1
+  input_nominals:
+    type: vector
+    description: Vector indicating which input dimensions are nominal
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  output_nominals:
+    type: vector
+    description: Vector indicating which output dimensions are nominal
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
   outputs:
     type: int
     description: Number of output dimensions
