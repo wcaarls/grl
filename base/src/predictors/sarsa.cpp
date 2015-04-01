@@ -136,16 +136,22 @@ void ExpectedSARSAPredictor::update(const Transition &transition)
 {
   ProjectionPtr p = projector_->project(transition.prev_obs, transition.prev_action);
 
-  Vector values, distribution;
-  policy_->values(transition.obs, &values);
-  sampler_->distribution(values, &distribution);
+  double target = transition.reward;
+  
+  if (!transition.obs.empty())
+  {
+    Vector values, distribution;
+    policy_->values(transition.obs, &values);
+    sampler_->distribution(values, &distribution);
 
-  double v = 0.;
-  for (size_t ii=0; ii < values.size(); ++ii)
-    v += values[ii]*distribution[ii];
+    double v = 0.;
+    for (size_t ii=0; ii < values.size(); ++ii)
+      v += values[ii]*distribution[ii];
 
+    target += gamma_*v;
+  }
+  
   Vector q;
-  double target = transition.reward + gamma_*v;
   double delta = target - representation_->read(p, &q);
 
   representation_->write(p, VectorConstructor(target), alpha_);
