@@ -30,6 +30,7 @@
 #include <rbdl/rbdl.h>
 #include <rbdl/addons/luamodel/luamodel.h>
 
+#include <grl/lua_utils.h>
 #include <grl/environments/rbdl.h>
 
 using namespace grl;
@@ -59,6 +60,10 @@ void RBDLDynamics::configure(Configuration &config)
   }
   
   NOTICE("Loaded RBDL model with " << model_->dof_count << " degrees of freedom");
+  
+  L_ = luaL_newstate();
+  luaL_openlibs(L_);
+  luaL_dofile(L_, file_.c_str());
 }
 
 void RBDLDynamics::reconfigure(const Configuration &config)
@@ -74,8 +79,24 @@ void RBDLDynamics::eom(const Vector &state, const Vector &action, Vector *xd) co
 {
   size_t dim = model_->dof_count;
   
-  if (state.size() != 2*dim+1 || action.size() != dim)
+  if (state.size() != 2*dim+1)
     throw Exception("dynamics/rbdl is incompatible with specified task");
+    
+  // Convert action to forces and torques
+  lua_getglobal(L_, "control");  /* function to be called */
+  lua_pushvector(L_, state);
+  lua_pushvector(L_, action);
+  if (lua_pcall(L_, 2, 1, 0) != 0)
+  {
+    ERROR("Cannot find controls: " << lua_tostring(L_, -1));
+    lua_pop(L_, 1);
+    throw Exception("Controller is incompatible with dynamics");
+  }
+  Vector controls = lua_tovector(L_, -1);
+  lua_pop(L_, 1);
+  
+  if (controls.size() != dim)
+    throw Exception("Controller is incompatible with dynamics");
 
   RigidBodyDynamics::Math::VectorNd u = RigidBodyDynamics::Math::VectorNd::Zero(dim);
   RigidBodyDynamics::Math::VectorNd q = RigidBodyDynamics::Math::VectorNd::Zero(dim);
@@ -84,7 +105,7 @@ void RBDLDynamics::eom(const Vector &state, const Vector &action, Vector *xd) co
 
   for (size_t ii=0; ii < dim; ++ii)
   {
-    u[ii] = action[ii];
+    u[ii] = controls[ii];
     q[ii] = state[ii];
     qd[ii] = state[ii + dim];
   }

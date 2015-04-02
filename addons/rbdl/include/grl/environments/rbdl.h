@@ -44,6 +44,7 @@ class RBDLDynamics : public Dynamics
   public:
     std::string file_; 
     class RigidBodyDynamics::Model *model_;
+    class lua_State *L_;
   
   public:
     // From Configurable

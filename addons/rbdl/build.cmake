@@ -1,16 +1,24 @@
 # Setup build environment
 set(TARGET addon_rbdl)
 
-add_definitions(-DRBDL_LUA_CONFIG_DIR="${SRC}/../cfg")
+FIND_PACKAGE (Lua51)
 
-# Build library
-add_library(${TARGET} SHARED
-            ${SRC}/rbdl.cpp
-           )
+if (LUA51_FOUND)
+  message("-- Building RBDL addon")
 
-set_source_files_properties(${SRC}/rbdl.cpp PROPERTIES COMPILE_FLAGS "-Wno-pedantic -Wno-variadic-macros")
+  add_definitions(-DRBDL_LUA_CONFIG_DIR="${SRC}/../cfg")
 
-# Add dependencies
-grl_link_libraries(${TARGET} base externals/rbdl)
-install(TARGETS ${TARGET} DESTINATION lib/grl)
-install(DIRECTORY ${SRC}/../include/grl DESTINATION include FILES_MATCHING PATTERN "*.h")
+  include_directories(${LUA_INCLUDE_DIR})
+
+  # Build library
+  add_library(${TARGET} SHARED
+              ${SRC}/rbdl.cpp
+             )
+
+  set_source_files_properties(${SRC}/rbdl.cpp PROPERTIES COMPILE_FLAGS "-Wno-pedantic -Wno-variadic-macros")
+
+  # Add dependencies
+  grl_link_libraries(${TARGET} base externals/rbdl)
+  install(TARGETS ${TARGET} DESTINATION lib/grl)
+  install(DIRECTORY ${SRC}/../include/grl DESTINATION include FILES_MATCHING PATTERN "*.h")
+endif()
