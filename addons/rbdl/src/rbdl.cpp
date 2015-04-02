@@ -25,6 +25,8 @@
  * \endverbatim
  */
 
+#include <sys/stat.h>
+
 #include <rbdl/rbdl.h>
 #include <rbdl/addons/luamodel/luamodel.h>
 
@@ -42,6 +44,10 @@ void RBDLDynamics::request(ConfigurationRequest *config)
 void RBDLDynamics::configure(Configuration &config)
 {
   file_ = config["file"].str();
+  
+  struct stat buffer;   
+  if (stat (file_.c_str(), &buffer) != 0)
+    file_ = std::string(RBDL_LUA_CONFIG_DIR) + "/" + file_;
   
   model_ = new RigidBodyDynamics::Model();
 
@@ -67,6 +73,9 @@ RBDLDynamics *RBDLDynamics::clone() const
 void RBDLDynamics::eom(const Vector &state, const Vector &action, Vector *xd) const
 {
   size_t dim = model_->dof_count;
+  
+  if (state.size() != 2*dim+1 || action.size() != dim)
+    throw Exception("dynamics/rbdl is incompatible with specified task");
 
   RigidBodyDynamics::Math::VectorNd u = RigidBodyDynamics::Math::VectorNd::Zero(dim);
   RigidBodyDynamics::Math::VectorNd q = RigidBodyDynamics::Math::VectorNd::Zero(dim);
@@ -82,11 +91,12 @@ void RBDLDynamics::eom(const Vector &state, const Vector &action, Vector *xd) co
 
   RigidBodyDynamics::ForwardDynamics(*model_, q, qd, u, qdd);
 
-  Vector res(2*dim);
+  xd->resize(2*dim+1);
 
   for (size_t ii=0; ii < dim; ++ii)
   {
     (*xd)[ii] = qd[ii];
     (*xd)[ii + dim] = qdd[ii];
   }
+  (*xd)[2*dim] = 1.;
 }
