@@ -36,6 +36,7 @@ REGISTER_CONFIGURABLE(DynaAgent)
 void DynaAgent::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("planning_steps", "Number of planning steps per control step", planning_steps_, CRP::Configuration, 0));
+  config->push_back(CRP("planning_horizon", "Planning episode length", planning_horizon_, CRP::Configuration, 0));
 
   config->push_back(CRP("policy", "policy", "Control policy", policy_));
   config->push_back(CRP("predictor", "predictor", "Value function predictor", predictor_));
@@ -52,6 +53,7 @@ void DynaAgent::configure(Configuration &config)
   predictor_ = (Predictor*)config["predictor"].ptr();
 
   planning_steps_ = config["planning_steps"];
+  planning_horizon_ = config["planning_horizon"];
   
   model_ = (ObservationModel*)config["model"].ptr();
   model_predictor_ = (ModelPredictor*)config["model_predictor"].ptr();
@@ -172,7 +174,7 @@ void DynaAgent::runModel()
       terminal = 1;
       
     // Break episodes after a while
-    if (steps++ == 100)
+    if (planning_horizon_ && steps++ == planning_horizon_)
       terminal = 1;
   }
 }

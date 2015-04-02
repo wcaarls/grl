@@ -24,6 +24,7 @@ set(MODULES base
             externals/cma
             externals/ics
             externals/itc
+            externals/rbdl
             addons/cma
             addons/llr
             addons/gl
@@ -31,6 +32,7 @@ set(MODULES base
             addons/ros
             addons/matlab
             addons/odesim
+            addons/rbdl
    )
 
 # Is there a better way to find out if catkin_make was run?

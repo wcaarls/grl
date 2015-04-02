@@ -22,6 +22,14 @@ agent/dyna:
     optional: 1
     min: 0
     max: 2147483647
+  planning_horizon:
+    type: int
+    description: Planning episode length
+    mutability: configuration
+    default: 100
+    optional: 1
+    min: 0
+    max: 2147483647
   policy:
     type: policy
     description: Control policy
@@ -97,6 +105,13 @@ discretizer/uniform:
     optional: 1
 dynamics/cart_pole: ~
 dynamics/pendulum: ~
+dynamics/rbdl:
+  file:
+    type: string
+    description: RBDL Lua model file
+    mutability: configuration
+    default: ""
+    optional: 1
 environment/modeled:
   model:
     type: model
