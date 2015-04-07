@@ -42,7 +42,7 @@ class RBDLDynamics : public Dynamics
     TYPEINFO("dynamics/rbdl")
 
   public:
-    std::string file_; 
+    std::string file_;
     class RigidBodyDynamics::Model *model_;
     class lua_State *L_;
   
@@ -63,7 +63,7 @@ class LuaTask : public Task
     TYPEINFO("task/lua")
     
   public:
-    std::string file_; 
+    std::string file_, options_;
     class lua_State *L_;
     
   public:

@@ -128,11 +128,13 @@ void LuaTask::request(ConfigurationRequest *config)
   Task::request(config);
   
   config->push_back(CRP("file", "Lua task file", file_, CRP::Configuration));
+  config->push_back(CRP("options", "Option string to pass to task configuration function", options_, CRP::Configuration));
 }
 
 void LuaTask::configure(Configuration &config)
 {
   file_ = config["file"].str();
+  options_ = config["options"].str();
   
   struct stat buffer;   
   if (stat (file_.c_str(), &buffer) != 0)
@@ -148,7 +150,8 @@ void LuaTask::configure(Configuration &config)
   }
   
   lua_getglobal(L_, "configure");
-  if (lua_pcall(L_, 0, 1, 0) != 0)
+  lua_pushstring(L_, options_.c_str());
+  if (lua_pcall(L_, 1, 1, 0) != 0)
   {
     ERROR("Cannot configure task: " << lua_tostring(L_, -1));
     throw bad_param("task/lua:file");
@@ -202,7 +205,7 @@ void LuaTask::observe(const Vector &state, Vector *obs, int *terminal) const
   if (lua_pcall(L_, 1, 2, 0) != 0)
   {
     ERROR("Cannot observe state: " << lua_tostring(L_, -1));
-    lua_pop(L_, 1);
+    lua_pop(L_, 2);
     throw bad_param("task/lua:file");
   }
   

@@ -1501,6 +1501,12 @@ task/lua:
     mutability: configuration
     default: ""
     optional: 1
+  options:
+    type: string
+    description: Option string to pass to task configuration function
+    mutability: configuration
+    default: ""
+    optional: 1
 task/pendulum/swingup:
   observation_dims:
     type: int.observation_dims
