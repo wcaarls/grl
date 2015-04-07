@@ -72,6 +72,40 @@ inline Vector lua_tovector(lua_State *L, int index)
   return v;
 }
 
+inline double lua_gettablenumber(lua_State *L, const char *key)
+{
+  int result = 0;
+  
+  lua_pushstring(L, key);
+  lua_gettable(L, -2);
+  
+  if (lua_isnumber(L, -1))
+    result = lua_tonumber(L, -1);
+  else
+    WARNING("Field '" << key << "' is not a number");
+    
+  lua_pop(L, 1);
+  
+  return result;
+}
+
+inline Vector lua_gettablevector(lua_State *L, const char *key)
+{
+  Vector result;
+  
+  lua_pushstring(L, key);
+  lua_gettable(L, -2);
+  
+  if (lua_istable(L, -1))
+    result = lua_tovector(L, -1);
+  else
+    WARNING("Field '" << key << "' is not a table");
+    
+  lua_pop(L, 1);
+  
+  return result;
+}
+
 }
 
 #endif /* GRL_LUA_UTILS_H_ */

@@ -57,6 +57,29 @@ class RBDLDynamics : public Dynamics
     virtual void eom(const Vector &state, const Vector &action, Vector *xd) const;
 };
 
+class LuaTask : public Task
+{
+  public:
+    TYPEINFO("task/lua")
+    
+  public:
+    std::string file_; 
+    class lua_State *L_;
+    
+  public:
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+
+    // From Task
+    virtual LuaTask *clone() const;
+    virtual void start(Vector *state) const;
+    virtual void observe(const Vector &state, Vector *obs, int *terminal) const;
+    virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const;
+    virtual bool invert(const Vector &obs, Vector *state) const;
+};
+
 }
 
 #endif /* GRL_RBDL_ENVIRONMENT_H_ */

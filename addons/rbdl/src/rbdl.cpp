@@ -36,6 +36,7 @@
 using namespace grl;
 
 REGISTER_CONFIGURABLE(RBDLDynamics)
+REGISTER_CONFIGURABLE(LuaTask)
 
 void RBDLDynamics::request(ConfigurationRequest *config)
 {
@@ -90,7 +91,7 @@ void RBDLDynamics::eom(const Vector &state, const Vector &action, Vector *xd) co
   {
     ERROR("Cannot find controls: " << lua_tostring(L_, -1));
     lua_pop(L_, 1);
-    throw Exception("Controller is incompatible with dynamics");
+    throw bad_param("dynamics/rbdl:file");
   }
   Vector controls = lua_tovector(L_, -1);
   lua_pop(L_, 1);
@@ -120,4 +121,133 @@ void RBDLDynamics::eom(const Vector &state, const Vector &action, Vector *xd) co
     (*xd)[ii + dim] = qdd[ii];
   }
   (*xd)[2*dim] = 1.;
+}
+
+void LuaTask::request(ConfigurationRequest *config)
+{
+  Task::request(config);
+  
+  config->push_back(CRP("file", "Lua task file", file_, CRP::Configuration));
+}
+
+void LuaTask::configure(Configuration &config)
+{
+  file_ = config["file"].str();
+  
+  struct stat buffer;   
+  if (stat (file_.c_str(), &buffer) != 0)
+    file_ = std::string(RBDL_LUA_CONFIG_DIR) + "/" + file_;
+  
+  L_ = luaL_newstate();
+  luaL_openlibs(L_);
+  
+  if (luaL_dofile(L_, file_.c_str()))
+  {
+    ERROR("Error loading task " << file_ << ": " << lua_tostring(L_, -1));
+    throw bad_param("task/lua:file");
+  }
+  
+  lua_getglobal(L_, "configure");
+  if (lua_pcall(L_, 0, 1, 0) != 0)
+  {
+    ERROR("Cannot configure task: " << lua_tostring(L_, -1));
+    throw bad_param("task/lua:file");
+  }
+  
+  if (!lua_istable(L_, -1))
+  {
+    ERROR("Task configuration should return a table");
+    throw bad_param("task/lua:file");
+  }
+  
+  config.set("observation_dims", lua_gettablenumber(L_, "observation_dims"));
+  config.set("observation_min", lua_gettablevector(L_, "observation_min"));
+  config.set("observation_max", lua_gettablevector(L_, "observation_max"));
+  config.set("action_dims", lua_gettablenumber(L_, "action_dims"));
+  config.set("action_min", lua_gettablevector(L_, "action_min"));
+  config.set("action_max", lua_gettablevector(L_, "action_max"));
+  config.set("reward_min", lua_gettablenumber(L_, "reward_min"));
+  config.set("reward_max", lua_gettablenumber(L_, "reward_max"));
+  
+  lua_pop(L_, 1);
+}
+
+void LuaTask::reconfigure(const Configuration &config)
+{
+}
+ 
+LuaTask *LuaTask::clone() const
+{
+  return new LuaTask(*this);
+}
+ 
+void LuaTask::start(Vector *state) const
+{
+  lua_getglobal(L_, "start");
+  if (lua_pcall(L_, 0, 1, 0) != 0)
+  {
+    ERROR("Cannot find start state: " << lua_tostring(L_, -1));
+    lua_pop(L_, 1);
+    throw bad_param("task/lua:file");
+  }
+  
+  *state = lua_tovector(L_, -1);
+  lua_pop(L_, 1);
+}
+ 
+void LuaTask::observe(const Vector &state, Vector *obs, int *terminal) const
+{
+  lua_getglobal(L_, "observe");  /* function to be called */
+  lua_pushvector(L_, state);
+  if (lua_pcall(L_, 1, 2, 0) != 0)
+  {
+    ERROR("Cannot observe state: " << lua_tostring(L_, -1));
+    lua_pop(L_, 1);
+    throw bad_param("task/lua:file");
+  }
+  
+  *obs = lua_tovector(L_, -2);
+  
+  if (!lua_isnumber(L_, -1))
+    WARNING("Termination condition is not a number");
+  
+  *terminal = lua_tointeger(L_, -1);
+  lua_pop(L_, 2);
+}
+
+void LuaTask::evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const
+{
+  lua_getglobal(L_, "evaluate");  /* function to be called */
+  lua_pushvector(L_, state);
+  lua_pushvector(L_, action);
+  lua_pushvector(L_, next);
+  if (lua_pcall(L_, 3, 1, 0) != 0)
+  {
+    ERROR("Cannot evaluate reward: " << lua_tostring(L_, -1));
+    lua_pop(L_, 1);
+    throw bad_param("task/lua:file");
+  }
+  
+  if (!lua_isnumber(L_, -1))
+    WARNING("Reward is not a number");
+
+  *reward = lua_tonumber(L_, -1);
+  lua_pop(L_, 1);
+}
+ 
+bool LuaTask::invert(const Vector &obs, Vector *state) const
+{
+  lua_getglobal(L_, "invert");  /* function to be called */
+  lua_pushvector(L_, obs);
+  if (lua_pcall(L_, 1, 1, 0) != 0)
+  {
+    WARNING("Cannot invert observation: " << lua_tostring(L_, -1));
+    lua_pop(L_, 1);
+    return false;
+  }
+  
+  *state = lua_tovector(L_, -1);
+  lua_pop(L_, 1);
+  
+  return true;
 }
