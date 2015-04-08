@@ -193,7 +193,7 @@ void FixedRewardObservationModel::step(const Vector &obs, const Vector &action, 
   if (next->empty())
     return;
   
-  Vector state, next_state;
+  Vector state, next_state, next_obs;
   if (!task_->invert(obs, &state))
   {
     WARNING("Task does not support inversion");
@@ -202,4 +202,5 @@ void FixedRewardObservationModel::step(const Vector &obs, const Vector &action, 
   
   task_->invert(*next, &next_state);
   task_->evaluate(state, action, next_state, reward);
+  task_->observe(next_state, &next_obs, terminal);
 }
