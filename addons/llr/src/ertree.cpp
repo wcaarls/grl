@@ -255,10 +255,13 @@ void ERTreeProjector::reconfigure(const Configuration &config)
 {
   if (config.has("action") && config["action"].str() == "reset")
   {
-    INFO("Initializing sample store");
-  
-    store_ = StorePtr(new SampleStore());
-    indexed_samples_ = 0;
+    DEBUG("Initializing sample store");
+    
+    {
+      WriteGuard guard(rwlock_);
+      store_ = StorePtr(new SampleStore());
+    }
+    reindex();
   }
 }
 

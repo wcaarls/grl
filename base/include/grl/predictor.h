@@ -48,7 +48,7 @@ class Predictor : public Configurable
 class BatchPredictor : public Predictor
 {
   public:
-    virtual Predictor *clone() const = 0;
+    virtual BatchPredictor *clone() const = 0;
 };
 
 }

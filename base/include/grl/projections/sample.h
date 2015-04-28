@@ -85,6 +85,8 @@ class SampleStore : public Lockable
           
     ~SampleStore()
     {
+      WriteGuard guard(rwlock_);
+    
       for (size_t ii=0; ii < samples_.size(); ++ii)
         if (!--samples_[ii]->use_count)
           delete samples_[ii];

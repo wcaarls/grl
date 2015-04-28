@@ -862,6 +862,49 @@ predictor/expected_sarsa:
     mutability: configuration
     default: 0
     optional: 0
+predictor/fqi:
+  gamma:
+    type: double
+    description: Discount rate
+    mutability: configuration
+    default: 0.97
+    optional: 1
+    min: 0
+    max: 1
+  transitions:
+    type: int
+    description: Maximum number of transitions to store
+    mutability: configuration
+    default: 100000
+    optional: 1
+    min: 1
+    max: 2147483647
+  iterations:
+    type: int
+    description: Number of policy improvement rounds per episode
+    mutability: configuration
+    default: 10
+    optional: 1
+    min: 1
+    max: 2147483647
+  projector:
+    type: projector.pair
+    description: Projects observations onto critic representation space
+    mutability: configuration
+    default: 0
+    optional: 0
+  representation:
+    type: representation.value/action
+    description: Value function representation
+    mutability: configuration
+    default: 0
+    optional: 0
+  policy:
+    type: policy/discrete/q
+    description: Q-value based policy
+    mutability: configuration
+    default: 0
+    optional: 0
 predictor/ggq:
   alpha:
     type: double

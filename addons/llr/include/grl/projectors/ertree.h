@@ -133,7 +133,7 @@ class ERTreeProjector : public SampleProjector
     // From SampleProjector
     virtual ERTreeProjector *clone() const;
     virtual void push(Sample *sample);
-    virtual StorePtr store() { return store_; }
+    virtual StorePtr store() { ReadGuard guard(rwlock_); return store_; }
     virtual ProjectionPtr project(const Vector &in) const;
 };
 

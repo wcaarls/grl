@@ -77,8 +77,9 @@ void ANNProjector::reconfigure(const Configuration &config)
 {
   if (config.has("action") && config["action"].str() == "reset")
   {
-    INFO("Initializing sample store");
+    DEBUG("Initializing sample store");
   
+    WriteGuard guard(rwlock_);
     store_ = StorePtr(new SampleStore());
     indexed_samples_ = 0;
   }
@@ -88,12 +89,6 @@ void ANNProjector::push(Sample *sample)
 {
   rwlock_.writeLock();
   
-  // HACK: avoid precise matches
-  if (sample->in[0])
-    sample->in[0] *= 1 + 0.001*RandGen::get();
-  else
-    sample->in[0] += 0.001*RandGen::get();
-
   store_->push_back(sample);
 
   // Should be in a separate thread
@@ -200,7 +195,10 @@ ProjectionPtr ANNProjector::project(const Vector &in) const
     for (size_t ii=0; ii < available_samples; ++ii)
     {
       projection->indices[ii] = refs[ii].index;
-      projection->weights[ii] = sqrt(exp(-locality_*refs[ii].dist/hSqr));
+      if (hSqr)
+        projection->weights[ii] = sqrt(exp(-locality_*refs[ii].dist/hSqr));
+      else
+        projection->weights[ii] = 1;
     }
   }
 

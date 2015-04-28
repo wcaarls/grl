@@ -28,7 +28,7 @@ add_library(${TARGET} SHARED
             ${SRC}/predictors/sarsa.cpp
             ${SRC}/predictors/ggq.cpp
             ${SRC}/predictors/ac.cpp
-#            ${SRC}/predictors/fqi.cpp
+            ${SRC}/predictors/fqi.cpp
             ${SRC}/projectors/identity.cpp
             ${SRC}/projectors/normalizing.cpp
             ${SRC}/projectors/tile_coding.cpp

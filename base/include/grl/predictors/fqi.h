@@ -2,7 +2,7 @@
  * \brief Fitted Q-iteration predictor header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-01-22
+ * \date      2015-04-28
  *
  * \copyright \verbatim
  * Copyright (c) 2015, Wouter Caarls
@@ -29,6 +29,9 @@
 #define GRL_FQI_PREDICTOR_H_
 
 #include <grl/predictor.h>
+#include <grl/projector.h>
+#include <grl/representation.h>
+#include <grl/policies/q.h>
 
 namespace grl
 {
@@ -38,6 +41,29 @@ class FQIPredictor : public BatchPredictor
 {
   public:
     TYPEINFO("predictor/fqi")
+
+  protected:
+    double gamma_;
+    Projector *projector_;
+    Representation *representation_;
+    QPolicy *policy_;
+    size_t max_samples_, iterations_;
+    std::vector<Transition> transitions_;
+
+  public:
+    FQIPredictor() : gamma_(0.97), projector_(NULL), representation_(NULL), policy_(NULL), max_samples_(100000), iterations_(10) { }
+  
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+    
+    // From Predictor
+    virtual void update(const Transition &transition);
+    virtual void finalize();
+    
+    // From BatchPredictor
+    virtual FQIPredictor *clone() const;
 };
 
 }
