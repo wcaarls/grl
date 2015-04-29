@@ -87,18 +87,9 @@ void ANNProjector::reconfigure(const Configuration &config)
 
 void ANNProjector::push(Sample *sample)
 {
-  rwlock_.writeLock();
+  WriteGuard guard(rwlock_);
   
   store_->push_back(sample);
-
-  // Should be in a separate thread
-  if ((store_->size() - indexed_samples_) >= std::min(indexed_samples_, (size_t)100))
-  {
-    rwlock_.unlock();
-    reindex();
-  }
-  else
-    rwlock_.unlock();
 }
 
 void ANNProjector::reindex()
@@ -203,4 +194,9 @@ ProjectionPtr ANNProjector::project(const Vector &in) const
   }
 
   return ProjectionPtr(projection);
+}
+
+void ANNProjector::finalize()
+{
+  reindex();
 }

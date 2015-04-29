@@ -72,6 +72,7 @@ class ANNProjector : public SampleProjector
     virtual void push(Sample *sample);
     virtual StorePtr store() { ReadGuard guard(rwlock_); return store_; }
     virtual ProjectionPtr project(const Vector &in) const;
+    virtual void finalize();
 };
 
 }

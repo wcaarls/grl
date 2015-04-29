@@ -84,6 +84,8 @@ void SARSAPredictor::update(const Transition &transition)
   // TODO: recently added point is not in trace
   representation_->update(*trace_, VectorConstructor(alpha_*delta), gamma_*lambda_);
   trace_->add(p, gamma_*lambda_);
+  
+  representation_->finalize();
 }
 
 void SARSAPredictor::finalize()
@@ -157,6 +159,8 @@ void ExpectedSARSAPredictor::update(const Transition &transition)
   representation_->write(p, VectorConstructor(target), alpha_);
   representation_->update(*trace_, VectorConstructor(alpha_*delta), gamma_*lambda_);
   trace_->add(p, gamma_*lambda_);
+  
+  representation_->finalize();
 }
 
 void ExpectedSARSAPredictor::finalize()

@@ -91,6 +91,8 @@ void ApproxTestExperiment::run()
     representation_->write(p, out);
   }
   
+  representation_->finalize();
+  
   std::ostream *os = &std::cout;
   std::ofstream ofs;
   

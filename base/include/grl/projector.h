@@ -90,12 +90,10 @@ class SampleProjector : public Projector
 
   public:
     virtual void push(class Sample *sample) = 0;
-    virtual void push(std::vector<class Sample*> &samples)
-    {
-      for (std::vector<class Sample*>::iterator ii=samples.begin(); ii != samples.end(); ++ii)
-        push(*ii);
-    }
     virtual StorePtr store() = 0;
+    
+    /// Add pushed samples to store.
+    virtual void finalize() = 0;
 };
 
 }

@@ -260,25 +260,22 @@ void ERTreeProjector::reconfigure(const Configuration &config)
     {
       WriteGuard guard(rwlock_);
       store_ = StorePtr(new SampleStore());
+      if (forest_)
+      {
+        for (size_t ii=0; ii < trees_; ++ii)
+          safe_delete(&forest_[ii]);
+        safe_delete_array(&forest_);
+      }
+      indexed_samples_ = 0;
     }
-    reindex();
   }
 }
 
 void ERTreeProjector::push(Sample *sample)
 {
-  rwlock_.writeLock();
+  WriteGuard guard(rwlock_);
   
   store_->push_back(sample);
-
-  // Should be in a separate thread
-  if ((store_->size() - indexed_samples_) >= std::min(indexed_samples_, (size_t)100))
-  {
-    rwlock_.unlock();
-    reindex();
-  }
-  else
-    rwlock_.unlock();
 }
 
 void ERTreeProjector::reindex()
@@ -346,4 +343,9 @@ ProjectionPtr ERTreeProjector::project(const Vector &in) const
   projection->weights.resize(neighbors.size(), 1.);
 
   return ProjectionPtr(projection);
+}
+
+void ERTreeProjector::finalize()
+{
+  reindex();
 }

@@ -221,6 +221,97 @@ experiment/approx_test:
     mutability: configuration
     default: 0
     optional: 0
+experiment/batch_learning:
+  runs:
+    type: int
+    description: Number of separate learning runs to perform
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 1
+    max: 2147483647
+  batches:
+    type: int
+    description: Number of batches per learning run
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 2147483647
+  batch_size:
+    type: int
+    description: Number of transitions per batch
+    mutability: configuration
+    default: 100
+    optional: 1
+    min: 0
+    max: 2147483647
+  rate:
+    type: int
+    description: Test trial control step frequency in Hz
+    mutability: online
+    default: 0
+    optional: 1
+    min: 0
+    max: 2147483647
+  output:
+    type: string
+    description: Output base filename
+    mutability: configuration
+    default: ""
+    optional: 1
+  model:
+    type: model
+    description: Model in which the task is set
+    mutability: configuration
+    default: 0
+    optional: 0
+  task:
+    type: task
+    description: Task to be solved
+    mutability: configuration
+    default: 0
+    optional: 0
+  predictor:
+    type: predictor
+    description: Learner
+    mutability: configuration
+    default: 0
+    optional: 0
+  test_agent:
+    type: agent
+    description: Agent to use in test trials after each batch
+    mutability: configuration
+    default: 0
+    optional: 0
+  observation_min:
+    type: vector.observation_min
+    description: Lower limit for observations
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  observation_max:
+    type: vector.observation_max
+    description: Upper limit for observations
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  action_min:
+    type: vector.action_min
+    description: Lower limit for actions
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  action_max:
+    type: vector.action_max
+    description: Upper limit for actions
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  state:
+    type: state
+    description: Current observed state of the environment
+    mutability: provided
 experiment/online_learning:
   runs:
     type: int

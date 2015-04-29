@@ -18,6 +18,7 @@ add_library(${TARGET} SHARED
             ${SRC}/environments/compass_walker/compass_walker.cpp
             ${SRC}/experiments/approx_test.cpp
             ${SRC}/experiments/online_learning.cpp
+            ${SRC}/experiments/batch_learning.cpp
             ${SRC}/policies/random.cpp
             ${SRC}/policies/action.cpp
             ${SRC}/policies/q.cpp

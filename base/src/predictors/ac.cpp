@@ -105,6 +105,9 @@ void ActionACPredictor::update(const Transition &transition)
   actor_representation_->write(ap, target_u, beta_);
   actor_representation_->update(*actor_trace_, beta_*(target_u-u), gamma_*lambda_);
   actor_trace_->add(ap, gamma_*lambda_);
+  
+  critic_representation_->finalize();
+  actor_representation_->finalize();
 }
 
 void ActionACPredictor::finalize()

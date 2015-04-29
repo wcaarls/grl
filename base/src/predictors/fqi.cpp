@@ -123,6 +123,8 @@ void FQIPredictor::finalize()
       representation_->write(projector_->project(transition.prev_obs, transition.prev_action), VectorConstructor(targets[jj]));
     }
     
+    representation_->finalize();
+    
     CRAWL("FQI iteration " << ii << " delta L_inf: " << maxdelta);
   }
 }

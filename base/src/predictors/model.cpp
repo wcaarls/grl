@@ -96,6 +96,8 @@ void ModelPredictor::update(const Transition &transition)
   
   ProjectionPtr p = projector_->project(extend(transition.prev_obs, transition.prev_action));
   representation_->write(p, target);
+  
+  representation_->finalize();
 }
 
 void ModelPredictor::finalize()

@@ -1,0 +1,71 @@
+experiment: 
+  type: experiment/batch_learning
+  runs: 1
+  batches: 0
+  batch_size: 1000
+  rate: 33
+  model: 
+    type: model/dynamical
+    control_step: 0.03
+    integration_steps: 5
+    dynamics: 
+      type: dynamics/pendulum
+  task: 
+    type: task/pendulum/swingup
+    timeout: 2.99
+  predictor: 
+    type: predictor/fqi
+    gamma: 0.97
+    transitions: 100000
+    iterations: 10
+    projector: 
+      type: projector/sample/ertree
+      samples: 100000
+      trees: 20
+      splits: 5
+      leaf_size: 10
+      inputs: experiment/task/observation_dims+experiment/task/action_dims
+      outputs: 1
+    representation: 
+      type: representation/llr
+      ridge: 1e-05
+      order: 1
+      input_nominals: [  ]
+      output_nominals: [  ]
+      outputs: 1
+      output_min: [  ]
+      output_max: [  ]
+      projector: experiment/predictor/projector
+    policy: 
+      type: policy/discrete/q
+      discretizer: 
+        type: discretizer/uniform
+        min: experiment/task/action_min
+        max: experiment/task/action_max
+        steps: [3]
+      projector: experiment/predictor/projector
+      representation: experiment/predictor/representation
+      sampler: 
+        type: sampler/greedy
+  test_agent: 
+    type: agent/fixed
+    policy: experiment/predictor/policy
+  observation_min: experiment/task/observation_min
+  observation_max: experiment/task/observation_max
+  action_min: experiment/task/action_min
+  action_max: experiment/task/action_max
+visualizer: 
+  type: visualizer/glut
+visualization: 
+  type: visualization/field/policy/value
+  field_dims: [ 0, 1 ]
+  input_min: experiment/task/observation_min
+  input_max: experiment/task/observation_max
+  points: 16384
+  projection: mean
+  projector: experiment/predictor/projector
+  representation: experiment/predictor/representation
+  policy: experiment/predictor/policy
+visualization2: 
+  type: visualization/pendulum
+  state: experiment/state

@@ -73,6 +73,9 @@ class Representation : public Mapping
       for (Trace::iterator ii=trace.begin(); ii != trace.end() && ii->weight() > 0.001; ++ii)
         update(ii->projection(), ii->weight()*delta*e);
     }
+    
+    /// Apply written values, if not already done on-line.
+    virtual void finalize() { }
 };
 
 /// Representation that allows for parameter access.

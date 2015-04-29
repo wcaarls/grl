@@ -92,6 +92,8 @@ void GGQPredictor::update(const Transition &transition)
   
   if (!transition.obs.empty())
     representation_->update(phi_next, VectorConstructor(-alpha_*gamma_*dotwphi, 0.));
+    
+  representation_->finalize();
 }
 
 void GGQPredictor::finalize()

@@ -359,4 +359,8 @@ void LLRRepresentation::update(const ProjectionPtr projection, const Vector &del
         (*p->store)[p->indices[ii]]->out[jj] = fmin(fmax((*p->store)[p->indices[ii]]->out[jj] + delta[jj]*p->weights[ii], min_[jj]), max_[jj]);
   }
 }
-                
+
+void LLRRepresentation::finalize()
+{
+  projector_->finalize();
+}
