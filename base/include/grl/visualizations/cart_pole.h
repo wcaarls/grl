@@ -42,9 +42,10 @@ class CartPoleVisualization : public Visualization
 
   protected:
     State *state_;
+    std::string variant_;
   
   public:
-    CartPoleVisualization() : state_(NULL) { }
+    CartPoleVisualization() : state_(NULL), variant_("mprl") { }
     
     // From Configurable
     virtual void request(ConfigurationRequest *config);

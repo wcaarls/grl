@@ -26,6 +26,7 @@
  */
 
 #include <sys/stat.h>
+#include <libgen.h>
 
 #include <rbdl/rbdl.h>
 #include <rbdl/addons/luamodel/luamodel.h>
@@ -64,6 +65,14 @@ void RBDLDynamics::configure(Configuration &config)
   
   L_ = luaL_newstate();
   luaL_openlibs(L_);
+  
+  // Add script path to search directory
+  char buf[PATH_MAX];
+  strcpy(buf, file_.c_str());
+  std::string ls = "package.path = package.path .. ';";
+  ls = ls + dirname(buf) + "/?.lua'";
+  luaL_dostring(L_, ls.c_str()); 
+  
   luaL_dofile(L_, file_.c_str());
 }
 
@@ -84,20 +93,30 @@ void RBDLDynamics::eom(const Vector &state, const Vector &action, Vector *xd) co
     throw Exception("dynamics/rbdl is incompatible with specified task");
     
   // Convert action to forces and torques
+  Vector controls;
   lua_getglobal(L_, "control");  /* function to be called */
-  lua_pushvector(L_, state);
-  lua_pushvector(L_, action);
-  if (lua_pcall(L_, 2, 1, 0) != 0)
+  if (!lua_isnil(L_, -1))
   {
-    ERROR("Cannot find controls: " << lua_tostring(L_, -1));
-    lua_pop(L_, 1);
-    throw bad_param("dynamics/rbdl:file");
+    lua_pushvector(L_, state);
+    lua_pushvector(L_, action);
+    if (lua_pcall(L_, 2, 1, 0) != 0)
+    {
+      ERROR("Cannot find controls: " << lua_tostring(L_, -1));
+      lua_pop(L_, 1);
+      throw bad_param("dynamics/rbdl:file");
+    }
+    controls = lua_tovector(L_, -1);
+    if (controls.size() != dim)
+      throw Exception("Controller is incompatible with dynamics");
   }
-  Vector controls = lua_tovector(L_, -1);
+  else
+  {
+    controls = action;
+    if (controls.size() != dim)
+      throw Exception("Policy is incompatible with dynamics");
+  }
+
   lua_pop(L_, 1);
-  
-  if (controls.size() != dim)
-    throw Exception("Controller is incompatible with dynamics");
 
   RigidBodyDynamics::Math::VectorNd u = RigidBodyDynamics::Math::VectorNd::Zero(dim);
   RigidBodyDynamics::Math::VectorNd q = RigidBodyDynamics::Math::VectorNd::Zero(dim);

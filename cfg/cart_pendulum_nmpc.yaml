@@ -1,0 +1,33 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 0
+  steps: 0
+  rate: 0
+  test_interval: 0
+  environment: 
+    type: environment/modeled
+    model: 
+      type: model/dynamical
+      control_step: 0.05
+      integration_steps: 5
+      dynamics: 
+        type: dynamics/rbdl
+        file: cart_pendulum_nmpc.lua
+    task: 
+      type: task/lua
+      file: cart_pendulum_nmpc_swingup.lua
+  agent: 
+    type: agent/fixed
+    policy: 
+      type: policy/nmpc
+      model_path: /home/wcaarls/src/NMPC-Cart-Pendulum-RBDL/build
+      model_name: cart_pendulum_nmpc
+      outputs: experiment/environment/task/action_dims
+  test_agent: experiment/agent
+visualizer: 
+  type: visualizer/glut
+visualization: 
+  type: visualization/cart_pole
+  state: experiment/environment/state
+  variant: rbdl
