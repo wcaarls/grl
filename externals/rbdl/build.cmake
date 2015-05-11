@@ -31,7 +31,8 @@ execute_process(
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
 
-SET(RBDL_BUILD_ADDON_LUAMODEL ON CACHE BOOL FORCE "Build the lua model reader")
+OPTION (RBDL_BUILD_ADDON_LUAMODEL "Build the lua model reader" ON)
+set(RBDL_BUILD_ADDON_LUAMODEL ON CACHE BOOL FORCE "Build the lua model reader")
 
 add_subdirectory(${CMAKE_BINARY_DIR}/externals/rbdl ${CMAKE_BINARY_DIR}/externals/rbdl/build)
 

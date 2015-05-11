@@ -33,6 +33,7 @@ set(MODULES base
             addons/matlab
             addons/odesim
             addons/rbdl
+            addons/muscod
    )
 
 # Is there a better way to find out if catkin_make was run?

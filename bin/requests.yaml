@@ -671,6 +671,27 @@ policy/discrete/random:
     mutability: configuration
     default: 0
     optional: 0
+policy/nmpc:
+  model_path:
+    type: string
+    description: Path to MUSCOD model library
+    mutability: configuration
+    default: ""
+    optional: 1
+  model_name:
+    type: string
+    description: Name of MUSCOD model library
+    mutability: configuration
+    default: ""
+    optional: 1
+  outputs:
+    type: int.action_dims
+    description: Number of outputs
+    mutability: system
+    default: 1
+    optional: 1
+    min: 1
+    max: 2147483647
 policy/parameterized/action:
   sigma:
     type: vector
