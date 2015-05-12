@@ -24,6 +24,7 @@ experiment:
       model_path: /home/wcaarls/src/NMPC-Cart-Pendulum-RBDL/build
       model_name: cart_pendulum_nmpc
       outputs: experiment/environment/task/action_dims
+      control_step: experiment/environment/model/control_step
   test_agent: experiment/agent
 visualizer: 
   type: visualizer/glut

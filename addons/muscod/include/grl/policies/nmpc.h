@@ -28,7 +28,7 @@
 #ifndef GRL_NMPC_POLICY_H_
 #define GRL_NMPC_POLICY_H_
 
-#include <grl/policies/parameterized.h>
+#include <grl/policy.h>
 
 class MUSCOD;
 
@@ -45,9 +45,13 @@ class NMPCPolicy : public Policy
     MUSCOD *muscod_;
     std::string model_path_, model_name_;
     size_t outputs_;
+    double tau_;
+    
+    // NOTE: Non-autonomous policy will have trouble being visualized
+    mutable double time_;
 
   public:
-    NMPCPolicy() : muscod_(NULL), outputs_(1) { }
+    NMPCPolicy() : muscod_(NULL), outputs_(1), tau_(0.05), time_(0.) { }
     ~NMPCPolicy();
   
     // From Configurable

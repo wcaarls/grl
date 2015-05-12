@@ -88,7 +88,7 @@ void ModeledEnvironment::step(const Vector &action, Vector *obs, double *reward,
 
 void DynamicalModel::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("control_step", "Control step time", tau_, CRP::Configuration, 0.001, DBL_MAX));
+  config->push_back(CRP("control_step", "double.control_step", "Control step time", tau_, CRP::Configuration, 0.001, DBL_MAX));
   config->push_back(CRP("integration_steps", "Number of integration steps per control step", (int)steps_, CRP::Configuration, 1));
 
   config->push_back(CRP("dynamics", "dynamics", "Equations of motion", dynamics_));

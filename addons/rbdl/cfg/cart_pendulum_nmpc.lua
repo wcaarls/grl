@@ -1,4 +1,9 @@
---require 'SRC.strict'
+--[[
+--  RBDL cart-pole simulation
+--
+--  Author:
+--    Manuel Kudruss, UHEI
+--]]
 
 -- define some convenience functions
 

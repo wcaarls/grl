@@ -425,7 +425,7 @@ model/compass_walker:
     max: 2147483647
 model/dynamical:
   control_step:
-    type: double
+    type: double.control_step
     description: Control step time
     mutability: configuration
     default: 0.05
@@ -692,6 +692,14 @@ policy/nmpc:
     optional: 1
     min: 1
     max: 2147483647
+  control_step:
+    type: double.control_step
+    description: Control step time
+    mutability: system
+    default: 0.05
+    optional: 1
+    min: 0.001
+    max: 1.797693134862316e+308
 policy/parameterized/action:
   sigma:
     type: vector
@@ -1712,6 +1720,15 @@ visualization/cart_pole:
     mutability: configuration
     default: 0
     optional: 0
+  variant:
+    type: string
+    description: Problem variant (state element order and zero point)
+    mutability: configuration
+    default: mprl
+    optional: 1
+    options:
+      - mprl
+      - rbdl
 visualization/compass_walker:
   state:
     type: state

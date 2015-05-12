@@ -1,5 +1,5 @@
 --[[
---  Cart-pole swing-up task for Manuel's RBDL cart-pole swimulation
+--  Cart-pole swing-up task for Manuel's RBDL cart-pole simulation
 --
 --  Author:
 --    Wouter Caarls <wouter@caarls.org>
