@@ -74,7 +74,7 @@ class GrlMain:
     output = open(tempfile, "w")
     self.write(output)
     output.close()
-    os.system("cd " + binpath + "/../build && ./deploy " + tempfile)
+    os.system("cd " + binpath + "/../build && ./grld " + tempfile)
     os.remove(tempfile)
     
   def add(self):
