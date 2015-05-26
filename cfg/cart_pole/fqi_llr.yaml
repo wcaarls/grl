@@ -1,0 +1,74 @@
+experiment: 
+  type: experiment/batch_learning
+  runs: 1
+  batches: 0
+  batch_size: 50000
+  rate: 40
+  model: 
+    type: model/dynamical
+    control_step: 0.05
+    integration_steps: 5
+    dynamics: 
+      type: dynamics/cart_pole
+  task: 
+    type: task/cart_pole/swingup
+    timeout: 9.99
+    randomization: 1
+    shaping: 0
+    gamma: 1
+  predictor: 
+    type: predictor/fqi
+    gamma: 0.97
+    transitions: 1000000
+    iterations: 50
+    projector: 
+      type: projector/sample/ann
+      samples: 1000000
+      neighbors: 12
+      bucket_size: 10
+      error_bound: 0.1
+      scaling: [  ]
+      inputs: experiment/task/observation_dims+experiment/task/action_dims
+    representation: 
+      type: representation/llr
+      ridge: 1e-05
+      order: 0
+      input_nominals: [  ]
+      output_nominals: [  ]
+      outputs: 1
+      output_min: [  ]
+      output_max: [  ]
+      projector: experiment/predictor/projector
+    policy: 
+      type: policy/discrete/q
+      discretizer: 
+        type: discretizer/uniform
+        min: experiment/task/action_min
+        max: experiment/task/action_max
+        steps: [3]
+      projector: experiment/predictor/projector
+      representation: experiment/predictor/representation
+      sampler: 
+        type: sampler/greedy
+  test_agent: 
+    type: agent/fixed
+    policy: experiment/predictor/policy
+  observation_min: experiment/task/observation_min
+  observation_max: experiment/task/observation_max
+  action_min: experiment/task/action_min
+  action_max: experiment/task/action_max
+visualizer: 
+  type: visualizer/glut
+#visualization: 
+#  type: visualization/field/policy/value
+#  field_dims: [ 0, 1 ]
+#  input_min: experiment/task/observation_min
+#  input_max: experiment/task/observation_max
+#  points: 16384
+#  projection: mean
+#  projector: experiment/predictor/projector
+#  representation: experiment/predictor/representation
+#  policy: experiment/predictor/policy
+visualization2:
+  type: visualization/cart_pole
+  state: experiment/state

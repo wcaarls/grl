@@ -48,20 +48,20 @@ add_library(${TARGET} SHARED
 # Dependencies
 target_link_libraries(${TARGET} -lpthread -ldl)
 grl_link_libraries(${TARGET} externals/yaml-cpp)
-install(TARGETS ${TARGET} DESTINATION lib)
-install(DIRECTORY ${SRC}/../include/grl DESTINATION include FILES_MATCHING PATTERN "*.h")
+install(TARGETS ${TARGET} DESTINATION ${GRL_LIB_DESTINATION})
+install(DIRECTORY ${SRC}/../include/grl DESTINATION ${GRL_INCLUDE_DESTINATION} FILES_MATCHING PATTERN "*.h")
 
 # Deployer
 set (TARGET grld)
 add_executable(${TARGET} ${SRC}/deployer.cpp)
 grl_link_libraries(${TARGET} base)
-install(TARGETS ${TARGET} DESTINATION bin)
+install(TARGETS ${TARGET} DESTINATION ${GRL_BIN_DESTINATION})
 
 # Requestgen
 set (TARGET grlg)
 add_executable(${TARGET} ${SRC}/requestgen.cpp)
 grl_link_libraries(${TARGET} base)
-install(TARGETS ${TARGET} DESTINATION bin)
+install(TARGETS ${TARGET} DESTINATION ${GRL_BIN_DESTINATION})
 
 install(CODE "execute_process(COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/grlg ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/requests.yaml)")
-install(FILES ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/requests.yaml DESTINATION bin)
+install(FILES ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/requests.yaml DESTINATION ${GRL_BIN_DESTINATION})

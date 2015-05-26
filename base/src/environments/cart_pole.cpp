@@ -99,8 +99,8 @@ void CartPoleSwingupTask::configure(Configuration &config)
   T_ = config["timeout"];
 
   config.set("observation_dims", 4);
-  config.set("observation_min", VectorConstructor(-2.4, -10.0, 0.    , -10*M_PI));
-  config.set("observation_max", VectorConstructor( 2.4,  10.0, 2*M_PI,  10*M_PI));
+  config.set("observation_min", VectorConstructor(-2.4, -10.0, 0.    , -5*M_PI));
+  config.set("observation_max", VectorConstructor( 2.4,  10.0, 2*M_PI,  5*M_PI));
   config.set("action_dims", 1);
   config.set("action_min", VectorConstructor(-15.));
   config.set("action_max", VectorConstructor( 15.));

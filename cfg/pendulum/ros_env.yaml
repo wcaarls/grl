@@ -1,0 +1,36 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 0
+  steps: 0
+  rate: 0
+  test_interval: 0
+  environment: 
+    type: environment/modeled
+    model: 
+      type: model/dynamical
+      control_step: 0.03
+      integration_steps: 5
+      dynamics: 
+        type: dynamics/pendulum
+    task: 
+      type: task/pendulum/swingup
+      timeout: 2.99
+  agent: 
+    type: agent/ros
+    node: env_pendulum
+    title: env_mops_sim
+    observation_min: experiment/environment/task/observation_min
+    observation_max: experiment/environment/task/observation_max
+    action_min: experiment/environment/task/action_min
+    action_max: experiment/environment/task/action_max
+    reward_min: experiment/environment/task/reward_min
+    reward_max: experiment/environment/task/reward_max
+    stochastic: 1
+    episodic: 1
+  test_agent: experiment/agent
+visualizer: 
+  type: visualizer/glut
+visualization: 
+  type: visualization/pendulum
+  state: experiment/environment/state

@@ -90,7 +90,6 @@
 #define ITC_QUEUE_H_
  
 #include <list>
-#include <boost/shared_ptr.hpp>
 
 namespace itc {
 
@@ -135,7 +134,7 @@ template <class T>
 class QueueWriter
 {
   protected:
-    boost::shared_ptr<QueueWriterImpl<T> > writer_;
+    QueueWriterImpl<T> *writer_;
 
   public:
     QueueWriter() { }
@@ -229,7 +228,7 @@ template <class T>
 class QueueReader
 {
   protected:
-    boost::shared_ptr<QueueReaderImpl<T> > reader_;
+    QueueReaderImpl<T> *reader_;
 
   public:
     QueueReader() { }
@@ -393,13 +392,11 @@ class Queue
     ~Queue()
     {
       delete[] data_;
-      delete[] writer_;
+      delete writer_;
 
+      // Readers automatically delete themselves from the list when destroyed
       while (!readers_.empty())
-      {
         delete *readers_.begin();
-        readers_.pop_front();
-      }
 
       pthread_mutex_destroy(&mutex_);
       pthread_cond_destroy(&read_condition_);

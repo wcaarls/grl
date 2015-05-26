@@ -23,5 +23,5 @@ if (MATLAB_INCLUDE_DIR)
 
   grl_add_mex(grl_env ${SRC}/convert.cpp ${SRC}/mex_env.cpp)
   grl_add_mex(grl_agent ${SRC}/convert.cpp ${SRC}/mex_agent.cpp)
-  install(FILES ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/grl_env.mexa64 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/grl_agent.mexa64 DESTINATION lib)
+  install(FILES ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/grl_env.mexa64 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/grl_agent.mexa64 DESTINATION ${GRL_BIN_DESTINATION})
 endif()

@@ -163,6 +163,13 @@ ProjectionPtr ANNProjector::project(const Vector &in) const
         refs[ii].dist = (float)dd[ii];
       }
     }
+    else
+    {
+      // Don't search linear samples when memory is empty, to avoid
+      // unnecessary work in the batch case. For the on-line case, it
+      // only affects the first sample anyway.
+      return ProjectionPtr(projection);
+    }
 
     // Search overflowing samples linearly
     for (size_t ii=0; ii < linear_samples; ++ii)

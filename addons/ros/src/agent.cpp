@@ -37,11 +37,9 @@ void ROSAgent::request(ConfigurationRequest *config)
   config->push_back(CRP("args", "ROS command-line arguments", args_));
   config->push_back(CRP("title", "Name of environment", title_));
   
-  config->push_back(CRP("observation_dims", "int.observation_dims", "Lower limit on observations", observation_min_, CRP::System));
   config->push_back(CRP("observation_min", "vector.observation_min", "Lower limit on observations", observation_min_, CRP::System));
   config->push_back(CRP("observation_max", "vector.observation_max", "Upper limit on observations", observation_max_, CRP::System));
   
-  config->push_back(CRP("action_dims", "int.action_dims", "Lower limit on actions", action_min_, CRP::System));
   config->push_back(CRP("action_min", "vector.action_min", "Lower limit on actions", action_min_, CRP::System));
   config->push_back(CRP("action_max", "vector.action_max", "Upper limit on actions", action_max_, CRP::System));
   
