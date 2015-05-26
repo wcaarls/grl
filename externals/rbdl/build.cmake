@@ -1,6 +1,22 @@
 # Setup build environment
 set(TARGET rbdl)
 
+#find_package(PkgConfig)
+#pkg_check_modules(RBDL rbdl)
+# 
+#if (RBDL_FOUND)
+#  find_library(LUA_ADDON_LIB NAMES rbdl_luamodel HINTS ${RBDL_LIBRARY_DIRS})
+#  find_path(LUA_ADDON_INC rbdl/addons/luamodel/luamodel.h ${RBDL_INCLUDE_DIRS})
+#
+#  if (LUA_ADDON_LIB AND LUA_ADDON_INC)
+#    message("-- Using external RBDL library")
+#    include_directories(${RBDL_INCLUDE_DIRS})
+#    return()
+#  endif()
+#endif()
+#
+#message("-- Building included RBDL library")
+
 FIND_PACKAGE (Eigen3 3.0.0)
 IF (EIGEN3_FOUND)
   INCLUDE_DIRECTORIES (${EIGEN3_INCLUDE_DIR})

@@ -147,14 +147,14 @@ typedef std::vector<CRP> ConfigurationRequest;
 extern unsigned char grl_log_verbosity__;
 extern const char *grl_log_levels__[];
 
-#define LOG(l, m) do { std::ostringstream __log_oss; __log_oss << m; log(l, __log_oss); } while (0)
+#define GRLLOG(l, m) do { std::ostringstream __log_oss; __log_oss << m; log(l, __log_oss); } while (0)
 
-#define ERROR(m) LOG(0, m)
-#define WARNING(m) LOG(1, m)
-#define NOTICE(m) LOG(2, m)
-#define INFO(m) LOG(3, m)
-#define DEBUG(m) LOG(4, m)
-#define CRAWL(m) LOG(5, m)
+#define ERROR(m) GRLLOG(0, m)
+#define WARNING(m) GRLLOG(1, m)
+#define NOTICE(m) GRLLOG(2, m)
+#define INFO(m) GRLLOG(3, m)
+#define DEBUG(m) GRLLOG(4, m)
+#define CRAWL(m) GRLLOG(5, m)
 
 inline void log(unsigned char level, const std::ostringstream &oss)
 {

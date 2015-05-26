@@ -4,7 +4,7 @@ set(TARGET ics)
 find_package(ZLIB)
 
 if (ZLIB_FOUND)
-  message("-- Building ICS external")
+  message("-- Building included ICS library")
 
   # Make library
   add_library(${TARGET} SHARED

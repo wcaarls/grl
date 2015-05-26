@@ -7,19 +7,11 @@ if (NOT CMAKE_BUILD_TYPE)
   message("-- Set default build type ${CMAKE_BUILD_TYPE}")
 endif()
 
-set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -Wno-unused-parameter)
-
-# Choose YAML version
-#find_package(PkgConfig REQUIRED)
-#pkg_check_modules(LIBYAMLCPP yaml-cpp)
-#if (${LIBYAMLCPP_VERSION} VERSION_LESS 0.5)
-  message("-- Using included YAML library")
-  set(GRL_YAML_MODULE externals/yaml-cpp)
-#endif()
+set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-Wno-unused-parameter -Wno-variadic-macros -Wno-pedantic")
 
 # List of modules to build
 set(MODULES base
-            ${GRL_YAML_MODULE}
+            externals/yaml-cpp
             externals/ann
             externals/cma
             externals/ics
