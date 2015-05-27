@@ -72,3 +72,11 @@ To start the configurator instead, run
 cd ../bin
 ./grlc ../cfg/pendulum/sarsa_tc.yaml
 ```
+
+# Visualizations
+
+GRL comes with standard visualizations for value functions,
+policies, and the integrated environments (e.g. pendulum
+swing-up, cart-pole swing-up, compass walker)
+
+![Visualizations](/doc/grl2.png)
