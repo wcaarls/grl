@@ -203,10 +203,11 @@ LuaTask *LuaTask::clone() const
   return new LuaTask(*this);
 }
  
-void LuaTask::start(Vector *state) const
+void LuaTask::start(int test, Vector *state) const
 {
   lua_getglobal(L_, "start");
-  if (lua_pcall(L_, 0, 1, 0) != 0)
+  lua_pushnumber(L_, test);
+  if (lua_pcall(L_, 1, 1, 0) != 0)
   {
     ERROR("Cannot find start state: " << lua_tostring(L_, -1));
     lua_pop(L_, 1);

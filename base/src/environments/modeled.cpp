@@ -64,11 +64,11 @@ ModeledEnvironment *ModeledEnvironment::clone() const
   return me;
 }
 
-void ModeledEnvironment::start(Vector *obs)
+void ModeledEnvironment::start(int test, Vector *obs)
 {
   int terminal;
 
-  task_->start(&state_);
+  task_->start(test, &state_);
   task_->observe(state_, obs, &terminal);
   
   state_obj_->set(state_);

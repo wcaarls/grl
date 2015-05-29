@@ -1711,6 +1711,14 @@ task/pendulum/swingup:
     optional: 1
     min: 0
     max: 1.797693134862316e+308
+  randomization:
+    type: double
+    description: Level of start state randomization
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
 trace/enumerated/accumulating: ~
 trace/enumerated/replacing: ~
 visualization/cart_pole:

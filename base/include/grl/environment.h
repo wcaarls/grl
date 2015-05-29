@@ -42,7 +42,7 @@ class Environment : public Configurable
     virtual ~Environment() { }
     virtual Environment *clone() const = 0;
 
-    virtual void start(Vector *obs) = 0;
+    virtual void start(int test, Vector *obs) = 0;
     virtual void step(const Vector &action, Vector *obs, double *reward, int *terminal) = 0;
 };
 
@@ -75,7 +75,7 @@ class Task : public Configurable
       config->push_back(CRP("reward_max", "double.reward_max", "Upper limit on immediate reward", CRP::Provided));
     }    
   
-    virtual void start(Vector *state) const = 0;
+    virtual void start(int test, Vector *state) const = 0;
     virtual void observe(const Vector &state, Vector *obs, int *terminal) const = 0;
     virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const = 0;
     virtual bool invert(const Vector &obs, Vector *state) const { return false; }
@@ -103,7 +103,7 @@ class ModeledEnvironment : public Environment
     
     // From Environment
     virtual ModeledEnvironment *clone() const;
-    virtual void start(Vector *obs);
+    virtual void start(int test, Vector *obs);
     virtual void step(const Vector &action, Vector *obs, double *reward, int *terminal);
 };
 

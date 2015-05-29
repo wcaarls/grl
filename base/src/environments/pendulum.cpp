@@ -76,11 +76,13 @@ void PendulumSwingupTask::request(ConfigurationRequest *config)
   Task::request(config);
 
   config->push_back(CRP("timeout", "Episode timeout", T_, CRP::Configuration, 0., DBL_MAX));
+  config->push_back(CRP("randomization", "Level of start state randomization", randomization_, CRP::Configuration, 0., 1.));
 }
 
 void PendulumSwingupTask::configure(Configuration &config)
 {
   T_ = config["timeout"];
+  randomization_ = config["randomization"];
 
   config.set("observation_dims", 2);
   config.set("observation_min", VectorConstructor(0., -12*M_PI));
@@ -101,10 +103,10 @@ PendulumSwingupTask *PendulumSwingupTask::clone() const
   return new PendulumSwingupTask(*this);
 }
 
-void PendulumSwingupTask::start(Vector *state) const
+void PendulumSwingupTask::start(int test, Vector *state) const
 {
   state->resize(3);
-  (*state)[0] = M_PI;
+  (*state)[0] = M_PI+randomization_*(test==0)*RandGen::get()*2*M_PI;
   (*state)[1] = 0;
   (*state)[2] = 0;
 }

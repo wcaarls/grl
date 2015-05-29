@@ -60,10 +60,10 @@ class PendulumSwingupTask : public Task
     TYPEINFO("task/pendulum/swingup")
   
   public:
-    double T_;
+    double T_, randomization_;
   
   public:
-    PendulumSwingupTask() : T_(2.99) { }
+    PendulumSwingupTask() : T_(2.99), randomization_(0.) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -72,7 +72,7 @@ class PendulumSwingupTask : public Task
 
     // From Task
     virtual PendulumSwingupTask *clone() const;
-    virtual void start(Vector *state) const;
+    virtual void start(int test, Vector *state) const;
     virtual void observe(const Vector &state, Vector *obs, int *terminal) const;
     virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const;
     virtual bool invert(const Vector &obs, Vector *state) const;

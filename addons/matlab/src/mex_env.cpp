@@ -101,7 +101,9 @@ void mexFunction(int nlhs, mxArray *plhs[ ],
   {
     // Run environment
     Vector obs;
-    g_env->start(&obs);
+    
+    // TODO: READ TEST ARGUMENT
+    g_env->start(0, &obs);
     
     // Process output
     plhs[0] = vectorToArray(obs);

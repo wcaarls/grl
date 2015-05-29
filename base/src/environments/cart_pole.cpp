@@ -127,7 +127,7 @@ CartPoleSwingupTask *CartPoleSwingupTask::clone() const
   return new CartPoleSwingupTask(*this);
 }
 
-void CartPoleSwingupTask::start(Vector *state) const
+void CartPoleSwingupTask::start(int test, Vector *state) const
 {
   state->resize(5);
 
@@ -232,7 +232,7 @@ CartPoleBalancingTask *CartPoleBalancingTask::clone() const
   return new CartPoleBalancingTask(*this);
 }
 
-void CartPoleBalancingTask::start(Vector *state) const
+void CartPoleBalancingTask::start(int test, Vector *state) const
 {
   state->resize(5);
 

@@ -79,7 +79,7 @@ class CartPoleSwingupTask : public Task
 
     // From Task
     virtual CartPoleSwingupTask *clone() const;
-    virtual void start(Vector *state) const;
+    virtual void start(int test, Vector *state) const;
     virtual void observe(const Vector &state, Vector *obs, int *terminal) const;
     virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const;
     virtual bool invert(const Vector &obs, Vector *state) const;
@@ -109,7 +109,7 @@ class CartPoleBalancingTask : public Task
 
     // From Task
     virtual CartPoleBalancingTask *clone() const;
-    virtual void start(Vector *state) const;
+    virtual void start(int test, Vector *state) const;
     virtual void observe(const Vector &state, Vector *obs, int *terminal) const;
     virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const;
     virtual bool invert(const Vector &obs, Vector *state) const;

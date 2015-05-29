@@ -154,7 +154,7 @@ bool ODESTGEnvironment::configure(Configuration &config)
   return true;
 }
 
-void ODESTGEnvironment::start(Vector *obs)
+void ODESTGEnvironment::start(int test, Vector *obs)
 {
   simulator_.setInitialCondition();
   simulator_.resetActuationValues();

@@ -122,7 +122,7 @@ CompassWalkerWalkTask *CompassWalkerWalkTask::clone() const
   return new CompassWalkerWalkTask(*this);
 }
 
-void CompassWalkerWalkTask::start(Vector *state) const
+void CompassWalkerWalkTask::start(int test, Vector *state) const
 {
   CSWModelState swstate, initial_state;
 

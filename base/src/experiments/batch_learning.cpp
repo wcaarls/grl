@@ -147,10 +147,10 @@ void BatchLearningExperiment::run()
       double reward, total_reward=0;
       int terminal;
       
-      task_->start(&state);
+      task_->start(1, &state);
+      state_->set(state);
       task_->observe(state, &obs, &terminal);
       test_agent_->start(obs, &action);
-      state_->set(obs);
 
       CRAWL(obs);
   
@@ -162,6 +162,7 @@ void BatchLearningExperiment::run()
         task_->observe(next, &obs, &terminal);
         task_->evaluate(state, action, next, &reward);
         state = next;
+        state_->set(state);
         
         CRAWL(action << " - " << reward << " -> " << obs);
         
@@ -172,7 +173,6 @@ void BatchLearningExperiment::run()
         else if (!obs.empty())
         {
           test_agent_->step(obs, reward, &action);
-          state_->set(obs);
         }
       } while (!terminal);
 
