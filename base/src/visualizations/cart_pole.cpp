@@ -36,12 +36,6 @@ REGISTER_CONFIGURABLE(CartPoleVisualization)
 void CartPoleVisualization::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("state", "state", "Cart-pole state to visualize", state_));
-
-  std::vector<std::string> options;
-  options.push_back("mprl");
-  options.push_back("rbdl"); 
-      
-  config->push_back(CRP("variant", "Problem variant (state element order and zero point)", variant_, CRP::Configuration, options));
 }
 
 void CartPoleVisualization::configure(Configuration &config)
@@ -50,7 +44,6 @@ void CartPoleVisualization::configure(Configuration &config)
     throw Exception("visualization/cart_pole requires a configured visualizer to run");
 
   state_ = (State*)config["state"].ptr();
-  variant_ = config["variant"].str();
 
   // Create window  
   create("CartPole");
@@ -80,16 +73,8 @@ void CartPoleVisualization::draw()
   {
     double phi, x;
     
-    if (variant_ == "mprl")
-    {
-      phi = -state[2]+M_PI/2;
-      x = state[0]/2.4;
-    }
-    else
-    {
-      phi = -state[1]+M_PI/2;
-      x = state[0]/2.4;
-    }
+    phi = -state[1]+M_PI/2;
+    x = state[0]/2.4;
     
     if (state.size() == 4)
       phi += M_PI;

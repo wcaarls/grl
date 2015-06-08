@@ -185,6 +185,9 @@ class Configurable
       }
     }
     
+  private:
+    std::string path_;
+    
   public:
     virtual ~Configurable() { }
     
@@ -195,14 +198,22 @@ class Configurable
     virtual void configure(Configuration &/*config*/) { }
     virtual void reconfigure(const Configuration &/*config*/) { }
     
+    void setPath(const std::string &path) { path_ = path; }
+    const std::string &path() { return path_; }
+    
+    void walk(const Configuration &config)
+    {
+      reconfigure(config);
+      
+      for (size_t ii=0; ii < children_.size(); ++ii)
+        children_[ii]->walk(config);
+    }
+    
     void reset()
     {
       Configuration config;
       config.set("action", "reset");
-      reconfigure(config);
-      
-      for (size_t ii=0; ii < children_.size(); ++ii)
-        children_[ii]->reset();
+      walk(config);
     }
 };
 

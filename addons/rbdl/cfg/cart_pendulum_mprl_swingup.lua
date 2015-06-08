@@ -42,8 +42,8 @@ end
 function configure(argstr)
   T = 10
   return {observation_dims = 4,
-          observation_min = {-2.4, -5, 0,         -10*math.pi},
-          observation_max = { 2.4,  5, 2*math.pi,  10*math.pi},
+          observation_min = {-2.4, 0,         -5, -10*math.pi},
+          observation_max = { 2.4, 2*math.pi,  5,  10*math.pi},
           action_dims = 1,
           action_min = {-15},
           action_max = {15},
@@ -65,7 +65,7 @@ function observe(state)
     t = 0
   end
   
-  return {state[0], state[2], wrap_angle(state[1]), state[3]}, t
+  return {state[0], wrap_angle(state[1]), state[2], state[3]}, t
 end
 
 function evaluate(state, action, next)
@@ -77,5 +77,5 @@ function evaluate(state, action, next)
 end
 
 function invert(obs)
-  return {obs[0], obs[2]-math.pi, obs[1], obs[3], 0}
+  return {obs[0], obs[1]-math.pi, obs[2], obs[3], 0}
 end

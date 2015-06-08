@@ -22,7 +22,7 @@ experiment:
       type: policy/parameterized/pid
       setpoint: [ 0, 0, 0, 0 ]
       outputs: experiment/environment/task/action_dims
-      p: [-10, -6, -50, -10]
+      p: [-10, -50, -6, -10]
       i: [  ]
       d: [  ]
       il: [  ]

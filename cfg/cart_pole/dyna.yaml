@@ -33,8 +33,8 @@ experiment:
         type: projector/tile_coding
         tilings: 16
         memory: 67108864
-        resolution: [2.5, 2.5, 0.157075, 1.57075, 15]
-        wrapping: [0, 0, 6.283, 0, 0]
+        resolution: [2.5, 0.157075, 2.5, 1.57075, 15]
+        wrapping: [0, 6.283, 0, 0, 0]
       representation: 
         type: representation/parameterized/linear
         init_min: [0]
