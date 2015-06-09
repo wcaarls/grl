@@ -35,9 +35,11 @@ using namespace std;
 int main(int argc, char **argv)
 {
   int seed = 0;
+  bool load = false;
+  std::string file;
 
   int c;
-  while ((c = getopt (argc, argv, "vs:")) != -1)
+  while ((c = getopt (argc, argv, "vs:l")) != -1)
   {
     switch (c)
     {
@@ -47,6 +49,12 @@ int main(int argc, char **argv)
       case 's':
         seed = atoi(optarg);
         break;
+      case 'l':
+        load = true;
+        break;
+      case 'f':
+        file = optarg;
+        break;
       default:
         return 1;    
     }
@@ -54,7 +62,7 @@ int main(int argc, char **argv)
 
   if (optind != argc-1)
   {
-    ERROR("Usage: " << endl << "  " << argv[0] << " [options] <yaml file>");
+    ERROR("Usage: " << endl << "  " << argv[0] << " [-v] [-s seed] [-l] [-f file] <yaml file>");
     return 1;
   }
   
@@ -86,7 +94,26 @@ int main(int argc, char **argv)
     return 1;
   }
   
+  if (file.empty())
+  {
+    file = argv[optind];
+    file.resize(file.rfind('.'));
+  }
+  
+  if (load)
+  {
+    Configuration loadconfig;
+    loadconfig.set("action", "load");
+    loadconfig.set("file", file + "-");
+    configurator.walk(loadconfig);
+  }
+  
   experiment->run();
+  
+  Configuration saveconfig;
+  saveconfig.set("action", "save");
+  saveconfig.set("file", file + "-");
+  configurator.walk(saveconfig);
   
   NOTICE("Exiting");
   

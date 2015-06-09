@@ -53,7 +53,8 @@ Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *conf
       return NULL;
     }
     
-    obj->setPath(path);
+    if (!path.empty())
+      obj->setPath(path.substr(0, path.size()-1));
     objects_.push_back(obj);
   }
     

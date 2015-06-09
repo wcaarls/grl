@@ -95,18 +95,63 @@ void LinearRepresentation::configure(Configuration &config)
 
 void LinearRepresentation::reconfigure(const Configuration &config)
 {
-  if (config.has("action") && config["action"].str() == "reset")
+  if (config.has("action"))
   {
-    DEBUG("Initializing " << memory_ << " values between " << init_min_ << " and " << init_max_);
-  
-    params_.resize(memory_ * outputs_);
+    if (config["action"].str() == "reset")
+    {
+      DEBUG("Initializing " << memory_ << " values between " << init_min_ << " and " << init_max_);
+    
+      params_.resize(memory_ * outputs_);
 
-    // Initialize memory
-    Rand *rand = RandGen::instance();
-    for (size_t ii=0; ii < memory_; ++ii)
-      for (size_t jj=0; jj < outputs_; ++jj)  
-        params_[ii*outputs_+jj] = rand->getUniform(init_min_[jj], init_max_[jj]);
-  }
+      // Initialize memory
+      Rand *rand = RandGen::instance();
+      for (size_t ii=0; ii < memory_; ++ii)
+        for (size_t jj=0; jj < outputs_; ++jj)  
+          params_[ii*outputs_+jj] = rand->getUniform(init_min_[jj], init_max_[jj]);
+    }
+    else if (config["action"].str() == "load")
+    {
+      std::string file = config["file"].str() + path() + ".dat";
+      std::replace(file.begin(), file.end(), '/', '_');
+
+      FILE *f = fopen(file.c_str(), "rb");
+      if (!f)
+      {
+        WARNING("Could not open '" << file << "' for reading");
+        return;
+      }
+      
+      fseek(f, 0, SEEK_END);
+      if (ftell(f) != (int)(params_.size() * sizeof(double)))
+      {
+        WARNING("Configuration mismatch for '" << file << "'");
+        fclose(f);
+        return;
+      }
+      
+      fseek(f, 0, SEEK_SET);
+      if (fread(params_.data(), sizeof(double), params_.size(), f) != params_.size())
+      {
+        WARNING("Could not read '" << file << "'");
+        return;
+      }
+    }
+    else if (config["action"].str() == "save")
+    {
+      std::string file = config["file"].str() + path() + ".dat";
+      std::replace(file.begin(), file.end(), '/', '_');
+
+      FILE *f = fopen(file.c_str(), "wb");
+      if (!f)
+      {
+        WARNING("Could not open '" << file << "' for writing");
+        return;
+      }
+      
+      fwrite(params_.data(), sizeof(double), params_.size(), f);
+      fclose(f);
+    }
+  }  
 }
 
 LinearRepresentation *LinearRepresentation::clone() const

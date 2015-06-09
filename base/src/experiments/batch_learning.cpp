@@ -189,6 +189,7 @@ void BatchLearningExperiment::run()
     if (ofs.is_open())
       ofs.close();
       
-    reset();
+    if (rr < runs_ - 1)
+      reset();
   }
 }

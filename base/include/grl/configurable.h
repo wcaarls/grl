@@ -245,6 +245,12 @@ class YAMLConfigurator
     {
       return references_;
     }
+    
+    void walk(const Configuration &config)
+    {
+      for (size_t ii=0; ii < objects_.size(); ++ii)
+        objects_[ii]->reconfigure(config);
+    }
   
     Configurable *load(std::string file, Configuration *config, const std::string &path="")
     {
