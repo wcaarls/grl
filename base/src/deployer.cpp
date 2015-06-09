@@ -35,11 +35,11 @@ using namespace std;
 int main(int argc, char **argv)
 {
   int seed = 0;
-  bool load = false;
+  bool read = false, write = false;
   std::string file;
 
   int c;
-  while ((c = getopt (argc, argv, "vs:l")) != -1)
+  while ((c = getopt (argc, argv, "vs:rwf:")) != -1)
   {
     switch (c)
     {
@@ -49,8 +49,11 @@ int main(int argc, char **argv)
       case 's':
         seed = atoi(optarg);
         break;
-      case 'l':
-        load = true;
+      case 'r':
+        read = true;
+        break;
+      case 'w':
+        write = true;
         break;
       case 'f':
         file = optarg;
@@ -62,7 +65,7 @@ int main(int argc, char **argv)
 
   if (optind != argc-1)
   {
-    ERROR("Usage: " << endl << "  " << argv[0] << " [-v] [-s seed] [-l] [-f file] <yaml file>");
+    ERROR("Usage: " << endl << "  " << argv[0] << " [-v] [-s seed] [-r] [-w] [-f file] <yaml file>");
     return 1;
   }
   
@@ -100,7 +103,7 @@ int main(int argc, char **argv)
     file.resize(file.rfind('.'));
   }
   
-  if (load)
+  if (read)
   {
     Configuration loadconfig;
     loadconfig.set("action", "load");
@@ -110,10 +113,13 @@ int main(int argc, char **argv)
   
   experiment->run();
   
-  Configuration saveconfig;
-  saveconfig.set("action", "save");
-  saveconfig.set("file", file + "-");
-  configurator.walk(saveconfig);
+  if (write)
+  {
+    Configuration saveconfig;
+    saveconfig.set("action", "save");
+    saveconfig.set("file", file + "-");
+    configurator.walk(saveconfig);
+  }
   
   NOTICE("Exiting");
   
