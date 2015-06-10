@@ -37,7 +37,7 @@ namespace grl
 class TileCodingProjector : public Projector
 {
   public:
-    TYPEINFO("projector/tile_coding")
+    TYPEINFO("projector/tile_coding", "Hashed tile coding projector")
     
   protected:
     int tilings_, memory_;

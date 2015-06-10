@@ -43,7 +43,7 @@ namespace grl
 class ValueVisualization : public FieldVisualization
 {
   public:
-    TYPEINFO("visualization/field/value")
+    TYPEINFO("visualization/field/value", "Visualizes an approximation over a field of states")
 
   protected:
     Projector *projector_;
@@ -70,7 +70,7 @@ class ValueVisualization : public FieldVisualization
 class PolicyValueVisualization : public FieldVisualization
 {
   public:
-    TYPEINFO("visualization/field/policy/value")
+    TYPEINFO("visualization/field/policy/value", "Visualizes the value of a policy over a field of states")
     
   protected:
     Projector *projector_;

@@ -40,7 +40,7 @@ namespace grl
 class GLUTVisualizer : public Visualizer
 {
   public:
-    TYPEINFO("visualizer/glut")
+    TYPEINFO("visualizer/glut", "Visualizer based on the GLUT library")
 
   protected:
     pthread_t thread_;

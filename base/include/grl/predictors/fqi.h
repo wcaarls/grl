@@ -40,7 +40,7 @@ namespace grl
 class FQIPredictor : public BatchPredictor
 {
   public:
-    TYPEINFO("predictor/fqi")
+    TYPEINFO("predictor/fqi", "Fitted Q-iteration predictor")
 
   protected:
     double gamma_;

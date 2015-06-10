@@ -37,7 +37,7 @@ namespace grl
 class BoundedQPolicy : public QPolicy
 {
   public:
-    TYPEINFO("policy/discrete/q/bounded")
+    TYPEINFO("policy/discrete/q/bounded", "Q-value based policy with bounded action deltas")
 
   protected:
     Vector bound_;

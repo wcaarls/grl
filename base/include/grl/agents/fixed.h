@@ -38,7 +38,7 @@ namespace grl
 class FixedAgent : public Agent
 {
   public:
-    TYPEINFO("agent/fixed")
+    TYPEINFO("agent/fixed", "Fixed-policy agent")
 
   protected:
     Policy *policy_;

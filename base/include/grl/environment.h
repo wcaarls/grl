@@ -85,7 +85,7 @@ class Task : public Configurable
 class ModeledEnvironment : public Environment
 {
   public:
-    TYPEINFO("environment/modeled")
+    TYPEINFO("environment/modeled", "Environment that uses a state transition model internally")
 
   public:
     Model *model_;
@@ -120,7 +120,7 @@ class Dynamics : public Configurable
 class DynamicalModel : public Model
 {
   public:
-    TYPEINFO("model/dynamical")
+    TYPEINFO("model/dynamical", "State transition model that integrates equations of motion")
     
   public:
     Dynamics *dynamics_;

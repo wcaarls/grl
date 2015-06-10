@@ -40,7 +40,7 @@ namespace grl
 class ActionPolicy : public Policy
 {
   public:
-    TYPEINFO("policy/action")
+    TYPEINFO("policy/action", "Policy based on a direct action representation")
 
   protected:
     Projector *projector_;
@@ -65,12 +65,12 @@ class ActionPolicy : public Policy
 class ActionProbabilityPolicy : public Policy
 {
   public:
-    TYPEINFO("policy/action_probability")
+    TYPEINFO("policy/action_probability", "Policy based on an action-probability representation")
 
   protected:
     Discretizer *discretizer_;
     Projector *projector_;
-    ParameterizedRepresentation *representation_;
+    Representation *representation_;
     
     std::vector<Vector> variants_;
 

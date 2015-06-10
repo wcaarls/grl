@@ -38,7 +38,7 @@ namespace grl
 class CompassWalkerVisualization : public Visualization
 {
   public:
-    TYPEINFO("visualization/compass_walker")
+    TYPEINFO("visualization/compass_walker", "Compass walker visualization")
 
   protected:
     State *state_;

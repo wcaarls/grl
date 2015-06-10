@@ -38,7 +38,7 @@ namespace grl
 class State : public Configurable
 {
   public:
-    TYPEINFO("state");
+    TYPEINFO("state", "Encapsulates a system state or observation");
     
   protected:
     mutable Mutex mutex_;

@@ -39,7 +39,7 @@ namespace grl
 class OnlineLearningExperiment : public Experiment
 {
   public:
-    TYPEINFO("experiment/online_learning")
+    TYPEINFO("experiment/online_learning", "Interactive learning experiment")
 
   protected:
     Agent *agent_, *test_agent_;

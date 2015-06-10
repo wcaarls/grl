@@ -42,7 +42,7 @@ namespace grl
 class CartPoleDynamics : public Dynamics
 {
   public:
-    TYPEINFO("dynamics/cart_pole")
+    TYPEINFO("dynamics/cart_pole", "Cart-pole dynamics from Barto et al.")
 
   public:
     double g_, mass_cart_, mass_pole_, total_mass_, length_,pole_mass_length_, force_mag_, tau_;
@@ -62,7 +62,7 @@ class CartPoleDynamics : public Dynamics
 class CartPoleSwingupTask : public Task
 {
   public:
-    TYPEINFO("task/cart_pole/swingup")
+    TYPEINFO("task/cart_pole/swingup", "Cart-pole swing-up task")
   
   public:
     double T_;
@@ -94,7 +94,7 @@ class CartPoleSwingupTask : public Task
 class CartPoleBalancingTask : public Task
 {
   public:
-    TYPEINFO("task/cart_pole/balancing")
+    TYPEINFO("task/cart_pole/balancing", "Cart-pole balancing task")
   
   public:
     double T_;

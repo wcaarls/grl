@@ -45,7 +45,7 @@ class CompassWalker
 class CompassWalkerModel : public Model
 {
   public:
-    TYPEINFO("model/compass_walker")
+    TYPEINFO("model/compass_walker", "Simplest walker model from Garcia et al.")
     
   protected:
     double tau_;
@@ -69,7 +69,7 @@ class CompassWalkerModel : public Model
 class CompassWalkerWalkTask : public Task
 {
   public:
-    TYPEINFO("task/compass_walker/walk")
+    TYPEINFO("task/compass_walker/walk", "Compass walker walking task")
   
   protected:
     double T_;

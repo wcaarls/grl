@@ -38,7 +38,7 @@ namespace grl
 class PendulumVisualization : public Visualization
 {
   public:
-    TYPEINFO("visualization/pendulum")
+    TYPEINFO("visualization/pendulum", "Pendulum visualization")
 
   protected:
     State *state_;

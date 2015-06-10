@@ -42,7 +42,7 @@ namespace grl
 class RandomSampleVisualization : public Visualization
 {
   public:
-    TYPEINFO("visualization/sample/random")
+    TYPEINFO("visualization/sample/random", "Visualizes an approximation over randomly sampled states")
 
   protected:
     Projector *projector_;

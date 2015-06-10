@@ -37,7 +37,7 @@ namespace grl
 class LinearRepresentation : public ParameterizedRepresentation
 {
   public:
-    TYPEINFO("representation/parameterized/linear")
+    TYPEINFO("representation/parameterized/linear", "Linear-in-parameters representation")
     
   protected:
     Vector init_min_, init_max_, output_min_, output_max_, params_;

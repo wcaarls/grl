@@ -38,7 +38,7 @@ namespace grl
 class UniformDiscretizer : public Discretizer
 {
   public:
-    TYPEINFO("discretizer/uniform")
+    TYPEINFO("discretizer/uniform", "Uniform discretizer")
 
   protected:
     Vector min_, max_, steps_;

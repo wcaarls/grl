@@ -11,22 +11,29 @@ stream = file(binpath + '/requests.yaml', 'r')
 requests = yaml.load(stream, OrderedDictYAMLLoader)
 
 if len(sys.argv) > 1:
-  matches = findrequests(requests, sys.argv[1])
-  if len(matches) > 1:
-    for m in matches:
-      print m
-  elif len(matches) == 0:
-    print sys.argv[1] + " not found"
-  else:
-    req = requests[matches[0]]
-    if req:
-      pjust = 0
-      tjust = 0
-      for p in req:
+  str = sys.argv[1]
+else:
+  str = ""
+
+matches = findrequests(requests, str)
+if len(matches) > 1:
+  mjust = 0
+  for m in matches:
+    mjust = max(mjust, len(m))
+  for m in matches:
+    print m.ljust(mjust+2) + requests[m]["description"]
+elif len(matches) == 0:
+  print sys.argv[1] + " not found"
+else:
+  req = requests[matches[0]]
+  if req:
+    print req["description"]
+    pjust = 0
+    tjust = 0
+    for p in req:
+      if p != "description":
         pjust = max(pjust, len(p))
         tjust = max(tjust, len(req[p]["type"]))
-      for p in req:
+    for p in req:
+      if p != "description":
         print p.ljust(pjust+2) + req[p]["type"].ljust(tjust+2) + req[p]["description"]
-else:
-  for r in requests:
-    print r

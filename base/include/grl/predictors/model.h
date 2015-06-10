@@ -39,7 +39,7 @@ namespace grl
 class ModelPredictor : public Predictor
 {
   public:
-    TYPEINFO("predictor/model")
+    TYPEINFO("predictor/model", "Observation model predictor")
 
   protected:
     Projector *projector_;

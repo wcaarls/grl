@@ -40,7 +40,7 @@ namespace grl
 class LLRRepresentation : public Representation
 {
   public:
-    TYPEINFO("representation/llr")
+    TYPEINFO("representation/llr", "Performs locally linear regression through samples")
     
     typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> Matrix;
     typedef Eigen::Matrix<double, 1, Eigen::Dynamic>              RowVector;

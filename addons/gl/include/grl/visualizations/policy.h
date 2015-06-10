@@ -41,7 +41,7 @@ namespace grl
 class PolicyVisualization : public FieldVisualization
 {
   public:
-    TYPEINFO("visualization/field/policy/action")
+    TYPEINFO("visualization/field/policy/action", "Visualizes a policy over a field of states")
 
   protected:
     Policy *policy_;

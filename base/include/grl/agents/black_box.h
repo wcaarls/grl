@@ -39,7 +39,7 @@ namespace grl
 class BlackBoxAgent : public Agent
 {
   public:
-    TYPEINFO("agent/black_box")
+    TYPEINFO("agent/black_box", "Agent that learns from the cumulative reward of complete rollouts")
 
   protected:
     Policy *policy_;

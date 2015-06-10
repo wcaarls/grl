@@ -39,7 +39,7 @@ namespace grl
 class CMAOptimizer : public Optimizer
 {
   public:
-    TYPEINFO("optimizer/cma")
+    TYPEINFO("optimizer/cma", "Coverance matrix adaptation black-box optimizer")
  
   protected:
     ParameterizedPolicy *prototype_, *policy_;

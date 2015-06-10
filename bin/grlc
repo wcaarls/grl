@@ -211,7 +211,7 @@ class GrlObject:
     if type in requests:
       if requests[type]:
         for key in requests[type]:
-          if requests[type][key]["mutability"] == "provided":
+          if key != "description" and requests[type][key]["mutability"] == "provided":
             params[path + "/" + key] = requests[type][key]["type"]
     
   def destroy(self):
@@ -238,7 +238,7 @@ class GrlObject:
     if type in requests:
       if requests[type]:
         for key in requests[type]:
-          if requests[type][key]["mutability"] != "provided":
+          if key != "description" and requests[type][key]["mutability"] != "provided":
             row = row + 1
             if isobject(requests[type][key]["type"]):
               obj = GrlSubObject(self, key, requests[type][key], row)

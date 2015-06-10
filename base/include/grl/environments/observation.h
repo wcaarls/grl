@@ -47,7 +47,7 @@ class ObservationModel : public Configurable
 class FixedObservationModel : public ObservationModel
 {
   public:
-    TYPEINFO("observation_model/fixed")
+    TYPEINFO("observation_model/fixed", "Observation model based on known state transition model")
     
   protected:
     Model *model_;
@@ -70,7 +70,7 @@ class FixedObservationModel : public ObservationModel
 class ApproximatedObservationModel : public ObservationModel
 {
   public:
-    TYPEINFO("observation_model/approximated")
+    TYPEINFO("observation_model/approximated", "Observation model based on observed transitions")
     
   protected:
     Projector *projector_;
@@ -96,7 +96,7 @@ class ApproximatedObservationModel : public ObservationModel
 class FixedRewardObservationModel : public ApproximatedObservationModel
 {
   public:
-    TYPEINFO("observation_model/fixed_reward")
+    TYPEINFO("observation_model/fixed_reward", "Observation model based on observed transitions but known task")
     
   protected:
     Task *task_;

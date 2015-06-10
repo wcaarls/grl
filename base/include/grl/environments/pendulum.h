@@ -37,7 +37,7 @@ namespace grl
 class PendulumDynamics : public Dynamics
 {
   public:
-    TYPEINFO("dynamics/pendulum")
+    TYPEINFO("dynamics/pendulum", "Pendulum dynamics based on the DCSC MOPS")
 
   public:
     double J_, m_, g_, l_, b_, K_, R_;
@@ -57,7 +57,7 @@ class PendulumDynamics : public Dynamics
 class PendulumSwingupTask : public Task
 {
   public:
-    TYPEINFO("task/pendulum/swingup")
+    TYPEINFO("task/pendulum/swingup", "Pendulum swing-up task")
   
   public:
     double T_, randomization_;

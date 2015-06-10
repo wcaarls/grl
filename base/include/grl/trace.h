@@ -192,7 +192,7 @@ class EnumeratedTrace : public Trace
 class ReplacingEnumeratedTrace : public EnumeratedTrace
 {
   public:
-    TYPEINFO("trace/enumerated/replacing")
+    TYPEINFO("trace/enumerated/replacing", "Replacing eligibility trace using a queue of projections")
     
   protected:
     double total_decay_;
@@ -234,7 +234,7 @@ class ReplacingEnumeratedTrace : public EnumeratedTrace
 class AccumulatingEnumeratedTrace : public EnumeratedTrace
 {
   public:
-    TYPEINFO("trace/enumerated/accumulating")
+    TYPEINFO("trace/enumerated/accumulating", "Accumulating eligibility trace using a queue of projections")
 
   protected:
     double total_decay_;

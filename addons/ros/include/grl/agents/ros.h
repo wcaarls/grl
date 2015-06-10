@@ -44,7 +44,7 @@ namespace grl
 class ROSAgent : public Agent
 {
   public:
-    TYPEINFO("agent/ros")
+    TYPEINFO("agent/ros", "External agent interfaced via ROS")
 
   protected:
     itc::Queue<Vector> action_queue_;

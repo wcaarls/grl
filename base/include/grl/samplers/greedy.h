@@ -38,7 +38,7 @@ namespace grl
 class GreedySampler : public Sampler
 {
   public:
-    TYPEINFO("sampler/greedy")
+    TYPEINFO("sampler/greedy", "Maximum search")
 
   public:
     // From Configurable
@@ -56,7 +56,7 @@ class GreedySampler : public Sampler
 class EpsilonGreedySampler : public GreedySampler
 {
   public:
-    TYPEINFO("sampler/epsilon_greedy")
+    TYPEINFO("sampler/epsilon_greedy", "Maximum search with a uniform random chance of non-maximums")
 
   protected:
     double epsilon_;

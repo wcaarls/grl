@@ -40,7 +40,7 @@ namespace grl
 class BatchLearningExperiment : public Experiment
 {
   public:
-    TYPEINFO("experiment/batch_learning")
+    TYPEINFO("experiment/batch_learning", "Batch learning experiment using randomly sampled experience")
 
   protected:
     Model *model_;

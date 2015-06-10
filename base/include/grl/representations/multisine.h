@@ -37,7 +37,7 @@ namespace grl
 class MultisineMapping : public Mapping
 {
   public:
-    TYPEINFO("mapping/multisine")
+    TYPEINFO("mapping/multisine", "Sum of sines mapping")
     
   protected:
     size_t outputs_, sines_, inputs_;

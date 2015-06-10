@@ -121,12 +121,13 @@ def select(param, spec, path=[]):
       # Ask to choose values for the new object's parameters
       if requests[type]:
         for key in requests[type]:
-          newpath = path[:]
-          newpath.append(key)
-          if requests[type][key]["mutability"] == "provided":
-            params['/'.join(newpath)] = requests[type][key]["type"]
-          else:
-            select(key, requests[type][key], newpath)
+          if key != "description":
+            newpath = path[:]
+            newpath.append(key)
+            if requests[type][key]["mutability"] == "provided":
+              params['/'.join(newpath)] = requests[type][key]["type"]
+            else:
+              select(key, requests[type][key], newpath)
     else:
       # Chose not to set a value
       print '\r' + ANSI_CLEARLINE,

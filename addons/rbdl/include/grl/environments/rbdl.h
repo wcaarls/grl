@@ -39,7 +39,7 @@ namespace grl
 class RBDLDynamics : public Dynamics
 {
   public:
-    TYPEINFO("dynamics/rbdl")
+    TYPEINFO("dynamics/rbdl", "RBDL rigid body dynamics")
 
   public:
     std::string file_;
@@ -60,7 +60,7 @@ class RBDLDynamics : public Dynamics
 class LuaTask : public Task
 {
   public:
-    TYPEINFO("task/lua")
+    TYPEINFO("task/lua", "User-provided task specification in LUA")
     
   public:
     std::string file_, options_;

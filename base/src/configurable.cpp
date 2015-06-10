@@ -56,6 +56,8 @@ Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *conf
     if (!path.empty())
       obj->setPath(path.substr(0, path.size()-1));
     objects_.push_back(obj);
+    
+    INFO(obj->path() << ": " << obj->d_type() << " (" << obj << ")");
   }
     
   for (YAML::const_iterator it = node.begin(); it != node.end(); ++it)
@@ -77,8 +79,6 @@ Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *conf
         return NULL;
       }
       
-      CRAWL(path << key << ": " << subobj << " (type " << subobj->d_type() << ") ");
-              
       objconfig.set(key, subobj);
       references_.set(path + key, subobj);
     }

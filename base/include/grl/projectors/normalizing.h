@@ -37,7 +37,7 @@ namespace grl
 class NormalizingProjector : public Projector
 {
   public:
-    TYPEINFO("projector/normalizing")
+    TYPEINFO("projector/normalizing", "Projects the input onto a normalized vector")
     
   protected:
     Vector min_, max_, scaling_;

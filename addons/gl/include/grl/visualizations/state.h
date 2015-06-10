@@ -41,7 +41,7 @@ namespace grl
 class StateVisualization : public Visualization
 {
   public:
-    TYPEINFO("visualization/state")
+    TYPEINFO("visualization/state", "Visualizes a state projected on two dimensions")
 
   protected:
     State *state_;

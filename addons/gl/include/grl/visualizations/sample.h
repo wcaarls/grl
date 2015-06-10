@@ -41,7 +41,7 @@ namespace grl
 class SampleVisualization : public Visualization
 {
   public:
-    TYPEINFO("visualization/sample")
+    TYPEINFO("visualization/sample", "Visualizes a sample-based approximation")
 
   protected:
     SampleProjector *projector_;

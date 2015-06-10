@@ -102,7 +102,7 @@ class ERTree
 class ERTreeProjector : public SampleProjector
 {
   public:
-    TYPEINFO("projector/sample/ertree")
+    TYPEINFO("projector/sample/ertree", "Projects onto samples found through the Extra-trees algorithm by Geurts et al.")
     
   public:
     StorePtr store_;

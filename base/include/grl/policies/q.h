@@ -41,7 +41,7 @@ namespace grl
 class QPolicy : public DiscretePolicy
 {
   public:
-    TYPEINFO("policy/discrete/q")
+    TYPEINFO("policy/discrete/q", "Q-value based policy")
 
   protected:
     Discretizer *discretizer_;

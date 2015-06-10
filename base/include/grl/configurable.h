@@ -140,9 +140,10 @@ struct CRP
 /// Set of requested parameters.
 typedef std::vector<CRP> ConfigurationRequest;
 
-#define TYPEINFO(t)\
+#define TYPEINFO(t, d)\
     static std::string s_type() { return t; }\
-    virtual std::string d_type() const { return t; }
+    virtual std::string d_type() const { return t; }\
+    virtual std::string description() const { return d; }
 
 extern unsigned char grl_log_verbosity__;
 extern const char *grl_log_levels__[];
@@ -191,7 +192,7 @@ class Configurable
   public:
     virtual ~Configurable() { }
     
-    TYPEINFO("")
+    TYPEINFO("", "Base object")
 
     virtual void request(ConfigurationRequest * /*config*/) { }
     virtual void request(const std::string &role, ConfigurationRequest *config) { request(config); }

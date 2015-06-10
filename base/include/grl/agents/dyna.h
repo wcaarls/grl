@@ -40,7 +40,7 @@ namespace grl
 class DynaAgent : public Agent
 {
   public:
-    TYPEINFO("agent/dyna")
+    TYPEINFO("agent/dyna", "Agent that learns from both observed and predicted state transitions")
 
   protected:
     Policy *policy_;

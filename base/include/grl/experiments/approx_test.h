@@ -39,7 +39,7 @@ namespace grl
 class ApproxTestExperiment : public Experiment
 {
   public:
-    TYPEINFO("experiment/approx_test")
+    TYPEINFO("experiment/approx_test", "Approximator test experiment (supervised learning)")
 
   protected:
     Projector *projector_;

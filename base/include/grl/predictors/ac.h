@@ -41,7 +41,7 @@ namespace grl
 class ActionACPredictor : public Predictor
 {
   public:
-    TYPEINFO("predictor/ac/action")
+    TYPEINFO("predictor/ac/action", "Actor-critic predictor for direct action policies")
 
   protected:
     Projector *critic_projector_;
@@ -76,7 +76,7 @@ class ActionACPredictor : public Predictor
 class ProbabilityACPredictor : public Predictor
 {
   public:
-    TYPEINFO("predictor/ac/probability")
+    TYPEINFO("predictor/ac/probability", "Actor-critic predictor for action-probability policies")
     
   protected:
     Projector *critic_projector_;

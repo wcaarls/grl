@@ -44,7 +44,7 @@ namespace grl
 class GGQPredictor : public Predictor
 {
   public:
-    TYPEINFO("predictor/ggq")
+    TYPEINFO("predictor/ggq", "Greedy-GQ off-policy value function predictor")
 
   protected:
     double alpha_, eta_, gamma_;

@@ -37,7 +37,7 @@ namespace grl
 class FourierProjector : public Projector
 {
   public:
-    TYPEINFO("projector/fourier")
+    TYPEINFO("projector/fourier", "Fourier basis function projector")
     
   protected:
     Vector min_, max_, scaling_;

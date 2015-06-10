@@ -39,7 +39,7 @@ namespace grl
 class NMPCPolicy : public Policy
 {
   public:
-    TYPEINFO("policy/nmpc")
+    TYPEINFO("policy/nmpc", "Nonlinear model predictive control policy using the MUSCOD library")
 
   protected:
     MUSCOD *muscod_;

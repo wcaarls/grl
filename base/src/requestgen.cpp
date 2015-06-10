@@ -109,6 +109,8 @@ int main(int argc, char **argv)
     ConfigurationRequest request;
     obj->request(templ, &request);
     
+    type["description"] = obj->description();
+    
     for (ConfigurationRequest::iterator jj=request.begin(); jj != request.end(); ++jj)
     {
       YAML::Node spec;

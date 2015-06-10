@@ -1,4 +1,5 @@
 agent/black_box:
+  description: Agent that learns from the cumulative reward of complete rollouts
   episodes:
     type: int
     description: Number of episodes to evaluate policy
@@ -14,6 +15,7 @@ agent/black_box:
     default: 0
     optional: 0
 agent/dyna:
+  description: Agent that learns from both observed and predicted state transitions
   planning_steps:
     type: int
     description: Number of planning steps per control step
@@ -65,6 +67,7 @@ agent/dyna:
     description: Current observed state of planning
     mutability: provided
 agent/fixed:
+  description: Fixed-policy agent
   policy:
     type: policy
     description: Control policy
@@ -72,6 +75,7 @@ agent/fixed:
     default: 0
     optional: 0
 agent/td:
+  description: Agent that learns from observed state transitions
   policy:
     type: policy
     description: Control policy
@@ -85,6 +89,7 @@ agent/td:
     default: 0
     optional: 0
 discretizer/uniform:
+  description: Uniform discretizer
   min:
     type: vector
     description: Lower limit
@@ -103,9 +108,12 @@ discretizer/uniform:
     mutability: configuration
     default: "[  ]"
     optional: 1
-dynamics/cart_pole: ~
-dynamics/pendulum: ~
+dynamics/cart_pole:
+  description: Cart-pole dynamics from Barto et al.
+dynamics/pendulum:
+  description: Pendulum dynamics based on the DCSC MOPS
 dynamics/rbdl:
+  description: RBDL rigid body dynamics
   file:
     type: string
     description: RBDL Lua model file
@@ -113,6 +121,7 @@ dynamics/rbdl:
     default: ""
     optional: 1
 environment/modeled:
+  description: Environment that uses a state transition model internally
   model:
     type: model
     description: Environment model
@@ -130,6 +139,7 @@ environment/modeled:
     description: Current state of the model
     mutability: provided
 environment/ode:
+  description: Open Dynamics Engine simulation environment
   xml:
     type: string
     description: XML configuration filename
@@ -169,6 +179,7 @@ environment/ode:
     description: Upper limit on immediate reward
     mutability: provided
 experiment/approx_test:
+  description: Approximator test experiment (supervised learning)
   train_samples:
     type: int
     description: Number of training samples
@@ -222,6 +233,7 @@ experiment/approx_test:
     default: 0
     optional: 0
 experiment/batch_learning:
+  description: Batch learning experiment using randomly sampled experience
   runs:
     type: int
     description: Number of separate learning runs to perform
@@ -313,6 +325,7 @@ experiment/batch_learning:
     description: Current observed state of the environment
     mutability: provided
 experiment/online_learning:
+  description: Interactive learning experiment
   runs:
     type: int
     description: Number of separate learning runs to perform
@@ -382,6 +395,7 @@ experiment/online_learning:
     description: Current observed state of the environment
     mutability: provided
 mapping/multisine:
+  description: Sum of sines mapping
   inputs:
     type: int
     description: Number of input dimensions
@@ -407,6 +421,7 @@ mapping/multisine:
     min: 0
     max: 2147483647
 model/compass_walker:
+  description: Simplest walker model from Garcia et al.
   control_step:
     type: double
     description: Control step time
@@ -424,6 +439,7 @@ model/compass_walker:
     min: 1
     max: 2147483647
 model/dynamical:
+  description: State transition model that integrates equations of motion
   control_step:
     type: double.control_step
     description: Control step time
@@ -447,6 +463,7 @@ model/dynamical:
     default: 0
     optional: 0
 observation_model/approximated:
+  description: Observation model based on observed transitions
   differential:
     type: int.differential
     description: Predict state deltas
@@ -486,6 +503,7 @@ observation_model/approximated:
     default: 0
     optional: 0
 observation_model/fixed:
+  description: Observation model based on known state transition model
   model:
     type: model
     description: Environment model
@@ -499,6 +517,7 @@ observation_model/fixed:
     default: 0
     optional: 0
 observation_model/fixed_reward:
+  description: Observation model based on observed transitions but known task
   differential:
     type: int.differential
     description: Predict state deltas
@@ -544,6 +563,7 @@ observation_model/fixed_reward:
     default: 0
     optional: 0
 optimizer/cma:
+  description: Coverance matrix adaptation black-box optimizer
   population:
     type: int
     description: Population size
@@ -559,6 +579,7 @@ optimizer/cma:
     default: 0
     optional: 0
 policy/action:
+  description: Policy based on a direct action representation
   sigma:
     type: vector
     description: Standard deviation of exploration distribution
@@ -590,6 +611,7 @@ policy/action:
     default: 0
     optional: 0
 policy/action_probability:
+  description: Policy based on an action-probability representation
   discretizer:
     type: discretizer
     description: Action discretizer
@@ -603,12 +625,13 @@ policy/action_probability:
     default: 0
     optional: 0
   representation:
-    type: representation/parameterized
+    type: representation
     description: Action-probability representation
     mutability: configuration
     default: 0
     optional: 0
 policy/discrete/q:
+  description: Q-value based policy
   discretizer:
     type: discretizer.action
     description: Action discretizer
@@ -634,6 +657,7 @@ policy/discrete/q:
     default: 0
     optional: 0
 policy/discrete/q/bounded:
+  description: Q-value based policy with bounded action deltas
   bound:
     type: vector
     description: Maximum action delta
@@ -665,6 +689,7 @@ policy/discrete/q/bounded:
     default: 0
     optional: 0
 policy/discrete/random:
+  description: Policy that chooses discrete random actions
   discretizer:
     type: discretizer
     description: Action discretizer
@@ -672,6 +697,7 @@ policy/discrete/random:
     default: 0
     optional: 0
 policy/nmpc:
+  description: Nonlinear model predictive control policy using the MUSCOD library
   model_path:
     type: string
     description: Path to MUSCOD model library
@@ -701,6 +727,7 @@ policy/nmpc:
     min: 0.001
     max: 1.797693134862316e+308
 policy/parameterized/action:
+  description: Parameterized policy based on a direct action representation
   sigma:
     type: vector
     description: Standard deviation of exploration distribution
@@ -732,6 +759,7 @@ policy/parameterized/action:
     default: 0
     optional: 0
 policy/parameterized/pid:
+  description: Parameterized policy based on a proportional-integral-derivative controller
   setpoint:
     type: vector
     description: Setpoint
@@ -771,6 +799,7 @@ policy/parameterized/pid:
     default: "[  ]"
     optional: 1
 policy/random:
+  description: Policy that chooses continuous random actions
   output_min:
     type: vector.action_min
     description: Lower action limit
@@ -784,6 +813,7 @@ policy/random:
     default: "[  ]"
     optional: 1
 predictor/ac/action:
+  description: Actor-critic predictor for direct action policies
   alpha:
     type: double
     description: Critic learning rate
@@ -853,6 +883,7 @@ predictor/ac/action:
     default: 0
     optional: 0
 predictor/ac/probability:
+  description: Actor-critic predictor for action-probability policies
   alpha:
     type: double
     description: Critic learning rate
@@ -928,6 +959,7 @@ predictor/ac/probability:
     default: 0
     optional: 0
 predictor/expected_sarsa:
+  description: Expected SARSA low-variance on-policy value function predictor
   alpha:
     type: double
     description: Learning rate
@@ -983,6 +1015,7 @@ predictor/expected_sarsa:
     default: 0
     optional: 0
 predictor/fqi:
+  description: Fitted Q-iteration predictor
   gamma:
     type: double
     description: Discount rate
@@ -1026,6 +1059,7 @@ predictor/fqi:
     default: 0
     optional: 0
 predictor/ggq:
+  description: Greedy-GQ off-policy value function predictor
   alpha:
     type: double
     description: Learning rate
@@ -1069,6 +1103,7 @@ predictor/ggq:
     default: 0
     optional: 0
 predictor/model:
+  description: Observation model predictor
   differential:
     type: int.differential
     description: Predict state deltas
@@ -1096,6 +1131,7 @@ predictor/model:
     default: 0
     optional: 0
 predictor/sarsa:
+  description: SARSA on-policy value function predictor
   alpha:
     type: double
     description: Learning rate
@@ -1139,6 +1175,7 @@ predictor/sarsa:
     default: 0
     optional: 0
 projector/fourier:
+  description: Fourier basis function projector
   input_min:
     type: vector
     description: Lower input dimension limit (for scaling)
@@ -1172,8 +1209,10 @@ projector/fourier:
     type: int.memory
     description: Feature vector size
     mutability: provided
-projector/identity: ~
+projector/identity:
+  description: Simply returns the input vector
 projector/normalizing:
+  description: Projects the input onto a normalized vector
   input_min:
     type: vector
     description: Lower input dimension limit (for scaling)
@@ -1187,6 +1226,7 @@ projector/normalizing:
     default: "[  ]"
     optional: 1
 projector/sample/ann:
+  description: Projects onto samples found through approximate nearest-neighbor search
   samples:
     type: int
     description: Maximum number of samples to store
@@ -1242,6 +1282,7 @@ projector/sample/ann:
     min: 1
     max: 16
 projector/sample/ertree:
+  description: Projects onto samples found through the Extra-trees algorithm by Geurts et al.
   samples:
     type: int
     description: Maximum number of samples to store
@@ -1291,6 +1332,7 @@ projector/sample/ertree:
     min: 1
     max: 16
 projector/tile_coding:
+  description: Hashed tile coding projector
   tilings:
     type: int
     description: Number of tilings
@@ -1320,6 +1362,7 @@ projector/tile_coding:
     default: "[  ]"
     optional: 1
 representation/llr:
+  description: Performs locally linear regression through samples
   ridge:
     type: double
     description: Ridge regression (Tikhonov) factor
@@ -1375,6 +1418,7 @@ representation/llr:
     default: 0
     optional: 0
 representation/parameterized/ann:
+  description: Parameterized artificial neural network representation
   inputs:
     type: int
     description: Number of input dimensions
@@ -1428,6 +1472,7 @@ representation/parameterized/ann:
     min: 0
     max: 1
 representation/parameterized/linear:
+  description: Linear-in-parameters representation
   init_min:
     type: vector
     description: Lower initial value limit
@@ -1469,6 +1514,7 @@ representation/parameterized/linear:
     default: "[  ]"
     optional: 1
 sampler/epsilon_greedy:
+  description: Maximum search with a uniform random chance of non-maximums
   epsilon:
     type: double
     description: Exploration rate
@@ -1477,8 +1523,10 @@ sampler/epsilon_greedy:
     optional: 1
     min: 0
     max: 1
-sampler/greedy: ~
+sampler/greedy:
+  description: Maximum search
 task/cart_pole/balancing:
+  description: Cart-pole balancing task
   observation_dims:
     type: int.observation_dims
     description: Number of observation dimensions
@@ -1520,6 +1568,7 @@ task/cart_pole/balancing:
     min: 0
     max: 1.797693134862316e+308
 task/cart_pole/swingup:
+  description: Cart-pole swing-up task
   observation_dims:
     type: int.observation_dims
     description: Number of observation dimensions
@@ -1585,6 +1634,7 @@ task/cart_pole/swingup:
     min: 0
     max: 1
 task/compass_walker/walk:
+  description: Compass walker walking task
   observation_dims:
     type: int.observation_dims
     description: Number of observation dimensions
@@ -1626,6 +1676,7 @@ task/compass_walker/walk:
     min: 0
     max: 1.797693134862316e+308
 task/lua:
+  description: User-provided task specification in LUA
   observation_dims:
     type: int.observation_dims
     description: Number of observation dimensions
@@ -1671,6 +1722,7 @@ task/lua:
     default: ""
     optional: 1
 task/pendulum/swingup:
+  description: Pendulum swing-up task
   observation_dims:
     type: int.observation_dims
     description: Number of observation dimensions
@@ -1719,25 +1771,20 @@ task/pendulum/swingup:
     optional: 1
     min: 0
     max: 1
-trace/enumerated/accumulating: ~
-trace/enumerated/replacing: ~
+trace/enumerated/accumulating:
+  description: Accumulating eligibility trace using a queue of projections
+trace/enumerated/replacing:
+  description: Replacing eligibility trace using a queue of projections
 visualization/cart_pole:
+  description: Cart-pole visualization
   state:
     type: state
     description: Cart-pole state to visualize
     mutability: configuration
     default: 0
     optional: 0
-  variant:
-    type: string
-    description: Problem variant (state element order and zero point)
-    mutability: configuration
-    default: mprl
-    optional: 1
-    options:
-      - mprl
-      - rbdl
 visualization/compass_walker:
+  description: Compass walker visualization
   state:
     type: state
     description: Compass walker state to visualize
@@ -1745,6 +1792,7 @@ visualization/compass_walker:
     default: 0
     optional: 0
 visualization/field/policy/action:
+  description: Visualizes a policy over a field of states
   field_dims:
     type: vector
     description: Dimensions to visualize
@@ -1796,6 +1844,7 @@ visualization/field/policy/action:
     min: 0
     max: 2147483647
 visualization/field/policy/value:
+  description: Visualizes the value of a policy over a field of states
   field_dims:
     type: vector
     description: Dimensions to visualize
@@ -1851,6 +1900,7 @@ visualization/field/policy/value:
     default: 0
     optional: 0
 visualization/field/value:
+  description: Visualizes an approximation over a field of states
   field_dims:
     type: vector
     description: Dimensions to visualize
@@ -1908,6 +1958,7 @@ visualization/field/value:
     default: 0
     optional: 0
 visualization/pendulum:
+  description: Pendulum visualization
   state:
     type: state
     description: Pendulum state to visualize
@@ -1915,6 +1966,7 @@ visualization/pendulum:
     default: 0
     optional: 0
 visualization/sample:
+  description: Visualizes a sample-based approximation
   field_dims:
     type: vector
     description: Dimensions to visualize
@@ -1956,6 +2008,7 @@ visualization/sample:
     default: 0
     optional: 0
 visualization/sample/random:
+  description: Visualizes an approximation over randomly sampled states
   field_dims:
     type: vector
     description: Dimensions to visualize
@@ -2003,6 +2056,7 @@ visualization/sample/random:
     default: 0
     optional: 0
 visualization/state:
+  description: Visualizes a state projected on two dimensions
   field_dims:
     type: vector
     description: Dimensions to visualize
@@ -2027,8 +2081,10 @@ visualization/state:
     mutability: configuration
     default: 0
     optional: 0
-visualizer/glut: ~
+visualizer/glut:
+  description: Visualizer based on the GLUT library
 projector/fourier.pair:
+  description: Fourier basis function projector
   input_min:
     type: vector.observation_min+vector.action_min
     description: Lower input dimension limit (for scaling)
@@ -2062,8 +2118,10 @@ projector/fourier.pair:
     type: int.memory
     description: Feature vector size
     mutability: provided
-projector/identity.pair: ~
+projector/identity.pair:
+  description: Simply returns the input vector
 projector/normalizing.pair:
+  description: Projects the input onto a normalized vector
   input_min:
     type: vector.observation_min+vector.action_min
     description: Lower input dimension limit (for scaling)
@@ -2077,6 +2135,7 @@ projector/normalizing.pair:
     default: "[  ]"
     optional: 1
 projector/sample/ann.pair:
+  description: Projects onto samples found through approximate nearest-neighbor search
   samples:
     type: int
     description: Maximum number of samples to store
@@ -2132,6 +2191,7 @@ projector/sample/ann.pair:
     min: 1
     max: 16
 projector/sample/ertree.pair:
+  description: Projects onto samples found through the Extra-trees algorithm by Geurts et al.
   samples:
     type: int
     description: Maximum number of samples to store
@@ -2181,6 +2241,7 @@ projector/sample/ertree.pair:
     min: 1
     max: 16
 projector/tile_coding.pair:
+  description: Hashed tile coding projector
   tilings:
     type: int
     description: Number of tilings
@@ -2210,6 +2271,7 @@ projector/tile_coding.pair:
     default: "[  ]"
     optional: 1
 representation/llr.transition:
+  description: Performs locally linear regression through samples
   ridge:
     type: double
     description: Ridge regression (Tikhonov) factor
@@ -2265,6 +2327,7 @@ representation/llr.transition:
     default: 0
     optional: 0
 representation/parameterized/ann.transition:
+  description: Parameterized artificial neural network representation
   inputs:
     type: int.observation_dims+int.action_dims
     description: Number of input dimensions
@@ -2318,6 +2381,7 @@ representation/parameterized/ann.transition:
     min: 0
     max: 1
 representation/parameterized/linear.transition:
+  description: Linear-in-parameters representation
   init_min:
     type: vector
     description: Lower initial value limit
@@ -2359,6 +2423,7 @@ representation/parameterized/linear.transition:
     default: "[  ]"
     optional: 1
 projector/fourier.observation:
+  description: Fourier basis function projector
   input_min:
     type: vector.observation_min
     description: Lower input dimension limit (for scaling)
@@ -2392,8 +2457,10 @@ projector/fourier.observation:
     type: int.memory
     description: Feature vector size
     mutability: provided
-projector/identity.observation: ~
+projector/identity.observation:
+  description: Simply returns the input vector
 projector/normalizing.observation:
+  description: Projects the input onto a normalized vector
   input_min:
     type: vector.observation_min
     description: Lower input dimension limit (for scaling)
@@ -2407,6 +2474,7 @@ projector/normalizing.observation:
     default: "[  ]"
     optional: 1
 projector/sample/ann.observation:
+  description: Projects onto samples found through approximate nearest-neighbor search
   samples:
     type: int
     description: Maximum number of samples to store
@@ -2462,6 +2530,7 @@ projector/sample/ann.observation:
     min: 1
     max: 16
 projector/sample/ertree.observation:
+  description: Projects onto samples found through the Extra-trees algorithm by Geurts et al.
   samples:
     type: int
     description: Maximum number of samples to store
@@ -2511,6 +2580,7 @@ projector/sample/ertree.observation:
     min: 1
     max: 16
 projector/tile_coding.observation:
+  description: Hashed tile coding projector
   tilings:
     type: int
     description: Number of tilings
@@ -2540,6 +2610,7 @@ projector/tile_coding.observation:
     default: "[  ]"
     optional: 1
 representation/llr.action:
+  description: Performs locally linear regression through samples
   ridge:
     type: double
     description: Ridge regression (Tikhonov) factor
@@ -2595,6 +2666,7 @@ representation/llr.action:
     default: 0
     optional: 0
 representation/parameterized/ann.action:
+  description: Parameterized artificial neural network representation
   inputs:
     type: int.observation_dims
     description: Number of input dimensions
@@ -2648,6 +2720,7 @@ representation/parameterized/ann.action:
     min: 0
     max: 1
 representation/parameterized/linear.action:
+  description: Linear-in-parameters representation
   init_min:
     type: vector
     description: Lower initial value limit
@@ -2689,6 +2762,7 @@ representation/parameterized/linear.action:
     default: "[  ]"
     optional: 1
 discretizer/uniform.action:
+  description: Uniform discretizer
   min:
     type: vector.action_min
     description: Lower limit
@@ -2708,6 +2782,7 @@ discretizer/uniform.action:
     default: "[  ]"
     optional: 1
 representation/llr.value/action:
+  description: Performs locally linear regression through samples
   ridge:
     type: double
     description: Ridge regression (Tikhonov) factor
@@ -2763,6 +2838,7 @@ representation/llr.value/action:
     default: 0
     optional: 0
 representation/parameterized/ann.value/action:
+  description: Parameterized artificial neural network representation
   inputs:
     type: int.observation_dims+int.action_dims
     description: Number of input dimensions
@@ -2816,6 +2892,7 @@ representation/parameterized/ann.value/action:
     min: 0
     max: 1
 representation/parameterized/linear.value/action:
+  description: Linear-in-parameters representation
   init_min:
     type: vector
     description: Lower initial value limit
@@ -2857,6 +2934,7 @@ representation/parameterized/linear.value/action:
     default: "[  ]"
     optional: 1
 representation/llr.value/state:
+  description: Performs locally linear regression through samples
   ridge:
     type: double
     description: Ridge regression (Tikhonov) factor
@@ -2912,6 +2990,7 @@ representation/llr.value/state:
     default: 0
     optional: 0
 representation/parameterized/ann.value/state:
+  description: Parameterized artificial neural network representation
   inputs:
     type: int.observation_dims
     description: Number of input dimensions
@@ -2965,6 +3044,7 @@ representation/parameterized/ann.value/state:
     min: 0
     max: 1
 representation/parameterized/linear.value/state:
+  description: Linear-in-parameters representation
   init_min:
     type: vector
     description: Lower initial value limit

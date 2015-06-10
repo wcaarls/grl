@@ -66,7 +66,7 @@ class Projector : public Configurable
 class IdentityProjector : public Projector
 {
   public:
-    TYPEINFO("projector/identity")
+    TYPEINFO("projector/identity", "Simply returns the input vector")
 
   public:
     virtual IdentityProjector *clone() const
@@ -85,9 +85,6 @@ class IdentityProjector : public Projector
 /// Projects onto a changing set of samples.
 class SampleProjector : public Projector
 {
-  public:
-    TYPEINFO("projector/sample")
-
   public:
     virtual void push(class Sample *sample) = 0;
     virtual StorePtr store() = 0;

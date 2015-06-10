@@ -44,7 +44,7 @@ namespace grl
 class ROSEnvironment : public Environment
 {
   public:
-    TYPEINFO("environment/ros")
+    TYPEINFO("environment/ros", "External environment interfaced through ROS")
 
   protected:
     itc::Queue<mprl_msgs::EnvDescription> desc_queue_;

@@ -37,7 +37,7 @@ namespace grl {
 class ANNProjector : public SampleProjector
 {
   public:
-    TYPEINFO("projector/sample/ann")
+    TYPEINFO("projector/sample/ann", "Projects onto samples found through approximate nearest-neighbor search")
     
     struct SampleRef
     {

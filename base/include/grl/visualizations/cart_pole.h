@@ -38,7 +38,7 @@ namespace grl
 class CartPoleVisualization : public Visualization
 {
   public:
-    TYPEINFO("visualization/cart_pole")
+    TYPEINFO("visualization/cart_pole", "Cart-pole visualization")
 
   protected:
     State *state_;

@@ -44,7 +44,7 @@ namespace grl
 class SARSAPredictor : public Predictor
 {
   public:
-    TYPEINFO("predictor/sarsa")
+    TYPEINFO("predictor/sarsa", "SARSA on-policy value function predictor")
 
   protected:
     double alpha_, gamma_, lambda_;
@@ -70,7 +70,7 @@ class SARSAPredictor : public Predictor
 class ExpectedSARSAPredictor : public Predictor
 {
   public:
-    TYPEINFO("predictor/expected_sarsa")
+    TYPEINFO("predictor/expected_sarsa", "Expected SARSA low-variance on-policy value function predictor")
 
   protected:
     double alpha_, gamma_, lambda_;

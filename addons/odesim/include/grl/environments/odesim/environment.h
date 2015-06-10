@@ -45,7 +45,7 @@ class ODESTGEnvironment: public QObject
 class ODEEnvironment: public grl::Environment, public itc::Thread
 {
   public:
-    TYPEINFO("environment/ode")
+    TYPEINFO("environment/ode", "Open Dynamics Engine simulation environment")
 
   protected:
     QApplication *app_;

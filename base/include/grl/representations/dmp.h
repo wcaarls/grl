@@ -37,7 +37,7 @@ namespace grl
 class DMPRepresentation : public ParameterizedRepresentation
 {
   public:
-    TYPEINFO("representation/parameterized/dmp")
+    TYPEINFO("representation/parameterized/dmp", "Parameterized dynamic movement primitive representation")
 };
 
 }

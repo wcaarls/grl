@@ -39,7 +39,7 @@ namespace grl
 class TDAgent : public Agent
 {
   public:
-    TYPEINFO("agent/td")
+    TYPEINFO("agent/td", "Agent that learns from observed state transitions")
 
   protected:
     Policy *policy_;

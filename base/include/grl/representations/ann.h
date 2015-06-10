@@ -37,7 +37,7 @@ namespace grl
 class ANNRepresentation : public ParameterizedRepresentation
 {
   public:
-    TYPEINFO("representation/parameterized/ann")
+    TYPEINFO("representation/parameterized/ann", "Parameterized artificial neural network representation")
 
   protected:
     Vector output_min_, output_max_;
