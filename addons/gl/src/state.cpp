@@ -126,15 +126,14 @@ void StateVisualization::draw()
     Guard guard(mutex_);
     for (size_t dd=0; dd < dims_.size(); ++dd)
     {
-      switch (dd%7)
+      switch (dd%6)
       {
-        case 0: glColor3f(1.,0.,0.); break;
-        case 1: glColor3f(0.,1.,0.); break;
-        case 2: glColor3f(1.,0.,1.); break;
-        case 3: glColor3f(0.,1.,1.); break;
-        case 4: glColor3f(1.,1.,0.); break;
-        case 5: glColor3f(0.,0.,1.); break;
-        case 6: glColor3f(1.,1.,1.); break;
+        case 0: glColor3f(0.8,0.0,0.0); break;
+        case 1: glColor3f(0.0,0.8,0.0); break;
+        case 2: glColor3f(0.0,0.0,0.8); break;
+        case 3: glColor3f(0.0,0.8,0.8); break;
+        case 4: glColor3f(0.8,0.0,0.8); break;
+        case 5: glColor3f(0.8,0.8,0.0); break;
       }
     
       glBegin(GL_LINE_STRIP);
@@ -148,8 +147,15 @@ void StateVisualization::draw()
     updated_ = false;
   }
 
+  glClearColor(1., 1., 1., 1.);
   clear();
   
+  glColor3f(0., 0., 0.);
+  glBegin(GL_LINES);
+    glVertex2f(0., 0.5);
+    glVertex2f(1., 0.5);
+  glEnd(); 
+
   glCallList(list_);
 
   swap();

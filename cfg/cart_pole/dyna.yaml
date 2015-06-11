@@ -57,7 +57,7 @@ experiment:
         type: trace/enumerated/replacing
     model: 
       type: observation_model/fixed_reward
-      wrapping: [ 0, 0, 6.283, 0 ]
+      wrapping: [0, 6.283, 0, 0]
       observation_min: experiment/environment/task/observation_min
       observation_max: experiment/environment/task/observation_max
       projector: 
@@ -79,7 +79,7 @@ experiment:
       task: experiment/environment/task
     model_predictor: 
       type: predictor/model
-      wrapping: experiment/agent/policy/projector/wrapping
+      wrapping: experiment/agent/model/wrapping
       projector: experiment/agent/model/projector
       representation: experiment/agent/model/representation
     model_agent: 
