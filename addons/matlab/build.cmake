@@ -18,7 +18,7 @@ endif()
 if (MATLAB_INCLUDE_DIR)
   message("-- Building Matlab addon")
 
-  set(mex_INCLUDE_DIRS -I${MATLAB_INCLUDE_DIR} -I${SRC}/../include -I${SRC}/../../../base/include -I${SRC}/../../../externals/yaml-cpp/include)
+  set(mex_INCLUDE_DIRS -I${MATLAB_INCLUDE_DIR} -I${SRC}/../include -I${SRC}/../../../base/include -I${SRC}/../../../externals/yaml-cpp/include -I${SRC}/../../../externals/itc/include)
   set(mex_LIBRARIES    -lgrl -lyaml-cpp -lrt -ldl)
 
   grl_add_mex(grl_env ${SRC}/convert.cpp ${SRC}/mex_env.cpp)

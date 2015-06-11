@@ -38,30 +38,38 @@ namespace grl
 {
 
 /// State visualization.
-class StateVisualization : public Visualization
+class StateVisualization : public Visualization, public itc::Thread
 {
   public:
     TYPEINFO("visualization/state", "Visualizes a state projected on two dimensions")
 
   protected:
     State *state_;
+    std::deque<Vector> points_;
     Vector dims_, min_, max_;
+    size_t memory_;
+    
+    Mutex mutex_;
+    bool updated_;
+    unsigned int list_;
   
   public:
-    StateVisualization() : state_(NULL)
+    StateVisualization() : state_(NULL), memory_(256), updated_(true), list_(0)
     {
-      dims_ = VectorConstructor(0., 1.);
     }
     
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
-  
+
     // From Visualization
     virtual void idle(); 
     virtual void draw(); 
     virtual void reshape(int width, int height);
+    
+    // From itc::Thread
+    virtual void run(); 
 };
 
 }

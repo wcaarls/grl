@@ -38,9 +38,10 @@ REGISTER_CONFIGURABLE(StateVisualization)
 
 void StateVisualization::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("field_dims", "Dimensions to visualize", dims_));
-  config->push_back(CRP("field_min", "Lower visualization dimension limit", min_, CRP::System));
-  config->push_back(CRP("field_max", "Upper visualization dimension limit", max_, CRP::System));
+  config->push_back(CRP("input_dims", "Input dimensions to visualize", dims_, CRP::Online));
+  config->push_back(CRP("input_min", "Lower input dimension limit", min_, CRP::System));
+  config->push_back(CRP("input_max", "Upper input dimension limit", max_, CRP::System));
+  config->push_back(CRP("memory", "Number of data points to draw", (int)memory_, CRP::Online));
 
   config->push_back(CRP("state", "state", "State to visualize", state_));
 }
@@ -52,18 +53,23 @@ void StateVisualization::configure(Configuration &config)
 
   state_ = (State*)config["state"].ptr();
 
-  dims_ = config["field_dims"];
-  if (dims_.size() != 2)
-    throw bad_param("visualization/state:field_dims");
-  min_ = config["field_min"];
-  if (min_.size() != 2)
-    throw bad_param("visualization/state:field_min");
-  max_ = config["field_max"];
-  if (max_.size() != 2)
-    throw bad_param("visualization/state:field_max");
+  dims_ = config["input_dims"];
+  min_ = config["input_min"];
+  max_ = config["input_max"];
+  if (min_.size() != max_.size())
+    throw bad_param("visualization/state:{input_min,input_max}");
+    
+  for (size_t ii=0; ii < dims_.size(); ++ii)
+    if (dims_[ii] >= min_.size())
+      throw bad_param("visualization/state:{input_dims,input_min,input_max}");
+      
+  memory_ = config["memory"];
 
   // Create window  
   create("State");
+
+  // Let's get this show on the road
+  start();
 }
 
 void StateVisualization::reconfigure(const Configuration &config)
@@ -72,31 +78,79 @@ void StateVisualization::reconfigure(const Configuration &config)
 
 void StateVisualization::reshape(int width, int height)
 {
-  initProjection(-1, 1, -1, 1);
+  initProjection(0, 1, 0, 1);
+}
+
+void StateVisualization::run()
+{
+  while (ok())
+  {
+    Vector state = state_->read(), point(dims_.size());
+    
+    for (size_t ii=0; ii < dims_.size(); ++ii)
+    {
+      size_t d = dims_[ii];
+      double norm = fmin(fmax((state[d]-min_[d])/(max_[ii]-min_[ii]), 0.), 1.);
+      
+      point[ii] = norm*0.98+0.01;
+    }
+      
+    Guard guard(mutex_);
+    points_.push_back(point);
+    while (points_.size() > memory_)
+      points_.pop_front();
+    
+    updated_ = true;
+  }
 }
 
 void StateVisualization::idle()
 {
-  refresh();
+  if (updated_)
+    refresh();
 }
 
 void StateVisualization::draw()
 {
-  clear();
+  const double dx = 1./memory_;
 
-  const Vector state = state_->get();
-  
-  if (state.size())
+  if (updated_)
   {
-    Vector scaled = (VectorConstructor(state[dims_[0]], state[dims_[1]])-min_)/(max_-min_)*2-1;
+    if (list_)
+      glDeleteLists(list_, 1);
     
-    glBegin(GL_LINES);
-      glVertex2d(scaled[0]-0.05, scaled[1]);
-      glVertex2d(scaled[0]+0.05, scaled[1]);
-      glVertex2d(scaled[0], scaled[1]-0.05);
-      glVertex2d(scaled[0], scaled[1]+0.05);
-    glEnd();
+    list_ = glGenLists(1);
+    
+    glNewList(list_, GL_COMPILE);
+
+    Guard guard(mutex_);
+    for (size_t dd=0; dd < dims_.size(); ++dd)
+    {
+      switch (dd%7)
+      {
+        case 0: glColor3f(1.,0.,0.); break;
+        case 1: glColor3f(0.,1.,0.); break;
+        case 2: glColor3f(1.,0.,1.); break;
+        case 3: glColor3f(0.,1.,1.); break;
+        case 4: glColor3f(1.,1.,0.); break;
+        case 5: glColor3f(0.,0.,1.); break;
+        case 6: glColor3f(1.,1.,1.); break;
+      }
+    
+      glBegin(GL_LINE_STRIP);
+      double xx=0;
+      for (std::deque<Vector>::iterator it=points_.begin(); it != points_.end(); ++it, xx+=dx)
+        glVertex2f(xx, (*it)[dd]);
+      glEnd();
+    }
+    glEndList();
+    
+    updated_ = false;
   }
+
+  clear();
+  
+  glCallList(list_);
 
   swap();
 }

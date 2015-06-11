@@ -47,7 +47,7 @@ add_library(${TARGET} SHARED
 
 # Dependencies
 target_link_libraries(${TARGET} -lpthread -ldl)
-grl_link_libraries(${TARGET} externals/yaml-cpp)
+grl_link_libraries(${TARGET} externals/yaml-cpp externals/itc)
 install(TARGETS ${TARGET} DESTINATION ${GRL_LIB_DESTINATION})
 install(DIRECTORY ${SRC}/../include/grl DESTINATION ${GRL_INCLUDE_DESTINATION} FILES_MATCHING PATTERN "*.h")
 

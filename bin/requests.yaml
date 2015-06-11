@@ -2057,24 +2057,32 @@ visualization/sample/random:
     optional: 0
 visualization/state:
   description: Visualizes a state projected on two dimensions
-  field_dims:
+  input_dims:
     type: vector
-    description: Dimensions to visualize
-    mutability: configuration
-    default: "[ 0, 1 ]"
+    description: Input dimensions to visualize
+    mutability: online
+    default: "[  ]"
     optional: 1
-  field_min:
+  input_min:
     type: vector
-    description: Lower visualization dimension limit
+    description: Lower input dimension limit
     mutability: system
     default: "[  ]"
     optional: 1
-  field_max:
+  input_max:
     type: vector
-    description: Upper visualization dimension limit
+    description: Upper input dimension limit
     mutability: system
     default: "[  ]"
     optional: 1
+  memory:
+    type: int
+    description: Number of data points to draw
+    mutability: online
+    default: 256
+    optional: 1
+    min: 0
+    max: 2147483647
   state:
     type: state
     description: State to visualize

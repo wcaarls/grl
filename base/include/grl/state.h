@@ -28,6 +28,8 @@
 #ifndef GRL_STATE_H_
 #define GRL_STATE_H_
 
+#include <itc/itc.h>
+
 #include <grl/configurable.h>
 #include <grl/mutex.h>
 
@@ -41,25 +43,27 @@ class State : public Configurable
     TYPEINFO("state", "Encapsulates a system state or observation");
     
   protected:
-    mutable Mutex mutex_;
-    Vector state_;
+    itc::SharedVariable<Vector> var_;
 
   public:
-    virtual State *clone() const
+    virtual Vector get()
     {
-      return new State(*this);
-    }
-    
-    virtual const Vector &get() const
-    {
-      Guard guard(mutex_);
-      return state_;
+      return var_.get();
     }
     
     virtual void set(const Vector &state)
     {
-      Guard guard(mutex_);
-      state_ = state;
+      var_.write(state);
+    }
+
+    virtual bool test()
+    {
+      return var_.test();
+    }
+    
+    virtual Vector read()
+    {
+      return var_.read();
     }
 };
 
