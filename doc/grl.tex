@@ -1,0 +1,224 @@
+\documentclass{article}
+
+\usepackage{url}
+\usepackage{alltt}
+\usepackage{upquote}
+\usepackage{xspace}
+\usepackage[usenames,dvipsnames]{color}
+
+\newcommand{\inp}[1]{\texttt{\underline{#1}}}
+\newcommand{\txt}[1]{\texttt{#1}}
+\newcommand{\promptm}{wcaarls@vbox:\~{}/src/mprl\$\xspace}
+\newcommand{\promptmb}{wcaarls@vbox:\~{}/src/mprl/build\$\xspace}
+
+\newcommand{\prompt}{wcaarls@vbox:\~{}\$\xspace}
+\newcommand{\prompth}{wcaarls@vbox:\~{}/indigo\_ws\$\xspace}
+\newcommand{\prompths}{wcaarls@vbox:\~{}/indigo\_ws/src\$\xspace}
+
+\newenvironment{code}{\alltt}{\endalltt}
+
+\title{GRL: a generic C++ reinforcement learning library}
+\author{Wouter Caarls $<$\url{mailto:wouter@caarls.org}$>$}
+\date{June 11th, 2015}
+\begin{document}
+\maketitle
+
+\section{Introduction}
+
+\section{Directory structure}
+
+\begin{verbatim}
+.
+|-- base                     Base library
+|   |-- include              Header files
+|   `-- src                  Source files
+|       |-- agents           Agents (fixed, black box, td)
+|       |-- discretizers     Action discretizers
+|       |-- environments     Environments (pendulum, cart-pole)
+|       |-- experiments      Experiments (online, batch)
+|       |-- policies         Control policies (PID, Q-based)
+|       |-- predictors       Value function predictors (SARSA, AC)
+|       |-- projectors       State projectors (tile coding, fourier)
+|       |-- representations  Representations (linear, ann) 
+|       |-- samplers         Action samplers (greedy, e-greedy)
+|       |-- traces           Elibility traces (accumulating, replacing)
+|       `-- visualizations   Visualizations (value function, policy)
+|-- addons                   Optional modules
+|   |-- cma                  CMA-ES black-box optimizer
+|   |-- gl                   OpenGL-based visualizations
+|   |-- glut                 GLUT-based visualizer
+|   |-- llr                  Locally linear regression representation
+|   |-- matlab               Matlab interoperability
+|   |-- muscod               Muscod interoperability
+|   |-- odesim               Open Dynamics Engine environment
+|   |-- rbdl                 Rigid Body Dynamics Library dynamics
+|   `-- ros                  ROS interoperability
+|-- bin                      Python binaries (configurator)
+|-- externals                Imported external library code
+|-- cfg                      Sample configurations
+|-- share                    Misc files
+|-- tests                    Unit tests
+|-- CMakeLists.txt           CMake instructions to build everything
+`-- grl.cmake                CMake helper functions
+\end{verbatim}
+
+\section{Prerequisites}
+
+GRL requires some libraries in order to compile. Which ones exactly depends
+on which agents and environments you would like to build, but the full list
+is
+
+\begin{itemize}
+  \item Git
+  \item GCC (including g++)
+  \item Boost (for shared\_ptr)
+  \item Eigen
+  \item GLUT
+  \item QT4 (including the OpenGL bindings)
+  \item TinyXML
+  \item MuParser
+  \item ODE, the Open Dynamics Engine
+  \item Python (including Tkinter and the yaml reader)
+\end{itemize}
+
+On Ubuntu 14.04, these may be installed with the following command:
+
+\begin{code}
+\prompt \inp{git cmake g++ libboost-dev1 libeigen3-dev1 \textbackslash}
+\inp{libgl1-mesa-dev-lts-utopic freeglut3-dev1 libqt4-opengl-dev \textbackslash}
+\inp{libtinyxml-dev libmuparser-dev libode-dev1 python-yaml python-tk1 \textbackslash}
+\end{code}
+
+\section{Building}
+
+GRL may be built with or without ROS's catkin. When building with, simply
+merge \txt{grl.rosinstall} with your catkin workspace
+
+\begin{code}
+{\color{Gray}\prompt \inp{mkdir indigo\_ws}
+\prompt \inp{cd indigo\_ws}
+\prompth \inp{rosws init src /opt/ros/indigo}
+\prompth \inp{cd src}}
+\prompths \inp{rosws merge /path/to/grl.rosinstall} 
+\prompths \inp{rosws up}
+\prompths \inp{cd ..}
+\prompth \inp{catkin\_make}
+\end{code}
+
+Otherwise, follow the standard CMake steps of (in the \txt{grl} directory)
+\begin{code}
+\promptm \inp{mkdir build}
+\promptm \inp{cd build}
+\promptmb \inp{cmake ..}
+\txt{-- The C compiler identification is GNU 4.8.2}
+\txt{...}
+\promptmb \inp{make}
+\txt{Scanning dependencies of target yaml-cpp}
+\txt{...}
+\end{code}
+
+\section{Build environment}
+
+The whole \txt{grl} system is built as a single package, with the exception
+of \txt{mprl\_msgs}. This is done to facilitate building inside and outside
+catkin. There is one \txt{CMakeLists.txt} that is used in both cases. The
+ROS interoperability is selectively built based on whether \txt{cmake} was invoked by
+\txt{catkin\_make} or not.
+
+Modules are built by calling their respective \txt{build.cmake} scripts,
+which is done by \txt{grl\_build\_library}. The include directory is set
+automatically, as is an \txt{SRC} variable pointing to the library's source
+directory.
+
+The build system has a simplistic dependency management scheme through
+\txt{grl\_link\_libraries}. This calls the \txt{link.cmake} files of the
+libraries on which the current library depends. Typically they will add some
+\txt{target\_link\_libraries} and add upstream dependencies.
+\txt{grl\_link\_libraries} also automatically adds the upstream library's
+include directory.
+
+\section{Class structure}
+
+\subsection{Class factories}
+
+\subsection{Configuration}
+
+\section{Matlab interface}
+
+If Matlab is installed (and can be found on the path), a MEX interfaces for
+the agents and environments is built. If you want to use these, make sure
+that you're building with a compatible compiler, both by setting the
+\txt{CC} and \txt{CXX} variables in your call to \txt{cmake} and by correctly
+configuring \txt{mex}.
+
+\subsection{Environments}
+
+To initialize an environment, call
+
+\begin{code}
+>> spec = grl_env('cfg/matlab/pendulum_swingup.yaml');
+\end{code}
+
+Where the argument specifies a configuration file that has a top-level
+'environment' tag. \txt{spec} gives some information about the environment,
+such as number of dimensions, minimum and maximum values, etc. Next,
+retrieve the first observation of an episode with
+
+\begin{code}
+>> o = grl_env('start');
+\end{code}
+
+where \txt{o} is the observation from the environment. All following
+steps should be called using
+
+\begin{code}
+>> [o, r, t] = grl_env('step', a);
+\end{code}
+
+where \txt{a} is the action suggested by the agent, \txt{r} is the reward
+given by the environment and \txt{t} signals termination of the episode.
+If \txt{t} is 2, the episode ended in an absorbing state. When all episodes
+are done, exit cleanly with
+
+\begin{code}
+>> grl_env('fini');
+\end{code}
+
+\subsection{Agents}
+
+To initialize the agent, use
+
+\begin{code}
+>> grl_agent('init', 'cfg/matlab/sarsa.yaml');
+\end{code}
+
+Where the argument specifies a configuration file that has a top-level
+'agent' tag. Next, give the first observation of an episode with
+
+\begin{code}
+>> a = grl_agent('start', o);
+\end{code}
+
+where \txt{o} is the observation from the environment and \txt{a} is the
+action suggested by the agent. All following steps should be called using
+
+\begin{code}
+>> a = grl_agent('step', r, o);
+\end{code}
+
+where \txt{r} is the reward given by the environment. To signal the end of
+an episode (absorbing state), use
+
+\begin{code}
+>> a = grl_agent('end', r);
+\end{code}
+
+To end an episode without an absorbing state, simply start a new one. To
+exit cleanly after all epsiodes are finished (which also allows you to
+reinitialize the agent with different options), call
+
+\begin{code}
+>> grl_agent('fini');
+\end{code}
+
+\end{document}

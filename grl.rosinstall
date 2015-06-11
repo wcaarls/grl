@@ -1,6 +1,6 @@
-- svn:
+- git:
         local-name: grl
-        uri: https://svn.3me.tudelft.nl/dbl-ros-pkg/catkin/grl
+        uri: https://github.com/wcaarls/grl
 - svn:
-        local-name: grl_msgs
-        uri: https://svn.3me.tudelft.nl/dbl-ros-pkg/catkin/grl_msgs
+        local-name: mprl_msgs
+        uri: https://svn.3me.tudelft.nl/dbl-ros-pkg/catkin/mprl_msgs
