@@ -25,6 +25,7 @@ add_library(${TARGET} SHARED
             ${SRC}/policies/bounded_q.cpp
             ${SRC}/policies/parameterized.cpp
             ${SRC}/policies/pid.cpp
+            ${SRC}/policies/mcts.cpp
             ${SRC}/predictors/model.cpp
             ${SRC}/predictors/sarsa.cpp
             ${SRC}/predictors/ggq.cpp

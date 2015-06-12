@@ -1,0 +1,48 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 0
+  steps: 0
+  rate: 0
+  test_interval: 0
+  environment: 
+    type: environment/modeled
+    model: 
+      type: model/dynamical
+      control_step: 0.03
+      integration_steps: 5
+      dynamics: 
+        type: dynamics/pendulum
+    task: 
+      type: task/pendulum/swingup
+      timeout: 2.99
+      randomization: 0
+  agent: 
+    type: agent/fixed
+    policy: 
+      type: policy/mcts
+      model: 
+        type: observation_model/fixed
+        model: experiment/environment/model
+        task: experiment/environment/task
+      discretizer: 
+        type: discretizer/uniform
+        min: experiment/environment/task/action_min
+        max: experiment/environment/task/action_max
+        steps: [3]
+      epsilon: 0.05
+      horizon: 20
+      budget: 0.5
+  test_agent: experiment/agent
+visualizer: 
+  type: visualizer/glut
+visualization: 
+  type: visualization/state
+  input_dims: [0, 1]
+  input_min: experiment/environment/task/observation_min
+  input_max: experiment/environment/task/observation_max
+  memory: 256
+  state: experiment/environment/state
+visualization2: 
+  type: visualization/pendulum
+  state: experiment/environment/state

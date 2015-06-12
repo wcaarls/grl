@@ -696,6 +696,44 @@ policy/discrete/random:
     mutability: configuration
     default: 0
     optional: 0
+policy/mcts:
+  description: Monte-Carlo Tree Search policy
+  model:
+    type: observation_model
+    description: Observation model used for planning
+    mutability: configuration
+    default: 0
+    optional: 0
+  discretizer:
+    type: discretizer.action
+    description: Action discretizer
+    mutability: configuration
+    default: 0
+    optional: 0
+  epsilon:
+    type: double
+    description: Exploration rate
+    mutability: configuration
+    default: 0.05
+    optional: 1
+    min: 0
+    max: 1
+  horizon:
+    type: int
+    description: Planning horizon
+    mutability: configuration
+    default: 100
+    optional: 1
+    min: 0
+    max: 2147483647
+  budget:
+    type: double
+    description: Computational budget
+    mutability: configuration
+    default: 0.05
+    optional: 1
+    min: 0
+    max: 1
 policy/nmpc:
   description: Nonlinear model predictive control policy using the MUSCOD library
   model_path:
