@@ -106,7 +106,7 @@ ROSEnvironment *ROSEnvironment::clone() const
   return NULL;
 }
 
-void ROSEnvironment::start(Vector *obs)
+void ROSEnvironment::start(int test, Vector *obs)
 {
   if (running_)
     throw Exception("Cannot start environment because ROS environment is still running");

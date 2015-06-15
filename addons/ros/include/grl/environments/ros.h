@@ -86,7 +86,7 @@ class ROSEnvironment : public Environment
       
     // From Environment
     virtual ROSEnvironment *clone() const;
-    virtual void start(Vector *obs);
+    virtual void start(int test, Vector *obs);
     virtual void step(const Vector &action, Vector *obs, double *reward, int *terminal);
   
   protected:

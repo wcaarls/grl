@@ -61,6 +61,16 @@ void RBDLDynamics::configure(Configuration &config)
     throw bad_param("dynamics/rbdl:file");
   }
   
+  for (unsigned int i = 1; i < model_->mBodies.size(); i++)
+  {
+    using namespace RigidBodyDynamics;
+    using namespace RigidBodyDynamics::Math;
+    Body &body = model_->mBodies[i];
+    SpatialRigidBodyInertia body_rbi = SpatialRigidBodyInertia::createFromMassComInertiaC(body.mMass, body.mCenterOfMass, body.mInertia);
+    std::cout << "=============== Spatial inertia of body " << i << " ===============" << std::endl;
+    std::cout << body_rbi.toMatrix() << std::endl << std::endl;
+  }
+
   NOTICE("Loaded RBDL model with " << model_->dof_count << " degrees of freedom");
   
   L_ = luaL_newstate();
@@ -260,7 +270,8 @@ void LuaTask::evaluate(const Vector &state, const Vector &action, const Vector &
  
 bool LuaTask::invert(const Vector &obs, Vector *state) const
 {
-  lua_getglobal(L_, "invert");  /* function to be called */
+  /*
+  lua_getglobal(L_, "invert");
   lua_pushvector(L_, obs);
   if (lua_pcall(L_, 1, 1, 0) != 0)
   {
@@ -271,6 +282,7 @@ bool LuaTask::invert(const Vector &obs, Vector *state) const
   
   *state = lua_tovector(L_, -1);
   lua_pop(L_, 1);
-  
+  */
+  WARNING("LuaTask::invert() is not implemented");
   return true;
 }
