@@ -8,6 +8,8 @@ add_library(${TARGET} SHARED
             ${SRC}/agents/black_box.cpp
             ${SRC}/agents/td.cpp
             ${SRC}/agents/dyna.cpp
+            ${SRC}/agents/master.cpp
+            ${SRC}/agents/compartmentalized.cpp
             ${SRC}/configurable.cpp
             ${SRC}/discretizers/uniform.cpp
             ${SRC}/environments/observation.cpp

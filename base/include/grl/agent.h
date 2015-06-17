@@ -45,6 +45,16 @@ class Agent : public Configurable
     virtual void report(std::ostream &os) const { }
 };
 
+/// Agent that is aware of its validity and can be used in conjunction with other agents.
+class SubAgent : public Agent
+{
+  // TODO: SUB AGENTS SHOULD ALLOW FOR ACTIONS THAT ARE DIFFERENT FROM CHOSEN ACTION.
+  public:
+    virtual ~SubAgent() { }
+    virtual SubAgent *clone() const = 0;
+    virtual double confidence(const Vector &obs) const = 0;
+};
+
 }
 
 #endif /* GRL_AGENT_H_ */
