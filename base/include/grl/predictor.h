@@ -34,21 +34,18 @@
 namespace grl
 {
 
-/// Estimates a value function from Transition%s.
+/// Estimates a function from Transition%s.
 class Predictor : public Configurable
 {
   public:
     virtual ~Predictor() { }
     virtual Predictor *clone() const = 0;
+    
+    /// Update the estimation.
     virtual void update(const Transition &transition) = 0;
+    
+    /// Signal completion of a set of updates (episode or batch).
     virtual void finalize() = 0;
-};
-
-/// Estimates a value function from batches of Transition%s.
-class BatchPredictor : public Predictor
-{
-  public:
-    virtual BatchPredictor *clone() const = 0;
 };
 
 }

@@ -39,8 +39,19 @@ class Optimizer : public Configurable
 {
   public:
     virtual Optimizer *clone() const = 0;
+    
+    /// Returns the number of policies to evaluate.
     virtual size_t size() const = 0;
+    
+    /// Request a policy to evaluate.
     virtual Policy *request(size_t ii) const = 0;
+    
+    /**
+     * \brief Report the result of a policy's evaluation.
+     *
+     * One all policies have been evaluated, a new set will be generated.
+     * \note Not all optimizers support out-of-order reporting.
+     */     
     virtual void report(size_t ii, double reward) = 0;
 };
 

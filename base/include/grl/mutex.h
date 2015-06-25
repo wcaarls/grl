@@ -92,7 +92,7 @@ class RecursiveMutex: public Mutex
     }        
 };
 
-/// Condition.
+/// Condition variable.
 class Condition
 {
   protected:

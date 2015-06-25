@@ -39,9 +39,17 @@ class Agent : public Configurable
   public:
     virtual ~Agent() { }
     virtual Agent *clone() const = 0;
+    
+    /// Start the agent, returning the action for the first observation in an episode.
     virtual void start(const Vector &obs, Vector *action) = 0;
+    
+    /// Supply next state and reward, returning the next action.
     virtual void step(const Vector &obs, double reward, Vector *action) = 0;
+    
+    /// Signal an absorbing state.
     virtual void end(double reward) = 0;
+    
+    /// Progress report.
     virtual void report(std::ostream &os) const { }
 };
 
@@ -52,6 +60,8 @@ class SubAgent : public Agent
   public:
     virtual ~SubAgent() { }
     virtual SubAgent *clone() const = 0;
+    
+    /// Returns the agent's confidence for a certain observation.
     virtual double confidence(const Vector &obs) const = 0;
 };
 

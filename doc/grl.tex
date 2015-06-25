@@ -10,8 +10,9 @@
 
 \newcommand{\inp}[1]{\texttt{\underline{#1}}}
 \newcommand{\txt}[1]{\texttt{#1}}
-\newcommand{\promptm}{wcaarls@vbox:\~{}/src/mprl\$\xspace}
-\newcommand{\promptmb}{wcaarls@vbox:\~{}/src/mprl/build\$\xspace}
+\newcommand{\promptm}{wcaarls@vbox:\~{}/src/grl\$\xspace}
+\newcommand{\promptmb}{wcaarls@vbox:\~{}/src/grl/build\$\xspace}
+\newcommand{\promptmn}{wcaarls@vbox:\~{}/src/grl/bin\$\xspace}
 
 \newcommand{\prompt}{wcaarls@vbox:\~{}\$\xspace}
 \newcommand{\prompth}{wcaarls@vbox:\~{}/indigo\_ws\$\xspace}
@@ -123,6 +124,25 @@ Otherwise, follow the standard CMake steps of (in the \txt{grl} directory)
 \txt{...}
 \end{code}
 
+\section{Running}
+
+The most important executables in grl are the deployer (\txt{grld}) and
+configurator (\txt{grlc}). The configurator allows you to generate configuration
+files easily. To see an example, run
+
+\begin{code}
+\promptmn ./grlc ../cfg/pendulum/sarsa\_tc.yaml
+\end{code}
+
+More information on the configurator can be found in
+Section~\ref{sec:grlc}. Once you have configured your experiment, you can either run it directly
+from the configurator, or save it and run it using the deployer. For
+example:
+
+\begin{code}
+\promptmb ./grld ../cfg/pendulum/sarsa\_tc.yaml
+\end{code}
+
 \section{Build environment}
 
 The whole \txt{grl} system is built as a single package, with the exception
@@ -183,8 +203,14 @@ interface to the graphics subsystem.
 \end{description}
 
 Each abstract base class is generally implemented in various concrete
-classes, with or without additional hierarchy. A typical example of the
-information flow between the various classes can be seen in Figure~\ref{fig:td},
+classes, with or without additional hierarchy. A list can be requested by
+running 
+
+\begin{code}
+\promptmn ./grlq
+\end{code}
+
+A typical example of the information flow between the various classes can be seen in Figure~\ref{fig:td},
 which depicts the standard TD control setting.
 
 \begin{figure}
@@ -371,6 +397,7 @@ virtual void request(const std::string \&role, ConfigurationRequest *config);
 \end{code}
 
 \section{Configurator}
+\label{sec:grlc}
 
 \begin{figure}[H]
 \includegraphics[width=\linewidth]{grl.png}

@@ -42,7 +42,10 @@ class Environment : public Configurable
     virtual ~Environment() { }
     virtual Environment *clone() const = 0;
 
+    /// Start the environment, returning the first observation.
     virtual void start(int test, Vector *obs) = 0;
+    
+    /// Take a step, returning the next observation, reward, and whether the episode terminated.
     virtual void step(const Vector &action, Vector *obs, double *reward, int *terminal) = 0;
 };
 
@@ -75,9 +78,20 @@ class Task : public Configurable
       config->push_back(CRP("reward_max", "double.reward_max", "Upper limit on immediate reward", CRP::Provided));
     }    
   
+    /// Start the task, returning the initial state.
     virtual void start(int test, Vector *state) const = 0;
+    
+    /// Observe a state, returning the observation and whether the episode ended.
     virtual void observe(const Vector &state, Vector *obs, int *terminal) const = 0;
+    
+    /// Evaluate a state transition, returning the reward.
     virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const = 0;
+    
+    /**
+     * \brief Invert the state->observation projection.
+     *
+     * Returns false if not implemented by a specific task.
+     */
     virtual bool invert(const Vector &obs, Vector *state) const { return false; }
 };
 
@@ -114,6 +128,7 @@ class Dynamics : public Configurable
     virtual ~Dynamics() { }
     virtual Dynamics *clone() const = 0;
 
+    /// Compute equations of motion, returning accelerations.
     virtual void eom(const Vector &state, const Vector &action, Vector *xdd) const = 0;
 };
 

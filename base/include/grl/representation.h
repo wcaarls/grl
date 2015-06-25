@@ -35,17 +35,14 @@
 namespace grl
 {
 
-/// Maps some inputs to a RepresentedQuantity.
+/// Maps inputs to outputs.
 class Mapping : public Configurable
 {
-  protected:
-    RepresentedQuantity rq_;
-
   public:
     virtual ~Mapping() { }
     virtual Mapping *clone() const = 0;
 
-    RepresentedQuantity quantity() const { return rq_; }
+    /// Read out the mapping.
     virtual double read(const ProjectionPtr &projection, Vector *result) const = 0;
 };
 
@@ -55,19 +52,26 @@ class Representation : public Mapping
   public:
     virtual Representation *clone() const = 0;
 
+    /// Add a new estimate of the target function, using a single learning rate for all outputs.
     virtual void write(const ProjectionPtr projection, const Vector &target, double alpha=1.)
     {
       Vector valpha;
       valpha.resize(target.size(), alpha);
       write(projection, target, valpha);
     }
+    
+    /// Add a new estimate of the target function, using separate learning rates per output.
     virtual void write(const ProjectionPtr projection, const Vector &target, const Vector &alpha) = 0;
+    
+    /// Adjust an estimate of the target function.
     virtual void update(const ProjectionPtr projection, const Vector &delta)
     {
       Vector value;
       read(projection, &value);
       write(projection, value+delta);
     }
+    
+    /// Update a trace of target function estimates
     virtual void update(const Trace &trace, const Vector &delta, double e=1.)
     {
       for (Trace::iterator ii=trace.begin(); ii != trace.end() && ii->weight() > 0.001; ++ii)
@@ -84,8 +88,13 @@ class ParameterizedRepresentation : public Representation
   public:
     virtual ParameterizedRepresentation *clone() const = 0;
     
+    /// Returns number of parameters.
     virtual size_t size() const = 0;
+    
+    /// Returns constant parameter vector.
     virtual const Vector &params() const = 0;
+    
+    /// Returns parameter vector.
     virtual Vector &params() = 0;
 };
 

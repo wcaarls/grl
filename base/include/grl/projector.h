@@ -41,7 +41,11 @@ class Projector : public Configurable
   public:
     virtual ~Projector() { }
     virtual Projector *clone() const = 0;
+    
+    /// Project a single input.
     virtual ProjectionPtr project(const Vector &in) const = 0;
+    
+    /// Project a single input, provided as a base and a variant (e.g. state and action).
     virtual ProjectionPtr project(const Vector &base, const Vector &variant) const
     {
       Vector v = base;
@@ -49,6 +53,7 @@ class Projector : public Configurable
       return project(v);
     }
 
+    /// Project a set of inputs, provided as a base and a set of variants (e.g. state and possible actions).
     virtual void project(const Vector &base, const std::vector<Vector> &variants, std::vector<ProjectionPtr> *out) const
     {
       Vector v = base;
@@ -62,7 +67,7 @@ class Projector : public Configurable
     }
 };
 
-/// Simply returns the input vector (for e.g. \link DeterministicActionPolicy DeterministicActionPolicies \endlink)
+/// Simply returns the input vector (for e.g. \link ActionPolicy ActionPolicies \endlink)
 class IdentityProjector : public Projector
 {
   public:

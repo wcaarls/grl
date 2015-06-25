@@ -1,5 +1,5 @@
 /** \file state.h
- * \brief Simple state visualization header file.
+ * \brief Simple state plot header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
  * \date      2015-02-15
@@ -37,11 +37,11 @@
 namespace grl
 {
 
-/// State visualization.
+/// State plot.
 class StateVisualization : public Visualization, public itc::Thread
 {
   public:
-    TYPEINFO("visualization/state", "Visualizes a state projected on two dimensions")
+    TYPEINFO("visualization/state", "Plots state values")
 
   protected:
     State *state_;

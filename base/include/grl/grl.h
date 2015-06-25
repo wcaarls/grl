@@ -40,12 +40,6 @@
 namespace grl
 {
 
-/// Possible targets of a Representation.
-enum RepresentedQuantity
-{
-  rqStateActionValue, rqStateValue, rqState, rqRewardTerminal, rqProbability
-};
-
 /// Basic (s, a, r, s', a') state transition.
 struct Transition
 {
@@ -67,6 +61,7 @@ inline std::ostream &operator<<(std::ostream& os, const Transition& t)
   return os;
 }
 
+/// Load addons.
 void loadPlugins();
 
 }

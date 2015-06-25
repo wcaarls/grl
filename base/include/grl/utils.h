@@ -198,6 +198,7 @@ class RandGen
     }
 };
 
+/// Read a string as a certain type.
 template <typename T>
 inline bool convert(const std::string& str, T *obj)
 {
@@ -208,7 +209,7 @@ inline bool convert(const std::string& str, T *obj)
   return iss.eof();
 }
 
-// Sample from distribution
+/// Sample from distribution
 inline size_t sample(Vector dist)
 {
   double sum = 0;

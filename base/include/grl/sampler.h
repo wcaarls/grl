@@ -40,7 +40,11 @@ class Sampler : public Configurable
   public:
     virtual ~Sampler() { }
     virtual Sampler *clone() = 0;
+    
+    /// Sample an action from a value vector.
     virtual size_t sample(const Vector &values) const = 0;
+    
+    /// Returns the sampling distribution for a value vector.
     virtual void distribution(const Vector &values, Vector *distribution) const = 0;
 };
 

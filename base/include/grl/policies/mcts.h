@@ -134,7 +134,7 @@ class MCTSNode
 };
 
 // Monte-Carlo Tree Search policy.
-class MCTSPolicy : public Configurable
+class MCTSPolicy : public Policy
 {
   public:
     TYPEINFO("policy/mcts", "Monte-Carlo Tree Search policy")

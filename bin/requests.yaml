@@ -2136,7 +2136,7 @@ visualization/sample/random:
     default: 0
     optional: 0
 visualization/state:
-  description: Visualizes a state projected on two dimensions
+  description: Plots state values
   input_dims:
     type: vector
     description: Input dimensions to visualize
