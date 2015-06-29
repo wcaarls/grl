@@ -60,6 +60,16 @@ void RBDLDynamics::configure(Configuration &config)
     ERROR("Error loading model " << file_);
     throw bad_param("dynamics/rbdl:file");
   }
+
+  for (unsigned int i = 1; i < model_->mBodies.size(); i++)
+  {
+    using namespace RigidBodyDynamics;
+    using namespace RigidBodyDynamics::Math;
+    Body &body = model_->mBodies[i];
+    SpatialRigidBodyInertia body_rbi = SpatialRigidBodyInertia::createFromMassComInertiaC(body.mMass, body.mCenterOfMass, body.mInertia);
+    std::cout << "=============== Spatial inertia of body " << i << " ===============" << std::endl;
+    std::cout << body_rbi.toMatrix() << std::endl << std::endl;
+  }
   
   NOTICE("Loaded RBDL model with " << model_->dof_count << " degrees of freedom");
   
