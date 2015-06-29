@@ -74,6 +74,48 @@ agent/fixed:
     mutability: configuration
     default: 0
     optional: 0
+agent/master:
+  description: Master agent that chooses among sub-agents
+  gamma:
+    type: double
+    description: Discount rate
+    mutability: configuration
+    default: 0.97
+    optional: 1
+    min: 0
+    max: 1
+  agent1:
+    type: agent/sub
+    description: First subagent
+    mutability: configuration
+    default: 0
+    optional: 0
+  agent2:
+    type: agent/sub
+    description: Second subagent
+    mutability: configuration
+    default: 0
+    optional: 0
+agent/sub/compartmentalized:
+  description: Sub agent that is valid in a fixed state-space region
+  min:
+    type: vector.observation_min
+    description: Minimum of compartment bounding box
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  max:
+    type: vector.observation_max
+    description: Maximum of compartment bounding box
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  agent:
+    type: agent
+    description: Sub agent
+    mutability: configuration
+    default: 0
+    optional: 0
 agent/td:
   description: Agent that learns from observed state transitions
   policy:
@@ -696,6 +738,44 @@ policy/discrete/random:
     mutability: configuration
     default: 0
     optional: 0
+policy/mcts:
+  description: Monte-Carlo Tree Search policy
+  model:
+    type: observation_model
+    description: Observation model used for planning
+    mutability: configuration
+    default: 0
+    optional: 0
+  discretizer:
+    type: discretizer.action
+    description: Action discretizer
+    mutability: configuration
+    default: 0
+    optional: 0
+  epsilon:
+    type: double
+    description: Exploration rate
+    mutability: configuration
+    default: 0.05
+    optional: 1
+    min: 0
+    max: 1
+  horizon:
+    type: int
+    description: Planning horizon
+    mutability: configuration
+    default: 100
+    optional: 1
+    min: 0
+    max: 2147483647
+  budget:
+    type: double
+    description: Computational budget
+    mutability: configuration
+    default: 0.05
+    optional: 1
+    min: 0
+    max: 1
 policy/nmpc:
   description: Nonlinear model predictive control policy using the MUSCOD library
   model_path:
@@ -2064,7 +2144,7 @@ visualization/sample/random:
     default: 0
     optional: 0
 visualization/state:
-  description: Visualizes a state projected on two dimensions
+  description: Plots state values
   input_dims:
     type: vector
     description: Input dimensions to visualize

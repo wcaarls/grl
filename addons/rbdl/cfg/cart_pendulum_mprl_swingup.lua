@@ -92,6 +92,6 @@ function evaluate(state, action, next)
   end
 end
 
---function invert(obs)
---  return {obs[0], obs[1]-math.pi, obs[2], obs[3], 0}
---end
+function invert(obs)
+  return {obs[0], obs[1]-math.pi, obs[2], obs[3], 0}
+end

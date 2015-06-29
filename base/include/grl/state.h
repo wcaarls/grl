@@ -46,21 +46,25 @@ class State : public Configurable
     itc::SharedVariable<Vector> var_;
 
   public:
+    /// Returns current value.
     virtual Vector get()
     {
       return var_.get();
     }
-    
+
+    /// Sets new value.    
     virtual void set(const Vector &state)
     {
       var_.write(state);
     }
 
+    /// Returns true if the value has changed.
     virtual bool test()
     {
       return var_.test();
     }
-    
+
+    /// Reads a new value, waiting until it changes if necessary.    
     virtual Vector read()
     {
       return var_.read();

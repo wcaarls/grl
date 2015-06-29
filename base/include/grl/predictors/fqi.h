@@ -37,7 +37,7 @@ namespace grl
 {
 
 /// Fitted Q-iteration predictor.
-class FQIPredictor : public BatchPredictor
+class FQIPredictor : public Predictor
 {
   public:
     TYPEINFO("predictor/fqi", "Fitted Q-iteration predictor")

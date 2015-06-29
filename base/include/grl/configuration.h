@@ -46,6 +46,7 @@ template <typename T> struct type_name {
 
 #define DECLARE_TYPE_NAME(x) template<> const char *type_name<x>::name = #x;
 
+/// General exception.
 class Exception : public std::exception
 {
   protected:
@@ -64,6 +65,7 @@ class Exception : public std::exception
     }
 };
 
+/// Bad configuration parameter exception.
 class bad_param : public Exception
 {
   public:

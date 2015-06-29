@@ -37,7 +37,7 @@
 namespace grl
 {
 
-/// Policy based on an rqStateActionValue Representation.
+/// Policy based on an action-value Representation.
 class QPolicy : public DiscretePolicy
 {
   public:

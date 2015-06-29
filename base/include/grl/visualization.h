@@ -49,21 +49,46 @@ class Visualization : public Configurable
     void id(int _id) { id_ = _id; }
     int  id() { return id_; }  
     
+    /// Create window.
     void create(const char *name);
+    
+    /// Destroy window.
     void destroy();
+    
+    /// Refresh graphics (causes draw() to be called).
     void refresh();
 
+    /// Swap buffers. May only be called from draw() callback.
     void swap();
+    
+    /// Clear background. May only be called from draw() callback.
     void clear();
+    
+    /// Set drawing size. May only be called from a callback.
     void initProjection(double x1, double x2, double y1, double y2);
+    
+    /// Draw a mechanical link. May only be called from draw() callback.
     void drawLink(double x1, double y1, double x2, double y2);
+    
+    /// Draw a center of mass. May only be called from draw() callback.
     void drawMass(double x, double y);
+    
+    /// Draw a mechanical joint. May only be called from draw() callback.
     void drawJoint(double x, double y);
         
+    /// Callback that draws the visualization.
     virtual void draw() { }
+    
+    /// Callback that is called periodically to allow for animation.
     virtual void idle() { }
+    
+    /// Callback that is called when the window shape is changed.
     virtual void reshape(int width, int height) { }
+    
+    /// Callback that is called when the window visibility changes.
     virtual void visible(int vis) { }
+    
+    /// Callback that is called when the window is closed.
     virtual void close() { }
 };
 
@@ -76,18 +101,34 @@ class Visualizer : public Configurable
   public:
     virtual ~Visualizer() { }
     
-    // Get singleton instance
+    /// Get singleton instance
     static Visualizer* instance() { return instance_; }
     
+    /// Called by a Visualization to create a window for it.
     virtual void createWindow(Visualization *window, const char *name) = 0;
+    
+    /// Called by a Visualization to destroy its window.
     virtual void destroyWindow(Visualization *window, bool glutDestroy=true) = 0;
+    
+    /// Called by a Visualization to refresh its window.
     virtual void refreshWindow(Visualization *window) = 0;
 
+    /// Called by a Visualization to swap buffers.
     virtual void swap() = 0;
+    
+    /// Called by a Visualization to clear background.
     virtual void clear() = 0;
+
+    /// Called by a Visualization to set drawing size.
     virtual void initProjection(double x1, double x2, double y1, double y2) = 0;
+
+    /// Called by a Visualization to draw a mechanical link.
     virtual void drawLink(double x1, double y1, double x2, double y2) = 0;
+
+    /// Called by a Visualization to draw a center of mass.
     virtual void drawMass(double x, double y) = 0;
+
+    /// Called by a Visualization to draw a mechanical joint.
     virtual void drawJoint(double x, double y) = 0;
 };
 

@@ -8,6 +8,8 @@ add_library(${TARGET} SHARED
             ${SRC}/agents/black_box.cpp
             ${SRC}/agents/td.cpp
             ${SRC}/agents/dyna.cpp
+            ${SRC}/agents/master.cpp
+            ${SRC}/agents/compartmentalized.cpp
             ${SRC}/configurable.cpp
             ${SRC}/discretizers/uniform.cpp
             ${SRC}/environments/observation.cpp
@@ -25,6 +27,7 @@ add_library(${TARGET} SHARED
             ${SRC}/policies/bounded_q.cpp
             ${SRC}/policies/parameterized.cpp
             ${SRC}/policies/pid.cpp
+            ${SRC}/policies/mcts.cpp
             ${SRC}/predictors/model.cpp
             ${SRC}/predictors/sarsa.cpp
             ${SRC}/predictors/ggq.cpp

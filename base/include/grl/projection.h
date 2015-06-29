@@ -42,6 +42,8 @@ class Projection
   public:
     virtual ~Projection() { }
     virtual Projection *clone() const = 0;
+    
+    /// Saturated subtraction, used for replacing traces.
     virtual void ssub(const Projection &rhs) = 0;
 };
 

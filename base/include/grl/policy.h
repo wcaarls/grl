@@ -40,13 +40,21 @@ class Policy : public Configurable
     virtual ~Policy() { }
     virtual Policy *clone() const = 0;
     
-    /// Called at the beginning of an episode.
+    /**
+     * \brief Returns an action based on the current state.
+     *
+     * Called at the beginning of an episode and by visualizations.
+     */
     virtual void act(const Vector &in, Vector *out) const
     {
       act(Vector(), Vector(), in, out);
     }
     
-    /// Called in subsequent steps.
+    /**
+     * \brief Returns an action based on the last state transition.
+     *
+     * Called in subsequent steps.
+     */
     virtual void act(const Vector &prev_in, const Vector &prev_out, const Vector &in, Vector *out) const
     {
       act(in, out);
@@ -59,11 +67,13 @@ class DiscretePolicy : public Policy
   public:
     virtual DiscretePolicy *clone() const = 0;
     
+    /// Returns action probability distribution based on the current state.
     virtual void distribution(const Vector &in, Vector *out) const
     {
       distribution(Vector(), Vector(), in, out);
     }
     
+    /// Returns action probability distribution based on the last state transition.
     virtual void distribution(const Vector &prev_in, const Vector &prev_out, const Vector &in, Vector *out) const
     {
       distribution(in, out);
@@ -75,8 +85,13 @@ class ParameterizedPolicy : public Policy
   public:
     virtual ParameterizedPolicy *clone() const = 0;
     
+    /// Returns number of policy parameters.
     virtual size_t size() const = 0;
+    
+    /// Returns constant policy parameter vector.
     virtual const Vector &params() const = 0;
+    
+    /// Returns policy parameter vector.
     virtual Vector &params() = 0;
 };
 

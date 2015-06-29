@@ -72,7 +72,7 @@ class ActionACPredictor : public Predictor
     virtual void finalize();
 };
 
-/// Actor-critic predictor for \link ProbabilityPolicy ProbabilityPolicies \endlink.
+/// Actor-critic predictor for \link ActionProbabilityPolicy ActionProbabilityPolicies \endlink.
 class ProbabilityACPredictor : public Predictor
 {
   public:

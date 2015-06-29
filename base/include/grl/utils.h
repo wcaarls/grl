@@ -32,6 +32,7 @@
 #include <math.h>
 #include <pthread.h>
 #include <iostream>
+#include <limits>
 #include <grl/vector.h>
 
 #ifdef WIN32
@@ -197,6 +198,7 @@ class RandGen
     }
 };
 
+/// Read a string as a certain type.
 template <typename T>
 inline bool convert(const std::string& str, T *obj)
 {
@@ -207,7 +209,7 @@ inline bool convert(const std::string& str, T *obj)
   return iss.eof();
 }
 
-// Sample from distribution
+/// Sample from distribution
 inline size_t sample(Vector dist)
 {
   double sum = 0;
@@ -226,6 +228,44 @@ inline size_t sample(Vector dist)
   
   return dist.size()-1;
 }
+
+class timer
+{
+  private:
+    struct timespec start_time_;
+
+  public:
+    timer()
+    {
+      restart();
+    }
+
+    void restart()
+    {
+      clock_gettime(CLOCK_MONOTONIC, &start_time_);
+    }
+
+    double elapsed() const
+    {
+      struct timespec now;
+      clock_gettime(CLOCK_MONOTONIC, &now);
+
+      return now.tv_sec - start_time_.tv_sec +
+             (now.tv_nsec - start_time_.tv_nsec) / 1000000000.0;
+    }
+
+    double elapsed_max() const
+    {
+      return std::numeric_limits<double>::infinity();
+    }
+
+    double elapsed_min() const
+    {
+      struct timespec res;
+      clock_getres(CLOCK_MONOTONIC, &res);
+      return res.tv_nsec/1000000000.;
+    }
+};
 
 }
 

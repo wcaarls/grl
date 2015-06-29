@@ -1,5 +1,5 @@
 /** \file state.cpp
- * \brief Simple state visualization source file.
+ * \brief Simple state plot source file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
  * \date      2015-02-15

@@ -1,8 +1,8 @@
-/** \file state.h
- * \brief Simple state plot header file.
+/** \file compartmentalized.h
+ * \brief Compartmentalized sub-agent header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-02-15
+ * \date      2015-06-16
  *
  * \copyright \verbatim
  * Copyright (c) 2015, Wouter Caarls
@@ -25,53 +25,42 @@
  * \endverbatim
  */
 
-#ifndef GRL_STATE_VISUALIZATION_H_
-#define GRL_STATE_VISUALIZATION_H_
+#ifndef GRL_COMPARTMENTALIZED_AGENT_H_
+#define GRL_COMPARTMENTALIZED_AGENT_H_
 
-#include <string.h>
-#include <pthread.h>
-
-#include <grl/state.h>
-#include <grl/visualization.h>
+#include <grl/agent.h>
 
 namespace grl
 {
 
-/// State plot.
-class StateVisualization : public Visualization, public itc::Thread
+/// Fixed-policy agent.
+class CompartmentalizedSubAgent : public SubAgent
 {
   public:
-    TYPEINFO("visualization/state", "Plots state values")
+    TYPEINFO("agent/sub/compartmentalized", "Sub agent that is valid in a fixed state-space region")
 
   protected:
-    State *state_;
-    std::deque<Vector> points_;
-    Vector dims_, min_, max_;
-    size_t memory_;
+    Agent *agent_;
+    Vector min_, max_;
     
-    Mutex mutex_;
-    bool updated_;
-    unsigned int list_;
-  
   public:
-    StateVisualization() : state_(NULL), memory_(256), updated_(true), list_(0)
-    {
-    }
-    
-    // From Configurable
+    CompartmentalizedSubAgent() : agent_(NULL) { }
+  
+    // From Configurable    
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
 
-    // From Visualization
-    virtual void idle(); 
-    virtual void draw(); 
-    virtual void reshape(int width, int height);
+    // From Agent
+    virtual CompartmentalizedSubAgent *clone() const;
+    virtual void start(const Vector &obs, Vector *action);
+    virtual void step(const Vector &obs, double reward, Vector *action);
+    virtual void end(double reward);
     
-    // From itc::Thread
-    virtual void run(); 
+    // From SubAgent
+    double confidence(const Vector &obs) const;
 };
 
 }
 
-#endif /* GRL_STATE_VISUALIZATION_H_ */
+#endif /* GRL_COMPARTMENTALIZED_AGENT_H_ */

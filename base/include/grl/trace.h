@@ -55,7 +55,10 @@ class Trace : public Configurable
         TraceIteratorImpl(iterator &it) : it_(it) { }
         virtual ~TraceIteratorImpl() { }
 
+        /// Projection.
         virtual const ProjectionPtr projection() const = 0;
+        
+        /// Eligibility.
         virtual double weight() const = 0;
 
       protected:
@@ -98,12 +101,22 @@ class Trace : public Configurable
     virtual ~Trace() { }
     virtual Trace *clone() const = 0;
 
+    /// Returns trace length.
     virtual size_t size() const = 0;
+    
+    /// Adds a projection to the trace.
     virtual void add(ProjectionPtr projection, double decay=1.0) = 0;
+    
+    /// Returns most recently added projection.
     virtual const ProjectionPtr back() const = 0;
+    
+    /// Clear the trace.
     virtual void clear() = 0;
 
+    /// Returns iterator pointing to start of trace.
     iterator begin() const { return iterator(*this); }
+    
+    /// Returns iterator pointing to beyond the end of the trace.
     iterator end() const { return iterator(size()); }
 };
 

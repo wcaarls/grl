@@ -39,6 +39,8 @@ class Discretizer : public Configurable
   public:
     virtual ~Discretizer() { }
     virtual Discretizer* clone() = 0;
+    
+    /// List of discrete points.
     virtual void options(std::vector<Vector> *out) const = 0;
 };
 

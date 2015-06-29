@@ -5,11 +5,14 @@
 \usepackage{upquote}
 \usepackage{xspace}
 \usepackage[usenames,dvipsnames]{color}
+\usepackage{graphicx}
+\usepackage{float}
 
 \newcommand{\inp}[1]{\texttt{\underline{#1}}}
 \newcommand{\txt}[1]{\texttt{#1}}
-\newcommand{\promptm}{wcaarls@vbox:\~{}/src/mprl\$\xspace}
-\newcommand{\promptmb}{wcaarls@vbox:\~{}/src/mprl/build\$\xspace}
+\newcommand{\promptm}{wcaarls@vbox:\~{}/src/grl\$\xspace}
+\newcommand{\promptmb}{wcaarls@vbox:\~{}/src/grl/build\$\xspace}
+\newcommand{\promptmn}{wcaarls@vbox:\~{}/src/grl/bin\$\xspace}
 
 \newcommand{\prompt}{wcaarls@vbox:\~{}\$\xspace}
 \newcommand{\prompth}{wcaarls@vbox:\~{}/indigo\_ws\$\xspace}
@@ -24,6 +27,10 @@
 \maketitle
 
 \section{Introduction}
+
+GRL is a C++ reinforcement learning library that aims to easily allow
+evaluating different algorithms through a declarative configuration
+interface.
 
 \section{Directory structure}
 
@@ -117,6 +124,25 @@ Otherwise, follow the standard CMake steps of (in the \txt{grl} directory)
 \txt{...}
 \end{code}
 
+\section{Running}
+
+The most important executables in grl are the deployer (\txt{grld}) and
+configurator (\txt{grlc}). The configurator allows you to generate configuration
+files easily. To see an example, run
+
+\begin{code}
+\promptmn ./grlc ../cfg/pendulum/sarsa\_tc.yaml
+\end{code}
+
+More information on the configurator can be found in
+Section~\ref{sec:grlc}. Once you have configured your experiment, you can either run it directly
+from the configurator, or save it and run it using the deployer. For
+example:
+
+\begin{code}
+\promptmb ./grld ../cfg/pendulum/sarsa\_tc.yaml
+\end{code}
+
 \section{Build environment}
 
 The whole \txt{grl} system is built as a single package, with the exception
@@ -139,9 +165,245 @@ include directory.
 
 \section{Class structure}
 
-\subsection{Class factories}
+Most classes in grl derive from \txt{Configurable}, a base class that
+standardizes configuration such that the object hierarchy may be constructed
+declaratively in a configuration file. Directly beneath \txt{Configurable}
+are the abstract base classes defining the operation of various parts of the
+reinforcement learning environment, being:
+\begin{description}
+\item[\txt{Agent}] RL-GLUE\footnote{\url{http://http://glue.rl-community.org}}
+style agent interface, receiving observations in an episodic manner and returning
+actions.
+\item[\txt{Discretizer}] Provides a list of discrete points spanning a
+continuous space.
+\item[\txt{Environment}] RL-GLUE style environment interface, receiving
+actions and returning observations.
+\item[\txt{Experiment}] Top-level interface, which typically calls the agent
+and environment in the correct manner, but may in general implement any
+experiment.
+\item[\txt{Optimizer}] Black-box optimization of control policies,
+suggesting policies and acting on their cumulative reward.
+\item[\txt{Policy}] Basic control policy that implements the state-action
+mapping.
+\item[\txt{Predictor}] Basic reinforcement learning interface that uses
+transitions to predict a value function or model.
+\item[\txt{Projector}] Projects an observation onto a feature vector,
+represented as a \txt{Projection}.
+\item[\txt{Representation}] Basic supervised learning interface that uses
+samples to approximate a function. As such, it generally supports reading,
+writing and updating of any vector-to-vector mapping.
+\item[\txt{Sampler}] (Stochastically) chooses an item from a vector of (generally
+unnormalized) values.
+\item[\txt{Trace}] Stores a trace of projections with associated
+eligibilities that can be iterated over.
+\item[\txt{Visualization}] Draws on the screen to visualize some aspect of
+the learning process.
+\item[\txt{Visualizer}] Keeps track of visualizations and provides the
+interface to the graphics subsystem.
+\end{description}
+
+Each abstract base class is generally implemented in various concrete
+classes, with or without additional hierarchy. A list can be requested by
+running 
+
+\begin{code}
+\promptmn ./grlq
+\end{code}
+
+A typical example of the information flow between the various classes can be seen in Figure~\ref{fig:td},
+which depicts the standard TD control setting.
+
+\begin{figure}
+\includegraphics[width=\linewidth]{td.pdf}
+\caption{Information flow diagram for regular TD control. Rectangles (and
+dashed rectangles) are \txt{Configurable} objects, while the others are the
+data passed between them.}
+\label{fig:td}
+\end{figure}
 
 \subsection{Configuration}
+
+Each \txt{Configurable} subclass must define its type and a short
+description using the \txt{TYPEINFO} macro:
+
+\begin{code}
+class OnlineLearningExperiment : public Experiment
+\{
+  public:
+    TYPEINFO("experiment/online_learning", "Interactive learning experiment")
+  
+  /* ... */
+\};
+\end{code}
+
+This textual description of the type is used to facilitate user
+configuration by limiting the selection of parameter values, as well as enforcing the type
+hierarchy. In general, the textual description should follow the C++ class
+hierarchy, but this is not obligatory.
+
+The basic \txt{Configurable} interface has three important functions:
+
+\subsubsection{\txt{request}}
+\begin{code}
+virtual void request(ConfigurationRequest *config);
+\end{code}
+
+\txt{request} is called by the configurator to find out which parameters the
+object requires to be set, and which parameters it exports for other objects
+to use. To do this, it should extend the given \txt{ConfigurationRequest}
+by pushing configuration request parameters (\txt{CRP}s). A basic \txt{CRP}
+has the following signature:
+
+\begin{code}
+CRP(string name, string desc, TYPE value)
+\end{code}
+
+where TYPE is one of int, double, Vector, or string. For example:
+
+\begin{code}
+config->push_back(CRP("steps", "Number of steps per learning run", steps_));
+config->push_back(CRP("output", "Output base filename", output_));
+\end{code}
+
+The \txt{value} argument is used both to determine the type of the parameter
+and the default value suggested by the configurator. \txt{request} may also
+be called while the program is running, in which case it is expected to
+return the current value of all parameters.
+
+To use other \txt{Configurable} objects as parameters, use
+
+\begin{code}
+CRP(string name, string type, string desc, Configurable *value)
+\end{code}
+
+The extra \txt{type} field restricts which \txt{Configurable} objects may
+be used to configure this parameter. Only objects whose \txt{TYPEINFO}
+starts with the given \txt{type} are eligible. For example:
+
+\begin{code}
+config->push_back(CRP("policy", "policy/parameterized",\\
+                      "Control policy prototype", policy_));
+\end{code}
+
+restricts the \txt{"policy"} parameter to classes derived from
+\txt{ParameterizedPolicy}. Note that this extra type hierarchy is related
+to, but not derived from the actual class hierarchy. Care must therefore be
+taken in the correct usage of \txt{TYPEINFO}.
+
+Some parameters are not requested, but rather \emph{provided} by an object. In
+that case. These have the following signature:
+
+\begin{code}
+CRP(string name, string type, string desc, CRP::Provided)
+\end{code}
+
+Examples of provided parameters are the number of observation dimensions
+(provided by \txt{Task}s) or the current system state (provided by some
+\txt{Environment}s).
+
+\subsubsection{\txt{configure}}
+
+\begin{code}
+virtual void configure(Configuration *config);
+\end{code}
+
+\txt{configure} is called after all parameters (including other
+\txt{Configurable} objects) have been initialized. The parameter values may
+be accessed using mapping syntax (\txt{config["parameter"]}). Note that
+\txt{Configurable} objects are passed as void pointers and must still be cast to
+their actual class:
+
+\begin{code}
+steps_ = config["steps"];  
+output_ = config["output"].str();
+policy_ = (ParameterizedPolicy*)config["policy"].ptr();
+\end{code}
+
+Note the use of \txt{.str()} and \txt{.ptr()} for strings and objects,
+respectively. Provided parameters should be written to the configuration
+instead of read, like so:
+
+\begin{code}
+config.set("state", state_);
+\end{code}
+
+\subsubsection{\txt{reconfigure}}
+\begin{code}
+virtual void reconfigure(const Configuration *config);
+\end{code}
+
+Some parameters may be defined as reconfigurable by appending
+\txt{CRP::Online} to the respective \txt{CRP} signature. In the case of a
+reconfiguration, \txt{reconfigure} will be called with the new values of
+those parameters in \txt{config}. \txt{reconfigure} may also be used for
+general messaging, equivalent to RL-GLUE's \txt{message} calls. In that
+case, it is often helpful to reconfigure all objects in the object
+hierarchy, which can be done using
+
+\begin{code}
+void Configurable::walk(const Configuration &config);
+\end{code}
+
+Examples are resetting the hierarchy for a new run (\txt{config["action"] =
+"reset"}) or saving the current state of all memories (\txt{config["action"]
+= "save"}). In the latter case, \txt{Configurable::path()} may be used to
+determine an object's location in the object hierarchy.
+
+\subsection{Roles}
+
+While using the configurator, the user often has to select previously
+defined objects as the value of certain parameters. If all such previously
+defined objects are presented as possibilities, the list would quickly grow
+very large. To make setting these parameters easier, a class may have
+various \emph{roles} while providing the same interface. In that case,
+only previously defined objects with a role that starts with the requested
+role are valid choices.
+
+An example is a \txt{Representation}, which may represent a state-value function,
+action-value function, control policy or model. Each has a different number
+of inputs and outputs, and chosing the wrong representation will result in
+mismatches. An object requesting a \txt{Representation} may therefore request
+a certain role. For example:
+
+\begin{code}
+config->push_back(CRP("representation", "representation.value/action",\\
+                      "Q-value representation", representation_));
+\end{code}
+
+requests any representation that represents action-values. A newly
+defined \txt{representation} will do, of course, but from the previously
+defined ones only the ones with the right role are eligible.
+
+The same strategy is used for basic types, for example:
+
+\begin{code}
+config->push_back(CRP("outputs", "int.action_dims",
+                      "Number of outputs", outputs_, CRP::System));
+\end{code}
+
+make sure the only suggested previously defined values for the
+\txt{"outputs"} parameter are ones with the \txt{"action\_dims"} role. As an added
+convenience, if the parameter is defined as a \emph{system parameter}
+(\txt{CRP::System}), meaning that the choice is not free but rather defined
+by the structure of the configuration, and only a single value was
+previously defined, that value is automatically used.
+
+The role that needs to be requested may depend on the role of the requesting
+object itself. In that case, the following signature for \txt{request}
+should be used:
+
+\begin{code}
+virtual void request(const std::string \&role, ConfigurationRequest *config);
+\end{code}
+
+\section{Configurator}
+\label{sec:grlc}
+
+\begin{figure}[H]
+\includegraphics[width=\linewidth]{grl.png}
+\caption{Python configurator user interface}
+\label{fig:conf}
+\end{figure}
 
 \section{Matlab interface}
 

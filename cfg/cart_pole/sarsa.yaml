@@ -1,7 +1,7 @@
 experiment: 
   type: experiment/online_learning
   runs: 1
-  trials: 20000
+  trials: 0
   steps: 0
   rate: 0
   test_interval: 10
@@ -27,21 +27,21 @@ experiment:
         type: discretizer/uniform
         min: experiment/environment/task/action_min
         max: experiment/environment/task/action_max
-        steps: [3]
+        steps: [ 3 ]
       projector: 
         type: projector/tile_coding
         tilings: 16
         memory: 67108864
-        resolution: [2.5, 0.157075, 2.5, 1.57075, 15]
-        wrapping: [0, 6.283, 0, 0, 0]
+        resolution: [ 2.5, 0.157075, 2.5, 1.57075, 15 ]
+        wrapping: [ 0, 6.283, 0, 0, 0 ]
       representation: 
         type: representation/parameterized/linear
-        init_min: [0]
-        init_max: [1]
+        init_min: [ 0 ]
+        init_max: [ 1 ]
         memory: experiment/agent/policy/projector/memory
         outputs: 1
-        output_min: []
-        output_max: []
+        output_min: [  ]
+        output_max: [  ]
       sampler: 
         type: sampler/epsilon_greedy
         epsilon: 0.05
@@ -63,18 +63,3 @@ experiment:
       representation: experiment/agent/policy/representation
       sampler: 
         type: sampler/greedy
-visualizer: 
-  type: visualizer/glut
-viz1: 
-  type: visualization/field/policy/value
-  field_dims: [0, 2]
-  input_min: experiment/environment/task/observation_min
-  input_max: experiment/environment/task/observation_max
-  points: 65536
-  projection: mean
-  projector: experiment/agent/policy/projector
-  representation: experiment/agent/policy/representation
-  policy: experiment/agent/policy
-viz2: 
-  type: visualization/cart_pole
-  state: experiment/state
