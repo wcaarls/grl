@@ -1058,6 +1058,14 @@ predictor/fqi:
     mutability: configuration
     default: 0
     optional: 0
+  rebuild_batch_size:
+    type: int
+    description: Number of episodes after which a batch is rebuild. Use 0 for no rebulds.
+    mutability: configuration
+    default: 10
+    optional: 1
+    min: 0
+    max: 2147483647
 predictor/ggq:
   description: Greedy-GQ off-policy value function predictor
   alpha:

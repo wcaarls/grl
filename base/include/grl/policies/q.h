@@ -63,7 +63,6 @@ class QPolicy : public DiscretePolicy
     virtual QPolicy *clone() const;
     virtual void act(const Vector &in, Vector *out) const;
     virtual void distribution(const Vector &in, Vector *out) const;
-    
     virtual void values(const Vector &in, Vector *out) const;
 };
 

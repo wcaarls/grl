@@ -94,7 +94,6 @@ class ERTree
     {
       return root_->read(input);
     }
-
     static Vector variance(StorePtr storeptr, size_t outputs);
 };
 
@@ -105,7 +104,7 @@ class ERTreeProjector : public SampleProjector
     TYPEINFO("projector/sample/ertree", "Projects onto samples found through the Extra-trees algorithm by Geurts et al.")
     
   public:
-    StorePtr store_;
+    StorePtr store_; // stores all samples
     ERTree **forest_;
     
     size_t max_samples_, trees_, splits_, leaf_size_, inputs_, outputs_, indexed_samples_;

@@ -1,10 +1,11 @@
 experiment: 
   type: experiment/online_learning
-  runs: 1
-  trials: 0
+  runs: 5
+  trials: 2000
   steps: 0
   rate: 0
-  test_interval: 1
+  test_interval: 10
+  output: compass_walker_sarsa
   environment: 
     type: environment/modeled
     model: 
@@ -22,21 +23,21 @@ experiment:
         type: discretizer/uniform
         min: experiment/environment/task/action_min
         max: experiment/environment/task/action_max
-        steps: [ 15 ]
+        steps: [15]
       projector: 
         type: projector/tile_coding
         tilings: 16
         memory: 8388608
-        resolution: [ 0.0838, 0.1047, 0.1111, 0.2222, 10, 1.2 ]
-        wrapping: [  ]
+        resolution: [0.0838, 0.1047, 0.1111, 0.2222, 10, 1.2]
+        wrapping: []
       representation: 
         type: representation/parameterized/linear
-        init_min: [ 0 ]
-        init_max: [ 1 ]
+        init_min: [0]
+        init_max: [1]
         memory: experiment/agent/policy/projector/memory
         outputs: 1
-        output_min: [  ]
-        output_max: [  ]
+        output_min: []
+        output_max: []
       sampler: 
         type: sampler/epsilon_greedy
         epsilon: 0.05
@@ -61,5 +62,15 @@ experiment:
 visualizer: 
   type: visualizer/glut
 visualization: 
+  type: visualization/field/policy/value
+  field_dims: [0, 1]
+  input_min: experiment/environment/task/observation_min
+  input_max: experiment/environment/task/observation_max
+  points: 65536
+  projection: mean
+  projector: experiment/agent/policy/projector
+  representation: experiment/agent/policy/representation
+  policy: experiment/test_agent/policy
+viz2: 
   type: visualization/compass_walker
-  state: experiment/environment/state
+  state: experiment/state

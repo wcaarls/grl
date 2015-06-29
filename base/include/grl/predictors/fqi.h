@@ -48,11 +48,14 @@ class FQIPredictor : public BatchPredictor
     Representation *representation_;
     QPolicy *policy_;
     size_t max_samples_, iterations_;
-    std::vector<Transition> transitions_;
+    std::vector<Transition> transitions_; // Transitions of all episodes are saved here
+    size_t rebuild_counter_, rebuild_batch_size_;
 
   public:
-    FQIPredictor() : gamma_(0.97), projector_(NULL), representation_(NULL), policy_(NULL), max_samples_(100000), iterations_(10) { }
-  
+    FQIPredictor() : gamma_(0.97), projector_(NULL), representation_(NULL), policy_(NULL),
+      max_samples_(100000), iterations_(10), rebuild_counter_(1), rebuild_batch_size_(10) { }
+    void rebuild();
+
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);

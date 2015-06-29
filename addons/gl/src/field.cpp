@@ -77,9 +77,9 @@ void FieldVisualization::configure(Configuration &config)
   dim_order_.push_back(dims_[1]);
   
   // Divide points among dimensions
-  dimpoints_ = pow(points_, 1./state_dims_);
-  points_ = pow(dimpoints_, state_dims_);
-  texpoints_ = dimpoints_*dimpoints_;
+  dimpoints_ = pow(points_, 1./state_dims_);  // size of texture along one dimention
+  points_ = pow(dimpoints_, state_dims_);     // number of points in which value function is evaluated
+  texpoints_ = dimpoints_*dimpoints_;         // size of texture (2D on a monitor)
   
   // Allocate texture
   data_ = (unsigned char*) malloc(texpoints_*3*sizeof(unsigned char));
@@ -151,6 +151,7 @@ void FieldVisualization::run()
         
         for (int dd=0; dd < state_dims_; ++dd)
         {
+          // In 'dim_order_' last 2 elements define visualized dimentions, along other elements value function is summed up.
           int oo = dim_order_[dd];
       
           ss[oo] = ss[oo] + delta[oo];

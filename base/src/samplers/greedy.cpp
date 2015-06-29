@@ -37,6 +37,7 @@ void GreedySampler::request(ConfigurationRequest *config)
 
 void GreedySampler::configure(Configuration &config)
 {
+  rand_ = new Rand();
 }
 
 void GreedySampler::reconfigure(const Configuration &config)
@@ -45,7 +46,10 @@ void GreedySampler::reconfigure(const Configuration &config)
 
 GreedySampler *GreedySampler::clone()
 {
-  return new GreedySampler();
+  GreedySampler *gs = new GreedySampler();
+  gs->rand_ = rand_->clone();
+
+  return gs;
 }
 
 size_t GreedySampler::sample(const Vector &values) const
@@ -55,7 +59,18 @@ size_t GreedySampler::sample(const Vector &values) const
   for (size_t ii=1; ii < values.size(); ++ii)
     if (values[ii] > values[mai])
       mai = ii;
+/*
+ * Commented code selects random index in case of multiple maximumum values
+ *
+  Vector same_values(values.size(), 0);
+  size_t jj = 0;
+  for (size_t ii=0; ii < values.size(); ++ii)
+    if (values[ii] == values[mai])
+      same_values[jj++] = ii;
 
+  if (jj != 0)
+    mai = same_values[rand_->getInteger(jj)];
+*/
   return mai;
 }
 

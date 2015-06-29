@@ -102,7 +102,7 @@ int main(int argc, char **argv)
     file = argv[optind];
     file.resize(file.rfind('.'));
   }
-  
+
   if (read)
   {
     Configuration loadconfig;
@@ -110,7 +110,7 @@ int main(int argc, char **argv)
     loadconfig.set("file", file + "-");
     configurator.walk(loadconfig);
   }
-  
+
   experiment->run();
   
   if (write)

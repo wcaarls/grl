@@ -127,7 +127,7 @@ void CompassWalkerWalkTask::start(int test, Vector *state) const
   CSWModelState swstate, initial_state;
 
   initial_state.init(0, 0.1534, -0.1561, 2.0*0.1534, -0.0073);
-  double initial_state_variation = 0.2;
+  double initial_state_variation = 0.2; // 0.2
   
   swstate.mStanceFootX = 0;
 

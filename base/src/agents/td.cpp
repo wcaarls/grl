@@ -59,6 +59,7 @@ TDAgent *TDAgent::clone() const
 void TDAgent::start(const Vector &obs, Vector *action)
 {
   predictor_->finalize();
+
   policy_->act(obs, action);
   
   prev_obs_ = obs;
@@ -71,7 +72,7 @@ void TDAgent::step(const Vector &obs, double reward, Vector *action)
   predictor_->update(Transition(prev_obs_, prev_action_, reward, obs, *action));
 
   prev_obs_ = obs;
-  prev_action_ = *action;  
+  prev_action_ = *action;
 }
 
 void TDAgent::end(double reward)

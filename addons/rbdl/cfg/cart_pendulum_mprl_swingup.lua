@@ -52,7 +52,7 @@ end
 -- Exported functions
 
 function configure(argstr)
-  T = 10
+  T = 3
   return {observation_dims = 4,
           observation_min = {-2.4, 0,         -5, -10*math.pi},
           observation_max = { 2.4, 2*math.pi,  5,  10*math.pi},
@@ -71,7 +71,7 @@ end
 function observe(state)
   if failed(state) then
     t = 2
-  elseif state[4] > T then
+  elseif state[4] > T - 1E-3 then
     t = 1
   else
     t = 0
@@ -86,7 +86,7 @@ function evaluate(state, action, next)
   else
     reward = getPotential(next) - getPotential(state)
     if succeeded(next) then
-      reward = reward + 1
+      reward = reward + 10
     end
     return reward
   end

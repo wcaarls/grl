@@ -190,6 +190,7 @@ model = {
         {
             name = "pendulum_com",
             parent = "pendulum",
+            body =  {mass = 0, com = {0,0,0}, inertia = get_sphere_inertia(0, 0)},
             joint = joints.fixed,
             joint_frame = {
                 r = pend_com,
