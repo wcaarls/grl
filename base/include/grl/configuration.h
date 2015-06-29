@@ -76,27 +76,28 @@ class bad_param : public Exception
 class ConfigurationParameter
 {
   protected:
-    mutable std::stringstream value_;
+    std::string value_;
 
   public:
     template <class T>
     ConfigurationParameter(T value)
     {
-      value_ << value;
+      std::ostringstream oss;
+      oss << value;
+      value_ = oss.str();
     }
 
     ConfigurationParameter(const ConfigurationParameter &other)
     {
-      value_.str(other.str());
+      value_ = other.str();
     }
     
     template <class T>
     bool get(T &value) const
     {
-      value_.clear();
-      value_.seekg(std::ios_base::beg);
-      value_ >> value;
-      return !value_.fail();
+      std::istringstream iss(value_);
+      iss >> value;
+      return !iss.fail();
     }
 
     template<class T>
@@ -104,20 +105,20 @@ class ConfigurationParameter
     {
       T value;
       if (!get(value))
-        throw Exception("Parameter type mismatch while converting '" + value_.str() + "' to " + type_name<T>::name);
+        throw Exception("Parameter type mismatch while converting '" + value_ + "' to " + type_name<T>::name);
       return value;
     }
     
     std::string str() const
     {
-      return value_.str();
+      return value_;
     }
     
     void *ptr() const
     {
       void *value;
       if (!get(value))
-        throw Exception("Parameter type mismatch while converting '" + value_.str() + "' to pointer");
+        throw Exception("Parameter type mismatch while converting '" + value_ + "' to pointer");
       return value;
     }
 };
@@ -129,7 +130,7 @@ class Configuration
     typedef std::map<std::string, const ConfigurationParameter*> MapType;
 
   protected:
-    mutable MapType parameters_;
+    MapType parameters_;
 
   public:
     Configuration()
@@ -138,7 +139,7 @@ class Configuration
   
     Configuration(const Configuration &other)
     {
-      for (MapType::iterator ii=other.parameters_.begin(); ii != other.parameters_.end(); ++ii)
+      for (MapType::const_iterator ii=other.parameters_.begin(); ii != other.parameters_.end(); ++ii)
         parameters_[ii->first] = new ConfigurationParameter(*ii->second);
     }
   
@@ -164,7 +165,7 @@ class Configuration
     
     void merge(const Configuration &other)
     {
-      for (MapType::iterator ii=other.parameters_.begin(); ii != other.parameters_.end(); ++ii)
+      for (MapType::const_iterator ii=other.parameters_.begin(); ii != other.parameters_.end(); ++ii)
         parameters_[ii->first] = new ConfigurationParameter(*ii->second);
     }
 
@@ -184,7 +185,7 @@ class Configuration
     {
       if (has(key))
       {
-        if (!parameters_[key]->get(value))
+        if (!parameters_.at(key)->get(value))
           throw Exception("Parameter type mismatch for '" + key + "'");
 
         return true;
@@ -200,7 +201,7 @@ class Configuration
     {
       if (has(key))
       {
-        if (!parameters_[key]->get(value))
+        if (!parameters_.at(key)->get(value))
           throw Exception("Parameter type mismatch for '" + key + "'");
 
         return true;
@@ -217,7 +218,7 @@ class Configuration
       if (!has(key))
         throw Exception("Parameter '" + key + "' not set");
 
-      return *parameters_[key];
+      return *parameters_.at(key);
     }
 
     template<class T>

@@ -50,7 +50,7 @@ class Agent : public Configurable
     virtual void end(double reward) = 0;
     
     /// Progress report.
-    virtual void report(std::ostream &os) const { }
+    virtual void report(std::ostream &os) { }
 };
 
 /// Agent that is aware of its validity and can be used in conjunction with other agents.

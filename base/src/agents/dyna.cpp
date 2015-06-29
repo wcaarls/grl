@@ -124,7 +124,7 @@ void DynaAgent::end(double reward)
   control_steps_++;
 }
 
-void DynaAgent::report(std::ostream &os) const
+void DynaAgent::report(std::ostream &os)
 {
   os << std::setw(15) << actual_reward_/control_steps_ << std::setw(15) << planning_reward_/planned_steps_ << std::setw(15) << total_planned_steps_;
   

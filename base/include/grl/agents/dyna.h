@@ -54,8 +54,8 @@ class DynaAgent : public Agent
     Vector start_obs_, prev_obs_, prev_action_;
     size_t planning_steps_, planning_horizon_, total_planned_steps_;
     
-    mutable double planning_reward_, actual_reward_;
-    mutable size_t planned_steps_, control_steps_;
+    double planning_reward_, actual_reward_;
+    size_t planned_steps_, control_steps_;
     
   public:
     DynaAgent() : policy_(NULL), predictor_(NULL), model_(NULL), model_predictor_(NULL), model_agent_(NULL), state_(NULL), planning_steps_(1), planning_horizon_(100), total_planned_steps_(0), planning_reward_(0.), actual_reward_(0.), planned_steps_(0), control_steps_(0) { }
@@ -70,7 +70,7 @@ class DynaAgent : public Agent
     virtual void start(const Vector &obs, Vector *action);
     virtual void step(const Vector &obs, double reward, Vector *action);
     virtual void end(double reward);
-    virtual void report(std::ostream &os) const;
+    virtual void report(std::ostream &os);
     
   protected:
     void runModel();
