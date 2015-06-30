@@ -98,8 +98,9 @@ void OnlineLearningExperiment::run()
     if (!output_.empty())
     {
       std::ostringstream oss;
-      oss << output_ << "-" << rr << ".txt";
-      ofs.open(oss.str().c_str());
+      oss << output_ << "-" << rr;
+      ofs.open((oss.str()+".txt").c_str());
+      csv_.start((oss.str()+".csv").c_str(), 4, 1, 0);
     }
     
     for (size_t ss=0, tt=0; (!trials_ || tt < trials_) && (!steps_ || ss < steps_); ++tt)
@@ -125,7 +126,9 @@ void OnlineLearningExperiment::run()
         environment_->step(action, &obs, &reward, &terminal);
         
         CRAWL(action << " - " << reward << " -> " << obs);
-        
+
+        csv_.log(0.2, obs, action, reward);
+
         total_reward += reward;
         
         if (terminal == 2)
@@ -166,6 +169,8 @@ void OnlineLearningExperiment::run()
     
     if (ofs.is_open())
       ofs.close();
+
+    csv_.stop();
       
     if (rr < runs_ - 1)
       reset();

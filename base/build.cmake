@@ -46,6 +46,7 @@ add_library(${TARGET} SHARED
             ${SRC}/visualizations/pendulum.cpp
             ${SRC}/visualizations/cart_pole.cpp
             ${SRC}/visualizations/compass_walker.cpp
+            ${SRC}/log/export_csv.cpp
            )
 
 # Dependencies

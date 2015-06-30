@@ -31,6 +31,7 @@
 #include <grl/agent.h>
 #include <grl/environment.h>
 #include <grl/experiment.h>
+#include <grl/log/export_csv.h>
 
 namespace grl
 {
@@ -49,6 +50,8 @@ class OnlineLearningExperiment : public Experiment
     size_t runs_, trials_, steps_, test_interval_;
     double rate_;
     std::string output_;
+
+    ExportCSV csv_;
 
   public:
     OnlineLearningExperiment() : agent_(NULL), test_agent_(NULL), environment_(NULL), state_(NULL), runs_(1), trials_(0), steps_(0), test_interval_(0), rate_(0) { }

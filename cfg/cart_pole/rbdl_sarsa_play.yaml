@@ -1,9 +1,9 @@
 experiment: 
   type: experiment/online_learning
   runs: 1
-  trials: 10000
+  trials: 5000
   steps: 0
-  rate: 0
+  rate: 20
   test_interval: 10
   environment: 
     type: environment/modeled
@@ -16,7 +16,7 @@ experiment:
         file: cart_pendulum_mprl.lua
     task: 
       type: task/lua
-      file: cart_pendulum_mprl_swingup.lua
+      file: cart_pendulum_mprl_swingup_play.lua
   agent: 
     type: agent/td
     policy: 
@@ -42,10 +42,10 @@ experiment:
         output_max: []
       sampler: 
         type: sampler/epsilon_greedy
-        epsilon: 0.05
+        epsilon: 0
     predictor: 
       type: predictor/sarsa
-      alpha: 0.2
+      alpha: 0
       gamma: 0.97
       lambda: 0.65
       projector: experiment/agent/policy/projector
@@ -61,3 +61,18 @@ experiment:
       representation: experiment/agent/policy/representation
       sampler: 
         type: sampler/greedy
+visualiser: 
+  type: visualizer/glut
+visualisation: 
+  type: visualization/cart_pole
+  state: experiment/environment/state
+visualisation2: 
+  type: visualization/field/policy/value
+  field_dims: [0, 2]
+  input_min: experiment/environment/task/observation_min
+  input_max: experiment/environment/task/observation_max
+  points: 65536
+  projection: mean
+  projector: experiment/agent/policy/projector
+  representation: experiment/agent/policy/representation
+  policy: experiment/test_agent/policy
