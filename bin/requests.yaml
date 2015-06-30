@@ -1210,6 +1210,70 @@ predictor/model:
     mutability: configuration
     default: 0
     optional: 0
+predictor/qv:
+  description: QV on-policy value function predictor
+  alpha:
+    type: double
+    description: State-action value learning rate
+    mutability: configuration
+    default: 0.2
+    optional: 1
+    min: 0
+    max: 1
+  beta:
+    type: double
+    description: State value learning rate
+    mutability: configuration
+    default: 0.1
+    optional: 1
+    min: 0
+    max: 1
+  gamma:
+    type: double
+    description: Discount rate
+    mutability: configuration
+    default: 0.97
+    optional: 1
+    min: 0
+    max: 1
+  lambda:
+    type: double
+    description: Trace decay rate
+    mutability: configuration
+    default: 0.65
+    optional: 1
+    min: 0
+    max: 1
+  q_projector:
+    type: projector.pair
+    description: Projects observation-action pairs onto representation space
+    mutability: configuration
+    default: 0
+    optional: 0
+  q_representation:
+    type: representation.value/action
+    description: State-action value representation (Q)
+    mutability: configuration
+    default: 0
+    optional: 0
+  v_projector:
+    type: projector.observation
+    description: Projects observations onto representation space
+    mutability: configuration
+    default: 0
+    optional: 0
+  v_representation:
+    type: representation.value/state
+    description: State value representation (V)
+    mutability: configuration
+    default: 0
+    optional: 0
+  trace:
+    type: trace
+    description: Trace of projections
+    mutability: configuration
+    default: 0
+    optional: 0
 predictor/sarsa:
   description: SARSA on-policy value function predictor
   alpha:

@@ -76,7 +76,7 @@ void CompartmentalizedSubAgent::end(double reward)
 double CompartmentalizedSubAgent::confidence(const Vector &obs) const
 {
   if (!min_.size())
-    return 1.;
+    return 0.999;
 
   if (obs.size() != min_.size())
     throw bad_param("agent/sub/compartmentalized:{min,max}");
