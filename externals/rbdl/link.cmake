@@ -7,7 +7,7 @@ if (RBDL_FOUND)
 
   if (LUA_ADDON_LIB AND LUA_ADDON_INC)
     include_directories(${RBDL_INCLUDE_DIRS})
-    target_link_libraries(${TARGET} ${RBDL_LIBRARIES})
+    target_link_libraries(${TARGET} ${RBDL_LIBRARIES} rbdl_luamodel)
     set_target_properties(${TARGET} PROPERTIES LINK_FLAGS -Wl,-rpath,${RBDL_LIBRARY_DIRS})
     return()
   endif()
