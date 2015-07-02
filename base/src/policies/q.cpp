@@ -75,13 +75,6 @@ void QPolicy::values(const Vector &in, Vector *out) const
     (*out)[ii] = representation_->read(projections[ii], &value);
 }
 
-void QPolicy::distribution(const Vector &in, Vector *out) const
-{
-  Vector qvalues;
-  values(in, &qvalues);
-  sampler_->distribution(qvalues, out);
-}
-
 void QPolicy::act(const Vector &in, Vector *out) const
 {
   Vector qvalues;

@@ -46,7 +46,7 @@ class Environment : public Configurable
     virtual void start(int test, Vector *obs) = 0;
     
     /// Take a step, returning the next observation, reward, and whether the episode terminated.
-    virtual void step(const Vector &action, Vector *obs, double *reward, int *terminal) = 0;
+    virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal) = 0;
 };
 
 /// Random-access transition model (works on states instead of observations).
@@ -56,7 +56,7 @@ class Model : public Configurable
     virtual ~Model() { }
     virtual Model *clone() const = 0;
 
-    virtual void step(const Vector &state, const Vector &action, Vector *next) const = 0;
+    virtual double step(const Vector &state, const Vector &action, Vector *next) const = 0;
 };
 
 class Task : public Configurable
@@ -118,7 +118,7 @@ class ModeledEnvironment : public Environment
     // From Environment
     virtual ModeledEnvironment *clone() const;
     virtual void start(int test, Vector *obs);
-    virtual void step(const Vector &action, Vector *obs, double *reward, int *terminal);
+    virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal);
 };
 
 /// Equations of motion.
@@ -152,7 +152,7 @@ class DynamicalModel : public Model
     
     // From Model
     virtual DynamicalModel *clone() const;
-    virtual void step(const Vector &state, const Vector &action, Vector *next) const;
+    virtual double step(const Vector &state, const Vector &action, Vector *next) const;
 };
 
 }

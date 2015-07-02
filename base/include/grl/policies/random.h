@@ -72,10 +72,9 @@ class RandomDiscretePolicy : public Policy
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
 
-    // From DiscretePolicy
+    // From Policy
     virtual RandomDiscretePolicy *clone() const;
     virtual void act(const Vector &in, Vector *out) const;
-    virtual void distribution(const Vector &in, Vector *out) const;
 };
 
 }

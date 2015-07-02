@@ -506,6 +506,14 @@ model/dynamical:
     optional: 0
 observation_model/approximated:
   description: Observation model based on observed transitions
+  control_step:
+    type: double.control_step
+    description: Control step time (0 = estimate using SMDP approximator)
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
   differential:
     type: int.differential
     description: Predict state deltas
@@ -560,6 +568,14 @@ observation_model/fixed:
     optional: 0
 observation_model/fixed_reward:
   description: Observation model based on observed transitions but known task
+  control_step:
+    type: double.control_step
+    description: Control step time (0 = estimate using SMDP approximator)
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
   differential:
     type: int.differential
     description: Predict state deltas
@@ -798,14 +814,6 @@ policy/nmpc:
     optional: 1
     min: 1
     max: 2147483647
-  control_step:
-    type: double.control_step
-    description: Control step time
-    mutability: system
-    default: 0.05
-    optional: 1
-    min: 0.001
-    max: 1.797693134862316e+308
 policy/parameterized/action:
   description: Parameterized policy based on a direct action representation
   sigma:
@@ -1669,6 +1677,16 @@ sampler/epsilon_greedy:
     max: 1
 sampler/greedy:
   description: Maximum search
+sampler/softmax:
+  description: Softmax (Gibbs/Boltzmann) sampler
+  tau:
+    type: double
+    description: Temperature of Boltzmann distribution
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 0.001
+    max: 100
 task/cart_pole/balancing:
   description: Cart-pole balancing task
   observation_dims:

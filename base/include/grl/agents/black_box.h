@@ -45,12 +45,10 @@ class BlackBoxAgent : public Agent
     Policy *policy_;
     Optimizer *optimizer_;
     size_t index_, episode_, episodes_;
-    double reward_;
-
-    Vector prev_obs_, prev_action_;
+    double reward_, time_;
     
    public:
-     BlackBoxAgent() : policy_(NULL), optimizer_(NULL), index_(0), episode_(0), episodes_(1), reward_(0) { }
+     BlackBoxAgent() : policy_(NULL), optimizer_(NULL), index_(0), episode_(0), episodes_(1), reward_(0), time_(0.) { }
      
     // From Configurable    
     virtual void request(ConfigurationRequest *config);
@@ -60,8 +58,8 @@ class BlackBoxAgent : public Agent
     // From Agent
     virtual BlackBoxAgent *clone() const;
     virtual void start(const Vector &obs, Vector *action);
-    virtual void step(const Vector &obs, double reward, Vector *action);
-    virtual void end(double reward);
+    virtual void step(double tau, const Vector &obs, double reward, Vector *action);
+    virtual void end(double tau, double reward);
 };
 
 }

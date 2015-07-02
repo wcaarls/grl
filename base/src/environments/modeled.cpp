@@ -74,16 +74,18 @@ void ModeledEnvironment::start(int test, Vector *obs)
   state_obj_->set(state_);
 }
 
-void ModeledEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)
+double ModeledEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)
 {
   Vector next;
 
-  model_->step(state_, action, &next);
+  double tau = model_->step(state_, action, &next);
   task_->observe(next, obs, terminal);
   task_->evaluate(state_, action, next, reward);
   state_ = next;
   
   state_obj_->set(state_);
+  
+  return tau;
 }
 
 void DynamicalModel::request(ConfigurationRequest *config)
@@ -113,7 +115,7 @@ DynamicalModel *DynamicalModel::clone() const
   return dm;
 }
 
-void DynamicalModel::step(const Vector &state, const Vector &action, Vector *next) const
+double DynamicalModel::step(const Vector &state, const Vector &action, Vector *next) const
 {
   Vector xd;
   double h = tau_/steps_;
@@ -133,4 +135,6 @@ void DynamicalModel::step(const Vector &state, const Vector &action, Vector *nex
 
     *next = *next + (k1+2*k2+2*k3+k4)/6;
   }
+  
+  return tau_;
 }

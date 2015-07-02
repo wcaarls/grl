@@ -118,20 +118,27 @@ void mexFunction(int nlhs, mxArray *plhs[ ],
     
     // Verify input    
     if (nrhs < 2 || !mxIsDouble(prhs[1]))
-      mexErrMsgTxt("Missing reward.");
+      mexErrMsgTxt("Missing tau.");
     
     if (nrhs < 3 || !mxIsDouble(prhs[2]))
-      mexErrMsgTxt("Missing state.");
+      mexErrMsgTxt("Missing reward.");
     
+    if (nrhs < 4 || !mxIsDouble(prhs[3]))
+      mexErrMsgTxt("Missing state.");
+      
     if (mxGetNumberOfElements(prhs[1]) != 1)
+      mexErrMsgTxt("Invalid tau.");
+
+    if (mxGetNumberOfElements(prhs[2]) != 1)
       mexErrMsgTxt("Invalid reward.");
     
     // Prepare input
-    double reward = mxGetPr(prhs[1])[0];
-    Vector obs = arrayToVector(prhs[2]);
+    double tau = mxGetPr(prhs[1])[0];
+    double reward = mxGetPr(prhs[2])[0];
+    Vector obs = arrayToVector(prhs[3]);
   
     // Run agent
-    g_agent->step(obs, reward, &action);
+    g_agent->step(tau, obs, reward, &action);
     
     // Process output
     plhs[0] = vectorToArray(action);
@@ -140,16 +147,23 @@ void mexFunction(int nlhs, mxArray *plhs[ ],
   {
     // Verify input    
     if (nrhs < 2 || !mxIsDouble(prhs[1]))
+      mexErrMsgTxt("Missing tau.");
+    
+    if (nrhs < 3 || !mxIsDouble(prhs[2]))
       mexErrMsgTxt("Missing reward.");
     
     if (mxGetNumberOfElements(prhs[1]) != 1)
+      mexErrMsgTxt("Invalid tau.");
+
+    if (mxGetNumberOfElements(prhs[2]) != 1)
       mexErrMsgTxt("Invalid reward.");
     
     // Prepare input
-    double reward = mxGetPr(prhs[1])[0];
+    double tau = mxGetPr(prhs[1])[0];
+    double reward = mxGetPr(prhs[2])[0];
   
     // Run agent
-    g_agent->end(reward);
+    g_agent->end(tau, reward);
   }
   else
     mexErrMsgTxt("Unknown command.");

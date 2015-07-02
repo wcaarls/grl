@@ -42,7 +42,6 @@ void NMPCPolicy::request(ConfigurationRequest *config)
   config->push_back(CRP("model_path", "Path to MUSCOD model library", model_path_));
   config->push_back(CRP("model_name", "Name of MUSCOD model library", model_name_));
   config->push_back(CRP("outputs", "int.action_dims", "Number of outputs", (int)outputs_, CRP::System, 1));
-  config->push_back(CRP("control_step", "double.control_step", "Control step time", tau_, CRP::System, 0.001, DBL_MAX));
 }
 
 void NMPCPolicy::configure(Configuration &config)
@@ -52,7 +51,6 @@ void NMPCPolicy::configure(Configuration &config)
   model_path_ = config["model_path"].str();
   model_name_ = config["model_name"].str();
   outputs_ = config["outputs"];
-  tau_ = config["control_step"];
         
   muscod_->setModelPathAndName(model_path_.c_str(), model_name_.c_str());
   muscod_->loadFromDatFile(NULL, NULL);
@@ -67,15 +65,11 @@ NMPCPolicy *NMPCPolicy::clone() const
   return NULL;
 }
 
-void NMPCPolicy::act(const Vector &in, Vector *out) const
+void NMPCPolicy::act(double time, const Vector &in, Vector *out)
 {
-  muscod_->nmpcInitialize(muscod_->getSSpec(), NULL, NULL);
-  time_ = 0.;
-  act(in, *out, in, out);
-}
+  if (time == 0.)
+    muscod_->nmpcInitialize(muscod_->getSSpec(), NULL, NULL);
 
-void NMPCPolicy::act(const Vector &prev_in, const Vector &prev_out, const Vector &in, Vector *out) const
-{
   out->resize(outputs_);
   for (int ii=0; ii < 3; ++ii)
   {
@@ -84,12 +78,11 @@ void NMPCPolicy::act(const Vector &prev_in, const Vector &prev_out, const Vector
     muscod_->nmpcPrepare();
   }
   
-  time_ += tau_;
   DVec pf_lo = muscod_->data.dataMSSQP->vbnd.lo.pf;
   DVec pf_up = muscod_->data.dataMSSQP->vbnd.up.pf;
   for (int ii = 0; ii < muscod_->data.dataMSSQP->vdim.pf; ++ii) {
-      V_EACC(pf_up, ii) = time_;
-      V_EACC(pf_lo, ii) = time_;
+      V_EACC(pf_up, ii) = time;
+      V_EACC(pf_lo, ii) = time;
   }
   scale_pf(pf_lo);
   scale_pf(pf_up);

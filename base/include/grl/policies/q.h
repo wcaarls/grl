@@ -38,7 +38,7 @@ namespace grl
 {
 
 /// Policy based on an action-value Representation.
-class QPolicy : public DiscretePolicy
+class QPolicy : public Policy
 {
   public:
     TYPEINFO("policy/discrete/q", "Q-value based policy")
@@ -62,7 +62,6 @@ class QPolicy : public DiscretePolicy
     // From DiscretePolicy
     virtual QPolicy *clone() const;
     virtual void act(const Vector &in, Vector *out) const;
-    virtual void distribution(const Vector &in, Vector *out) const;
     
     virtual void values(const Vector &in, Vector *out) const;
 };

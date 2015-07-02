@@ -59,7 +59,7 @@ FixedObservationModel *FixedObservationModel::clone() const
   return om;
 }
 
-void FixedObservationModel::step(const Vector &obs, const Vector &action, Vector *next, double *reward, int *terminal) const
+double FixedObservationModel::step(const Vector &obs, const Vector &action, Vector *next, double *reward, int *terminal) const
 {
   Vector state, next_state;
   
@@ -67,18 +67,21 @@ void FixedObservationModel::step(const Vector &obs, const Vector &action, Vector
   {
     ERROR("Task does not support inversion");
     next->clear();
-    return;
+    return 0.;
   }
   
-  model_->step(state, action, &next_state);
+  double tau = model_->step(state, action, &next_state);
   task_->observe(next_state, next, terminal);
   task_->evaluate(state, action, next_state, reward);
+  
+  return tau;
 }
 
 // ApproximatedObservationModel
 
 void ApproximatedObservationModel::request(ConfigurationRequest *config)
 {
+  config->push_back(CRP("control_step", "double.control_step", "Control step time (0 = estimate using SMDP approximator)", tau_, CRP::System, 0., DBL_MAX));
   config->push_back(CRP("differential", "int.differential", "Predict state deltas", differential_, CRP::Configuration, 0, 1));
   config->push_back(CRP("wrapping", "vector.wrapping", "Wrapping boundaries", wrapping_));
   config->push_back(CRP("observation_min", "vector.observation_min", "Lower limit on observations", observation_min_, CRP::System));
@@ -99,6 +102,14 @@ void ApproximatedObservationModel::configure(Configuration &config)
   if (observation_min_.empty() || observation_min_.size() != observation_max_.size())
     throw bad_param("observation_model/approximated:{observation_min,observation_max}");
   
+  tau_ = config["control_step"];
+  
+  if (tau_ == 0.)
+  {
+    ERROR("SMDP model approximation not supported");
+    throw bad_param("observation_model/approximated:control_step");
+  }
+    
   differential_ = config["differential"];
   wrapping_ = config["wrapping"];
   
@@ -121,20 +132,20 @@ ApproximatedObservationModel *ApproximatedObservationModel::clone() const
   return om;
 }
 
-void ApproximatedObservationModel::step(const Vector &obs, const Vector &action, Vector *next, double *reward, int *terminal) const
+double ApproximatedObservationModel::step(const Vector &obs, const Vector &action, Vector *next, double *reward, int *terminal) const
 {
   ProjectionPtr p = projector_->project(extend(obs, action)); 
   
   if (!p)
   {
     next->clear();
-    return;
+    return 0.;
   }
  
   representation_->read(p, next);
   
   if (next->empty())
-    return;
+    return 0.;
 
   *reward = (*next)[next->size()-2];
   *terminal = 2*(RandGen::get() < (*next)[next->size()-1]);
@@ -152,9 +163,11 @@ void ApproximatedObservationModel::step(const Vector &obs, const Vector &action,
     if (obs[ii] < observation_min_[ii] || obs[ii] > observation_max_[ii])
     {
       next->clear();
-      return;
+      return 0.;
     }
   }
+  
+  return tau_;
 }
 
 // FixedRewardObservationModel
@@ -186,21 +199,23 @@ FixedRewardObservationModel *FixedRewardObservationModel::clone() const
   return om;
 }
 
-void FixedRewardObservationModel::step(const Vector &obs, const Vector &action, Vector *next, double *reward, int *terminal) const
+double FixedRewardObservationModel::step(const Vector &obs, const Vector &action, Vector *next, double *reward, int *terminal) const
 {
-  ApproximatedObservationModel::step(obs, action, next, reward, terminal);
+  double tau = ApproximatedObservationModel::step(obs, action, next, reward, terminal);
   
   if (next->empty())
-    return;
+    return 0.;
   
   Vector state, next_state, next_obs;
   if (!task_->invert(obs, &state))
   {
     WARNING("Task does not support inversion");
-    return;
+    return 0.;
   }
   
   task_->invert(*next, &next_state);
   task_->evaluate(state, action, next_state, reward);
   task_->observe(next_state, &next_obs, terminal);
+  
+  return tau;
 }

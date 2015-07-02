@@ -42,10 +42,10 @@ class FixedAgent : public Agent
 
   protected:
     Policy *policy_;
-    Vector prev_obs_, prev_action_;
+    double time_;
     
   public:
-    FixedAgent() : policy_(NULL) { }
+    FixedAgent() : policy_(NULL), time_(0.) { }
   
     // From Configurable    
     virtual void request(ConfigurationRequest *config);
@@ -55,8 +55,8 @@ class FixedAgent : public Agent
     // From Agent
     virtual FixedAgent *clone() const;
     virtual void start(const Vector &obs, Vector *action);
-    virtual void step(const Vector &obs, double reward, Vector *action);
-    virtual void end(double reward);
+    virtual void step(double tau, const Vector &obs, double reward, Vector *action);
+    virtual void end(double tau, double reward);
 };
 
 }

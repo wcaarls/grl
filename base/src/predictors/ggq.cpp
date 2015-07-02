@@ -74,7 +74,7 @@ void GGQPredictor::update(const Transition &transition)
   if (!transition.obs.empty())
   {
     Vector action;
-    policy_->act(transition.prev_obs, transition.prev_action, transition.obs, &action);
+    policy_->act(transition.obs, &action);
     phi_next = projector_->project(transition.obs, action);
     target += gamma_*representation_->read(phi_next, &v);
   }

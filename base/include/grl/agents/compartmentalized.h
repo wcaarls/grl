@@ -54,8 +54,8 @@ class CompartmentalizedSubAgent : public SubAgent
     // From Agent
     virtual CompartmentalizedSubAgent *clone() const;
     virtual void start(const Vector &obs, Vector *action);
-    virtual void step(const Vector &obs, double reward, Vector *action);
-    virtual void end(double reward);
+    virtual void step(double tau, const Vector &obs, double reward, Vector *action);
+    virtual void end(double tau, double reward);
     
     // From SubAgent
     double confidence(const Vector &obs) const;

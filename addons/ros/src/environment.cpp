@@ -35,6 +35,7 @@ void ROSEnvironment::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("node", "ROS node name", node_));
   config->push_back(CRP("args", "ROS command-line arguments", args_));
+  config->push_back(CRP("control_step", "double.control_step", "Control step time", tau_, CRP::Configuration, 0.001, DBL_MAX));
 
   config->push_back(CRP("observation_dims", "int.observation_dims", "Number of observation dimensions", CRP::Provided));
   config->push_back(CRP("observation_min", "vector.observation_min", "Lower limit on observations", CRP::Provided));
@@ -117,7 +118,7 @@ void ROSEnvironment::start(int test, Vector *obs)
   running_ = true;
 }
 
-void ROSEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)
+double ROSEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)
 {
   if (!running_)
     throw Exception("Cannot step environment because ROS environment is not running");
@@ -133,6 +134,8 @@ void ROSEnvironment::step(const Vector &action, Vector *obs, double *reward, int
   
   if (*terminal)
     running_ = false;
+    
+  return tau_;
 }
 
 void ROSEnvironment::callbackDesc(const mprl_msgs::EnvDescription::ConstPtr &descmsg)

@@ -126,7 +126,7 @@ void mexFunction(int nlhs, mxArray *plhs[ ],
     Vector obs;
     double reward;
     int terminal;
-    g_env->step(action, &obs, &reward, &terminal);
+    double tau = g_env->step(action, &obs, &reward, &terminal);
     
     // Process output
     plhs[0] = vectorToArray(obs);
@@ -134,6 +134,8 @@ void mexFunction(int nlhs, mxArray *plhs[ ],
       plhs[1] = mxCreateDoubleScalar(reward);
     if (nlhs > 2)
       plhs[2] = mxCreateDoubleScalar(terminal);
+    if (nlhs > 3)
+      plhs[3] = mxCreateDoubleScalar(tau);
   }
   else
     mexErrMsgTxt("Unknown command.");

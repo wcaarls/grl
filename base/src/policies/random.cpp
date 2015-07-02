@@ -89,8 +89,3 @@ void RandomDiscretePolicy::act(const Vector &in, Vector *out) const
 {
   *out = options_[RandGen::getInteger(options_.size())];
 }
-
-void RandomDiscretePolicy::distribution(const Vector &in, Vector *out) const
-{
-  out->resize(options_.size(), 1./options_.size());
-}

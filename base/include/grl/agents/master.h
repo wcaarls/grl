@@ -41,15 +41,15 @@ class MasterAgent : public Agent
 
   protected:
     std::vector<SubAgent*> agent_;
-    std::vector<bool> started_;
+    std::vector<double> time_;
     double gamma_, reward_;
     int last_agent_, smdp_steps_;
     
   public:
-    MasterAgent() : agent_(2), started_(2), gamma_(0.97), reward_(0), last_agent_(-1), smdp_steps_(0)
+    MasterAgent() : agent_(2), time_(2), gamma_(0.97), reward_(0), last_agent_(0), smdp_steps_(0)
     {
       agent_[0] = agent_[1] = NULL;
-      started_[0] = started_[1] = false;
+      time_[0] = time_[1] = -1;
     }
   
     // From Configurable    
@@ -60,8 +60,8 @@ class MasterAgent : public Agent
     // From Agent
     virtual MasterAgent *clone() const;
     virtual void start(const Vector &obs, Vector *action);
-    virtual void step(const Vector &obs, double reward, Vector *action);
-    virtual void end(double reward);
+    virtual void step(double tau, const Vector &obs, double reward, Vector *action);
+    virtual void end(double tau, double reward);
 };
 
 }

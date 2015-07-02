@@ -61,7 +61,7 @@ CompassWalkerModel *CompassWalkerModel::clone() const
   return new CompassWalkerModel(*this);
 }
 
-void CompassWalkerModel::step(const Vector &state, const Vector &action, Vector *next) const
+double CompassWalkerModel::step(const Vector &state, const Vector &action, Vector *next) const
 {
   if (state.size() != 8 || action.size() != 1)
     throw Exception("model/compass_walker requires a task/compass_walker subclass");
@@ -88,6 +88,8 @@ void CompassWalkerModel::step(const Vector &state, const Vector &action, Vector 
   else
     (*next)[CompassWalker::siLastHipX] = state[CompassWalker::siLastHipX];
   (*next)[CompassWalker::siTime] = state[CompassWalker::siTime] + tau_;
+  
+  return tau_;
 }
 
 // *** CompassWalkerWalkTask ***

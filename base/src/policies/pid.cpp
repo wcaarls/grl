@@ -100,10 +100,6 @@ PIDPolicy *PIDPolicy::clone() const
 
 void PIDPolicy::act(const Vector &in, Vector *out) const
 {
-  // First action in episode, clear integrator
-  ival_.clear();
-  ival_.resize(setpoint_.size()*outputs_, 0.);
-
   out->resize(outputs_); 
 
   for (size_t oo=0; oo < outputs_; ++oo)
@@ -114,19 +110,25 @@ void PIDPolicy::act(const Vector &in, Vector *out) const
     {
       double err = setpoint_[ii] - in[ii];
       
-      // First call has no accumulated errors or differences, but
+      // Autonomous policy assumes no accumulated errors or differences, but
       // integration happens before applying the gains.
       u += (params_[P(ii, oo)]+params_[I(ii, oo)])*err;
-      
-      ival_[ii*outputs_+oo] = err;
     }
     
     (*out)[oo] = u;
   }
 }
 
-void PIDPolicy::act(const Vector &prev_in, const Vector &prev_out, const Vector &in, Vector *out) const
+void PIDPolicy::act(double time, const Vector &in, Vector *out)
 {
+  if (time == 0.)
+  {
+    // First action in episode, clear integrator
+    ival_.clear();
+    ival_.resize(setpoint_.size()*outputs_, 0.);
+    prev_in_ = in;
+  }
+
   out->resize(outputs_); 
 
   for (size_t oo=0; oo < outputs_; ++oo)
@@ -137,7 +139,7 @@ void PIDPolicy::act(const Vector &prev_in, const Vector &prev_out, const Vector 
     {
       double err = setpoint_[ii] - in[ii];
       double acc = fmin(ival_[ii*outputs_+oo] + err, params_[IL(ii, oo)]);
-      double diff = in[ii] - prev_in[ii];
+      double diff = in[ii] - prev_in_[ii];
       
       u += params_[P(ii, oo)]*err + params_[I(ii, oo)]*acc + params_[D(ii, oo)]*diff;
       
@@ -146,4 +148,6 @@ void PIDPolicy::act(const Vector &prev_in, const Vector &prev_out, const Vector 
     
     (*out)[oo] = u;
   }
+  
+  prev_in_ = in;
 }

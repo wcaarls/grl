@@ -99,13 +99,12 @@ void FQIPredictor::finalize()
 
       if (!transition.obs.empty())
       {
-        Vector values, distribution;
+        Vector values;
         policy_->values(transition.obs, &values);
-        policy_->distribution(transition.obs, &distribution);
 
-        double v = 0.;
-        for (size_t kk=0; kk < values.size(); ++kk)
-          v += values[kk]*distribution[kk];
+        double v = values[0];
+        for (size_t kk=1; kk < values.size(); ++kk)
+          v = fmax(values[kk], v);
      
         target += gamma_*v;
       }

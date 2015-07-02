@@ -16,26 +16,31 @@ experiment:
     task: 
       type: task/pendulum/swingup
       timeout: 2.99
+      randomization: 0
   agent: 
     type: agent/dyna
     planning_steps: 200
+    planning_horizon: 100
     policy: 
       type: policy/action
-      sigma: [ 1 ]
+      sigma: [1]
       output_min: experiment/environment/task/action_min
       output_max: experiment/environment/task/action_max
       projector: 
         type: projector/sample/ann
         samples: 2000
         neighbors: 10
+        locality: 1
         bucket_size: 10
         error_bound: 0.1
-        scaling: [  ]
+        scaling: []
         inputs: experiment/environment/task/observation_dims
       representation: 
         type: representation/llr
         ridge: 1e-05
         order: 1
+        input_nominals: [  ]
+        output_nominals: [  ]
         outputs: experiment/environment/task/action_dims
         output_min: experiment/environment/task/action_min
         output_max: experiment/environment/task/action_max
@@ -50,17 +55,20 @@ experiment:
         type: projector/sample/ann
         samples: 2000
         neighbors: 10
+        locality: 1
         bucket_size: 10
         error_bound: 0.1
-        scaling: [  ]
+        scaling: []
         inputs: experiment/environment/task/observation_dims
       critic_representation: 
         type: representation/llr
         ridge: 1e-05
         order: 1
+        input_nominals: [  ]
+        output_nominals: [  ]
         outputs: 1
-        output_min: [  ]
-        output_max: [  ]
+        output_min: []
+        output_max: []
         projector: experiment/agent/predictor/critic_projector
       critic_trace: 
         type: trace/enumerated/replacing
@@ -70,6 +78,8 @@ experiment:
         type: trace/enumerated/replacing
     model: 
       type: observation_model/approximated
+      control_step: experiment/environment/model/control_step
+      differential: 1
       wrapping: [6.283, 0]
       observation_min: experiment/environment/task/observation_min
       observation_max: experiment/environment/task/observation_max
@@ -77,6 +87,7 @@ experiment:
         type: projector/sample/ann
         samples: 10000
         neighbors: 12
+        locality: 1
         bucket_size: 10
         error_bound: 0.01
         scaling: []
@@ -85,12 +96,15 @@ experiment:
         type: representation/llr
         ridge: 1e-05
         order: 1
+        input_nominals: [  ]
+        output_nominals: [  ]
         outputs: experiment/environment/task/observation_dims+2
         output_min: []
         output_max: []
         projector: experiment/agent/model/projector
     model_predictor: 
       type: predictor/model
+      differential: 1
       wrapping: experiment/agent/model/wrapping
       projector: experiment/agent/model/projector
       representation: experiment/agent/model/representation
@@ -115,7 +129,7 @@ experiment:
     type: agent/fixed
     policy: 
       type: policy/action
-      sigma: [  ]
+      sigma: []
       output_min: experiment/environment/task/action_min
       output_max: experiment/environment/task/action_max
       projector: experiment/agent/policy/projector
@@ -132,7 +146,7 @@ visualization:
   projector: experiment/agent/predictor/critic_projector
 visualization2: 
   type: visualization/sample
-  field_dims: [ 0, 1 ]
+  field_dims: [0, 1]
   field_min: experiment/environment/task/observation_min
   field_max: experiment/environment/task/observation_max
   output_dim: 0

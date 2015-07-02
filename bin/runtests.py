@@ -12,7 +12,7 @@ devnull = open('/dev/null', 'w')
 for test in tests:
   print "Test " + test
   
-  subprocess.call([binpath + '/../build/deploy','-s','1',binpath + '/../tests/' + test], stdout=devnull)
+  subprocess.call([binpath + '/../build/grld','-s','1',binpath + '/../tests/' + test], stdout=devnull)
 
   (root, ext) = os.path.splitext(test)
   

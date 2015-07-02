@@ -41,6 +41,7 @@ class BoundedQPolicy : public QPolicy
 
   protected:
     Vector bound_;
+    Vector prev_out_;
 
   public:
     // From Configurable
@@ -50,8 +51,7 @@ class BoundedQPolicy : public QPolicy
 
     // From QPolicy
     virtual BoundedQPolicy *clone() const;
-    virtual void act(const Vector &prev_in, const Vector &prev_out, const Vector &in, Vector *out) const;
-    virtual void distribution(const Vector &prev_in, const Vector &prev_out, const Vector &in, Vector *out) const;
+    virtual void act(double time, const Vector &in, Vector *out);
     
   protected:
     /// Filter out actions that lie outside bounds.

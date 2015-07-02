@@ -22,6 +22,7 @@ experiment:
   agent: 
     type: agent/dyna
     planning_steps: 2000
+    planning_horizon: 100
     policy: 
       type: policy/discrete/q
       discretizer: 
@@ -57,6 +58,8 @@ experiment:
         type: trace/enumerated/replacing
     model: 
       type: observation_model/fixed_reward
+      control_step: experiment/environment/model/control_step
+      differential: 1
       wrapping: [0, 6.283, 0, 0]
       observation_min: experiment/environment/task/observation_min
       observation_max: experiment/environment/task/observation_max
@@ -64,6 +67,7 @@ experiment:
         type: projector/sample/ann
         samples: 100000
         neighbors: 20
+        locality: 1
         bucket_size: 10
         error_bound: 0.01
         scaling: [0.2, 0.2, 3.2, 0.32, 0.033]
@@ -72,6 +76,8 @@ experiment:
         type: representation/llr
         ridge: 1e-07
         order: 1
+        input_nominals: [  ]
+        output_nominals: [  ]
         outputs: experiment/environment/task/observation_dims+2
         output_min: []
         output_max: []
@@ -79,6 +85,7 @@ experiment:
       task: experiment/environment/task
     model_predictor: 
       type: predictor/model
+      differential: 1
       wrapping: experiment/agent/model/wrapping
       projector: experiment/agent/model/projector
       representation: experiment/agent/model/representation

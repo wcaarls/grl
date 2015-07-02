@@ -62,50 +62,23 @@ BoundedQPolicy *BoundedQPolicy::clone() const
   return qp;
 }
 
-void BoundedQPolicy::distribution(const Vector &prev_in, const Vector &prev_out, const Vector &in, Vector *out) const
+void BoundedQPolicy::act(double time, const Vector &in, Vector *out)
 {
-  Vector qvalues;
-  values(in, &qvalues);
-  
-  if (!prev_out.empty())
+  if (time > 0)
   {
-    Vector filtered;
+    Vector qvalues, filtered;
     std::vector<size_t> idx;
     
-    filter(prev_out, qvalues, &filtered, &idx);
-    
-    Vector dist;
-    sampler_->distribution(filtered, &dist);
-    
-    out->clear();
-    out->resize(qvalues.size(), 0.);
-    for (size_t ii=0; ii < filtered.size(); ++ii)
-      (*out)[idx[ii]] = dist[ii];
-  }
-  else
-    sampler_->distribution(qvalues, out);
-}
-
-void BoundedQPolicy::act(const Vector &prev_in, const Vector &prev_out, const Vector &in, Vector *out) const
-{
-  Vector qvalues;
-  values(in, &qvalues);
-  
-  if (!prev_out.empty())
-  {
-    Vector filtered;
-    std::vector<size_t> idx;
-    
-    filter(prev_out, qvalues, &filtered, &idx);
+    values(in, &qvalues);
+    filter(prev_out_, qvalues, &filtered, &idx);
     
     size_t action = sampler_->sample(filtered);
     *out = variants_[idx[action]];
   }
   else
-  {
-    size_t action = sampler_->sample(qvalues);
-    *out = variants_[action];
-  }
+    QPolicy::act(in, out); 
+  
+  prev_out_ = *out;
 }
 
 /**

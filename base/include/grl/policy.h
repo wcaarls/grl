@@ -43,43 +43,25 @@ class Policy : public Configurable
     /**
      * \brief Returns an action based on the current state.
      *
-     * Called at the beginning of an episode and by visualizations.
+     * Called by visualizations.
      */
     virtual void act(const Vector &in, Vector *out) const
     {
-      act(Vector(), Vector(), in, out);
+      throw Exception("Policy does not support visualization");
     }
     
     /**
-     * \brief Returns an action based on the last state transition.
+     * \brief Returns an action based on the current time and state.
      *
-     * Called in subsequent steps.
+     * Called by agents, once per timestep. time is 0. at the start of a new episode.
      */
-    virtual void act(const Vector &prev_in, const Vector &prev_out, const Vector &in, Vector *out) const
+    virtual void act(double time, const Vector &in, Vector *out)
     {
       act(in, out);
     }
 };
 
-/// Maps states to a discrete set of actions.
-class DiscretePolicy : public Policy
-{
-  public:
-    virtual DiscretePolicy *clone() const = 0;
-    
-    /// Returns action probability distribution based on the current state.
-    virtual void distribution(const Vector &in, Vector *out) const
-    {
-      distribution(Vector(), Vector(), in, out);
-    }
-    
-    /// Returns action probability distribution based on the last state transition.
-    virtual void distribution(const Vector &prev_in, const Vector &prev_out, const Vector &in, Vector *out) const
-    {
-      distribution(in, out);
-    }
-};
-
+/// A parameterized Policy.
 class ParameterizedPolicy : public Policy
 {
   public:

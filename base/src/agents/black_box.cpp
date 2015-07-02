@@ -82,21 +82,19 @@ void BlackBoxAgent::start(const Vector &obs, Vector *action)
     policy_ = optimizer_->request(index_);
   }
 
-  policy_->act(obs, action);
-  prev_obs_ = obs;
-  prev_action_ = *action;
+  time_ = 0.;
+  policy_->act(time_, obs, action);
 }
 
-void BlackBoxAgent::step(const Vector &obs, double reward, Vector *action)
+void BlackBoxAgent::step(double tau, const Vector &obs, double reward, Vector *action)
 {
   reward_ += reward;
+  time_ += tau;
 
-  policy_->act(prev_obs_, prev_action_, obs, action);
-  prev_obs_ = obs;
-  prev_action_ = *action;
+  policy_->act(time_, obs, action);
 }
 
-void BlackBoxAgent::end(double reward)
+void BlackBoxAgent::end(double tau, double reward)
 {
   reward_ += reward;
 }

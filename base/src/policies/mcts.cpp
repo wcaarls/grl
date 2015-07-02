@@ -61,16 +61,15 @@ MCTSPolicy *MCTSPolicy::clone() const
   return NULL;
 }
 
-void MCTSPolicy::act(const Vector &in, Vector *out) const
+void MCTSPolicy::act(double time, const Vector &in, Vector *out)
 {
-  safe_delete(&root_);
-  trunk_ = NULL;
-  
-  act(Vector(), Vector(), in, out);
-}
+  // Clear tree at start of episode
+  if (time == 0.)
+  {
+    safe_delete(&root_);
+    trunk_ = NULL;
+  }
 
-void MCTSPolicy::act(const Vector &prev_in, const Vector &prev_out, const Vector &in, Vector *out) const
-{
   // Try warm start
   if (trunk_ && trunk_->children())
   {

@@ -434,11 +434,12 @@ where \txt{o} is the observation from the environment. All following
 steps should be called using
 
 \begin{code}
->> [o, r, t] = grl_env('step', a);
+>> [o, r, t, d] = grl_env('step', a);
 \end{code}
 
 where \txt{a} is the action suggested by the agent, \txt{r} is the reward
-given by the environment and \txt{t} signals termination of the episode.
+given by the environment, \txt{t} signals termination of the episode and 
+txt{d} is the length of the step.
 If \txt{t} is 2, the episode ended in an absorbing state. When all episodes
 are done, exit cleanly with
 
@@ -465,14 +466,15 @@ where \txt{o} is the observation from the environment and \txt{a} is the
 action suggested by the agent. All following steps should be called using
 
 \begin{code}
->> a = grl_agent('step', r, o);
+>> a = grl_agent('step', d, r, o);
 \end{code}
 
-where \txt{r} is the reward given by the environment. To signal the end of
+where \txt{r} is the reward given by the environment and 
+txt{d} is the length of the step. To signal the end of
 an episode (absorbing state), use
 
 \begin{code}
->> a = grl_agent('end', r);
+>> a = grl_agent('end', d, r);
 \end{code}
 
 To end an episode without an absorbing state, simply start a new one. To

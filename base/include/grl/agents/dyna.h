@@ -57,8 +57,10 @@ class DynaAgent : public Agent
     double planning_reward_, actual_reward_;
     size_t planned_steps_, control_steps_;
     
+    double time_;
+    
   public:
-    DynaAgent() : policy_(NULL), predictor_(NULL), model_(NULL), model_predictor_(NULL), model_agent_(NULL), state_(NULL), planning_steps_(1), planning_horizon_(100), total_planned_steps_(0), planning_reward_(0.), actual_reward_(0.), planned_steps_(0), control_steps_(0) { }
+    DynaAgent() : policy_(NULL), predictor_(NULL), model_(NULL), model_predictor_(NULL), model_agent_(NULL), state_(NULL), planning_steps_(1), planning_horizon_(100), total_planned_steps_(0), planning_reward_(0.), actual_reward_(0.), planned_steps_(0), control_steps_(0), time_(0.) { }
   
     // From Configurable    
     virtual void request(ConfigurationRequest *config);
@@ -68,8 +70,8 @@ class DynaAgent : public Agent
     // From Agent
     virtual DynaAgent *clone() const;
     virtual void start(const Vector &obs, Vector *action);
-    virtual void step(const Vector &obs, double reward, Vector *action);
-    virtual void end(double reward);
+    virtual void step(double tau, const Vector &obs, double reward, Vector *action);
+    virtual void end(double tau, double reward);
     virtual void report(std::ostream &os);
     
   protected:

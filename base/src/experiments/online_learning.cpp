@@ -122,17 +122,17 @@ void OnlineLearningExperiment::run()
       {
         if (rate_) usleep(1000000./rate_);
         
-        environment_->step(action, &obs, &reward, &terminal);
+        double tau = environment_->step(action, &obs, &reward, &terminal);
         
         CRAWL(action << " - " << reward << " -> " << obs);
         
         total_reward += reward;
         
         if (terminal == 2)
-          agent->end(reward);
+          agent->end(tau, reward);
         else if (!obs.empty())
         {
-          agent->step(obs, reward, &action);
+          agent->step(tau, obs, reward, &action);
           state_->set(obs);
         }
           

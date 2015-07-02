@@ -8,8 +8,8 @@ a = grl_agent('start', o);
 
 t = 0
 while t == 0
-  [o, r, t] = grl_env('step', a);
-  a = grl_agent('step', r, o);
+  [o, r, t, d] = grl_env('step', a);
+  a = grl_agent('step', d, r, o);
   pause(0.05)
 end
 
