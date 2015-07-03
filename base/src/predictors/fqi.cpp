@@ -91,30 +91,38 @@ void FQIPredictor::finalize()
   for (size_t ii=0; ii < iterations_ && maxdelta > 0.001; ++ii)
   {
     maxdelta = 0;
-  
-    // Convert to sample set
-    #ifdef _OPENMP
-    #pragma omp parallel for default(shared) reduction(max:maxdelta) schedule(static)
-    #endif
-    for (size_t jj=0; jj < transitions_.size(); ++jj)
+    
+    #pragma omp parallel default(shared)
     {
-      const Transition& transition = transitions_[jj];
-      double target = transition.reward;
-
-      if (!transition.obs.empty())
+      double threadmax = 0;
+  
+      // Convert to sample set
+      #ifdef _OPENMP
+      #pragma omp for schedule(static)
+      #endif
+      for (size_t jj=0; jj < transitions_.size(); ++jj)
       {
-        Vector values;
-        policy_->values(transition.obs, &values);
+        const Transition& transition = transitions_[jj];
+        double target = transition.reward;
 
-        double v = values[0];
-        for (size_t kk=1; kk < values.size(); ++kk)
-          v = fmax(values[kk], v);
-     
-        target += gamma_*v;
+        if (!transition.obs.empty())
+        {
+          Vector values;
+          policy_->values(transition.obs, &values);
+
+          double v = values[0];
+          for (size_t kk=1; kk < values.size(); ++kk)
+            v = fmax(values[kk], v);
+       
+          target += gamma_*v;
+        }
+        
+        threadmax = fmax(threadmax, fabs(targets[jj]-target));
+        targets[jj] = target;
       }
       
-      maxdelta = fmax(maxdelta, fabs(targets[jj]-target));
-      targets[jj] = target;
+      #pragma omp critical
+      maxdelta = fmax(maxdelta, threadmax);
     }
     
     representation_->reset();
