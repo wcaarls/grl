@@ -85,6 +85,7 @@ void FQIPredictor::finalize()
   std::vector<double> targets(transitions_.size(), 0.);
   double maxdelta = std::numeric_limits<double>::infinity();
 
+  // NOTE: can opt not to reset in between batches
   representation_->reset();
     
   for (size_t ii=0; ii < iterations_ && maxdelta > 0.001; ++ii)
@@ -92,6 +93,9 @@ void FQIPredictor::finalize()
     maxdelta = 0;
   
     // Convert to sample set
+    #ifdef _OPENMP
+    #pragma omp parallel for default(shared) reduction(max:maxdelta) schedule(static)
+    #endif
     for (size_t jj=0; jj < transitions_.size(); ++jj)
     {
       const Transition& transition = transitions_[jj];

@@ -291,6 +291,9 @@ void ERTreeProjector::reindex()
   Vector var = ERTree::variance(newstore, outputs_);
 
   // Build new forest using new store
+  #ifdef _OPENMP
+  #pragma omp parallel for default(shared)
+  #endif
   for (size_t ii=0; ii < trees_; ++ii)
     newforest[ii] = new ERTree(newstore, inputs_, outputs_, splits_, leaf_size_, var);
   
