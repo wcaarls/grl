@@ -180,6 +180,12 @@ environment/modeled:
     type: state
     description: Current state of the model
     mutability: provided
+  output:
+    type: string
+    description: Base filename for state transition log
+    mutability: online
+    default: ""
+    optional: 1
 environment/ode:
   description: Open Dynamics Engine simulation environment
   xml:

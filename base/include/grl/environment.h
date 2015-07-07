@@ -104,11 +104,16 @@ class ModeledEnvironment : public Environment
   public:
     Model *model_;
     Task *task_;
-    Vector state_;
+    Vector state_, obs_;
     State *state_obj_;
+    
+    std::string output_;
+    std::ofstream output_stream_;
+    bool test_;
+    double time_test_, time_learn_;
 
   public:
-    ModeledEnvironment() : model_(NULL), task_(NULL), state_obj_(NULL) { }
+    ModeledEnvironment() : model_(NULL), task_(NULL), state_obj_(NULL), test_(false), time_test_(0.), time_learn_(0.) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);
