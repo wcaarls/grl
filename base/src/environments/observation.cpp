@@ -86,6 +86,8 @@ void ApproximatedObservationModel::request(ConfigurationRequest *config)
   config->push_back(CRP("wrapping", "vector.wrapping", "Wrapping boundaries", wrapping_));
   config->push_back(CRP("observation_min", "vector.observation_min", "Lower limit on observations", observation_min_, CRP::System));
   config->push_back(CRP("observation_max", "vector.observation_max", "Upper limit on observations", observation_max_, CRP::System));
+  
+  config->push_back(CRP("stddev_limit", "double", "Maximum standard deviation of acceptable predictions, as fraction of range", stddev_limit_, CRP::System));
 
   config->push_back(CRP("projector", "projector.pair", "Projector for transition model (|S|+|A| dimensions)", projector_));
   config->push_back(CRP("representation", "representation.transition", "Representation for transition model (|S|+2 dimensions)", representation_));
@@ -101,6 +103,8 @@ void ApproximatedObservationModel::configure(Configuration &config)
   
   if (observation_min_.empty() || observation_min_.size() != observation_max_.size())
     throw bad_param("observation_model/approximated:{observation_min,observation_max}");
+
+  stddev_limit_ = config["stddev_limit"];
   
   tau_ = config["control_step"];
   
@@ -142,13 +146,14 @@ double ApproximatedObservationModel::step(const Vector &obs, const Vector &actio
     return 0.;
   }
  
-  representation_->read(p, next);
+  Vector stddev;
+  representation_->read(p, next, &stddev);
   
   if (next->empty())
     return 0.;
 
   *reward = (*next)[next->size()-2];
-  *terminal = 2*(RandGen::get() < (*next)[next->size()-1]);
+  *terminal = (*next)[next->size()-1] > 0.5;
   next->resize(next->size()-2);
   
   for (size_t ii=0; ii < obs.size(); ++ii)
@@ -164,6 +169,19 @@ double ApproximatedObservationModel::step(const Vector &obs, const Vector &actio
     {
       next->clear();
       return 0.;
+    }
+  }
+  
+  if (stddev.size())
+  {
+    for (size_t ii=0; ii < stddev.size()-2; ++ii)
+    {
+      // Don't accept inaccurate predictions
+      if (stddev[ii] > stddev_limit_*(observation_max_[ii]-observation_min_[ii]))
+      {
+        next->clear();
+        return 0.;
+      }
     }
   }
   

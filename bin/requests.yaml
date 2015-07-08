@@ -471,7 +471,7 @@ mapping/multisine:
 model/compass_walker:
   description: Simplest walker model from Garcia et al.
   control_step:
-    type: double
+    type: double.control_step
     description: Control step time
     mutability: configuration
     default: 0.2
@@ -546,6 +546,14 @@ observation_model/approximated:
     mutability: system
     default: "[  ]"
     optional: 1
+  stddev_limit:
+    type: double
+    description: Maximum standard deviation of acceptable predictions, as fraction of range
+    mutability: system
+    default: 1
+    optional: 1
+    min: 0
+    max: 1
   projector:
     type: projector.pair
     description: Projector for transition model (|S|+|A| dimensions)
@@ -608,6 +616,14 @@ observation_model/fixed_reward:
     mutability: system
     default: "[  ]"
     optional: 1
+  stddev_limit:
+    type: double
+    description: Maximum standard deviation of acceptable predictions, as fraction of range
+    mutability: system
+    default: 1
+    optional: 1
+    min: 0
+    max: 1
   projector:
     type: projector.pair
     description: Projector for transition model (|S|+|A| dimensions)

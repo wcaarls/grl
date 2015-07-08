@@ -107,7 +107,7 @@ ANNRepresentation *ANNRepresentation::clone() const
   return new ANNRepresentation(*this);
 }
 
-double ANNRepresentation::read(const ProjectionPtr &projection, Vector *result) const
+double ANNRepresentation::read(const ProjectionPtr &projection, Vector *result, Vector *stddev) const
 {
   VectorProjection *vp = dynamic_cast<VectorProjection*>(projection.get());
   
@@ -153,6 +153,8 @@ double ANNRepresentation::read(const ProjectionPtr &projection, Vector *result) 
   }
   else
     throw Exception("representation/parameterized/ann requires a projector returning a VectorProjection");
+    
+  if (stddev) stddev->clear();
   
   return (*result)[0];
 }

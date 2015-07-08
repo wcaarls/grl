@@ -78,11 +78,12 @@ class ApproximatedObservationModel : public ObservationModel
     
     int differential_;
     Vector wrapping_, observation_min_, observation_max_;
+    double stddev_limit_;
     
     double tau_;
     
   public:
-    ApproximatedObservationModel() : projector_(NULL), representation_(NULL), differential_(1), tau_(0.) { }
+    ApproximatedObservationModel() : projector_(NULL), representation_(NULL), differential_(1), tau_(0.), stddev_limit_(1.) { }
     
     // From Configurable
     virtual void request(ConfigurationRequest *config);
