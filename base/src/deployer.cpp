@@ -25,12 +25,53 @@
  * \endverbatim
  */
 
+#include <signal.h>
+#include <string.h>
+
 #include <grl/grl.h>
 #include <grl/configurable.h>
 #include <grl/experiment.h>
 
 using namespace grl;
 using namespace std;
+
+static YAMLConfigurator configurator;
+struct sigaction act, oldact;
+
+void sighandler(int signum)
+{
+  sigaction(SIGINT, &oldact, NULL);
+
+  NOTICE("Interrupted. Awaiting reconfiguration");
+
+  Configuration config;
+  
+  while (1)
+  {
+    std::string line;
+    getline(cin, line);
+    if (line.empty())
+      break;
+
+    size_t seppos = line.rfind(':');
+    
+    if (seppos != std::string::npos)
+    {
+      std::string key = line.substr(0, seppos);
+      std::string value = line.substr(seppos+1);
+    
+      config.set(key, value);
+    }
+    else
+      WARNING("Unknown command '" << line << "'");
+  } 
+  
+  configurator.reconfigure(config);
+
+  NOTICE("Reconfiguration complete");
+  
+  sigaction(SIGINT, &act, NULL);
+}
 
 int main(int argc, char **argv)
 {
@@ -84,7 +125,6 @@ int main(int argc, char **argv)
   loadPlugins();
   
   Configuration config;
-  YAMLConfigurator configurator;
   
   configurator.load(argv[optind], &config);
   
@@ -110,6 +150,11 @@ int main(int argc, char **argv)
     loadconfig.set("file", file + "-");
     configurator.walk(loadconfig);
   }
+  
+  bzero(&act, sizeof(struct sigaction));
+  act.sa_handler = sighandler;
+  act.sa_flags = SA_NODEFER;
+  sigaction(SIGINT, &act, &oldact);
   
   experiment->run();
   

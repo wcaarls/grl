@@ -83,7 +83,7 @@ class ApproximatedObservationModel : public ObservationModel
     double tau_;
     
   public:
-    ApproximatedObservationModel() : projector_(NULL), representation_(NULL), differential_(1), tau_(0.), stddev_limit_(1.) { }
+    ApproximatedObservationModel() : projector_(NULL), representation_(NULL), differential_(1), stddev_limit_(1.), tau_(0.) { }
     
     // From Configurable
     virtual void request(ConfigurationRequest *config);

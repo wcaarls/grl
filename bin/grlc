@@ -5,7 +5,7 @@ from Tkinter import *
 from ttk import *
 from functools import partial
 import StringIO
-import os, inspect, sys
+import os, inspect, sys, subprocess, time, signal
 
 from grllib import *
 from tooltip import *
@@ -70,12 +70,24 @@ class GrlMain:
     output.close()
     
   def run(self):
+    global grld_process
+  
     print "Writing", tempfile
     output = open(tempfile, "w")
     self.write(output)
     output.close()
-    os.system("cd " + binpath + "/../build && ./grld " + tempfile)
-    os.remove(tempfile)
+    
+    if grld_process != None:
+      if grld_process.poll() == None:
+        grld_process.send_signal(signal.SIGINT)
+        time.sleep(0.1)
+        grld_process.send_signal(signal.SIGINT)
+        grld_process.wait()
+        app.refresh()
+        return
+        
+    grld_process = subprocess.Popen([binpath + "/../build/grld", tempfile], cwd=binpath + "/../build", stdin=subprocess.PIPE)
+    app.refresh()
     
   def add(self):
     obj = GrlTopObject(self, self.row)
@@ -88,6 +100,15 @@ class GrlMain:
     """Recalculate available parameters at each level of the configuration tree."""
     global params
     params = dict()
+    
+    if grld_process and grld_process.poll() == None:
+      self.savebutton.state(['disabled'])
+      self.runbutton['text'] = 'Stop'
+      self.addbutton.state(['disabled'])
+    else:
+      self.savebutton.state(['!disabled'])
+      self.runbutton['text'] = 'Run'
+      self.addbutton.state(['!disabled'])
   
     for obj in self.objlist:
       obj.refresh()
@@ -104,10 +125,11 @@ class GrlMain:
     for item in config:
       self.add()
       self.objlist[-1].load(item, config[item])
-  
+      
 class GrlTopObject:
   """Top-level object. Contains editable name and frame for GrlObjects."""
   def __init__(self, parent, row):
+    self.parent = parent
     self.entry = Entry(parent.frame, width=10)
     self.entry.grid(row=row, column=0, sticky=NW)
     if row == 0:
@@ -125,6 +147,13 @@ class GrlTopObject:
     return True
     
   def refresh(self):
+    if grld_process and grld_process.poll() == None:
+      self.entry.state(['disabled'])
+      self.removebutton.state(['disabled'])
+    else:
+      self.entry.state(['!disabled'])
+      self.removebutton.state(['!disabled'])
+  
     self.obj.refresh(self.entry.get())
   
   def destroy(self):
@@ -144,10 +173,14 @@ class GrlTopObject:
     self.entry.delete(0, END)
     self.entry.insert(0, name)
     self.obj.load(config)
+    
+  def path(self):
+    return self.entry.get()
 
 class GrlSubObject:
   """Sub-object. Contains fixed name label and frame for Object."""
   def __init__(self, parent, name, spec, row):
+    self.parent = parent
     self.name = name
     self.label = Label(parent.frame, text=name)
     self.label.grid(column=0, row=row, sticky=NW)
@@ -173,10 +206,14 @@ class GrlSubObject:
   def load(self, config):
     self.label['text'] = self.name
     self.obj.load(config)
+
+  def path(self):
+    return self.parent.path() + "/" + self.name
   
 class GrlObject:
   """Object. Contains type selector and frame for all subobjects."""
   def __init__(self, parent, spec):
+    self.parent = parent
     self.spec = spec
     self.type = Combobox(parent.frame, state="readonly", width=40)
     if spec["mutability"] == "system":
@@ -190,6 +227,11 @@ class GrlObject:
     self.objlist = list()
     
   def refresh(self, path):
+    if grld_process and grld_process.poll() == None:
+      self.type.state(['disabled'])
+    else:
+      self.type.state(['!disabled'])
+  
     values = findrequests(requests, self.spec["type"])
     values.extend(findparams(params, self.spec["type"]))
     self.type['values'] = values
@@ -278,10 +320,15 @@ class GrlObject:
     for obj in self.objlist:
       if obj.name in config:
         obj.load(config[obj.name])
+
+  def path(self):
+    return self.parent.path()
     
 class GrlVariable:
   """Non-object variable. Contains fixed name label and type-dependent entry field."""
   def __init__(self, parent, name, spec, row):
+            
+    self.parent = parent
     self.spec = spec
     self.name = name
     self.firstrefresh = True
@@ -297,6 +344,7 @@ class GrlVariable:
 
     # Every type has at least a combobox
     self.value = Combobox(self.frame, width=40, textvariable=self.sv)
+    self.value.bind('<Return>', self.apply)
     
     if spec["mutability"] == "system":
       self.value['style'] = 'System.TCombobox'
@@ -335,15 +383,29 @@ class GrlVariable:
       self.value['style'] = 'Changed.TCombobox'
     else:
       self.value['style'] = 'Default.TCombobox'
-    
+
     return True
-      
+
+  def apply(self, what):
+    if grld_process and grld_process.poll() == None and self.spec["mutability"] == "online":
+      grld_process.send_signal(signal.SIGINT)
+      grld_process.stdin.write(self.path() + ":" + self.value.get() + "\n\n")
+    
   def change(self, value):
     self.value.delete(0, END)
     self.value.insert(0, value)
     
   def refresh(self, path):
     type, role = splittype(self.spec["type"])
+
+    if grld_process and grld_process.poll() == None and self.spec["mutability"] != "online":
+      newstate = 'disabled'
+    else:
+      newstate = '!disabled'
+      
+    self.value.state([newstate])
+    if hasattr(self, 'scale'):
+      self.scale.state([newstate])
   
     if type == 'int' and self.spec["max"]-self.spec["min"] < 10:
       values = range(self.spec["min"], self.spec["max"]+1)
@@ -383,8 +445,12 @@ class GrlVariable:
   def load(self, config):
     self.value.delete(0, END)
     self.value.insert(0, config)
+    
+  def path(self):
+    return self.parent.path() + "/" + self.name
 
 # Set up paths
+grld_process = None
 binpath = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 tempfile = "/tmp/grl." + str(os.getpid()) + ".yaml"
 savefile = "configuration.yaml"
@@ -417,3 +483,11 @@ if len(sys.argv) > 1:
 
 # Go
 root.mainloop()
+
+if grld_process != None:
+  if grld_process.poll() == None:
+    grld_process.send_signal(signal.SIGINT)
+    time.sleep(0.1)
+    grld_process.send_signal(signal.SIGINT)
+    grld_process.wait()
+os.remove(tempfile)

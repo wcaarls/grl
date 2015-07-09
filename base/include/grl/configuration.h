@@ -95,9 +95,17 @@ class ConfigurationParameter
     template <class T>
     bool get(T &value) const
     {
-      std::istringstream iss(value_);
-      iss >> value;
-      return !iss.fail();
+      if (value_.empty())
+      {
+        value = T();
+        return true;
+      }
+      else
+      {
+        std::istringstream iss(value_);
+        iss >> value;
+        return !iss.fail();
+      }
     }
 
     template<class T>

@@ -313,7 +313,9 @@ class YAMLConfigurator
 
     /// Build object tree based on YAML description.  
     Configurable *load(const YAML::Node &node, Configuration *config, const std::string &path);
-    
+
+    /// Reconfigure parameters of objects in the tree.
+    void reconfigure(const Configuration &config, const std::string &action="");
   protected:
     /// Write out YAML node as string. 
     std::string toString(const YAML::Node &node)
@@ -348,6 +350,9 @@ class YAMLConfigurator
     
     /// Parse a value, resolving references and integer addition/vector extension.
     std::string parse(const std::string &value) const;
+
+    /// Validate a parameter value against its request.
+    bool validate(const std::string &key, const std::string &value, const CRP &crp);
 };
 
 }

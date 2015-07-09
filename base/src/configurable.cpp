@@ -105,6 +105,9 @@ Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *conf
           safe_delete(&obj);
           return NULL;
         }
+            
+        if (obj)
+          obj->children_.push_back(subobj);
         
         objconfig.set(key, subobj);
         references_.set(path + key, subobj);
@@ -129,8 +132,6 @@ Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *conf
     for (size_t ii=0; ii < request.size(); ++ii)
     {
       std::string key = request[ii].name;
-      std::string type, role;
-      CRP::split(request[ii].type, &type, &role);
     
       if (request[ii].mutability == CRP::Provided)
       {
@@ -140,94 +141,8 @@ Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *conf
       {
         std::string value = objconfig[key].str();
         
-        if (type == "int")
-        {
-          int i;
-          if (convert(value, &i))
-          {
-            if (i < request[ii].min || i > request[ii].max)
-            {
-              ERROR("Parameter " << path << key << " ('" << value << "') is out of range " << request[ii].min << " - " << request[ii].max);
-              return NULL;
-            }
-          }
-          else
-          {
-            ERROR("Parameter " << path << key << " ('" << value << "') should be an integer");
-            return NULL;
-          }
-        }
-        else if (type == "double")
-        {
-          double d;
-          if (convert(value, &d))
-          {
-            if (d < request[ii].min || d > request[ii].max)
-            {
-              ERROR("Parameter " << path << key << " ('" << value << "') is out of range " << request[ii].min << " - " << request[ii].max);
-              return NULL;
-            }
-          }
-          else
-          {
-            ERROR("Parameter " << path << key << " ('" << value << "') should be a floating point value");
-            return NULL;
-          }
-        }
-        else if (type == "vector")
-        {
-          Vector v;
-          if (!convert(value, &v))
-          {
-            ERROR("Parameter " << path << key << " ('" << value << "') should be a vector");
-            return NULL;
-          }
-        }
-        else if (type == "string")
-        {
-          if (!request[ii].options.empty())
-          {
-            bool found=false;
-            for (size_t jj=0; jj < request[ii].options.size(); ++jj)
-              if (value == request[ii].options[jj])
-                found = true;
-                
-            if (!found)
-            {
-              std::cerr << "Parameter " << path << key << " ('" << value << "') should be one of {";
-              for (size_t jj=0; jj < request[ii].options.size(); ++jj)
-              {
-                std::cerr << request[ii].options[jj];
-                if (jj < request[ii].options.size() - 1)
-                  std::cerr << ", ";
-              }
-              std::cerr << "}" << std::endl;                
-              return NULL;
-            }
-          }
-        }
-        else
-        {
-          if (value.substr(0, 2) == "0x")
-          {
-            Configurable *subobj = (Configurable*)strtol(value.c_str(), NULL, 0);
-            
-            std::string t = subobj->d_type();
-        
-            if (subobj->d_type().substr(0, type.size()) != type)
-            {
-              ERROR("Parameter " << path << key << " should subclass " << type);
-              return NULL;
-            }
-            
-            obj->children_.push_back(subobj);
-          }
-          else
-          {
-            ERROR("Parameter " << path << key << " ('" << value << "') should be an object (of type " << type << ")");
-            return NULL;
-          }
-        }
+        if (!validate(path + key, value, request[ii]))
+          return NULL;
       }
       else if (request[ii].optional)
       {
@@ -275,6 +190,86 @@ Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *conf
   config->merge(objconfig);
   return obj;
 }      
+
+void YAMLConfigurator::reconfigure(const Configuration &config, const std::string &action)
+{
+  Configuration base_message, message;
+  Configurable *prev_object = NULL;
+  
+  // Prepare base message.
+  if (!action.empty())
+    base_message.set("action", action);
+  message = base_message;
+
+  for (Configuration::MapType::const_iterator ii=config.parameters().begin(); ii != config.parameters().end(); ++ii)
+  {
+    const std::string &key = ii->first;
+    const std::string &value = ii->second->str();
+    
+    size_t seppos = key.rfind('/');
+    std::string path      = key.substr(0, seppos),
+                parameter = key.substr(seppos+1);
+                
+    if (references_.has(path))
+    {
+      Configurable *object = (Configurable*)references_[path].ptr();
+      
+      if (object)
+      {
+        if (prev_object && object != prev_object && !message.parameters().empty())
+        {
+          prev_object->reconfigure(message);
+          message = base_message;
+        }
+        prev_object = object;
+        
+        if (action.empty())
+        {
+          // Straight up reconfiguration, check parameters
+          ConfigurationRequest request;
+          object->request("", &request);
+          
+          bool requested = false;
+          for (size_t jj=0; jj < request.size(); ++jj)
+          {
+            if (request[jj].name == parameter)
+            {
+              if (request[jj].mutability == CRP::Online)
+              {
+                if (validate(key, value, request[jj]))
+                {
+                  DEBUG(key << ": " << request[jj].value << " -> " << value);
+        
+                  message.set(parameter, value);
+                }
+              }
+              else
+                WARNING("Cannot reconfigure '" << key << "': not a reconfigurable parameter.");
+                
+              requested = true;
+              break;
+            }
+          }
+          
+          if (!requested)
+            WARNING("Cannot reconfigure '" << key << "': no such parameter.");
+        }
+        else
+        {
+          // Not a reconfiguration, but a message. Don't check parameters.
+          message.set(parameter, value);
+        }
+      }
+      else
+        WARNING("Cannot reconfigure '" << path << "': not a configurable object.");
+    }
+    else
+      WARNING("Cannot reconfigure '" << path << "': no such object.");
+  }
+
+  if (prev_object && !message.parameters().empty())
+    prev_object->reconfigure(message);
+}
 
 std::string YAMLConfigurator::parse(const std::string &value) const
 {
@@ -342,4 +337,99 @@ std::string YAMLConfigurator::parse(const std::string &value) const
   }
   
   return expv;
+}
+
+bool YAMLConfigurator::validate(const std::string &key, const std::string &value, const CRP &crp)
+{
+  std::string type, role;
+  CRP::split(crp.type, &type, &role);
+
+  if (type == "int")
+  {
+    int i;
+    if (convert(value, &i))
+    {
+      if (i < crp.min || i > crp.max)
+      {
+        ERROR("Parameter " << key << " ('" << value << "') is out of range " << crp.min << " - " << crp.max);
+        return false;
+      }
+    }
+    else
+    {
+      ERROR("Parameter " << key << " ('" << value << "') should be an integer");
+      return false;
+    }
+  }
+  else if (type == "double")
+  {
+    double d;
+    if (convert(value, &d))
+    {
+      if (d < crp.min || d > crp.max)
+      {
+        ERROR("Parameter " << key << " ('" << value << "') is out of range " << crp.min << " - " << crp.max);
+        return false;
+      }
+    }
+    else
+    {
+      ERROR("Parameter " << key << " ('" << value << "') should be a floating point value");
+      return false;
+    }
+  }
+  else if (type == "vector")
+  {
+    Vector v;
+    if (!convert(value, &v))
+    {
+      ERROR("Parameter " << key << " ('" << value << "') should be a vector");
+      return false;
+    }
+  }
+  else if (type == "string")
+  {
+    if (!crp.options.empty())
+    {
+      bool found=false;
+      for (size_t jj=0; jj < crp.options.size(); ++jj)
+        if (value == crp.options[jj])
+          found = true;
+          
+      if (!found)
+      {
+        std::cerr << "Parameter " << key << " ('" << value << "') should be one of {";
+        for (size_t jj=0; jj < crp.options.size(); ++jj)
+        {
+          std::cerr << crp.options[jj];
+          if (jj < crp.options.size() - 1)
+            std::cerr << ", ";
+        }
+        std::cerr << "}" << std::endl;                
+        return false;
+      }
+    }
+  }
+  else
+  {
+    if (value.substr(0, 2) == "0x")
+    {
+      Configurable *subobj = (Configurable*)strtol(value.c_str(), NULL, 0);
+      
+      std::string t = subobj->d_type();
+  
+      if (subobj->d_type().substr(0, type.size()) != type)
+      {
+        ERROR("Parameter " << key << " should subclass " << type);
+        return false;
+      }
+    }
+    else
+    {
+      ERROR("Parameter " << key << " ('" << value << "') should be an object (of type " << type << ")");
+      return false;
+    }
+  }
+  
+  return true;
 }
