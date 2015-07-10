@@ -238,7 +238,7 @@ void YAMLConfigurator::reconfigure(const Configuration &config, const std::strin
               {
                 if (validate(key, value, request[jj]))
                 {
-                  DEBUG(key << ": " << request[jj].value << " -> " << value);
+                  INFO(key << ": " << request[jj].value << " -> " << value);
         
                   message.set(parameter, value);
                 }

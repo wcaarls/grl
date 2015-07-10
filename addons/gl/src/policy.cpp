@@ -62,6 +62,7 @@ void PolicyVisualization::configure(Configuration &config)
 
 void PolicyVisualization::reconfigure(const Configuration &config)
 {
+  FieldVisualization::reconfigure(config);
 }
 
 double PolicyVisualization::value(const Vector &in) const

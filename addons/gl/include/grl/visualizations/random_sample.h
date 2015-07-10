@@ -52,7 +52,6 @@ class RandomSampleVisualization : public Visualization
     int points_, dimpoints_;
     unsigned int texture_;
     unsigned char *data_;
-    Vector dim_order_;
     double value_min_, value_max_;
     bool updated_;
   

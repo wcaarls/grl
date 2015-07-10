@@ -36,7 +36,7 @@ using namespace grl;
 
 void FieldVisualization::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("field_dims", "Dimensions to visualize", dims_));
+  config->push_back(CRP("field_dims", "Dimensions to visualize", dims_, CRP::Online));
   config->push_back(CRP("input_min", "Lower input dimension limit", state_min_, CRP::System));
   config->push_back(CRP("input_max", "Upper input dimension limit", state_max_, CRP::System));
   config->push_back(CRP("points", "Number of points to evaluate", points_));
@@ -64,17 +64,9 @@ void FieldVisualization::configure(Configuration &config)
   state_dims_ = state_min_.size();
   config.get("points", points_, 1048576);
 
-  // Create point iteration order lookup table  
   dims_ = config["field_dims"];
   if (dims_.size() != 2)
     throw bad_param("visualization/field:field_dims");
-  
-  dim_order_.clear();
-  for (int ii=0; ii < state_dims_; ++ii)
-    if (ii != dims_[0] && ii != dims_[1])
-      dim_order_.push_back(ii);
-  dim_order_.push_back(dims_[0]);
-  dim_order_.push_back(dims_[1]);
   
   // Divide points among dimensions
   dimpoints_ = pow(points_, 1./state_dims_);
@@ -89,14 +81,15 @@ void FieldVisualization::configure(Configuration &config)
 
 void FieldVisualization::reconfigure(const Configuration &config)
 {
-  if (config.has("projection"))
-  {
-    projection_str_ = config["projection"].str();
-    if (projection_str_ == "sum")      projection_ = vpMean;
-    else if (projection_str_ == "min") projection_ = vpMin;
-    else if (projection_str_ == "max") projection_ = vpMax;
-    else throw bad_param("visualization/field:projection");
-  }
+  config.get("projection", projection_str_);
+  if (projection_str_ == "mean")     projection_ = vpMean;
+  else if (projection_str_ == "min") projection_ = vpMin;
+  else if (projection_str_ == "max") projection_ = vpMax;
+  else throw bad_param("visualization/field:projection");
+  
+  config.get("field_dims", dims_);
+  if (dims_.size() != 2)
+    throw bad_param("visualization/field:field_dims");
 }
 
 void FieldVisualization::reshape(int width, int height)
@@ -111,6 +104,14 @@ void FieldVisualization::run()
   
   while (ok())
   {
+    // Create point iteration order lookup table  
+    Vector dim_order;
+    for (int ii=0; ii < state_dims_; ++ii)
+      if (ii != dims_[0] && ii != dims_[1])
+        dim_order.push_back(ii);
+    dim_order.push_back(dims_[0]);
+    dim_order.push_back(dims_[1]);
+
     // Gather data
     Vector ss = state_min_;
     float value_max=-std::numeric_limits<float>::infinity(),
@@ -151,7 +152,7 @@ void FieldVisualization::run()
         
         for (int dd=0; dd < state_dims_; ++dd)
         {
-          int oo = dim_order_[dd];
+          int oo = dim_order[dd];
       
           ss[oo] = ss[oo] + delta[oo];
           if (ss[oo] > (state_max_[oo]+EPS))

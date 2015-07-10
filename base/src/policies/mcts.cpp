@@ -37,8 +37,8 @@ void MCTSPolicy::request(ConfigurationRequest *config)
   config->push_back(CRP("discretizer", "discretizer.action", "Action discretizer", discretizer_));
   
   config->push_back(CRP("epsilon", "Exploration rate", epsilon_));
-  config->push_back(CRP("horizon", "Planning horizon", horizon_));
-  config->push_back(CRP("budget", "Computational budget", budget_));
+  config->push_back(CRP("horizon", "Planning horizon", horizon_, CRP::Online));
+  config->push_back(CRP("budget", "Computational budget", budget_, CRP::Online));
 }
 
 void MCTSPolicy::configure(Configuration &config)
@@ -54,6 +54,8 @@ void MCTSPolicy::configure(Configuration &config)
 
 void MCTSPolicy::reconfigure(const Configuration &config)
 {
+  config.get("horizon", horizon_);
+  config.get("budget", budget_);
 }
 
 MCTSPolicy *MCTSPolicy::clone() const
