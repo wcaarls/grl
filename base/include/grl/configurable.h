@@ -352,7 +352,7 @@ class YAMLConfigurator
     std::string parse(const std::string &value) const;
 
     /// Validate a parameter value against its request.
-    bool validate(const std::string &key, const std::string &value, const CRP &crp);
+    bool validate(Configurable *obj, const std::string &key, const std::string &value, const CRP &crp);
 };
 
 }

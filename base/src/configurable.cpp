@@ -106,9 +106,6 @@ Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *conf
           return NULL;
         }
             
-        if (obj)
-          obj->children_.push_back(subobj);
-        
         objconfig.set(key, subobj);
         references_.set(path + key, subobj);
       }
@@ -141,7 +138,7 @@ Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *conf
       {
         std::string value = objconfig[key].str();
         
-        if (!validate(path + key, value, request[ii]))
+        if (!validate(obj, path + key, value, request[ii]))
           return NULL;
       }
       else if (request[ii].optional)
@@ -236,7 +233,7 @@ void YAMLConfigurator::reconfigure(const Configuration &config, const std::strin
             {
               if (request[jj].mutability == CRP::Online)
               {
-                if (validate(key, value, request[jj]))
+                if (validate(object, key, value, request[jj]))
                 {
                   INFO(key << ": " << request[jj].value << " -> " << value);
         
@@ -339,7 +336,7 @@ std::string YAMLConfigurator::parse(const std::string &value) const
   return expv;
 }
 
-bool YAMLConfigurator::validate(const std::string &key, const std::string &value, const CRP &crp)
+bool YAMLConfigurator::validate(Configurable *obj, const std::string &key, const std::string &value, const CRP &crp)
 {
   std::string type, role;
   CRP::split(crp.type, &type, &role);
@@ -423,6 +420,8 @@ bool YAMLConfigurator::validate(const std::string &key, const std::string &value
         ERROR("Parameter " << key << " should subclass " << type);
         return false;
       }
+      
+      obj->children_.push_back(subobj);
     }
     else
     {
