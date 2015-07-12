@@ -312,12 +312,18 @@ void LLRRepresentation::write(const ProjectionPtr projection, const Vector &targ
     
   if (alpha.size() != target.size())
     throw Exception("Learning rate vector does not match target vector");
-    
-  // Push query on store
-  Sample *sample = new Sample();
 
-  for (size_t ii=0; ii < p->query.size(); ++ii)
-    sample->in[ii] = p->query[ii];
+  // Prepare sample
+  Sample *sample;
+  if (!p->sample)
+  {
+    sample = new Sample();
+
+    for (size_t ii=0; ii < p->query.size(); ++ii)
+      sample->in[ii] = p->query[ii];
+  }
+  else
+    sample = p->sample;
   
   if (prod(alpha) != 1)
   {
@@ -336,7 +342,6 @@ void LLRRepresentation::write(const ProjectionPtr projection, const Vector &targ
 
     // Update neighbors      
     update(projection, alpha*delta);
-  
   }
   else
   {
@@ -344,26 +349,32 @@ void LLRRepresentation::write(const ProjectionPtr projection, const Vector &targ
     for (size_t ii=0; ii < target.size(); ++ii)
       sample->out[ii] = fmin(fmax(target[ii], min_[ii]), max_[ii]);
   }
-
-  // Determine sample relevance
-  if (p->indices.size())
-  {
-    Guard guard(*p->store);
-    Sample *neighbor = (*p->store)[p->indices[0]];
-
-    // Relevance based on euclidean distance
-    sample->relevance = 0;
-    for (size_t ii=0; ii < p->query.size(); ++ii)
-      sample->relevance += pow(sample->in[ii]-neighbor->in[ii], 2);
-  }
-  else
-    sample->relevance = 1.;
   
-  // Don't add identical samples
-  if (sample->relevance > 0.000001)
-    projector_->push(sample);
-  else
-    delete sample;
+  if (!p->sample)
+  {
+    // Determine sample relevance
+    if (p->indices.size())
+    {
+      Guard guard(*p->store);
+      Sample *neighbor = (*p->store)[p->indices[0]];
+
+      // Relevance based on euclidean distance
+      sample->relevance = 0;
+      for (size_t ii=0; ii < p->query.size(); ++ii)
+        sample->relevance += pow(sample->in[ii]-neighbor->in[ii], 2);
+    }
+    else
+      sample->relevance = 1.;
+      
+    // Don't add identical samples
+    if (sample->relevance > 0.000001)
+    {
+      projector_->push(sample);
+      p->sample = sample;
+    }
+    else
+      delete sample;
+  }
 }
 
 void LLRRepresentation::update(const ProjectionPtr projection, const Vector &delta)

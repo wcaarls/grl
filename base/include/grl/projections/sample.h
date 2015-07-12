@@ -177,9 +177,12 @@ class SampleProjection : public Projection
 {
   public:
     StorePtr store;
+    Sample *sample;
     Vector query;
     std::vector<size_t> indices;
     Vector weights;
+    
+    SampleProjection() : sample(NULL) { }
     
     virtual SampleProjection *clone() const
     {

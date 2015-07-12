@@ -205,5 +205,6 @@ ProjectionPtr ANNProjector::project(const Vector &in) const
 
 void ANNProjector::finalize()
 {
-  reindex();
+  if (store_->size() > indexed_samples_)
+    reindex();
 }

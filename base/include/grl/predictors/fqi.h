@@ -29,9 +29,9 @@
 #define GRL_FQI_PREDICTOR_H_
 
 #include <grl/predictor.h>
+#include <grl/discretizer.h>
 #include <grl/projector.h>
 #include <grl/representation.h>
-#include <grl/policies/q.h>
 
 namespace grl
 {
@@ -41,17 +41,33 @@ class FQIPredictor : public Predictor
 {
   public:
     TYPEINFO("predictor/fqi", "Fitted Q-iteration predictor")
+    
+    struct CachedTransition
+    {
+      ProjectionPtr state;
+      std::vector<ProjectionPtr> actions;
+      Transition transition;
+      
+      CachedTransition(const Transition &t) : transition(t) { }
+    };
+    
+    enum ResetStrategy { rsNever, rsBatch, rsIteration };
 
   protected:
     double gamma_;
+    Discretizer *discretizer_;
     Projector *projector_;
     Representation *representation_;
-    QPolicy *policy_;
+    
+    std::vector<Vector> variants_;
+    
     size_t max_samples_, iterations_;
-    std::vector<Transition> transitions_;
+    std::vector<CachedTransition> transitions_;
+    std::string reset_strategy_str_;
+    ResetStrategy reset_strategy_;
 
   public:
-    FQIPredictor() : gamma_(0.97), projector_(NULL), representation_(NULL), policy_(NULL), max_samples_(100000), iterations_(10) { }
+    FQIPredictor() : gamma_(0.97), discretizer_(NULL), projector_(NULL), representation_(NULL), max_samples_(100000), iterations_(10), reset_strategy_str_("iteration"), reset_strategy_(rsIteration) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);
