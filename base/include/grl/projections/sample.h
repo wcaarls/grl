@@ -28,6 +28,8 @@
 #ifndef GRL_SAMPLE_PROJECTION_H_
 #define GRL_SAMPLE_PROJECTION_H_
 
+#include <memory>
+
 #include <grl/mutex.h>
 #include <grl/projection.h>
 
@@ -170,7 +172,7 @@ class SampleStore : public Lockable
 };
 
 /// Shared pointer to a SampleStore.
-typedef boost::shared_ptr<SampleStore> StorePtr;
+typedef std::shared_ptr<SampleStore> StorePtr;
 
 /// Search vector plus neighbor indices and weights (e.g. ANNProjector for LLRRepresentation)
 class SampleProjection : public Projection

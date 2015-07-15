@@ -202,9 +202,9 @@ class Configurable
       if (level <= grl_log_verbosity__)
       {
         if (level < 2)
-          std::cerr << grl_log_levels__[level] << " " << d_type() << ": " << oss.str() << "\x1B[0m" << std::endl;
+          std::cerr << grl_log_levels__[level] << " " << path() << ": " << oss.str() << "\x1B[0m" << std::endl;
         else
-          std::cout << grl_log_levels__[level] << " " << d_type() << ": " << oss.str() << "\x1B[0m" << std::endl;
+          std::cout << grl_log_levels__[level] << " " << path() << ": " << oss.str() << "\x1B[0m" << std::endl;
       }
     }
     
@@ -236,7 +236,7 @@ class Configurable
     void setPath(const std::string &path) { path_ = path; }
     
     /// Retrieve the path of this object definition in the configuration tree.
-    const std::string &path() { return path_; }
+    const std::string &path() const { return path_; }
     
     /// Reconfigure configuration subtree.
     void walk(const Configuration &config)

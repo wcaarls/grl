@@ -28,6 +28,8 @@
 #ifndef GRL_PROJECTION_H_
 #define GRL_PROJECTION_H_
 
+#include <memory>
+
 #include <grl/grl.h>
 
 namespace grl
@@ -47,7 +49,7 @@ class Projection
     virtual void ssub(const Projection &rhs) = 0;
 };
 
-typedef boost::shared_ptr<Projection> ProjectionPtr;
+typedef std::shared_ptr<Projection> ProjectionPtr;
 
 /// Vector projection (e.g. basis function activations)
 struct VectorProjection : public Projection
