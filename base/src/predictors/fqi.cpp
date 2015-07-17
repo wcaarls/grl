@@ -25,7 +25,6 @@
  * \endverbatim
  */
 
-#include <omp.h>
 #include <grl/predictors/fqi.h>
 
 using namespace grl;
@@ -38,9 +37,15 @@ void FQIPredictor::request(ConfigurationRequest *config)
   config->push_back(CRP("transitions", "Maximum number of transitions to store", max_samples_, CRP::Configuration, 1));
   config->push_back(CRP("iterations", "Number of policy improvement rounds per episode", iterations_, CRP::Configuration, 1));
 
+  std::vector<std::string> options;
+  options.push_back("never");
+  options.push_back("batch");
+  options.push_back("iteration");
+  config->push_back(CRP("reset_strategy", "At which point to reset the representation", reset_strategy_str_, CRP::Configuration, options));
+
+  config->push_back(CRP("discretizer", "discretizer.action", "Action discretizer", discretizer_));
   config->push_back(CRP("projector", "projector.pair", "Projects observations onto critic representation space", projector_));
   config->push_back(CRP("representation", "representation.value/action", "Value function representation", representation_));
-  config->push_back(CRP("policy", "policy/discrete/q", "Q-value based policy", policy_));
 
   config->push_back(CRP("rebuild_batch_size", "Number of episodes after which a batch is rebuild. Use 0 for no rebulds.",
                         10, CRP::Configuration, 0));
@@ -48,14 +53,22 @@ void FQIPredictor::request(ConfigurationRequest *config)
 
 void FQIPredictor::configure(Configuration &config)
 {
+  discretizer_ = (Discretizer*)config["discretizer"].ptr();
+  discretizer_->options(&variants_);
+  
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (Representation*)config["representation"].ptr();
-  policy_ = (QPolicy*)config["policy"].ptr();
   
   gamma_ = config["gamma"];
   max_samples_ = config["transitions"];
   iterations_ = config["iterations"];
   rebuild_batch_size_ = config["rebuild_batch_size"];
+  
+  reset_strategy_str_ = config["reset_strategy"].str();
+  if (reset_strategy_str_ == "never")          reset_strategy_ = rsNever;
+  else if (reset_strategy_str_ == "batch")     reset_strategy_ = rsBatch;
+  else if (reset_strategy_str_ == "iteration") reset_strategy_ = rsIteration;
+  else throw bad_param("predictor/fqi:reset_strategy");
 
   // Initialize memory
   reset();
@@ -125,9 +138,9 @@ void FQIPredictor::reconfigure(const Configuration &config)
             return;
     size_t count = transitions_.size();
     fileOutStream.write(reinterpret_cast<const char*>(&count),	sizeof(size_t));
-    size_t count_obs = transitions_[0].obs.size();
+    size_t count_obs = transitions_[0].transition.obs.size();
     fileOutStream.write(reinterpret_cast<const char*>(&count_obs),	sizeof(size_t));
-    size_t count_action = transitions_[0].action.size();
+    size_t count_action = transitions_[0].transition.action.size();
     fileOutStream.write(reinterpret_cast<const char*>(&count_action),	sizeof(size_t));
     // prepare dymmy symbols to obay format
     Vector dummy_obs, dummy_action;
@@ -135,22 +148,22 @@ void FQIPredictor::reconfigure(const Configuration &config)
     dummy_action.resize(count_action, std::numeric_limits<double>::signaling_NaN());
     for (unsigned int i = 0; i < count; i++)
     {
-      fileOutStream.write(reinterpret_cast<const char*>(&(transitions_[i].prev_obs[0])), count_obs*sizeof(double));
-      fileOutStream.write(reinterpret_cast<const char*>(&(transitions_[i].prev_action[0])), count_action*sizeof(double));
+      fileOutStream.write(reinterpret_cast<const char*>(&(transitions_[i].transition.prev_obs[0])), count_obs*sizeof(double));
+      fileOutStream.write(reinterpret_cast<const char*>(&(transitions_[i].transition.prev_action[0])), count_action*sizeof(double));
 
-      if (transitions_[i].obs.empty())
+      if (transitions_[i].transition.obs.empty())
       {
-        // dymmy write
+        // dymmy write of NaNs
         fileOutStream.write(reinterpret_cast<const char*>(&(dummy_obs[0])), count_obs*sizeof(double));
         fileOutStream.write(reinterpret_cast<const char*>(&(dummy_action[0])), count_action*sizeof(double));
       }
       else
       {
-        fileOutStream.write(reinterpret_cast<const char*>(&(transitions_[i].obs[0])), count_obs*sizeof(double));
-        fileOutStream.write(reinterpret_cast<const char*>(&(transitions_[i].action[0])), count_action*sizeof(double));
+        fileOutStream.write(reinterpret_cast<const char*>(&(transitions_[i].transition.obs[0])), count_obs*sizeof(double));
+        fileOutStream.write(reinterpret_cast<const char*>(&(transitions_[i].transition.action[0])), count_action*sizeof(double));
       }
 
-      fileOutStream.write(reinterpret_cast<const char*>(&(transitions_[i].reward)), sizeof(double));
+      fileOutStream.write(reinterpret_cast<const char*>(&(transitions_[i].transition.reward)), sizeof(double));
     }
     fileOutStream.close();
   }
@@ -159,15 +172,15 @@ void FQIPredictor::reconfigure(const Configuration &config)
 FQIPredictor *FQIPredictor::clone() const
 {
   FQIPredictor *fqp = new FQIPredictor(*this);
+  fqp->discretizer_ = discretizer_->clone();
   fqp->projector_ = projector_->clone();
   fqp->representation_ = representation_->clone();
-  fqp->policy_ = policy_->clone();
   return fqp;
 }
 
 void FQIPredictor::update(const Transition &transition)
 {
-  transitions_.push_back(transition);
+  transitions_.push_back(CachedTransition(transition));
 }
 
 void FQIPredictor::finalize()
@@ -181,54 +194,75 @@ void FQIPredictor::rebuild()
 {
   std::vector<double> targets(transitions_.size(), 0.);
   double maxdelta = std::numeric_limits<double>::infinity();
-
-  representation_->reset();
-
+  
+  if (reset_strategy_ >= rsBatch)
+    representation_->reset();
+    
   for (size_t ii=0; ii < iterations_ && maxdelta > 0.001; ++ii)
   {
+    bool reproject_actions = projector_->lifetime() == Projector::plUpdate ||
+                             (projector_->lifetime() == Projector::plWrite && (ii < 2 || reset_strategy_ == rsIteration));
+
+    bool reproject_state = projector_->lifetime() >= Projector::plWrite &&
+                           reset_strategy_ >= rsBatch &&
+                           (ii == 0 || reset_strategy_ == rsIteration);
+        
     maxdelta = 0;
-  
-#pragma omp parallel
-{
-  #pragma omp for
-    // Convert to sample set
-    for (size_t jj=0; jj < transitions_.size(); ++jj)
+    
+    #pragma omp parallel default(shared)
     {
-      const Transition& transition = transitions_[jj];
-      double target = transition.reward;
-      // here we calculate current value of a value function + reward. target = reward + gamma * (value * distribution)
-      if (!transition.obs.empty()) // For all transitions except terminal or absorbing
+      double threadmax = 0;
+  
+      // Convert to sample set
+      #ifdef _OPENMP
+      #pragma omp for schedule(static)
+      #endif
+      for (size_t jj=0; jj < transitions_.size(); ++jj)
       {
-        Vector values, distribution;
-        policy_->values(transition.obs, &values); // values contains Q(observation,a) values approximated by LLR
-        policy_->distribution(transition.obs, &distribution); // in the distribution the highest Q value action gets highest probability
+        CachedTransition& t = transitions_[jj];
+        double target = t.transition.reward;
 
-        double v = 0.;
-        for (size_t kk=0; kk < values.size(); ++kk)
-          v += values[kk]*distribution[kk]; // values are mixed with probability, not a max function.
-
-        target += gamma_*v;
+        if (!t.transition.obs.empty())
+        {
+          if (t.actions.empty() || reproject_actions)
+          {
+            // Rebuild next state-action projections
+            t.actions.clear();
+            projector_->project(t.transition.obs, variants_, &t.actions);
+          }
+          
+          // Find value of best action
+          Vector value;
+          double v=-std::numeric_limits<double>::infinity();
+          for (size_t kk=0; kk < variants_.size(); ++kk)
+            v = fmax(v, representation_->read(t.actions[kk], &value));
+       
+          target += gamma_*v;
+        }
+        
+        threadmax = fmax(threadmax, fabs(targets[jj]-target));
+        targets[jj] = target;
       }
-
-      maxdelta = fmax(maxdelta, fabs(targets[jj]-target));
-      targets[jj] = target;
+      
+      #pragma omp critical
+      maxdelta = fmax(maxdelta, threadmax);
     }
-}
-
-    representation_->reset();
-
-#pragma omp parallel
-{
-  #pragma omp for
+    
+    if (reset_strategy_ == rsIteration)
+      representation_->reset();
+    
     // Learn: first accumulate all samples and targets
     for (size_t jj=0; jj < transitions_.size(); ++jj)
     {
-      const Transition& transition = transitions_[jj];
-      representation_->write(projector_->project(transition.prev_obs, transition.prev_action), VectorConstructor(targets[jj]));
+      CachedTransition& t = transitions_[jj];
+      
+      if (!t.state || reproject_state)
+        t.state = projector_->project(t.transition.prev_obs, t.transition.prev_action);
+      
+      representation_->write(t.state, VectorConstructor(targets[jj]));
     }
-}
-
-    // second is actual learning
+    
+	// second is actual learning
     representation_->finalize();
     
     CRAWL("FQI iteration " << ii << " delta L_inf: " << maxdelta);

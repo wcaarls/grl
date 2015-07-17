@@ -1,8 +1,8 @@
-/** \file q.h
- * \brief Q policy header file.
+/** \file qv.h
+ * \brief QV predictor header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-01-22
+ * \date      2015-06-30
  *
  * \copyright \verbatim
  * Copyright (c) 2015, Wouter Caarls
@@ -25,47 +25,53 @@
  * \endverbatim
  */
 
-#ifndef GRL_Q_POLICY_H_
-#define GRL_Q_POLICY_H_
+#ifndef GRL_QV_PREDICTOR_H_
+#define GRL_QV_PREDICTOR_H_
 
-#include <grl/policy.h>
-#include <grl/discretizer.h>
+#include <grl/configurable.h>
+#include <grl/predictor.h>
 #include <grl/projector.h>
 #include <grl/representation.h>
+#include <grl/trace.h>
+#include <grl/policy.h>
+#include <grl/policies/q.h>
 #include <grl/sampler.h>
 
 namespace grl
 {
 
-/// Policy based on an action-value Representation.
-class QPolicy : public Policy
+/**
+ * \brief Value function predictor using base state-values and state-action values.
+ *
+ * From Wiering, 2005,
+ * "QV(\lambda)-learning: A New On-policy Reinforcement Learning Algorithm"
+ */
+class QVPredictor : public Predictor
 {
   public:
-    TYPEINFO("policy/discrete/q", "Q-value based policy")
+    TYPEINFO("predictor/qv", "QV on-policy value function predictor")
 
   protected:
-    Discretizer *discretizer_;
-    Projector *projector_;
-    Representation *representation_;
-    Sampler *sampler_;
+    double alpha_, beta_, gamma_, lambda_;
     
-    std::vector<Vector> variants_;
+    Projector *v_projector_, *q_projector_;
+    Representation *v_representation_, *q_representation_;
+    Trace *trace_;
 
   public:
-    QPolicy() : discretizer_(NULL), projector_(NULL), representation_(NULL), sampler_(NULL) { }
+    QVPredictor() : alpha_(0.2), beta_(0.1), gamma_(0.97), lambda_(0.65), v_projector_(NULL), q_projector_(NULL), v_representation_(NULL), q_representation_(NULL), trace_(NULL) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
-
-    // From DiscretePolicy
-    virtual QPolicy *clone() const;
-    virtual void act(const Vector &in, Vector *out) const;
     
-    virtual void values(const Vector &in, Vector *out) const;
+    // From Predictor
+    virtual QVPredictor *clone() const;
+    virtual void update(const Transition &transition);
+    virtual void finalize();
 };
 
 }
 
-#endif /* GRL_Q_POLICY_H_ */
+#endif /* GRL_QV_PREDICTOR_H_ */

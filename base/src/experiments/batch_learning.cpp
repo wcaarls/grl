@@ -158,7 +158,7 @@ void BatchLearningExperiment::run()
       {
         if (rate_) usleep(1000000./rate_);
         
-        model_->step(state, action, &next);
+        double tau = model_->step(state, action, &next);
         task_->observe(next, &obs, &terminal);
         task_->evaluate(state, action, next, &reward);
         state = next;
@@ -169,10 +169,10 @@ void BatchLearningExperiment::run()
         total_reward += reward;
         
         if (terminal == 2)
-          test_agent_->end(reward);
+          test_agent_->end(tau, reward);
         else if (!obs.empty())
         {
-          test_agent_->step(obs, reward, &action);
+          test_agent_->step(tau, obs, reward, &action);
         }
       } while (!terminal);
 

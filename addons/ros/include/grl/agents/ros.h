@@ -85,8 +85,8 @@ class ROSAgent : public Agent
     // From Agent
     virtual ROSAgent *clone() const;
     virtual void start(const Vector &obs, Vector *action);
-    virtual void step(const Vector &obs, double reward, Vector *action);
-    virtual void end(double reward);
+    virtual void step(double tau, const Vector &obs, double reward, Vector *action);
+    virtual void end(double tau, double reward);
     
   protected:
     void callbackAction(const mprl_msgs::Action::ConstPtr &actionmsg);

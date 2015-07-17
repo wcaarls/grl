@@ -45,13 +45,9 @@ class NMPCPolicy : public Policy
     MUSCOD *muscod_;
     std::string model_path_, model_name_;
     size_t outputs_;
-    double tau_;
-    
-    // NOTE: Non-autonomous policy will have trouble being visualized
-    mutable double time_;
 
   public:
-    NMPCPolicy() : muscod_(NULL), outputs_(1), tau_(0.05), time_(0.) { }
+    NMPCPolicy() : muscod_(NULL), outputs_(1) { }
     ~NMPCPolicy();
   
     // From Configurable
@@ -61,8 +57,7 @@ class NMPCPolicy : public Policy
 
     // From Policy
     virtual NMPCPolicy *clone() const;
-    virtual void act(const Vector &in, Vector *out) const;
-    virtual void act(const Vector &prev_in, const Vector &prev_out, const Vector &in, Vector *out) const;
+    virtual void act(double time, const Vector &in, Vector *out);
 };
 
 }

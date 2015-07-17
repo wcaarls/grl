@@ -42,7 +42,11 @@ class Mapping : public Configurable
     virtual ~Mapping() { }
     virtual Mapping *clone() const = 0;
 
-    /// Read out the mapping.
+    /**
+     * \brief Read out the mapping.
+     *
+     * Returns the value of the first output dimension.
+     */
     virtual double read(const ProjectionPtr &projection, Vector *result) const = 0;
 };
 
@@ -52,6 +56,14 @@ class Representation : public Mapping
   public:
     virtual Representation *clone() const = 0;
 
+    virtual double read(const ProjectionPtr &projection, Vector *result) const
+    {
+      return read(projection, result, NULL);
+    }
+
+    /// Read out the approximation.
+    virtual double read(const ProjectionPtr &projection, Vector *result, Vector *stddev) const = 0;
+    
     /// Add a new estimate of the target function, using a single learning rate for all outputs.
     virtual void write(const ProjectionPtr projection, const Vector &target, double alpha=1.)
     {

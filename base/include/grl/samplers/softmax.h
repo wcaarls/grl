@@ -1,8 +1,8 @@
-/** \file q.h
- * \brief Q policy header file.
+/** \file softmax.h
+ * \brief Softmax sampler header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-01-22
+ * \date      2015-07-01
  *
  * \copyright \verbatim
  * Copyright (c) 2015, Wouter Caarls
@@ -25,47 +25,38 @@
  * \endverbatim
  */
 
-#ifndef GRL_Q_POLICY_H_
-#define GRL_Q_POLICY_H_
+#ifndef GRL_SOFTMAX_SAMPLER_H_
+#define GRL_SOFTMAX_SAMPLER_H_
 
-#include <grl/policy.h>
-#include <grl/discretizer.h>
-#include <grl/projector.h>
-#include <grl/representation.h>
 #include <grl/sampler.h>
+#include <grl/utils.h>
 
 namespace grl
 {
 
-/// Policy based on an action-value Representation.
-class QPolicy : public Policy
+/// Softmax (Gibbs/Boltzmann) sampler
+class SoftmaxSampler : public Sampler
 {
   public:
-    TYPEINFO("policy/discrete/q", "Q-value based policy")
+    TYPEINFO("sampler/softmax", "Softmax (Gibbs/Boltzmann) sampler")
 
   protected:
-    Discretizer *discretizer_;
-    Projector *projector_;
-    Representation *representation_;
-    Sampler *sampler_;
-    
-    std::vector<Vector> variants_;
+    double tau_;
 
   public:
-    QPolicy() : discretizer_(NULL), projector_(NULL), representation_(NULL), sampler_(NULL) { }
+    SoftmaxSampler() : tau_(1.) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
-
-    // From DiscretePolicy
-    virtual QPolicy *clone() const;
-    virtual void act(const Vector &in, Vector *out) const;
-    
-    virtual void values(const Vector &in, Vector *out) const;
+  
+    // From Sampler
+    virtual SoftmaxSampler *clone();
+    virtual size_t sample(const Vector &values) const;
+    virtual void distribution(const Vector &values, Vector *distribution) const;
 };
 
 }
 
-#endif /* GRL_Q_POLICY_H_ */
+#endif /* GRL_SOFTMAX_SAMPLER_H_ */

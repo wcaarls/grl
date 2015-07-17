@@ -57,6 +57,7 @@ class ROSEnvironment : public Environment
     
     std::string node_, args_;
     size_t state_dims_;
+    double tau_;
   
     ros::NodeHandle *nh_agent_, *nh_env_;
     ros::Subscriber desc_sub_, state_sub_;
@@ -64,7 +65,7 @@ class ROSEnvironment : public Environment
     ros::AsyncSpinner *spinner_;
     
   public:
-    ROSEnvironment() : running_(false), state_dims_(0), nh_agent_(NULL), nh_env_(NULL), spinner_(NULL)
+    ROSEnvironment() : running_(false), state_dims_(0), tau_(0.05), nh_agent_(NULL), nh_env_(NULL), spinner_(NULL)
     {
       desc_reader_ = desc_queue_.addReader();
       desc_writer_ = desc_queue_.getWriter();
@@ -87,7 +88,7 @@ class ROSEnvironment : public Environment
     // From Environment
     virtual ROSEnvironment *clone() const;
     virtual void start(int test, Vector *obs);
-    virtual void step(const Vector &action, Vector *obs, double *reward, int *terminal);
+    virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal);
   
   protected:
     void callbackDesc(const mprl_msgs::EnvDescription::ConstPtr &descmsg);

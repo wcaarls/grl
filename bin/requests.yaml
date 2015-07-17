@@ -180,6 +180,12 @@ environment/modeled:
     type: state
     description: Current state of the model
     mutability: provided
+  output:
+    type: string
+    description: Base filename for state transition log
+    mutability: online
+    default: ""
+    optional: 1
 environment/ode:
   description: Open Dynamics Engine simulation environment
   xml:
@@ -465,7 +471,7 @@ mapping/multisine:
 model/compass_walker:
   description: Simplest walker model from Garcia et al.
   control_step:
-    type: double
+    type: double.control_step
     description: Control step time
     mutability: configuration
     default: 0.2
@@ -506,6 +512,14 @@ model/dynamical:
     optional: 0
 observation_model/approximated:
   description: Observation model based on observed transitions
+  control_step:
+    type: double.control_step
+    description: Control step time (0 = estimate using SMDP approximator)
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
   differential:
     type: int.differential
     description: Predict state deltas
@@ -532,6 +546,14 @@ observation_model/approximated:
     mutability: system
     default: "[  ]"
     optional: 1
+  stddev_limit:
+    type: double
+    description: Maximum standard deviation of acceptable predictions, as fraction of range
+    mutability: system
+    default: 1
+    optional: 1
+    min: 0
+    max: 1
   projector:
     type: projector.pair
     description: Projector for transition model (|S|+|A| dimensions)
@@ -560,6 +582,14 @@ observation_model/fixed:
     optional: 0
 observation_model/fixed_reward:
   description: Observation model based on observed transitions but known task
+  control_step:
+    type: double.control_step
+    description: Control step time (0 = estimate using SMDP approximator)
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
   differential:
     type: int.differential
     description: Predict state deltas
@@ -586,6 +616,14 @@ observation_model/fixed_reward:
     mutability: system
     default: "[  ]"
     optional: 1
+  stddev_limit:
+    type: double
+    description: Maximum standard deviation of acceptable predictions, as fraction of range
+    mutability: system
+    default: 1
+    optional: 1
+    min: 0
+    max: 1
   projector:
     type: projector.pair
     description: Projector for transition model (|S|+|A| dimensions)
@@ -798,14 +836,6 @@ policy/nmpc:
     optional: 1
     min: 1
     max: 2147483647
-  control_step:
-    type: double.control_step
-    description: Control step time
-    mutability: system
-    default: 0.05
-    optional: 1
-    min: 0.001
-    max: 1.797693134862316e+308
 policy/parameterized/action:
   description: Parameterized policy based on a direct action representation
   sigma:
@@ -1218,6 +1248,70 @@ predictor/model:
     mutability: configuration
     default: 0
     optional: 0
+predictor/qv:
+  description: QV on-policy value function predictor
+  alpha:
+    type: double
+    description: State-action value learning rate
+    mutability: configuration
+    default: 0.2
+    optional: 1
+    min: 0
+    max: 1
+  beta:
+    type: double
+    description: State value learning rate
+    mutability: configuration
+    default: 0.1
+    optional: 1
+    min: 0
+    max: 1
+  gamma:
+    type: double
+    description: Discount rate
+    mutability: configuration
+    default: 0.97
+    optional: 1
+    min: 0
+    max: 1
+  lambda:
+    type: double
+    description: Trace decay rate
+    mutability: configuration
+    default: 0.65
+    optional: 1
+    min: 0
+    max: 1
+  q_projector:
+    type: projector.pair
+    description: Projects observation-action pairs onto representation space
+    mutability: configuration
+    default: 0
+    optional: 0
+  q_representation:
+    type: representation.value/action
+    description: State-action value representation (Q)
+    mutability: configuration
+    default: 0
+    optional: 0
+  v_projector:
+    type: projector.observation
+    description: Projects observations onto representation space
+    mutability: configuration
+    default: 0
+    optional: 0
+  v_representation:
+    type: representation.value/state
+    description: State value representation (V)
+    mutability: configuration
+    default: 0
+    optional: 0
+  trace:
+    type: trace
+    description: Trace of projections
+    mutability: configuration
+    default: 0
+    optional: 0
 predictor/sarsa:
   description: SARSA on-policy value function predictor
   alpha:
@@ -1613,6 +1707,16 @@ sampler/epsilon_greedy:
     max: 1
 sampler/greedy:
   description: Maximum search
+sampler/softmax:
+  description: Softmax (Gibbs/Boltzmann) sampler
+  tau:
+    type: double
+    description: Temperature of Boltzmann distribution
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 0.001
+    max: 100
 task/cart_pole/balancing:
   description: Cart-pole balancing task
   observation_dims:

@@ -40,7 +40,7 @@ class ObservationModel : public Configurable
 {
   public:
     virtual ObservationModel *clone() const = 0;
-    virtual void step(const Vector &obs, const Vector &action, Vector *next, double *reward, int *terminal) const = 0;
+    virtual double step(const Vector &obs, const Vector &action, Vector *next, double *reward, int *terminal) const = 0;
 };
 
 /// Observation model that is all given beforehand.
@@ -63,7 +63,7 @@ class FixedObservationModel : public ObservationModel
 
     // From ObservationModel
     virtual FixedObservationModel *clone() const;
-    virtual void step(const Vector &obs, const Vector &action, Vector *next, double *reward, int *terminal) const;
+    virtual double step(const Vector &obs, const Vector &action, Vector *next, double *reward, int *terminal) const;
 };
 
 /// Observation model that is all learned
@@ -78,9 +78,12 @@ class ApproximatedObservationModel : public ObservationModel
     
     int differential_;
     Vector wrapping_, observation_min_, observation_max_;
+    double stddev_limit_;
+    
+    double tau_;
     
   public:
-    ApproximatedObservationModel() : projector_(NULL), representation_(NULL), differential_(1) { }
+    ApproximatedObservationModel() : projector_(NULL), representation_(NULL), differential_(1), stddev_limit_(1.), tau_(0.) { }
     
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -89,7 +92,7 @@ class ApproximatedObservationModel : public ObservationModel
 
     // From ObservationModel
     virtual ApproximatedObservationModel *clone() const;
-    virtual void step(const Vector &obs, const Vector &action, Vector *next, double *reward, int *terminal) const;
+    virtual double step(const Vector &obs, const Vector &action, Vector *next, double *reward, int *terminal) const;
 };
 
 /// Observation model in which the reward is given and the model is learned
@@ -111,7 +114,7 @@ class FixedRewardObservationModel : public ApproximatedObservationModel
 
     // From ObservationModel
     virtual FixedRewardObservationModel *clone() const;
-    virtual void step(const Vector &obs, const Vector &action, Vector *next, double *reward, int *terminal) const;
+    virtual double step(const Vector &obs, const Vector &action, Vector *next, double *reward, int *terminal) const;
 };
 
 }

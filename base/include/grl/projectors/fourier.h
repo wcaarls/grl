@@ -54,6 +54,7 @@ class FourierProjector : public Projector
 
     // From Projector
     virtual FourierProjector *clone() const;
+    virtual ProjectionLifetime lifetime() const { return plIndefinite; }
     virtual ProjectionPtr project(const Vector &in) const;
 };
 

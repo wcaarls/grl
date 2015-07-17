@@ -98,9 +98,8 @@ void OnlineLearningExperiment::run()
     if (!output_.empty())
     {
       std::ostringstream oss;
-      oss << output_ << "-" << rr;
-      ofs.open((oss.str()+".txt").c_str());
-      csv_.start((oss.str()+".csv").c_str(), 7, 1, 1);
+      oss << output_ << "-" << rr << ".txt";
+      ofs.open(oss.str().c_str());
     }
     
     for (size_t ss=0, tt=0; (!trials_ || tt < trials_) && (!steps_ || ss < steps_); ++tt)
@@ -114,7 +113,6 @@ void OnlineLearningExperiment::run()
       if (test) agent = test_agent_;
       
       environment_->start(test, &obs);
-      //obs.pop_back(); // TODO: Hack to record csv file. Remove asap.
       agent->start(obs, &action);
       state_->set(obs);
 
@@ -124,22 +122,17 @@ void OnlineLearningExperiment::run()
       {
         if (rate_) usleep(1000000./rate_);
         
-        environment_->step(action, &obs, &reward, &terminal);
-
+        double tau = environment_->step(action, &obs, &reward, &terminal);
+        
         CRAWL(action << " - " << reward << " -> " << obs);
-
-        //obs.push_back(-obs.back()*sin(0.004)); // TODO: Hack to record csv file. Remove asap.
-        csv_.log(0.2, obs, action, reward);
-        //obs.pop_back(); // TODO: Hack to record csv file. Remove asap.
-        //obs.pop_back();
-
+        
         total_reward += reward;
         
         if (terminal == 2)
-          agent->end(reward);
+          agent->end(tau, reward);
         else if (!obs.empty())
         {
-          agent->step(obs, reward, &action);
+          agent->step(tau, obs, reward, &action);
           state_->set(obs);
         }
           
@@ -173,8 +166,6 @@ void OnlineLearningExperiment::run()
     
     if (ofs.is_open())
       ofs.close();
-
-    csv_.stop();
       
     if (rr < runs_ - 1)
       reset();

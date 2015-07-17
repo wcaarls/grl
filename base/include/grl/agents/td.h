@@ -46,9 +46,10 @@ class TDAgent : public Agent
     Predictor *predictor_;
     
     Vector prev_obs_, prev_action_;
+    double time_;
     
   public:
-    TDAgent() : policy_(NULL), predictor_(NULL) { }
+    TDAgent() : policy_(NULL), predictor_(NULL), time_(0.) { }
   
     // From Configurable    
     virtual void request(ConfigurationRequest *config);
@@ -58,8 +59,8 @@ class TDAgent : public Agent
     // From Agent
     virtual TDAgent *clone() const;
     virtual void start(const Vector &obs, Vector *action);
-    virtual void step(const Vector &obs, double reward, Vector *action);
-    virtual void end(double reward);
+    virtual void step(double tau, const Vector &obs, double reward, Vector *action);
+    virtual void end(double tau, double reward);
 };
 
 }

@@ -210,12 +210,8 @@ inline bool convert(const std::string& str, T *obj)
 }
 
 /// Sample from distribution
-inline size_t sample(Vector dist)
+inline size_t sample(const Vector &dist, double sum)
 {
-  double sum = 0;
-  for (size_t ii=0; ii < dist.size(); ++ii)
-    sum += dist[ii];
-    
   double r = RandGen::get()*sum;
   
   sum = 0;
@@ -227,6 +223,16 @@ inline size_t sample(Vector dist)
   }
   
   return dist.size()-1;
+}
+
+/// Sample from distribution
+inline size_t sample(const Vector &dist)
+{
+  double sum = 0;
+  for (size_t ii=0; ii < dist.size(); ++ii)
+    sum += dist[ii];
+
+  return sample(dist, sum);
 }
 
 class timer

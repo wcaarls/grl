@@ -46,8 +46,7 @@ class PIDPolicy : public ParameterizedPolicy
     Vector p_, i_, d_, il_;
     Vector params_;
     
-    // Stateful policy means it'll have trouble being visualized.
-    mutable Vector ival_;
+    Vector ival_, prev_in_;
 
   public:
     PIDPolicy() : outputs_(1) { }
@@ -60,7 +59,7 @@ class PIDPolicy : public ParameterizedPolicy
     // From Policy
     virtual PIDPolicy *clone() const;
     virtual void act(const Vector &in, Vector *out) const;
-    virtual void act(const Vector &prev_in, const Vector &prev_out, const Vector &in, Vector *out) const;
+    virtual void act(double time, const Vector &in, Vector *out);
     
     // From ParameterizedPolicy
     virtual size_t size() const { return params_.size(); }

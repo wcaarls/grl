@@ -86,16 +86,19 @@ DynaAgent *DynaAgent::clone() const
 void DynaAgent::start(const Vector &obs, Vector *action)
 {
   predictor_->finalize();
-  policy_->act(obs, action);
+  
+  time_= 0.;
+  policy_->act(time_, obs, action);
   
   prev_obs_ = obs;
   prev_action_ = *action;
   start_obs_ = obs;
 }
 
-void DynaAgent::step(const Vector &obs, double reward, Vector *action)
+void DynaAgent::step(double tau, const Vector &obs, double reward, Vector *action)
 {
-  policy_->act(prev_obs_, prev_action_, obs, action);
+  time_ += tau;
+  policy_->act(time_, obs, action);
   
   Transition t(prev_obs_, prev_action_, reward, obs, *action);
   predictor_->update(t);
@@ -111,7 +114,7 @@ void DynaAgent::step(const Vector &obs, double reward, Vector *action)
   control_steps_++;
 }
 
-void DynaAgent::end(double reward)
+void DynaAgent::end(double tau, double reward)
 {
   Transition t(prev_obs_, prev_action_, reward);
   predictor_->update(t);
@@ -124,7 +127,7 @@ void DynaAgent::end(double reward)
   control_steps_++;
 }
 
-void DynaAgent::report(std::ostream &os) const
+void DynaAgent::report(std::ostream &os)
 {
   os << std::setw(15) << actual_reward_/control_steps_ << std::setw(15) << planning_reward_/planned_steps_ << std::setw(15) << total_planned_steps_;
   
@@ -153,7 +156,7 @@ void DynaAgent::runModel()
     Vector next;
     double reward;
   
-    model_->step(obs, action, &next, &reward, &terminal);
+    double tau = model_->step(obs, action, &next, &reward, &terminal);
     
     obs = next;
     state_->set(obs);
@@ -162,9 +165,9 @@ void DynaAgent::runModel()
     if (!obs.empty())
     {
       if (terminal == 2)
-        model_agent_->end(reward);
+        model_agent_->end(tau, reward);
       else
-        model_agent_->step(obs, reward, &action);
+        model_agent_->step(tau, obs, reward, &action);
         
       planning_reward_ += reward;
       planned_steps_++;

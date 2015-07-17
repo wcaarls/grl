@@ -34,7 +34,7 @@ class ODESTGEnvironment: public QObject
   
     bool configure(Configuration &config);
     void start(int test, Vector *obs);
-    void step(const Vector &action, Vector *obs, double *reward, int *terminal);
+    double step(const Vector &action, Vector *obs, double *reward, int *terminal);
     
     ODESimulator *getSim() { return &simulator_; }
 
@@ -74,9 +74,9 @@ class ODEEnvironment: public grl::Environment, public itc::Thread
       env_->start(test, obs);
     }
     
-    virtual void step(const Vector &action, Vector *obs, double *reward, int *terminal)
+    virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal)
     {
-      env_->step(action, obs, reward, terminal);
+      return env_->step(action, obs, reward, terminal);
     }
     
     // From Thread

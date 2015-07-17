@@ -64,6 +64,9 @@ void ValueVisualization::configure(Configuration &config)
 
 void ValueVisualization::reconfigure(const Configuration &config)
 {
+  FieldVisualization::reconfigure(config);
+  
+  config.get("output_dim", dim_);
 }
 
 double ValueVisualization::value(const Vector &in) const
@@ -102,6 +105,7 @@ void PolicyValueVisualization::configure(Configuration &config)
 
 void PolicyValueVisualization::reconfigure(const Configuration &config)
 {
+  FieldVisualization::reconfigure(config);
 }
 
 double PolicyValueVisualization::value(const Vector &in) const

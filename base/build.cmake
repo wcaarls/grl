@@ -33,6 +33,7 @@ add_library(${TARGET} SHARED
             ${SRC}/predictors/ggq.cpp
             ${SRC}/predictors/ac.cpp
             ${SRC}/predictors/fqi.cpp
+            ${SRC}/predictors/qv.cpp
             ${SRC}/projectors/identity.cpp
             ${SRC}/projectors/normalizing.cpp
             ${SRC}/projectors/tile_coding.cpp
@@ -42,6 +43,7 @@ add_library(${TARGET} SHARED
             ${SRC}/representations/ann.cpp
 #            ${SRC}/representations/dmp.cpp
             ${SRC}/samplers/greedy.cpp
+            ${SRC}/samplers/softmax.cpp
             ${SRC}/traces/enumerated.cpp
             ${SRC}/visualizations/pendulum.cpp
             ${SRC}/visualizations/cart_pole.cpp

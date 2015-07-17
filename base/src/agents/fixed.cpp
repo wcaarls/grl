@@ -55,18 +55,16 @@ FixedAgent *FixedAgent::clone() const
 
 void FixedAgent::start(const Vector &obs, Vector *action)
 {
-  policy_->act(obs, action);
-  prev_obs_ = obs;
-  prev_action_ = *action;
+  time_ = 0.;
+  policy_->act(time_, obs, action);
 }
 
-void FixedAgent::step(const Vector &obs, double reward, Vector *action)
+void FixedAgent::step(double tau, const Vector &obs, double reward, Vector *action)
 {
-  policy_->act(prev_obs_, prev_action_, obs, action);
-  prev_obs_ = obs;
-  prev_action_ = *action;
+  time_ += tau;
+  policy_->act(time_, obs, action);
 }
 
-void FixedAgent::end(double reward)
+void FixedAgent::end(double tau, double reward)
 {
 }

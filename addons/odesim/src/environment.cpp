@@ -174,7 +174,7 @@ void ODESTGEnvironment::start(int test, Vector *obs)
   emit drawFrame();
 }
 
-void ODESTGEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)
+double ODESTGEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)
 {
   if (action.size() != actuators_.size())
     ERROR("Got action vector size " << action.size() << " (" << actuators_.size() << " expected)");
@@ -203,6 +203,8 @@ void ODESTGEnvironment::step(const Vector &action, Vector *obs, double *reward, 
     *terminal = 0;
 
   emit drawFrame();
+  
+  return simulator_.getSim()->getStepTime();
 }
 
 // *** ODEEnvironment ***

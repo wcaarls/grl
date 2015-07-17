@@ -26,7 +26,7 @@
  */
 
 #include <string.h>
-#include <omp.h>
+
 #include <grl/projectors/ertree.h>
 
 using namespace grl;
@@ -278,7 +278,10 @@ void ERTreeProjector::push(Sample *sample)
   store_->push_back(sample);
 }
 
-void ERTreeProjector::reindex() // actual build of trees happen here
+/**
+ * @brief Actual build of trees happen here
+ */
+void ERTreeProjector::reindex()
 {
   // Create new pruned store
   StorePtr newstore = StorePtr(store_->prune(max_samples_));
@@ -291,13 +294,12 @@ void ERTreeProjector::reindex() // actual build of trees happen here
   Vector var = ERTree::variance(newstore, outputs_);
 
   // Build new forest using new store
-#pragma omp parallel
-{
-  #pragma omp for
+  #ifdef _OPENMP
+  #pragma omp parallel for default(shared)
+  #endif
   for (size_t ii=0; ii < trees_; ++ii)
     newforest[ii] = new ERTree(newstore, inputs_, outputs_, splits_, leaf_size_, var);
-}
-
+  
   {
     WriteGuard guard(rwlock_);
 
@@ -319,7 +321,7 @@ ERTreeProjector *ERTreeProjector::clone() const
 }
 
 /**
- * @brief ERTreeProjector::project
+ * @brief Find idexies of neighbours of the query
  * @param in - query point
  * @return If there are constructed trees, then the function returnes idexies of neighbours of the query point
  */

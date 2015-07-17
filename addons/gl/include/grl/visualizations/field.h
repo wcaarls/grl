@@ -47,7 +47,6 @@ class FieldVisualization : public Visualization, public itc::Thread
     int points_, dimpoints_, texpoints_;
     unsigned int texture_;
     unsigned char *data_;
-    Vector dim_order_;
     double value_min_, value_max_;
     bool updated_;
     std::string projection_str_;

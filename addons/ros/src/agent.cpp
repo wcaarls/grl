@@ -122,12 +122,12 @@ void ROSAgent::start(const Vector &obs, Vector *action)
     statemsg.absorbing = false;
     state_pub_.publish(statemsg);
   }	
-	
-  step(obs, 0, action);
+  
+  step(0, obs, 0, action);
   running_ = true;
 }
 
-void ROSAgent::step(const Vector &obs, double reward, Vector *action)
+void ROSAgent::step(double tau, const Vector &obs, double reward, Vector *action)
 {
   mprl_msgs::StateReward statemsg;
   statemsg.state.resize(obs.size());
@@ -142,7 +142,7 @@ void ROSAgent::step(const Vector &obs, double reward, Vector *action)
   *action = action_reader_++;
 }
 
-void ROSAgent::end(double reward)
+void ROSAgent::end(double tau, double reward)
 {
   mprl_msgs::StateReward statemsg;
   statemsg.reward = reward;

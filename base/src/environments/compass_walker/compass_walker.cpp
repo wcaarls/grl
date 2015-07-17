@@ -39,7 +39,7 @@ REGISTER_CONFIGURABLE(CompassWalkerWalkTask)
 
 void CompassWalkerModel::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("control_step", "Control step time", tau_, CRP::Configuration, 0.001, DBL_MAX));
+  config->push_back(CRP("control_step", "double.control_step", "Control step time", tau_, CRP::Configuration, 0.001, DBL_MAX));
   config->push_back(CRP("integration_steps", "Number of integration steps per control step", (int)steps_, CRP::Configuration, 1));
 }
 
@@ -61,7 +61,7 @@ CompassWalkerModel *CompassWalkerModel::clone() const
   return new CompassWalkerModel(*this);
 }
 
-void CompassWalkerModel::step(const Vector &state, const Vector &action, Vector *next) const
+double CompassWalkerModel::step(const Vector &state, const Vector &action, Vector *next) const
 {
   if (state.size() != 8 || action.size() != 1)
     throw Exception("model/compass_walker requires a task/compass_walker subclass");
@@ -88,6 +88,8 @@ void CompassWalkerModel::step(const Vector &state, const Vector &action, Vector 
   else
     (*next)[CompassWalker::siLastHipX] = state[CompassWalker::siLastHipX];
   (*next)[CompassWalker::siTime] = state[CompassWalker::siTime] + tau_;
+  
+  return tau_;
 }
 
 // *** CompassWalkerWalkTask ***

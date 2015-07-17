@@ -39,8 +39,18 @@ namespace grl
 class Projector : public Configurable
 {
   public:
+    /// Lifetime of a Projection.
+    enum ProjectionLifetime { plIndefinite, ///< Always valid.
+                              plWrite,      ///< Valid until a new projection is written to.
+                              plUpdate      ///< Valid until a projection is updated.
+                            };
+
+  public:
     virtual ~Projector() { }
     virtual Projector *clone() const = 0;
+    
+    /// Retrieves the lifetime of Projections made by this Projector.
+    virtual ProjectionLifetime lifetime() const = 0;
     
     /// Project a single input.
     virtual ProjectionPtr project(const Vector &in) const = 0;
@@ -77,6 +87,11 @@ class IdentityProjector : public Projector
     virtual IdentityProjector *clone() const
     {
       return new IdentityProjector();
+    }
+
+    virtual ProjectionLifetime lifetime() const
+    {
+      return plIndefinite;
     }
     
     virtual ProjectionPtr project(const Vector &in) const

@@ -105,7 +105,7 @@ LLRRepresentation *LLRRepresentation::clone() const
   return NULL;
 }
 
-double LLRRepresentation::read(const ProjectionPtr &projection, Vector *result) const
+double LLRRepresentation::read(const ProjectionPtr &projection, Vector *result, Vector *stddev) const
 {
   SampleProjection *p = dynamic_cast<SampleProjection*>(projection.get());
   
@@ -258,8 +258,33 @@ double LLRRepresentation::read(const ProjectionPtr &projection, Vector *result) 
   if (decompATAL.info() != Eigen::Success)
     return 0.;
 
-  RowVector y = q*(r*b);
-  
+  Matrix x = r*b;
+  RowVector y = q*x;
+
+  // Calculate variance
+  if (stddev)
+  {
+    // Get weights column
+    ColumnVector wsqr = A.col(p->query.size()).array().square();
+
+    // Calculate number of data points
+    double n_LWR = wsqr.sum();
+    
+    // Calculate number of free parameters
+    double p_LWR = (wsqr.array()*(A*r).diagonal().array()).sum();
+
+    // Calculate error matrix (samples x outputs)
+    Matrix e = A*x-b;
+    
+    // Calculate variance
+    RowVector sigma = (e.array().square().colwise().sum()/(n_LWR-p_LWR)).sqrt();
+
+    // Convert output
+    stddev->resize(outputs_);
+    for (size_t ii=0; ii < outputs_; ++ii)
+      (*stddev)[ii] = sigma[ii];
+  }
+
   // Convert output
   result->resize(outputs_);
   for (size_t ii=0; ii < outputs_; ++ii)
@@ -287,18 +312,24 @@ void LLRRepresentation::write(const ProjectionPtr projection, const Vector &targ
     
   if (alpha.size() != target.size())
     throw Exception("Learning rate vector does not match target vector");
-    
-  // Push query on store
-  Sample *sample = new Sample();
 
-  for (size_t ii=0; ii < p->query.size(); ++ii)
-    sample->in[ii] = p->query[ii];
+  // Prepare sample
+  Sample *sample;
+  if (!p->sample)
+  {
+    sample = new Sample();
+
+    for (size_t ii=0; ii < p->query.size(); ++ii)
+      sample->in[ii] = p->query[ii];
+  }
+  else
+    sample = p->sample;
   
   if (prod(alpha) != 1)
   {
     // Reinforcement learning: move sample neighborhood towards target value
     Vector out;
-    read(projection, &out);
+    read(projection, &out, NULL);
     
     if (out.empty())
       out.resize(target.size(), 0.);
@@ -311,7 +342,6 @@ void LLRRepresentation::write(const ProjectionPtr projection, const Vector &targ
 
     // Update neighbors      
     update(projection, alpha*delta);
-  
   }
   else
   {
@@ -319,26 +349,32 @@ void LLRRepresentation::write(const ProjectionPtr projection, const Vector &targ
     for (size_t ii=0; ii < target.size(); ++ii)
       sample->out[ii] = fmin(fmax(target[ii], min_[ii]), max_[ii]);
   }
-
-  // Determine sample relevance
-  if (p->indices.size())
-  {
-    Guard guard(*p->store);
-    Sample *neighbor = (*p->store)[p->indices[0]];
-
-    // Relevance based on euclidean distance
-    sample->relevance = 0;
-    for (size_t ii=0; ii < p->query.size(); ++ii)
-      sample->relevance += pow(sample->in[ii]-neighbor->in[ii], 2);
-  }
-  else
-    sample->relevance = 1.;
   
-  // Don't add identical samples
-  if (sample->relevance > 0.000001)
-    projector_->push(sample);
-  else
-    delete sample;
+  if (!p->sample)
+  {
+    // Determine sample relevance
+    if (p->indices.size())
+    {
+      Guard guard(*p->store);
+      Sample *neighbor = (*p->store)[p->indices[0]];
+
+      // Relevance based on euclidean distance
+      sample->relevance = 0;
+      for (size_t ii=0; ii < p->query.size(); ++ii)
+        sample->relevance += pow(sample->in[ii]-neighbor->in[ii], 2);
+    }
+    else
+      sample->relevance = 1.;
+      
+    // Don't add identical samples
+    if (sample->relevance > 0.000001)
+    {
+      projector_->push(sample);
+      p->sample = sample;
+    }
+    else
+      delete sample;
+  }
 }
 
 void LLRRepresentation::update(const ProjectionPtr projection, const Vector &delta)

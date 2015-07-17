@@ -16,9 +16,11 @@ experiment:
     task: 
       type: task/pendulum/swingup
       timeout: 2.99
+      randomization: 0
   agent: 
     type: agent/dyna
     planning_steps: 2000
+    planning_horizon: 100
     policy: 
       type: policy/discrete/q
       discretizer: 
@@ -54,6 +56,7 @@ experiment:
         type: trace/enumerated/replacing
     model: 
       type: observation_model/approximated
+      control_step: experiment/environment/model/control_step
       differential: 1
       wrapping: [6.283, 0]
       observation_min: experiment/environment/task/observation_min
@@ -70,6 +73,8 @@ experiment:
         type: representation/llr
         ridge: 1e-05
         order: 0
+        input_nominals: [  ]
+        output_nominals: [  ]
         outputs: experiment/environment/task/observation_dims+2
         output_min: []
         output_max: []

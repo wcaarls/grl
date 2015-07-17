@@ -4,7 +4,7 @@ experiment:
   trials: 0
   steps: 0
   rate: 0
-  test_interval: 1
+  test_interval: 10
   environment: 
     type: environment/modeled
     model: 
@@ -18,9 +18,7 @@ experiment:
       timeout: 2.99
       randomization: 0
   agent: 
-    type: agent/dyna
-    planning_steps: 200
-    planning_horizon: 100
+    type: agent/td
     policy: 
       type: policy/discrete/q
       discretizer: 
@@ -46,58 +44,29 @@ experiment:
         type: sampler/epsilon_greedy
         epsilon: 0.05
     predictor: 
-      type: predictor/sarsa
+      type: predictor/qv
       alpha: 0.2
+      beta: 0.1
       gamma: 0.97
       lambda: 0.65
-      projector: experiment/agent/policy/projector
-      representation: experiment/agent/policy/representation
+      q_projector: experiment/agent/policy/projector
+      q_representation: experiment/agent/policy/representation
+      v_projector: 
+        type: projector/tile_coding
+        tilings: 16
+        memory: 8388608
+        resolution: [0.31415, 3.1415 ]
+        wrapping: [6.283, 0 ]
+      v_representation: 
+        type: representation/parameterized/linear
+        init_min: [ 0 ]
+        init_max: [ 1 ]
+        memory: experiment/agent/predictor/v_projector/memory
+        outputs: 1
+        output_min: [  ]
+        output_max: [  ]
       trace: 
         type: trace/enumerated/replacing
-    model: 
-      type: observation_model/approximated
-      control_step: experiment/environment/model/control_step
-      differential: 1
-      wrapping: [6.283, 0]
-      observation_min: experiment/environment/task/observation_min
-      observation_max: experiment/environment/task/observation_max
-      projector: 
-        type: projector/sample/ann
-        samples: 10000
-        neighbors: 12
-        locality: 1
-        bucket_size: 10
-        error_bound: 0.1
-        scaling: []
-        inputs: experiment/environment/task/observation_dims+experiment/environment/task/action_dims
-      representation: 
-        type: representation/llr
-        ridge: 1e-05
-        order: 1
-        input_nominals: [  ]
-        output_nominals: [  ]
-        outputs: experiment/environment/task/observation_dims+2
-        output_min: []
-        output_max: []
-        projector: experiment/agent/model/projector
-    model_predictor: 
-      type: predictor/model
-      differential: 1
-      wrapping: experiment/agent/policy/projector/wrapping
-      projector: experiment/agent/model/projector
-      representation: experiment/agent/model/representation
-    model_agent: 
-      type: agent/td
-      policy: experiment/agent/policy
-      predictor: 
-        type: predictor/sarsa
-        alpha: 0.02
-        gamma: 0.97
-        lambda: 0
-        projector: experiment/agent/policy/projector
-        representation: experiment/agent/policy/representation
-        trace: 
-          type: trace/enumerated/replacing
   test_agent: 
     type: agent/fixed
     policy: 
@@ -119,3 +88,13 @@ visualization:
   projector: experiment/agent/policy/projector
   representation: experiment/agent/policy/representation
   policy: experiment/test_agent/policy
+visualization2: 
+  type: visualization/field/value
+  field_dims: [ 0, 1 ]
+  input_min: experiment/environment/task/observation_min
+  input_max: experiment/environment/task/observation_max
+  points: 65536
+  projection: mean
+  output_dim: 0
+  projector: experiment/agent/predictor/v_projector
+  representation: experiment/agent/predictor/v_representation

@@ -3,7 +3,7 @@ experiment:
   runs: 1
   trials: 0
   steps: 0
-  rate: 33
+  rate: 0
   test_interval: 1
   environment: 
     type: environment/modeled
@@ -53,9 +53,10 @@ experiment:
       gamma: 0.97
       transitions: 100000
       iterations: 50
+      reset_strategy: batch
+      discretizer: experiment/agent/policy/discretizer
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
-      policy: experiment/agent/policy
   test_agent: 
     type: agent/fixed
     policy: 
@@ -78,13 +79,3 @@ visualization:
 visualization2: 
   type: visualization/pendulum
   state: experiment/environment/state
-visualization3: 
-  type: visualization/field/policy/value
-  field_dims: [0, 1]
-  input_min: experiment/environment/task/observation_min
-  input_max: experiment/environment/task/observation_max
-  points: 65536
-  projection: mean
-  projector: experiment/agent/policy/projector
-  representation: experiment/agent/policy/representation
-  policy: experiment/test_agent/policy

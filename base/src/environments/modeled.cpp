@@ -38,12 +38,20 @@ void ModeledEnvironment::request(ConfigurationRequest *config)
   config->push_back(CRP("task", "task", "Task to perform in the environment (should match model)", task_));
 
   config->push_back(CRP("state", "state", "Current state of the model", CRP::Provided));
+  config->push_back(CRP("output", "Base filename for state transition log", output_, CRP::Online));
 }
 
 void ModeledEnvironment::configure(Configuration &config)
 {
   model_ = (Model*)config["model"].ptr();
   task_ = (Task*)config["task"].ptr();
+  output_ = config["output"].str();
+  
+  if (output_ != "")
+  {
+    remove((output_+"-test.csv").c_str());
+    remove((output_+"-learn.csv").c_str());
+  }
   
   state_obj_ = new State();
   
@@ -52,6 +60,10 @@ void ModeledEnvironment::configure(Configuration &config)
 
 void ModeledEnvironment::reconfigure(const Configuration &config)
 {
+  config.get("output", output_);
+  
+  if (config.has("action") && config["action"].str() == "reset")
+    time_learn_ = time_test_ = 0.;
 }
     
 ModeledEnvironment *ModeledEnvironment::clone() const
@@ -70,20 +82,48 @@ void ModeledEnvironment::start(int test, Vector *obs)
 
   task_->start(test, &state_);
   task_->observe(state_, obs, &terminal);
-  
+
+  obs_ = *obs;
   state_obj_->set(state_);
+  
+  test_ = test;
+
+  if (output_stream_.is_open())
+    output_stream_.close();
+  
+  if (output_ != "")
+    output_stream_.open((output_+"-"+(test_?"test":"learn")+".csv").c_str(), std::ofstream::out | std::ofstream::app);
 }
 
-void ModeledEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)
+double ModeledEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)
 {
   Vector next;
 
-  model_->step(state_, action, &next);
+  double tau = model_->step(state_, action, &next);
   task_->observe(next, obs, terminal);
   task_->evaluate(state_, action, next, reward);
+
+  double &time = test_?time_test_:time_learn_;
+
+  if (output_stream_.is_open())
+  {
+    output_stream_ << time << ", ";
+    for (size_t ii=0; ii < state_.size(); ++ii)
+      output_stream_ << state_[ii] << ", ";
+    for (size_t ii=0; ii < obs_.size(); ++ii)
+      output_stream_ << obs_[ii] << ", ";
+    for (size_t ii=0; ii < action.size(); ++ii)
+      output_stream_ << action[ii] << ", ";
+    output_stream_ << *reward << ", " << *terminal << std::endl;
+  }
+
+  time += tau;
+
   state_ = next;
-  
+  obs_ = *obs;
   state_obj_->set(state_);
+  
+  return tau;
 }
 
 void DynamicalModel::request(ConfigurationRequest *config)
@@ -113,7 +153,7 @@ DynamicalModel *DynamicalModel::clone() const
   return dm;
 }
 
-void DynamicalModel::step(const Vector &state, const Vector &action, Vector *next) const
+double DynamicalModel::step(const Vector &state, const Vector &action, Vector *next) const
 {
   Vector xd;
   double h = tau_/steps_;
@@ -133,4 +173,6 @@ void DynamicalModel::step(const Vector &state, const Vector &action, Vector *nex
 
     *next = *next + (k1+2*k2+2*k3+k4)/6;
   }
+  
+  return tau_;
 }

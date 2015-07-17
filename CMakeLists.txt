@@ -9,7 +9,9 @@ else()
   message("-- Build type: ${CMAKE_BUILD_TYPE}")
 endif()
 
-set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-Wno-unused-parameter -Wno-variadic-macros -Wno-pedantic -fopenmp")
+# Use OpenMP if available
+find_package(OpenMP)
+set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-std=c++0x -Wno-unused-parameter -Wno-variadic-macros -Wno-pedantic ${OpenMP_CXX_FLAGS}")
 
 # List of modules to build
 set(MODULES base

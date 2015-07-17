@@ -74,6 +74,12 @@ void StateVisualization::configure(Configuration &config)
 
 void StateVisualization::reconfigure(const Configuration &config)
 {
+  config.get("input_dims", dims_);
+  for (size_t ii=0; ii < dims_.size(); ++ii)
+    if (dims_[ii] >= min_.size())
+      throw bad_param("visualization/state:{input_dims,input_min,input_max}");
+
+  config.get("memory", memory_);
 }
 
 void StateVisualization::reshape(int width, int height)

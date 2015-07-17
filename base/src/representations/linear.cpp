@@ -161,7 +161,7 @@ LinearRepresentation *LinearRepresentation::clone() const
   return new LinearRepresentation(*this);
 }
 
-double LinearRepresentation::read(const ProjectionPtr &projection, Vector *result) const
+double LinearRepresentation::read(const ProjectionPtr &projection, Vector *result, Vector *stddev) const
 {
   Projection &p = *projection;
   
@@ -198,6 +198,8 @@ double LinearRepresentation::read(const ProjectionPtr &projection, Vector *resul
 
   for (size_t ii=0; ii < outputs_; ++ii)
     (*result)[ii] = fmin(fmax((*result)[ii], output_min_[ii]), output_max_[ii]);
+
+  if (stddev) stddev->clear();
   
   return (*result)[0];
 }
@@ -209,7 +211,7 @@ void LinearRepresentation::write(const ProjectionPtr projection, const Vector &t
 
   // TODO: Store read values and update those (for thread safety)
   Vector value;
-  read(projection, &value);
+  read(projection, &value, NULL);
   Vector delta = alpha*(target-value);
   
   update(projection, delta);

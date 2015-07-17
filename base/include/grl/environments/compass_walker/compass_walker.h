@@ -62,7 +62,7 @@ class CompassWalkerModel : public Model
     
     // From Model
     virtual CompassWalkerModel *clone() const;
-    virtual void step(const Vector &state, const Vector &action, Vector *next) const;
+    virtual double step(const Vector &state, const Vector &action, Vector *next) const;
 };
 
 // Walk forward task for compass walker.

@@ -46,6 +46,8 @@ void MasterAgent::configure(Configuration &config)
 
 void MasterAgent::reconfigure(const Configuration &config)
 {
+  if (config.has("action") && config["action"].str() == "reset")
+    time_[0] = time_[1] = -1;
 }
 
 MasterAgent *MasterAgent::clone() const
@@ -58,27 +60,29 @@ void MasterAgent::start(const Vector &obs, Vector *action)
   // Treat a terminal, non-absorbing state as absorbing for the
   // agent that was not running. The rationale is that it did not
   // exit the macro-state, which is therefore absorbing.
-  if (started_[1-last_agent_])
+  if (time_[1-last_agent_] >= 0)
   {
-    CRAWL("Virtual absorbing state for non-running agent " << 1-last_agent_ << " (SMDP reward " << reward_ << ")");
-    agent_[1-last_agent_]->end(reward_);
+    double stau = time_[last_agent_] - time_[1-last_agent_];
+    CRAWL("Virtual absorbing state for non-running agent " << 1-last_agent_ << " (SMDP reward " << reward_ << " over " << stau << "s)");
+    agent_[1-last_agent_]->end(stau, reward_);
   }
   
-  started_[0] = started_[1] = false;
+  time_[0] = time_[1] = -1;
   
   last_agent_ = agent_[1]->confidence(obs) > agent_[0]->confidence(obs);
 
   CRAWL("Starting with agent " << last_agent_);
 
   agent_[last_agent_]->start(obs, action);
-  started_[last_agent_] = true;
+  time_[last_agent_] = 0.;
   
   reward_ = 0;
   smdp_steps_ = 0;
 }
 
-void MasterAgent::step(const Vector &obs, double reward, Vector *action)
+void MasterAgent::step(double tau, const Vector &obs, double reward, Vector *action)
 {
+  double time = time_[last_agent_] + tau;
   int new_agent = agent_[1]->confidence(obs) > agent_[0]->confidence(obs);
   
   // Semi-MDP style reward. Should be per sub-agent.
@@ -86,39 +90,41 @@ void MasterAgent::step(const Vector &obs, double reward, Vector *action)
     
   if (new_agent == last_agent_)
   {
-    agent_[last_agent_]->step(obs, reward, action);
+    agent_[last_agent_]->step(tau, obs, reward, action);
   }
   else
   {
-    if (!started_[new_agent])
+    if (time_[new_agent] < 0)
     {
       CRAWL("Switching to agent " << new_agent << " (starting)");
       agent_[new_agent]->start(obs, action);
-      started_[new_agent] = true;
     }
     else
     {
-      CRAWL("Switching to agent " << new_agent << " (continuing, SMDP reward " << reward_ << ")");
-      agent_[new_agent]->step(obs, reward_, action);
+      double stau = time-time_[new_agent];
+      CRAWL("Switching to agent " << new_agent << " (continuing, SMDP reward " << reward_ << " over " << stau << "s)");
+      agent_[new_agent]->step(stau, obs, reward_, action);
     }
       
     last_agent_ = new_agent;
     reward_ = reward;
     smdp_steps_ = 1;
   }
+
+  time_[new_agent] = time;
 }
 
-void MasterAgent::end(double reward)
+void MasterAgent::end(double tau, double reward)
 {
   reward_ += pow(gamma_, smdp_steps_)*reward;
   
-  agent_[last_agent_]->end(reward);
+  agent_[last_agent_]->end(tau, reward);
   
-  if (started_[1-last_agent_])
+  if (time_[1-last_agent_] >= 0)
   {
     CRAWL("Absorbing state for non-running agent " << 1-last_agent_ << " (SMDP reward " << reward_ << ")");
-    agent_[1-last_agent_]->end(reward_);
+    agent_[1-last_agent_]->end(time_[last_agent_]+tau-time_[1-last_agent_], reward_);
   }
   
-  started_[0] = started_[1] = false;
+  time_[0] = time_[1] = -1;
 }
