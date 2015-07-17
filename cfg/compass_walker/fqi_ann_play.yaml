@@ -1,0 +1,80 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 5
+  trials: 2
+  steps: 0
+  rate: 100
+  test_interval: 0
+  environment: 
+    type: environment/modeled
+    model: 
+      type: model/compass_walker
+      control_step: 0.2
+      integration_steps: 20
+    task: 
+      type: task/compass_walker/walk
+      timeout: 100
+  agent: 
+    type: agent/td
+    policy: 
+      type: policy/discrete/q
+      discretizer: 
+        type: discretizer/uniform
+        min: experiment/environment/task/action_min
+        max: experiment/environment/task/action_max
+        steps: [3]
+      projector: 
+        type: projector/sample/ann
+        samples: 200000
+        neighbors: 20
+        locality: 1
+        bucket_size: 10
+        error_bound: 0.01
+        scaling: []
+        inputs: experiment/environment/task/observation_dims+experiment/environment/task/action_dims
+      representation: 
+        type: representation/llr
+        ridge: 1e-05
+        order: 0
+        input_nominals: []
+        output_nominals: []
+        outputs: 1
+        output_min: []
+        output_max: experiment/agent/policy/representation/input_nominals
+        projector: experiment/agent/policy/projector
+      sampler: 
+        type: sampler/epsilon_greedy
+        epsilon: 0.0
+    predictor: 
+      type: predictor/fqi
+      gamma: 0.97
+      transitions: 200000
+      iterations: 30
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+      policy: experiment/agent/policy
+      rebuild_batch_size: 0
+  test_agent: 
+    type: agent/fixed
+    policy: 
+      type: policy/discrete/q
+      discretizer: experiment/agent/policy/discretizer
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+      sampler: 
+        type: sampler/greedy
+visualizer: 
+  type: visualizer/glut
+visualization: 
+  type: visualization/compass_walker
+  state: experiment/environment/state
+vis2: 
+  type: visualization/field/policy/value
+  field_dims: [0, 1]
+  input_min: experiment/environment/task/observation_min
+  input_max: experiment/environment/task/observation_max
+  points: 65536
+  projection: mean
+  projector: experiment/agent/policy/projector
+  representation: experiment/agent/policy/representation
+  policy: experiment/test_agent/policy
