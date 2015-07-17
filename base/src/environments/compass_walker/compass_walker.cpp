@@ -169,6 +169,8 @@ void CompassWalkerWalkTask::observe(const Vector &state, Vector *obs, int *termi
     *terminal = 1;
   else
     *terminal = 0;
+
+  //obs->push_back(state[CompassWalker::siStanceFootX]); // TODO: Hack to record csv file. Remove asap.
 }
 
 void CompassWalkerWalkTask::evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const

@@ -171,7 +171,7 @@ void FQIPredictor::update(const Transition &transition)
 }
 
 void FQIPredictor::finalize()
-{
+{// call it macro_batch_size
   // rebuilding predictor every 'rebuild_batch_size_' episodes or do not rebuild at all
   if (rebuild_batch_size_ && ((rebuild_counter_++ % rebuild_batch_size_) == 0))
     rebuild();

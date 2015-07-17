@@ -100,7 +100,7 @@ void OnlineLearningExperiment::run()
       std::ostringstream oss;
       oss << output_ << "-" << rr;
       ofs.open((oss.str()+".txt").c_str());
-      csv_.start((oss.str()+".csv").c_str(), 4, 1, 0);
+      csv_.start((oss.str()+".csv").c_str(), 7, 1, 1);
     }
     
     for (size_t ss=0, tt=0; (!trials_ || tt < trials_) && (!steps_ || ss < steps_); ++tt)
@@ -114,6 +114,7 @@ void OnlineLearningExperiment::run()
       if (test) agent = test_agent_;
       
       environment_->start(test, &obs);
+      //obs.pop_back(); // TODO: Hack to record csv file. Remove asap.
       agent->start(obs, &action);
       state_->set(obs);
 
@@ -124,10 +125,13 @@ void OnlineLearningExperiment::run()
         if (rate_) usleep(1000000./rate_);
         
         environment_->step(action, &obs, &reward, &terminal);
-        
+
         CRAWL(action << " - " << reward << " -> " << obs);
 
+        //obs.push_back(-obs.back()*sin(0.004)); // TODO: Hack to record csv file. Remove asap.
         csv_.log(0.2, obs, action, reward);
+        //obs.pop_back(); // TODO: Hack to record csv file. Remove asap.
+        //obs.pop_back();
 
         total_reward += reward;
         
