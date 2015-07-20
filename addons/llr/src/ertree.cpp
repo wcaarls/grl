@@ -33,11 +33,9 @@ using namespace grl;
 
 REGISTER_CONFIGURABLE(ERTreeProjector)
 
-ERTreeNode::ERTreeNode(ERTree *tree, size_t *samples, size_t num_samples, Vector var) :
+ERTreeNode::ERTreeNode(ERTree *tree, Sample **samples, size_t num_samples, Vector var) :
   samples_(samples), num_samples_(num_samples), split_attribute_(255), split_point_(0), left_(NULL), right_(NULL)
 {
-  SampleStore &store = *tree->store().get();
-  
   // Don't split with too few samples
   if (num_samples_ < tree->leafSize())
     return;
@@ -50,13 +48,13 @@ ERTreeNode::ERTreeNode(ERTree *tree, size_t *samples, size_t num_samples, Vector
   Vector min(tree->inputs()), max(tree->inputs());
   
   for (size_t jj=0; jj < tree->inputs(); ++jj)
-    max[jj] = min[jj] = store[samples_[0]]->in[jj];
+    max[jj] = min[jj] = samples_[0]->in[jj];
 
   for (size_t ii=1; ii < num_samples_; ++ii)
     for (size_t jj=0; jj < tree->inputs(); ++jj)
     {
-      min[jj] = fmin(min[jj], store[samples_[ii]]->in[jj]);
-      max[jj] = fmax(max[jj], store[samples_[ii]]->in[jj]);
+      min[jj] = fmin(min[jj], samples_[ii]->in[jj]);
+      max[jj] = fmax(max[jj], samples_[ii]->in[jj]);
     }
     
   // Don't split if inputs have no variance
@@ -85,17 +83,17 @@ ERTreeNode::ERTreeNode(ERTree *tree, size_t *samples, size_t num_samples, Vector
     
     for (size_t ii=0; ii < num_samples_; ++ii)
     {
-      if (store[samples_[ii]]->in[attr] < point)
+      if (samples_[ii]->in[attr] < point)
       {
         samples_l++;
         for (size_t jj=0; jj < tree->outputs(); ++jj)
-          mean_l[jj] += store[samples_[ii]]->out[jj];
+          mean_l[jj] += samples_[ii]->out[jj];
       }
       else
       {
         samples_r++;
         for (size_t jj=0; jj < tree->outputs(); ++jj)
-          mean_r[jj] += store[samples_[ii]]->out[jj];
+          mean_r[jj] += samples_[ii]->out[jj];
       }
     }
     
@@ -117,12 +115,12 @@ ERTreeNode::ERTreeNode(ERTree *tree, size_t *samples, size_t num_samples, Vector
     
     for (size_t ii=0; ii < num_samples_; ++ii)
     {
-      if (store[samples_[ii]]->in[attr] < point)
+      if (samples_[ii]->in[attr] < point)
         for (size_t jj=0; jj < tree->outputs(); ++jj)
-          var_l[jj] += pow(store[samples_[ii]]->out[jj] - mean_l[jj], 2);
+          var_l[jj] += pow(samples_[ii]->out[jj] - mean_l[jj], 2);
       else
         for (size_t jj=0; jj < tree->outputs(); ++jj)
-          var_r[jj] += pow(store[samples_[ii]]->out[jj] - mean_r[jj], 2);
+          var_r[jj] += pow(samples_[ii]->out[jj] - mean_r[jj], 2);
     }
     
     for (size_t jj=0; jj < tree->outputs(); ++jj)
@@ -158,18 +156,18 @@ ERTreeNode::ERTreeNode(ERTree *tree, size_t *samples, size_t num_samples, Vector
   }
   
   // Implement chosen split
-  size_t *new_samples = new size_t[num_samples_];
+  Sample **new_samples = new Sample*[num_samples_];
   
   size_t idx_l = 0;
   size_t idx_r = best_samples_l;
   for (size_t ii=0; ii < num_samples_; ++ii)
-    if (store[samples_[ii]]->in[split_attribute_] < split_point_)
+    if (samples_[ii]->in[split_attribute_] < split_point_)
       new_samples[idx_l++] = samples_[ii];
     else
       new_samples[idx_r++] = samples_[ii];
 
   // Copy into original sample map
-  memcpy(samples_, new_samples, num_samples_*sizeof(size_t));
+  memcpy(samples_, new_samples, num_samples_*sizeof(Sample*));
   delete[] new_samples;  
 
   // Recurse
@@ -177,13 +175,13 @@ ERTreeNode::ERTreeNode(ERTree *tree, size_t *samples, size_t num_samples, Vector
   right_ = new ERTreeNode(tree, &samples_[best_samples_l], best_samples_r, best_var_r);
 }
 
-std::vector<size_t> ERTreeNode::read(const Vector &input) const
+std::vector<Sample*> ERTreeNode::read(const Vector &input) const
 {
   if (split_attribute_ == 255)
   {
     // Leaf node
-    std::vector<size_t> ret(num_samples_);
-    memcpy(ret.data(), samples_, num_samples_*sizeof(size_t));
+    std::vector<Sample*> ret(num_samples_);
+    memcpy(ret.data(), samples_, num_samples_*sizeof(Sample*));
     return ret;
   }
   else if (input[split_attribute_] < split_point_)
@@ -333,17 +331,16 @@ ProjectionPtr ERTreeProjector::project(const Vector &in) const
     throw bad_param("projector/sample/ertree:dims");
     
   // Find neighboring samples in leaf nodes
-  std::vector<size_t> neighbors;
+  projection->neighbors.clear();
   
   for (size_t ii=0; ii < trees_; ++ii)
   {
-    std::vector<size_t> tree_neighbors = forest_[ii]->read(in);
-    neighbors.insert(neighbors.end(), tree_neighbors.begin(), tree_neighbors.end());
+    std::vector<Sample*> tree_neighbors = forest_[ii]->read(in);
+    projection->neighbors.insert(projection->neighbors.end(), tree_neighbors.begin(), tree_neighbors.end());
   }
   
-  // Fill projection
-  projection->indices = neighbors;
-  projection->weights.resize(neighbors.size(), 1.);
+  // ERTree doesn't really have weights...
+  projection->weights.resize(projection->neighbors.size(), 1.);
 
   return ProjectionPtr(projection);
 }

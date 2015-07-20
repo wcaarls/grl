@@ -37,7 +37,7 @@ REGISTER_CONFIGURABLE(ANNProjector)
 void ANNProjector::request(const std::string &role, ConfigurationRequest *config)
 {
   config->push_back(CRP("samples", "Maximum number of samples to store", max_samples_, CRP::Configuration, 100));
-  config->push_back(CRP("neighbors", "Number of neighbor indices to return", neighbors_, CRP::Configuration, 1, ANN_MAX_NEIGHBORS));
+  config->push_back(CRP("neighbors", "Number of neighbors to return", neighbors_, CRP::Configuration, 1, ANN_MAX_NEIGHBORS));
   config->push_back(CRP("locality", "Locality of weighing function", locality_, CRP::Configuration, 0., DBL_MAX));
   config->push_back(CRP("bucket_size", "?", bucket_size_, CRP::Configuration, 1));
   config->push_back(CRP("error_bound", "?", error_bound_, CRP::Configuration, 0., DBL_MAX));
@@ -159,7 +159,7 @@ ProjectionPtr ANNProjector::project(const Vector &in) const
           return ProjectionPtr(projection);
         }
       
-        refs[ii].index = nn_idx[ii];
+        refs[ii].sample = (*store_)[nn_idx[ii]];
         refs[ii].dist = (float)dd[ii];
       }
     }
@@ -174,25 +174,27 @@ ProjectionPtr ANNProjector::project(const Vector &in) const
     // Search overflowing samples linearly
     for (size_t ii=0; ii < linear_samples; ++ii)
     {
+      Sample *sample = (*store_)[indexed_samples_+ii];
+    
       double dist=0;
       for (size_t dd=0; dd < dims_; ++dd)
-        dist += pow((*store_)[indexed_samples_+ii]->in[dd] - query[dd], 2);
+        dist += pow(sample->in[dd] - query[dd], 2);
       
-      refs[index_samples+ii].index = indexed_samples_+ii;
+      refs[index_samples+ii].sample = sample;
       refs[index_samples+ii].dist = (float)dist;
     }
     
     std::sort(refs.begin(), refs.end());
     
     // Return ProjectionPtr pointing to current store
-    projection->indices.resize(available_samples);
+    projection->neighbors.resize(available_samples);
     projection->weights.resize(available_samples);
     
     double hSqr = refs[available_samples-1].dist;
     
     for (size_t ii=0; ii < available_samples; ++ii)
     {
-      projection->indices[ii] = refs[ii].index;
+      projection->neighbors[ii] = refs[ii].sample;
       if (hSqr)
         projection->weights[ii] = sqrt(exp(-locality_*refs[ii].dist/hSqr));
       else

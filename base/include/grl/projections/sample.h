@@ -181,7 +181,7 @@ class SampleProjection : public Projection
     StorePtr store;
     Sample *sample;
     Vector query;
-    std::vector<size_t> indices;
+    std::vector<Sample*> neighbors;
     Vector weights;
     
     SampleProjection() : sample(NULL) { }
@@ -194,9 +194,9 @@ class SampleProjection : public Projection
     virtual void ssub(const Projection &rhs)
     {
       const SampleProjection &np = dynamic_cast<const SampleProjection&>(rhs);
-      for (size_t ii=0; ii < indices.size(); ++ii)
-        for (size_t jj=0; jj < np.indices.size(); ++jj)
-          if (indices[ii] == np.indices[jj])
+      for (size_t ii=0; ii < neighbors.size(); ++ii)
+        for (size_t jj=0; jj < np.neighbors.size(); ++jj)
+          if (neighbors[ii] == np.neighbors[jj])
             weights[ii] = 0.;
     }
 };

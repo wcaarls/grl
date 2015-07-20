@@ -39,7 +39,7 @@ class ERTreeNode
 {
   protected:
     class ERTree *tree_;
-    size_t *samples_;
+    Sample **samples_;
     size_t num_samples_;
   
     uint8_t split_attribute_;
@@ -48,21 +48,21 @@ class ERTreeNode
     ERTreeNode *left_, *right_;
   
   public:
-    ERTreeNode(ERTree *tree, size_t *samples, size_t num_samples, Vector var);
+    ERTreeNode(ERTree *tree, Sample **samples, size_t num_samples, Vector var);
     ~ERTreeNode()
     {
       safe_delete(&left_);
       safe_delete(&right_);
     }
 
-    std::vector<size_t> read(const Vector &input) const;
+    std::vector<Sample*> read(const Vector &input) const;
 };
 
 class ERTree
 {
   protected:
     StorePtr store_;
-    size_t *samples_;
+    Sample **samples_;
     ERTreeNode *root_;
     
     size_t inputs_, outputs_, splits_, leaf_size_;
@@ -71,9 +71,9 @@ class ERTree
     ERTree(StorePtr store, size_t inputs, size_t outputs, size_t splits, size_t leaf_size, Vector var) :
       store_(store), samples_(NULL), root_(NULL), inputs_(inputs), outputs_(outputs), splits_(splits), leaf_size_(leaf_size)
     {
-      samples_ = new size_t[store->size()];
-      for (size_t ii=0; ii < store->size(); ++ii)
-        samples_[ii] = ii;
+      // Copy store's sample pointers
+      samples_ = new Sample*[store->size()];
+      memcpy(samples_, store->samples(), store->size()*sizeof(Sample*));
         
       root_ = new ERTreeNode(this, samples_, store->size(), var);
     }
@@ -84,13 +84,12 @@ class ERTree
       safe_delete(&root_);
     }
 
-    StorePtr store() { return store_; }    
     size_t inputs() const { return inputs_; }
     size_t outputs() const { return outputs_; }
     size_t splits() const { return splits_; }
     size_t leafSize() const { return leaf_size_; }
     
-    std::vector<size_t> read(const Vector &input) const
+    std::vector<Sample*> read(const Vector &input) const
     {
       return root_->read(input);
     }
