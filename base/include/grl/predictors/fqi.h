@@ -48,6 +48,7 @@ class FQIPredictor : public Predictor
       std::vector<ProjectionPtr> actions;
       Transition transition;
       
+      CachedTransition() { }
       CachedTransition(const Transition &t) : transition(t) { }
     };
     

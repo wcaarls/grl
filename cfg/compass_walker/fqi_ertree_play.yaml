@@ -1,7 +1,7 @@
 experiment: 
   type: experiment/online_learning
-  runs: 500
-  trials: 2
+  runs: 2
+  trials: 50
   steps: 0
   rate: 20
   test_interval: 0
@@ -50,9 +50,10 @@ experiment:
       gamma: 0.97
       transitions: 200000
       iterations: 20
+      reset_strategy: iteration
+      discretizer: experiment/agent/policy/discretizer
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
-      policy: experiment/agent/policy
       rebuild_batch_size: 0
   test_agent: 
     type: agent/fixed

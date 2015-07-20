@@ -97,7 +97,9 @@ void FQIPredictor::reconfigure(const Configuration &config)
     fileInStream.read(reinterpret_cast<char*>(&count_obs),	sizeof(size_t));
     fileInStream.read(reinterpret_cast<char*>(&count_action),	sizeof(size_t));
     transitions_.reserve(count);
-    Transition tr;
+
+    CachedTransition ctr;
+    Transition &tr = ctr.transition;
     tr.prev_obs.resize(count_obs);
     tr.prev_action.resize(count_action);
     tr.obs.resize(count_obs);
@@ -114,7 +116,8 @@ void FQIPredictor::reconfigure(const Configuration &config)
         tr.action.clear();
       }
       fileInStream.read(reinterpret_cast<char*>(&(tr.reward)), sizeof(double));
-      transitions_.push_back(tr);
+
+      transitions_.push_back(ctr);
       if (tr.obs.empty())
       { // restore
         tr.obs.resize(count_obs);
@@ -239,7 +242,8 @@ void FQIPredictor::rebuild()
        
           target += gamma_*v;
         }
-        
+        t.actions.clear(); // ivan: reset immediately
+
         threadmax = fmax(threadmax, fabs(targets[jj]-target));
         targets[jj] = target;
       }
@@ -260,9 +264,10 @@ void FQIPredictor::rebuild()
         t.state = projector_->project(t.transition.prev_obs, t.transition.prev_action);
       
       representation_->write(t.state, VectorConstructor(targets[jj]));
+      t.state.reset(); // ivan: reset immediately
     }
     
-	// second is actual learning
+    // second is actual learning
     representation_->finalize();
     
     CRAWL("FQI iteration " << ii << " delta L_inf: " << maxdelta);

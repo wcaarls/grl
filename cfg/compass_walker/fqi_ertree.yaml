@@ -50,9 +50,10 @@ experiment:
       gamma: 0.97
       transitions: 200000
       iterations: 20
+      reset_strategy: iteration
+      discretizer: experiment/agent/policy/discretizer
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
-      policy: experiment/agent/policy
       rebuild_batch_size: 3
   test_agent: 
     type: agent/fixed

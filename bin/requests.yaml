@@ -801,7 +801,7 @@ policy/mcts:
   horizon:
     type: int
     description: Planning horizon
-    mutability: configuration
+    mutability: online
     default: 100
     optional: 1
     min: 0
@@ -809,7 +809,7 @@ policy/mcts:
   budget:
     type: double
     description: Computational budget
-    mutability: configuration
+    mutability: online
     default: 0.05
     optional: 1
     min: 0
@@ -1150,6 +1150,22 @@ predictor/fqi:
     optional: 1
     min: 1
     max: 2147483647
+  reset_strategy:
+    type: string
+    description: At which point to reset the representation
+    mutability: configuration
+    default: iteration
+    optional: 1
+    options:
+      - never
+      - batch
+      - iteration
+  discretizer:
+    type: discretizer.action
+    description: Action discretizer
+    mutability: configuration
+    default: 0
+    optional: 0
   projector:
     type: projector.pair
     description: Projects observations onto critic representation space
@@ -1159,12 +1175,6 @@ predictor/fqi:
   representation:
     type: representation.value/action
     description: Value function representation
-    mutability: configuration
-    default: 0
-    optional: 0
-  policy:
-    type: policy/discrete/q
-    description: Q-value based policy
     mutability: configuration
     default: 0
     optional: 0
@@ -1988,7 +1998,7 @@ visualization/field/policy/action:
   field_dims:
     type: vector
     description: Dimensions to visualize
-    mutability: configuration
+    mutability: online
     default: "[ 0, 1 ]"
     optional: 1
   input_min:
@@ -2040,7 +2050,7 @@ visualization/field/policy/value:
   field_dims:
     type: vector
     description: Dimensions to visualize
-    mutability: configuration
+    mutability: online
     default: "[ 0, 1 ]"
     optional: 1
   input_min:
@@ -2096,7 +2106,7 @@ visualization/field/value:
   field_dims:
     type: vector
     description: Dimensions to visualize
-    mutability: configuration
+    mutability: online
     default: "[ 0, 1 ]"
     optional: 1
   input_min:
