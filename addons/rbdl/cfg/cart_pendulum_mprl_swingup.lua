@@ -19,14 +19,14 @@ function wrap_angle(a)
   return a
 end
 
--- Angle is changes so that it is 0 at swingup, and -pi or pi in the bootom.
+-- Angle is changed so that it is 0 at swingup, and -pi or pi in the bootom.
 -- This ensures that maximum potential is 0 (at swingup) and minimum is < 0 everywhere else
 function getPotential(state)
   angle = wrap_angle(state[1]) - math.pi
-  return -1    *  angle^2
+  return -2    *  state[0]^2 
+         -1    *  angle^2
+         -0.1  *  state[2]^2 
          -0.1  *  state[3]^2
-         -2    *  state[0]^2 
-         -0.1  *  state[2]^2
 end
 
 function failed(state)
@@ -37,10 +37,22 @@ function failed(state)
   end
 end
 
+function succeeded(state)
+  angle = wrap_angle(state[1])
+  if state[0] < 0.1                      and  state[0] > -0.1                   and
+     angle    < math.pi + 5*math.pi/180  and  angle    > math.pi-5*math.pi/180  and
+     state[2] < 0.5                      and  state[2] > -0.5                   and
+     state[3] < 50*math.pi/180           and  state[3] > -50*math.pi/180        then
+    return true
+  else
+    return false
+  end
+end
+
 -- Exported functions
 
 function configure(argstr)
-  T = 10
+  T = 3
   return {observation_dims = 4,
           observation_min = {-2.4, 0,         -5, -10*math.pi},
           observation_max = { 2.4, 2*math.pi,  5,  10*math.pi},
@@ -59,7 +71,7 @@ end
 function observe(state)
   if failed(state) then
     t = 2
-  elseif state[4] > T then
+  elseif state[4] > T - 1E-3 then
     t = 1
   else
     t = 0
@@ -70,9 +82,13 @@ end
 
 function evaluate(state, action, next)
   if failed(next) then
-    return -10000
+    return -100
   else
-    return getPotential(next)
+    reward = getPotential(next) - getPotential(state)
+    if succeeded(next) then
+      reward = reward + 10
+    end
+    return reward
   end
 end
 

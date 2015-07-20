@@ -51,7 +51,7 @@ cart_d = 0.20 -- y-axis
 cart_h = 0.20 -- z-axis
 cart_m = 10.0
 cart_com = {
-    0.0, 0.0, 0.0---cart_h/4.0
+    0.0, 0.0, -cart_h/4.0
 }
 
 pend_l = 0.5
@@ -190,6 +190,7 @@ model = {
         {
             name = "pendulum_com",
             parent = "pendulum",
+            body =  {mass = 0, com = {0,0,0}, inertia = get_sphere_inertia(0, 0)},
             joint = joints.fixed,
             joint_frame = {
                 r = pend_com,
