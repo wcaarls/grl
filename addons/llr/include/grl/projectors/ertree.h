@@ -46,6 +46,8 @@ class ERTreeNode
     double split_point_;
   
     ERTreeNode *left_, *right_;
+
+    bool constant_;
   
   public:
     ERTreeNode(ERTree *tree, Sample **samples, size_t num_samples, Vector var);

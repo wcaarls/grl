@@ -34,7 +34,7 @@ using namespace grl;
 REGISTER_CONFIGURABLE(ERTreeProjector)
 
 ERTreeNode::ERTreeNode(ERTree *tree, Sample **samples, size_t num_samples, Vector var) :
-  samples_(samples), num_samples_(num_samples), split_attribute_(255), split_point_(0), left_(NULL), right_(NULL)
+  samples_(samples), num_samples_(num_samples), split_attribute_(255), split_point_(0), left_(NULL), right_(NULL), constant_(false)
 {
   // Don't split with too few samples
   if (num_samples_ < tree->leafSize())
@@ -42,7 +42,10 @@ ERTreeNode::ERTreeNode(ERTree *tree, Sample **samples, size_t num_samples, Vecto
     
   // Don't split if outputs have no variance
   if (sum(var) < 0.00001)
+  {
+    constant_ = true;
     return;
+  }
 
   // Find minimum and maximum attribute values
   Vector min(tree->inputs()), max(tree->inputs());
@@ -180,9 +183,19 @@ std::vector<Sample*> ERTreeNode::read(const Vector &input) const
   if (split_attribute_ == 255)
   {
     // Leaf node
-    std::vector<Sample*> ret(num_samples_);
-    memcpy(ret.data(), samples_, num_samples_*sizeof(Sample*));
-    return ret;
+    if (constant_)
+    {
+      // Output is constant. Return only one sample
+      std::vector<Sample*> ret(1);
+      ret[0] = samples_[0];
+      return ret;
+    }
+    else
+    {
+      std::vector<Sample*> ret(num_samples_);
+      memcpy(ret.data(), samples_, num_samples_*sizeof(Sample*));
+      return ret;
+    }
   }
   else if (input[split_attribute_] < split_point_)
     return left_->read(input);
