@@ -63,13 +63,13 @@ class FQIPredictor : public Predictor
     std::vector<Vector> variants_;
     
     size_t max_samples_, iterations_;
-    size_t rebuild_counter_, rebuild_batch_size_;
     std::vector<CachedTransition> transitions_;
     std::string reset_strategy_str_;
     ResetStrategy reset_strategy_;
+    size_t macro_batch_size_, macro_batch_counter_;
 
   public:
-    FQIPredictor() : gamma_(0.97), discretizer_(NULL), projector_(NULL), representation_(NULL), max_samples_(100000), iterations_(10), reset_strategy_str_("iteration"), reset_strategy_(rsIteration) { }
+    FQIPredictor() : gamma_(0.97), discretizer_(NULL), projector_(NULL), representation_(NULL), max_samples_(100000), iterations_(10), reset_strategy_str_("iteration"), reset_strategy_(rsIteration), macro_batch_size_(1), macro_batch_counter_(0) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -79,10 +79,12 @@ class FQIPredictor : public Predictor
     // From Predictor
     virtual void update(const Transition &transition);
     virtual void finalize();
-    virtual void rebuild();
     
     // From BatchPredictor
     virtual FQIPredictor *clone() const;
+
+  protected:
+    virtual void rebuild();
 };
 
 }
