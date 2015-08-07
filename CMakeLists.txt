@@ -28,6 +28,7 @@ set(MODULES base
             addons/odesim
             addons/rbdl
             addons/muscod
+            addons/leo2
    )
 
 # Is there a better way to find out if catkin_make was run?

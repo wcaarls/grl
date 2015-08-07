@@ -1,0 +1,31 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 0
+  steps: 0
+  rate: 0
+  test_interval: 0
+  environment: 
+    type: environment/leo2
+    port: i:0x0403:0x6001
+    bps: 57600
+  agent: 
+    type: agent/fixed
+    policy: 
+      type: policy/parameterized/pid
+      setpoint: [3.14, 0]
+      outputs: 1
+      p: [0.5, 0]
+      i: [0, 0]
+      d: [0, 0]
+      il: [0, 0]
+  test_agent: experiment/agent
+visualizer: 
+  type: visualizer/glut
+visualization: 
+  type: visualization/state
+  input_dims: [0, 1]
+  input_min: [0, -12]
+  input_max: [6.28, 12]
+  memory: 256
+  state: experiment/environment/state
