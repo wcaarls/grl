@@ -1180,6 +1180,14 @@ predictor/fqi:
       - never
       - batch
       - iteration
+  macro_batch_size:
+    type: int
+    description: Number of episodes/batches after which prediction is rebuilt. Use 0 for no rebuilds.
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 0
+    max: 2147483647
   discretizer:
     type: discretizer.action
     description: Action discretizer

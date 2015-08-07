@@ -133,8 +133,10 @@ void LinearRepresentation::reconfigure(const Configuration &config)
       if (fread(params_.data(), sizeof(double), params_.size(), f) != params_.size())
       {
         WARNING("Could not read '" << file << "'");
+        fclose(f);
         return;
       }
+      fclose(f);
     }
     else if (config["action"].str() == "save")
     {

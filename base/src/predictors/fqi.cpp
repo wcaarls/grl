@@ -42,10 +42,12 @@ void FQIPredictor::request(ConfigurationRequest *config)
   options.push_back("batch");
   options.push_back("iteration");
   config->push_back(CRP("reset_strategy", "At which point to reset the representation", reset_strategy_str_, CRP::Configuration, options));
+  config->push_back(CRP("macro_batch_size", "Number of episodes/batches after which prediction is rebuilt. Use 0 for no rebuilds.", (int)macro_batch_size_));
 
   config->push_back(CRP("discretizer", "discretizer.action", "Action discretizer", discretizer_));
   config->push_back(CRP("projector", "projector.pair", "Projects observations onto critic representation space", projector_));
   config->push_back(CRP("representation", "representation.value/action", "Value function representation", representation_));
+
 }
 
 void FQIPredictor::configure(Configuration &config)
@@ -59,6 +61,7 @@ void FQIPredictor::configure(Configuration &config)
   gamma_ = config["gamma"];
   max_samples_ = config["transitions"];
   iterations_ = config["iterations"];
+  macro_batch_size_ = config["macro_batch_size"];
   
   reset_strategy_str_ = config["reset_strategy"].str();
   if (reset_strategy_str_ == "never")          reset_strategy_ = rsNever;
@@ -77,6 +80,98 @@ void FQIPredictor::reconfigure(const Configuration &config)
     DEBUG("Initializing transition store");
   
     transitions_.clear();
+    macro_batch_counter_ = 0;
+  }
+  else if (config["action"].str() == "load")
+  {
+    std::string file = config["file"].str() + path() + ".dat";
+    std::replace(file.begin(), file.end(), '/', '_');
+
+    std::ifstream fileInStream;
+    fileInStream.open(file.c_str(),  std::ofstream::in);
+    if (!fileInStream.good())
+      return;
+    size_t count, count_obs, count_action;
+    fileInStream.read(reinterpret_cast<char*>(&count),	sizeof(size_t));
+    fileInStream.read(reinterpret_cast<char*>(&count_obs),	sizeof(size_t));
+    fileInStream.read(reinterpret_cast<char*>(&count_action),	sizeof(size_t));
+    
+    NOTICE("Reading " << count << " transitions from " << file);
+    
+    transitions_.reserve(count);
+
+    CachedTransition ctr;
+    Transition &tr = ctr.transition;
+    tr.prev_obs.resize(count_obs);
+    tr.prev_action.resize(count_action);
+    tr.obs.resize(count_obs);
+    tr.action.resize(count_action);
+    for (unsigned int i = 0; i < count; i++)
+    {
+      fileInStream.read(reinterpret_cast<char*>(&(tr.prev_obs[0])), tr.prev_obs.size()*sizeof(double));
+      fileInStream.read(reinterpret_cast<char*>(&(tr.prev_action[0])), tr.prev_action.size()*sizeof(double));
+      fileInStream.read(reinterpret_cast<char*>(&(tr.obs[0])), tr.obs.size()*sizeof(double));
+      fileInStream.read(reinterpret_cast<char*>(&(tr.action[0])), tr.action.size()*sizeof(double));
+      if (std::isnan(tr.obs[0]))
+      { // this is a terminal or absorbing transition
+        tr.obs.clear();
+        tr.action.clear();
+      }
+      fileInStream.read(reinterpret_cast<char*>(&(tr.reward)), sizeof(double));
+
+      transitions_.push_back(ctr);
+      if (tr.obs.empty())
+      { // restore
+        tr.obs.resize(count_obs);
+        tr.action.resize(count_action);
+      }
+    }
+    fileInStream.close();
+    
+    rebuild(); // Build predictor
+  }
+  else if (config["action"].str() == "save")
+  {
+    if (transitions_.size() == 0)
+      return;
+
+    std::string file = config["file"].str() + path() + ".dat";
+    std::replace(file.begin(), file.end(), '/', '_');
+
+    std::ofstream fileOutStream;
+    fileOutStream.open(file.c_str(),  std::ofstream::out);
+    if (!fileOutStream.good())
+      return;
+    size_t count = transitions_.size();
+    fileOutStream.write(reinterpret_cast<const char*>(&count),	sizeof(size_t));
+    size_t count_obs = transitions_[0].transition.obs.size();
+    fileOutStream.write(reinterpret_cast<const char*>(&count_obs),	sizeof(size_t));
+    size_t count_action = transitions_[0].transition.action.size();
+    fileOutStream.write(reinterpret_cast<const char*>(&count_action),	sizeof(size_t));
+    // prepare dymmy symbols to obay format
+    Vector dummy_obs, dummy_action;
+    dummy_obs.resize(count_obs, std::numeric_limits<double>::signaling_NaN());
+    dummy_action.resize(count_action, std::numeric_limits<double>::signaling_NaN());
+    for (unsigned int i = 0; i < count; i++)
+    {
+      fileOutStream.write(reinterpret_cast<const char*>(&(transitions_[i].transition.prev_obs[0])), count_obs*sizeof(double));
+      fileOutStream.write(reinterpret_cast<const char*>(&(transitions_[i].transition.prev_action[0])), count_action*sizeof(double));
+
+      if (transitions_[i].transition.obs.empty())
+      {
+        // dymmy write of NaNs
+        fileOutStream.write(reinterpret_cast<const char*>(&(dummy_obs[0])), count_obs*sizeof(double));
+        fileOutStream.write(reinterpret_cast<const char*>(&(dummy_action[0])), count_action*sizeof(double));
+      }
+      else
+      {
+        fileOutStream.write(reinterpret_cast<const char*>(&(transitions_[i].transition.obs[0])), count_obs*sizeof(double));
+        fileOutStream.write(reinterpret_cast<const char*>(&(transitions_[i].transition.action[0])), count_action*sizeof(double));
+      }
+
+      fileOutStream.write(reinterpret_cast<const char*>(&(transitions_[i].transition.reward)), sizeof(double));
+    }
+    fileOutStream.close();
   }
 }
 
@@ -95,6 +190,13 @@ void FQIPredictor::update(const Transition &transition)
 }
 
 void FQIPredictor::finalize()
+{
+  // rebuilding predictor every macro_batch_size_ episodes or do not rebuild at all
+  if (macro_batch_size_ && ((++macro_batch_counter_ % macro_batch_size_) == 0))
+    rebuild();
+}
+
+void FQIPredictor::rebuild()
 {
   std::vector<double> targets(transitions_.size(), 0.);
   double maxdelta = std::numeric_limits<double>::infinity();
@@ -143,7 +245,7 @@ void FQIPredictor::finalize()
        
           target += gamma_*v;
         }
-        
+
         threadmax = fmax(threadmax, fabs(targets[jj]-target));
         targets[jj] = target;
       }
@@ -155,7 +257,7 @@ void FQIPredictor::finalize()
     if (reset_strategy_ == rsIteration)
       representation_->reset();
     
-    // Learn
+    // Learn: first accumulate all samples and targets
     for (size_t jj=0; jj < transitions_.size(); ++jj)
     {
       CachedTransition& t = transitions_[jj];
@@ -166,6 +268,7 @@ void FQIPredictor::finalize()
       representation_->write(t.state, VectorConstructor(targets[jj]));
     }
     
+    // second is actual learning
     representation_->finalize();
     
     CRAWL("FQI iteration " << ii << " delta L_inf: " << maxdelta);

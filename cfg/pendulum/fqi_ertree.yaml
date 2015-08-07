@@ -13,11 +13,18 @@ experiment:
   task: 
     type: task/pendulum/swingup
     timeout: 2.99
+    randomization: 0
   predictor: 
     type: predictor/fqi
     gamma: 0.97
     transitions: 100000
     iterations: 30
+    reset_strategy: iteration
+    discretizer: 
+      type: discretizer/uniform
+      min: experiment/task/action_min
+      max: experiment/task/action_max
+      steps: [ 3 ]
     projector: 
       type: projector/sample/ertree
       samples: 100000
@@ -36,20 +43,15 @@ experiment:
       output_min: []
       output_max: []
       projector: experiment/predictor/projector
+  test_agent: 
+    type: agent/fixed
     policy: 
       type: policy/discrete/q
-      discretizer: 
-        type: discretizer/uniform
-        min: experiment/task/action_min
-        max: experiment/task/action_max
-        steps: [3]
+      discretizer: experiment/predictor/discretizer
       projector: experiment/predictor/projector
       representation: experiment/predictor/representation
       sampler: 
         type: sampler/greedy
-  test_agent: 
-    type: agent/fixed
-    policy: experiment/predictor/policy
   observation_min: experiment/task/observation_min
   observation_max: experiment/task/observation_max
   action_min: experiment/task/action_min
@@ -65,7 +67,7 @@ visualization:
   projection: mean
   projector: experiment/predictor/projector
   representation: experiment/predictor/representation
-  policy: experiment/predictor/policy
+  policy: experiment/test_agent/policy
 visualization2: 
   type: visualization/pendulum
   state: experiment/state

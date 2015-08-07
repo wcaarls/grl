@@ -4,7 +4,9 @@ include(grl.cmake)
 
 if (NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE RelWithDebInfo)
-  message("-- Set default build type ${CMAKE_BUILD_TYPE}")
+  message("-- Set default build type: ${CMAKE_BUILD_TYPE}")
+else()
+  message("-- Build type: ${CMAKE_BUILD_TYPE}")
 endif()
 
 # Use OpenMP if available
