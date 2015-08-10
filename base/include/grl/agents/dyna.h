@@ -28,6 +28,8 @@
 #ifndef GRL_DYNA_AGENT_H_
 #define GRL_DYNA_AGENT_H_
 
+#include <itc/itc.h>
+
 #include <grl/agent.h>
 #include <grl/policy.h>
 #include <grl/predictors/model.h>
@@ -37,7 +39,7 @@ namespace grl
 {
 
 /// Dyna model-based learning agent.
-class DynaAgent : public Agent
+class DynaAgent : public Agent, public itc::Thread
 {
   public:
     TYPEINFO("agent/dyna", "Agent that learns from both observed and predicted state transitions")
@@ -55,13 +57,17 @@ class DynaAgent : public Agent
     size_t planning_steps_, planning_horizon_, total_planned_steps_;
     
     double planning_reward_, actual_reward_;
-    size_t planned_steps_, control_steps_;
+    size_t planned_steps_, control_steps_, total_control_steps_;
+    int asynchronous_;
     
     double time_;
     
   public:
-    DynaAgent() : policy_(NULL), predictor_(NULL), model_(NULL), model_predictor_(NULL), model_agent_(NULL), state_(NULL), planning_steps_(1), planning_horizon_(100), total_planned_steps_(0), planning_reward_(0.), actual_reward_(0.), planned_steps_(0), control_steps_(0), time_(0.) { }
+    DynaAgent() : policy_(NULL), predictor_(NULL), model_(NULL), model_predictor_(NULL), model_agent_(NULL), state_(NULL), planning_steps_(1), planning_horizon_(100), total_planned_steps_(0), planning_reward_(0.), actual_reward_(0.), planned_steps_(0), control_steps_(0), total_control_steps_(0), asynchronous_(0), time_(0.) { }
   
+    // From itc::Thread
+    using itc::Thread::start;
+
     // From Configurable    
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
@@ -75,6 +81,8 @@ class DynaAgent : public Agent
     virtual void report(std::ostream &os);
     
   protected:
+    virtual void run();
+    
     void runModel();
 };
 

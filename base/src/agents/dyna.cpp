@@ -37,6 +37,7 @@ void DynaAgent::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("planning_steps", "Number of planning steps per control step", planning_steps_, CRP::Configuration, 0));
   config->push_back(CRP("planning_horizon", "Planning episode length", planning_horizon_, CRP::Configuration, 0));
+  config->push_back(CRP("asynchronous", "Asynchronous planning (actual planning_steps depends on control step time and processing power)", asynchronous_, CRP::Configuration, 0, 1));
 
   config->push_back(CRP("policy", "policy", "Control policy", policy_));
   config->push_back(CRP("predictor", "predictor", "Value function predictor", predictor_));
@@ -54,6 +55,7 @@ void DynaAgent::configure(Configuration &config)
 
   planning_steps_ = config["planning_steps"];
   planning_horizon_ = config["planning_horizon"];
+  asynchronous_ = config["asynchronous"];
   
   model_ = (ObservationModel*)config["model"].ptr();
   model_predictor_ = (ModelPredictor*)config["model_predictor"].ptr();
@@ -62,6 +64,9 @@ void DynaAgent::configure(Configuration &config)
   state_ = new State();
   
   config.set("state", state_);
+  
+  if (asynchronous_)
+    start();
 }
 
 void DynaAgent::reconfigure(const Configuration &config)
@@ -105,13 +110,15 @@ void DynaAgent::step(double tau, const Vector &obs, double reward, Vector *actio
   if (model_predictor_)
     model_predictor_->update(t);
   
-  runModel();
+  if (!asynchronous_)
+    runModel();
 
   prev_obs_ = obs;
   prev_action_ = *action;  
 
   actual_reward_ += reward;  
   control_steps_++;
+  total_control_steps_++;
 }
 
 void DynaAgent::end(double tau, double reward)
@@ -121,10 +128,12 @@ void DynaAgent::end(double tau, double reward)
   if (model_predictor_)
     model_predictor_->update(t);
   
-  runModel();
+  if (!asynchronous_)
+    runModel();
 
   actual_reward_ += reward;  
   control_steps_++;
+  total_control_steps_++;
 }
 
 void DynaAgent::report(std::ostream &os)
@@ -135,6 +144,21 @@ void DynaAgent::report(std::ostream &os)
   planned_steps_ = 0;
   actual_reward_ = 0;
   control_steps_ = 0;
+}
+
+void DynaAgent::run()
+{
+  size_t ii=0;
+
+  while (ok())
+  {
+    while (ii < total_control_steps_)
+    {
+      runModel();
+      ii++;
+    }
+    usleep(0);
+  }
 }
 
 void DynaAgent::runModel()

@@ -32,6 +32,14 @@ agent/dyna:
     optional: 1
     min: 0
     max: 2147483647
+  asynchronous:
+    type: int
+    description: Asynchronous planning (actual planning_steps depends on control step time and processing power)
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
   policy:
     type: policy
     description: Control policy
@@ -1449,7 +1457,7 @@ projector/sample/ann:
     max: 2147483647
   neighbors:
     type: int
-    description: Number of neighbor indices to return
+    description: Number of neighbors to return
     mutability: configuration
     default: 20
     optional: 1
@@ -2376,7 +2384,7 @@ projector/sample/ann.pair:
     max: 2147483647
   neighbors:
     type: int
-    description: Number of neighbor indices to return
+    description: Number of neighbors to return
     mutability: configuration
     default: 20
     optional: 1
@@ -2715,7 +2723,7 @@ projector/sample/ann.observation:
     max: 2147483647
   neighbors:
     type: int
-    description: Number of neighbor indices to return
+    description: Number of neighbors to return
     mutability: configuration
     default: 20
     optional: 1
