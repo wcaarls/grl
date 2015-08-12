@@ -8,7 +8,7 @@
  * Copyright (c) 2015, Wouter Caarls
  * All rights reserved.
  *
- * This file is part of GRL, the Pinball Reinforcement Learning library.
+ * This file is part of GRL, the Generic Reinforcement Learning library.
  *
  * GRL is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

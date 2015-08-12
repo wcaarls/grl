@@ -1,0 +1,73 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 0
+  steps: 0
+  rate: 0
+  test_interval: 10
+  environment: 
+    type: environment/modeled
+    model: 
+      type: model/dynamical
+      control_step: 0.05
+      integration_steps: 5
+      dynamics: 
+        type: dynamics/tlm
+    task: 
+      type: task/tlm/balancing
+  agent: 
+    type: agent/td
+    policy: 
+      type: policy/discrete/q
+      discretizer: 
+        type: discretizer/uniform
+        min: experiment/environment/task/action_min
+        max: experiment/environment/task/action_max
+        steps: [3,3]
+      projector: 
+        type: projector/tile_coding
+        tilings: 16
+        memory: 67108864
+        resolution: [0.31415, 0.31415, 3.1415, 3.1415, 1.5, 1]
+        wrapping: [6.283, 6.283, 0, 0, 0, 0]
+      representation: 
+        type: representation/parameterized/linear
+        init_min: [0]
+        init_max: [1]
+        memory: experiment/agent/policy/projector/memory
+        outputs: 1
+        output_min: []
+        output_max: []
+      sampler: 
+        type: sampler/epsilon_greedy
+        epsilon: 0.05
+    predictor: 
+      type: predictor/sarsa
+      alpha: 0.4
+      gamma: 0.98
+      lambda: 0.92
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+      trace: 
+        type: trace/enumerated/replacing
+  test_agent: 
+    type: agent/fixed
+    policy: 
+      type: policy/discrete/q
+      discretizer: experiment/agent/policy/discretizer
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+      sampler: 
+        type: sampler/greedy
+visualizer: 
+  type: visualizer/glut
+visualization: 
+  type: visualization/field/policy/value
+  field_dims: [ 0, 1 ]
+  input_min: experiment/environment/task/observation_min
+  input_max: experiment/environment/task/observation_max
+  points: 65536
+  projection: mean
+  projector: experiment/agent/policy/projector
+  representation: experiment/agent/policy/representation
+  policy: experiment/test_agent/policy

@@ -31,7 +31,8 @@ set(MODULES base
             addons/rbdl
             addons/muscod
             addons/leo2
-   )
+            addons/tlm
+)
 
 # Is there a better way to find out if catkin_make was run?
 if(CATKIN_DEVEL_PREFIX)

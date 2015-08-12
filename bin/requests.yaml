@@ -170,6 +170,8 @@ dynamics/rbdl:
     mutability: configuration
     default: ""
     optional: 1
+dynamics/tlm:
+  description: Two-link manipulator dynamics
 environment/leo2:
   description: LEO/2 environment
   port:
@@ -2077,6 +2079,40 @@ task/pinball/movement:
     optional: 1
     min: 0.001
     max: 1.797693134862316e+308
+task/tlm/balancing:
+  description: Two-link manipulator balancing task
+  observation_dims:
+    type: int.observation_dims
+    description: Number of observation dimensions
+    mutability: provided
+  observation_min:
+    type: vector.observation_min
+    description: Lower limit on observations
+    mutability: provided
+  observation_max:
+    type: vector.observation_max
+    description: Upper limit on observations
+    mutability: provided
+  action_dims:
+    type: int.action_dims
+    description: Number of action dimensions
+    mutability: provided
+  action_min:
+    type: vector.action_min
+    description: Lower limit on actions
+    mutability: provided
+  action_max:
+    type: vector.action_max
+    description: Upper limit on actions
+    mutability: provided
+  reward_min:
+    type: double.reward_min
+    description: Lower limit on immediate reward
+    mutability: provided
+  reward_max:
+    type: double.reward_max
+    description: Upper limit on immediate reward
+    mutability: provided
 trace/enumerated/accumulating:
   description: Accumulating eligibility trace using a queue of projections
 trace/enumerated/replacing:
