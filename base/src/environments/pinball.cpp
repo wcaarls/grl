@@ -134,7 +134,7 @@ void PinballMovementTask::start(int test, Vector *state) const
 void PinballMovementTask::observe(const Vector &state, Vector *obs, int *terminal) const
 {
   if (state.size() != 5)
-    throw Exception("task/pinball/movement requires dynamics/pinball");
+    throw Exception("task/pinball/movement requires model/pinball");
     
   obs->resize(4);
   for (size_t ii=0; ii < 4; ++ii)
@@ -151,7 +151,7 @@ void PinballMovementTask::observe(const Vector &state, Vector *obs, int *termina
 void PinballMovementTask::evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const
 {
   if (state.size() != 5 || action.size() != 2 || next.size() != 5)
-    throw Exception("task/pinball/movement requires dynamics/pinball");
+    throw Exception("task/pinball/movement requires model/pinball");
 
   if (succeeded(next))
     *reward = 100;

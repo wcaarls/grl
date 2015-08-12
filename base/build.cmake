@@ -17,6 +17,7 @@ add_library(${TARGET} SHARED
             ${SRC}/environments/pendulum.cpp
             ${SRC}/environments/cart_pole.cpp
             ${SRC}/environments/pinball.cpp
+            ${SRC}/environments/windy.cpp
             ${SRC}/environments/compass_walker/SWModel.cpp
             ${SRC}/environments/compass_walker/compass_walker.cpp
             ${SRC}/experiments/approx_test.cpp
