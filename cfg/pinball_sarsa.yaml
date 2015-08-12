@@ -1,0 +1,81 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 0
+  steps: 0
+  rate: 0
+  test_interval: 10
+  environment: 
+    type: environment/modeled
+    model: 
+      type: model/pinball
+      control_step: 0.05
+      integration_steps: 5
+      restitution: 0.5
+      radius: 0.01
+    task: 
+      type: task/pinball/movement
+      tolerance: 0.05
+  agent: 
+    type: agent/td
+    policy: 
+      type: policy/discrete/q
+      discretizer: 
+        type: discretizer/uniform
+        min: experiment/environment/task/action_min
+        max: experiment/environment/task/action_max
+        steps: [2, 2]
+      projector: 
+        type: projector/tile_coding
+        tilings: 16
+        memory: 8388608
+        resolution: [0.1, 0.1, 0.1, 0.1, 1, 1]
+        wrapping: []
+      representation: 
+        type: representation/parameterized/linear
+        init_min: [0]
+        init_max: [1]
+        memory: experiment/agent/policy/projector/memory
+        outputs: 1
+        output_min: []
+        output_max: []
+      sampler: 
+        type: sampler/softmax
+        tau: 0.5
+    predictor: 
+      type: predictor/sarsa
+      alpha: 0.8
+      gamma: 0.99
+      lambda: 0.8
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+      trace: 
+        type: trace/enumerated/replacing
+  test_agent: 
+    type: agent/fixed
+    policy: 
+      type: policy/discrete/q
+      discretizer: experiment/agent/policy/discretizer
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+      sampler: 
+        type: sampler/greedy
+visualizer: 
+  type: visualizer/glut
+visualization: 
+  type: visualization/field/policy/value
+  field_dims: [0, 1]
+  input_min: experiment/environment/task/observation_min
+  input_max: experiment/environment/task/observation_max
+  points: 65536
+  projection: mean
+  projector: experiment/agent/policy/projector
+  representation: experiment/agent/policy/representation
+  policy: experiment/test_agent/policy
+visualization2: 
+  type: visualization/state
+  input_dims: [0, 1, 2, 3, 4]
+  input_min: experiment/environment/task/observation_min + 0
+  input_max: experiment/environment/task/observation_max + 10
+  memory: 256
+  state: experiment/environment/state

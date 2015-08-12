@@ -538,6 +538,40 @@ model/dynamical:
     mutability: configuration
     default: 0
     optional: 0
+model/pinball:
+  description: Model of a ball on a plate
+  control_step:
+    type: double.control_step
+    description: Control step time
+    mutability: configuration
+    default: 0.05
+    optional: 1
+    min: 0.001
+    max: 1.797693134862316e+308
+  integration_steps:
+    type: int
+    description: Number of integration steps per control step
+    mutability: configuration
+    default: 5
+    optional: 1
+    min: 1
+    max: 2147483647
+  restitution:
+    type: double
+    description: Coefficient of restitution
+    mutability: configuration
+    default: 0.5
+    optional: 1
+    min: 0
+    max: 1
+  radius:
+    type: double
+    description: Ball radius
+    mutability: configuration
+    default: 0.01
+    optional: 1
+    min: 0.001
+    max: 1.797693134862316e+308
 observation_model/approximated:
   description: Observation model based on observed transitions
   control_step:
@@ -2001,6 +2035,48 @@ task/pendulum/swingup:
     optional: 1
     min: 0
     max: 1
+task/pinball/movement:
+  description: Pinball movement task
+  observation_dims:
+    type: int.observation_dims
+    description: Number of observation dimensions
+    mutability: provided
+  observation_min:
+    type: vector.observation_min
+    description: Lower limit on observations
+    mutability: provided
+  observation_max:
+    type: vector.observation_max
+    description: Upper limit on observations
+    mutability: provided
+  action_dims:
+    type: int.action_dims
+    description: Number of action dimensions
+    mutability: provided
+  action_min:
+    type: vector.action_min
+    description: Lower limit on actions
+    mutability: provided
+  action_max:
+    type: vector.action_max
+    description: Upper limit on actions
+    mutability: provided
+  reward_min:
+    type: double.reward_min
+    description: Lower limit on immediate reward
+    mutability: provided
+  reward_max:
+    type: double.reward_max
+    description: Upper limit on immediate reward
+    mutability: provided
+  tolerance:
+    type: double
+    description: Goal tolerance
+    mutability: configuration
+    default: 0.05
+    optional: 1
+    min: 0.001
+    max: 1.797693134862316e+308
 trace/enumerated/accumulating:
   description: Accumulating eligibility trace using a queue of projections
 trace/enumerated/replacing:
