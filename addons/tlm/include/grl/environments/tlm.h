@@ -28,7 +28,9 @@
 #ifndef GRL_TLM_ENVIRONMENT_H_
 #define GRL_TLM_ENVIRONMENT_H_
 
+#include <grl/state.h>
 #include <grl/environment.h>
+#include <grl/visualization.h>
 
 namespace grl
 {
@@ -84,6 +86,29 @@ class TwoLinkManipulatorBalancingTask : public Task
     virtual void observe(const Vector &state, Vector *obs, int *terminal) const;
     virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const;
     virtual bool invert(const Vector &obs, Vector *state) const;
+};
+
+/// Two-link manipulator visualization.
+class TwoLinkManipulatorVisualization : public Visualization
+{
+  public:
+    TYPEINFO("visualization/tlm", "Two-link manipulator visualization")
+
+  protected:
+    State *state_;
+  
+  public:
+    TwoLinkManipulatorVisualization() : state_(NULL) { }
+    
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+  
+    // From Visualization
+    virtual void draw();
+    virtual void idle();
+    virtual void reshape(int width, int height);
 };
 
 }

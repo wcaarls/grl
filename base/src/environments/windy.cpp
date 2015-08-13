@@ -27,6 +27,8 @@
 
 #include <grl/environments/windy.h>
 
+#define EPS 0.001
+
 using namespace grl;
 
 REGISTER_CONFIGURABLE(WindyGridworldModel)
@@ -146,7 +148,7 @@ bool WindyGridworldMovementTask::invert(const Vector &obs, Vector *state) const
 
 bool WindyGridworldMovementTask::succeeded(const Vector &state) const
 {
-  if (fabs(state[WindyGridworldModel::siX] - 7) < 0.001 && fabs(state[WindyGridworldModel::siY] - 3) < 0.001)
+  if (fabs(state[WindyGridworldModel::siX] - 7) < EPS && fabs(state[WindyGridworldModel::siY] - 3) < EPS)
     return true;
   else
     return false;

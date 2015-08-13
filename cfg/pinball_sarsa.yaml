@@ -73,9 +73,5 @@ visualization:
   representation: experiment/agent/policy/representation
   policy: experiment/test_agent/policy
 visualization2: 
-  type: visualization/state
-  input_dims: [0, 1, 2, 3, 4]
-  input_min: experiment/environment/task/observation_min + 0
-  input_max: experiment/environment/task/observation_max + 10
-  memory: 256
+  type: visualization/pinball
   state: experiment/environment/state

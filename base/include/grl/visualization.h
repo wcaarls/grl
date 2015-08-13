@@ -76,6 +76,9 @@ class Visualization : public Configurable
     /// Draw a mechanical joint. May only be called from draw() callback.
     void drawJoint(double x, double y);
         
+    /// Draw a surface. May only be called from draw() callback.
+    void drawSurface(double x1, double x2, double y1, double y2, double r=1, double g=1, double b=1);
+
     /// Callback that draws the visualization.
     virtual void draw() { }
     
@@ -130,6 +133,9 @@ class Visualizer : public Configurable
 
     /// Called by a Visualization to draw a mechanical joint.
     virtual void drawJoint(double x, double y) = 0;
+
+    /// Called by a Visualization to draw a surface.
+    virtual void drawSurface(double x1, double y1, double x2, double y2, double r=1, double g=1, double b=1) = 0;
 };
 
 inline Visualization::~Visualization()
@@ -181,6 +187,11 @@ inline void Visualization::drawMass(double x, double y)
 inline void Visualization::drawJoint(double x, double y)
 {
   Visualizer::instance()->drawJoint(x, y);
+}
+
+inline void Visualization::drawSurface(double x1, double y1, double x2, double y2, double r, double g, double b)
+{
+  Visualizer::instance()->drawSurface(x1, y1, x2, y2, r, g, b);
 }
 
 } /* namespace grl */

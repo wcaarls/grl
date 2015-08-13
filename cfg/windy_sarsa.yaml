@@ -59,7 +59,7 @@ visualizer:
   type: visualizer/glut
 visualization: 
   type: visualization/field/policy/value
-  field_dims: [ 0, 1 ]
+  field_dims: [0, 1]
   input_min: [0, 0]
   input_max: [10, 7]
   points: 65536
@@ -67,3 +67,6 @@ visualization:
   projector: experiment/agent/policy/projector
   representation: experiment/agent/policy/representation
   policy: experiment/test_agent/policy
+visualization2: 
+  type: visualization/windy
+  state: experiment/environment/state

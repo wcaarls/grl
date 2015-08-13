@@ -71,6 +71,7 @@ class GLUTVisualizer : public Visualizer
     virtual void drawLink(double x1, double y1, double x2, double y2);
     virtual void drawMass(double x, double y);
     virtual void drawJoint(double x, double y);
+    virtual void drawSurface(double x1, double y1, double x2, double y2, double r=1., double g=1., double b=1.);
     
   protected:    
     ~GLUTVisualizer()

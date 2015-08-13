@@ -27,8 +27,6 @@
 
 #include <grl/visualizations/cart_pole.h>
 
-#define EPS 0.001
-
 using namespace grl;
 
 REGISTER_CONFIGURABLE(CartPoleVisualization) 

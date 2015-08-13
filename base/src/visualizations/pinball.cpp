@@ -1,8 +1,8 @@
-/** \file pendulum.cpp
- * \brief Pendulum visualization source file.
+/** \file pinball.cpp
+ * \brief Pinball visualization source file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-02-15
+ * \date      2015-08-13
  *
  * \copyright \verbatim
  * Copyright (c) 2015, Wouter Caarls
@@ -25,56 +25,54 @@
  * \endverbatim
  */
 
-#include <grl/visualizations/pendulum.h>
+#include <grl/visualizations/pinball.h>
 
 using namespace grl;
 
-REGISTER_CONFIGURABLE(PendulumVisualization) 
+REGISTER_CONFIGURABLE(PinballVisualization) 
 
-void PendulumVisualization::request(ConfigurationRequest *config)
+void PinballVisualization::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("state", "state", "Pendulum state to visualize", state_));
+  config->push_back(CRP("state", "state", "Pinball state to visualize", state_));
 }
 
-void PendulumVisualization::configure(Configuration &config)
+void PinballVisualization::configure(Configuration &config)
 {
   if (!Visualizer::instance())
-    throw Exception("visualization/pendulum requires a configured visualizer to run");
+    throw Exception("visualization/pinball requires a configured visualizer to run");
 
   state_ = (State*)config["state"].ptr();
 
   // Create window  
-  create("Pendulum");
+  create("Pinball");
 }
 
-void PendulumVisualization::reconfigure(const Configuration &config)
+void PinballVisualization::reconfigure(const Configuration &config)
 {
 }
 
-void PendulumVisualization::reshape(int width, int height)
+void PinballVisualization::reshape(int width, int height)
 {
-  initProjection(-1.1, 1.1, -1.1, 1.1);
+  initProjection(-0.1, 1.1, -0.1, 1.1);
 }
 
-void PendulumVisualization::idle()
+void PinballVisualization::idle()
 {
   refresh();
 }
 
-void PendulumVisualization::draw()
+void PinballVisualization::draw()
 {
   clear();
   
   Vector state = state_->get();
   
-  if (!state.empty())
-  {
-    double phi = -state[0]+M_PI/2;
+  drawSurface( 0,  0,  1,  1, .1, .1, .5);
+  drawSurface(.2,  0, .4, .8,  0,  0,  0);
+  drawSurface(.6, .2, .8,  1,  0,  0,  0);
   
-    drawLink(0, 0, cos(phi), sin(phi));
-    drawJoint(0, 0);
-    drawMass(cos(phi), sin(phi));
-  }
+  if (state.size() > 2)
+    drawMass(state[0], state[1]);
 
   swap();
 }

@@ -2343,6 +2343,14 @@ visualization/pendulum:
     mutability: configuration
     default: 0
     optional: 0
+visualization/pinball:
+  description: Pinball visualization
+  state:
+    type: state
+    description: Pinball state to visualize
+    mutability: configuration
+    default: 0
+    optional: 0
 visualization/sample:
   description: Visualizes a sample-based approximation
   field_dims:
@@ -2464,6 +2472,22 @@ visualization/state:
   state:
     type: state
     description: State to visualize
+    mutability: configuration
+    default: 0
+    optional: 0
+visualization/tlm:
+  description: Two-link manipulator visualization
+  state:
+    type: state
+    description: Two-link manipulator state to visualize
+    mutability: configuration
+    default: 0
+    optional: 0
+visualization/windy:
+  description: Windy gridworld visualization
+  state:
+    type: state
+    description: Windy gridworld state to visualize
     mutability: configuration
     default: 0
     optional: 0

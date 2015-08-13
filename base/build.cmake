@@ -50,6 +50,8 @@ add_library(${TARGET} SHARED
             ${SRC}/visualizations/pendulum.cpp
             ${SRC}/visualizations/cart_pole.cpp
             ${SRC}/visualizations/compass_walker.cpp
+            ${SRC}/visualizations/pinball.cpp
+            ${SRC}/visualizations/windy.cpp
            )
 
 # Dependencies

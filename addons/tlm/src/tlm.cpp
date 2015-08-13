@@ -33,6 +33,7 @@ using namespace grl;
 
 REGISTER_CONFIGURABLE(TwoLinkManipulatorDynamics)
 REGISTER_CONFIGURABLE(TwoLinkManipulatorBalancingTask)
+REGISTER_CONFIGURABLE(TwoLinkManipulatorVisualization) 
 
 void TwoLinkManipulatorDynamics::request(ConfigurationRequest *config)
 {
@@ -159,4 +160,56 @@ bool TwoLinkManipulatorBalancingTask::invert(const Vector &obs, Vector *state) c
                              0.);
   
   return true;
+}
+
+void TwoLinkManipulatorVisualization::request(ConfigurationRequest *config)
+{
+  config->push_back(CRP("state", "state", "Two-link manipulator state to visualize", state_));
+}
+
+void TwoLinkManipulatorVisualization::configure(Configuration &config)
+{
+  if (!Visualizer::instance())
+    throw Exception("visualization/tlm requires a configured visualizer to run");
+
+  state_ = (State*)config["state"].ptr();
+
+  // Create window  
+  create("Two-link manipulator");
+}
+
+void TwoLinkManipulatorVisualization::reconfigure(const Configuration &config)
+{
+}
+
+void TwoLinkManipulatorVisualization::reshape(int width, int height)
+{
+  initProjection(-1, 1, -1, 1);
+}
+
+void TwoLinkManipulatorVisualization::idle()
+{
+  refresh();
+}
+
+void TwoLinkManipulatorVisualization::draw()
+{
+  clear();
+  
+  Vector state = state_->get();
+  
+  if (!state.empty())
+  {
+    double phi1 = state[0]+M_PI/2;
+    double phi2 = state[1];
+  
+    drawLink(0, 0, 0.4*cos(phi1), 0.4*sin(phi1));
+    drawLink(0.4*cos(phi1), 0.4*sin(phi1), 0.4*cos(phi1)+0.4*cos(phi1+phi2), 0.4*sin(phi1)+0.4*sin(phi1+phi2));
+    drawJoint(0, 0);
+    drawJoint(0.4*cos(phi1), 0.4*sin(phi1));
+    drawMass(0.2*cos(phi1), 0.2*sin(phi1));
+    drawMass(0.4*cos(phi1)+0.2*cos(phi1+phi2), 0.4*sin(phi1)+0.2*sin(phi1+phi2));
+  }
+
+  swap();
 }
