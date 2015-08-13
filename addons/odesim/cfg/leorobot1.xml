@@ -1,0 +1,892 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+	<version>1.1</version>
+	<loglevel>debug</loglevel>
+    
+	<constants>
+        <!-- common -->
+        <scale>0.001</scale>
+        <scale3>scale*scale*scale</scale3>
+        <densityaluminum>2.70</densityaluminum>   <!--g/cm3-->
+        <dliftArm>0.01</dliftArm>
+        
+        <!-- mass -->
+        <mbody>       146.98 *scale </mbody>
+        <mmainArm>    31.16  *scale </mmainArm>
+        <msupportArm> 31.16  *scale </msupportArm>
+        <mliftArm>    164.33 *scale </mliftArm>
+        <mbindArm>    210.44 *scale </mbindArm>
+        <mwaist>      408.64 *scale </mwaist>
+        <mthigh>      162.13 *scale </mthigh>
+        <mshin>       70.78  *scale </mshin>
+        
+        <!-- lenght -->
+        <lbody>       (52.36+103.92+78.07) *scale </lbody>
+        <lmainArm>    (484+19.38)          *scale </lmainArm>
+        <lsupportArm> (19.38+484)          *scale </lsupportArm>
+        <lliftArm>    (52.36+103.92)       *scale </lliftArm>
+        <lbindArm>    (78.07)              *scale </lbindArm>
+        <lwaist>      (37.5+69+37.5)       *scale </lwaist>
+        <lthigh>      (129.35-59.35)       *scale </lthigh>
+        <lshin>       (59.35)              *scale </lshin>
+        <lwaistdrop>  (52.36+103.92-129.35)*scale </lwaistdrop>
+        
+        <!-- radius (outer)-->
+        <radius>10*scale</radius>
+        
+        <!-- thickness -->
+        <tbody>rbody - inrbody</tbody>
+        <tarmLong>rarmLong - inrarmLong</tarmLong>
+        <tarmShort>rarmShort - inrarmShort</tarmShort>
+        <twaist>rwaist - inrwaist</twaist>
+        <tliftArm>rliftArm - inrliftArm</tliftArm>
+        <tthigh>rthigh - inrthigh</tthigh>
+        <tshin>rshin - inrshin</tshin>
+       
+        <!-- irrelevant -->
+		<irrelevantmass>0.00001</irrelevantmass>
+		<irrelevantinertia>0.00001</irrelevantinertia>
+		
+	<!-- policy -->
+	<fallheight>lthigh+lshin/2</fallheight>
+	<maxtorque>0.025</maxtorque>
+	<timereward>10</timereward>
+	<fallreward>-100</fallreward>
+        
+	</constants>
+
+	<policy>
+		<trialTimeoutSeconds>20.0</trialTimeoutSeconds>
+		
+		<termination>
+ 			<expression>fallheight > robot.waist.z</expression>
+		</termination>
+		<reward>
+			<expression>-(robot.waist_leftThigh.angle+robot.bindArm_waist.angle)^2
+			            -robot.leftThigh_leftShin.angle^2
+			            + timereward
+			</expression>
+			<min>-2*_pi^2</min>
+			<max>timereward</max>
+		</reward>
+
+		<statevar comment="Left hip angle">
+			<expression>robot.waist_leftThigh.angle+robot.bindArm_waist.angle</expression>
+			<min>-_pi</min>
+			<max>_pi</max>
+		</statevar>
+		<statevar comment="Left knee angle">
+			<expression>robot.leftThigh_leftShin.angle</expression>
+			<min>-_pi</min>
+			<max>_pi</max>
+		</statevar>
+		<statevar comment="Left hip angle rate">
+			<expression>robot.waist_leftThigh.anglerate+robot.bindArm_waist.anglerate</expression>
+			<min>-10*_pi</min>
+			<max>10*_pi</max>
+		</statevar>
+		<statevar comment="Left knee angle rate">
+			<expression>robot.leftThigh_leftShin.anglerate</expression>
+			<min>-10*_pi</min>
+			<max>10*_pi</max>
+		</statevar>
+		
+		<actionvar comment="Left knee torque">
+		    <variable>robot.leftThigh_leftShin.torque</variable>
+		    <expression>x</expression>
+		    <min>-maxtorque</min>
+		    <max>maxtorque</max>
+		</actionvar>
+	</policy>
+	
+        <ode>
+        <!-- Environment variables -->
+		<globalK>3.3E6</globalK>
+		<globalD>300</globalD>
+		<gravityZ>-9.81</gravityZ>
+		<steptime>0.01</steptime>
+		<subsamplingfactor>10</subsamplingfactor>
+        
+        <!-- World anchor -->
+		<anchor>
+			<name>origin</name>
+			<x>0</x>
+			<y>0</y>
+			<z>0</z>	
+		</anchor>
+		
+        <object>
+            <name>robot</name>
+            <drawbodies>false</drawbodies>
+			<drawcoms>false</drawcoms>
+			<drawgeoms>true</drawgeoms>
+			
+			
+        <initialcondition>
+                <bodyname>body</bodyname>
+                <rotation>
+                        <axis>
+                                <x>0</x>
+                                <y>0</y>
+                                <z>1</z>
+                        </axis>
+                        <angle>0</angle>
+                </rotation>
+        </initialcondition>
+
+        <initialcondition>
+                <bodyname>mainArm</bodyname>
+                <rotation>
+                        <axis>
+                                <x>1</x>
+                                <y>0</y>
+                                <z>0</z>
+                        </axis>
+                        <angle>0</angle>
+                </rotation>
+        </initialcondition>
+			
+        <initialcondition>
+                <bodyname>supportArm</bodyname>
+                <rotation>
+                        <axis>
+                                <x>1</x>
+                                <y>0</y>
+                                <z>0</z>
+                        </axis>
+                        <angle>0</angle>
+                </rotation>
+        </initialcondition>
+        
+        <initialcondition>
+                <bodyname>bindArm</bodyname>
+                <rotation>
+                        <axis>
+                                <x>0</x>
+                                <y>0</y>
+                                <z>1</z>
+                        </axis>
+                        <angle>0</angle>
+                </rotation>
+        </initialcondition>
+        
+        <initialcondition>
+                <bodyname>liftArm</bodyname>
+                <rotation>
+                        <axis>
+                                <x>1</x>
+                                <y>0</y>
+                                <z>0</z>
+                        </axis>
+                        <angle>0</angle>
+                </rotation>
+        </initialcondition>
+        
+        <initialcondition>
+                <bodyname>waist</bodyname>
+                <rotation>
+                        <axis>
+                                <x>0</x>
+                                <y>1</y>
+                                <z>0</z>
+                        </axis>
+                        <angle>0</angle>
+                </rotation>
+        </initialcondition>
+			
+        <initialcondition>
+                <bodyname>leftThigh</bodyname>
+                <rotation>
+                        <axis>
+                                <x>0</x>
+                                <y>1</y>
+                                <z>0</z>
+                        </axis>
+                        <angle>0</angle>
+                </rotation>
+        </initialcondition>
+            
+        <initialcondition>
+                <bodyname>leftShin</bodyname>
+                <rotation>
+                        <axis>
+                                <x>0</x>
+                                <y>1</y>
+                                <z>0</z>
+                        </axis>
+                        <angle>0</angle>
+                </rotation>
+        </initialcondition>
+            
+            <!--     Bodies     -->
+            
+            <!-- A: body -->
+            <body>
+                <name>body</name>
+                <mass>mbody</mass>
+                <IXX>irrelevantinertia</IXX>
+                <IYY>irrelevantinertia</IYY>
+                <IZZ>426735.29*scale3</IZZ>
+                <anchor>
+                    <name>zero</name>
+                    <x>0</x>
+					<y>0</y>
+					<z>-lbody/2</z>
+                </anchor>
+                <anchor>
+                    <name>one</name>
+                    <x>0</x>
+					<y>0</y>
+					<z>-lbody/2 + (52.36 + 103.92)*scale</z>
+                </anchor>
+                <anchor>
+                    <name>two</name>
+                    <x>0</x>
+					<y>0</y>
+					<z>lbody/2</z>
+                </anchor>
+                <drawinfo>
+                    <cylinder>
+                        <color>
+							<r>0.3</r>
+							<g>0.3</g>
+							<b>0.3</b>
+						</color>
+                        <radius>radius</radius>
+                        <length>lbody</length>
+                    </cylinder>
+                </drawinfo> 
+            </body>
+            
+            <!-- B: mainArm -->
+            <body>
+                <name>mainArm</name>
+                <mass>mmainArm</mass>
+                <IXX>irrelevantinertia</IXX>
+                <IYY>764738.11*scale3</IYY>
+                <IZZ>764608.15*scale3</IZZ>
+                <anchor>
+                    <name>one</name>
+                    <x>0</x>
+					<y>lmainArm/2</y>
+					<z>0</z>
+                </anchor>
+                <anchor>
+                    <name>four</name>
+                    <x>0</x>
+					<y>-lmainArm/2</y>
+					<z>0</z>
+                </anchor>
+                <anchor>
+                    <name>five</name>
+                    <x>0</x>
+					<y>-dliftArm</y>
+					<z>0</z>
+                </anchor>
+                <drawinfo>
+                    <cylinder>
+                        <color>
+							<r>0.7</r>
+							<g>0.3</g>
+							<b>0.3</b>
+						</color>
+                        <radius>radius</radius>
+                        <length>lmainArm</length>
+                        <rotation>
+                            <axis>
+                                <x>1</x>
+                                <y>0</y>
+                                <z>0</z>
+                            </axis>
+                            <angle>0.5*_pi</angle>
+                        </rotation>
+                    </cylinder>
+                </drawinfo> 
+            </body>
+            
+            <!-- C: supportArm -->
+            <body>
+                <name>supportArm</name>
+                <mass>msupportArm</mass>
+                <IXX>irrelevantinertia</IXX>
+                <IYY>764738.11*scale3</IYY>
+                <IZZ>764608.15*scale3</IZZ>
+                <anchor>
+                    <name>two</name>
+                    <x>0</x>
+					<y>lsupportArm/2</y>
+					<z>0</z>
+                </anchor>
+                <anchor>
+                    <name>three</name>
+                    <x>0</x>
+					<y>-lsupportArm/2</y>
+					<z>0</z>
+                </anchor>
+                <drawinfo>
+                    <cylinder>
+                        <color>
+							<r>0.3</r>
+							<g>0.7</g>
+							<b>0.3</b>
+						</color>
+                        <radius>radius</radius>
+                        <length>lsupportArm</length>
+                        <rotation>
+                            <axis>
+                                <x>1</x>
+                                <y>0</y>
+                                <z>0</z>
+                            </axis>
+                            <angle>0.5*_pi</angle>
+                        </rotation>
+                    </cylinder>
+                </drawinfo> 
+            </body>
+            
+            <!-- D: liftArm -->
+            <body>
+                <name>liftArm</name>
+                <mass>mliftArm</mass>
+                <IXX>(lliftArm*(radius^2)*_pi)*((lliftArm^2)/12 + (radius^2)/4) + 2*((2/3)*(radius^3)*_pi)*((2*radius^2)/5 + (lliftArm^2)/2 + (3*lliftArm*radius)/8)</IXX>
+                <IYY>(lliftArm*(radius^2)*_pi)*((lliftArm^2)/12 + (radius^2)/4) + 2*((2/3)*(radius^3)*_pi)*((2*radius^2)/5 + (lliftArm^2)/2 + (3*lliftArm*radius)/8)</IYY>
+                <IZZ>(lliftArm*(radius^2)*_pi)*((radius^2)/2) + 2*((2/3)*(radius^3)*_pi)*(2*(radius^2)/5)</IZZ>
+                <anchor>
+                    <name>five</name>
+                    <x>0</x>
+					<y>0</y>
+					<z>lliftArm/2</z>
+                </anchor>
+                <drawinfo>
+                    <capsule>
+                        <color>
+							<r>64/256</r>
+							<g>64/256</g>
+							<b>64/256</b>
+						</color>
+                        <radius>radius</radius>
+                        <length>lliftArm-2*radius</length>
+                    </capsule>
+                </drawinfo> 
+            </body>
+            
+            
+            <!-- E: bindArm -->
+            <body>
+                <name>bindArm</name>
+                <mass>mbindArm</mass>
+                <IXX>irrelevantinertia</IXX>
+                <IYY>irrelevantinertia</IYY>
+                <IZZ>352081.22*scale3</IZZ>
+                <anchor>
+                    <name>three</name>
+                    <x>0</x>
+					<y>0</y>
+					<z>lbindArm/2</z>
+                </anchor>
+                <anchor>
+                    <name>four</name>
+                    <x>0</x>
+					<y>0</y>
+					<z>-lbindArm/2</z>
+                </anchor>
+                <anchor>
+                    <name>six</name>
+                    <x>0</x>
+					<y>0</y>
+					<z>-lbindArm/2-lwaistdrop</z>
+                </anchor>
+                <drawinfo>
+                    <cylinder>
+                        <color>
+							<r>0.3</r>
+							<g>0.3</g>
+							<b>0.3</b>
+						</color>
+                        <radius>radius</radius>
+                        <length>lbindArm</length>
+                    </cylinder>
+                </drawinfo>  
+            </body>
+            
+            <!-- F: waist -->
+            <body>
+                <name>waist</name>
+                <mass>mwaist</mass>
+                <IXX>irrelevantinertia</IXX>
+                <IYY>235077.35*scale3</IYY>
+                <IZZ>774701.67*scale3</IZZ>
+                <anchor>
+                    <name>six</name>
+                    <x>0</x>
+					<y>lwaist/2</y>
+					<z>0</z>
+                </anchor>
+                <anchor>
+                    <name>seven</name>
+                    <x>0</x>
+					<y>lwaist/4</y>
+					<z>0</z>
+                </anchor>
+                <anchor>
+                    <name>eight</name>
+                    <x>0</x>
+					<y>-lwaist/4</y>
+					<z>0</z>
+                </anchor>
+                <drawinfo>
+                    <cylinder>
+                        <color>
+							<r>0.3</r>
+							<g>0.3</g>
+							<b>0.3</b>
+						</color>
+                        <radius>radius</radius>
+                        <length>lwaist</length>
+                        <rotation>
+                            <axis>
+                                <x>1</x>
+                                <y>0</y>
+                                <z>0</z>
+                            </axis>
+                            <angle>0.5*_pi</angle>
+                        </rotation>
+                    </cylinder>
+                </drawinfo>  
+            </body>
+           
+            <!-- H: leftThigh -->
+            <body>
+                <name>leftThigh</name>    
+                <mass>mthigh</mass>
+                <IXX>214785.67*scale3</IXX>
+                <IYY>128435.69*scale3</IYY>
+                <IZZ>132908.93*scale3</IZZ>
+                <anchor>
+                    <name>eight</name>
+                    <x>0</x>
+					<y>0</y>
+					<z>lthigh/2</z>
+                </anchor>
+                <anchor>
+                    <name>ten</name>
+                    <x>0</x>
+					<y>0</y>
+					<z>-lthigh/2</z>
+                </anchor>
+                <drawinfo>
+                    <capsule>
+                        <color>
+							<r>169/256</r>
+							<g>172/256</g>
+							<b>182/256</b>
+						</color>
+                        <radius>radius</radius>
+                        <length>lthigh - 2*radius</length>
+                    </capsule>
+                </drawinfo> 
+            </body>
+            
+           
+            <!-- I: leftShin -->
+            <body>
+                <name>leftShin</name>
+                <mass>mshin</mass>
+                <IXX>31662.79*scale3</IXX>
+                <IYY>12268.07*scale3</IYY>
+                <IZZ>27950.21*scale3</IZZ>
+                <anchor>
+                    <name>ten</name>
+                    <x>0</x>
+					<y>0</y>
+					<z>lshin/2</z>
+                </anchor>
+                <drawinfo>
+                    <capsule>
+                        <color>
+							<r>169/256</r>
+							<g>172/256</g>
+							<b>182/256</b>
+						</color>
+                        <radius>radius</radius>
+                        <length>lshin - 2*radius</length>
+                    </capsule>
+                </drawinfo> 
+            </body>
+            
+            <!--     Joints     -->
+            
+            <!-- 0: world-body -->
+            <joint>
+				<name>world-body</name>
+                <type>hinge</type>
+                <anchor1> 
+                    <bodyname>world</bodyname> 
+                    <anchorname>origin</anchorname>
+                </anchor1>
+                <anchor2> 
+                    <bodyname>body</bodyname>
+                    <anchorname>zero</anchorname>
+                </anchor2> 
+                <axisX>0</axisX>
+				<axisY>0</axisY>
+				<axisZ>1</axisZ>
+            </joint>
+            
+            <!-- 1: body-mainArm -->
+            
+            <joint>
+				<name>body-mainArm</name>
+                <type>hinge</type>
+                <anchor1> 
+                    <bodyname>body</bodyname>
+                    <anchorname>one</anchorname>
+                </anchor1> 
+                <anchor2> 
+                    <bodyname>mainArm</bodyname> 
+                    <anchorname>one</anchorname>
+                </anchor2>
+                <axisX>1</axisX>
+				<axisY>0</axisY>
+				<axisZ>0</axisZ>
+                <!--lowerlimit>-radius</lowerlimit-->
+                <!--upperlimit>lbody</upperlimit-->
+		    </joint>
+            
+            <!-- 2: body-supportArm -->
+            <joint>
+				<name>body-supportArm</name>
+                <type>hinge</type>
+                <anchor1> 
+                    <bodyname>body</bodyname>
+                    <anchorname>two</anchorname>
+                </anchor1> 
+                <anchor2> 
+                    <bodyname>supportArm</bodyname> 
+                    <anchorname>two</anchorname>
+                </anchor2>
+                <axisX>1</axisX>
+				<axisY>0</axisY>
+				<axisZ>0</axisZ>
+                <!--lowerlimit>-radius</lowerlimit-->
+                <!--upperlimit>lbody</upperlimit-->
+		    </joint>
+            
+            <!-- 3: bindArm-supportArm -->
+            <joint>
+				<name>bindArm-supportArm</name>
+                <type>hinge</type>
+                <anchor1> 
+                    <bodyname>bindArm</bodyname>
+                    <anchorname>three</anchorname>
+                </anchor1> 
+                <anchor2> 
+                    <bodyname>supportArm</bodyname> 
+                    <anchorname>three</anchorname>
+                </anchor2>
+                <axisX>1</axisX>
+				<axisY>0</axisY>
+				<axisZ>0</axisZ>
+		    </joint>
+            
+			<!--initialcondition>
+				<bodyname>liftArm</bodyname>
+				<rotation>
+					<axis>
+						<x>1</x>
+						<y>0</y>
+						<z>0</z>
+					</axis>
+					<angle>0.5*_pi</angle>
+				</rotation>
+			</initialcondition-->
+
+            <!-- 4: bindArm-mainArm -->
+            <joint>
+				<name>bindArm-mainArm</name>
+                <type>hinge</type>
+                <anchor1> 
+                    <bodyname>bindArm</bodyname>
+                    <anchorname>four</anchorname>
+                </anchor1> 
+                <anchor2> 
+                    <bodyname>mainArm</bodyname> 
+                    <anchorname>four</anchorname>
+                </anchor2>
+                <axisX>1</axisX>
+				<axisY>0</axisY>
+				<axisZ>0</axisZ>
+		    </joint>
+            
+            <!-- 5: liftArm-mainArm -->
+            <joint>
+				<name>liftArm-mainArm</name>
+                <type>hinge</type>
+                <anchor1> 
+                    <bodyname>liftArm</bodyname>
+                    <anchorname>five</anchorname>
+                </anchor1> 
+                <anchor2> 
+                    <bodyname>mainArm</bodyname> 
+                    <anchorname>five</anchorname>
+                </anchor2>
+                <axisX>1</axisX>
+				<axisY>0</axisY>
+				<axisZ>0</axisZ>
+				<motor>
+					<type>torque</type>
+					<lineardamping>0</lineardamping>
+				</motor>
+		    </joint>
+            
+            <!-- 6: bindArm_waist -->
+            <joint>
+				<name>bindArm_waist</name>
+                <type>hinge</type>
+                <anchor1> 
+                    <bodyname>bindArm</bodyname>
+                    <anchorname>six</anchorname>
+                </anchor1> 
+                <anchor2> 
+                    <bodyname>waist</bodyname> 
+                    <anchorname>six</anchorname>
+                </anchor2>
+                <axisX>0</axisX>
+				<axisY>1</axisY>
+				<axisZ>0</axisZ>
+		    </joint>
+            
+            <!-- 8: waist_leftThigh -->
+            <joint>
+				<name>waist_leftThigh</name>
+                <type>hinge</type>
+                <anchor1> 
+                    <bodyname>waist</bodyname>
+                    <anchorname>eight</anchorname>
+                </anchor1> 
+                <anchor2> 
+                    <bodyname>leftThigh</bodyname> 
+                    <anchorname>eight</anchorname>
+                </anchor2>
+                <axisX>0</axisX>
+				<axisY>1</axisY>
+				<axisZ>0</axisZ>
+				<motor>
+					<type>torque</type>
+					<lineardamping>0</lineardamping>
+				</motor>
+		    </joint>
+            
+            <!-- 10: leftThigh_leftShin -->
+            <joint>
+				<name>leftThigh_leftShin</name>
+                <type>hinge</type>
+                <anchor1> 
+                    <bodyname>leftThigh</bodyname>
+                    <anchorname>ten</anchorname>
+                </anchor1> 
+                <anchor2> 
+                    <bodyname>leftShin</bodyname> 
+                    <anchorname>ten</anchorname>
+                </anchor2>
+                <axisX>0</axisX>
+				<axisY>1</axisY>
+				<axisZ>0</axisZ>
+				<motor>
+					<type>torque</type>
+					<lineardamping>0</lineardamping>
+				</motor>
+		    </joint>
+            
+            
+            <!-- Geom -->
+
+            <!-- Geom: body -->
+            <geom>
+				<name>geombody</name>
+				<bodyname>body</bodyname>
+				<type>cylinder</type>
+				<material>rubber</material>
+				<radius>radius</radius>
+				<length>lbody</length>
+				<x>0</x>
+				<y>0</y>
+				<z>0</z>
+			</geom>
+            
+            <!-- Geom: mainArm -->
+            <geom>
+				<name>geomainArm</name>
+				<bodyname>mainArm</bodyname>
+				<type>cylinder</type>
+				<material>rubber</material>
+				<radius>radius</radius>
+				<length>lmainArm</length>
+				<x>0</x>
+				<y>0</y>
+				<z>0</z>				
+				<rotation>
+					<axis>
+						<x>1</x>
+						<y>0</y>
+						<z>0</z>
+					</axis>
+					<angle>0.5*_pi</angle>
+				</rotation>
+			</geom>
+            
+            <!-- Geom: supportArm -->
+            <geom>
+				<name>geomsupportArm</name>
+				<bodyname>supportArm</bodyname>
+				<type>cylinder</type>
+				<material>rubber</material>
+				<radius>radius</radius>
+				<length>lsupportArm</length>
+				<x>0</x>
+				<y>0</y>
+				<z>0</z>				
+				<rotation>
+					<axis>
+						<x>1</x>
+						<y>0</y>
+						<z>0</z>
+					</axis>
+					<angle>0.5*_pi</angle>
+				</rotation>
+			</geom>
+            
+            <!-- Geom: liftArm -->
+            <!--geom>
+				<name>geomliftArm</name>
+				<bodyname>liftArm</bodyname>
+                <type>capsule</type>
+				<material>rubber</material>
+                <radius>radius</radius>
+                <length>lliftArm - 2*radius</length>
+				<x>0</x>
+				<y>0</y>
+				<z>0</z>
+			</geom-->
+            
+            <!-- Geom: bindArm -->
+            <geom>
+				<name>geombindArm</name>
+				<bodyname>bindArm</bodyname>
+				<type>cylinder</type>
+				<material>rubber</material>
+				<radius>radius</radius>
+				<length>lbindArm</length>
+				<x>0</x>
+				<y>0</y>
+				<z>0</z>				
+			</geom>
+            
+            <!-- Geom: waist -->
+            <geom>
+				<name>geomwaist</name>
+				<bodyname>waist</bodyname>
+				<type>cylinder</type>
+				<material>rubber</material>
+				<radius>radius</radius>
+				<length>lwaist</length>
+				<x>0</x>
+				<y>0</y>
+				<z>0</z>					
+				<rotation>
+					<axis>
+						<x>1</x>
+						<y>0</y>
+						<z>0</z>
+					</axis>
+					<angle>0.5*_pi</angle>
+				</rotation>
+			</geom>
+            
+            <!-- Geom: leftThigh -->
+            <geom>
+				<name>geomleftThigh</name>
+				<bodyname>leftThigh</bodyname>
+				<type>capsule</type>
+				<material>rubber</material>
+                <radius>radius</radius>
+                <length>lthigh - 2*radius</length>
+				<x>0</x>
+				<y>0</y>
+				<z>0</z>
+			</geom>
+            
+            
+            <!-- Geom: leftShin -->
+            <geom>
+				<name>geomleftShin</name>
+				<bodyname>leftShin</bodyname>
+				<type>capsule</type>
+				<material>rubber</material>
+                <radius>radius</radius>
+                <length>lshin - 2*radius</length>
+				<x>0</x>
+				<y>0</y>
+				<z>0</z>
+			</geom>
+            
+			<fixedpoint>
+				<bodyname>body</bodyname>
+				<bodyX>0</bodyX>
+				<bodyY>0</bodyY>
+				<bodyZ>-lbody/2</bodyZ>
+				<worldX>0</worldX>
+				<worldY>0</worldY>
+				<worldZ>0</worldZ>
+			</fixedpoint>
+            
+        </object>
+        
+        <!-- object floor -->
+        <object>
+			<name>floor</name>
+			<geom>
+				<name>surface</name>
+				<type>plane</type>
+				<material>lynoleum</material>
+				<A>0</A>
+				<B>0</B>
+				<C>1</C>
+				<D>0</D>		
+			</geom>
+		</object>
+        
+        <!-- Collision -->
+        <collisions>
+			<drawcontacts>false</drawcontacts>
+            
+            <!-- contacts -->
+			<contact>
+				<material1>lynoleum</material1>
+				<material2>rubber</material2>
+				<K>3.3E6</K>
+				<D>300</D>
+				<mu>10000</mu>
+				<approximation comment="1 means friction pyramid approximation">1</approximation>
+			</contact>
+			<contact>
+				<material1>lynoleum</material1>
+				<material2>glass</material2>
+				<K>3.3E6</K>
+				<D>300</D>
+				<mu>0</mu>
+			</contact>
+            
+            <!-- collisions -->
+            <collision>
+				 <object1>floor</object1>  
+				 <object2>robot</object2>
+			</collision>
+            <!--collision>
+				 <object1>robot</object1>
+				 <object2>robot</object2>
+			</collision-->
+        </collisions>
+        
+	</ode>
+</configuration>
