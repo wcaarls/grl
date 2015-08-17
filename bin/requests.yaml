@@ -1776,7 +1776,7 @@ sampler/epsilon_greedy:
   epsilon:
     type: double
     description: Exploration rate
-    mutability: configuration
+    mutability: online
     default: 0.05
     optional: 1
     min: 0
@@ -1788,7 +1788,7 @@ sampler/softmax:
   tau:
     type: double
     description: Temperature of Boltzmann distribution
-    mutability: configuration
+    mutability: online
     default: 1
     optional: 1
     min: 0.001
