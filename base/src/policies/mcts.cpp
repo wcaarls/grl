@@ -36,9 +36,9 @@ void MCTSPolicy::request(ConfigurationRequest *config)
   config->push_back(CRP("model", "observation_model", "Observation model used for planning", model_));
   config->push_back(CRP("discretizer", "discretizer.action", "Action discretizer", discretizer_));
   
-  config->push_back(CRP("epsilon", "Exploration rate", epsilon_));
+  config->push_back(CRP("epsilon", "Exploration rate", epsilon_, CRP::Online));
   config->push_back(CRP("horizon", "Planning horizon", horizon_, CRP::Online));
-  config->push_back(CRP("budget", "Computational budget", budget_, CRP::Online));
+  config->push_back(CRP("budget", "Computational budget", budget_, CRP::Online, 0., DBL_MAX));
 }
 
 void MCTSPolicy::configure(Configuration &config)
@@ -54,6 +54,7 @@ void MCTSPolicy::configure(Configuration &config)
 
 void MCTSPolicy::reconfigure(const Configuration &config)
 {
+  config.get("epsilon", epsilon_);
   config.get("horizon", horizon_);
   config.get("budget", budget_);
 }
@@ -130,15 +131,21 @@ void MCTSPolicy::act(double time, const Vector &in, Vector *out)
       reward += node->reward();
     } while ((node = node->parent()));
     
-    CRAWL("Backup done");
     searches++;
   }
   
   // Select best action
   if (trunk_->children())
-    *out = actions_[trunk_->select(0)->action()];
+  {
+    MCTSNode *node = trunk_->select(0);
+    *out = actions_[node->action()];
+
+    DEBUG("Selected action " << *out << " (Q " << node->q()/node->visits() << ") after " << searches << " searches");
+  }
   else
+  {
     *out = actions_[lrand48()%actions_.size()];
-  
-  CRAWL("Selected action " << *out << " after " << searches << " searches");
+
+    DEBUG("Selected random action " << *out);
+  }
 }

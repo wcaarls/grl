@@ -158,6 +158,8 @@ discretizer/uniform:
     mutability: configuration
     default: "[  ]"
     optional: 1
+dynamics/acrobot:
+  description: Acrobot dynamics
 dynamics/cart_pole:
   description: Cart-pole dynamics from Barto et al.
 dynamics/pendulum:
@@ -859,7 +861,7 @@ policy/mcts:
   epsilon:
     type: double
     description: Exploration rate
-    mutability: configuration
+    mutability: online
     default: 0.05
     optional: 1
     min: 0
@@ -879,7 +881,7 @@ policy/mcts:
     default: 0.05
     optional: 1
     min: 0
-    max: 1
+    max: 1.797693134862316e+308
 policy/nmpc:
   description: Nonlinear model predictive control policy using the MUSCOD library
   model_path:
@@ -1793,6 +1795,40 @@ sampler/softmax:
     optional: 1
     min: 0.001
     max: 100
+task/acrobot/balancing:
+  description: Acrobot balancing task
+  observation_dims:
+    type: int.observation_dims
+    description: Number of observation dimensions
+    mutability: provided
+  observation_min:
+    type: vector.observation_min
+    description: Lower limit on observations
+    mutability: provided
+  observation_max:
+    type: vector.observation_max
+    description: Upper limit on observations
+    mutability: provided
+  action_dims:
+    type: int.action_dims
+    description: Number of action dimensions
+    mutability: provided
+  action_min:
+    type: vector.action_min
+    description: Lower limit on actions
+    mutability: provided
+  action_max:
+    type: vector.action_max
+    description: Upper limit on actions
+    mutability: provided
+  reward_min:
+    type: double.reward_min
+    description: Lower limit on immediate reward
+    mutability: provided
+  reward_max:
+    type: double.reward_max
+    description: Upper limit on immediate reward
+    mutability: provided
 task/cart_pole/balancing:
   description: Cart-pole balancing task
   observation_dims:
@@ -2153,6 +2189,14 @@ trace/enumerated/accumulating:
   description: Accumulating eligibility trace using a queue of projections
 trace/enumerated/replacing:
   description: Replacing eligibility trace using a queue of projections
+visualization/acrobot:
+  description: Acrobot visualization
+  state:
+    type: state
+    description: Acrobot state to visualize
+    mutability: configuration
+    default: 0
+    optional: 0
 visualization/cart_pole:
   description: Cart-pole visualization
   state:

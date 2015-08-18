@@ -12,6 +12,7 @@ add_library(${TARGET} SHARED
             ${SRC}/agents/compartmentalized.cpp
             ${SRC}/configurable.cpp
             ${SRC}/discretizers/uniform.cpp
+            ${SRC}/environments/acrobot.cpp
             ${SRC}/environments/observation.cpp
             ${SRC}/environments/modeled.cpp
             ${SRC}/environments/pendulum.cpp
@@ -47,6 +48,7 @@ add_library(${TARGET} SHARED
             ${SRC}/samplers/greedy.cpp
             ${SRC}/samplers/softmax.cpp
             ${SRC}/traces/enumerated.cpp
+            ${SRC}/visualizations/acrobot.cpp
             ${SRC}/visualizations/pendulum.cpp
             ${SRC}/visualizations/cart_pole.cpp
             ${SRC}/visualizations/compass_walker.cpp

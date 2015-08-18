@@ -228,7 +228,7 @@ class MCTSPolicy : public Policy
     double defaultPolicy(Vector state) const
     {
       Vector next;
-      double reward=0;
+      double reward=0, total_reward=0;
       int terminal=0;
       
       for (int ii=0; ii < horizon_ && !terminal; ++ii)
@@ -245,10 +245,10 @@ class MCTSPolicy : public Policy
         }
         
         state = next;
-        reward += reward;
+        total_reward += reward;
       }
       
-      return reward;
+      return total_reward;
     }
     
     void print(std::ostream &out) const

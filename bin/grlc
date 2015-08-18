@@ -148,9 +148,6 @@ class GrlTopObject:
       )
     self.removebutton.grid(row=row, column=2, sticky=S)
     
-  def change(self, event):
-    return True
-    
   def refresh(self):
     if grld_process and grld_process.poll() == None:
       self.entry.state(['disabled'])
@@ -237,8 +234,13 @@ class GrlObject:
     else:
       self.type.state(['!disabled'])
   
-    values = findrequests(requests, self.spec["type"])
-    values.extend(findparams(params, self.spec["type"]))
+    if self.spec["type"]:
+      values = findrequests(requests, self.spec["type"])
+      values.extend(findparams(params, self.spec["type"]))
+    else:
+      values = findrequests(requests, path[0:-1])
+      values.extend(findrequests(requests, self.spec["type"]))
+    
     self.type['values'] = values
   
     # Refresh subobjects
