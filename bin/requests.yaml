@@ -836,6 +836,40 @@ policy/discrete/q/bounded:
     mutability: configuration
     default: 0
     optional: 0
+policy/discrete/q/ucb:
+  description: UCB1 policy
+  discretizer:
+    type: discretizer.action
+    description: Action discretizer
+    mutability: configuration
+    default: 0
+    optional: 0
+  projector:
+    type: projector.pair
+    description: Projects observation-action pairs onto representation space
+    mutability: configuration
+    default: 0
+    optional: 0
+  representation:
+    type: representation.value/action
+    description: Q-value representation
+    mutability: configuration
+    default: 0
+    optional: 0
+  visit_representation:
+    type: representation.value/action
+    description: Visit count representation
+    mutability: configuration
+    default: 0
+    optional: 0
+  c_p:
+    type: double
+    description: UCB1 exploration term
+    mutability: online
+    default: 1.41421
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
 policy/discrete/random:
   description: Policy that chooses discrete random actions
   discretizer:
@@ -858,6 +892,14 @@ policy/mcts:
     mutability: configuration
     default: 0
     optional: 0
+  gamma:
+    type: double
+    description: Discount rate
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 0
+    max: 1
   epsilon:
     type: double
     description: Exploration rate
@@ -1004,6 +1046,14 @@ policy/uct:
     mutability: configuration
     default: 0
     optional: 0
+  gamma:
+    type: double
+    description: Discount rate
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 0
+    max: 1
   epsilon:
     type: double
     description: Exploration rate

@@ -32,7 +32,7 @@ experiment:
         steps: [3]
       epsilon: 0.05
       horizon: 20
-      budget: 0.5
+      budget: 0.1
   test_agent: experiment/agent
 visualizer: 
   type: visualizer/glut

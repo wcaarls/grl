@@ -31,6 +31,7 @@ add_library(${TARGET} SHARED
             ${SRC}/policies/parameterized.cpp
             ${SRC}/policies/pid.cpp
             ${SRC}/policies/mcts.cpp
+            ${SRC}/policies/ucb.cpp
             ${SRC}/predictors/model.cpp
             ${SRC}/predictors/sarsa.cpp
             ${SRC}/predictors/ggq.cpp

@@ -37,8 +37,9 @@ void MCTSPolicy::request(ConfigurationRequest *config)
   config->push_back(CRP("model", "observation_model", "Observation model used for planning", model_));
   config->push_back(CRP("discretizer", "discretizer.action", "Action discretizer", discretizer_));
   
+  config->push_back(CRP("gamma", "Discount rate", gamma_));
   config->push_back(CRP("epsilon", "Exploration rate", epsilon_, CRP::Online, 0., DBL_MAX));
-  config->push_back(CRP("horizon", "Planning horizon", horizon_, CRP::Online));
+  config->push_back(CRP("horizon", "Planning horizon", (int)horizon_, CRP::Online));
   config->push_back(CRP("budget", "Computational budget", budget_, CRP::Online, 0., DBL_MAX));
 }
 
@@ -48,6 +49,7 @@ void MCTSPolicy::configure(Configuration &config)
   discretizer_ = (Discretizer*)config["discretizer"].ptr();
   discretizer_->options(&actions_);
 
+  gamma_ = config["gamma"];
   epsilon_ = config["epsilon"];
   horizon_ = config["horizon"];
   budget_ = config["budget"];
@@ -116,20 +118,25 @@ void MCTSPolicy::act(double time, const Vector &in, Vector *out)
 
   while (t.elapsed() < budget_)
   {
-    MCTSNode *node = treePolicy();
+    MCTSNode *node = treePolicy(), *it=node;
+    size_t depth=0;
+    
+    while ((it = it->parent()))
+      depth++;
+    
     double reward = 0;
     
-    CRAWL("Tree policy selected node with state " << node->state());
+    CRAWL("Tree policy selected node with state " << node->state() << " at depth " << depth);
     
-    if (!node->terminal())
-      reward = defaultPolicy(node->state());
+    if (!node->terminal() && depth < horizon_)
+      reward = defaultPolicy(node->state(), horizon_-depth);
      
     CRAWL("Default policy got reward " << reward);
 
     do
     {
       node->update(reward);
-      reward += node->reward();
+      reward = gamma_*reward + node->reward();
     } while ((node = node->parent()));
     
     searches++;

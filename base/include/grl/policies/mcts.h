@@ -144,15 +144,15 @@ class MCTSPolicy : public Policy
     Discretizer *discretizer_;
     
     std::vector<Vector> actions_;
-    double epsilon_;
-    int horizon_;
+    double gamma_, epsilon_;
+    size_t horizon_;
     double budget_;
 
     // TODO: make act non-const for all policies?  
     mutable MCTSNode *root_, *trunk_;
 
   public:
-    MCTSPolicy() : model_(NULL), discretizer_(NULL), epsilon_(0.05), horizon_(100), budget_(0.05), root_(NULL), trunk_(NULL)
+    MCTSPolicy() : model_(NULL), discretizer_(NULL), gamma_(1.), epsilon_(0.05), horizon_(100), budget_(0.05), root_(NULL), trunk_(NULL)
     {
     }
 
@@ -225,13 +225,13 @@ class MCTSPolicy : public Policy
       return node;
     }
     
-    double defaultPolicy(Vector state) const
+    double defaultPolicy(Vector state, size_t depth) const
     {
       Vector next;
       double reward=0, total_reward=0;
       int terminal=0;
       
-      for (int ii=0; ii < horizon_ && !terminal; ++ii)
+      for (size_t ii=0; ii < depth && !terminal; ++ii)
       {
         // Not reentrant
         model_->step(state, actions_[lrand48()%actions_.size()], &next, &reward, &terminal);
@@ -240,12 +240,12 @@ class MCTSPolicy : public Policy
         if (!next.size())
         {
           //std::cout << "Stopped default policy due to low confidence at step " << ii << " (" << state << ")" << std::endl;
-          reward -= 100*(horizon_-ii);
+          reward -= 100*(depth-ii);
           break;
         }
         
         state = next;
-        total_reward += reward;
+        total_reward = gamma_*total_reward + reward;
       }
       
       return total_reward;
