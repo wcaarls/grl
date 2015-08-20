@@ -259,6 +259,53 @@ class MCTSPolicy : public Policy
     }
 };
 
+class UCTNode : public MCTSNode
+{
+  public:
+    virtual void allocate(size_t max_children)
+    {
+      children_ = new UCTNode[max_children];
+    }
+
+    virtual MCTSNode *select(double exploration) const
+    {
+      double best_value = -std::numeric_limits<double>::infinity();
+      size_t best_action = 0;
+      double state_visits=0;
+      
+      for (size_t ii=0; ii < num_children_; ++ii)
+        state_visits += children_[ii].visits();
+      state_visits = std::log(state_visits);
+      
+      for (size_t ii=0; ii < num_children_; ++ii)
+      {
+        double q = children_[ii].q(), action_visits = children_[ii].visits();
+        double value = q/action_visits + 2*exploration*sqrt(state_visits/action_visits);
+        
+        if (value > best_value)
+        {
+          best_value = value;
+          best_action = ii;
+        }
+      }
+      
+      return &children_[best_action];
+    }
+};
+
+// Monte-Carlo Tree Search policy using UCB1 action selection.
+class UCTPolicy : public MCTSPolicy
+{
+  public:
+    TYPEINFO("policy/uct", "Monte-Carlo Tree Search policy using UCB1 action selection")
+    
+  protected:
+    virtual void allocate() const
+    {
+      root_ = new UCTNode();
+    }
+};
+
 }
 
 #endif /* GRL_MCTS_POLICY_H__ */

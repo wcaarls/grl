@@ -30,13 +30,14 @@
 using namespace grl;
 
 REGISTER_CONFIGURABLE(MCTSPolicy)
+REGISTER_CONFIGURABLE(UCTPolicy)
 
 void MCTSPolicy::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("model", "observation_model", "Observation model used for planning", model_));
   config->push_back(CRP("discretizer", "discretizer.action", "Action discretizer", discretizer_));
   
-  config->push_back(CRP("epsilon", "Exploration rate", epsilon_, CRP::Online));
+  config->push_back(CRP("epsilon", "Exploration rate", epsilon_, CRP::Online, 0., DBL_MAX));
   config->push_back(CRP("horizon", "Planning horizon", horizon_, CRP::Online));
   config->push_back(CRP("budget", "Computational budget", budget_, CRP::Online, 0., DBL_MAX));
 }

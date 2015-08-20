@@ -1,6 +1,12 @@
 # Setup build environment
 set(TARGET rbdl)
 
+FIND_PACKAGE (Lua51)
+
+if (NOT LUA51_FOUND)
+  return()
+endif()
+
 find_package(PkgConfig)
 pkg_check_modules(RBDL rbdl>=2.4.0)
  
