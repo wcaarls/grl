@@ -39,6 +39,7 @@ class MCTSNode
 {
   protected:
     size_t action_, visits_, num_children_;
+    uint64_t expanded_actions_;
     double q_, reward_;
     Vector state_;
     bool terminal_;
@@ -52,6 +53,7 @@ class MCTSNode
     double q() const                 { return q_; }
     size_t visits() const            { return visits_; }
     size_t children() const          { return num_children_; } 
+    bool expanded(size_t a) const    { return expanded_actions_ & (1<<a); }
     double reward() const            { return reward_; }
     const Vector &state() const      { return state_; }
     bool terminal() const            { return terminal_; }
@@ -68,6 +70,7 @@ class MCTSNode
       state_ = state;
       terminal_ = terminal;
       parent_ = parent;
+      expanded_actions_ = 0;
     }
     
     virtual void allocate(size_t max_children)
@@ -77,6 +80,7 @@ class MCTSNode
     
     MCTSNode *expand(size_t action, const Vector &state, double reward, bool terminal)
     {
+      expanded_actions_ |= (1<<action);
       children_[num_children_].init(this, action, state, reward, terminal);
       return &children_[num_children_++];
     }
@@ -89,7 +93,7 @@ class MCTSNode
         return &children_[lrand48()%num_children_];
       
       double best_value = -std::numeric_limits<double>::infinity();
-      size_t best_action = 0;
+      size_t best_child = 0;
     
       for (size_t ii=0; ii < num_children_; ++ii)
       {
@@ -98,11 +102,11 @@ class MCTSNode
         if (value > best_value)
         {
           best_value = value;
-          best_action = ii;
+          best_child = ii;
         }
       }
       
-      return &children_[best_action];
+      return &children_[best_child];
     }
     
     void update(double reward) 
@@ -113,17 +117,21 @@ class MCTSNode
       visits_++;
     }
     
-    size_t print(std::ostream &out, size_t id=0) const
+    size_t print(std::ostream &out, size_t maxdepth=0, size_t id=0) const
     {
       size_t lastid=id;
       std::ostringstream oss;
     
       out << "  node_" << id << "[label=\"" << state_ << ", " << q_/visits_ << " (" << visits_ << ")\"];" << std::endl;
+      
+      if (maxdepth == 1)
+        return lastid;
+      
       for (size_t ii=0; ii < num_children_; ++ii)
       {
         oss << " node_" << lastid+1;
         out << "  node_" << id << " -> node_" << lastid+1 << " [label=\"" << ii << "\"];" << std::endl;
-        lastid = children_[ii].print(out, lastid+1);
+        lastid = children_[ii].print(out, maxdepth?maxdepth-1:maxdepth, lastid+1);
       }
       
       if (num_children_ > 1)
@@ -185,8 +193,19 @@ class MCTSPolicy : public Policy
       Vector next;
       double reward;
       int terminal;
-          
-      size_t a = node->children();
+
+      size_t a;
+      if (actions_.size() <= 64)
+      {
+        // Quasi-pseudorandom action expansion -- not actually pseudorandom
+        // except for the first choice.
+        a = lrand48()%actions_.size();
+        while (node->expanded(a))
+          a = (a + 1)%actions_.size();
+      }
+      else
+        a = node->children();
+        
       Vector action = actions_[a];
           
       model_->step(state, action, &next, &reward, &terminal);
@@ -197,7 +216,7 @@ class MCTSPolicy : public Policy
         return NULL;
       }
       
-      if (!a)
+      if (!node->children())
         node->allocate(actions_.size());
         
       return node->expand(a, next, reward, terminal);
@@ -207,7 +226,7 @@ class MCTSPolicy : public Policy
     {
       MCTSNode *node = trunk_;
       
-      while (!node->terminal())
+      for (size_t ii=0; ii < horizon_ && !node->terminal(); ++ii)
       {
         if (node->children() != actions_.size())
         {
@@ -251,10 +270,10 @@ class MCTSPolicy : public Policy
       return total_reward;
     }
     
-    void print(std::ostream &out) const
+    void print(std::ostream &out, size_t maxdepth=0) const
     {
       out << "digraph mcts_tree {" << std::endl;
-      root_->print(out);
+      root_->print(out, maxdepth);
       out << "}" << std::endl;
     }
 };
@@ -270,7 +289,7 @@ class UCTNode : public MCTSNode
     virtual MCTSNode *select(double exploration) const
     {
       double best_value = -std::numeric_limits<double>::infinity();
-      size_t best_action = 0;
+      size_t best_child = 0;
       double state_visits=0;
       
       for (size_t ii=0; ii < num_children_; ++ii)
@@ -285,11 +304,11 @@ class UCTNode : public MCTSNode
         if (value > best_value)
         {
           best_value = value;
-          best_action = ii;
+          best_child = ii;
         }
       }
       
-      return &children_[best_action];
+      return &children_[best_child];
     }
 };
 
