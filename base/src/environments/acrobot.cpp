@@ -90,8 +90,8 @@ void AcrobotBalancingTask::request(ConfigurationRequest *config)
 void AcrobotBalancingTask::configure(Configuration &config)
 {
   config.set("observation_dims", 4);
-  config.set("observation_min", VectorConstructor(-12*M_PI/180, -12*M_PI/180, -M_PI, -M_PI));
-  config.set("observation_max", VectorConstructor( 12*M_PI/180,  12*M_PI/180,  M_PI,  M_PI));
+  config.set("observation_min", VectorConstructor(M_PI-12*M_PI/180, -12*M_PI/180, -M_PI, -M_PI));
+  config.set("observation_max", VectorConstructor(M_PI+12*M_PI/180,  12*M_PI/180,  M_PI,  M_PI));
   config.set("action_dims", 1);
   config.set("action_min", VectorConstructor(-1));
   config.set("action_max", VectorConstructor(1));

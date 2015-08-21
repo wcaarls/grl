@@ -33,7 +33,7 @@
 namespace grl
 {
 
-/// Acrobot dynamics.
+/// Acrobot dynamics, from Sutton&Barto, section 11.3.
 class AcrobotDynamics : public Dynamics
 {
   public:
@@ -76,7 +76,6 @@ class AcrobotBalancingTask : public Task
 
   protected:
     bool failed(const Vector &state) const;
-
 };
 
 }
