@@ -54,14 +54,14 @@ void AcrobotDynamics::eom(const Vector &state, const Vector &action, Vector *xd)
   if (state.size() != 5 || action.size() != 1)
     throw Exception("dynamics/acrobot requires a task/acrobot subclass");
     
-  double l1 = 1, m1 = 1, m2 = 1, lc1 = 1, lc2 = 1, I1 = 1, I2 = 1, g = 9.8;
+  double l1 = 1, m1 = 1, m2 = 1, lc1 = 0.5, lc2 = 0.5, I1 = 1, I2 = 1, g = 9.8;
   double theta1 = state[siAngle1], theta2 = state[siAngle2],
          thetad1 = state[siAngleRate1], thetad2 = state[siAngleRate2];
   double tau = action[aiTau];
   
   double phi2 = m2*lc2*g*cos(theta1+theta2-M_PI/2);
   double phi1 = -m2*l1*lc2*thetad2*thetad2*sin(theta2)-2*m2*l1*lc2*thetad2*thetad1*sin(theta2) +
-                (m1*lc1*m2*l1)*g*cos(theta1-M_PI/2)+phi2;
+                (m1*lc1+m2*l1)*g*cos(theta1-M_PI/2)+phi2;
   double d2 = m2*(lc2*lc2+l1*lc2*cos(theta2))+I2;
   double d1 = m1*lc1*lc1 + m2*(l1*l1+lc2*lc2+2*l1*lc2*cos(theta2))+I1+I2;
   double thetadd2 = (tau+d2*phi1/d1-m2*l1*lc2*thetad2*thetad2*sin(theta2)-phi2)/
@@ -90,8 +90,8 @@ void AcrobotBalancingTask::request(ConfigurationRequest *config)
 void AcrobotBalancingTask::configure(Configuration &config)
 {
   config.set("observation_dims", 4);
-  config.set("observation_min", VectorConstructor(M_PI-12*M_PI/180, -12*M_PI/180, -M_PI, -M_PI));
-  config.set("observation_max", VectorConstructor(M_PI+12*M_PI/180,  12*M_PI/180,  M_PI,  M_PI));
+  config.set("observation_min", VectorConstructor(M_PI-12*M_PI/180, -12*M_PI/180, -0.6, -1.1));
+  config.set("observation_max", VectorConstructor(M_PI+12*M_PI/180,  12*M_PI/180,  0.6,  1.1));
   config.set("action_dims", 1);
   config.set("action_min", VectorConstructor(-1));
   config.set("action_max", VectorConstructor(1));
