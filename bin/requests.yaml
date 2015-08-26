@@ -878,6 +878,32 @@ policy/discrete/random:
     mutability: configuration
     default: 0
     optional: 0
+policy/lqr:
+  description: Linear Quadratic Regulator policy
+  model:
+    type: observation_model
+    description: Observation model
+    mutability: configuration
+    default: 0
+    optional: 0
+  point:
+    type: vector
+    description: Operating point [x_0, u_0] around which to linearize
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  q:
+    type: vector
+    description: Q (state cost) matrix diagonal
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  r:
+    type: vector
+    description: R (action cost) matrix diagonal
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
 policy/mcts:
   description: Monte-Carlo Tree Search policy
   model:

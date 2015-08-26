@@ -1,0 +1,34 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 0
+  steps: 0
+  rate: 20
+  test_interval: 0
+  environment: 
+    type: environment/modeled
+    model: 
+      type: model/dynamical
+      control_step: 0.05
+      integration_steps: 5
+      dynamics: 
+        type: dynamics/acrobot
+    task: 
+      type: task/acrobot/balancing
+  agent: 
+    type: agent/fixed
+    policy: 
+      type: policy/lqr
+      model: 
+        type: observation_model/fixed
+        model: experiment/environment/model
+        task: experiment/environment/task
+      point: [3.1415, 0, 0, 0, 0]
+      q: [1, 1, 0, 0]
+      r: [1]
+  test_agent: experiment/agent
+visualizer: 
+  type: visualizer/glut
+visualization: 
+  type: visualization/acrobot
+  state: experiment/environment/state
