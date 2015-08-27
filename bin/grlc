@@ -202,8 +202,11 @@ class GrlSubObject:
     self.label.destroy()
     
   def write(self, output, indent):
-    print >>output, ''.ljust(indent) + self.label.cget("text") + ":",
-    self.obj.write(output, indent+2)
+    suboutput = StringIO.StringIO()
+    self.obj.write(suboutput, indent+2)
+    
+    if suboutput.getvalue() != '\n':
+      print >>output, ''.ljust(indent) + self.label.cget("text") + ":", suboutput.getvalue(),
     
   def load(self, config):
     self.label['text'] = self.name

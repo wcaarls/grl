@@ -1,0 +1,82 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 0
+  steps: 0
+  rate: 0
+  test_interval: 1
+  environment: 
+    type: environment/modeled
+    model: 
+      type: model/dynamical
+      control_step: 0.05
+      integration_steps: 5
+      dynamics: 
+        type: dynamics/acrobot
+    task: 
+      type: task/acrobot/balancing
+  agent: 
+    type: agent/solver
+    policy: 
+      type: policy/random
+      output_min: experiment/environment/task/action_min
+      output_max: experiment/environment/task/action_max
+    predictor: 
+      type: predictor/model
+      differential: 1
+      wrapping: [  ]
+      projector: 
+        type: projector/sample/ann
+        samples: 10000
+        neighbors: 64
+        locality: 0.5
+        bucket_size: 10
+        error_bound: 0.01
+        scaling: [  ]
+        inputs: experiment/environment/task/observation_dims+experiment/environment/task/action_dims
+      representation: 
+        type: representation/llr
+        ridge: 1e-05
+        order: 1
+        input_nominals: [  ]
+        output_nominals: [  ]
+        outputs: experiment/environment/task/observation_dims+2
+        output_min: [  ]
+        output_max: [  ]
+        projector: experiment/agent/predictor/projector
+    solver: 
+      type: solver/lqr
+      model: 
+        type: observation_model/approximated
+        control_step: experiment/environment/model/control_step
+        differential: 1
+        wrapping: [  ]
+        observation_min: experiment/environment/task/observation_min
+        observation_max: experiment/environment/task/observation_max
+        stddev_limit: 1
+        projector: experiment/agent/predictor/projector
+        representation: experiment/agent/predictor/representation
+      policy: 
+        type: policy/parameterized/state_feedback
+        operating_state: [ 3.1415, 0, 0, 0 ]
+        operating_action: [ 0 ]
+        gains: [  ]
+      operating_state: experiment/agent/solver/policy/operating_state
+      operating_action: experiment/agent/solver/policy/operating_action
+      q: [ 1, 1, 0, 0 ]
+      r: [ 1 ]
+    interval: 1
+  test_agent: 
+    type: agent/fixed
+    policy: experiment/agent/solver/policy
+visualizer: 
+  type: visualizer/glut
+visualization: 
+  type: visualization/field/policy/action
+  field_dims: [0, 1]
+  input_min: experiment/environment/task/observation_min
+  input_max: experiment/environment/task/observation_max
+  points: 65536
+  projection: mean
+  policy: experiment/test_agent/policy
+  output_dim: 0

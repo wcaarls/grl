@@ -1,8 +1,8 @@
-/** \file lqr.h
- * \brief LQR policy header file.
+/** \file state_feedback.h
+ * \brief State feedback policy header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-08-26
+ * \date      2015-08-27
  *
  * \copyright \verbatim
  * Copyright (c) 2015, Wouter Caarls
@@ -25,43 +25,42 @@
  * \endverbatim
  */
 
-#ifndef GRL_LQR_POLICY_H_
-#define GRL_LQR_POLICY_H_
+#ifndef GRL_STATE_FEEDBACK_POLICY_H_
+#define GRL_STATE_FEEDBACK_POLICY_H_
 
-#include <eigen3/Eigen/Eigen>
-
-#include <grl/policy.h>
-#include <grl/environments/observation.h>
+#include <grl/policies/parameterized.h>
 
 namespace grl
 {
 
-/// Linear Quadratic Regulator policy
-class LQRPolicy : public Policy
+/// State feedback policy
+class StateFeedbackPolicy : public ParameterizedPolicy
 {
   public:
-    TYPEINFO("policy/lqr", "Linear Quadratic Regulator policy")
+    TYPEINFO("policy/parameterized/state_feedback", "Parameterized policy based on a state feedback controller")
 
   protected:
-    ObservationModel *model_;
-    Vector point_, q_, r_;
-    Eigen::MatrixXd L_;
+    Vector operating_state_, operating_action_;
+    Vector gains_;
 
   public:
+    StateFeedbackPolicy() { }
+  
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
 
     // From Policy
-    virtual LQRPolicy *clone() const;
+    virtual StateFeedbackPolicy *clone() const;
     virtual void act(const Vector &in, Vector *out) const;
-
-  protected:    
-    Eigen::MatrixXd getStateJacobian(const ObservationModel *model, const Vector &point) const;
-    Eigen::MatrixXd getActionJacobian(const ObservationModel *model, const Vector &point) const;
+    
+    // From ParameterizedPolicy
+    virtual size_t size() const { return gains_.size(); }
+    virtual const Vector &params() const { return gains_; }
+    virtual Vector &params() { return gains_; }
 };
 
 }
 
-#endif /* GRL_LQR_POLICY_H_ */
+#endif /* GRL_STATE_FEEDBACK_POLICY_H_ */

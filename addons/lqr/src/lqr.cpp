@@ -1,5 +1,5 @@
 /** \file lqr.cpp
- * \brief LQR policy source file.
+ * \brief LQR solver source file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
  * \date      2015-08-26
@@ -25,148 +25,154 @@
  * \endverbatim
  */
 
-#include <grl/policies/lqr.h>
+#include <grl/solvers/lqr.h>
+
+#define EPS 0.001
 
 using namespace grl;
 
-REGISTER_CONFIGURABLE(LQRPolicy)
+REGISTER_CONFIGURABLE(LQRSolver)
 
-void LQRPolicy::request(ConfigurationRequest *config)
+void LQRSolver::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("model", "observation_model", "Observation model", model_));
+  config->push_back(CRP("policy", "policy/parameterized/state_feedback", "State feedback policy to adjust", policy_));
 
-  config->push_back(CRP("point", "Operating point [x_0, u_0] around which to linearize", point_));
+  config->push_back(CRP("operating_state", "Operating state around which to linearize", operating_state_));
+  config->push_back(CRP("operating_action", "Operating action around which to linearize", operating_action_));
   config->push_back(CRP("q", "Q (state cost) matrix diagonal", q_));
   config->push_back(CRP("r", "R (action cost) matrix diagonal", r_));
 }
 
-void LQRPolicy::configure(Configuration &config)
+void LQRSolver::configure(Configuration &config)
 {
   model_ = (ObservationModel*)config["model"].ptr();
-  point_ = config["point"];
+  policy_ = (StateFeedbackPolicy*)config["policy"].ptr();
+  operating_state_ = config["operating_state"];
+  operating_action_ = config["operating_action"];
   q_ = config["q"];
   r_ = config["r"];
   
-  if (q_.size() + r_.size() != point_.size())
-  {
-    ERROR("Expected operating point size " << q_.size() << " + " << r_.size() << ", got " << point_.size());
-    throw bad_param("policy/lqr:{point,q,r}");
-  }
+  if (operating_state_.empty())
+    throw bad_param("solver/lqr:operating_state");
+
+  if (operating_action_.empty())
+    throw bad_param("solver/lqr:operating_action");
     
+  if (q_.size() != operating_state_.size())
+    throw bad_param("solver/lqr:{operating_state,q}");
+  
+  if (r_.size() != operating_action_.size())
+    throw bad_param("solver/lqr:{operating_action,r}");
+    
+  if (policy_->size() != q_.size()*r_.size())
+  {
+    ERROR("Policy doesn't have the right size. Expected: " << q_.size()*r_.size() << ", got " << policy_->size());
+    throw bad_param("solver/lqr:{policy,operating_state,operating_action}");
+  }
+}
+
+void LQRSolver::reconfigure(const Configuration &config)
+{
+}
+
+LQRSolver *LQRSolver::clone() const
+{
+  return new LQRSolver(*this);
+}
+
+void LQRSolver::solve()
+{
   Eigen::VectorXd q(q_.size()), r(r_.size());
   memcpy(q.data(), q_.data(), q_.size()*sizeof(double));
   memcpy(r.data(), r_.data(), r_.size()*sizeof(double));
 
-  DEBUG("Computing jacobians");
-    
-  Eigen::MatrixXd A = getStateJacobian(model_, point_), At = A.transpose(),
-                  B = getActionJacobian(model_, point_), Bt = B.transpose(),
+  Eigen::MatrixXd A = estimateStateJacobian(), At = A.transpose(),
+                  B = estimateActionJacobian(), Bt = B.transpose(),
                   Q = q.asDiagonal(),
                   R = r.asDiagonal(),
                   X = Q;
-
-  CRAWL("State jacobian:\n" << A);
-  CRAWL("Action jacobian:\n" << B);
-
-  DEBUG("Computing feedback gains");
-
-  // Iterate discrete-time algebraic Riccati equation until convergence
-  while (true)
+                  
+  if (A.size() && B.size())
   {
-    Eigen::MatrixXd Xp = X;
-    X = Q + At*X*A - At*X*B*(Bt*X*B+R).inverse()*Bt*X*A;
-    if ((X - Xp).array().abs().sum() < 0.001)
-      break;
-  } 
-  
-  // Compute feedback gain matrix
-  L_ = (Bt*X*B+R).inverse()*(Bt*X*A);
-  
-  CRAWL("Feedback gain matrix:\n" << L_);
-}
+    CRAWL("State jacobian:\n" << A);
+    CRAWL("Action jacobian:\n" << B);
 
-void LQRPolicy::reconfigure(const Configuration &config)
-{
-}
-
-LQRPolicy *LQRPolicy::clone() const
-{
-  return new LQRPolicy(*this);
-}
-
-void LQRPolicy::act(const Vector &in, Vector *out) const
-{
-  if (in.size() != (size_t)L_.cols())
-  {
-    ERROR("Expected input size " << L_.cols() << ", got " << in.size());
-    throw bad_param("policy/lqr:{model,point,q}");
+    // Iterate discrete-time algebraic Riccati equation until convergence
+    for (size_t ii=0; ii < 1000; ++ii)
+    {
+      Eigen::MatrixXd Xp = X;
+      X = Q + At*X*A - At*X*B*(Bt*X*B+R).inverse()*Bt*X*A;
+      if ((X - Xp).array().abs().sum() < EPS)
+        break;
+    } 
+    
+    // Compute feedback gain matrix
+    Eigen::MatrixXd L = (Bt*X*B+R).inverse()*(Bt*X*A);
+    
+    if (std::isfinite(L.array().sum()))
+    {
+      CRAWL("Feedback gain matrix:\n" << L);
+      
+      for (size_t ii=0; ii < (size_t)L.cols(); ++ii)
+        for (size_t oo=0; oo < (size_t)L.rows(); ++oo)
+          policy_->params()[ii*(size_t)L.rows()+oo] = L(oo, ii);
+    }
+    else
+      WARNING("Calculated gain matrix contains infinities");
   }
-
-  Eigen::VectorXd x(in.size());
-  for (size_t ii=0; ii < in.size(); ++ii)
-    x[ii] = in[ii] - point_[ii];
-
-  Eigen::VectorXd u = -L_*x;
-  
-  out->resize(u.size());
-  for (size_t ii=0; ii < out->size(); ++ii)
-    (*out)[ii] = u[ii] + point_[q_.size()+ii];
+  else
+    WARNING("Could not determine gain matrix");
 }
 
-Eigen::MatrixXd LQRPolicy::getStateJacobian(const ObservationModel *model, const Vector &point) const
+Eigen::MatrixXd LQRSolver::estimateStateJacobian() const
 {
-  Vector state(q_.size()), action(r_.size());
-  for (size_t ii=0; ii < q_.size(); ++ii)
-    state[ii] = point[ii];
-  for (size_t ii=0; ii < r_.size(); ++ii)
-    action[ii] = point[q_.size()+ii];
-  
-  Eigen::MatrixXd J(state.size(), state.size());
-  double h = 0.0001;
+  Eigen::MatrixXd J(operating_state_.size(), operating_state_.size());
+  double h = 0.01;
   
   // Central differences 
-  for (size_t ii=0; ii < state.size(); ++ii)
+  for (size_t ii=0; ii < operating_state_.size(); ++ii)
   {
-    Vector state1 = state, state2 = state;
+    Vector state1 = operating_state_, state2 = operating_state_;
     state1[ii] -= h/2, state2[ii] += h/2;
     
     Vector res1, res2;
     double reward;
     int terminal;
-    model->step(state1, action, &res1, &reward, &terminal);
-    model->step(state2, action, &res2, &reward, &terminal);
+    model_->step(state1, operating_action_, &res1, &reward, &terminal);
+    model_->step(state2, operating_action_, &res2, &reward, &terminal);
     
-    for (size_t jj=0; jj < state.size(); ++jj)
+    if (!res1.size() || !res2.size())
+      return Eigen::MatrixXd();
+    
+    for (size_t jj=0; jj < operating_state_.size(); ++jj)
       J(jj, ii) = (res2[jj]-res1[jj])/h;
   }
 
   return J;
 }
 
-Eigen::MatrixXd LQRPolicy::getActionJacobian(const ObservationModel *model, const Vector &point) const
+Eigen::MatrixXd LQRSolver::estimateActionJacobian() const
 {
-  Vector state(q_.size()), action(r_.size());
-  for (size_t ii=0; ii < q_.size(); ++ii)
-    state[ii] = point[ii];
-  for (size_t ii=0; ii < r_.size(); ++ii)
-    action[ii] = point[q_.size()+ii];
-  
-  Eigen::MatrixXd J(state.size(), action.size());
-  double h = 0.0001;
+  Eigen::MatrixXd J(operating_state_.size(), operating_action_.size());
+  double h = 0.01;
  
   // Central differences 
-  for (size_t ii=0; ii < action.size(); ++ii)
+  for (size_t ii=0; ii < operating_action_.size(); ++ii)
   {
-    Vector action1 = action, action2 = action;
+    Vector action1 = operating_action_, action2 = operating_action_;
     action1[ii] -= h/2, action2[ii] += h/2;
     
     Vector res1, res2;
     double reward;
     int terminal;
-    model->step(state, action1, &res1, &reward, &terminal);
-    model->step(state, action2, &res2, &reward, &terminal);
+    model_->step(operating_state_, action1, &res1, &reward, &terminal);
+    model_->step(operating_state_, action2, &res2, &reward, &terminal);
+
+    if (!res1.size() || !res2.size())
+      return Eigen::MatrixXd();
     
-    for (size_t jj=0; jj < state.size(); ++jj)
+    for (size_t jj=0; jj < operating_state_.size(); ++jj)
       J(jj, ii) = (res2[jj]-res1[jj])/h;
   }
   
