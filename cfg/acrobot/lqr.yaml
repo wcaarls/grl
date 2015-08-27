@@ -17,6 +17,7 @@ experiment:
       type: task/acrobot/balancing
   agent: 
     type: agent/solver
+    interval: 1
     policy: 
       type: policy/parameterized/state_feedback
       operating_state: [3.1415, 0, 0, 0]
@@ -24,16 +25,15 @@ experiment:
       gains: []
     solver: 
       type: solver/lqr
+      operating_state: experiment/agent/policy/operating_state
+      operating_action: experiment/agent/policy/operating_action
+      q: [1, 1, 0, 0]
+      r: [1]
       model: 
         type: observation_model/fixed
         model: experiment/environment/model
         task: experiment/environment/task
       policy: experiment/agent/policy
-      operating_state: experiment/agent/policy/operating_state
-      operating_action: experiment/agent/policy/operating_action
-      q: [1, 1, 0, 0]
-      r: [1]
-    interval: 1
   test_agent: experiment/agent
 visualizer: 
   type: visualizer/glut

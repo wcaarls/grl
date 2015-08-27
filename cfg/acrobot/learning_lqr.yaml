@@ -17,6 +17,7 @@ experiment:
       type: task/acrobot/balancing
   agent: 
     type: agent/solver
+    interval: 1
     policy: 
       type: policy/random
       output_min: experiment/environment/task/action_min
@@ -24,7 +25,7 @@ experiment:
     predictor: 
       type: predictor/model
       differential: 1
-      wrapping: [  ]
+      wrapping: []
       projector: 
         type: projector/sample/ann
         samples: 10000
@@ -32,25 +33,29 @@ experiment:
         locality: 0.5
         bucket_size: 10
         error_bound: 0.01
-        scaling: [  ]
+        scaling: []
         inputs: experiment/environment/task/observation_dims+experiment/environment/task/action_dims
       representation: 
         type: representation/llr
         ridge: 1e-05
         order: 1
-        input_nominals: [  ]
-        output_nominals: [  ]
+        input_nominals: []
+        output_nominals: []
         outputs: experiment/environment/task/observation_dims+2
-        output_min: [  ]
-        output_max: [  ]
+        output_min: []
+        output_max: []
         projector: experiment/agent/predictor/projector
     solver: 
       type: solver/lqr
+      operating_state: [3.1415, 0, 0, 0]
+      operating_action: [0]
+      q: [1, 1, 0, 0]
+      r: [1]
       model: 
         type: observation_model/approximated
         control_step: experiment/environment/model/control_step
         differential: 1
-        wrapping: [  ]
+        wrapping: []
         observation_min: experiment/environment/task/observation_min
         observation_max: experiment/environment/task/observation_max
         stddev_limit: 1
@@ -58,14 +63,9 @@ experiment:
         representation: experiment/agent/predictor/representation
       policy: 
         type: policy/parameterized/state_feedback
-        operating_state: [ 3.1415, 0, 0, 0 ]
-        operating_action: [ 0 ]
-        gains: [  ]
-      operating_state: experiment/agent/solver/policy/operating_state
-      operating_action: experiment/agent/solver/policy/operating_action
-      q: [ 1, 1, 0, 0 ]
-      r: [ 1 ]
-    interval: 1
+        operating_state: experiment/agent/solver/operating_state
+        operating_action: experiment/agent/solver/operating_action
+        gains: []
   test_agent: 
     type: agent/fixed
     policy: experiment/agent/solver/policy

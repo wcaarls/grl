@@ -50,6 +50,7 @@ add_library(${TARGET} SHARED
 #            ${SRC}/representations/dmp.cpp
             ${SRC}/samplers/greedy.cpp
             ${SRC}/samplers/softmax.cpp
+            ${SRC}/solvers/agent.cpp
             ${SRC}/traces/enumerated.cpp
             ${SRC}/visualizations/acrobot.cpp
             ${SRC}/visualizations/pendulum.cpp

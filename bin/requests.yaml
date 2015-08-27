@@ -106,6 +106,14 @@ agent/master:
     optional: 0
 agent/solver:
   description: Agent that successively solves learned models of the environment
+  interval:
+    type: int
+    description: Episodes between successive solutions (0=asynchronous)
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 1
+    max: 2147483647
   policy:
     type: policy
     description: Control policy
@@ -124,14 +132,6 @@ agent/solver:
     mutability: configuration
     default: 0
     optional: 0
-  interval:
-    type: int
-    description: Episodes between successive solutions (0=asynchronous)
-    mutability: configuration
-    default: 1
-    optional: 1
-    min: 1
-    max: 2147483647
 agent/sub/compartmentalized:
   description: Sub agent that is valid in a fixed state-space region
   min:
@@ -1931,20 +1931,48 @@ sampler/softmax:
     optional: 1
     min: 0.001
     max: 100
-solver/lqr:
-  description: Linear Quadratic Regulator solver
+solver/agent:
+  description: Solver that uses a simulated agent
+  steps:
+    type: int
+    description: Number of planning steps before solution is returned
+    mutability: configuration
+    default: 100
+    optional: 1
+    min: 0
+    max: 2147483647
+  horizon:
+    type: int
+    description: Planning episode length
+    mutability: configuration
+    default: 100
+    optional: 1
+    min: 0
+    max: 2147483647
+  start:
+    type: vector
+    description: Starting state for planning
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
   model:
     type: observation_model
-    description: Observation model
+    description: Observation model used for planning
     mutability: configuration
     default: 0
     optional: 0
-  policy:
-    type: policy/parameterized/state_feedback
-    description: State feedback policy to adjust
+  agent:
+    type: agent
+    description: Agent used for planning episodes
     mutability: configuration
     default: 0
     optional: 0
+  state:
+    type: state
+    description: Current observed state of planning
+    mutability: provided
+solver/lqr:
+  description: Linear Quadratic Regulator solver
   operating_state:
     type: vector
     description: Operating state around which to linearize
@@ -1969,6 +1997,18 @@ solver/lqr:
     mutability: configuration
     default: "[  ]"
     optional: 1
+  model:
+    type: observation_model
+    description: Observation model
+    mutability: configuration
+    default: 0
+    optional: 0
+  policy:
+    type: policy/parameterized/state_feedback
+    description: State feedback policy to adjust
+    mutability: configuration
+    default: 0
+    optional: 0
 task/acrobot/balancing:
   description: Acrobot balancing task
   observation_dims:

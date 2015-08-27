@@ -35,13 +35,13 @@ REGISTER_CONFIGURABLE(LQRSolver)
 
 void LQRSolver::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("model", "observation_model", "Observation model", model_));
-  config->push_back(CRP("policy", "policy/parameterized/state_feedback", "State feedback policy to adjust", policy_));
-
   config->push_back(CRP("operating_state", "Operating state around which to linearize", operating_state_));
   config->push_back(CRP("operating_action", "Operating action around which to linearize", operating_action_));
   config->push_back(CRP("q", "Q (state cost) matrix diagonal", q_));
   config->push_back(CRP("r", "R (action cost) matrix diagonal", r_));
+
+  config->push_back(CRP("model", "observation_model", "Observation model", model_));
+  config->push_back(CRP("policy", "policy/parameterized/state_feedback", "State feedback policy to adjust", policy_));
 }
 
 void LQRSolver::configure(Configuration &config)
