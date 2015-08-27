@@ -39,6 +39,9 @@ void StateFeedbackPolicy::request(ConfigurationRequest *config)
   config->push_back(CRP("operating_action", "Operating action around which gains are defined", operating_action_));
   
   config->push_back(CRP("gains", "Gains ([in1_out1, ..., in1_outN, ..., inN_out1, ..., inN_outN])", gains_, CRP::Online));
+  
+  config->push_back(CRP("output_min", "vector.action_min", "Lower action limit", min_, CRP::System));
+  config->push_back(CRP("output_max", "vector.action_max", "Upper action limit", max_, CRP::System));
 }
 
 void StateFeedbackPolicy::configure(Configuration &config)
@@ -56,6 +59,15 @@ void StateFeedbackPolicy::configure(Configuration &config)
     gains_.resize(operating_state_.size()*operating_action_.size(), 0.);
   if (gains_.size() != operating_state_.size()*operating_action_.size())
     throw bad_param("policy/parameterized/state_feedback:{gains,operating_state,operating_action}");
+    
+  min_ = config["output_min"];
+  max_ = config["output_max"];
+  
+  if (min_.size() != operating_action_.size())
+    throw bad_param("policy/parameterized/state_feedback:min");
+    
+  if (max_.size() != operating_action_.size())
+    throw bad_param("policy/parameterized/state_feedback:max");
 }
 
 void StateFeedbackPolicy::reconfigure(const Configuration &config)
@@ -85,6 +97,6 @@ void StateFeedbackPolicy::act(const Vector &in, Vector *out) const
       u += gains_[ii*out->size()+oo]*x;
     }
     
-    (*out)[oo] = operating_action_[oo]+u;
+    (*out)[oo] = fmin(fmax(operating_action_[oo]+u, min_[oo]), max_[oo]);
   }
 }

@@ -42,6 +42,7 @@ class StateFeedbackPolicy : public ParameterizedPolicy
   protected:
     Vector operating_state_, operating_action_;
     Vector gains_;
+    Vector min_, max_;
 
   public:
     StateFeedbackPolicy() { }

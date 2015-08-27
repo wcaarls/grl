@@ -1066,6 +1066,18 @@ policy/parameterized/state_feedback:
     mutability: online
     default: "[  ]"
     optional: 1
+  output_min:
+    type: vector.action_min
+    description: Lower action limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  output_max:
+    type: vector.action_max
+    description: Upper action limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
 policy/random:
   description: Policy that chooses continuous random actions
   output_min:
