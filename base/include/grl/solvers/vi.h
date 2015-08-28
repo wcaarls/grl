@@ -1,5 +1,5 @@
-/** \file qi.h
- * \brief Q iteration solver header file.
+/** \file vi.h
+ * \brief Value iteration solver header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
  * \date      2015-08-28
@@ -25,8 +25,8 @@
  * \endverbatim
  */
 
-#ifndef GRL_Q_ITERATION_SOLVER_H_
-#define GRL_Q_ITERATION_SOLVER_H_
+#ifndef GRL_VALUE_ITERATION_SOLVER_H_
+#define GRL_VALUE_ITERATION_SOLVER_H_
 
 #include <grl/solver.h>
 #include <grl/discretizer.h>
@@ -37,11 +37,11 @@
 namespace grl
 {
 
-/// Solve MDPs by Q iteration.
-class QIterationSolver : public Solver
+/// Solve MDPs by value iteration.
+class ValueIterationSolver : public Solver
 {
   public:
-    TYPEINFO("solver/qi", "Q iteration solver");
+    TYPEINFO("solver/vi", "Value iteration solver");
 
   protected:
     Discretizer *state_discretizer_, *action_discretizer_;
@@ -55,7 +55,7 @@ class QIterationSolver : public Solver
     std::vector<Vector> variants_;
     
   public:
-    QIterationSolver() : state_discretizer_(NULL), action_discretizer_(NULL), model_(NULL), projector_(NULL), representation_(NULL), sweeps_(1), gamma_(0.97) { }
+    ValueIterationSolver() : state_discretizer_(NULL), action_discretizer_(NULL), model_(NULL), projector_(NULL), representation_(NULL), sweeps_(1), gamma_(0.97) { }
   
     // From Configurable    
     virtual void request(ConfigurationRequest *config);
@@ -63,10 +63,10 @@ class QIterationSolver : public Solver
     virtual void reconfigure(const Configuration &config);
 
     // From Solver
-    virtual QIterationSolver *clone() const;
+    virtual ValueIterationSolver *clone() const;
     virtual void solve();
 };
 
 }
 
-#endif /* GRL_Q_ITERATION_SOLVER_H_ */
+#endif /* GRL_VALUE_ITERATION_SOLVER_H_ */

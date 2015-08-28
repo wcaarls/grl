@@ -1,5 +1,5 @@
-/** \file qi.cpp
- * \brief Q iteration solver source file.
+/** \file vi.cpp
+ * \brief Value iteration solver source file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
  * \date      2015-08-28
@@ -27,13 +27,13 @@
 
 #include <iomanip>
 
-#include <grl/solvers/qi.h>
+#include <grl/solvers/vi.h>
 
 using namespace grl;
 
-REGISTER_CONFIGURABLE(QIterationSolver)
+REGISTER_CONFIGURABLE(ValueIterationSolver)
 
-void QIterationSolver::request(ConfigurationRequest *config)
+void ValueIterationSolver::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("sweeps", "Number of planning sweeps before solution is returned", sweeps_, CRP::Configuration, 0));
   config->push_back(CRP("gamma", "Discount rate", gamma_));
@@ -42,11 +42,11 @@ void QIterationSolver::request(ConfigurationRequest *config)
 
   config->push_back(CRP("state_discretizer", "discretizer.observation", "State space discretizer", state_discretizer_));
   config->push_back(CRP("action_discretizer", "discretizer.action", "Action discretizer", action_discretizer_));
-  config->push_back(CRP("projector", "projector.pair", "Projects observation-action pairs onto representation space", projector_));
-  config->push_back(CRP("representation", "representation.value/action", "Action-value function representation", representation_));
+  config->push_back(CRP("projector", "projector.observation", "Projects observations onto representation space", projector_));
+  config->push_back(CRP("representation", "representation.value/state", "State-value function representation", representation_));
 }
 
-void QIterationSolver::configure(Configuration &config)
+void ValueIterationSolver::configure(Configuration &config)
 {
   sweeps_ = config["sweeps"];
   gamma_ = config["gamma"];
@@ -60,13 +60,13 @@ void QIterationSolver::configure(Configuration &config)
   representation_ = (Representation*)config["representation"].ptr();
 }
 
-void QIterationSolver::reconfigure(const Configuration &config)
+void ValueIterationSolver::reconfigure(const Configuration &config)
 {
 }
 
-QIterationSolver *QIterationSolver::clone() const
+ValueIterationSolver *ValueIterationSolver::clone() const
 {
-  QIterationSolver *solver = new QIterationSolver(*this);
+  ValueIterationSolver *solver = new ValueIterationSolver(*this);
   
   solver->model_ = model_->clone();
   solver->state_discretizer_ = state_discretizer_->clone();
@@ -77,10 +77,12 @@ QIterationSolver *QIterationSolver::clone() const
   return solver;
 }
 
-void QIterationSolver::solve()
+void ValueIterationSolver::solve()
 {
   for (Discretizer::iterator it=state_discretizer_->begin(); it != state_discretizer_->end(); ++it)
   {
+    double v=-std::numeric_limits<double>::infinity();
+    
     for (size_t aa=0; aa < variants_.size(); ++aa)
     {
       Vector next;
@@ -92,17 +94,15 @@ void QIterationSolver::solve()
       {
         if (!terminal)
         {
-          // Find value of best action
           Vector value;
-          double v=-std::numeric_limits<double>::infinity();
-          for (size_t ii=0; ii < variants_.size(); ++ii)
-            v = fmax(v, representation_->read(projector_->project(next, variants_[ii]), &value));
-          
-          reward += gamma_*v;
+          reward += gamma_*representation_->read(projector_->project(next), &value);
         }
-      
-        representation_->write(projector_->project(*it, variants_[aa]), VectorConstructor(reward));
+        
+        v = fmax(v, reward);
       }
     }
+
+    if (std::isfinite(v))
+      representation_->write(projector_->project(*it), VectorConstructor(v));
   }
 }

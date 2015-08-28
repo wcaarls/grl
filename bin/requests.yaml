@@ -822,13 +822,13 @@ policy/discrete/q:
     optional: 0
   representation:
     type: representation.value/action
-    description: Q-value representation
+    description: Action-value representation
     mutability: configuration
     default: 0
     optional: 0
   sampler:
     type: sampler
-    description: Samples actions from Q-values
+    description: Samples actions from action-values
     mutability: configuration
     default: 0
     optional: 0
@@ -854,13 +854,13 @@ policy/discrete/q/bounded:
     optional: 0
   representation:
     type: representation.value/action
-    description: Q-value representation
+    description: Action-value representation
     mutability: configuration
     default: 0
     optional: 0
   sampler:
     type: sampler
-    description: Samples actions from Q-values
+    description: Samples actions from action-values
     mutability: configuration
     default: 0
     optional: 0
@@ -903,6 +903,46 @@ policy/discrete/random:
   discretizer:
     type: discretizer.action
     description: Action discretizer
+    mutability: configuration
+    default: 0
+    optional: 0
+policy/discrete/v:
+  description: State-value based policy
+  gamma:
+    type: double
+    description: Discount rate
+    mutability: configuration
+    default: 0.97
+    optional: 1
+    min: 0
+    max: 1
+  discretizer:
+    type: discretizer.action
+    description: Action discretizer
+    mutability: configuration
+    default: 0
+    optional: 0
+  model:
+    type: observation_model
+    description: Observation model
+    mutability: configuration
+    default: 0
+    optional: 0
+  projector:
+    type: projector.observation
+    description: Projects observations onto representation space
+    mutability: configuration
+    default: 0
+    optional: 0
+  representation:
+    type: representation.value/state
+    description: State-value representation
+    mutability: configuration
+    default: 0
+    optional: 0
+  sampler:
+    type: sampler
+    description: Samples actions from state-values
     mutability: configuration
     default: 0
     optional: 0
@@ -2083,13 +2123,61 @@ solver/qi:
     optional: 0
   projector:
     type: projector.pair
-    description: Projects observations onto representation space
+    description: Projects observation-action pairs onto representation space
     mutability: configuration
     default: 0
     optional: 0
   representation:
     type: representation.value/action
-    description: Value function representation
+    description: Action-value function representation
+    mutability: configuration
+    default: 0
+    optional: 0
+solver/vi:
+  description: Value iteration solver
+  sweeps:
+    type: int
+    description: Number of planning sweeps before solution is returned
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 0
+    max: 2147483647
+  gamma:
+    type: double
+    description: Discount rate
+    mutability: configuration
+    default: 0.97
+    optional: 1
+    min: 0
+    max: 1
+  model:
+    type: observation_model
+    description: Observation model used for planning
+    mutability: configuration
+    default: 0
+    optional: 0
+  state_discretizer:
+    type: discretizer.observation
+    description: State space discretizer
+    mutability: configuration
+    default: 0
+    optional: 0
+  action_discretizer:
+    type: discretizer.action
+    description: Action discretizer
+    mutability: configuration
+    default: 0
+    optional: 0
+  projector:
+    type: projector.observation
+    description: Projects observations onto representation space
+    mutability: configuration
+    default: 0
+    optional: 0
+  representation:
+    type: representation.value/state
+    description: State-value function representation
     mutability: configuration
     default: 0
     optional: 0

@@ -1,5 +1,5 @@
-/** \file qi.h
- * \brief Q iteration solver header file.
+/** \file v.h
+ * \brief V policy header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
  * \date      2015-08-28
@@ -25,48 +25,51 @@
  * \endverbatim
  */
 
-#ifndef GRL_Q_ITERATION_SOLVER_H_
-#define GRL_Q_ITERATION_SOLVER_H_
+#ifndef GRL_V_POLICY_H_
+#define GRL_V_POLICY_H_
 
-#include <grl/solver.h>
+#include <grl/policy.h>
 #include <grl/discretizer.h>
 #include <grl/environments/observation.h>
 #include <grl/projector.h>
 #include <grl/representation.h>
+#include <grl/sampler.h>
 
 namespace grl
 {
 
-/// Solve MDPs by Q iteration.
-class QIterationSolver : public Solver
+/// Policy based on a state-value Representation.
+class VPolicy : public Policy
 {
   public:
-    TYPEINFO("solver/qi", "Q iteration solver");
+    TYPEINFO("policy/discrete/v", "State-value based policy")
 
   protected:
-    Discretizer *state_discretizer_, *action_discretizer_;
+    Discretizer *discretizer_;
     ObservationModel *model_;
     Projector *projector_;
     Representation *representation_;
+    Sampler *sampler_;
     
-    size_t sweeps_;
     double gamma_;
     
     std::vector<Vector> variants_;
-    
+
   public:
-    QIterationSolver() : state_discretizer_(NULL), action_discretizer_(NULL), model_(NULL), projector_(NULL), representation_(NULL), sweeps_(1), gamma_(0.97) { }
+    VPolicy() : discretizer_(NULL), model_(NULL), projector_(NULL), representation_(NULL), sampler_(NULL), gamma_(0.97) { }
   
-    // From Configurable    
+    // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
 
-    // From Solver
-    virtual QIterationSolver *clone() const;
-    virtual void solve();
+    // From DiscretePolicy
+    virtual VPolicy *clone() const;
+    virtual void act(const Vector &in, Vector *out) const;
+    
+    virtual void values(const Vector &in, Vector *out) const;
 };
 
 }
 
-#endif /* GRL_Q_ITERATION_SOLVER_H_ */
+#endif /* GRL_V_POLICY_H_ */

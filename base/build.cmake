@@ -27,6 +27,7 @@ add_library(${TARGET} SHARED
             ${SRC}/experiments/batch_learning.cpp
             ${SRC}/policies/random.cpp
             ${SRC}/policies/action.cpp
+            ${SRC}/policies/v.cpp
             ${SRC}/policies/q.cpp
             ${SRC}/policies/bounded_q.cpp
             ${SRC}/policies/parameterized.cpp
@@ -53,6 +54,7 @@ add_library(${TARGET} SHARED
             ${SRC}/samplers/softmax.cpp
             ${SRC}/solvers/agent.cpp
             ${SRC}/solvers/qi.cpp
+            ${SRC}/solvers/vi.cpp
             ${SRC}/traces/enumerated.cpp
             ${SRC}/visualizations/acrobot.cpp
             ${SRC}/visualizations/pendulum.cpp
