@@ -121,8 +121,8 @@ agent/solver:
     default: 0
     optional: 0
   predictor:
-    type: predictor/model
-    description: Model predictor
+    type: predictor
+    description: Optional (model) predictor
     mutability: configuration
     default: 0
     optional: 1
@@ -1351,13 +1351,13 @@ predictor/expected_sarsa:
     min: 0
     max: 1
   projector:
-    type: projector
+    type: projector.pair
     description: Projects observation-action pairs onto representation space
     mutability: configuration
     default: 0
     optional: 0
   representation:
-    type: representation
+    type: representation.value/action
     description: Q-value representation
     mutability: configuration
     default: 0
@@ -1613,6 +1613,50 @@ predictor/sarsa:
   representation:
     type: representation.value/action
     description: Q-value representation
+    mutability: configuration
+    default: 0
+    optional: 0
+  trace:
+    type: trace
+    description: Trace of projections
+    mutability: configuration
+    default: 0
+    optional: 0
+predictor/td:
+  description: TD value function predictor
+  alpha:
+    type: double
+    description: Learning rate
+    mutability: configuration
+    default: 0.2
+    optional: 1
+    min: 0
+    max: 1
+  gamma:
+    type: double
+    description: Discount rate
+    mutability: configuration
+    default: 0.97
+    optional: 1
+    min: 0
+    max: 1
+  lambda:
+    type: double
+    description: Trace decay rate
+    mutability: configuration
+    default: 0.65
+    optional: 1
+    min: 0
+    max: 1
+  projector:
+    type: projector.observation
+    description: Projects observations onto representation space
+    mutability: configuration
+    default: 0
+    optional: 0
+  representation:
+    type: representation.value/state
+    description: State value representation
     mutability: configuration
     default: 0
     optional: 0

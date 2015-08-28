@@ -1,8 +1,8 @@
-/** \file solver.h
- * \brief Solver agent header file.
+/** \file td.h
+ * \brief TD predictor header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-08-27
+ * \date      2015-08-28
  *
  * \copyright \verbatim
  * Copyright (c) 2015, Wouter Caarls
@@ -25,56 +25,48 @@
  * \endverbatim
  */
 
-#ifndef GRL_SOLVER_AGENT_H_
-#define GRL_SOLVER_AGENT_H_
+#ifndef GRL_TD_PREDICTOR_H_
+#define GRL_TD_PREDICTOR_H_
 
-#include <itc/itc.h>
-
-#include <grl/agent.h>
+#include <grl/configurable.h>
+#include <grl/predictor.h>
+#include <grl/projector.h>
+#include <grl/representation.h>
+#include <grl/trace.h>
 #include <grl/policy.h>
-#include <grl/predictors/model.h>
-#include <grl/solver.h>
+#include <grl/policies/q.h>
+#include <grl/sampler.h>
 
 namespace grl
 {
 
-/// Solver model-based learning agent.
-class SolverAgent : public Agent, public itc::Thread
+/// Value function predictor using state-values.
+class TDPredictor : public Predictor
 {
   public:
-    TYPEINFO("agent/solver", "Agent that successively solves learned models of the environment")
+    TYPEINFO("predictor/td", "TD value function predictor")
 
   protected:
-    Policy *policy_;
-    Predictor *predictor_;
-    Solver *solver_;
+    double alpha_, gamma_, lambda_;
     
-    Vector prev_obs_, prev_action_;
-    int interval_, episodes_;
-    
-    double time_;
-    
-  public:
-    SolverAgent() : policy_(NULL), predictor_(NULL), solver_(NULL), interval_(1), episodes_(0), time_(0.) { }
-  
-    // From itc::Thread
-    using itc::Thread::start;
+    Projector *projector_;
+    Representation *representation_;
+    Trace *trace_;
 
-    // From Configurable    
+  public:
+    TDPredictor() : alpha_(0.2), gamma_(0.97), lambda_(0.65), projector_(NULL), representation_(NULL), trace_(NULL) { }
+  
+    // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
-
-    // From Agent
-    virtual SolverAgent *clone() const;
-    virtual void start(const Vector &obs, Vector *action);
-    virtual void step(double tau, const Vector &obs, double reward, Vector *action);
-    virtual void end(double tau, double reward);
     
-  protected:
-    virtual void run();
+    // From Predictor
+    virtual TDPredictor *clone() const;
+    virtual void update(const Transition &transition);
+    virtual void finalize();
 };
 
 }
 
-#endif /* GRL_SOLVER_AGENT_H_ */
+#endif /* GRL_TD_PREDICTOR_H_ */

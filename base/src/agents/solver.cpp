@@ -38,14 +38,14 @@ void SolverAgent::request(ConfigurationRequest *config)
   config->push_back(CRP("interval", "Episodes between successive solutions (0=asynchronous)", interval_, CRP::Configuration, 1, INT_MAX));
  
   config->push_back(CRP("policy", "policy", "Control policy", policy_));
-  config->push_back(CRP("predictor", "predictor/model", "Model predictor", predictor_, true));
+  config->push_back(CRP("predictor", "predictor", "Optional (model) predictor", predictor_, true));
   config->push_back(CRP("solver", "solver", "Model-based solver", solver_));
 }
 
 void SolverAgent::configure(Configuration &config)
 {
   policy_ = (Policy*)config["policy"].ptr();
-  predictor_ = (ModelPredictor*)config["predictor"].ptr();
+  predictor_ = (Predictor*)config["predictor"].ptr();
   solver_ = (Solver*)config["solver"].ptr();
   interval_ = config["interval"];
   episodes_ = 0;
@@ -72,6 +72,9 @@ SolverAgent *SolverAgent::clone() const
 
 void SolverAgent::start(const Vector &obs, Vector *action)
 {
+  if (predictor_)
+    predictor_->finalize();
+
   time_= 0.;
   episodes_++;
   policy_->act(time_, obs, action);
