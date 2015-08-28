@@ -44,6 +44,7 @@ add_library(${TARGET} SHARED
             ${SRC}/projectors/normalizing.cpp
             ${SRC}/projectors/tile_coding.cpp
             ${SRC}/projectors/fourier.cpp
+            ${SRC}/projectors/grid.cpp
             ${SRC}/representations/linear.cpp
             ${SRC}/representations/multisine.cpp
             ${SRC}/representations/ann.cpp
@@ -51,6 +52,7 @@ add_library(${TARGET} SHARED
             ${SRC}/samplers/greedy.cpp
             ${SRC}/samplers/softmax.cpp
             ${SRC}/solvers/agent.cpp
+            ${SRC}/solvers/qi.cpp
             ${SRC}/traces/enumerated.cpp
             ${SRC}/visualizations/acrobot.cpp
             ${SRC}/visualizations/pendulum.cpp

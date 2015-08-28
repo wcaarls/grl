@@ -1,8 +1,8 @@
-/** \file uniform.h
- * \brief Uniform discretizer header file.
+/** \file qi.h
+ * \brief Q iteration solver header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-01-22
+ * \date      2015-08-28
  *
  * \copyright \verbatim
  * Copyright (c) 2015, Wouter Caarls
@@ -25,40 +25,48 @@
  * \endverbatim
  */
 
-#ifndef GRL_UNIFORM_DISCRETIZER_H_
-#define GRL_UNIFORM_DISCRETIZER_H_
+#ifndef GRL_AGENT_SOLVER_H_
+#define GRL_AGENT_SOLVER_H_
 
-#include <grl/configurable.h>
+#include <grl/solver.h>
 #include <grl/discretizer.h>
+#include <grl/environments/observation.h>
+#include <grl/projector.h>
+#include <grl/representation.h>
 
 namespace grl
 {
 
-/// Uniform discretization
-class UniformDiscretizer : public Discretizer
+/// Solve MDPs by Q iteration.
+class QIterationSolver : public Solver
 {
   public:
-    TYPEINFO("discretizer/uniform", "Uniform discretizer")
+    TYPEINFO("solver/qi", "Q iteration solver");
 
   protected:
-    Vector min_, max_, steps_;
-  
-    std::vector<Vector> values_;
-
+    Discretizer *state_discretizer_, *action_discretizer_;
+    ObservationModel *model_;
+    Projector *projector_;
+    Representation *representation_;
+    
+    size_t sweeps_;
+    double gamma_;
+    
+    std::vector<Vector> variants_;
+    
   public:
-    // From Configurable
-    virtual void request(const std::string &role, ConfigurationRequest *config);
+    QIterationSolver() : state_discretizer_(NULL), action_discretizer_(NULL), model_(NULL), projector_(NULL), representation_(NULL), sweeps_(1), gamma_(0.97) { }
+  
+    // From Configurable    
+    virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
-    
-    // From Discretizer
-    virtual UniformDiscretizer* clone();
-    virtual iterator begin() const;
-    virtual size_t size() const;
-    virtual void inc(IndexVector *idx) const;
-    virtual Vector get(const IndexVector &idx) const;
+
+    // From Solver
+    virtual QIterationSolver *clone() const;
+    virtual void solve();
 };
 
 }
 
-#endif /* GRL_UNIFORM_DISCRETIZER_H_ */
+#endif /* GRL_AGENT_SOLVER_H_ */

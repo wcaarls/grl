@@ -1,0 +1,78 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 0
+  steps: 0
+  rate: 0
+  test_interval: 0
+  environment: 
+    type: environment/modeled
+    model: 
+      type: model/dynamical
+      control_step: 0.03
+      integration_steps: 5
+      dynamics: 
+        type: dynamics/pendulum
+    task: 
+      type: task/pendulum/swingup
+      timeout: 2.99
+      randomization: 0
+  agent: 
+    type: agent/solver
+    interval: 1
+    policy: 
+      type: policy/discrete/q
+      discretizer: 
+        type: discretizer/uniform
+        min: experiment/environment/task/action_min
+        max: experiment/environment/task/action_max
+        steps: [3]
+      projector: 
+        type: projector/grid
+        input_min: experiment/environment/task/observation_min+experiment/environment/task/action_min
+        input_max: experiment/environment/task/observation_max+experiment/environment/task/action_max
+        steps: [200, 240, 3]
+      representation: 
+        type: representation/parameterized/linear
+        init_min: [0]
+        init_max: [1]
+        memory: experiment/agent/policy/projector/memory
+        outputs: 1
+        output_min: []
+        output_max: []
+      sampler: 
+        type: sampler/greedy
+    solver: 
+      type: solver/qi
+      sweeps: 1
+      gamma: 0.97
+      model: 
+        type: observation_model/fixed
+        model: experiment/environment/model
+        task: experiment/environment/task
+      state_discretizer: 
+        type: discretizer/uniform
+        min: experiment/environment/task/observation_min
+        max: experiment/environment/task/observation_max
+        steps: [200, 240]
+      action_discretizer: experiment/agent/policy/discretizer
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+visualizer: 
+  type: visualizer/glut
+visualization: 
+  type: visualization/field/policy/value
+  field_dims: [0, 1]
+  input_min: experiment/environment/task/observation_min
+  input_max: experiment/environment/task/observation_max
+  points: 65536
+  projection: mean
+  projector: experiment/agent/policy/projector
+  representation: experiment/agent/policy/representation
+  policy: 
+    type: policy/discrete/q
+    discretizer: experiment/agent/policy/discretizer
+    projector: experiment/agent/policy/projector
+    representation: experiment/agent/policy/representation
+    sampler: 
+      type: sampler/greedy

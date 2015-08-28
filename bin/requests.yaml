@@ -901,7 +901,7 @@ policy/discrete/q/ucb:
 policy/discrete/random:
   description: Policy that chooses discrete random actions
   discretizer:
-    type: discretizer
+    type: discretizer.action
     description: Action discretizer
     mutability: configuration
     default: 0
@@ -1617,6 +1617,30 @@ projector/fourier:
     type: int.memory
     description: Feature vector size
     mutability: provided
+projector/grid:
+  description: Standard discretization
+  input_min:
+    type: vector
+    description: Lower input dimension limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  input_max:
+    type: vector
+    description: Upper input dimension limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  steps:
+    type: vector
+    description: Grid cells per dimension
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  memory:
+    type: int.memory
+    description: Grid size
+    mutability: provided
 projector/identity:
   description: Simply returns the input vector
 projector/normalizing:
@@ -1650,7 +1674,7 @@ projector/sample/ann:
     default: 20
     optional: 1
     min: 1
-    max: 64
+    max: 1024
   locality:
     type: double
     description: Locality of weighing function
@@ -2018,6 +2042,54 @@ solver/lqr:
   policy:
     type: policy/parameterized/state_feedback
     description: State feedback policy to adjust
+    mutability: configuration
+    default: 0
+    optional: 0
+solver/qi:
+  description: Q iteration solver
+  sweeps:
+    type: int
+    description: Number of planning sweeps before solution is returned
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 0
+    max: 2147483647
+  gamma:
+    type: double
+    description: Discount rate
+    mutability: configuration
+    default: 0.97
+    optional: 1
+    min: 0
+    max: 1
+  model:
+    type: observation_model
+    description: Observation model used for planning
+    mutability: configuration
+    default: 0
+    optional: 0
+  state_discretizer:
+    type: discretizer.observation
+    description: State space discretizer
+    mutability: configuration
+    default: 0
+    optional: 0
+  action_discretizer:
+    type: discretizer.action
+    description: Action discretizer
+    mutability: configuration
+    default: 0
+    optional: 0
+  projector:
+    type: projector.pair
+    description: Projects observations onto representation space
+    mutability: configuration
+    default: 0
+    optional: 0
+  representation:
+    type: representation.value/action
+    description: Value function representation
     mutability: configuration
     default: 0
     optional: 0
@@ -2798,6 +2870,30 @@ projector/fourier.pair:
     type: int.memory
     description: Feature vector size
     mutability: provided
+projector/grid.pair:
+  description: Standard discretization
+  input_min:
+    type: vector.observation_min+vector.action_min
+    description: Lower input dimension limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  input_max:
+    type: vector.observation_max+vector.action_max
+    description: Upper input dimension limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  steps:
+    type: vector
+    description: Grid cells per dimension
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  memory:
+    type: int.memory
+    description: Grid size
+    mutability: provided
 projector/identity.pair:
   description: Simply returns the input vector
 projector/normalizing.pair:
@@ -2831,7 +2927,7 @@ projector/sample/ann.pair:
     default: 20
     optional: 1
     min: 1
-    max: 64
+    max: 1024
   locality:
     type: double
     description: Locality of weighing function
@@ -3137,6 +3233,30 @@ projector/fourier.observation:
     type: int.memory
     description: Feature vector size
     mutability: provided
+projector/grid.observation:
+  description: Standard discretization
+  input_min:
+    type: vector.observation_min
+    description: Lower input dimension limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  input_max:
+    type: vector.observation_max
+    description: Upper input dimension limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  steps:
+    type: vector
+    description: Grid cells per dimension
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  memory:
+    type: int.memory
+    description: Grid size
+    mutability: provided
 projector/identity.observation:
   description: Simply returns the input vector
 projector/normalizing.observation:
@@ -3170,7 +3290,7 @@ projector/sample/ann.observation:
     default: 20
     optional: 1
     min: 1
-    max: 64
+    max: 1024
   locality:
     type: double
     description: Locality of weighing function
@@ -3763,5 +3883,25 @@ representation/parameterized/linear.value/state:
     type: vector
     description: Upper output limit
     mutability: system
+    default: "[  ]"
+    optional: 1
+discretizer/uniform.observation:
+  description: Uniform discretizer
+  min:
+    type: vector.observation_min
+    description: Lower limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  max:
+    type: vector.observation_max
+    description: Upper limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  steps:
+    type: vector
+    description: Discretization steps per dimension
+    mutability: configuration
     default: "[  ]"
     optional: 1

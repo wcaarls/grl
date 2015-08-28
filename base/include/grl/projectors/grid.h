@@ -1,8 +1,8 @@
-/** \file uniform.h
- * \brief Uniform discretizer header file.
+/** \file grid.h
+ * \brief Grid projector header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-01-22
+ * \date      2015-08-28
  *
  * \copyright \verbatim
  * Copyright (c) 2015, Wouter Caarls
@@ -25,40 +25,37 @@
  * \endverbatim
  */
 
-#ifndef GRL_UNIFORM_DISCRETIZER_H_
-#define GRL_UNIFORM_DISCRETIZER_H_
+#ifndef GRL_GRID_PROJECTOR_H_
+#define GRL_GRID_PROJECTOR_H_
 
-#include <grl/configurable.h>
-#include <grl/discretizer.h>
+#include <grl/projector.h>
 
 namespace grl
 {
 
-/// Uniform discretization
-class UniformDiscretizer : public Discretizer
+/// Standard discretization.
+class GridProjector : public Projector
 {
   public:
-    TYPEINFO("discretizer/uniform", "Uniform discretizer")
-
+    TYPEINFO("projector/grid", "Standard discretization")
+    
   protected:
-    Vector min_, max_, steps_;
-  
-    std::vector<Vector> values_;
-
+    Vector min_, max_, steps_, delta_;
+    
   public:
+    GridProjector() { }
+  
     // From Configurable
     virtual void request(const std::string &role, ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
-    
-    // From Discretizer
-    virtual UniformDiscretizer* clone();
-    virtual iterator begin() const;
-    virtual size_t size() const;
-    virtual void inc(IndexVector *idx) const;
-    virtual Vector get(const IndexVector &idx) const;
+
+    // From Projector
+    virtual GridProjector *clone() const;
+    virtual ProjectionLifetime lifetime() const { return plIndefinite; }
+    virtual ProjectionPtr project(const Vector &in) const;
 };
 
 }
 
-#endif /* GRL_UNIFORM_DISCRETIZER_H_ */
+#endif /* GRL_GRID_PROJECTOR_H_ */

@@ -238,7 +238,10 @@ class GrlObject:
       self.type.state(['!disabled'])
   
     if self.spec["type"]:
-      values = findrequests(requests, self.spec["type"])
+      values = []
+      if self.spec["optional"] == True:
+        values.append("")
+      values.extend(findrequests(requests, self.spec["type"]))
       values.extend(findparams(params, self.spec["type"]))
     else:
       values = findrequests(requests, path[0:-1])
