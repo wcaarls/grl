@@ -42,6 +42,7 @@ add_library(${TARGET} SHARED
             ${SRC}/predictors/fqi.cpp
             ${SRC}/predictors/qv.cpp
             ${SRC}/predictors/td.cpp
+            ${SRC}/predictors/vi.cpp
             ${SRC}/projectors/identity.cpp
             ${SRC}/projectors/normalizing.cpp
             ${SRC}/projectors/tile_coding.cpp
@@ -54,7 +55,6 @@ add_library(${TARGET} SHARED
             ${SRC}/samplers/greedy.cpp
             ${SRC}/samplers/softmax.cpp
             ${SRC}/solvers/agent.cpp
-            ${SRC}/solvers/qi.cpp
             ${SRC}/solvers/vi.cpp
             ${SRC}/traces/enumerated.cpp
             ${SRC}/visualizations/acrobot.cpp

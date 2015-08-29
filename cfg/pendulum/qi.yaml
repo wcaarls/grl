@@ -43,21 +43,23 @@ experiment:
       sampler: 
         type: sampler/greedy
     solver: 
-      type: solver/qi
+      type: solver/vi
       sweeps: 1
-      gamma: 0.97
-      model: 
-        type: observation_model/fixed
-        model: experiment/environment/model
-        task: experiment/environment/task
-      state_discretizer: 
+      discretizer: 
         type: discretizer/uniform
         min: experiment/environment/task/observation_min
         max: experiment/environment/task/observation_max
         steps: [200, 240]
-      action_discretizer: experiment/agent/policy/discretizer
-      projector: experiment/agent/policy/projector
-      representation: experiment/agent/policy/representation
+      predictor: 
+        type: predictor/full/qi
+        gamma: 0.97
+        model: 
+          type: observation_model/fixed
+          model: experiment/environment/model
+          task: experiment/environment/task
+        discretizer: experiment/agent/policy/discretizer
+        projector: experiment/agent/policy/projector
+        representation: experiment/agent/policy/representation
 visualizer: 
   type: visualizer/glut
 visualization: 

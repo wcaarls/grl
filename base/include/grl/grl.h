@@ -48,11 +48,8 @@ struct Transition
   Vector obs;
   Vector action;
   
-  Transition(Vector _prev_obs, Vector _prev_action, double _reward, Vector _obs=Vector(), Vector _action=Vector()) :
+  Transition(Vector _prev_obs=Vector(), Vector _prev_action=Vector(), double _reward=0., Vector _obs=Vector(), Vector _action=Vector()) :
     prev_obs(_prev_obs), prev_action(_prev_action), reward(_reward), obs(_obs), action(_action)
-    {
-    }
-  Transition()
     {
     }
 };

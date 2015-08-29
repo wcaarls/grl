@@ -1442,6 +1442,74 @@ predictor/fqi:
     mutability: configuration
     default: 0
     optional: 0
+predictor/full/qi:
+  description: Deterministic model-based action-value function predictor
+  gamma:
+    type: double
+    description: Discount rate
+    mutability: configuration
+    default: 0.97
+    optional: 1
+    min: 0
+    max: 1
+  model:
+    type: observation_model
+    description: Observation model used for planning
+    mutability: configuration
+    default: 0
+    optional: 0
+  discretizer:
+    type: discretizer.action
+    description: Action discretizer
+    mutability: configuration
+    default: 0
+    optional: 0
+  projector:
+    type: projector.pair
+    description: Projects observation-action pairs onto representation space
+    mutability: configuration
+    default: 0
+    optional: 0
+  representation:
+    type: representation.value/action
+    description: Action-value function representation
+    mutability: configuration
+    default: 0
+    optional: 0
+predictor/full/vi:
+  description: Deterministic model-based state-value function predictor
+  gamma:
+    type: double
+    description: Discount rate
+    mutability: configuration
+    default: 0.97
+    optional: 1
+    min: 0
+    max: 1
+  model:
+    type: observation_model
+    description: Observation model used for planning
+    mutability: configuration
+    default: 0
+    optional: 0
+  discretizer:
+    type: discretizer.action
+    description: Action discretizer
+    mutability: configuration
+    default: 0
+    optional: 0
+  projector:
+    type: projector.observation
+    description: Projects observations onto representation space
+    mutability: configuration
+    default: 0
+    optional: 0
+  representation:
+    type: representation.value/state
+    description: State-value function representation
+    mutability: configuration
+    default: 0
+    optional: 0
 predictor/ggq:
   description: Greedy-GQ off-policy value function predictor
   alpha:
@@ -1758,7 +1826,7 @@ projector/sample/ann:
     default: 20
     optional: 1
     min: 1
-    max: 1024
+    max: 64
   locality:
     type: double
     description: Locality of weighing function
@@ -2129,54 +2197,6 @@ solver/lqr:
     mutability: configuration
     default: 0
     optional: 0
-solver/qi:
-  description: Q iteration solver
-  sweeps:
-    type: int
-    description: Number of planning sweeps before solution is returned
-    mutability: configuration
-    default: 1
-    optional: 1
-    min: 0
-    max: 2147483647
-  gamma:
-    type: double
-    description: Discount rate
-    mutability: configuration
-    default: 0.97
-    optional: 1
-    min: 0
-    max: 1
-  model:
-    type: observation_model
-    description: Observation model used for planning
-    mutability: configuration
-    default: 0
-    optional: 0
-  state_discretizer:
-    type: discretizer.observation
-    description: State space discretizer
-    mutability: configuration
-    default: 0
-    optional: 0
-  action_discretizer:
-    type: discretizer.action
-    description: Action discretizer
-    mutability: configuration
-    default: 0
-    optional: 0
-  projector:
-    type: projector.pair
-    description: Projects observation-action pairs onto representation space
-    mutability: configuration
-    default: 0
-    optional: 0
-  representation:
-    type: representation.value/action
-    description: Action-value function representation
-    mutability: configuration
-    default: 0
-    optional: 0
 solver/vi:
   description: Value iteration solver
   sweeps:
@@ -2187,41 +2207,15 @@ solver/vi:
     optional: 1
     min: 0
     max: 2147483647
-  gamma:
-    type: double
-    description: Discount rate
-    mutability: configuration
-    default: 0.97
-    optional: 1
-    min: 0
-    max: 1
-  model:
-    type: observation_model
-    description: Observation model used for planning
-    mutability: configuration
-    default: 0
-    optional: 0
-  state_discretizer:
+  discretizer:
     type: discretizer.observation
     description: State space discretizer
     mutability: configuration
     default: 0
     optional: 0
-  action_discretizer:
-    type: discretizer.action
-    description: Action discretizer
-    mutability: configuration
-    default: 0
-    optional: 0
-  projector:
-    type: projector.observation
-    description: Projects observations onto representation space
-    mutability: configuration
-    default: 0
-    optional: 0
-  representation:
-    type: representation.value/state
-    description: State-value function representation
+  predictor:
+    type: predictor/full
+    description: Predictor to iterate
     mutability: configuration
     default: 0
     optional: 0
@@ -3059,7 +3053,7 @@ projector/sample/ann.pair:
     default: 20
     optional: 1
     min: 1
-    max: 1024
+    max: 64
   locality:
     type: double
     description: Locality of weighing function
@@ -3422,7 +3416,7 @@ projector/sample/ann.observation:
     default: 20
     optional: 1
     min: 1
-    max: 1024
+    max: 64
   locality:
     type: double
     description: Locality of weighing function

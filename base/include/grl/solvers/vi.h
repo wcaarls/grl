@@ -30,9 +30,7 @@
 
 #include <grl/solver.h>
 #include <grl/discretizer.h>
-#include <grl/environments/observation.h>
-#include <grl/projector.h>
-#include <grl/representation.h>
+#include <grl/predictor.h>
 
 namespace grl
 {
@@ -44,18 +42,13 @@ class ValueIterationSolver : public Solver
     TYPEINFO("solver/vi", "Value iteration solver");
 
   protected:
-    Discretizer *state_discretizer_, *action_discretizer_;
-    ObservationModel *model_;
-    Projector *projector_;
-    Representation *representation_;
+    Discretizer *discretizer_;
+    Predictor *predictor_;
     
     size_t sweeps_;
-    double gamma_;
-    
-    std::vector<Vector> variants_;
     
   public:
-    ValueIterationSolver() : state_discretizer_(NULL), action_discretizer_(NULL), model_(NULL), projector_(NULL), representation_(NULL), sweeps_(1), gamma_(0.97) { }
+    ValueIterationSolver() : discretizer_(NULL), predictor_(NULL), sweeps_(1) { }
   
     // From Configurable    
     virtual void request(ConfigurationRequest *config);

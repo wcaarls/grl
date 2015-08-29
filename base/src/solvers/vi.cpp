@@ -36,28 +36,17 @@ REGISTER_CONFIGURABLE(ValueIterationSolver)
 void ValueIterationSolver::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("sweeps", "Number of planning sweeps before solution is returned", sweeps_, CRP::Configuration, 0));
-  config->push_back(CRP("gamma", "Discount rate", gamma_));
   
-  config->push_back(CRP("model", "observation_model", "Observation model used for planning", model_));
-
-  config->push_back(CRP("state_discretizer", "discretizer.observation", "State space discretizer", state_discretizer_));
-  config->push_back(CRP("action_discretizer", "discretizer.action", "Action discretizer", action_discretizer_));
-  config->push_back(CRP("projector", "projector.observation", "Projects observations onto representation space", projector_));
-  config->push_back(CRP("representation", "representation.value/state", "State-value function representation", representation_));
+  config->push_back(CRP("discretizer", "discretizer.observation", "State space discretizer", discretizer_));
+  config->push_back(CRP("predictor", "predictor/full", "Predictor to iterate", predictor_));
 }
 
 void ValueIterationSolver::configure(Configuration &config)
 {
   sweeps_ = config["sweeps"];
-  gamma_ = config["gamma"];
   
-  model_ = (ObservationModel*)config["model"].ptr();
-  state_discretizer_ = (Discretizer*)config["state_discretizer"].ptr();
-  action_discretizer_ = (Discretizer*)config["action_discretizer"].ptr();
-  action_discretizer_->options(&variants_);
-
-  projector_ = (Projector*)config["projector"].ptr();
-  representation_ = (Representation*)config["representation"].ptr();
+  discretizer_ = (Discretizer*)config["discretizer"].ptr();
+  predictor_ = (Predictor*)config["predictor"].ptr();
 }
 
 void ValueIterationSolver::reconfigure(const Configuration &config)
@@ -68,41 +57,18 @@ ValueIterationSolver *ValueIterationSolver::clone() const
 {
   ValueIterationSolver *solver = new ValueIterationSolver(*this);
   
-  solver->model_ = model_->clone();
-  solver->state_discretizer_ = state_discretizer_->clone();
-  solver->action_discretizer_ = action_discretizer_->clone();
-  solver->projector_ = projector_->clone();
-  solver->representation_ = representation_->clone();
+  solver->discretizer_ = discretizer_->clone();
+  solver->predictor_ = predictor_->clone();
   
   return solver;
 }
 
 void ValueIterationSolver::solve()
 {
-  for (Discretizer::iterator it=state_discretizer_->begin(); it != state_discretizer_->end(); ++it)
-  {
-    double v=-std::numeric_limits<double>::infinity();
-    
-    for (size_t aa=0; aa < variants_.size(); ++aa)
+  for (size_t ii=0; ii < sweeps_; ++ii)
+    for (Discretizer::iterator it=discretizer_->begin(); it != discretizer_->end(); ++it)
     {
-      Vector next;
-      double reward;
-      int terminal;
-      model_->step(*it, variants_[aa], &next, &reward, &terminal);
-      
-      if (!next.empty())
-      {
-        if (!terminal)
-        {
-          Vector value;
-          reward += gamma_*representation_->read(projector_->project(next), &value);
-        }
-        
-        v = fmax(v, reward);
-      }
+      predictor_->update(Transition(*it));
+      predictor_->finalize();
     }
-
-    if (std::isfinite(v))
-      representation_->write(projector_->project(*it), VectorConstructor(v));
-  }
 }
