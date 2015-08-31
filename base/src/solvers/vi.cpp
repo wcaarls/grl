@@ -26,6 +26,7 @@
  */
 
 #include <iomanip>
+#include <omp.h>
 
 #include <grl/solvers/vi.h>
 
@@ -36,6 +37,9 @@ REGISTER_CONFIGURABLE(ValueIterationSolver)
 void ValueIterationSolver::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("sweeps", "Number of planning sweeps before solution is returned", sweeps_, CRP::Configuration, 0));
+#ifdef _OPENMP
+  config->push_back(CRP("parallel", "Perform backups in parallel (requires reentrant representation)", parallel_, CRP::Configuration, 0, 1));
+#endif
   
   config->push_back(CRP("discretizer", "discretizer.observation", "State space discretizer", discretizer_));
   config->push_back(CRP("predictor", "predictor/full", "Predictor to iterate", predictor_));
@@ -44,6 +48,7 @@ void ValueIterationSolver::request(ConfigurationRequest *config)
 void ValueIterationSolver::configure(Configuration &config)
 {
   sweeps_ = config["sweeps"];
+  parallel_ = config["parallel"];
   
   discretizer_ = (Discretizer*)config["discretizer"].ptr();
   predictor_ = (Predictor*)config["predictor"].ptr();
@@ -66,9 +71,40 @@ ValueIterationSolver *ValueIterationSolver::clone() const
 void ValueIterationSolver::solve()
 {
   for (size_t ii=0; ii < sweeps_; ++ii)
-    for (Discretizer::iterator it=discretizer_->begin(); it != discretizer_->end(); ++it)
-    {
-      predictor_->update(Transition(*it));
-      predictor_->finalize();
+  {
+#ifdef _OPENMP
+    if (parallel_)
+    {    
+      // http://stackoverflow.com/questions/8691459/how-do-i-parallelize-a-for-loop-through-a-c-stdlist-using-openmp
+      #pragma omp parallel
+      {
+        int thread_count = omp_get_num_threads();
+        int thread_num   = omp_get_thread_num();
+        size_t chunk_size= discretizer_->size() / thread_count;
+        auto begin = discretizer_->begin();
+        for (size_t ii=0; ii < thread_num*chunk_size; ++ii, ++begin);
+        auto end = begin;
+        if(thread_num == thread_count - 1) // last thread iterates the remaining sequence
+           end = discretizer_->end();
+        else
+           for (size_t ii=0; ii < chunk_size; ++ii, ++end);
+           
+        #pragma omp barrier
+        for(auto it = begin; it != end; ++it)
+        {
+          predictor_->update(Transition(*it));
+          predictor_->finalize();
+        }
+      }
     }
+    else
+#endif
+    {
+      for (Discretizer::iterator it=discretizer_->begin(); it != discretizer_->end(); ++it)
+      {
+        predictor_->update(Transition(*it));
+        predictor_->finalize();
+      }
+    }
+  }
 }

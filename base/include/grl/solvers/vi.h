@@ -46,9 +46,10 @@ class ValueIterationSolver : public Solver
     Predictor *predictor_;
     
     size_t sweeps_;
+    int parallel_;
     
   public:
-    ValueIterationSolver() : discretizer_(NULL), predictor_(NULL), sweeps_(1) { }
+    ValueIterationSolver() : discretizer_(NULL), predictor_(NULL), sweeps_(1), parallel_(1) { }
   
     // From Configurable    
     virtual void request(ConfigurationRequest *config);

@@ -67,6 +67,7 @@ class Discretizer : public Configurable
         Vector operator*() { return discretizer_->get(idx_); }
     };
     
+    virtual size_t size() const = 0;
     virtual iterator begin() const = 0;
     virtual iterator end() const
     {
@@ -74,7 +75,6 @@ class Discretizer : public Configurable
     }
     
   protected:
-    virtual size_t size() const = 0;
     virtual void   inc(IndexVector *idx) const = 0;
     virtual Vector get(const IndexVector &idx) const = 0;
 };
