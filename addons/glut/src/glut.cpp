@@ -25,6 +25,7 @@
  * \endverbatim
  */
 
+#include <unistd.h>
 #include <GL/freeglut.h>
 
 #include <grl/visualizers/glut.h>

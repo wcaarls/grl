@@ -29,6 +29,7 @@
 #define GRL_SAMPLE_PROJECTION_H_
 
 #include <memory>
+#include <algorithm>
 
 #include <grl/mutex.h>
 #include <grl/projection.h>

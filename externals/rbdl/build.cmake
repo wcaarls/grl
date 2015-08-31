@@ -48,11 +48,14 @@ execute_process(
 )
 
 execute_process(
+  COMMAND cat ${SRC}/../share/options.patch
+  COMMAND patch -p0
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/externals/rbdl
+)
+
+execute_process(
   COMMAND mkdir externals/rbdl/build
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
-
-OPTION (RBDL_BUILD_ADDON_LUAMODEL "Build the lua model reader" ON)
-set(RBDL_BUILD_ADDON_LUAMODEL ON CACHE BOOL FORCE "Build the lua model reader")
 
 add_subdirectory(${CMAKE_BINARY_DIR}/externals/rbdl ${CMAKE_BINARY_DIR}/externals/rbdl/build)

@@ -25,6 +25,7 @@
  * \endverbatim
  */
 
+#include <unistd.h>
 #include <iomanip>
 
 #include <grl/agents/dyna.h>

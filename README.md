@@ -26,7 +26,7 @@ interface.
 
 # Installation (Ubuntu 14.04)
 ```
-sudo apt-get install git cmake g++ libboost-dev
+sudo apt-get install git cmake g++
 git clone https://github.com/wcaarls/grl.git
 ```
 

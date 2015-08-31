@@ -25,6 +25,7 @@
  * \endverbatim
  */
 
+#include <unistd.h>
 #include <signal.h>
 #include <string.h>
 
