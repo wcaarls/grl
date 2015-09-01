@@ -86,17 +86,27 @@ void LQRSolver::solve()
   Eigen::VectorXd q(q_.size()), r(r_.size());
   memcpy(q.data(), q_.data(), q_.size()*sizeof(double));
   memcpy(r.data(), r_.data(), r_.size()*sizeof(double));
-
-  Eigen::MatrixXd A = estimateStateJacobian(), At = A.transpose(),
-                  B = estimateActionJacobian(), Bt = B.transpose(),
-                  Q = q.asDiagonal(),
-                  R = r.asDiagonal(),
-                  X = Q;
-                  
-  if (A.size() && B.size())
+  
+  Matrix J = model_->jacobian(operating_state_, operating_action_);
+  if (J.size())
   {
+    Eigen::MatrixXd A(operating_state_.size(), operating_state_.size()), B(operating_state_.size(), operating_action_.size());
+    for (size_t rr=0; rr < operating_state_.size(); ++rr)
+    {
+      for (size_t cc=0; cc < operating_state_.size(); ++cc)
+        A(rr, cc) = J(rr, cc);
+      for (size_t cc=0; cc < operating_action_.size(); ++cc)
+        B(rr, cc) = J(rr, operating_state_.size()+cc);
+    }
+
     CRAWL("State jacobian:\n" << A);
     CRAWL("Action jacobian:\n" << B);
+
+    Eigen::MatrixXd At = A.transpose(),
+                    Bt = B.transpose(),
+                    Q = q.asDiagonal(),
+                    R = r.asDiagonal(),
+                    X = Q;
 
     // Iterate discrete-time algebraic Riccati equation until convergence
     for (size_t ii=0; ii < 1000; ++ii)
@@ -123,58 +133,4 @@ void LQRSolver::solve()
   }
   else
     WARNING("Could not determine gain matrix");
-}
-
-Eigen::MatrixXd LQRSolver::estimateStateJacobian() const
-{
-  Eigen::MatrixXd J(operating_state_.size(), operating_state_.size());
-  double h = 0.01;
-  
-  // Central differences 
-  for (size_t ii=0; ii < operating_state_.size(); ++ii)
-  {
-    Vector state1 = operating_state_, state2 = operating_state_;
-    state1[ii] -= h/2, state2[ii] += h/2;
-    
-    Vector res1, res2;
-    double reward;
-    int terminal;
-    model_->step(state1, operating_action_, &res1, &reward, &terminal);
-    model_->step(state2, operating_action_, &res2, &reward, &terminal);
-    
-    if (!res1.size() || !res2.size())
-      return Eigen::MatrixXd();
-    
-    for (size_t jj=0; jj < operating_state_.size(); ++jj)
-      J(jj, ii) = (res2[jj]-res1[jj])/h;
-  }
-
-  return J;
-}
-
-Eigen::MatrixXd LQRSolver::estimateActionJacobian() const
-{
-  Eigen::MatrixXd J(operating_state_.size(), operating_action_.size());
-  double h = 0.01;
- 
-  // Central differences 
-  for (size_t ii=0; ii < operating_action_.size(); ++ii)
-  {
-    Vector action1 = operating_action_, action2 = operating_action_;
-    action1[ii] -= h/2, action2[ii] += h/2;
-    
-    Vector res1, res2;
-    double reward;
-    int terminal;
-    model_->step(operating_state_, action1, &res1, &reward, &terminal);
-    model_->step(operating_state_, action2, &res2, &reward, &terminal);
-
-    if (!res1.size() || !res2.size())
-      return Eigen::MatrixXd();
-    
-    for (size_t jj=0; jj < operating_state_.size(); ++jj)
-      J(jj, ii) = (res2[jj]-res1[jj])/h;
-  }
-  
-  return J;
 }

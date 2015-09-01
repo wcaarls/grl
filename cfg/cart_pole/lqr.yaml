@@ -24,6 +24,8 @@ experiment:
       operating_state: [0, 0, 0, 0]
       operating_action: [0]
       gains: []
+      output_min: experiment/environment/task/action_min
+      output_max: experiment/environment/task/action_max
     solver: 
       type: solver/lqr
       operating_state: experiment/agent/policy/operating_state

@@ -273,7 +273,7 @@ class timer
     }
 };
 
-inline Vector squash(Vector x, Vector f)
+inline Vector squash(const Vector &x, const Vector &f)
 {
   Vector y(x.size());
 
@@ -289,7 +289,7 @@ inline Vector squash(Vector x, Vector f)
   return y;
 }
 
-inline Vector squash(Vector x, double f)
+inline Vector squash(const Vector &x, double f)
 {
   Vector y(x.size());
 

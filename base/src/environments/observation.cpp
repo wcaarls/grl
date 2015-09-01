@@ -32,6 +32,47 @@ using namespace grl;
 REGISTER_CONFIGURABLE(FixedObservationModel)
 REGISTER_CONFIGURABLE(ApproximatedObservationModel)
 REGISTER_CONFIGURABLE(FixedRewardObservationModel)
+
+Matrix ObservationModel::jacobian(const Vector &obs, const Vector &action) const
+{
+  Matrix J(obs.size(), obs.size()+action.size());
+  double h = 0.01;
+  
+  // Central differences 
+  for (size_t ii=0; ii < obs.size()+action.size(); ++ii)
+  {
+    Vector res1, res2;
+    double reward;
+    int terminal;
+    
+    if (ii < obs.size())
+    {
+      // d obs / d obs
+      Vector state1 = obs, state2 = obs;
+      state1[ii] -= h/2, state2[ii] += h/2;
+    
+      step(state1, action, &res1, &reward, &terminal);
+      step(state2, action, &res2, &reward, &terminal);
+    }
+    else
+    {
+      // d obs / d action
+      Vector action1 = action, action2 = action;
+      action1[ii-obs.size()] -= h/2, action2[ii-obs.size()] += h/2;
+      
+      step(obs, action1, &res1, &reward, &terminal);
+      step(obs, action2, &res2, &reward, &terminal);
+    }
+    
+    if (!res1.size() || !res2.size())
+      return Matrix();
+    
+    for (size_t jj=0; jj < obs.size(); ++jj)
+      J(jj, ii) = (res2[jj]-res1[jj])/h;
+  }
+
+  return J;
+}
  
 // FixedObservationModel
 

@@ -32,6 +32,7 @@
 #include <iostream>
 
 #include <math.h>
+#include <string.h>
 
 template<class T>
 inline std::vector<T> VectorConstructor(T a)
@@ -286,6 +287,60 @@ inline Vector pow(const Vector &a, const Vector &b)
     c[ii] = pow(a[ii], b[ii]);
   return c;
 }
+
+class Matrix
+{
+  protected:
+    size_t rows_, cols_;
+    double *data_;
+    
+  public:
+    Matrix(size_t rows=0, size_t cols=0) : rows_(rows), cols_(cols), data_(NULL)
+    {
+      if (rows_*cols_ > 0)
+        data_ = new double[rows_*cols_];
+    }
+    
+    Matrix(const Matrix &obj) : rows_(obj.rows_), cols_(obj.cols_), data_(NULL)
+    {
+      if (rows_*cols_ > 0)
+      {
+        data_ = new double[rows_*cols_];
+        memcpy(data_, obj.data_, rows_*cols_*sizeof(double));
+      }
+    }
+    
+    ~Matrix()
+    {
+      if (data_)
+        delete[] data_;
+    }
+    
+    double operator()(size_t row, size_t col) const
+    {
+      return data_[row*cols_+col];
+    }
+    
+    double &operator()(size_t row, size_t col)
+    {
+      return data_[row*cols_+col];
+    }
+    
+    size_t size() const
+    {
+      return rows_*cols_;
+    }
+
+    size_t rows() const
+    {
+      return rows_;
+    }
+    
+    size_t cols() const
+    {
+      return cols_;
+    }
+};
 
 }
 
