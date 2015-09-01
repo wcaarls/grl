@@ -166,6 +166,32 @@ agent/td:
     mutability: configuration
     default: 0
     optional: 0
+discretizer/peaked:
+  description: Peaked discretizer, with more resolution around center
+  min:
+    type: vector
+    description: Lower limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  max:
+    type: vector
+    description: Upper limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  steps:
+    type: vector
+    description: Discretization steps per dimension
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  peaking:
+    type: vector
+    description: Extra resolution factor around center (offset by 1/factor at edges)
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
 discretizer/uniform:
   description: Uniform discretizer
   min:
@@ -1795,8 +1821,8 @@ projector/grid:
     mutability: provided
 projector/identity:
   description: Simply returns the input vector
-projector/normalizing:
-  description: Projects the input onto a normalized vector
+projector/pre/normalizing:
+  description: Preprocesses projection onto a normalized [0, 1] vector
   input_min:
     type: vector
     description: Lower input dimension limit (for scaling)
@@ -1809,6 +1835,38 @@ projector/normalizing:
     mutability: system
     default: "[  ]"
     optional: 1
+  projector:
+    type: projector.
+    description: Downstream projector
+    mutability: configuration
+    default: 0x7fc3617cd3d8
+    optional: 0
+projector/pre/peaked:
+  description: Preprocesses projection for more resolution around center
+  peaking:
+    type: vector
+    description: Extra resolution factor around center (offset by 1/factor at edges)
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  input_min:
+    type: vector
+    description: Lower input dimension limit (for scaling)
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  input_max:
+    type: vector
+    description: Upper input dimension limit (for scaling)
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  projector:
+    type: projector.
+    description: Downstream projector
+    mutability: configuration
+    default: 0
+    optional: 0
 projector/sample/ann:
   description: Projects onto samples found through approximate nearest-neighbor search
   samples:
@@ -1826,7 +1884,7 @@ projector/sample/ann:
     default: 20
     optional: 1
     min: 1
-    max: 64
+    max: 1024
   locality:
     type: double
     description: Locality of weighing function
@@ -3030,8 +3088,8 @@ projector/grid.pair:
     mutability: provided
 projector/identity.pair:
   description: Simply returns the input vector
-projector/normalizing.pair:
-  description: Projects the input onto a normalized vector
+projector/pre/normalizing.pair:
+  description: Preprocesses projection onto a normalized [0, 1] vector
   input_min:
     type: vector.observation_min+vector.action_min
     description: Lower input dimension limit (for scaling)
@@ -3044,6 +3102,38 @@ projector/normalizing.pair:
     mutability: system
     default: "[  ]"
     optional: 1
+  projector:
+    type: projector.pair
+    description: Downstream projector
+    mutability: configuration
+    default: 0x40
+    optional: 0
+projector/pre/peaked.pair:
+  description: Preprocesses projection for more resolution around center
+  peaking:
+    type: vector
+    description: Extra resolution factor around center (offset by 1/factor at edges)
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  input_min:
+    type: vector.observation_min+vector.action_min
+    description: Lower input dimension limit (for scaling)
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  input_max:
+    type: vector.observation_max+vector.action_max
+    description: Upper input dimension limit (for scaling)
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  projector:
+    type: projector.pair
+    description: Downstream projector
+    mutability: configuration
+    default: 0
+    optional: 0
 projector/sample/ann.pair:
   description: Projects onto samples found through approximate nearest-neighbor search
   samples:
@@ -3061,7 +3151,7 @@ projector/sample/ann.pair:
     default: 20
     optional: 1
     min: 1
-    max: 64
+    max: 1024
   locality:
     type: double
     description: Locality of weighing function
@@ -3393,8 +3483,8 @@ projector/grid.observation:
     mutability: provided
 projector/identity.observation:
   description: Simply returns the input vector
-projector/normalizing.observation:
-  description: Projects the input onto a normalized vector
+projector/pre/normalizing.observation:
+  description: Preprocesses projection onto a normalized [0, 1] vector
   input_min:
     type: vector.observation_min
     description: Lower input dimension limit (for scaling)
@@ -3407,6 +3497,38 @@ projector/normalizing.observation:
     mutability: system
     default: "[  ]"
     optional: 1
+  projector:
+    type: projector.observation
+    description: Downstream projector
+    mutability: configuration
+    default: 0x7fc3617cd3d8
+    optional: 0
+projector/pre/peaked.observation:
+  description: Preprocesses projection for more resolution around center
+  peaking:
+    type: vector
+    description: Extra resolution factor around center (offset by 1/factor at edges)
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  input_min:
+    type: vector.observation_min
+    description: Lower input dimension limit (for scaling)
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  input_max:
+    type: vector.observation_max
+    description: Upper input dimension limit (for scaling)
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  projector:
+    type: projector.observation
+    description: Downstream projector
+    mutability: configuration
+    default: 0
+    optional: 0
 projector/sample/ann.observation:
   description: Projects onto samples found through approximate nearest-neighbor search
   samples:
@@ -3424,7 +3546,7 @@ projector/sample/ann.observation:
     default: 20
     optional: 1
     min: 1
-    max: 64
+    max: 1024
   locality:
     type: double
     description: Locality of weighing function
@@ -3693,6 +3815,32 @@ representation/parameterized/linear.action:
     type: vector.action_max
     description: Upper output limit
     mutability: system
+    default: "[  ]"
+    optional: 1
+discretizer/peaked.action:
+  description: Peaked discretizer, with more resolution around center
+  min:
+    type: vector.action_min
+    description: Lower limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  max:
+    type: vector.action_max
+    description: Upper limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  steps:
+    type: vector
+    description: Discretization steps per dimension
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  peaking:
+    type: vector
+    description: Extra resolution factor around center (offset by 1/factor at edges)
+    mutability: configuration
     default: "[  ]"
     optional: 1
 discretizer/uniform.action:
@@ -4017,6 +4165,32 @@ representation/parameterized/linear.value/state:
     type: vector
     description: Upper output limit
     mutability: system
+    default: "[  ]"
+    optional: 1
+discretizer/peaked.observation:
+  description: Peaked discretizer, with more resolution around center
+  min:
+    type: vector.observation_min
+    description: Lower limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  max:
+    type: vector.observation_max
+    description: Upper limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  steps:
+    type: vector
+    description: Discretization steps per dimension
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  peaking:
+    type: vector
+    description: Extra resolution factor around center (offset by 1/factor at edges)
+    mutability: configuration
     default: "[  ]"
     optional: 1
 discretizer/uniform.observation:

@@ -13,6 +13,7 @@ add_library(${TARGET} SHARED
             ${SRC}/agents/solver.cpp
             ${SRC}/configurable.cpp
             ${SRC}/discretizers/uniform.cpp
+            ${SRC}/discretizers/peaked.cpp
             ${SRC}/environments/acrobot.cpp
             ${SRC}/environments/observation.cpp
             ${SRC}/environments/modeled.cpp
@@ -45,6 +46,7 @@ add_library(${TARGET} SHARED
             ${SRC}/predictors/vi.cpp
             ${SRC}/projectors/identity.cpp
             ${SRC}/projectors/normalizing.cpp
+            ${SRC}/projectors/peaked.cpp
             ${SRC}/projectors/tile_coding.cpp
             ${SRC}/projectors/fourier.cpp
             ${SRC}/projectors/grid.cpp

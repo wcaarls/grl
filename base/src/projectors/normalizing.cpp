@@ -54,10 +54,13 @@ void NormalizingProjector::request(const std::string &role, ConfigurationRequest
     config->push_back(CRP("input_min", "Lower input dimension limit (for scaling)", min_, CRP::System));
     config->push_back(CRP("input_max", "Upper input dimension limit (for scaling)", max_, CRP::System));
   }
+
+  config->push_back(CRP("projector", "projector." + role, "Downstream projector", projector_));
 }
 
 void NormalizingProjector::configure(Configuration &config)
 {
+  projector_ = (Projector*) config["projector"].ptr();
   min_ = config["input_min"];
   max_ = config["input_max"];
   
@@ -65,7 +68,6 @@ void NormalizingProjector::configure(Configuration &config)
     throw bad_param("projector/normalizing:{input_min,input_max}");
 
   scaling_ = 1./(max_-min_);
-  dims_ = min_.size();
 }
 
 void NormalizingProjector::reconfigure(const Configuration &config)
@@ -74,14 +76,12 @@ void NormalizingProjector::reconfigure(const Configuration &config)
 
 NormalizingProjector *NormalizingProjector::clone() const
 {
-  return new NormalizingProjector(*this);
+  NormalizingProjector *projector = new NormalizingProjector(*this);
+  projector->projector_ = projector_->clone();
+  return projector;
 }
 
 ProjectionPtr NormalizingProjector::project(const Vector &in) const
 {
-  VectorProjection *p = new VectorProjection();
-
-  p->vector = (in-min_)*scaling_;
-
-  return ProjectionPtr(p);
+  return projector_->project((in-min_)*scaling_);
 }

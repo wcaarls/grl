@@ -1,8 +1,8 @@
-/** \file normalizing.h
- * \brief Normalizing projector header file.
+/** \file peaked.h
+ * \brief Peaked discretizer header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-03-10
+ * \date      2015-09-01
  *
  * \copyright \verbatim
  * Copyright (c) 2015, Wouter Caarls
@@ -25,39 +25,33 @@
  * \endverbatim
  */
 
-#ifndef GRL_NORMALIZING_PROJECTOR_H_
-#define GRL_NORMALIZING_PROJECTOR_H_
+#ifndef GRL_PEAKED_DISCRETIZER_H_
+#define GRL_PEAKED_DISCRETIZER_H_
 
-#include <grl/projector.h>
+#include <grl/configurable.h>
+#include <grl/discretizers/uniform.h>
 
 namespace grl
 {
 
-/// Preprocesses projection onto a normalized [0, 1] vector
-class NormalizingProjector : public Projector
+/// Peaked discretization
+class PeakedDiscretizer : public UniformDiscretizer
 {
   public:
-    TYPEINFO("projector/pre/normalizing", "Preprocesses projection onto a normalized [0, 1] vector")
-    
+    TYPEINFO("discretizer/peaked", "Peaked discretizer, with more resolution around center")
+
   protected:
-    Projector *projector_;
-    
-    Vector min_, max_, scaling_;
+    Vector peaking_;
 
   public:
-    NormalizingProjector() { }
-
     // From Configurable
     virtual void request(const std::string &role, ConfigurationRequest *config);
     virtual void configure(Configuration &config);
-    virtual void reconfigure(const Configuration &config);
-
-    // From Projector
-    virtual NormalizingProjector *clone() const;
-    virtual ProjectionLifetime lifetime() const { return plIndefinite; }
-    virtual ProjectionPtr project(const Vector &in) const;
+    
+    // From Discretizer
+    virtual PeakedDiscretizer* clone();
 };
 
 }
 
-#endif /* GRL_NORMALIZING_PROJECTOR_H_ */
+#endif /* GRL_PEAKED_DISCRETIZER_H_ */

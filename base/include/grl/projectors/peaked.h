@@ -1,8 +1,8 @@
-/** \file normalizing.h
- * \brief Normalizing projector header file.
+/** \file peaked.h
+ * \brief Peaked projector header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-03-10
+ * \date      2015-09-01
  *
  * \copyright \verbatim
  * Copyright (c) 2015, Wouter Caarls
@@ -25,39 +25,34 @@
  * \endverbatim
  */
 
-#ifndef GRL_NORMALIZING_PROJECTOR_H_
-#define GRL_NORMALIZING_PROJECTOR_H_
+#ifndef GRL_PEAKED_PROJECTOR_H_
+#define GRL_PEAKED_PROJECTOR_H_
 
-#include <grl/projector.h>
+#include <grl/projectors/normalizing.h>
 
 namespace grl
 {
 
-/// Preprocesses projection onto a normalized [0, 1] vector
-class NormalizingProjector : public Projector
+/// Preprocesses projection for more resolution around center
+class PeakedProjector : public NormalizingProjector
 {
   public:
-    TYPEINFO("projector/pre/normalizing", "Preprocesses projection onto a normalized [0, 1] vector")
+    TYPEINFO("projector/pre/peaked", "Preprocesses projection for more resolution around center")
     
   protected:
-    Projector *projector_;
-    
-    Vector min_, max_, scaling_;
+    Vector peaking_, range2_;
 
   public:
-    NormalizingProjector() { }
-
     // From Configurable
     virtual void request(const std::string &role, ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
 
     // From Projector
-    virtual NormalizingProjector *clone() const;
-    virtual ProjectionLifetime lifetime() const { return plIndefinite; }
+    virtual PeakedProjector *clone() const;
     virtual ProjectionPtr project(const Vector &in) const;
 };
 
 }
 
-#endif /* GRL_NORMALIZING_PROJECTOR_H_ */
+#endif /* GRL_PEAKED_PROJECTOR_H_ */

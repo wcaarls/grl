@@ -77,7 +77,7 @@ void GridProjector::configure(Configuration &config)
 
   delta_ = (max_-min_)/steps_;
   
-  config.set("memory", prod(steps_));
+  config.set("memory", (int)prod(steps_));
 }
 
 void GridProjector::reconfigure(const Configuration &config)
