@@ -54,6 +54,7 @@ experiment:
       transitions: 100000
       iterations: 50
       reset_strategy: batch
+      macro_batch_size: 1
       discretizer: experiment/agent/policy/discretizer
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation

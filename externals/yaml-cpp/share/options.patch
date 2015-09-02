@@ -1,0 +1,21 @@
+diff -rNu yaml-cpp/CMakeLists.txt yaml-cpp.no-boost/CMakeLists.txt
+--- yaml-cpp/CMakeLists.txt	1969-12-31 21:00:00.000000000 -0300
++++ yaml-cpp.no-boost/CMakeLists.txt	2015-01-22 19:26:01.000000000 -0200
+@@ -33,14 +33,14 @@
+ ### Project options
+ ###
+ ## Project stuff
+-option(YAML_CPP_BUILD_TOOLS "Enable testing and parse tools" ON)
+-option(YAML_CPP_BUILD_CONTRIB "Enable contrib stuff in library" ON)
++option(YAML_CPP_BUILD_TOOLS "Enable testing and parse tools" OFF)
++option(YAML_CPP_BUILD_CONTRIB "Enable contrib stuff in library" OFF)
+ 
+ ## Build options
+ # --> General
+ # see http://www.cmake.org/cmake/help/cmake2.6docs.html#variable:BUILD_SHARED_LIBS
+ #     http://www.cmake.org/cmake/help/cmake2.6docs.html#command:add_library
+-option(BUILD_SHARED_LIBS "Build Shared Libraries" OFF)
++option(BUILD_SHARED_LIBS "Build Shared Libraries" ON)
+ 
+ # --> Apple
+ option(APPLE_UNIVERSAL_BIN "Apple: Build universal binary" OFF)

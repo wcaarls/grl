@@ -42,13 +42,12 @@ void FQIPredictor::request(ConfigurationRequest *config)
   options.push_back("batch");
   options.push_back("iteration");
   config->push_back(CRP("reset_strategy", "At which point to reset the representation", reset_strategy_str_, CRP::Configuration, options));
+  config->push_back(CRP("macro_batch_size", "Number of episodes/batches after which prediction is rebuilt. Use 0 for no rebuilds.", (int)macro_batch_size_));
 
   config->push_back(CRP("discretizer", "discretizer.action", "Action discretizer", discretizer_));
   config->push_back(CRP("projector", "projector.pair", "Projects observations onto critic representation space", projector_));
   config->push_back(CRP("representation", "representation.value/action", "Value function representation", representation_));
 
-  config->push_back(CRP("rebuild_batch_size", "Number of episodes after which a batch is rebuild. Use 0 for no rebulds.",
-                        10, CRP::Configuration, 0));
 }
 
 void FQIPredictor::configure(Configuration &config)
@@ -62,7 +61,7 @@ void FQIPredictor::configure(Configuration &config)
   gamma_ = config["gamma"];
   max_samples_ = config["transitions"];
   iterations_ = config["iterations"];
-  rebuild_batch_size_ = config["rebuild_batch_size"];
+  macro_batch_size_ = config["macro_batch_size"];
   
   reset_strategy_str_ = config["reset_strategy"].str();
   if (reset_strategy_str_ == "never")          reset_strategy_ = rsNever;
@@ -81,7 +80,7 @@ void FQIPredictor::reconfigure(const Configuration &config)
     DEBUG("Initializing transition store");
   
     transitions_.clear();
-    rebuild_counter_ = 1;
+    macro_batch_counter_ = 0;
   }
   else if (config["action"].str() == "load")
   {
@@ -90,12 +89,15 @@ void FQIPredictor::reconfigure(const Configuration &config)
 
     std::ifstream fileInStream;
     fileInStream.open(file.c_str(),  std::ofstream::in);
-    if (fileInStream.bad())
-            return;
+    if (!fileInStream.good())
+      return;
     size_t count, count_obs, count_action;
     fileInStream.read(reinterpret_cast<char*>(&count),	sizeof(size_t));
     fileInStream.read(reinterpret_cast<char*>(&count_obs),	sizeof(size_t));
     fileInStream.read(reinterpret_cast<char*>(&count_action),	sizeof(size_t));
+    
+    NOTICE("Reading " << count << " transitions from " << file);
+    
     transitions_.reserve(count);
 
     CachedTransition ctr;
@@ -125,6 +127,7 @@ void FQIPredictor::reconfigure(const Configuration &config)
       }
     }
     fileInStream.close();
+    
     rebuild(); // Build predictor
   }
   else if (config["action"].str() == "save")
@@ -137,8 +140,8 @@ void FQIPredictor::reconfigure(const Configuration &config)
 
     std::ofstream fileOutStream;
     fileOutStream.open(file.c_str(),  std::ofstream::out);
-    if (fileOutStream.bad())
-            return;
+    if (!fileOutStream.good())
+      return;
     size_t count = transitions_.size();
     fileOutStream.write(reinterpret_cast<const char*>(&count),	sizeof(size_t));
     size_t count_obs = transitions_[0].transition.obs.size();
@@ -187,9 +190,9 @@ void FQIPredictor::update(const Transition &transition)
 }
 
 void FQIPredictor::finalize()
-{// call it batch_size
-  // rebuilding predictor every 'rebuild_batch_size_' episodes or do not rebuild at all
-  if (rebuild_batch_size_ && ((rebuild_counter_++ % rebuild_batch_size_) == 0))
+{
+  // rebuilding predictor every macro_batch_size_ episodes or do not rebuild at all
+  if (macro_batch_size_ && ((++macro_batch_counter_ % macro_batch_size_) == 0))
     rebuild();
 }
 

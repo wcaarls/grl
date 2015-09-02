@@ -25,6 +25,7 @@
  * \endverbatim
  */
 
+#include <algorithm>
 #include <grl/representations/linear.h>
 
 using namespace grl;

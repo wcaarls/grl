@@ -67,7 +67,7 @@ void RandomPolicy::act(const Vector &in, Vector *out) const
 
 void RandomDiscretePolicy::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("discretizer", "discretizer", "Action discretizer", discretizer_));
+  config->push_back(CRP("discretizer", "discretizer.action", "Action discretizer", discretizer_));
 }
 
 void RandomDiscretePolicy::configure(Configuration &config)

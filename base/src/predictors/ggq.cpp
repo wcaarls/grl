@@ -82,10 +82,18 @@ void GGQPredictor::update(const Transition &transition)
   // temporal difference error
   double delta = target - representation_->read(phi, &v);
   
-  // w^Tphi
+  // w^Tphi is the second output of the representation
   double dotwphi = 0.;
   if (!v.empty())
-   dotwphi = v[1];
+  {
+    if (v.size() < 2)
+    {
+      ERROR("GGQ predictor requires a representation with at least two outputs");
+      throw bad_param("predictor/ggq:representation");
+    }
+    else
+      dotwphi = v[1];
+  }
 
   // Update weights
   representation_->write(phi, VectorConstructor(target, delta), VectorConstructor(alpha_, alpha_*eta_));

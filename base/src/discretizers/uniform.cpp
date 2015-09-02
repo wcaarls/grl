@@ -38,6 +38,11 @@ void UniformDiscretizer::request(const std::string &role, ConfigurationRequest *
     config->push_back(CRP("min", "vector.action_min", "Lower limit", min_, CRP::System));
     config->push_back(CRP("max", "vector.action_max", "Upper limit", max_, CRP::System));
   }
+  else if (role == "observation")
+  {
+    config->push_back(CRP("min", "vector.observation_min", "Lower limit", min_, CRP::System));
+    config->push_back(CRP("max", "vector.observation_max", "Upper limit", max_, CRP::System));
+  }
   else
   {
     config->push_back(CRP("min", "Lower limit", min_, CRP::System));
@@ -81,35 +86,43 @@ void UniformDiscretizer::reconfigure(const Configuration &config)
 
 UniformDiscretizer* UniformDiscretizer::clone()
 {
-  UniformDiscretizer *ud = new UniformDiscretizer();
-  ud->values_ = values_;
-  
-  return ud;
+  return new UniformDiscretizer(*this);
 }
 
-void UniformDiscretizer::options(std::vector<Vector> *out) const
+UniformDiscretizer::iterator UniformDiscretizer::begin() const
 {
-  size_t sz = 1;
-  size_t dims = values_.size();
+  return iterator(this, IndexVector(steps_.size(), 0));
+}
 
-  std::vector<size_t> idx;
-  idx.resize(dims, 0);
+size_t UniformDiscretizer::size() const
+{
+  return prod(steps_);
+}
 
-  for (size_t dd=0; dd < dims; ++dd)
-    sz *= values_[dd].size();
+void UniformDiscretizer::inc(IndexVector *idx) const
+{
+  if (idx->empty())
+    return;
 
-  out->resize(sz);
-  
-  for (size_t ii=0; ii < sz; ++ii)
-  {
-    (*out)[ii].resize(dims);
-    for (size_t dd=0; dd < dims; ++dd)
-      (*out)[ii][dd] = values_[dd][idx[dd]];
+  size_t dd;
+  for (dd=0; dd < steps_.size(); ++dd)
+    if (++(*idx)[dd] == values_[dd].size())
+      (*idx)[dd] = 0;
+    else
+      break;
+      
+  if (dd == steps_.size())
+    *idx = IndexVector();
+}
+
+Vector UniformDiscretizer::get(const IndexVector &idx) const
+{
+  if (idx.empty())
+    return Vector();
+
+  Vector out(steps_.size());
+  for (size_t dd=0; dd < out.size(); ++dd)
+    out[dd] = values_[dd][idx[dd]];
     
-    for (size_t dd=0; dd < dims; ++dd)
-      if (++idx[dd] == values_[dd].size())
-        idx[dd] = 0;
-      else
-        break;
-  }
+  return out;
 }

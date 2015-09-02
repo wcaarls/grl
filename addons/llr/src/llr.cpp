@@ -114,10 +114,10 @@ double LLRRepresentation::read(const ProjectionPtr &projection, Vector *result, 
   
   result->clear();
 
-  if (p->indices.empty())
+  if (p->neighbors.empty())
     return 0.;
   
-  std::vector<bool> eligible(p->indices.size(), true);
+  std::vector<bool> eligible(p->neighbors.size(), true);
 
   // Filter samples with different input nominal than query
   if (!input_nominals_.empty())
@@ -131,9 +131,9 @@ double LLRRepresentation::read(const ProjectionPtr &projection, Vector *result, 
     for (size_t jj=0; jj < p->query.size(); ++jj)
       query_nominal +=p->query[jj]*input_nominals_[jj];
     
-    for (size_t ii=0; ii < p->indices.size(); ++ii)
+    for (size_t ii=0; ii < p->neighbors.size(); ++ii)
     {
-      double *in = (*p->store)[p->indices[ii]]->in;
+      double *in = p->neighbors[ii]->in;
       double nominal = 0;
       
       for (size_t jj=0; jj < p->query.size(); ++jj)
@@ -150,11 +150,11 @@ double LLRRepresentation::read(const ProjectionPtr &projection, Vector *result, 
     Guard guard(*p->store);
 
     // Determine output nominals
-    Vector nominals(p->indices.size());
+    Vector nominals(p->neighbors.size());
     
-    for (size_t ii=0; ii < p->indices.size(); ++ii)
+    for (size_t ii=0; ii < p->neighbors.size(); ++ii)
     {
-      double *out = (*p->store)[p->indices[ii]]->out;
+      double *out = p->neighbors[ii]->out;
       double nominal = 0;
     
       for (size_t jj=0; jj < outputs_; ++jj)
@@ -165,7 +165,7 @@ double LLRRepresentation::read(const ProjectionPtr &projection, Vector *result, 
     // Determine most likely output nominal
     std::map<double, double> nominal_weights;
   
-    for (size_t ii=0; ii < p->indices.size(); ++ii)
+    for (size_t ii=0; ii < p->neighbors.size(); ++ii)
       nominal_weights[nominals[ii]] += p->weights[ii];
     
     double out_nominal = nominal_weights.begin()->first;
@@ -179,13 +179,13 @@ double LLRRepresentation::read(const ProjectionPtr &projection, Vector *result, 
   }
   
   // Apply filters
-  std::vector<size_t> indices;
+  std::vector<Sample*> neighbors;
   Vector weights;
   
-  for (size_t ii=0; ii < p->indices.size(); ++ii)
+  for (size_t ii=0; ii < p->neighbors.size(); ++ii)
     if (eligible[ii])
     {
-      indices.push_back(p->indices[ii]);
+      neighbors.push_back(p->neighbors[ii]);
       weights.push_back(p->weights[ii]);
     }
 
@@ -197,11 +197,11 @@ double LLRRepresentation::read(const ProjectionPtr &projection, Vector *result, 
     double weight = 0;
     result->resize(outputs_, 0.);
     
-    for (size_t ii=0; ii < indices.size(); ++ii)
+    for (size_t ii=0; ii < neighbors.size(); ++ii)
     {
       weight += weights[ii];
       for (size_t jj=0; jj < outputs_; ++jj)
-        (*result)[jj] += (*p->store)[indices[ii]]->out[jj]*weights[ii];
+        (*result)[jj] += p->neighbors[ii]->out[jj]*weights[ii];
     }
     
     if (weight)
@@ -219,8 +219,8 @@ double LLRRepresentation::read(const ProjectionPtr &projection, Vector *result, 
   q[p->query.size()] = 1.;
   
   // Fill matrices A and b
-  Matrix A(indices.size(), p->query.size()+1),
-         b(indices.size(), outputs_);
+  Matrix A(neighbors.size(), p->query.size()+1),
+         b(neighbors.size(), outputs_);
          
   RowVector mib(outputs_), mab(outputs_);
   for (size_t ii=0; ii < outputs_; ++ii)
@@ -231,15 +231,15 @@ double LLRRepresentation::read(const ProjectionPtr &projection, Vector *result, 
   
   {
     Guard guard(*p->store);
-    for (size_t ii=0; ii < indices.size(); ++ii)
+    for (size_t ii=0; ii < neighbors.size(); ++ii)
     {
       for (size_t jj=0; jj < p->query.size(); ++jj)
-        A(ii, jj) = (*p->store)[indices[ii]]->in[jj]*weights[ii];
+        A(ii, jj) = p->neighbors[ii]->in[jj]*weights[ii];
       A(ii, p->query.size()) = weights[ii];
       
       for (size_t jj=0; jj < outputs_; ++jj)
       {
-        double o = (*p->store)[indices[ii]]->out[jj];
+        double o = p->neighbors[ii]->out[jj];
         b(ii, jj) = o*weights[ii];
         mib[jj] = fmin(mib[jj], o);
         mab[jj] = fmax(mab[jj], o);
@@ -291,7 +291,7 @@ double LLRRepresentation::read(const ProjectionPtr &projection, Vector *result, 
     (*result)[ii] = y[ii];
     
   // Avoid extrapolation
-  if (indices.size())
+  if (neighbors.size())
     for (size_t ii=0; ii < outputs_; ++ii)
     {
       (*result)[ii] = fmin(fmax((*result)[ii], mib[ii]), mab[ii]);
@@ -353,10 +353,10 @@ void LLRRepresentation::write(const ProjectionPtr projection, const Vector &targ
   if (!p->sample)
   {
     // Determine sample relevance
-    if (p->indices.size())
+    if (p->neighbors.size())
     {
       Guard guard(*p->store);
-      Sample *neighbor = (*p->store)[p->indices[0]];
+      Sample *neighbor = p->neighbors[0];
 
       // Relevance based on euclidean distance
       sample->relevance = 0;
@@ -390,9 +390,9 @@ void LLRRepresentation::update(const ProjectionPtr projection, const Vector &del
     Guard guard(*p->store);
   
     // Less contributing neighbors are updated less
-    for (size_t ii=0; ii < p->indices.size(); ++ii)
+    for (size_t ii=0; ii < p->neighbors.size(); ++ii)
       for (size_t jj=0; jj < outputs_; ++jj)
-        (*p->store)[p->indices[ii]]->out[jj] = fmin(fmax((*p->store)[p->indices[ii]]->out[jj] + delta[jj]*p->weights[ii], min_[jj]), max_[jj]);
+        p->neighbors[ii]->out[jj] = fmin(fmax(p->neighbors[ii]->out[jj] + delta[jj]*p->weights[ii], min_[jj]), max_[jj]);
   }
 }
 

@@ -27,8 +27,6 @@
 
 #include <grl/visualizations/pendulum.h>
 
-#define EPS 0.001
-
 using namespace grl;
 
 REGISTER_CONFIGURABLE(PendulumVisualization) 

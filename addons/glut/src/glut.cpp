@@ -25,6 +25,7 @@
  * \endverbatim
  */
 
+#include <unistd.h>
 #include <GL/freeglut.h>
 
 #include <grl/visualizers/glut.h>
@@ -154,6 +155,17 @@ void GLUTVisualizer::drawJoint(double x, double y)
    glBegin(GL_POLYGON);
      for (double phi=0; phi < 2*M_PI; phi+=M_PI/10)
        glVertex2f(x+0.0125*cos(phi),y+0.0125*sin(phi));
+   glEnd();  
+}
+
+void GLUTVisualizer::drawSurface(double x1, double y1, double x2, double y2, double r, double g, double b)
+{
+   glColor3f(r, g, b);
+   glBegin(GL_POLYGON);
+     glVertex2f(x1, y1);
+     glVertex2f(x2, y1);
+     glVertex2f(x2, y2);
+     glVertex2f(x1, y2);
    glEnd();  
 }
     

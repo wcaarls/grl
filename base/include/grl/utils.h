@@ -273,6 +273,38 @@ class timer
     }
 };
 
+inline Vector squash(const Vector &x, const Vector &f)
+{
+  Vector y(x.size());
+
+  for (size_t ii=0; ii < x.size(); ++ii)
+  {
+    if (!f[ii])
+      y[ii] = x[ii];
+    else
+      y[ii] = (((f[ii]>0)+fabs(1./f[ii]))*x[ii]) /
+              (((f[ii]<0)+fabs(1./f[ii]))+copysign(x[ii], f[ii]));
+  }
+  
+  return y;
+}
+
+inline Vector squash(const Vector &x, double f)
+{
+  Vector y(x.size());
+
+  for (size_t ii=0; ii < x.size(); ++ii)
+  {
+    if (!f)
+      y[ii] = x[ii];
+    else
+      y[ii] = (((f>0)+fabs(1./f))*x[ii]) /
+              (((f<0)+fabs(1./f))+copysign(x[ii], f));
+  }
+  
+  return y;
+}
+
 }
 
 #endif /* GRL_UTILS_H_ */

@@ -33,18 +33,19 @@
 namespace grl
 {
 
-/// Projects the input onto a normalized vector
+/// Preprocesses projection onto a normalized [0, 1] vector
 class NormalizingProjector : public Projector
 {
   public:
-    TYPEINFO("projector/normalizing", "Projects the input onto a normalized vector")
+    TYPEINFO("projector/pre/normalizing", "Preprocesses projection onto a normalized [0, 1] vector")
     
   protected:
+    Projector *projector_;
+    
     Vector min_, max_, scaling_;
-    size_t dims_;
 
   public:
-    NormalizingProjector() : dims_(0) { }
+    NormalizingProjector() { }
 
     // From Configurable
     virtual void request(const std::string &role, ConfigurationRequest *config);

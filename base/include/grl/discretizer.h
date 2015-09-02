@@ -37,11 +37,46 @@ namespace grl
 class Discretizer : public Configurable
 {
   public:
+    typedef std::vector<size_t> IndexVector;
+
+  public:
     virtual ~Discretizer() { }
     virtual Discretizer* clone() = 0;
     
     /// List of discrete points.
-    virtual void options(std::vector<Vector> *out) const = 0;
+    virtual void options(std::vector<Vector> *out) const
+    {
+      out->reserve(size());
+      for (iterator it=begin(); it != end(); ++it)
+        out->push_back(*it);
+    }
+    
+    /// Iterates over discrete points.
+    class iterator
+    {
+      protected:
+        const Discretizer *discretizer_;
+        IndexVector idx_;
+
+      public:
+        iterator(const Discretizer *discretizer=NULL, IndexVector idx=IndexVector()) : discretizer_(discretizer), idx_(idx) { }
+
+        bool operator==(const iterator &rhs) const { return idx_ == rhs.idx_; }
+        bool operator!=(const iterator &rhs) const { return idx_ != rhs.idx_; }
+        iterator &operator++() { discretizer_->inc(&idx_); return *this; }
+        Vector operator*() { return discretizer_->get(idx_); }
+    };
+    
+    virtual size_t size() const = 0;
+    virtual iterator begin() const = 0;
+    virtual iterator end() const
+    {
+      return iterator(this);
+    }
+    
+  protected:
+    virtual void   inc(IndexVector *idx) const = 0;
+    virtual Vector get(const IndexVector &idx) const = 0;
 };
 
 }

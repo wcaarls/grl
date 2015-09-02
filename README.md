@@ -26,7 +26,7 @@ interface.
 
 # Installation (Ubuntu 14.04)
 ```
-sudo apt-get install git cmake g++ libboost-dev
+sudo apt-get install git cmake g++
 git clone https://github.com/wcaarls/grl.git
 ```
 
@@ -37,7 +37,7 @@ sudo apt-get install libeigen3-dev
 
 For the visualization, additionally install
 ```
-sudo apt-get install libgl1-mesa-dev-lts-utopic freeglut3-dev
+sudo apt-get install libgl1-mesa-dev freeglut3-dev
 ```
 
 For the odesim environment, additionally install

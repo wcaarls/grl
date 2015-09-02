@@ -41,7 +41,7 @@ class ANNProjector : public SampleProjector
     
     struct SampleRef
     {
-      size_t index;
+      Sample *sample;
       float dist;
       
       bool operator<(const SampleRef &rhs) const

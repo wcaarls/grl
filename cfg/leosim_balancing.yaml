@@ -1,0 +1,45 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 0
+  steps: 0
+  rate: 0
+  test_interval: 0
+  output: leo_balancing
+  environment: 
+    type: environment/ode
+    xml: ../addons/odesim/cfg/leorobot.xml
+  agent: 
+    type: agent/black_box
+    episodes: 1
+    optimizer: 
+      type: optimizer/cma
+      population: 0
+      policy: 
+        type: policy/parameterized/action
+        sigma: [  ]
+        output_min: experiment/environment/action_min
+        output_max: experiment/environment/action_max
+        projector: 
+          type: projector/identity
+        representation: 
+          type: representation/parameterized/ann
+          inputs: experiment/environment/observation_dims
+          output_min: experiment/environment/action_min
+          output_max: experiment/environment/action_max
+          hiddens: 10
+          steepness: 5
+          bias: 1
+          recurrent: 0
+  test_agent: 
+    type: agent/fixed
+    policy: experiment/agent/optimizer/policy
+visualizer: 
+  type: visualizer/glut
+visualization: 
+  type: visualization/state
+  input_dims: [ 0, 1, 2, 3 ,4 ]
+  input_min: experiment/environment/observation_min
+  input_max: experiment/environment/observation_max
+  memory: 256
+  state: experiment/state

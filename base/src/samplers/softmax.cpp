@@ -32,7 +32,7 @@ REGISTER_CONFIGURABLE(SoftmaxSampler)
 
 void SoftmaxSampler::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("tau", "Temperature of Boltzmann distribution", tau_, CRP::Configuration, 0.001, 100.));
+  config->push_back(CRP("tau", "Temperature of Boltzmann distribution", tau_, CRP::Online, 0.001, 100.));
 }
 
 void SoftmaxSampler::configure(Configuration &config)
@@ -42,6 +42,7 @@ void SoftmaxSampler::configure(Configuration &config)
 
 void SoftmaxSampler::reconfigure(const Configuration &config)
 {
+  config.get("tau", tau_);
 }
 
 SoftmaxSampler *SoftmaxSampler::clone()

@@ -30,7 +30,10 @@ set(MODULES base
             addons/odesim
             addons/rbdl
             addons/muscod
-   )
+            addons/leo2
+            addons/tlm
+            addons/lqr
+)
 
 # Is there a better way to find out if catkin_make was run?
 if(CATKIN_DEVEL_PREFIX)

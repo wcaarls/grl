@@ -1,6 +1,6 @@
 macro(grl_add_mex target)
   # Create mex command
-  set(_am_command cd ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/${target}.dir && ${MATLAB_BINARY_DIR}/mex -g ${mex_INCLUDE_DIRS} LDFLAGS='$$LDFLAGS -Wl,-rpath,${CMAKE_LIBRARY_OUTPUT_DIRECTORY}' -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${mex_LIBRARIES} -output ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target} ${ARGN})
+  set(_am_command cd ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/${target}.dir && ${MATLAB_BINARY_DIR}/mex -g ${mex_INCLUDE_DIRS} CXXFLAGS='$$CXXFLAGS -std=c++0x' LDFLAGS='$$LDFLAGS -Wl,-rpath,${CMAKE_LIBRARY_OUTPUT_DIRECTORY}' -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${mex_LIBRARIES} -output ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target} ${ARGN})
   add_custom_command(OUTPUT ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}.mexa64 COMMAND ${_am_command} DEPENDS grl yaml-cpp DEPENDS ${ARGN})
   add_custom_target(${target} ALL DEPENDS ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}.mexa64)
 endmacro(grl_add_mex)
@@ -18,7 +18,7 @@ endif()
 if (MATLAB_INCLUDE_DIR)
   message("-- Building Matlab addon")
 
-  set(mex_INCLUDE_DIRS -I${MATLAB_INCLUDE_DIR} -I${SRC}/../include -I${SRC}/../../../base/include -I${SRC}/../../../externals/yaml-cpp/include -I${SRC}/../../../externals/itc/include)
+  set(mex_INCLUDE_DIRS -I${MATLAB_INCLUDE_DIR} -I${SRC}/../include -I${SRC}/../../../base/include -I${CMAKE_BINARY_DIR}/externals/yaml-cpp/include -I${SRC}/../../../externals/itc/include)
   set(mex_LIBRARIES    -lgrl -lyaml-cpp -lrt -ldl)
 
   grl_add_mex(grl_env ${SRC}/convert.cpp ${SRC}/mex_env.cpp)

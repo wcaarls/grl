@@ -1,0 +1,21 @@
+--- CMakeLists.txt~	2015-02-23 16:29:44.000000000 -0300
++++ CMakeLists.txt	2015-08-31 11:30:27.897906115 -0300
+@@ -28,6 +28,9 @@
+ 		LINKER_LANGUAGE CXX
+ 	)
+ 
++SET_SOURCE_FILES_PROPERTIES(src/Model.cc PROPERTIES COMPILE_FLAGS -Wno-type-limits)
++SET_SOURCE_FILES_PROPERTIES(src/Contacts.cc PROPERTIES COMPILE_FLAGS -Wno-sign-compare)
++
+ # Set a default build type to 'Release' if none was specified
+ IF(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+ 	MESSAGE(STATUS "Setting build type to 'Release' as none was specified.")
+@@ -55,7 +58,7 @@
+ OPTION (RBDL_STORE_VERSION "Enable storing of version information in the library (requires build from valid repository)" OFF)
+ OPTION (RBDL_BUILD_ADDON_URDFREADER "Build the (experimental) urdf reader" OFF)
+ OPTION (RBDL_BUILD_ADDON_BENCHMARK "Build the benchmarking tool" OFF)
+-OPTION (RBDL_BUILD_ADDON_LUAMODEL "Build the lua model reader" OFF)
++OPTION (RBDL_BUILD_ADDON_LUAMODEL "Build the lua model reader" ON)
+ 
+ # Addons
+ IF (RBDL_BUILD_ADDON_URDFREADER)

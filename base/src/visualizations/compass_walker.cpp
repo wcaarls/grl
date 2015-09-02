@@ -28,8 +28,6 @@
 #include <grl/visualizations/compass_walker.h>
 #include <grl/environments/compass_walker/compass_walker.h>
 
-#define EPS 0.001
-
 using namespace grl;
 
 REGISTER_CONFIGURABLE(CompassWalkerVisualization) 

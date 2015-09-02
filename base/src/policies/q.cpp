@@ -35,8 +35,8 @@ void QPolicy::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("discretizer", "discretizer.action", "Action discretizer", discretizer_));
   config->push_back(CRP("projector", "projector.pair", "Projects observation-action pairs onto representation space", projector_));
-  config->push_back(CRP("representation", "representation.value/action", "Q-value representation", representation_));
-  config->push_back(CRP("sampler", "sampler", "Samples actions from Q-values", sampler_));
+  config->push_back(CRP("representation", "representation.value/action", "Action-value representation", representation_));
+  config->push_back(CRP("sampler", "sampler", "Samples actions from action-values", sampler_));
 }
 
 void QPolicy::configure(Configuration &config)
