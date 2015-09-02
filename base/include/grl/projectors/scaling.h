@@ -1,5 +1,5 @@
-/** \file normalizing.h
- * \brief Normalizing projector header file.
+/** \file scaling.h
+ * \brief Scaling projector header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
  * \date      2015-03-10
@@ -25,27 +25,27 @@
  * \endverbatim
  */
 
-#ifndef GRL_NORMALIZING_PROJECTOR_H_
-#define GRL_NORMALIZING_PROJECTOR_H_
+#ifndef GRL_SCALING_PROJECTOR_H_
+#define GRL_SCALING_PROJECTOR_H_
 
 #include <grl/projector.h>
 
 namespace grl
 {
 
-/// Preprocesses projection onto a normalized [0, 1] vector
-class NormalizingProjector : public Projector
+/// Preprocesses projection onto a scaled vector
+class ScalingProjector : public Projector
 {
   public:
-    TYPEINFO("projector/pre/normalizing", "Preprocesses projection onto a normalized [0, 1] vector")
+    TYPEINFO("projector/pre/scaling", "Preprocesses projection onto a scaled vector")
     
   protected:
     Projector *projector_;
     
-    Vector min_, max_, scaling_;
+    Vector scaling_;
 
   public:
-    NormalizingProjector() : projector_(NULL) { }
+    ScalingProjector() : projector_(NULL) { }
 
     // From Configurable
     virtual void request(const std::string &role, ConfigurationRequest *config);
@@ -53,11 +53,11 @@ class NormalizingProjector : public Projector
     virtual void reconfigure(const Configuration &config);
 
     // From Projector
-    virtual NormalizingProjector *clone() const;
+    virtual ScalingProjector *clone() const;
     virtual ProjectionLifetime lifetime() const { return projector_->lifetime(); }
     virtual ProjectionPtr project(const Vector &in) const;
 };
 
 }
 
-#endif /* GRL_NORMALIZING_PROJECTOR_H_ */
+#endif /* GRL_SCALING_PROJECTOR_H_ */

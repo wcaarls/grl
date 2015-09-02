@@ -47,6 +47,7 @@ add_library(${TARGET} SHARED
             ${SRC}/projectors/identity.cpp
             ${SRC}/projectors/normalizing.cpp
             ${SRC}/projectors/peaked.cpp
+            ${SRC}/projectors/scaling.cpp
             ${SRC}/projectors/tile_coding.cpp
             ${SRC}/projectors/fourier.cpp
             ${SRC}/projectors/grid.cpp

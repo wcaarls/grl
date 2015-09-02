@@ -1839,7 +1839,7 @@ projector/pre/normalizing:
     type: projector.
     description: Downstream projector
     mutability: configuration
-    default: 0x7fc3617cd3d8
+    default: 0
     optional: 0
 projector/pre/peaked:
   description: Preprocesses projection for more resolution around center
@@ -1867,6 +1867,20 @@ projector/pre/peaked:
     mutability: configuration
     default: 0
     optional: 0
+projector/pre/scaling:
+  description: Preprocesses projection onto a scaled vector
+  scaling:
+    type: vector
+    description: Scaling vector
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  projector:
+    type: projector.
+    description: Downstream projector
+    mutability: configuration
+    default: 0
+    optional: 0
 projector/sample/ann:
   description: Projects onto samples found through approximate nearest-neighbor search
   samples:
@@ -1884,7 +1898,7 @@ projector/sample/ann:
     default: 20
     optional: 1
     min: 1
-    max: 1024
+    max: 64
   locality:
     type: double
     description: Locality of weighing function
@@ -1909,12 +1923,6 @@ projector/sample/ann:
     optional: 1
     min: 0
     max: 1.797693134862316e+308
-  scaling:
-    type: vector
-    description: Input dimension scaling
-    mutability: configuration
-    default: "[  ]"
-    optional: 1
   inputs:
     type: int
     description: Number of input dimensions
@@ -3106,7 +3114,7 @@ projector/pre/normalizing.pair:
     type: projector.pair
     description: Downstream projector
     mutability: configuration
-    default: 0x40
+    default: 0
     optional: 0
 projector/pre/peaked.pair:
   description: Preprocesses projection for more resolution around center
@@ -3134,6 +3142,20 @@ projector/pre/peaked.pair:
     mutability: configuration
     default: 0
     optional: 0
+projector/pre/scaling.pair:
+  description: Preprocesses projection onto a scaled vector
+  scaling:
+    type: vector
+    description: Scaling vector
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  projector:
+    type: projector.pair
+    description: Downstream projector
+    mutability: configuration
+    default: 0
+    optional: 0
 projector/sample/ann.pair:
   description: Projects onto samples found through approximate nearest-neighbor search
   samples:
@@ -3151,7 +3173,7 @@ projector/sample/ann.pair:
     default: 20
     optional: 1
     min: 1
-    max: 1024
+    max: 64
   locality:
     type: double
     description: Locality of weighing function
@@ -3176,12 +3198,6 @@ projector/sample/ann.pair:
     optional: 1
     min: 0
     max: 1.797693134862316e+308
-  scaling:
-    type: vector
-    description: Input dimension scaling
-    mutability: configuration
-    default: "[  ]"
-    optional: 1
   inputs:
     type: int.observation_dims+int.action_dims
     description: Number of input dimensions
@@ -3501,7 +3517,7 @@ projector/pre/normalizing.observation:
     type: projector.observation
     description: Downstream projector
     mutability: configuration
-    default: 0x7fc3617cd3d8
+    default: 0
     optional: 0
 projector/pre/peaked.observation:
   description: Preprocesses projection for more resolution around center
@@ -3529,6 +3545,20 @@ projector/pre/peaked.observation:
     mutability: configuration
     default: 0
     optional: 0
+projector/pre/scaling.observation:
+  description: Preprocesses projection onto a scaled vector
+  scaling:
+    type: vector
+    description: Scaling vector
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  projector:
+    type: projector.observation
+    description: Downstream projector
+    mutability: configuration
+    default: 0
+    optional: 0
 projector/sample/ann.observation:
   description: Projects onto samples found through approximate nearest-neighbor search
   samples:
@@ -3546,7 +3576,7 @@ projector/sample/ann.observation:
     default: 20
     optional: 1
     min: 1
-    max: 1024
+    max: 64
   locality:
     type: double
     description: Locality of weighing function
@@ -3571,12 +3601,6 @@ projector/sample/ann.observation:
     optional: 1
     min: 0
     max: 1.797693134862316e+308
-  scaling:
-    type: vector
-    description: Input dimension scaling
-    mutability: configuration
-    default: "[  ]"
-    optional: 1
   inputs:
     type: int.observation_dims
     description: Number of input dimensions
