@@ -56,6 +56,7 @@ class ScalingProjector : public Projector
     virtual ScalingProjector *clone() const;
     virtual ProjectionLifetime lifetime() const { return projector_->lifetime(); }
     virtual ProjectionPtr project(const Vector &in) const;
+    virtual Matrix jacobian(const Vector &in) const;
 };
 
 }

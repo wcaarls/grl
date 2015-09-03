@@ -59,3 +59,8 @@ ProjectionPtr ScalingProjector::project(const Vector &in) const
 {
   return projector_->project(in*scaling_);
 }
+
+Matrix ScalingProjector::jacobian(const Vector &in) const
+{
+  return projector_->jacobian(in*scaling_)*Matrix::Diagonal(scaling_);
+}

@@ -33,7 +33,6 @@ experiment:
         locality: 0.5
         bucket_size: 10
         error_bound: 0.01
-        scaling: []
         inputs: experiment/environment/task/observation_dims+experiment/environment/task/action_dims
       representation: 
         type: representation/llr
@@ -66,6 +65,8 @@ experiment:
         operating_state: experiment/agent/solver/operating_state
         operating_action: experiment/agent/solver/operating_action
         gains: []
+        output_min: experiment/environment/task/action_min
+        output_max: experiment/environment/task/action_max
   test_agent: 
     type: agent/fixed
     policy: experiment/agent/solver/policy

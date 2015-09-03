@@ -66,6 +66,11 @@ class LLRRepresentation : public Representation
     virtual void write(const ProjectionPtr projection, const Vector &target, const Vector &alpha);
     virtual void update(const ProjectionPtr projection, const Vector &delta);
     virtual void finalize();
+    virtual grl::Matrix jacobian(const ProjectionPtr projection) const;
+    
+  protected:
+    void getMatrices(const SampleProjection *p, Matrix *A, Matrix *b) const;
+    Matrix estimateModel(const Matrix &A) const;
 };
 
 }

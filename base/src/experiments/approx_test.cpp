@@ -121,6 +121,12 @@ void ApproxTestExperiment::run()
       (*os) << out[jj] << ", ";
     for (size_t jj=0; jj < app.size(); ++jj)
       (*os) << app[jj] << ", ";
+    
+    Matrix J = representation_->jacobian(p)*projector_->jacobian(in);
+    if (J.size())
+      for (size_t jj=0; jj < J.cols(); ++jj)
+        (*os) << J(0, jj) << ", ";
+        
     (*os) << e << std::endl;
   }
 }

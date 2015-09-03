@@ -34,6 +34,8 @@
 #include <math.h>
 #include <string.h>
 
+#include <grl/compat.h>
+
 template<class T>
 inline std::vector<T> VectorConstructor(T a)
 {
@@ -339,6 +341,69 @@ class Matrix
     size_t cols() const
     {
       return cols_;
+    }
+    
+    static Matrix Zeros(size_t rows, size_t cols)
+    {
+      Matrix m(rows, cols);
+      memset(m.data_, 0, rows*cols*sizeof(double));
+      return m;
+    }
+    
+    static Matrix Identity(size_t sz)
+    {
+      Matrix m = Zeros(sz, sz);
+      for (size_t ii=0; ii < sz; ++ii)
+        m(ii, ii) = 1.;
+      return m;
+    }
+    
+    static Matrix Diagonal(Vector v)
+    {
+      size_t sz = v.size();
+      Matrix m = Zeros(sz, sz);
+      for (size_t ii=0; ii < sz; ++ii)
+        m(ii, ii) = v[ii];
+      return m;
+    }
+    
+    Matrix operator*(const Matrix &rhs) const
+    {
+      if (!size() || !rhs.size())
+        return Matrix();
+    
+      grl_assert(cols_ == rhs.rows_);
+      
+      Matrix m = Zeros(rows_, rhs.cols_);
+
+      for (size_t rr=0; rr < rows_; ++rr)
+        for (size_t cc=0; cc < rhs.cols_; ++cc)
+          for (size_t kk=0; kk < cols_; ++kk)
+            m(rr, cc) += (*this)(rr, kk)*rhs(kk, cc);
+            
+      return m;
+    }
+    
+    friend std::ostream& operator<<(std::ostream& os, const Matrix& m)
+    {
+      os << "[";
+      for (size_t rr=0; rr < m.rows(); ++rr)
+      {
+        if (rr)
+          os << " ";
+        os << "[ ";
+        for (size_t cc=0; cc < m.cols(); ++cc)
+        {
+          os << m(rr, cc);
+          if (cc < m.cols()-1)
+            os << ", ";
+        }
+        os << " ]";
+        if (rr < m.rows()-1)
+          os << "," << std::endl;
+      }
+      os << "]";
+      return os;
     }
 };
 

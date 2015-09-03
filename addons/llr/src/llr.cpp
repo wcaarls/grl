@@ -114,94 +114,25 @@ double LLRRepresentation::read(const ProjectionPtr &projection, Vector *result, 
   
   result->clear();
 
-  if (p->neighbors.empty())
+  // Get input and output matrices
+  Matrix A, b;
+  getMatrices(p, &A, &b);
+  
+  if (!A.rows())
     return 0.;
-  
-  std::vector<bool> eligible(p->neighbors.size(), true);
-
-  // Filter samples with different input nominal than query
-  if (!input_nominals_.empty())
-  {
-    Guard guard(*p->store);
-
-    if (input_nominals_.size() != p->query.size())
-      throw bad_param("representation/lrr:input_nominals");
-    
-    double query_nominal=0;
-    for (size_t jj=0; jj < p->query.size(); ++jj)
-      query_nominal +=p->query[jj]*input_nominals_[jj];
-    
-    for (size_t ii=0; ii < p->neighbors.size(); ++ii)
-    {
-      double *in = p->neighbors[ii]->in;
-      double nominal = 0;
-      
-      for (size_t jj=0; jj < p->query.size(); ++jj)
-        nominal += in[jj]*input_nominals_[jj];
-    
-      if (nominal != query_nominal)
-        eligible[ii] = false;
-    }
-  }
-
-  // Filter samples with different than most likely output nominal
-  if (!output_nominals_.empty())  
-  {
-    Guard guard(*p->store);
-
-    // Determine output nominals
-    Vector nominals(p->neighbors.size());
-    
-    for (size_t ii=0; ii < p->neighbors.size(); ++ii)
-    {
-      double *out = p->neighbors[ii]->out;
-      double nominal = 0;
-    
-      for (size_t jj=0; jj < outputs_; ++jj)
-        nominal += out[jj]*output_nominals_[jj];
-      nominals[ii] = nominal;
-    }
-  
-    // Determine most likely output nominal
-    std::map<double, double> nominal_weights;
-  
-    for (size_t ii=0; ii < p->neighbors.size(); ++ii)
-      nominal_weights[nominals[ii]] += p->weights[ii];
-    
-    double out_nominal = nominal_weights.begin()->first;
-    for (std::map<double, double>::iterator ii=nominal_weights.begin(); ii != nominal_weights.end(); ++ii)
-      if (ii->second > nominal_weights[out_nominal])
-        out_nominal = ii->first;
-
-    for (size_t ii=0; ii < nominals.size(); ++ii)
-      if (nominals[ii] != out_nominal)
-        eligible[ii] = false;
-  }
-  
-  // Apply filters
-  std::vector<Sample*> neighbors;
-  Vector weights;
-  
-  for (size_t ii=0; ii < p->neighbors.size(); ++ii)
-    if (eligible[ii])
-    {
-      neighbors.push_back(p->neighbors[ii]);
-      weights.push_back(p->weights[ii]);
-    }
 
   if (!order_)
   {
     // Zeroth-order regression (averaging)
-    Guard guard(*p->store);
-    
     double weight = 0;
     result->resize(outputs_, 0.);
     
-    for (size_t ii=0; ii < neighbors.size(); ++ii)
+    for (size_t ii=0; ii < A.rows(); ++ii)
     {
-      weight += weights[ii];
+      double w = A(ii, A.cols()-1);
       for (size_t jj=0; jj < outputs_; ++jj)
-        (*result)[jj] += p->neighbors[ii]->out[jj]*weights[ii];
+        (*result)[jj] += b(ii, jj)*w;
+      weight += w;
     }
     
     if (weight)
@@ -217,47 +148,8 @@ double LLRRepresentation::read(const ProjectionPtr &projection, Vector *result, 
   for (size_t ii=0; ii < p->query.size(); ++ii)
     q[ii] = p->query[ii];
   q[p->query.size()] = 1.;
-  
-  // Fill matrices A and b
-  Matrix A(neighbors.size(), p->query.size()+1),
-         b(neighbors.size(), outputs_);
-         
-  RowVector mib(outputs_), mab(outputs_);
-  for (size_t ii=0; ii < outputs_; ++ii)
-  {
-    mib[ii] = std::numeric_limits<double>::infinity();
-    mab[ii] = -std::numeric_limits<double>::infinity();
-  }
-  
-  {
-    Guard guard(*p->store);
-    for (size_t ii=0; ii < neighbors.size(); ++ii)
-    {
-      for (size_t jj=0; jj < p->query.size(); ++jj)
-        A(ii, jj) = p->neighbors[ii]->in[jj]*weights[ii];
-      A(ii, p->query.size()) = weights[ii];
-      
-      for (size_t jj=0; jj < outputs_; ++jj)
-      {
-        double o = p->neighbors[ii]->out[jj];
-        b(ii, jj) = o*weights[ii];
-        mib[jj] = fmin(mib[jj], o);
-        mab[jj] = fmax(mab[jj], o);
-      }
-    }
-  }
-  
-  // Solve with ATA*x = ATb with QR
-  Matrix At = A.transpose();  
-  Matrix ATAL = At*A + Matrix::Identity(A.cols(), A.cols())*ridge_regression_factor_;
-  Eigen::LLT<Matrix> decompATAL(ATAL);
-  if (decompATAL.info() != Eigen::Success)
-    return 0.;
 
-  Matrix r = decompATAL.solve(At);
-  if (decompATAL.info() != Eigen::Success)
-    return 0.;
-
+  Matrix r = estimateModel(A);
   Matrix x = r*b;
   RowVector y = q*x;
 
@@ -291,12 +183,31 @@ double LLRRepresentation::read(const ProjectionPtr &projection, Vector *result, 
     (*result)[ii] = y[ii];
     
   // Avoid extrapolation
-  if (neighbors.size())
-    for (size_t ii=0; ii < outputs_; ++ii)
+  RowVector mib(outputs_), mab(outputs_);
+  for (size_t ii=0; ii < outputs_; ++ii)
+  {
+    mib[ii] = std::numeric_limits<double>::infinity();
+    mab[ii] = -std::numeric_limits<double>::infinity();
+  }
+  
+  {
+    Guard guard(*p->store);
+    for (size_t ii=0; ii < b.rows(); ++ii)
     {
-      (*result)[ii] = fmin(fmax((*result)[ii], mib[ii]), mab[ii]);
-      (*result)[ii] = fmin(fmax((*result)[ii], min_[ii]), max_[ii]);
+      for (size_t jj=0; jj < outputs_; ++jj)
+      {
+        double o = b(ii, jj);
+        mib[jj] = fmin(mib[jj], o);
+        mab[jj] = fmax(mab[jj], o);
+      }
     }
+  }
+
+  for (size_t ii=0; ii < outputs_; ++ii)
+  {
+    (*result)[ii] = fmin(fmax((*result)[ii], mib[ii]), mab[ii]);
+    (*result)[ii] = fmin(fmax((*result)[ii], min_[ii]), max_[ii]);
+  }
   
   return (*result)[0];
 }
@@ -399,4 +310,144 @@ void LLRRepresentation::update(const ProjectionPtr projection, const Vector &del
 void LLRRepresentation::finalize()
 {
   projector_->finalize();
+}
+
+Matrix LLRRepresentation::jacobian(const ProjectionPtr projection) const
+{
+  SampleProjection *p = dynamic_cast<SampleProjection*>(projection.get());
+  
+  if (!p)
+    throw Exception("representation/llr requires projector/sample");
+
+  if (!order_)
+    return grl::Matrix::Zeros(outputs_, p->query.size());
+  
+  // Get input and output matrices
+  Matrix A, b;
+  getMatrices(p, &A, &b);
+  
+  if (!A.rows())
+    return grl::Matrix();
+  
+  // Because the model is linear, the Jacobian is simply the model matrix.
+  Matrix x = (estimateModel(A)*b).transpose();
+  grl::Matrix J(outputs_, p->query.size());
+
+  // Note that x also includes the constant term, which is discarded here.
+  for (size_t rr=0; rr < outputs_; ++rr)
+    for (size_t cc=0; cc < p->query.size(); ++cc)
+      J(rr, cc) = x(rr, cc);
+      
+  return J;  
+}
+
+void LLRRepresentation::getMatrices(const SampleProjection *p, Matrix *A, Matrix *b) const
+{
+  std::vector<bool> eligible(p->neighbors.size(), true);
+
+  // Filter samples with different input nominal than query
+  if (!input_nominals_.empty())
+  {
+    Guard guard(*p->store);
+
+    if (input_nominals_.size() != p->query.size())
+      throw bad_param("representation/lrr:input_nominals");
+    
+    double query_nominal=0;
+    for (size_t jj=0; jj < p->query.size(); ++jj)
+      query_nominal +=p->query[jj]*input_nominals_[jj];
+    
+    for (size_t ii=0; ii < p->neighbors.size(); ++ii)
+    {
+      double *in = p->neighbors[ii]->in;
+      double nominal = 0;
+      
+      for (size_t jj=0; jj < p->query.size(); ++jj)
+        nominal += in[jj]*input_nominals_[jj];
+    
+      if (nominal != query_nominal)
+        eligible[ii] = false;
+    }
+  }
+
+  // Filter samples with different than most likely output nominal
+  if (!output_nominals_.empty())  
+  {
+    Guard guard(*p->store);
+
+    // Determine output nominals
+    Vector nominals(p->neighbors.size());
+    
+    for (size_t ii=0; ii < p->neighbors.size(); ++ii)
+    {
+      double *out = p->neighbors[ii]->out;
+      double nominal = 0;
+    
+      for (size_t jj=0; jj < outputs_; ++jj)
+        nominal += out[jj]*output_nominals_[jj];
+      nominals[ii] = nominal;
+    }
+  
+    // Determine most likely output nominal
+    std::map<double, double> nominal_weights;
+  
+    for (size_t ii=0; ii < p->neighbors.size(); ++ii)
+      nominal_weights[nominals[ii]] += p->weights[ii];
+    
+    double out_nominal = nominal_weights.begin()->first;
+    for (std::map<double, double>::iterator ii=nominal_weights.begin(); ii != nominal_weights.end(); ++ii)
+      if (ii->second > nominal_weights[out_nominal])
+        out_nominal = ii->first;
+
+    for (size_t ii=0; ii < nominals.size(); ++ii)
+      if (nominals[ii] != out_nominal)
+        eligible[ii] = false;
+  }
+  
+  size_t eligibles=0;
+  for (size_t ii=0; ii < p->neighbors.size(); ++ii)
+    eligibles += eligible[ii];
+
+  // Fill matrices A and b
+  *A = Matrix(eligibles, p->query.size()+1),
+  *b = Matrix(eligibles, outputs_);
+         
+  {
+    Guard guard(*p->store);
+    for (size_t ii=0, i2=0; ii < p->neighbors.size(); ++ii)
+    {
+      if (!eligible[ii])
+        continue;
+    
+      if (order_)
+        for (size_t jj=0; jj < p->query.size(); ++jj)
+          (*A)(i2, jj) = p->neighbors[ii]->in[jj]*p->weights[ii];
+      (*A)(i2, p->query.size()) = p->weights[ii];
+      
+      for (size_t jj=0; jj < outputs_; ++jj)
+      {
+        double o = p->neighbors[ii]->out[jj];
+        (*b)(i2, jj) = o*p->weights[ii];
+      }
+      
+      // Increment when we have processed an eligible neighbor
+      i2++;
+    }
+  }
+}
+
+LLRRepresentation::Matrix LLRRepresentation::estimateModel(const Matrix &A) const
+{
+  // Solve with ATA*x = ATb with Cholesky decomposition
+  Matrix At = A.transpose();  
+  Matrix ATAL = At*A + Matrix::Identity(A.cols(), A.cols())*ridge_regression_factor_;
+  Eigen::LLT<Matrix> decompATAL(ATAL);
+  if (decompATAL.info() != Eigen::Success)
+    return Matrix();
+
+  Matrix r = decompATAL.solve(At);
+  if (decompATAL.info() != Eigen::Success)
+    return Matrix();
+    
+  return r;
 }

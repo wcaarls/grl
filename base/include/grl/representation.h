@@ -92,6 +92,12 @@ class Representation : public Mapping
     
     /// Apply written values, if not already done on-line.
     virtual void finalize() { }
+    
+    /// Returns the Jacobian of the representation around the input projection.
+    virtual Matrix jacobian(const ProjectionPtr projection) const
+    {
+      return Matrix();
+    }
 };
 
 /// Representation that allows for parameter access.
