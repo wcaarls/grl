@@ -74,7 +74,7 @@ static void loadPlugins1(const std::string &pattern)
   } 
 }
 
-void grl::loadPlugins()                   
+std::string grl::getLibraryPath()
 {
   Dl_info dl_info;
   
@@ -82,15 +82,21 @@ void grl::loadPlugins()
   #ifdef __GNUC__
   __extension__
   #endif
-  dladdr((void *)grl::loadPlugins, &dl_info);
+  dladdr((void *)grl::getLibraryPath, &dl_info);
 
   char buf[PATH_MAX] = { 0 };
   strcpy(buf, dl_info.dli_fname);
 
   std::string path = dirname(buf);
-  std::string pattern = path + "/libaddon*.so";
+  
+  return path;
+}
+
+void grl::loadPlugins()                   
+{
+  std::string pattern = getLibraryPath() + "/libaddon*.so";
   loadPlugins1(pattern);
 
-  pattern = path + "/grl/libaddon*.so";
+  pattern = getLibraryPath() + "/grl/libaddon*.so";
   loadPlugins1(pattern);
 }
