@@ -43,7 +43,11 @@ class Agent : public Configurable
     /// Start the agent, returning the action for the first observation in an episode.
     virtual void start(const Vector &obs, Vector *action) = 0;
     
-    /// Supply next state and reward, returning the next action.
+    /**
+     * \brief Supply next state and reward, returning the next action.
+     *
+     * \note action is an inout parameter, the input being a previous or suggested action.
+     */
     virtual void step(double tau, const Vector &obs, double reward, Vector *action) = 0;
     
     /// Signal an absorbing state.

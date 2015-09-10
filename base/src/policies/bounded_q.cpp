@@ -64,21 +64,19 @@ BoundedQPolicy *BoundedQPolicy::clone() const
 
 void BoundedQPolicy::act(double time, const Vector &in, Vector *out)
 {
-  if (time > 0)
+  if (out->size())
   {
     Vector qvalues, filtered;
     std::vector<size_t> idx;
     
     values(in, &qvalues);
-    filter(prev_out_, qvalues, &filtered, &idx);
+    filter(*out, qvalues, &filtered, &idx);
     
     size_t action = sampler_->sample(filtered);
     *out = variants_[idx[action]];
   }
   else
     QPolicy::act(in, out); 
-  
-  prev_out_ = *out;
 }
 
 /**

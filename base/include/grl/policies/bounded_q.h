@@ -41,7 +41,6 @@ class BoundedQPolicy : public QPolicy
 
   protected:
     Vector bound_;
-    Vector prev_out_;
 
   public:
     // From Configurable
