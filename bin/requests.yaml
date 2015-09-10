@@ -788,6 +788,12 @@ optimizer/cma:
     optional: 1
     min: 0
     max: 2147483647
+  sigma:
+    type: vector
+    description: Initial standard deviation (a single-element vector will be replicated for all parameters)
+    mutability: configuration
+    default: "[ 1 ]"
+    optional: 1
   policy:
     type: policy/parameterized
     description: Control policy prototype

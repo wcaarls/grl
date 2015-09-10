@@ -36,6 +36,7 @@ REGISTER_CONFIGURABLE(CMAOptimizer)
 void CMAOptimizer::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("population", "Population size", population_, CRP::Configuration, 0));
+  config->push_back(CRP("sigma", "Initial standard deviation (a single-element vector will be replicated for all parameters)", sigma_, CRP::Configuration));
 
   config->push_back(CRP("policy", "policy/parameterized", "Control policy prototype", policy_));
 }
@@ -44,9 +45,16 @@ void CMAOptimizer::configure(Configuration &config)
 {
   policy_ = (ParameterizedPolicy*)config["policy"].ptr();
   prototype_ = policy_->clone();
+  params_ = prototype_->size();
   
   population_ = config["population"];
-  params_ = prototype_->size();
+  sigma_ = config["sigma"];
+  
+  if (sigma_.size() == 1)
+    sigma_ = Vector(params_, sigma_[0]);
+    
+  if (sigma_.size() != params_)
+    throw bad_param("optimizer/cma:sigma");
   
   if (!population_)
     population_ = 4+floor(3*std::log(params_));
@@ -65,12 +73,11 @@ void CMAOptimizer::reconfigure(const Configuration &config)
   if (config.has("action") && config["action"].str() == "reset")
   {
     Vector xstart = prototype_->params(), stddev;
-    stddev.resize(params_, 1.);
     
     INFO("Initializing CMA-ES optimizer with population size " << population_ << " (" << params_ << " parameters)");
   
     bzero(&evo_, sizeof(evo_));
-    cmaes_init(&evo_, params_, xstart.data(), stddev.data(), lrand48(), population_, "non");
+    cmaes_init(&evo_, params_, xstart.data(), sigma_.data(), lrand48(), population_, "non");
     
     // Sample initial population
     double *const *pop = cmaes_SamplePopulation(&evo_);

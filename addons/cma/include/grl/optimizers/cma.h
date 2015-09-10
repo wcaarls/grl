@@ -44,6 +44,7 @@ class CMAOptimizer : public Optimizer
   protected:
     ParameterizedPolicy *prototype_, *policy_;
     std::vector<ParameterizedPolicy*> policies_;
+    Vector sigma_;
     
     cmaes_t evo_;
     size_t population_, params_;
@@ -51,7 +52,7 @@ class CMAOptimizer : public Optimizer
     double best_reward_;
   
   public:
-    CMAOptimizer() : prototype_(NULL), policy_(NULL), population_(0), params_(0), best_reward_(0) {}
+    CMAOptimizer() : prototype_(NULL), policy_(NULL), sigma_(1, 1.), population_(0), params_(0), best_reward_(0) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
