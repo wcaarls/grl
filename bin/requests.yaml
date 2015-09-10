@@ -82,8 +82,8 @@ agent/fixed:
     mutability: configuration
     default: 0
     optional: 0
-agent/master:
-  description: Master agent that chooses among sub-agents
+agent/master/exclusive:
+  description: Master agent that selects one sub-agent to execute
   gamma:
     type: double
     description: Discount rate
@@ -101,6 +101,20 @@ agent/master:
   agent2:
     type: agent/sub
     description: Second subagent
+    mutability: configuration
+    default: 0
+    optional: 0
+agent/master/sequential:
+  description: Master agent that executes sub-agents sequentially
+  agent1:
+    type: agent
+    description: First subagent, providing the suggested action
+    mutability: configuration
+    default: 0
+    optional: 0
+  agent2:
+    type: agent
+    description: Second subagent, providing the final action
     mutability: configuration
     default: 0
     optional: 0

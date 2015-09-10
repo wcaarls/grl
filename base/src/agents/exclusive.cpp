@@ -1,5 +1,5 @@
-/** \file master.cpp
- * \brief Compartimentalized sub-agent source file.
+/** \file exclusive.cpp
+ * \brief Exclusive master agent source file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
  * \date      2015-06-16
@@ -25,37 +25,37 @@
  * \endverbatim
  */
 
-#include <grl/agents/master.h>
+#include <grl/agents/exclusive.h>
 
 using namespace grl;
 
-REGISTER_CONFIGURABLE(MasterAgent)
+REGISTER_CONFIGURABLE(ExclusiveMasterAgent)
 
-void MasterAgent::request(ConfigurationRequest *config)
+void ExclusiveMasterAgent::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("gamma", "Discount rate", gamma_));
   config->push_back(CRP("agent1", "agent/sub", "First subagent", agent_[0]));
   config->push_back(CRP("agent2", "agent/sub", "Second subagent", agent_[1]));
 }
 
-void MasterAgent::configure(Configuration &config)
+void ExclusiveMasterAgent::configure(Configuration &config)
 {
   agent_[0] = (SubAgent*)config["agent1"].ptr();
   agent_[1] = (SubAgent*)config["agent2"].ptr();
 }
 
-void MasterAgent::reconfigure(const Configuration &config)
+void ExclusiveMasterAgent::reconfigure(const Configuration &config)
 {
   if (config.has("action") && config["action"].str() == "reset")
     time_[0] = time_[1] = -1;
 }
 
-MasterAgent *MasterAgent::clone() const
+ExclusiveMasterAgent *ExclusiveMasterAgent::clone() const
 {
   return NULL;
 }
 
-void MasterAgent::start(const Vector &obs, Vector *action)
+void ExclusiveMasterAgent::start(const Vector &obs, Vector *action)
 {
   // Treat a terminal, non-absorbing state as absorbing for the
   // agent that was not running. The rationale is that it did not
@@ -80,7 +80,7 @@ void MasterAgent::start(const Vector &obs, Vector *action)
   smdp_steps_ = 0;
 }
 
-void MasterAgent::step(double tau, const Vector &obs, double reward, Vector *action)
+void ExclusiveMasterAgent::step(double tau, const Vector &obs, double reward, Vector *action)
 {
   double time = time_[last_agent_] + tau;
   int new_agent = agent_[1]->confidence(obs) > agent_[0]->confidence(obs);
@@ -114,7 +114,7 @@ void MasterAgent::step(double tau, const Vector &obs, double reward, Vector *act
   time_[new_agent] = time;
 }
 
-void MasterAgent::end(double tau, double reward)
+void ExclusiveMasterAgent::end(double tau, double reward)
 {
   reward_ += pow(gamma_, smdp_steps_)*reward;
   
