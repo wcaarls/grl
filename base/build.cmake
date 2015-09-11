@@ -8,7 +8,8 @@ add_library(${TARGET} SHARED
             ${SRC}/agents/black_box.cpp
             ${SRC}/agents/td.cpp
             ${SRC}/agents/dyna.cpp
-            ${SRC}/agents/master.cpp
+            ${SRC}/agents/exclusive.cpp
+            ${SRC}/agents/sequential.cpp
             ${SRC}/agents/compartmentalized.cpp
             ${SRC}/agents/solver.cpp
             ${SRC}/configurable.cpp
@@ -47,6 +48,7 @@ add_library(${TARGET} SHARED
             ${SRC}/projectors/identity.cpp
             ${SRC}/projectors/normalizing.cpp
             ${SRC}/projectors/peaked.cpp
+            ${SRC}/projectors/scaling.cpp
             ${SRC}/projectors/tile_coding.cpp
             ${SRC}/projectors/fourier.cpp
             ${SRC}/projectors/grid.cpp

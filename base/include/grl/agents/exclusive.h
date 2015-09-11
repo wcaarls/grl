@@ -1,5 +1,5 @@
-/** \file master.h
- * \brief Master agent header file.
+/** \file exclusive.h
+ * \brief Exclusive master agent header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
  * \date      2015-06-16
@@ -25,8 +25,8 @@
  * \endverbatim
  */
 
-#ifndef GRL_MASTER_AGENT_H_
-#define GRL_MASTER_AGENT_H_
+#ifndef GRL_EXCLUSIVE_MASTER_AGENT_H_
+#define GRL_EXCLUSIVE_MASTER_AGENT_H_
 
 #include <grl/agent.h>
 
@@ -34,10 +34,10 @@ namespace grl
 {
 
 /// Fixed-policy agent.
-class MasterAgent : public Agent
+class ExclusiveMasterAgent : public Agent
 {
   public:
-    TYPEINFO("agent/master", "Master agent that chooses among sub-agents")
+    TYPEINFO("agent/master/exclusive", "Master agent that selects one sub-agent to execute")
 
   protected:
     std::vector<SubAgent*> agent_;
@@ -46,7 +46,7 @@ class MasterAgent : public Agent
     int last_agent_, smdp_steps_;
     
   public:
-    MasterAgent() : agent_(2), time_(2), gamma_(0.97), reward_(0), last_agent_(0), smdp_steps_(0)
+    ExclusiveMasterAgent() : agent_(2), time_(2), gamma_(0.97), reward_(0), last_agent_(0), smdp_steps_(0)
     {
       agent_[0] = agent_[1] = NULL;
       time_[0] = time_[1] = -1;
@@ -58,7 +58,7 @@ class MasterAgent : public Agent
     virtual void reconfigure(const Configuration &config);
 
     // From Agent
-    virtual MasterAgent *clone() const;
+    virtual ExclusiveMasterAgent *clone() const;
     virtual void start(const Vector &obs, Vector *action);
     virtual void step(double tau, const Vector &obs, double reward, Vector *action);
     virtual void end(double tau, double reward);
@@ -66,4 +66,4 @@ class MasterAgent : public Agent
 
 }
 
-#endif /* GRL_MASTER_AGENT_H_ */
+#endif /* GRL_EXCLUSIVE_MASTER_AGENT_H_ */

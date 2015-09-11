@@ -45,7 +45,7 @@ class NormalizingProjector : public Projector
     Vector min_, max_, scaling_;
 
   public:
-    NormalizingProjector() { }
+    NormalizingProjector() : projector_(NULL) { }
 
     // From Configurable
     virtual void request(const std::string &role, ConfigurationRequest *config);
@@ -54,8 +54,9 @@ class NormalizingProjector : public Projector
 
     // From Projector
     virtual NormalizingProjector *clone() const;
-    virtual ProjectionLifetime lifetime() const { return plIndefinite; }
+    virtual ProjectionLifetime lifetime() const { return projector_->lifetime(); }
     virtual ProjectionPtr project(const Vector &in) const;
+    virtual Matrix jacobian(const Vector &in) const;
 };
 
 }

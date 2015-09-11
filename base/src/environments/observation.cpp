@@ -229,6 +229,29 @@ double ApproximatedObservationModel::step(const Vector &obs, const Vector &actio
   return tau_;
 }
 
+Matrix ApproximatedObservationModel::jacobian(const Vector &obs, const Vector &action) const
+{
+  // Get complete Jacobian.
+  Matrix J = representation_->jacobian(projector_->project(obs, action))*projector_->jacobian(extend(obs, action));
+  
+  // If representation doesn't support closed-form Jacobians, use estimation.
+  if (!J.size())
+    return ObservationModel::jacobian(obs, action);
+  
+  // Return only the rows relating to the state.
+  Matrix rJ(obs.size(), J.cols());
+  for (size_t rr=0; rr < rJ.rows(); ++rr)
+    for (size_t cc=0; cc < rJ.cols(); ++cc)
+      rJ(rr, cc) = J(rr, cc);
+
+  // If model is differential, add identity matrix      
+  if (differential_)
+    for (size_t ii=0; ii < rJ.rows(); ++ii)
+      rJ(ii, ii) += 1;
+      
+  return rJ;
+}
+
 // FixedRewardObservationModel
 
 void FixedRewardObservationModel::request(ConfigurationRequest *config)

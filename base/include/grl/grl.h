@@ -60,6 +60,9 @@ inline std::ostream &operator<<(std::ostream& os, const Transition& t)
   return os;
 }
 
+/// Get path to libgrl.so.
+std::string getLibraryPath();
+
 /// Load addons.
 void loadPlugins();
 

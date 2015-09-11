@@ -54,6 +54,7 @@ class Policy : public Configurable
      * \brief Returns an action based on the current time and state.
      *
      * Called by agents, once per timestep. time is 0. at the start of a new episode.
+     * \note out is an inout parameter, the input being a previous or suggested action.
      */
     virtual void act(double time, const Vector &in, Vector *out)
     {

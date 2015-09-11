@@ -75,6 +75,12 @@ class Projector : public Configurable
         v.erase(v.end()-variants[ii].size(), v.end());
       }
     }
+    
+    /// Returns the Jacobian of the projection around the input vector.
+    virtual Matrix jacobian(const Vector &in) const
+    {
+      return Matrix::Identity(in.size());
+    }
 };
 
 /// Simply returns the input vector (for e.g. \link ActionPolicy ActionPolicies \endlink)

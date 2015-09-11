@@ -96,7 +96,7 @@ void StateVisualization::run()
     for (size_t ii=0; ii < dims_.size(); ++ii)
     {
       size_t d = dims_[ii];
-      double norm = fmin(fmax((state[d]-min_[d])/(max_[ii]-min_[ii]), 0.), 1.);
+      double norm = fmin(fmax((state[d]-min_[d])/(max_[d]-min_[d]), 0.), 1.);
       
       point[ii] = norm*0.98+0.01;
     }

@@ -33,22 +33,8 @@
 #include <pthread.h>
 #include <iostream>
 #include <limits>
+#include <grl/compat.h>
 #include <grl/vector.h>
-
-#ifdef WIN32
-#include <ctime>
-struct drand48_data { unsigned char dummy; };
-#define srand48_r(x, y) srand(x)
-#define drand48_r(x, y) do { *(y) = rand()/(RAND_MAX+1.); } while (0)
-#define lrand48() (rand()%RAND_MAX)
-void __stdcall Sleep(_In_ unsigned int dwMilliseconds);
-#define usleep(x) Sleep(((unsigned int)(x))/1000)
-inline int round( double r ) {
-    return (int)((r > 0.0) ? (r + 0.5) : (r - 0.5));
-}
-#endif
-
-#define grl_assert(x) do { if (!(x)) { std::cerr << __FILE__ << ":" << __LINE__ << ": Assertion '" << #x << "' failed" << std::endl; abort(); } } while (0)
 
 namespace grl
 {

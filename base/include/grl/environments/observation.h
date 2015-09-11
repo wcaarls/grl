@@ -94,6 +94,7 @@ class ApproximatedObservationModel : public ObservationModel
     // From ObservationModel
     virtual ApproximatedObservationModel *clone() const;
     virtual double step(const Vector &obs, const Vector &action, Vector *next, double *reward, int *terminal) const;
+    virtual Matrix jacobian(const Vector &obs, const Vector &action) const;
 };
 
 /// Observation model in which the reward is given and the model is learned

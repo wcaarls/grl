@@ -1,8 +1,8 @@
-/** \file bounded_q.h
- * \brief Bounded Q policy header file.
+/** \file scaling.h
+ * \brief Scaling projector header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-02-11
+ * \date      2015-03-10
  *
  * \copyright \verbatim
  * Copyright (c) 2015, Wouter Caarls
@@ -25,38 +25,40 @@
  * \endverbatim
  */
 
-#ifndef GRL_BOUNDED_Q_POLICY_H_
-#define GRL_BOUNDED_Q_POLICY_H_
+#ifndef GRL_SCALING_PROJECTOR_H_
+#define GRL_SCALING_PROJECTOR_H_
 
-#include <grl/policies/q.h>
+#include <grl/projector.h>
 
 namespace grl
 {
 
-/// Q Policy with bounded action deltas.
-class BoundedQPolicy : public QPolicy
+/// Preprocesses projection onto a scaled vector
+class ScalingProjector : public Projector
 {
   public:
-    TYPEINFO("policy/discrete/q/bounded", "Q-value based policy with bounded action deltas")
-
+    TYPEINFO("projector/pre/scaling", "Preprocesses projection onto a scaled vector")
+    
   protected:
-    Vector bound_;
+    Projector *projector_;
+    
+    Vector scaling_;
 
   public:
+    ScalingProjector() : projector_(NULL) { }
+
     // From Configurable
-    virtual void request(ConfigurationRequest *config);
+    virtual void request(const std::string &role, ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
 
-    // From QPolicy
-    virtual BoundedQPolicy *clone() const;
-    virtual void act(double time, const Vector &in, Vector *out);
-    
-  protected:
-    /// Filter out actions that lie outside bounds.
-    void filter(const Vector &prev_out, const Vector &qvalues, Vector *filtered, std::vector<size_t> *idx) const;
+    // From Projector
+    virtual ScalingProjector *clone() const;
+    virtual ProjectionLifetime lifetime() const { return projector_->lifetime(); }
+    virtual ProjectionPtr project(const Vector &in) const;
+    virtual Matrix jacobian(const Vector &in) const;
 };
 
 }
 
-#endif /* GRL_BOUNDED_Q_POLICY_H_ */
+#endif /* GRL_SCALING_PROJECTOR_H_ */

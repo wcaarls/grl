@@ -68,3 +68,26 @@ ProjectionPtr PeakedProjector::project(const Vector &in) const
   // Scale input to [-1, 1], apply squashing, and rescale to range
   return projector_->project((squash(2.*(in-min_)*scaling_-1., peaking_)+1.)*range2_+min_);
 }
+
+Matrix PeakedProjector::jacobian(const Vector &in) const
+{
+  if (in.size() != peaking_.size())
+    throw bad_param("projector/peaked:peaking"); 
+
+  Vector diag(in.size());
+  
+  for (size_t ii=0; ii < in.size(); ++ii)
+  {
+    double f = peaking_[ii];
+    if (f)
+    {
+      double x = in[ii], mi = min_[ii], s = scaling_[ii], r2 = range2_[ii], sf = sign(f), af1 = 1/fabs(f), axs = fabs(s*(2*mi - 2*x) + 1);
+  
+      diag[ii] = r2*((2*s*(sf/2 + af1 + 0.5))/(af1 - sf/2 + axs*sf + 0.5) - (2*s*axs*sf*(sf/2 + af1 + 0.5))/pow(af1 - sf/2 + axs*sf + 0.5, 2));
+    }
+    else
+      diag[ii] = 1.;
+  }
+  
+  return projector_->jacobian((squash(2.*(in-min_)*scaling_-1., peaking_)+1.)*range2_+min_)*Matrix::Diagonal(diag);
+}

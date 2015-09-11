@@ -55,7 +55,6 @@ class ANNProjector : public SampleProjector
     class ANNkd_tree *index_;
     size_t max_samples_, indexed_samples_, dims_, bucket_size_, neighbors_;
     double error_bound_, locality_;
-    Vector scaling_;
     mutable ReadWriteLock rwlock_;
 
   public:
