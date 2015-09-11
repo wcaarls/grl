@@ -52,9 +52,6 @@ struct Transition
     prev_obs(_prev_obs), prev_action(_prev_action), reward(_reward), obs(_obs), action(_action)
     {
     }
-  Transition()
-    {
-    }
 };
 
 inline std::ostream &operator<<(std::ostream& os, const Transition& t)
