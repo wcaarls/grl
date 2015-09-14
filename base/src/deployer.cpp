@@ -60,8 +60,11 @@ void sighandler(int signum)
     {
       std::string key = line.substr(0, seppos);
       std::string value = line.substr(seppos+1);
-    
-      config.set(key, value);
+      
+      if (key == "verbose")
+        grl_log_verbosity__ = (int)ConfigurationParameter(value);
+      else
+        config.set(key, value);
     }
     else
       WARNING("Unknown command '" << line << "'");

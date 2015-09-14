@@ -290,6 +290,16 @@ inline Vector pow(const Vector &a, const Vector &b)
   return c;
 }
 
+using ::log;
+
+inline Vector log(const Vector &a)
+{
+  Vector c(a.size());
+  for (size_t ii=0; ii < c.size(); ++ii)
+    c[ii] = log(a[ii]);
+  return c;
+}
+
 class Matrix
 {
   protected:

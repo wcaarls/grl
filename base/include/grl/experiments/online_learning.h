@@ -44,7 +44,7 @@ class OnlineLearningExperiment : public Experiment
   protected:
     Agent *agent_, *test_agent_;
     Environment *environment_;
-    State *state_;
+    State *state_, *curve_;
 
     size_t runs_, trials_, steps_, test_interval_;
     double rate_;

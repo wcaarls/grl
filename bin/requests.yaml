@@ -542,6 +542,10 @@ experiment/online_learning:
     type: state
     description: Current observed state of the environment
     mutability: provided
+  curve:
+    type: state
+    description: Learning curve
+    mutability: provided
 mapping/multisine:
   description: Sum of sines mapping
   inputs:
@@ -2759,6 +2763,14 @@ visualization/field/policy/action:
     optional: 1
     min: 0
     max: 2147483647
+  savepoints:
+    type: int
+    description: Number of points to evaluate when saving to file ('s')
+    mutability: configuration
+    default: 1048576
+    optional: 1
+    min: 0
+    max: 2147483647
   projection:
     type: string
     description: Method of projecting values onto 2d space
@@ -2808,6 +2820,14 @@ visualization/field/policy/value:
     description: Number of points to evaluate
     mutability: configuration
     default: 65536
+    optional: 1
+    min: 0
+    max: 2147483647
+  savepoints:
+    type: int
+    description: Number of points to evaluate when saving to file ('s')
+    mutability: configuration
+    default: 1048576
     optional: 1
     min: 0
     max: 2147483647
@@ -2864,6 +2884,14 @@ visualization/field/value:
     description: Number of points to evaluate
     mutability: configuration
     default: 65536
+    optional: 1
+    min: 0
+    max: 2147483647
+  savepoints:
+    type: int
+    description: Number of points to evaluate when saving to file ('s')
+    mutability: configuration
+    default: 1048576
     optional: 1
     min: 0
     max: 2147483647

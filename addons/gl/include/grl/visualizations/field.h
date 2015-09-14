@@ -44,7 +44,7 @@ class FieldVisualization : public Visualization, public itc::Thread
   
     int state_dims_;
     Vector state_min_, state_max_, dims_;
-    int points_, dimpoints_, texpoints_;
+    int points_, savepoints_, dimpoints_, texpoints_;
     unsigned int texture_;
     unsigned char *data_;
     double value_min_, value_max_;
@@ -53,7 +53,7 @@ class FieldVisualization : public Visualization, public itc::Thread
     ValueProjection projection_;
   
   public:
-    FieldVisualization() : state_dims_(0), points_(65536), dimpoints_(0), texpoints_(0), texture_(0), data_(NULL), value_min_(0), value_max_(0), updated_(true), projection_str_("mean"), projection_(vpMean)
+    FieldVisualization() : state_dims_(0), points_(65536), savepoints_(1048576), dimpoints_(0), texpoints_(0), texture_(0), data_(NULL), value_min_(0), value_max_(0), updated_(true), projection_str_("mean"), projection_(vpMean)
     {
       dims_ = VectorConstructor(0., 1.);
     }
@@ -67,12 +67,14 @@ class FieldVisualization : public Visualization, public itc::Thread
     virtual void draw(); 
     virtual void idle();
     virtual void reshape(int width, int height);
+    virtual void key(unsigned char k, int x, int y);
     
     // From itc::Thread
     virtual void run();
     
   protected:
     virtual double value(const Vector &in) const = 0;
+    virtual void save(const std::string &file) const;
 };
 
 }
