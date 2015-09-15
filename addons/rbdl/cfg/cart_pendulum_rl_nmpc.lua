@@ -65,7 +65,7 @@ function configure(argstr)
 end
 
 function start()
-  return {0, math.pi-0.01, 0, 0, 0}
+  return {0, math.pi, 0, 0, 0}
 end
 
 function observe(state)
