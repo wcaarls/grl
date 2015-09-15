@@ -189,56 +189,41 @@ Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *conf
   return obj;
 }      
 
-void YAMLConfigurator::reconfigure(const Configuration &config, const std::string &action)
+void YAMLConfigurator::reconfigure(const Configuration &config, const std::string &path)
 {
-  Configuration base_message, message;
-  Configurable *prev_object = NULL;
-  
-  // Prepare base message.
-  if (!action.empty())
-    base_message.set("action", action);
-  message = base_message;
-
-  for (Configuration::MapType::const_iterator ii=config.parameters().begin(); ii != config.parameters().end(); ++ii)
+  if (path.empty())
   {
-    const std::string &key = ii->first;
-    const std::string &value = ii->second->str();
-    
-    size_t seppos = key.rfind('/');
-    std::string path      = key.substr(0, seppos),
-                parameter = key.substr(seppos+1);
-                
-    if (references_.has(path))
-    {
-      Configurable *object = (Configurable*)references_[path].ptr();
+    // Global message
+    walk(config);
+  }
+  else if (references_.has(path))
+  {
+    // Object-specific message
+    Configurable *object = (Configurable*)references_[path].ptr();
       
-      if (object)
+    if (object)
+    {
+      if (!config.has("action"))
       {
-        if (prev_object && object != prev_object && !message.parameters().empty())
-        {
-          prev_object->reconfigure(message);
-          message = base_message;
-        }
-        prev_object = object;
+        // Straight up reconfiguration, check parameters
+        ConfigurationRequest request;
+        object->request("", &request);
         
-        if (action.empty())
+        for (Configuration::MapType::const_iterator ii=config.parameters().begin(); ii != config.parameters().end(); ++ii)
         {
-          // Straight up reconfiguration, check parameters
-          ConfigurationRequest request;
-          object->request("", &request);
+          const std::string &key = ii->first;
+          const std::string &value = ii->second->str();
           
           bool requested = false;
           for (size_t jj=0; jj < request.size(); ++jj)
           {
-            if (request[jj].name == parameter)
+            if (request[jj].name == key)
             {
               if (request[jj].mutability == CRP::Online)
               {
                 if (validate(object, key, value, request[jj]))
                 {
-                  INFO(key << ": " << request[jj].value << " -> " << value);
-        
-                  message.set(parameter, value);
+                  INFO(path << "/" << key << ": " << request[jj].value << " -> " << value);
                 }
               }
               else
@@ -252,21 +237,15 @@ void YAMLConfigurator::reconfigure(const Configuration &config, const std::strin
           if (!requested)
             WARNING("Cannot reconfigure '" << key << "': no such parameter.");
         }
-        else
-        {
-          // Not a reconfiguration, but a message. Don't check parameters.
-          message.set(parameter, value);
-        }
       }
-      else
-        WARNING("Cannot reconfigure '" << path << "': not a configurable object.");
+      
+      object->reconfigure(config);
     }
     else
-      WARNING("Cannot reconfigure '" << path << "': no such object.");
+      WARNING("Cannot reconfigure '" << path << "': not a configurable object.");
   }
-
-  if (prev_object && !message.parameters().empty())
-    prev_object->reconfigure(message);
+  else
+    WARNING("Cannot reconfigure '" << path << "': no such object.");
 }
 
 std::string YAMLConfigurator::parse(const std::string &value) const

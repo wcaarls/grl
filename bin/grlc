@@ -402,7 +402,7 @@ class GrlVariable:
   def apply(self, what):
     if grld_process and grld_process.poll() == None and self.spec["mutability"] == "online":
       grld_process.send_signal(signal.SIGINT)
-      grld_process.stdin.write(self.path() + ":" + self.value.get() + "\n\n")
+      grld_process.stdin.write(self.parent.path() + " " + self.name + "=" + self.value.get() + "\n\n")
     
   def change(self, value):
     self.value.delete(0, END)

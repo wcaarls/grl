@@ -295,6 +295,9 @@ class YAMLConfigurator
     /// Reconfigure all objects.
     void walk(const Configuration &config)
     {
+      if (config.has("verbose"))
+        grl_log_verbosity__ = (int)config["verbose"];
+    
       for (size_t ii=0; ii < objects_.size(); ++ii)
         objects_[ii]->reconfigure(config);
     }
@@ -315,7 +318,7 @@ class YAMLConfigurator
     Configurable *load(const YAML::Node &node, Configuration *config, const std::string &path);
 
     /// Reconfigure parameters of objects in the tree.
-    void reconfigure(const Configuration &config, const std::string &action="");
+    void reconfigure(const Configuration &config, const std::string &path="");
   protected:
     /// Write out YAML node as string. 
     std::string toString(const YAML::Node &node)
