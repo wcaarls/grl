@@ -65,7 +65,7 @@ function configure(argstr)
 end
 
 function start()
-  return {0, 3.14+math.random()*0.1-0.05, 0, 0, 0}
+  return {0, math.pi+math.random()*0.1-0.05, 0, 0, 0}
 end
 
 function observe(state)

@@ -2,7 +2,6 @@
 set(TARGET yaml-cpp)
 
 find_package(PkgConfig)
-#pkg_check_modules(YAML yaml-cpp>=0.5.1) # Have no idea why, but for the first search remove version
 pkg_check_modules(YAML yaml-cpp)
 
 if (YAML_FOUND)

@@ -1070,6 +1070,14 @@ policy/nmpc_th:
     optional: 1
     min: 1
     max: 2147483647
+  single_step:
+    type: int
+    description: Run NMPC in single-step mode
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
 policy/parameterized/action:
   description: Parameterized policy based on a direct action representation
   sigma:
@@ -1119,9 +1127,9 @@ policy/parameterized/pid:
     min: 1
     max: 2147483647
   p:
+    mutability: online
     type: vector
     description: P gains ([in1_out1, ..., in1_outN, ..., inN_out1, ..., inN_outN])
-    mutability: online
     default: "[  ]"
     optional: 1
   i:
@@ -1238,12 +1246,12 @@ predictor/ac/action:
   description: Actor-critic predictor for direct action policies
   alpha:
     type: double
-    optional: 1
+    min: 0
+    max: 1
     description: Critic learning rate
     mutability: configuration
     default: 0.2
-    min: 0
-    max: 1
+    optional: 1
   beta:
     type: double
     description: Actor learning rate
@@ -1307,13 +1315,13 @@ predictor/ac/action:
 predictor/ac/probability:
   description: Actor-critic predictor for action-probability policies
   alpha:
-    default: 0.2
-    optional: 1
-    min: 0
     max: 1
     type: double
     description: Critic learning rate
     mutability: configuration
+    default: 0.2
+    optional: 1
+    min: 0
   beta:
     type: double
     description: Actor learning rate
@@ -1381,7 +1389,6 @@ predictor/ac/probability:
     default: 0
     optional: 0
 predictor/expected_sarsa:
-  description: Expected SARSA low-variance on-policy value function predictor
   alpha:
     optional: 1
     min: 0
@@ -1390,6 +1397,7 @@ predictor/expected_sarsa:
     description: Learning rate
     mutability: configuration
     default: 0.2
+  description: Expected SARSA low-variance on-policy value function predictor
   gamma:
     type: double
     description: Discount rate
@@ -1502,11 +1510,11 @@ predictor/full/qi:
   description: Deterministic model-based action-value function predictor
   gamma:
     optional: 1
-    mutability: configuration
     type: double
+    default: 0.97
     description: Discount rate
     min: 0
-    default: 0.97
+    mutability: configuration
     max: 1
   model:
     type: observation_model
@@ -1611,20 +1619,20 @@ predictor/ggq:
     default: 0
     optional: 0
 predictor/model:
+  description: Observation model predictor
   differential:
     type: int.differential
+    default: 1
     description: Predict state deltas
     mutability: configuration
-    default: 1
     optional: 1
     min: 0
     max: 1
-  description: Observation model predictor
   wrapping:
-    default: "[  ]"
-    mutability: configuration
     type: vector.wrapping
     description: Wrapping boundaries
+    mutability: configuration
+    default: "[  ]"
     optional: 1
   projector:
     type: projector.pair
@@ -1735,10 +1743,10 @@ predictor/sarsa:
     default: 0
     optional: 0
   representation:
+    default: 0
     type: representation.value/action
     description: Q-value representation
     mutability: configuration
-    default: 0
     optional: 0
   trace:
     type: trace
@@ -1749,10 +1757,10 @@ predictor/sarsa:
 predictor/td:
   description: TD value function predictor
   alpha:
-    mutability: configuration
-    default: 0.2
     type: double
     description: Learning rate
+    default: 0.2
+    mutability: configuration
     optional: 1
     min: 0
     max: 1
@@ -1962,14 +1970,14 @@ projector/sample/ann:
     min: 1
     max: 16
 projector/sample/ertree:
-  leaf_size:
-    min: 1
-    max: 2147483647
-    type: int
-    description: Maximum number of samples in a leaf
-    mutability: configuration
-    default: 10
+  splits:
     optional: 1
+    max: 2147483647
+    min: 1
+    type: int
+    description: Number of candidate splits
+    mutability: configuration
+    default: 5
   description: Projects onto samples found through the Extra-trees algorithm by Geurts et al.
   samples:
     type: int
@@ -1987,11 +1995,11 @@ projector/sample/ertree:
     optional: 1
     min: 1
     max: 2147483647
-  splits:
+  leaf_size:
     type: int
-    description: Number of candidate splits
+    description: Maximum number of samples in a leaf
     mutability: configuration
-    default: 5
+    default: 10
     optional: 1
     min: 1
     max: 2147483647
@@ -2014,11 +2022,11 @@ projector/sample/ertree:
 projector/tile_coding:
   description: Hashed tile coding projector
   tilings:
-    default: 16
-    type: int
     description: Number of tilings
     mutability: configuration
+    type: int
     min: 0
+    default: 16
     optional: 1
     max: 2147483647
   memory:
@@ -2098,24 +2106,24 @@ representation/llr:
     default: 0
     optional: 0
 representation/parameterized/ann:
-  output_min:
-    optional: 1
-    type: vector
-    description: Lower limit on outputs
-    mutability: system
-    default: "[  ]"
-  description: Parameterized artificial neural network representation
   inputs:
-    type: int
     description: Number of input dimensions
     mutability: system
     default: 0
     optional: 1
     min: 1
     max: 2147483647
-  output_max:
-    description: Upper limit on outputs
+    type: int
+  description: Parameterized artificial neural network representation
+  output_min:
     type: vector
+    description: Lower limit on outputs
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  output_max:
+    type: vector
+    description: Upper limit on outputs
     mutability: system
     default: "[  ]"
     optional: 1
@@ -2360,9 +2368,9 @@ task/acrobot/balancing:
 task/cart_pole/balancing:
   description: Cart-pole balancing task
   observation_dims:
+    mutability: provided
     type: int.observation_dims
     description: Number of observation dimensions
-    mutability: provided
   observation_min:
     type: vector.observation_min
     description: Lower limit on observations
@@ -2610,8 +2618,8 @@ task/pinball/movement:
     description: Number of observation dimensions
     mutability: provided
   observation_min:
-    description: Lower limit on observations
     type: vector.observation_min
+    description: Lower limit on observations
     mutability: provided
   observation_max:
     type: vector.observation_max
@@ -2736,8 +2744,8 @@ visualization/cart_pole:
 visualization/compass_walker:
   description: Compass walker visualization
   state:
-    type: state
     description: Compass walker state to visualize
+    type: state
     mutability: configuration
     default: 0
     optional: 0
@@ -2850,28 +2858,28 @@ visualization/field/policy/value:
     default: 0
     optional: 0
 visualization/field/value:
-  input_max:
-    optional: 1
-    type: vector
-    description: Upper input dimension limit
-    mutability: system
-    default: "[  ]"
-  description: Visualizes an approximation over a field of states
   field_dims:
     type: vector
     description: Dimensions to visualize
     mutability: online
     default: "[ 0, 1 ]"
     optional: 1
+  description: Visualizes an approximation over a field of states
   input_min:
+    optional: 1
+    default: "[  ]"
     type: vector
     description: Lower input dimension limit
+    mutability: system
+  input_max:
+    type: vector
+    description: Upper input dimension limit
     mutability: system
     default: "[  ]"
     optional: 1
   points:
-    description: Number of points to evaluate
     type: int
+    description: Number of points to evaluate
     mutability: configuration
     default: 65536
     optional: 1
@@ -2918,8 +2926,8 @@ visualization/pendulum:
 visualization/pinball:
   description: Pinball visualization
   state:
-    mutability: configuration
     default: 0
+    mutability: configuration
     optional: 0
     type: state
     description: Pinball state to visualize
@@ -2986,10 +2994,10 @@ visualization/sample/random:
     default: "[  ]"
     optional: 1
   output_dim:
+    default: 0
     type: int
     description: Output dimension to visualize
     mutability: configuration
-    default: 0
     optional: 1
     min: 0
     max: 2147483647
@@ -3018,8 +3026,8 @@ visualization/state:
   input_dims:
     type: vector
     description: Input dimensions to visualize
-    mutability: online
     default: "[  ]"
+    mutability: online
     optional: 1
   input_min:
     type: vector
@@ -3063,8 +3071,6 @@ visualization/windy:
     mutability: configuration
     default: 0
     optional: 0
-projector/identity.pair:
-  description: Simply returns the input vector
 visualizer/glut:
   description: Visualizer based on the GLUT library
 projector/fourier.pair:
@@ -3102,17 +3108,19 @@ projector/fourier.pair:
     type: int.memory
     description: Feature vector size
     mutability: provided
+projector/identity.pair:
+  description: Simply returns the input vector
 projector/grid.pair:
+  input_max:
+    type: vector.observation_max+vector.action_max
+    description: Upper input dimension limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
   description: Standard discretization
   input_min:
     type: vector.observation_min+vector.action_min
     description: Lower input dimension limit
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  input_max:
-    type: vector.observation_max+vector.action_max
-    description: Upper input dimension limit
     mutability: system
     default: "[  ]"
     optional: 1
@@ -3239,13 +3247,13 @@ projector/sample/ann.pair:
 projector/sample/ertree.pair:
   description: Projects onto samples found through the Extra-trees algorithm by Geurts et al.
   samples:
+    optional: 1
     type: int
-    max: 2147483647
     description: Maximum number of samples to store
     mutability: configuration
     default: 100000
-    optional: 1
     min: 100
+    max: 2147483647
   trees:
     type: int
     description: Number of trees in the forest
@@ -3290,12 +3298,12 @@ projector/tile_coding.pair:
   description: Hashed tile coding projector
   tilings:
     min: 0
-    max: 2147483647
     type: int
     description: Number of tilings
     mutability: configuration
     default: 16
     optional: 1
+    max: 2147483647
   memory:
     type: int.memory
     description: Hash table size
@@ -3469,14 +3477,12 @@ representation/parameterized/linear.transition:
     default: "[  ]"
     optional: 1
 projector/fourier.observation:
-  order:
-    max: 256
-    type: int
-    description: Order of approximation (bases per dimension)
-    mutability: configuration
-    default: 1
+  input_max:
+    mutability: system
+    default: "[  ]"
     optional: 1
-    min: 0
+    type: vector.observation_max
+    description: Upper input dimension limit (for scaling)
   description: Fourier basis function projector
   input_min:
     type: vector.observation_min
@@ -3484,12 +3490,14 @@ projector/fourier.observation:
     mutability: system
     default: "[  ]"
     optional: 1
-  input_max:
-    type: vector.observation_max
-    description: Upper input dimension limit (for scaling)
-    mutability: system
-    default: "[  ]"
+  order:
+    type: int
+    description: Order of approximation (bases per dimension)
+    mutability: configuration
+    default: 1
     optional: 1
+    min: 0
+    max: 256
   parity:
     type: string
     description: Whether to use odd or even bases
@@ -3722,21 +3730,21 @@ projector/tile_coding.observation:
 representation/llr.action:
   description: Performs locally linear regression through samples
   ridge:
+    optional: 1
+    min: 0
+    max: 1
     type: double
     description: Ridge regression (Tikhonov) factor
     mutability: configuration
     default: 1e-05
-    optional: 1
-    min: 0
-    max: 1
   order:
-    max: 1
     type: int
     description: Order of regression model
     mutability: configuration
     default: 1
     optional: 1
     min: 0
+    max: 1
   input_nominals:
     type: vector
     description: Vector indicating which input dimensions are nominal
@@ -3778,8 +3786,8 @@ representation/llr.action:
 representation/parameterized/ann.action:
   description: Parameterized artificial neural network representation
   inputs:
-    mutability: system
     optional: 1
+    mutability: system
     default: 0
     type: int.observation_dims
     description: Number of input dimensions
@@ -3830,14 +3838,14 @@ representation/parameterized/ann.action:
     min: 0
     max: 1
 representation/parameterized/linear.action:
-  outputs:
-    max: 2147483647
-    type: int.action_dims
-    description: Number of outputs
-    mutability: system
-    default: 1
+  memory:
     optional: 1
     min: 0
+    max: 2147483647
+    type: int.memory
+    description: Feature vector size
+    mutability: system
+    default: 8388608
   description: Linear-in-parameters representation
   init_min:
     type: vector
@@ -3851,11 +3859,11 @@ representation/parameterized/linear.action:
     mutability: configuration
     default: "[ 1 ]"
     optional: 1
-  memory:
-    type: int.memory
-    description: Feature vector size
+  outputs:
+    type: int.action_dims
+    description: Number of outputs
     mutability: system
-    default: 8388608
+    default: 1
     optional: 1
     min: 0
     max: 2147483647
@@ -3874,10 +3882,10 @@ representation/parameterized/linear.action:
 discretizer/peaked.action:
   description: Peaked discretizer, with more resolution around center
   min:
-    mutability: system
-    type: vector.action_min
-    default: "[  ]"
     description: Lower limit
+    mutability: system
+    default: "[  ]"
+    type: vector.action_min
     optional: 1
   max:
     type: vector.action_max
@@ -3977,12 +3985,12 @@ representation/parameterized/ann.value/action:
   description: Parameterized artificial neural network representation
   inputs:
     optional: 1
-    max: 2147483647
+    default: 0
     type: int.observation_dims+int.action_dims
     description: Number of input dimensions
-    min: 1
     mutability: system
-    default: 0
+    min: 1
+    max: 2147483647
   output_min:
     type: vector
     description: Lower limit on outputs
@@ -4226,8 +4234,8 @@ discretizer/peaked.observation:
   min:
     type: vector.observation_min
     default: "[  ]"
-    mutability: system
     description: Lower limit
+    mutability: system
     optional: 1
   max:
     type: vector.observation_max

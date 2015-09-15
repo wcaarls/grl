@@ -33,7 +33,8 @@ void NMPCPolicyTh::request(ConfigurationRequest *config)
   config->push_back(CRP("model_name", "Name of MUSCOD model library", model_name_));
   config->push_back(CRP("inputs", "int.observation_dims", "Number of inputs", (int)inputs_, CRP::System, 1));
   config->push_back(CRP("outputs", "int.action_dims", "Number of outputs", (int)outputs_, CRP::System, 1));
-//  config->push_back(CRP("step", "double.action_dims", "Duration of a simulation step", CRP::System));
+  config->push_back(CRP("single_step", "Run NMPC in single-step mode", (int)single_step_, CRP::System, 0, 1));
+  //  config->push_back(CRP("step", "double.action_dims", "Duration of a simulation step", CRP::System));
 }
 
 void NMPCPolicyTh::configure(Configuration &config)
@@ -43,13 +44,13 @@ void NMPCPolicyTh::configure(Configuration &config)
 
   muscod_ = new MUSCOD();
 
-  single_step_ = 1;
   std::cout << "Running MUSCOD in a " << (single_step_?"single-step ":"multi-step ") << "mode." << std::endl;
 
-  model_path_ = config["model_path"].str();
-  model_name_ = config["model_name"].str();
-  outputs_    = config["outputs"];
-  inputs_     = config["inputs"];
+  model_path_   = config["model_path"].str();
+  model_name_   = config["model_name"].str();
+  outputs_      = config["outputs"];
+  inputs_       = config["inputs"];
+  single_step_  = config["single_step"];
 //  step_       = config["step"];
 
   // Setup path for the problem description library and lua, csv, dat files used by it

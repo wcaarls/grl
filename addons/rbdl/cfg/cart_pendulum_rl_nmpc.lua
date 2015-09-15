@@ -57,15 +57,15 @@ function configure(argstr)
           observation_min = {-2.4, 0,         -5, -10*math.pi},
           observation_max = { 2.4, 2*math.pi,  5,  10*math.pi},
           action_dims = 1,
-          action_min = {-15},
-          action_max = {15},
+          action_min = {-150},
+          action_max = {150},
           reward_min = -10000,
           reward_max = 0
           }
 end
 
 function start()
-  return {0, 3.1415, 0, 0, 0}
+  return {0, math.pi-0.01, 0, 0, 0}
 end
 
 function observe(state)

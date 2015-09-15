@@ -9,7 +9,7 @@
 
 function control(state, action)
     -- mprl uses different parameters, multiply controls.
-    return {action[0]*10, 0}
+    return {action[0], 0}
 end
 
 function get_point_by_name (container, name)
