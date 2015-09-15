@@ -1,6 +1,15 @@
 # Setup build environment
 set(TARGET yaml-cpp)
 
+find_package(PkgConfig)
+#pkg_check_modules(YAML yaml-cpp>=0.5.1) # Have no idea why, but for the first search remove version
+pkg_check_modules(YAML yaml-cpp)
+
+if (YAML_FOUND)
+	message("-- Using external YAML library")
+	return()
+endif()
+
 message("-- Building included YAML library")
 
 execute_process(
@@ -41,3 +50,17 @@ execute_process(
 )
 
 add_subdirectory(${CMAKE_BINARY_DIR}/externals/yaml-cpp ${CMAKE_BINARY_DIR}/externals/yaml-cpp/build)
+
+if (false)
+# export yaml-cpp module path and check if pkg-config can find it
+#set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:${CMAKE_BINARY_DIR}/externals/yaml-cpp")
+
+pkg_check_modules(RBDL yaml-cpp>=0.5.2)
+
+if (RBDL_FOUND)
+	message("-- Building included RBDL library")
+else()
+	message(WARNING "-- RBDL library is not found")
+endif()
+
+endif()

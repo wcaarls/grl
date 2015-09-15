@@ -1,7 +1,7 @@
 macro(grl_add_mex target)
   # Create mex command
   set(_am_command cd ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/${target}.dir && ${MATLAB_BINARY_DIR}/mex -g ${mex_INCLUDE_DIRS} CXXFLAGS='$$CXXFLAGS -std=c++0x' LDFLAGS='$$LDFLAGS -Wl,-rpath,${CMAKE_LIBRARY_OUTPUT_DIRECTORY}' -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${mex_LIBRARIES} -output ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target} ${ARGN})
-  add_custom_command(OUTPUT ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}.mexa64 COMMAND ${_am_command} DEPENDS grl yaml-cpp DEPENDS ${ARGN})
+  add_custom_command(OUTPUT ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}.mexa64 COMMAND ${_am_command} DEPENDS grl DEPENDS ${ARGN})
   add_custom_target(${target} ALL DEPENDS ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${target}.mexa64)
 endmacro(grl_add_mex)
 
