@@ -9,6 +9,7 @@
 #include <dlfcn.h>
 #include <pthread.h>
 #include <unistd.h>
+#include <sys/stat.h>
 
 using namespace grl;
 
@@ -30,35 +31,37 @@ NMPCPolicyTh::~NMPCPolicyTh()
 
 void NMPCPolicyTh::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("model_path", "Path to MUSCOD model library", model_path_));
   config->push_back(CRP("model_name", "Name of MUSCOD model library", model_name_));
+  config->push_back(CRP("lua_model", "Lua model used by MUSCOD", lua_model_));
   config->push_back(CRP("inputs", "int.observation_dims", "Number of inputs", (int)inputs_, CRP::System, 1));
   config->push_back(CRP("outputs", "int.action_dims", "Number of outputs", (int)outputs_, CRP::System, 1));
   config->push_back(CRP("single_step", "Run NMPC in single-step mode", (int)single_step_, CRP::System, 0, 1));
-  //  config->push_back(CRP("step", "double.action_dims", "Duration of a simulation step", CRP::System));
+  config->push_back(CRP("verbose", "Verbose mode", (int)verbose_, CRP::System, 0, 1));
 }
 
 void NMPCPolicyTh::configure(Configuration &config)
 {
-  std::cout << "NMPCPolicyTh::configure" << std::endl;
-  verbose_ = 0;
-
-  muscod_ = new MUSCOD();
-
-  std::cout << "Running MUSCOD in a " << (single_step_?"single-step ":"multi-step ") << "mode." << std::endl;
-
-  model_path_   = config["model_path"].str();
+  model_path_   = std::string(MUSCOD_CONFIG_DIR);
   model_name_   = config["model_name"].str();
   outputs_      = config["outputs"];
   inputs_       = config["inputs"];
   single_step_  = config["single_step"];
-//  step_       = config["step"];
+  verbose_      = config["verbose"];
+
+  std::cout << "Running MUSCOD in a " << (single_step_?"single-step ":"multi-step ") << "mode." << std::endl;
 
   // Setup path for the problem description library and lua, csv, dat files used by it
   std::string problem_path  = model_path_ + "/" + model_name_;
 
+  //-------------------- Load Lua model which is used by muscod ------------------- //
+  lua_model_ = problem_path + "/" + config["lua_model"].str();
+
+  struct stat buffer;
+  if (stat(lua_model_.c_str(), &buffer) != 0) // check if lua file exists in the problem description folder
+    lua_model_ = std::string(RBDL_LUA_CONFIG_DIR) + "/" + config["lua_model"].str(); // if not, then use it as a reference from dynamics
+
   //----------------- Set path in the problem description library ----------------- //
-  // get library handle
+  // get the library handle,
   std::string so_path  = problem_path + "/" + "lib" + model_name_ + ".so";
   so_handle_ = dlopen(so_path.c_str(), RTLD_NOW|RTLD_GLOBAL);
   if (so_handle_==NULL)
@@ -69,10 +72,10 @@ void NMPCPolicyTh::configure(Configuration &config)
     exit(EXIT_FAILURE);
   }
 
-  // get function handle
-  void (*so_set_path)(std::string);
+  // get the function handle
+  void (*so_set_path)(std::string, std::string);
   std::string so_set_path_fn = "set_path"; // name of a function which sets the path
-  so_set_path = (void (*)(std::string)) dlsym(so_handle_, so_set_path_fn.c_str());
+  so_set_path = (void (*)(std::string, std::string)) dlsym(so_handle_, so_set_path_fn.c_str());
   if (so_set_path==NULL)
   {
     std::cout << "ERROR: Could not symbol in shared library: '" << so_set_path_fn << "'" << std::endl;
@@ -80,10 +83,13 @@ void NMPCPolicyTh::configure(Configuration &config)
     std::exit(-1);
   }
 
-  // ... and finally set path
+  // ... and finally set the paths
   if (verbose_)
-    std::cout << "MUSCOD: Setting new path: '" << problem_path << "'" << std::endl;
-  so_set_path(problem_path);
+  {
+    std::cout << "MUSCOD: setting new problem path to: '" << problem_path << "'" <<std::endl;
+    std::cout << "MUSCOD: setting new Lua model file to: '" << lua_model_ << "'" <<std::endl;
+  }
+  so_set_path(problem_path, lua_model_);
 
   //----------------- Observation converter ----------------- //
   so_convert_obs_for_muscod = (void (*)(const std::vector<double>&, std::vector<double>&))
@@ -100,6 +106,7 @@ void NMPCPolicyTh::configure(Configuration &config)
   data_.relative_dat_path = ".";
   data_.model_name = model_name_;
 
+  muscod_ = new MUSCOD();
   muscod_init();
 }
 
@@ -370,8 +377,6 @@ void NMPCPolicyTh::act(double time, const Vector &in, Vector *out)
     std::cerr << "       No more controls for given horizon!" << std::endl;
     std::cerr << "Abort and cleanup..." << std::endl;
   }
-
-//  time_ += env_step_;
 }
 
 NMPCPolicyTh *NMPCPolicyTh::clone() const

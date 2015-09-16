@@ -48,13 +48,9 @@ class NMPCPolicyTh: public Policy
     TYPEINFO("policy/nmpc_th", "Nonlinear multistep (thread-based) model predictive control policy using the MUSCOD library")
 
   protected:
-    std::string model_path_, model_name_;
+    int verbose_, single_step_;
+    std::string model_path_, model_name_, lua_model_;
     size_t outputs_, inputs_;
-//    double step_;
-
-    int verbose_;
- //   double  time_;
-    int single_step_;
 
     // MUSCOD-II interface
     void *so_handle_; // hangle to a shared library with problem definitions

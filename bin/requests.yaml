@@ -149,8 +149,8 @@ agent/solver:
 agent/sub/compartmentalized:
   description: Sub agent that is valid in a fixed state-space region
   min:
-    description: Minimum of compartment bounding box
     type: vector.observation_min
+    description: Minimum of compartment bounding box
     mutability: configuration
     default: "[  ]"
     optional: 1
@@ -309,10 +309,10 @@ environment/ode:
 experiment/approx_test:
   description: Approximator test experiment (supervised learning)
   train_samples:
-    default: 1000
     type: int
     description: Number of training samples
     mutability: configuration
+    default: 1000
     optional: 1
     min: 1
     max: 2147483647
@@ -363,12 +363,12 @@ experiment/approx_test:
 experiment/batch_learning:
   description: Batch learning experiment using randomly sampled experience
   runs:
-    optional: 1
-    min: 1
     type: int
     description: Number of separate learning runs to perform
     mutability: configuration
     default: 1
+    optional: 1
+    min: 1
     max: 2147483647
   batches:
     type: int
@@ -453,6 +453,7 @@ experiment/batch_learning:
     description: Current observed state of the environment
     mutability: provided
 experiment/online_learning:
+  description: Interactive learning experiment
   runs:
     type: int
     description: Number of separate learning runs to perform
@@ -461,12 +462,11 @@ experiment/online_learning:
     optional: 1
     min: 1
     max: 2147483647
-  description: Interactive learning experiment
   trials:
-    default: 0
     type: int
     description: Number of episodes per learning run
     mutability: configuration
+    default: 0
     optional: 1
     min: 0
     max: 2147483647
@@ -551,9 +551,9 @@ mapping/multisine:
 model/compass_walker:
   description: Simplest walker model from Garcia et al.
   control_step:
+    type: double.control_step
     description: Control step time
     mutability: configuration
-    type: double.control_step
     default: 0.2
     optional: 1
     min: 0.001
@@ -629,11 +629,11 @@ model/windy:
 observation_model/approximated:
   description: Observation model based on observed transitions
   control_step:
+    type: double.control_step
     description: Control step time (0 = estimate using SMDP approximator)
-    optional: 1
     mutability: system
     default: 0
-    type: double.control_step
+    optional: 1
     min: 0
     max: 1.797693134862316e+308
   differential:
@@ -683,13 +683,13 @@ observation_model/approximated:
     default: 0
     optional: 0
 observation_model/fixed:
+  description: Observation model based on known state transition model
   model:
-    optional: 0
     type: model
     description: Environment model
     mutability: configuration
     default: 0
-  description: Observation model based on known state transition model
+    optional: 0
   task:
     type: task
     description: Task to perform in the environment (should match model)
@@ -761,12 +761,12 @@ observation_model/fixed_reward:
 optimizer/cma:
   description: Coverance matrix adaptation black-box optimizer
   population:
-    default: 0
-    optional: 1
     type: int
     description: Population size
-    min: 0
     mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
     max: 2147483647
   sigma:
     type: vector
@@ -783,8 +783,8 @@ optimizer/cma:
 policy/action:
   description: Policy based on a direct action representation
   sigma:
-    description: Standard deviation of exploration distribution
     type: vector
+    description: Standard deviation of exploration distribution
     mutability: configuration
     default: "[  ]"
     optional: 1
@@ -1023,9 +1023,9 @@ policy/nmpc:
   model_path:
     type: string
     description: Path to MUSCOD model library
-    optional: 1
     mutability: configuration
     default: ""
+    optional: 1
   model_name:
     type: string
     description: Name of MUSCOD model library
@@ -1042,15 +1042,15 @@ policy/nmpc:
     max: 2147483647
 policy/nmpc_th:
   description: Nonlinear multistep (thread-based) model predictive control policy using the MUSCOD library
-  model_path:
-    type: string
-    description: Path to MUSCOD model library
-    mutability: configuration
-    default: ""
-    optional: 1
   model_name:
     type: string
     description: Name of MUSCOD model library
+    mutability: configuration
+    default: ""
+    optional: 1
+  lua_model:
+    type: string
+    description: Lua model used by MUSCOD
     mutability: configuration
     default: ""
     optional: 1
@@ -1075,6 +1075,14 @@ policy/nmpc_th:
     description: Run NMPC in single-step mode
     mutability: system
     default: 0
+    optional: 1
+    min: 0
+    max: 1
+  verbose:
+    type: int
+    description: Verbose mode
+    mutability: system
+    default: 1
     optional: 1
     min: 0
     max: 1
@@ -1127,9 +1135,9 @@ policy/parameterized/pid:
     min: 1
     max: 2147483647
   p:
-    mutability: online
     type: vector
     description: P gains ([in1_out1, ..., in1_outN, ..., inN_out1, ..., inN_outN])
+    mutability: online
     default: "[  ]"
     optional: 1
   i:
@@ -1246,12 +1254,12 @@ predictor/ac/action:
   description: Actor-critic predictor for direct action policies
   alpha:
     type: double
-    min: 0
-    max: 1
     description: Critic learning rate
     mutability: configuration
     default: 0.2
     optional: 1
+    min: 0
+    max: 1
   beta:
     type: double
     description: Actor learning rate
@@ -1315,13 +1323,13 @@ predictor/ac/action:
 predictor/ac/probability:
   description: Actor-critic predictor for action-probability policies
   alpha:
-    max: 1
     type: double
     description: Critic learning rate
     mutability: configuration
     default: 0.2
     optional: 1
     min: 0
+    max: 1
   beta:
     type: double
     description: Actor learning rate
@@ -1389,15 +1397,15 @@ predictor/ac/probability:
     default: 0
     optional: 0
 predictor/expected_sarsa:
+  description: Expected SARSA low-variance on-policy value function predictor
   alpha:
-    optional: 1
-    min: 0
-    max: 1
     type: double
     description: Learning rate
     mutability: configuration
     default: 0.2
-  description: Expected SARSA low-variance on-policy value function predictor
+    optional: 1
+    min: 0
+    max: 1
   gamma:
     type: double
     description: Discount rate
@@ -1509,12 +1517,12 @@ predictor/fqi:
 predictor/full/qi:
   description: Deterministic model-based action-value function predictor
   gamma:
-    optional: 1
     type: double
-    default: 0.97
     description: Discount rate
-    min: 0
     mutability: configuration
+    default: 0.97
+    optional: 1
+    min: 0
     max: 1
   model:
     type: observation_model
@@ -1543,9 +1551,9 @@ predictor/full/qi:
 predictor/full/vi:
   description: Deterministic model-based state-value function predictor
   gamma:
+    type: double
     description: Discount rate
     mutability: configuration
-    type: double
     default: 0.97
     optional: 1
     min: 0
@@ -1622,9 +1630,9 @@ predictor/model:
   description: Observation model predictor
   differential:
     type: int.differential
-    default: 1
     description: Predict state deltas
     mutability: configuration
+    default: 1
     optional: 1
     min: 0
     max: 1
@@ -1743,10 +1751,10 @@ predictor/sarsa:
     default: 0
     optional: 0
   representation:
-    default: 0
     type: representation.value/action
     description: Q-value representation
     mutability: configuration
+    default: 0
     optional: 0
   trace:
     type: trace
@@ -1759,8 +1767,8 @@ predictor/td:
   alpha:
     type: double
     description: Learning rate
-    default: 0.2
     mutability: configuration
+    default: 0.2
     optional: 1
     min: 0
     max: 1
@@ -1801,10 +1809,10 @@ predictor/td:
 projector/fourier:
   description: Fourier basis function projector
   input_min:
-    default: "[  ]"
     type: vector
     description: Lower input dimension limit (for scaling)
     mutability: system
+    default: "[  ]"
     optional: 1
   input_max:
     type: vector
@@ -1970,14 +1978,6 @@ projector/sample/ann:
     min: 1
     max: 16
 projector/sample/ertree:
-  splits:
-    optional: 1
-    max: 2147483647
-    min: 1
-    type: int
-    description: Number of candidate splits
-    mutability: configuration
-    default: 5
   description: Projects onto samples found through the Extra-trees algorithm by Geurts et al.
   samples:
     type: int
@@ -1992,6 +1992,14 @@ projector/sample/ertree:
     description: Number of trees in the forest
     mutability: configuration
     default: 20
+    optional: 1
+    min: 1
+    max: 2147483647
+  splits:
+    type: int
+    description: Number of candidate splits
+    mutability: configuration
+    default: 5
     optional: 1
     min: 1
     max: 2147483647
@@ -2022,12 +2030,12 @@ projector/sample/ertree:
 projector/tile_coding:
   description: Hashed tile coding projector
   tilings:
+    type: int
     description: Number of tilings
     mutability: configuration
-    type: int
-    min: 0
     default: 16
     optional: 1
+    min: 0
     max: 2147483647
   memory:
     type: int.memory
@@ -2106,15 +2114,15 @@ representation/llr:
     default: 0
     optional: 0
 representation/parameterized/ann:
+  description: Parameterized artificial neural network representation
   inputs:
+    type: int
     description: Number of input dimensions
     mutability: system
     default: 0
     optional: 1
     min: 1
     max: 2147483647
-    type: int
-  description: Parameterized artificial neural network representation
   output_min:
     type: vector
     description: Lower limit on outputs
@@ -2163,10 +2171,10 @@ representation/parameterized/linear:
   description: Linear-in-parameters representation
   init_min:
     type: vector
-    optional: 1
     description: Lower initial value limit
     mutability: configuration
     default: "[ 0 ]"
+    optional: 1
   init_max:
     type: vector
     description: Upper initial value limit
@@ -2266,9 +2274,9 @@ solver/agent:
 solver/lqr:
   description: Linear Quadratic Regulator solver
   operating_state:
-    mutability: configuration
-    description: Operating state around which to linearize
     type: vector
+    description: Operating state around which to linearize
+    mutability: configuration
     default: "[  ]"
     optional: 1
   operating_action:
@@ -2368,9 +2376,9 @@ task/acrobot/balancing:
 task/cart_pole/balancing:
   description: Cart-pole balancing task
   observation_dims:
-    mutability: provided
     type: int.observation_dims
     description: Number of observation dimensions
+    mutability: provided
   observation_min:
     type: vector.observation_min
     description: Lower limit on observations
@@ -2516,11 +2524,11 @@ task/compass_walker/walk:
     min: 0
     max: 1.797693134862316e+308
 task/lua:
+  description: User-provided task specification in LUA
   observation_dims:
     type: int.observation_dims
     description: Number of observation dimensions
     mutability: provided
-  description: User-provided task specification in LUA
   observation_min:
     type: vector.observation_min
     description: Lower limit on observations
@@ -2564,9 +2572,9 @@ task/lua:
 task/pendulum/swingup:
   description: Pendulum swing-up task
   observation_dims:
-    mutability: provided
     type: int.observation_dims
     description: Number of observation dimensions
+    mutability: provided
   observation_min:
     type: vector.observation_min
     description: Lower limit on observations
@@ -2744,8 +2752,8 @@ visualization/cart_pole:
 visualization/compass_walker:
   description: Compass walker visualization
   state:
-    description: Compass walker state to visualize
     type: state
+    description: Compass walker state to visualize
     mutability: configuration
     default: 0
     optional: 0
@@ -2804,10 +2812,10 @@ visualization/field/policy/action:
 visualization/field/policy/value:
   description: Visualizes the value of a policy over a field of states
   field_dims:
-    default: "[ 0, 1 ]"
-    description: Dimensions to visualize
     type: vector
+    description: Dimensions to visualize
     mutability: online
+    default: "[ 0, 1 ]"
     optional: 1
   input_min:
     type: vector
@@ -2858,19 +2866,19 @@ visualization/field/policy/value:
     default: 0
     optional: 0
 visualization/field/value:
+  description: Visualizes an approximation over a field of states
   field_dims:
     type: vector
     description: Dimensions to visualize
     mutability: online
     default: "[ 0, 1 ]"
     optional: 1
-  description: Visualizes an approximation over a field of states
   input_min:
-    optional: 1
-    default: "[  ]"
     type: vector
     description: Lower input dimension limit
     mutability: system
+    default: "[  ]"
+    optional: 1
   input_max:
     type: vector
     description: Upper input dimension limit
@@ -2926,11 +2934,11 @@ visualization/pendulum:
 visualization/pinball:
   description: Pinball visualization
   state:
-    default: 0
-    mutability: configuration
-    optional: 0
     type: state
     description: Pinball state to visualize
+    mutability: configuration
+    default: 0
+    optional: 0
 visualization/sample:
   description: Visualizes a sample-based approximation
   field_dims:
@@ -2994,10 +3002,10 @@ visualization/sample/random:
     default: "[  ]"
     optional: 1
   output_dim:
-    default: 0
     type: int
     description: Output dimension to visualize
     mutability: configuration
+    default: 0
     optional: 1
     min: 0
     max: 2147483647
@@ -3026,8 +3034,8 @@ visualization/state:
   input_dims:
     type: vector
     description: Input dimensions to visualize
-    default: "[  ]"
     mutability: online
+    default: "[  ]"
     optional: 1
   input_min:
     type: vector
@@ -3108,19 +3116,17 @@ projector/fourier.pair:
     type: int.memory
     description: Feature vector size
     mutability: provided
-projector/identity.pair:
-  description: Simply returns the input vector
 projector/grid.pair:
-  input_max:
-    type: vector.observation_max+vector.action_max
-    description: Upper input dimension limit
-    mutability: system
-    default: "[  ]"
-    optional: 1
   description: Standard discretization
   input_min:
     type: vector.observation_min+vector.action_min
     description: Lower input dimension limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  input_max:
+    type: vector.observation_max+vector.action_max
+    description: Upper input dimension limit
     mutability: system
     default: "[  ]"
     optional: 1
@@ -3134,6 +3140,8 @@ projector/grid.pair:
     type: int.memory
     description: Grid size
     mutability: provided
+projector/identity.pair:
+  description: Simply returns the input vector
 projector/pre/normalizing.pair:
   description: Preprocesses projection onto a normalized [0, 1] vector
   input_min:
@@ -3247,11 +3255,11 @@ projector/sample/ann.pair:
 projector/sample/ertree.pair:
   description: Projects onto samples found through the Extra-trees algorithm by Geurts et al.
   samples:
-    optional: 1
     type: int
     description: Maximum number of samples to store
     mutability: configuration
     default: 100000
+    optional: 1
     min: 100
     max: 2147483647
   trees:
@@ -3297,12 +3305,12 @@ projector/sample/ertree.pair:
 projector/tile_coding.pair:
   description: Hashed tile coding projector
   tilings:
-    min: 0
     type: int
     description: Number of tilings
     mutability: configuration
     default: 16
     optional: 1
+    min: 0
     max: 2147483647
   memory:
     type: int.memory
@@ -3383,11 +3391,11 @@ representation/llr.transition:
 representation/parameterized/ann.transition:
   description: Parameterized artificial neural network representation
   inputs:
-    default: 0
     type: int.observation_dims+int.action_dims
-    optional: 1
     description: Number of input dimensions
     mutability: system
+    default: 0
+    optional: 1
     min: 1
     max: 2147483647
   output_min:
@@ -3477,16 +3485,16 @@ representation/parameterized/linear.transition:
     default: "[  ]"
     optional: 1
 projector/fourier.observation:
-  input_max:
-    mutability: system
-    default: "[  ]"
-    optional: 1
-    type: vector.observation_max
-    description: Upper input dimension limit (for scaling)
   description: Fourier basis function projector
   input_min:
     type: vector.observation_min
     description: Lower input dimension limit (for scaling)
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  input_max:
+    type: vector.observation_max
+    description: Upper input dimension limit (for scaling)
     mutability: system
     default: "[  ]"
     optional: 1
@@ -3511,14 +3519,12 @@ projector/fourier.observation:
     type: int.memory
     description: Feature vector size
     mutability: provided
-projector/identity.observation:
-  description: Simply returns the input vector
 projector/grid.observation:
   description: Standard discretization
   input_min:
     type: vector.observation_min
-    mutability: system
     description: Lower input dimension limit
+    mutability: system
     default: "[  ]"
     optional: 1
   input_max:
@@ -3537,6 +3543,8 @@ projector/grid.observation:
     type: int.memory
     description: Grid size
     mutability: provided
+projector/identity.observation:
+  description: Simply returns the input vector
 projector/pre/normalizing.observation:
   description: Preprocesses projection onto a normalized [0, 1] vector
   input_min:
@@ -3650,11 +3658,11 @@ projector/sample/ann.observation:
 projector/sample/ertree.observation:
   description: Projects onto samples found through the Extra-trees algorithm by Geurts et al.
   samples:
-    optional: 1
     type: int
     description: Maximum number of samples to store
     mutability: configuration
     default: 100000
+    optional: 1
     min: 100
     max: 2147483647
   trees:
@@ -3730,13 +3738,13 @@ projector/tile_coding.observation:
 representation/llr.action:
   description: Performs locally linear regression through samples
   ridge:
-    optional: 1
-    min: 0
-    max: 1
     type: double
     description: Ridge regression (Tikhonov) factor
     mutability: configuration
     default: 1e-05
+    optional: 1
+    min: 0
+    max: 1
   order:
     type: int
     description: Order of regression model
@@ -3786,11 +3794,11 @@ representation/llr.action:
 representation/parameterized/ann.action:
   description: Parameterized artificial neural network representation
   inputs:
-    optional: 1
-    mutability: system
-    default: 0
     type: int.observation_dims
     description: Number of input dimensions
+    mutability: system
+    default: 0
+    optional: 1
     min: 1
     max: 64
   output_min:
@@ -3838,14 +3846,6 @@ representation/parameterized/ann.action:
     min: 0
     max: 1
 representation/parameterized/linear.action:
-  memory:
-    optional: 1
-    min: 0
-    max: 2147483647
-    type: int.memory
-    description: Feature vector size
-    mutability: system
-    default: 8388608
   description: Linear-in-parameters representation
   init_min:
     type: vector
@@ -3859,6 +3859,14 @@ representation/parameterized/linear.action:
     mutability: configuration
     default: "[ 1 ]"
     optional: 1
+  memory:
+    type: int.memory
+    description: Feature vector size
+    mutability: system
+    default: 8388608
+    optional: 1
+    min: 0
+    max: 2147483647
   outputs:
     type: int.action_dims
     description: Number of outputs
@@ -3882,10 +3890,10 @@ representation/parameterized/linear.action:
 discretizer/peaked.action:
   description: Peaked discretizer, with more resolution around center
   min:
+    type: vector.action_min
     description: Lower limit
     mutability: system
     default: "[  ]"
-    type: vector.action_min
     optional: 1
   max:
     type: vector.action_max
@@ -3984,11 +3992,11 @@ representation/llr.value/action:
 representation/parameterized/ann.value/action:
   description: Parameterized artificial neural network representation
   inputs:
-    optional: 1
-    default: 0
     type: int.observation_dims+int.action_dims
     description: Number of input dimensions
     mutability: system
+    default: 0
+    optional: 1
     min: 1
     max: 2147483647
   output_min:
@@ -4038,11 +4046,11 @@ representation/parameterized/ann.value/action:
 representation/parameterized/linear.value/action:
   description: Linear-in-parameters representation
   init_min:
-    optional: 1
     type: vector
     description: Lower initial value limit
     mutability: configuration
     default: "[ 0 ]"
+    optional: 1
   init_max:
     type: vector
     description: Upper initial value limit
@@ -4138,9 +4146,9 @@ representation/parameterized/ann.value/state:
   inputs:
     type: int.observation_dims
     description: Number of input dimensions
-    optional: 1
     mutability: system
     default: 0
+    optional: 1
     min: 1
     max: 2147483647
   output_min:
@@ -4233,9 +4241,9 @@ discretizer/peaked.observation:
   description: Peaked discretizer, with more resolution around center
   min:
     type: vector.observation_min
-    default: "[  ]"
     description: Lower limit
     mutability: system
+    default: "[  ]"
     optional: 1
   max:
     type: vector.observation_max

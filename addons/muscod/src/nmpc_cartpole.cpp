@@ -40,9 +40,8 @@ unsigned int nActuatedDof;
 
 // Variables
 Model *model = NULL;
-string model_file_name  ="./model.lua";
-char problem_name[255];
-std::string rel_data_path = "";
+std::string problem_path = "";
+std::string lua_model = "";
 
 VectorNd Q, QDOT, QDDOT, TAU;
 
@@ -121,9 +120,11 @@ double mapAngleToMuscod(double angle){
 }
 
 extern "C" {
-  void set_path(std::string new_path){
-    rel_data_path = new_path + "/";
-    std::cout << "NMPC: setting new data path to: '" << rel_data_path << "'" <<std::endl;
+  void set_path(std::string new_problem_path, std::string new_lua_model){
+    problem_path = new_problem_path + "/";
+    lua_model = new_lua_model;
+    std::cout << "NMPC: setting new problem path to: '" << problem_path << "'" <<std::endl;
+    std::cout << "NMPC: setting new Lua model file to: '" << lua_model << "'" <<std::endl;
   }
   /**
    * Function which converts a wrapped MPRL state into continuous MUSCOD state
@@ -151,8 +152,8 @@ void xref_setup(){
     std::string line;
 
     // add a relative path
-    std::string xref_states_path_full = rel_data_path + xref_states_path;
-    std::string xref_cntrls_path_full = rel_data_path + xref_cntrls_path;
+    std::string xref_states_path_full = problem_path + xref_states_path;
+    std::string xref_cntrls_path_full = problem_path + xref_cntrls_path;
 
     // load file
     xref_states_f.open(xref_states_path_full.c_str());
@@ -424,131 +425,20 @@ static void rcfcn_e (double *ts, double *sd, double *sa, double *u, double *p, d
 // * Data Output
 // *
 // ********************************o
-
-vector<double> t_values;
-vector<vector<double> > sd_values;
-vector<vector<double> > u_values;
-
-static void data_out( double *t, double *sd, double *sa, double *u, double *p, double *rwh, long *iwh, InfoPtr *info ) {
-    if (*t == 0.) {
-        ofstream meshup_csv_stream;
-
-        string meshup_header_file = string(rel_data_path) + string("RES/meshup_") + string(problem_name) + string(".csv");
-        string data_sd_file       = string(rel_data_path) + string("sd_")     + string(problem_name) + string(".csv");
-        string data_u_file        = string(rel_data_path) + string("u_")      + string(problem_name) + string(".csv");
-
-        ofstream meshup_header_stream;
-        ofstream data_sd_stream;
-        ofstream data_u_stream;
-
-        meshup_header_stream.open (meshup_header_file.c_str(), ios_base::trunc);
-        data_sd_stream.open (data_sd_file.c_str(), ios_base::trunc);
-        data_u_stream.open (data_u_file. c_str(), ios_base::trunc);
-
-        if (!meshup_header_stream || !data_sd_stream || !data_u_stream) {
-            cerr << "Error opening file (" << meshup_header_file << ") or ("
-                 << data_sd_file << ") or (" << data_u_file << ")" << endl;
-            abort();
-        }
-        const char* meshup_header = "COLUMNS: \n\
-    time,\n\
-    cart:T:x,\n\
-    pendulum:R:y:rad,\
-";
-        meshup_header_stream << meshup_header << endl << "DATA_FROM: " << data_sd_file << endl;
-
-        if (t_values.size() > 0) {
-            for (unsigned int i = 0; i < t_values.size(); i ++) {
-                data_sd_stream << t_values[i] << ", ";
-                for (unsigned int j = 0; j < sd_values[i].size(); j++) {
-                    data_sd_stream << sd_values[i][j];
-                    if (j < sd_values[i].size() -1 )
-                        data_sd_stream << ", ";
-    }
-                data_sd_stream << endl;
-
-                data_u_stream << t_values[i] << ", ";
-                for (unsigned int j = 0; j < u_values[i].size(); j++) {
-                    data_u_stream << u_values[i][j];
-                    if (j < u_values[i].size() -1 )
-                        data_u_stream << ", ";
-                }
-                data_u_stream << endl;
-        }
-    }
-
-        t_values.clear();
-        sd_values.clear();
-        u_values.clear();
-
-        meshup_header_stream.close();
-        data_sd_stream.close();
-        data_u_stream.close();
-    }
-
-    t_values.push_back (*t);
-
-    vector<double> sd_vec (NXD);
-    for (unsigned i = 0; i < NXD; i++)
-        sd_vec[i] = sd[i];
-    sd_values.push_back (sd_vec);
-
-    vector<double> u_vec (NU);
-    for (unsigned i = 0; i < NU; i++)
-        u_vec[i] = u[i];
-    u_values.push_back (u_vec);
-}
-
-void meshup_output
-(
-  long   *imos,      ///< index of model stage (I)
-  long   *imsn,      ///< index of m.s. node on current model stage (I)
-  double *ts,        ///< time at m.s. node (I)
-  double *te,        ///< time at end of m.s. interval (I)
-  double *sd,        ///< differential states at m.s. node (I)
-  double *sa,        ///< algebraic states at m.s. node (I)
-  double *u,         ///< controls at m.s. node (I)
-  double *udot,      ///< control slopes at m.s. node (I)
-  double *ue,        ///< controls at end of m.s. interval (I)
-  double *uedot,     ///< control slopes at end of m.s. interval (I)
-  double *p,         ///< global model parameters (I)
-  double *pr,        ///< local i.p.c. parameters (I)
-  double *ccxd,
-  double *mul_ccxd,  ///< multipliers of continuity conditions (I)
-#if defined(PRSQP) || defined(EXTPRSQP)
-  double *ares,
-  double *mul_ares,
-#endif
-  double *rd,
-  double *mul_rd,    ///< multipliers of decoupled i.p.c. (I)
-  double *rc,
-  double *mul_rc,    ///< multipliers of coupled i.p.c. (I)
-  double *obj,
-  double *rwh,       ///< real work array (I)
-  long   *iwh        ///< integer work array (I)
-)
-{
-    InfoPtr info(0, *imos, *imsn);
-    data_out( ts, sd, sa, u, p, rwh, iwh, &info);
-}
+// removed
 
 // \brief Entry point for the muscod application
 extern "C" void def_model(void);
 void def_model(void)
 {
-    memset (problem_name, 0, 255);
-    get_pname (problem_name);
-
     // open and process reference trajectories
     xref_setup();
 
     // load LUA model
     model = new Model;
-    std::string model_file_name_full = rel_data_path + model_file_name; // add relative path
-    cout << "Loading RBDL model from: '" << model_file_name_full << "'" << endl;
-    if (!Addons::LuaModelReadFromFile (model_file_name_full.c_str(), model, false))
+    if (!Addons::LuaModelReadFromFile (lua_model.c_str(), model, false))
     {
-        cerr << "Error loading RBDL model '" << model_file_name_full << "'!" << endl;
+        cerr << "Error loading RBDL model '" << lua_model << "'!" << endl;
         abort();
     }
 
@@ -586,6 +476,4 @@ void def_model(void)
 
     // define LSQ objective
     def_lsq(0, "*", 0, 4, lsqfcn);
-
-//    def_mio (NULL , meshup_output, data_out);
 }

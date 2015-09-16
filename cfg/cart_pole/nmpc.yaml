@@ -21,11 +21,12 @@ experiment:
     type: agent/fixed
     policy: 
       type: policy/nmpc_th
-      model_path: /media/ivan/ivan/Project/Software/grl/src/grl/addons/muscod/cfg
       model_name: nmpc_cartpole
+      lua_model: experiment/environment/model/dynamics/file
       inputs: experiment/environment/task/observation_dims
       outputs: experiment/environment/task/action_dims
       single_step: 1
+      verbose: 0
 visualizer: 
   type: visualizer/glut
 visualization: 

@@ -20,6 +20,8 @@ if (MUSCOD_FOUND)
 		message(WARRING "PG Plot is not found.")
 	endif()
 
+	add_definitions(-DMUSCOD_CONFIG_DIR="${SRC}/../cfg")
+
   # Find preferred Muscod build type
   if (${CMAKE_BUILD_TYPE} MATCHES "Debug")
     set(MBT Debug)
