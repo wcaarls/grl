@@ -3,7 +3,7 @@ experiment:
   runs: 1
   trials: 0
   steps: 0
-  rate: 0
+  rate: 20
   test_interval: 0
   environment: 
     type: environment/modeled
@@ -20,15 +20,7 @@ experiment:
   agent: 
     type: agent/fixed
     policy: 
-      type: policy/nmpc_th
-      model_name: nmpc_cartpole
-      lua_model: experiment/environment/model/dynamics/file
-      inputs: experiment/environment/task/observation_dims
+      type: policy/nmpc
+      model_path: /media/ivan/ivan/Project/Software/grl/src/grl/addons/muscod/cfg/nmpc_simple
+      model_name: nmpc_simple
       outputs: experiment/environment/task/action_dims
-      single_step: 1
-      verbose: 0
-visualizer: 
-  type: visualizer/glut
-visualization: 
-  type: visualization/cart_pole
-  state: experiment/environment/state

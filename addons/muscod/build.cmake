@@ -71,7 +71,7 @@ if (MUSCOD_FOUND)
 
 	################################################################################
 	# MUSCOD problems
-	set(TARGETS nmpc_cartpole)
+	set(TARGETS nmpc_cartpole nmpc_simple)
 
 	FOREACH (TARGET ${TARGETS})
 		ADD_LIBRARY ( ${TARGET} SHARED 

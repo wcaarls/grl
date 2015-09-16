@@ -15,13 +15,13 @@ add_library(${TARGET} SHARED
             ${SRC}/configurable.cpp
             ${SRC}/discretizers/uniform.cpp
             ${SRC}/discretizers/peaked.cpp
-            ${SRC}/environments/acrobot.cpp
+#            ${SRC}/environments/acrobot.cpp
             ${SRC}/environments/observation.cpp
             ${SRC}/environments/modeled.cpp
-            ${SRC}/environments/pendulum.cpp
+#            ${SRC}/environments/pendulum.cpp
             ${SRC}/environments/cart_pole.cpp
-            ${SRC}/environments/pinball.cpp
-            ${SRC}/environments/windy.cpp
+#            ${SRC}/environments/pinball.cpp
+#            ${SRC}/environments/windy.cpp
             ${SRC}/environments/compass_walker/SWModel.cpp
             ${SRC}/environments/compass_walker/compass_walker.cpp
             ${SRC}/experiments/approx_test.cpp
@@ -33,13 +33,13 @@ add_library(${TARGET} SHARED
             ${SRC}/policies/q.cpp
             ${SRC}/policies/bounded_q.cpp
             ${SRC}/policies/parameterized.cpp
-            ${SRC}/policies/pid.cpp
-            ${SRC}/policies/mcts.cpp
-            ${SRC}/policies/ucb.cpp
+#            ${SRC}/policies/pid.cpp
+#            ${SRC}/policies/mcts.cpp
+#            ${SRC}/policies/ucb.cpp
             ${SRC}/policies/state_feedback.cpp
             ${SRC}/predictors/model.cpp
             ${SRC}/predictors/sarsa.cpp
-            ${SRC}/predictors/ggq.cpp
+#            ${SRC}/predictors/ggq.cpp
             ${SRC}/predictors/ac.cpp
             ${SRC}/predictors/fqi.cpp
             ${SRC}/predictors/qv.cpp
@@ -50,7 +50,7 @@ add_library(${TARGET} SHARED
             ${SRC}/projectors/peaked.cpp
             ${SRC}/projectors/scaling.cpp
             ${SRC}/projectors/tile_coding.cpp
-            ${SRC}/projectors/fourier.cpp
+#            ${SRC}/projectors/fourier.cpp
             ${SRC}/projectors/grid.cpp
             ${SRC}/representations/linear.cpp
             ${SRC}/representations/multisine.cpp
@@ -61,12 +61,12 @@ add_library(${TARGET} SHARED
             ${SRC}/solvers/agent.cpp
             ${SRC}/solvers/vi.cpp
             ${SRC}/traces/enumerated.cpp
-            ${SRC}/visualizations/acrobot.cpp
-            ${SRC}/visualizations/pendulum.cpp
+#            ${SRC}/visualizations/acrobot.cpp
+#            ${SRC}/visualizations/pendulum.cpp
             ${SRC}/visualizations/cart_pole.cpp
             ${SRC}/visualizations/compass_walker.cpp
-            ${SRC}/visualizations/pinball.cpp
-            ${SRC}/visualizations/windy.cpp
+#            ${SRC}/visualizations/pinball.cpp
+#            ${SRC}/visualizations/windy.cpp
 			${SRC}/log/export_csv.cpp
            )
 
