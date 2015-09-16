@@ -2,12 +2,13 @@
  * nmpc_th.h
  *
  *  Created on: Sep 12, 2015
- *      Author: ivan
+ *      Author: Ivan Koryakovskiy
  */
 
 #include <grl/policies/nmpc_th.h>
 #include <dlfcn.h>
 #include <pthread.h>
+#include <unistd.h>
 
 using namespace grl;
 
@@ -40,7 +41,7 @@ void NMPCPolicyTh::request(ConfigurationRequest *config)
 void NMPCPolicyTh::configure(Configuration &config)
 {
   std::cout << "NMPCPolicyTh::configure" << std::endl;
-  verbose_ = 1;
+  verbose_ = 0;
 
   muscod_ = new MUSCOD();
 

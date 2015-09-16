@@ -532,15 +532,6 @@ void meshup_output
     data_out( ts, sd, sa, u, p, rwh, iwh, &info);
 }
 
-/*
-LuaTable readLuaModel(const char *filename)
-{
-  lua_State *L = luaL_newstate();
-  luaL_openlibs(L);
-  luaL_dofile (L, filename);
-  return LuaTable::fromLuaState(L);
-}*/
-
 // \brief Entry point for the muscod application
 extern "C" void def_model(void);
 void def_model(void)
@@ -555,7 +546,6 @@ void def_model(void)
     model = new Model;
     std::string model_file_name_full = rel_data_path + model_file_name; // add relative path
     cout << "Loading RBDL model from: '" << model_file_name_full << "'" << endl;
-//    if (!RigidBodyDynamics::Addons::LuaModelReadFromTable(readLuaModel(model_file_name_full.c_str()), model, false))
     if (!Addons::LuaModelReadFromFile (model_file_name_full.c_str(), model, false))
     {
         cerr << "Error loading RBDL model '" << model_file_name_full << "'!" << endl;
@@ -597,9 +587,5 @@ void def_model(void)
     // define LSQ objective
     def_lsq(0, "*", 0, 4, lsqfcn);
 
-    def_mio (NULL , meshup_output, data_out);
-
-#ifdef HAVE_USERPLOT
-    def_userplot (plot_start, plot_data, plot_end);
-#endif
+//    def_mio (NULL , meshup_output, data_out);
 }

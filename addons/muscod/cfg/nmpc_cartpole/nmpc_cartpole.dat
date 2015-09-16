@@ -779,7 +779,8 @@ libqps
 qps_qpopt
 
 libplot
-plot_noplot
+plot_pgplot
+*plot_noplot
 *plot_pgplot
 
 **********************************
@@ -807,7 +808,7 @@ options_frstart
 options_frmax
 0
 options_itmax
-4
+1000
 options_plevel_screen
 0
 options_plevel_file
@@ -827,7 +828,7 @@ options_options_wflag
 options_cflag
 0
 options_output_ps
-1
+0
 options_output_gif
 0
 options_plot_stage_marker

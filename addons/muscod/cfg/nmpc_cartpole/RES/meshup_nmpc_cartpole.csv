@@ -1,5 +1,0 @@
-COLUMNS: 
-    time,
-    cart:T:x,
-    pendulum:R:y:rad,
-DATA_FROM: /media/ivan/ivan/Project/Software/grl/src/grl/addons/muscod/cfg/nmpc_cartpole/sd_nmpc_cartpole.csv

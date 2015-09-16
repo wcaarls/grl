@@ -36,12 +36,8 @@ if (MUSCOD_FOUND)
       endif()
     endforeach()
   endif()
-  
-  #set(MUSCOD_BUILD_TYPE ${MBT} CACHE STRING "Muscod build output subdirectory")
-	set(MUSCOD_BUILD_TYPE ${MBT})
-	message("*** MBT: ${MBT}")
-	message("*** MUSCOD_DIR: ${MUSCOD_DIR}")
-	message("*** MUSCOD_BUILD_TYPE: ${MUSCOD_BUILD_TYPE}")
+    
+  set(MUSCOD_BUILD_TYPE ${MBT} CACHE STRING "Muscod build output subdirectory")
 
   # Using some kind of weird build type, bail
   if (NOT EXISTS ${MUSCOD_DIR}/../../Packages/COMMON_CODE/${MUSCOD_BUILD_TYPE})
@@ -52,8 +48,7 @@ if (MUSCOD_FOUND)
 
   include( ${MUSCOD_USE_FILE} )
 
-#  link_directories( ${MUSCOD_DIR}/lib64 )
-	link_directories( ${MUSCOD_DIR}/../${MUSCOD_BUILD_TYPE}/lib64 )
+  link_directories( ${MUSCOD_DIR}/lib64 )
   link_directories( ${MUSCOD_DIR}/../../Packages/COMMON_CODE/${MUSCOD_BUILD_TYPE}/lib64/ )
   link_directories( ${MUSCOD_DIR}/../../Packages/LIBLAC/${MUSCOD_BUILD_TYPE}/lib64/ )  
   link_directories( ${MUSCOD_DIR}/../../Packages/INTERFACES/${MUSCOD_BUILD_TYPE}/CPP/ )
@@ -63,7 +58,7 @@ if (MUSCOD_FOUND)
   # Build library
   add_library(${TARGET} SHARED
               ${SRC}/nmpc.cpp
-							${SRC}/nmpc_th.cpp
+              ${SRC}/nmpc_th.cpp
              )
 
   # Add dependencies
@@ -91,7 +86,7 @@ if (MUSCOD_FOUND)
 
 		grl_link_libraries(${TARGET} base)
 		install(TARGETS ${TARGET} DESTINATION ${GRL_LIB_DESTINATION})
-#		install(DIRECTORY ${SRC}/../include/grl DESTINATION ${GRL_INCLUDE_DESTINATION} FILES_MATCHING PATTERN "*.h")
+		install(DIRECTORY ${SRC}/../include/grl DESTINATION ${GRL_INCLUDE_DESTINATION} FILES_MATCHING PATTERN "*.h")
 	ENDFOREACH(TARGET)
 else()
 	message(WARNING "-- MUSCOD-II not found")

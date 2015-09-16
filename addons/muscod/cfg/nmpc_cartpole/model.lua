@@ -1,6 +1,16 @@
---require 'SRC.strict'
+--[[
+--  RBDL cart-pole simulation
+--
+--  Author:
+--    Manuel Kudruss, UHEI
+--]]
 
 -- define some convenience functions
+
+function control(state, action)
+    -- mprl uses different parameters, multiply controls.
+    return {action[0], 0}
+end
 
 function get_point_by_name (container, name)
     for key, value in ipairs(container) do
@@ -41,7 +51,7 @@ cart_d = 0.20 -- y-axis
 cart_h = 0.20 -- z-axis
 cart_m = 10.0
 cart_com = {
-    0.0, 0.0, 0.0---cart_h/4.0
+    0.0, 0.0, 0.0
 }
 
 pend_l = 0.5

@@ -1,14 +1,6 @@
 # Setup build environment
 set(TARGET yaml-cpp)
 
-find_package(PkgConfig)
-pkg_check_modules(YAML yaml-cpp)
-
-if (YAML_FOUND)
-	message("-- Using external YAML library")
-	return()
-endif()
-
 message("-- Building included YAML library")
 
 execute_process(
