@@ -1,0 +1,193 @@
+*
+*
+*  MUSCOD-II/MC2_TEST/DAT/nmpc.dat
+*  (c) Moritz Diehl (2004)
+*
+*
+
+
+*  # of multiple shooting intervals on each model stage
+nshoot
+0: 30
+
+nstop(0,*)
+10
+
+*  model stage duration start values, scale factors, and bounds
+h
+0: 3
+
+h_sca
+0: 10.0
+
+h_min
+0: 0.0
+
+h_max
+0: 1000.0
+
+h_fix
+0: 1
+
+*  specification mode for differential state variable start values
+s_spec
+2
+
+*  differential state start values, scale factors, and bounds
+sd(*,*)
+0: 0.0
+
+sd_sca(*,*)
+0: 1.0
+
+sd_min(*,*)
+0: -1.0
+
+sd_max(*,*)
+0: 1.0
+
+*  control parameterization types
+u_type(*)
+0: 0
+
+*  control start values, scale factors, and bounds
+
+u(*,*)
+0: 0
+
+u_sca(*,*)
+0: 1.0
+
+u_min(0,*)
+0: -1
+
+u_max(0,*)
+0: 1
+
+*  objective scale and expected range; # of values in history plot
+of_sca
+1.0
+
+of_min
+-10.0
+
+of_max
+10.0
+
+nhist
+30
+
+of_name
+!least squares deviation
+
+plot_first
+0
+
+plot_last
+1
+
+*  names of states, controls, durations, parameters, and objective
+xd_name
+0: x
+u_name
+0: u
+h_name
+0: !
+p_name
+0: !
+p_unit
+0: -
+
+xd_unit
+0: -
+
+u_unit
+0: -
+
+
+**********************
+* Choosing libraries *
+**********************
+
+libmodel
+libnmpc_simple
+
+libhessian
+hess_limitedmemoryupdate
+*hess_gaussnewton
+*hess_update
+
+libsolve
+solve_fullstep
+
+libcond
+cond_min
+*cond_std
+
+libtchk
+tchk
+
+libmssqp
+mssqp_standard
+
+libeval
+eval_ind
+
+libind
+0: ind_rkf45
+
+libqps
+qps_qpopt
+
+libplot
+plot_noplot
+
+**********************************
+* Setting algorithmic parameters *
+**********************************
+
+options_acc
+1e-6
+options_ftol
+-1.0
+options_itol
+-1.0
+options_rfac
+0.0
+options_levmar
+0.0
+options_qp_featol
+1.0e-8
+options_qp_relax
+1.1
+options_nhtopy
+0
+options_frstart
+0
+options_frmax
+0
+options_itmax
+100
+options_plevel_screen
+0
+options_plevel_file
+1
+options_plevel_matlab
+0
+options_bflag
+-1
+options_qp_itmax
+10000
+options_qp_expand
+99999999
+options_sflag
+0
+options_options_wflag
+0
+options_cflag
+0
+options_output_ps
+0
+options_output_gif
+0
+
