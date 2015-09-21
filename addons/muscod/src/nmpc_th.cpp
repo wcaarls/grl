@@ -151,6 +151,7 @@ void NMPCPolicyTh::configure(Configuration &config)
   pthread_cond_init (&cond_iv_ready_, NULL);
 
   // Start MUSCOD-II in a thread running a signal triggered execution loop
+  pthread_mutex_lock(&mutex_);
   if (verbose_)
     std::cout << "In " << __func__ << ": creating MUSCOD-II thread" << std::endl;
   int rc = pthread_create(&muscod_thread_, NULL, muscod_run, static_cast<void*> (&data_));
@@ -164,7 +165,7 @@ void NMPCPolicyTh::configure(Configuration &config)
   // wait for MUSCOD thread to initialize data structure
   if (verbose_)
     std::cout << "MUSCOD: Waiting for MUSCOD thread..." << std::endl;
-  pthread_mutex_lock(&mutex_);
+
   pthread_cond_wait(&cond_iv_ready_, &mutex_);
   pthread_mutex_unlock(&mutex_);
 
@@ -247,7 +248,7 @@ void NMPCPolicyTh::muscod_reset()
   data_.restore_muscod_state(muscod_);
 
   // Solve until convergence to prepare solver
-  for (int ii=0; ii < 20; ++ii) // TODO: check error instead
+  for (int ii=0; ii < 100; ++ii) // TODO: check error instead
   {
     muscod_->nmpcFeedback(NULL, NULL, NULL);
     muscod_->nmpcTransition();
@@ -255,8 +256,8 @@ void NMPCPolicyTh::muscod_reset()
   }
 
   // Copy initial controls to provide immediate feedback
-//  for (int IMSN = 0; IMSN < NMSN_; ++IMSN)
-//    data_.qc[IMSN] = ;
+  for (int IMSN = 0; IMSN < NMSN_; ++IMSN)
+    muscod_->getNodeQC (IMSN, &data_.qc[IMSN][0]);
   data_.qc = data_.backup_qc;
 
   // Reset internal counters
@@ -371,11 +372,11 @@ void *NMPCPolicyTh::muscod_run(void *indata)
     pthread_mutex_unlock(&mutex_);
 
     // NMPC loop, assume that it converges after 3 iterations
-    for (int ii=0; ii < 3; ++ii)
+    for (int ii=0; ii < 4; ++ii)
     {
       muscod_->nmpcFeedback(initial_sd.data(), initial_pf.data(), first_qc.data());
       muscod_->nmpcTransition();
-      muscod_->nmpcShift(3);
+//      muscod_->nmpcShift(3);
       muscod_->nmpcPrepare();
     }
 
@@ -413,7 +414,7 @@ void NMPCPolicyTh::act(double time, const Vector &in, Vector *out)
     std::cout << "observation state: [ ";
     std::copy(in.begin(), in.end(),
               std::ostream_iterator<double>(std::cout, " "));
-    std::cout << " ]" << std::endl;
+    std::cout << "]" << std::endl;
   }
 
   // Convert MPRL states into MUSCOD states
@@ -425,7 +426,7 @@ void NMPCPolicyTh::act(double time, const Vector &in, Vector *out)
     std::cout << "state: [ ";
     std::copy(muscod_obs_.begin(), muscod_obs_.end(),
               std::ostream_iterator<double>(std::cout, " "));
-    std::cout << " ]" << std::endl;
+    std::cout << "]" << std::endl;
   }
 
   // Obtain feedback, provide new state and unblock thread
@@ -438,15 +439,11 @@ void NMPCPolicyTh::act(double time, const Vector &in, Vector *out)
 
     if (verbose_)
     {
-      std::cout << "Obtained Control:";
+      std::cout << "Obtained Control - 1:";
       for (int IMSN = 0; IMSN < 10; ++IMSN)
         print_array(&muscod_action_[IMSN][0], NU_);
       std::cout << std::endl;
-      std::cout << "Start from " << qc_cnt_base_ << std::endl;
     }
-
-    qc_cnt_ = qc_cnt_base_;
-    qc_cnt_base_ = 0;
 
     // Provide state and time
     for (int IXD = 0; IXD < NXD_; ++IXD)
@@ -466,7 +463,23 @@ void NMPCPolicyTh::act(double time, const Vector &in, Vector *out)
         usleep(100000);
         pthread_mutex_lock(&mutex_);
       }
+      // in single-step mode use feedback immediately
+      qc_cnt_base_ = 0;
+      for (int IMSN = 0; IMSN < NMSN_; ++IMSN)
+         muscod_action_[IMSN] = data_.qc[IMSN];
     }
+
+    if (verbose_)
+    {
+      std::cout << "Obtained Control:";
+      for (int IMSN = 0; IMSN < 10; ++IMSN)
+        print_array(&muscod_action_[IMSN][0], NU_);
+      std::cout << std::endl;
+      std::cout << "Start from " << qc_cnt_base_ << std::endl;
+    }
+
+    qc_cnt_ = qc_cnt_base_;
+    qc_cnt_base_ = 0;
   }
   pthread_mutex_unlock(&mutex_);
 
