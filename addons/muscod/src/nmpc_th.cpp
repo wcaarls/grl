@@ -41,7 +41,8 @@ void NMPCPolicyTh::request(ConfigurationRequest *config)
 
 void NMPCPolicyTh::configure(Configuration &config)
 {
-  model_path_   = std::string(MUSCOD_CONFIG_DIR);
+  std::string model_path;
+  model_path    = std::string(MUSCOD_CONFIG_DIR);
   model_name_   = config["model_name"].str();
   outputs_      = config["outputs"];
   inputs_       = config["inputs"];
@@ -51,7 +52,7 @@ void NMPCPolicyTh::configure(Configuration &config)
   std::cout << "Running MUSCOD in a " << (single_step_?"single-step ":"multi-step ") << "mode." << std::endl;
 
   // Setup path for the problem description library and lua, csv, dat files used by it
-  std::string problem_path  = model_path_ + "/" + model_name_;
+  std::string problem_path  = model_path + "/" + model_name_;
 
   //-------------------- Load Lua model which is used by muscod ------------------- //
   lua_model_ = problem_path + "/" + config["lua_model"].str();
@@ -102,16 +103,76 @@ void NMPCPolicyTh::configure(Configuration &config)
   }
 
   //------------------- Initialize MUSCOD ------------------- //
-  data_.model_path = problem_path;
-  data_.relative_dat_path = ".";
-  data_.model_name = model_name_;
+//  data_.model_path = problem_path;
+//  data_.relative_dat_path = ".";
+//  data_.model_name = model_name_;
 
   muscod_ = new MUSCOD();
-  muscod_init();
+  muscod_->setModelPathAndName(problem_path.c_str(), model_name_.c_str());
+  muscod_->loadFromDatFile(".", model_name_.c_str());
+
+//  muscod_->setModelPathAndName(model_path_.c_str(), model_name_.c_str());
+//  muscod_->loadFromDatFile(NULL, NULL);
+  muscod_->setLogLevelScreen(-1);
+  muscod_->setLogLevelAndFile(-1, NULL, NULL);
+
+  // get proper dimensions
+  muscod_->nmpcInitialize(muscod_->getSSpec(), NULL, NULL);
+  // solve until convergence to prepare solver
+  for (int ii=0; ii < 20; ++ii)  // TODO: check error instead
+  {
+    muscod_->nmpcFeedback(NULL, NULL, NULL);
+    muscod_->nmpcTransition();
+    muscod_->nmpcPrepare();
+  }
+
+  // save solver state
+  data_.backup_muscod_state(muscod_);
+
+  NMSN_ = data_.NMSN;
+  NXD_  = data_.NXD;
+  NP_   = data_.NP;
+  NU_   = data_.NU;
+
+  // prepare muscod structures
+  muscod_obs_.resize(inputs_);
+  muscod_action_.resize(NMSN_);
+  for (int i = 0; i < NMSN_; i++)
+    muscod_action_[i].resize(outputs_);
+
+  // Copy initial solution to do warm control
+  pthread_mutex_lock(&mutex_);
+  for (int IMSN = 0; IMSN < NMSN_; ++IMSN)
+    muscod_action_[IMSN] = data_.backup_qc[IMSN];
+  pthread_mutex_unlock(&mutex_);
+
+  // Initialize mutex and condition variable objects
+  pthread_mutex_init(&mutex_, NULL);
+  pthread_cond_init (&cond_iv_ready_, NULL);
+
+  // Start MUSCOD-II in a thread running a signal triggered execution loop
+  if (verbose_)
+    std::cout << "In " << __func__ << ": creating MUSCOD-II thread" << std::endl;
+  int rc = pthread_create(&muscod_thread_, NULL, muscod_run, static_cast<void*> (&data_));
+  if (rc)
+  {
+      std::cerr << "ERROR: pthread_create() failed with " << rc << std::endl;
+      std::cerr << "bailing out..." << rc << std::endl;
+      abort();
+  }
+
+  // wait for MUSCOD thread to initialize data structure
+  if (verbose_)
+    std::cout << "MUSCOD: Waiting for MUSCOD thread..." << std::endl;
+  pthread_mutex_lock(&mutex_);
+  pthread_cond_wait(&cond_iv_ready_, &mutex_);
+  pthread_mutex_unlock(&mutex_);
+
+  //muscod_init();
 }
 
 void NMPCPolicyTh::muscod_init()
-{
+{/*
   // Prepare to start thread
   qc_cnt_ = 0;
   qc_cnt_base_ = 0;
@@ -161,19 +222,53 @@ void NMPCPolicyTh::muscod_init()
   for (int IMSN = 0; IMSN < NMSN_; ++IMSN)
     muscod_action_[IMSN] = data_.qc[IMSN];
   pthread_mutex_unlock(&mutex_);
+  */
 }
 
 void NMPCPolicyTh::muscod_reset()
 {
   // Finalise thread from previous episode (if required)
-  muscod_quit(&data_);
-  int r = pthread_join(muscod_thread_, NULL);
-  if (r)
-    std::cout << "pthread_join resulted in error: " << strerror(r) << std::endl;
+//  muscod_quit(&data_);
+//  int r = pthread_join(muscod_thread_, NULL);
+//  if (r)
+//    std::cout << "pthread_join resulted in error: " << strerror(r) << std::endl;
 
-  // reset internal counters
+  // Wait for thread to stop at the condition variable
+  pthread_mutex_lock(&mutex_);
+  while (!iv_ready_)
+  {
+    pthread_mutex_unlock(&mutex_);
+    usleep(100000);
+    pthread_mutex_lock(&mutex_);
+  }
+  pthread_mutex_unlock(&mutex_);
+
+  // Reload solution state
+  data_.restore_muscod_state(muscod_);
+
+  // Solve until convergence to prepare solver
+  for (int ii=0; ii < 20; ++ii) // TODO: check error instead
+  {
+    muscod_->nmpcFeedback(NULL, NULL, NULL);
+    muscod_->nmpcTransition();
+    muscod_->nmpcPrepare();
+  }
+
+  // Copy initial controls to provide immediate feedback
+//  for (int IMSN = 0; IMSN < NMSN_; ++IMSN)
+//    data_.qc[IMSN] = ;
+  data_.qc = data_.backup_qc;
+
+  // Reset internal counters
   std::vector<double> dummy;
   so_convert_obs_for_muscod(dummy, dummy);
+
+  // Reset counters
+  qc_cnt_ = 0;
+  qc_cnt_base_ = 0;
+
+  if (verbose_)
+    std::cout << "MUSCOD: reset done!" << std::endl;
 }
 
 void NMPCPolicyTh::reconfigure(const Configuration &config)
@@ -191,6 +286,7 @@ void *NMPCPolicyTh::muscod_run(void *indata)
   }
   MuscodData& data = *static_cast<MuscodData*> (indata);
 
+/*
   // NMPC SETUP
   muscod_->setLogLevelScreen(-1);
   muscod_->setLogLevelAndFile(-1, NULL, NULL);
@@ -205,28 +301,37 @@ void *NMPCPolicyTh::muscod_run(void *indata)
   unsigned long NXD, NXA, NU, NP;
   muscod_->getDimIMSN(0, &NXD, &NXA, &NU);
   NP = muscod_->data.dataMSSQP->vdim.pf;
-
-  // define initial value and placeholder for feedback
-  std::vector<double> initial_sd (NXD, 0.0);
-  std::vector<double> initial_pf (NP,  0.0);
-  std::vector<double> first_qc (NU, 0.0);
+*/
 
   // instantiate values of data structure
   pthread_mutex_lock(&mutex_);
-  data.NMSN = NMSN;
+/*  data.NMSN = NMSN;
   data.NXD  = NXD;
   data.NXA  = NXA;
   data.NU   = NU;
   data.NP   = NP;
+*/
+  unsigned long NMSN = data.NMSN;
+  unsigned long NXD  = data.NXD;
+  unsigned long NP   = data.NP;
+  unsigned long NU   = data.NU;
 
+  // define initial value and placeholder for feedback
+  std::vector<double> initial_sd (NXD, 0.0);
+  std::vector<double> initial_pf (NP,  0.0);
+  std::vector<double> first_qc   (NU,  0.0);
+
+  // same for exchange TODO: move this to backup_muscod_state
   data.initial_sd = std::vector<double> (NXD, 0.0);
   data.initial_pf = std::vector<double> (NP,  0.0);
-  data.qc = std::vector<std::vector<double> > (NMSN, first_qc);
+  data.qc = std::vector<std::vector<double>> (NMSN, first_qc);
+
   data.is_initialized = true;
   // PUT CONTROLS INTO DATA STRUCTURE: should be avaliable to a user right away
-  for (int IMSN = 0; IMSN < NMSN; ++IMSN) {
+/*  for (int IMSN = 0; IMSN < NMSN; ++IMSN) {
     muscod_->getNodeQC (IMSN, &data.qc[IMSN][0]);
   }
+*/
   pthread_cond_signal(&cond_iv_ready_);
   pthread_mutex_unlock(&mutex_);
 
@@ -265,11 +370,21 @@ void *NMPCPolicyTh::muscod_run(void *indata)
     }
     pthread_mutex_unlock(&mutex_);
 
+    // NMPC loop, assume that it converges after 3 iterations
+    for (int ii=0; ii < 3; ++ii)
+    {
+      muscod_->nmpcFeedback(initial_sd.data(), initial_pf.data(), first_qc.data());
+      muscod_->nmpcTransition();
+      muscod_->nmpcShift(3);
+      muscod_->nmpcPrepare();
+    }
+
+
     // EMBED INITIAL VALUES AND PARAMETERS
-    muscod_->nmpcEmbedding (&initial_sd[0], &initial_pf[0]);
+//    muscod_->nmpcEmbedding (&initial_sd[0], &initial_pf[0]);
 
     // SOLVE UNTIL CONVERGENCE
-    muscod_->sqpSolve();
+//    muscod_->sqpSolve();
   } // END OF EXECUTION LOOP
 
   std::cout << "MUSCOD: Exit thread" << std::endl;
@@ -289,10 +404,7 @@ void NMPCPolicyTh::muscod_quit(void* data)
 void NMPCPolicyTh::act(double time, const Vector &in, Vector *out)
 {
   if (time == 0.0)
-  {
     muscod_reset();
-    muscod_init();
-  }
 
   out->resize(outputs_);
 
@@ -322,7 +434,7 @@ void NMPCPolicyTh::act(double time, const Vector &in, Vector *out)
   {
     // Obtain feedback
     for (int IMSN = 0; IMSN < NMSN_; ++IMSN)
-          muscod_action_[IMSN] = data_.qc[IMSN];
+       muscod_action_[IMSN] = data_.qc[IMSN];
 
     if (verbose_)
     {
@@ -395,7 +507,7 @@ void NMPCPolicyTh::print_array(const double* arr, const unsigned int len)
       std::cout << ", ";
     }
   }
-  std::cout << " ]  ";
+  std::cout << "]  ";
 }
 
 

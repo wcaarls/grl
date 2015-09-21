@@ -19,10 +19,10 @@ struct MuscodData {
   bool got_dimensions;
   bool quit;
 
-  std::string model_path;
+/*  std::string model_path;
   std::string model_name;
   std::string relative_dat_path;
-
+*/
   std::vector<double> initial_sd; // only first shooting node contains initial values
   std::vector<double> initial_pf; // global parameters
   std::vector<std::vector<double> > qc; // all controls have to saved

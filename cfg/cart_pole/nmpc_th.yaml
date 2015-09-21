@@ -26,7 +26,7 @@ experiment:
       inputs: experiment/environment/task/observation_dims
       outputs: experiment/environment/task/action_dims
       single_step: 1
-      verbose: 0
+      verbose: 1
 visualizer: 
   type: visualizer/glut
 visualization: 

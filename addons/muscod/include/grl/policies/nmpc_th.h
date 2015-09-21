@@ -22,7 +22,7 @@ class NMPCPolicyTh: public Policy
 
   protected:
     int verbose_, single_step_;
-    std::string model_path_, model_name_, lua_model_;
+    std::string model_name_, lua_model_;
     size_t outputs_, inputs_;
 
     // MUSCOD-II interface
@@ -31,7 +31,7 @@ class NMPCPolicyTh: public Policy
     static MUSCOD *muscod_;
     Vector muscod_obs_;
     std::vector<Vector> muscod_action_;
-    long   NP_, NMSN_, NXD_, NU_, NXA_;
+    long   NP_, NMSN_, NXD_, NU_;
 
     // pthread thread, conditions and mutexes
     void   print_array(const double* arr, const unsigned int len);

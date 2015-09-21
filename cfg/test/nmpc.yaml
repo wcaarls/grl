@@ -3,7 +3,7 @@ experiment:
   runs: 1
   trials: 0
   steps: 0
-  rate: 20
+  rate: 0
   test_interval: 0
   environment: 
     type: environment/modeled
