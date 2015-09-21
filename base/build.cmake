@@ -5,13 +5,13 @@ set(TARGET grl)
 add_library(${TARGET} SHARED
             ${SRC}/grl.cpp
             ${SRC}/agents/fixed.cpp
-            ${SRC}/agents/black_box.cpp
+#            ${SRC}/agents/black_box.cpp
             ${SRC}/agents/td.cpp
-            ${SRC}/agents/dyna.cpp
+#            ${SRC}/agents/dyna.cpp
             ${SRC}/agents/exclusive.cpp
             ${SRC}/agents/sequential.cpp
-            ${SRC}/agents/compartmentalized.cpp
-            ${SRC}/agents/solver.cpp
+#            ${SRC}/agents/compartmentalized.cpp
+#            ${SRC}/agents/solver.cpp
             ${SRC}/configurable.cpp
             ${SRC}/discretizers/uniform.cpp
             ${SRC}/discretizers/peaked.cpp
@@ -24,9 +24,9 @@ add_library(${TARGET} SHARED
 #            ${SRC}/environments/windy.cpp
             ${SRC}/environments/compass_walker/SWModel.cpp
             ${SRC}/environments/compass_walker/compass_walker.cpp
-            ${SRC}/experiments/approx_test.cpp
+#            ${SRC}/experiments/approx_test.cpp
             ${SRC}/experiments/online_learning.cpp
-            ${SRC}/experiments/batch_learning.cpp
+#            ${SRC}/experiments/batch_learning.cpp
             ${SRC}/policies/random.cpp
             ${SRC}/policies/action.cpp
             ${SRC}/policies/v.cpp
@@ -40,8 +40,8 @@ add_library(${TARGET} SHARED
             ${SRC}/predictors/model.cpp
             ${SRC}/predictors/sarsa.cpp
 #            ${SRC}/predictors/ggq.cpp
-            ${SRC}/predictors/ac.cpp
-            ${SRC}/predictors/fqi.cpp
+#            ${SRC}/predictors/ac.cpp
+#            ${SRC}/predictors/fqi.cppЗ
             ${SRC}/predictors/qv.cpp
             ${SRC}/predictors/td.cpp
             ${SRC}/predictors/vi.cpp
@@ -53,7 +53,7 @@ add_library(${TARGET} SHARED
 #            ${SRC}/projectors/fourier.cpp
             ${SRC}/projectors/grid.cpp
             ${SRC}/representations/linear.cpp
-            ${SRC}/representations/multisine.cpp
+#            ${SRC}/representations/multisine.cpp
             ${SRC}/representations/ann.cpp
 #            ${SRC}/representations/dmp.cpp
             ${SRC}/samplers/greedy.cpp
@@ -67,7 +67,7 @@ add_library(${TARGET} SHARED
             ${SRC}/visualizations/compass_walker.cpp
 #            ${SRC}/visualizations/pinball.cpp
 #            ${SRC}/visualizations/windy.cpp
-			${SRC}/log/export_csv.cpp
+		${SRC}/log/export_csv.cpp
            )
 
 # Dependencies
