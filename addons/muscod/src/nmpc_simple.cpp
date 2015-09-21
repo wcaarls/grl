@@ -21,6 +21,12 @@
 #define  NU     1
 #define  NPR    0
 
+const double w0 = 10.0;
+const double w1 =  1.0;
+
+const double sw0 = sqrt(w0);
+const double sw1 = sqrt(w1);
+
 static void lfcn(double *t, double *xd, double *xa, double *u,
   double *p, double *lval, double *rwh, long *iwh, InfoPtr *info) {
     *lval = 10 * xd[0] * xd[0] + u[0] * u[0];
@@ -44,12 +50,20 @@ static void ffcn(double *t, double *xd, double *xa, double *u,
 static void lsqfcn(double *ts, double *sd, double *sa, double *u,
   double *p, double *pr, double *res, long *dpnd, InfoPtr *info)
 {
+  if (*dpnd) { *dpnd = RFCN_DPND(0, *sd, 0, *u, 0, 0); return; }
 
-	if (*dpnd) { *dpnd = RFCN_DPND(0, *sd, 0, *u, 0, 0); return; }
+  res[0] = sw0 * sd[0];
+  res[1] = sw1 *  u[0];
+}
 
-  res[0] = sd[0] * sd[0];
-  res[1] =  u[0] *  u[0];
+static void msqfcn(double *ts, double *sd, double *sa, double *u,
+  double *p, double *pr, double *res, long *dpnd, InfoPtr *info)
+{
 
+  if (*dpnd) { *dpnd = RFCN_DPND(0, *sd, 0, *u, 0, 0); return; }
+
+  res[0] = 2.0 * sw0 * sd[0];
+  res[1] = 2.0 * sw1 *  u[0];
 }
 
 extern "C" void def_model(void)
@@ -58,11 +72,14 @@ extern "C" void def_model(void)
   def_mstage(
     0, // stage number
     NXD, NXA, NU, // variable dimensions
-    //NULL, NULL, // objective functions
-    mfcn_e, lfcn, // objective functions
+    NULL, NULL, // objective functions
+    //mfcn_e, lfcn, // objective functions
     0, 0, 0, NULL, ffcn, NULL, // rhs
     NULL, NULL
   );
-  //def_lsq(0, "c",0 , NXD+NU, lsqfcn);
+  // def_lsq(0, "c",0 , NXD+NU, lsqfcn);
+  def_lsq(0, "s", 0, NXD+NU, lsqfcn);
+  def_lsq(0, "i", 0, NXD+NU, lsqfcn);
+  def_lsq(0, "e", 0, NXD+NU, msqfcn);
   def_mpc(0, "End Point", NPR, NXD, NXD, NULL, NULL);
 }

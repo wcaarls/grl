@@ -9,38 +9,11 @@
 #define NMPCPOLICYTH_H_
 
 #include <grl/policy.h>
+#include <grl/policies/common_code.h> // MUSCOD-II thread-safe data structure
 #include "wrapper.hpp" // MUSCOD-II interface
 #include <time.h>
 
 namespace grl {
-
-// Thread-safe data structure
-struct MuscodData {
-  unsigned long NMSN, NXD, NXA, NU, NP;
-  bool is_initialized;
-  bool quit;
-
-  std::string model_path;
-  std::string model_name;
-  std::string relative_dat_path;
-
-  std::vector<double> initial_sd; // only first shooting node contains initial values
-  std::vector<double> initial_pf; // global parameters
-  std::vector<std::vector<double> > qc; // all controls have to saved
-
-  // TODO add threadsafe getter and setter for initial values and controls
-
-  // Constructor
-  MuscodData() :
-    NMSN(0),
-    NXD(0),
-    NXA(0),
-    NU(0),
-    NP(0),
-    quit(false),
-    is_initialized(false)
-  {}
-};
 
 class NMPCPolicyTh: public Policy
 {

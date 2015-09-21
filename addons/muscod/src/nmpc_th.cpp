@@ -116,7 +116,7 @@ void NMPCPolicyTh::muscod_init()
   qc_cnt_ = 0;
   qc_cnt_base_ = 0;
 
-  // Be sure thread will not quit (since thred has not started yet it is safe)
+  // Be sure thread will not quit (since thread has not started yet it is safe)
   data_.quit = false;
 
   // Initialize mutex and condition variable objects

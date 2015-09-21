@@ -113,16 +113,15 @@ libmodel
 libnmpc_simple
 
 libhessian
-hess_limitedmemoryupdate
-*hess_gaussnewton
+hess_gaussnewton
+*hess_limitedmemoryupdate
 *hess_update
 
 libsolve
 solve_fullstep
 
 libcond
-cond_min
-*cond_std
+cond_std
 
 libtchk
 tchk
@@ -134,13 +133,14 @@ libeval
 eval_ind
 
 libind
-0: ind_rkf45
+0: ind_rkfswt
 
 libqps
 qps_qpopt
 
 libplot
 plot_noplot
+plot_pgplot
 
 **********************************
 * Setting algorithmic parameters *
@@ -169,11 +169,11 @@ options_frmax
 options_itmax
 100
 options_plevel_screen
-0
+-1
 options_plevel_file
-1
+-1
 options_plevel_matlab
-0
+-1
 options_bflag
 -1
 options_qp_itmax
@@ -182,8 +182,8 @@ options_qp_expand
 99999999
 options_sflag
 0
-options_options_wflag
-0
+options_wflag
+1
 options_cflag
 0
 options_output_ps
