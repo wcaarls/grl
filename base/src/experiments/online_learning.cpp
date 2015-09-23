@@ -112,6 +112,7 @@ void OnlineLearningExperiment::run()
       double reward, total_reward=0;
       int terminal;
       bool test = (test_interval_ && tt%(test_interval_+1) == test_interval_);
+      timer step_timer;
 
       Agent *agent = agent_;      
       if (test) agent = test_agent_;
@@ -124,7 +125,13 @@ void OnlineLearningExperiment::run()
   
       do
       {
-        if (rate_) usleep(1000000./rate_);
+        if (rate_)
+        {
+          double sleep_time = 1./rate_-step_timer.elapsed();
+          if (sleep_time > 0)
+            usleep(1000000.*sleep_time);
+          step_timer.restart();
+        }
         
         double tau = environment_->step(action, &obs, &reward, &terminal);
         
