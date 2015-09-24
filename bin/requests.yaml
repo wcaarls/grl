@@ -652,6 +652,14 @@ model/windy:
   description: Sutton & Barto's windy gridworld model
 observation_model/approximated:
   description: Observation model based on observed transitions
+  jacobian_step:
+    type: double
+    description: Step size for Jacobian estimation
+    mutability: online
+    default: 0.001
+    optional: 1
+    min: 2.225073858507201e-308
+    max: 1.797693134862316e+308
   control_step:
     type: double.control_step
     description: Control step time (0 = estimate using SMDP approximator)
@@ -708,6 +716,14 @@ observation_model/approximated:
     optional: 0
 observation_model/fixed:
   description: Observation model based on known state transition model
+  jacobian_step:
+    type: double
+    description: Step size for Jacobian estimation
+    mutability: online
+    default: 0.001
+    optional: 1
+    min: 2.225073858507201e-308
+    max: 1.797693134862316e+308
   model:
     type: model
     description: Environment model
@@ -722,6 +738,14 @@ observation_model/fixed:
     optional: 0
 observation_model/fixed_reward:
   description: Observation model based on observed transitions but known task
+  jacobian_step:
+    type: double
+    description: Step size for Jacobian estimation
+    mutability: online
+    default: 0.001
+    optional: 1
+    min: 2.225073858507201e-308
+    max: 1.797693134862316e+308
   control_step:
     type: double.control_step
     description: Control step time (0 = estimate using SMDP approximator)

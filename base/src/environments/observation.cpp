@@ -33,10 +33,24 @@ REGISTER_CONFIGURABLE(FixedObservationModel)
 REGISTER_CONFIGURABLE(ApproximatedObservationModel)
 REGISTER_CONFIGURABLE(FixedRewardObservationModel)
 
+void ObservationModel::request(ConfigurationRequest *config)
+{
+  config->push_back(CRP("jacobian_step", "double", "Step size for Jacobian estimation", jacobian_step_, CRP::Online, DBL_MIN, DBL_MAX));
+}
+
+void ObservationModel::configure(Configuration &config)
+{
+  jacobian_step_ = config["jacobian_step"];
+}
+
+void ObservationModel::reconfigure(const Configuration &config)
+{
+  config.get("jacobian_step", jacobian_step_);
+}
+
 Matrix ObservationModel::jacobian(const Vector &obs, const Vector &action) const
 {
   Matrix J(obs.size(), obs.size()+action.size());
-  double h = 0.01;
   
   // Central differences 
   for (size_t ii=0; ii < obs.size()+action.size(); ++ii)
@@ -49,7 +63,7 @@ Matrix ObservationModel::jacobian(const Vector &obs, const Vector &action) const
     {
       // d obs / d obs
       Vector state1 = obs, state2 = obs;
-      state1[ii] -= h/2, state2[ii] += h/2;
+      state1[ii] -= jacobian_step_/2, state2[ii] += jacobian_step_/2;
     
       step(state1, action, &res1, &reward, &terminal);
       step(state2, action, &res2, &reward, &terminal);
@@ -58,7 +72,7 @@ Matrix ObservationModel::jacobian(const Vector &obs, const Vector &action) const
     {
       // d obs / d action
       Vector action1 = action, action2 = action;
-      action1[ii-obs.size()] -= h/2, action2[ii-obs.size()] += h/2;
+      action1[ii-obs.size()] -= jacobian_step_/2, action2[ii-obs.size()] += jacobian_step_/2;
       
       step(obs, action1, &res1, &reward, &terminal);
       step(obs, action2, &res2, &reward, &terminal);
@@ -68,7 +82,7 @@ Matrix ObservationModel::jacobian(const Vector &obs, const Vector &action) const
       return Matrix();
     
     for (size_t jj=0; jj < obs.size(); ++jj)
-      J(jj, ii) = (res2[jj]-res1[jj])/h;
+      J(jj, ii) = (res2[jj]-res1[jj])/jacobian_step_;
   }
 
   return J;
@@ -78,18 +92,23 @@ Matrix ObservationModel::jacobian(const Vector &obs, const Vector &action) const
 
 void FixedObservationModel::request(ConfigurationRequest *config)
 {
+  ObservationModel::request(config);
+
   config->push_back(CRP("model", "model", "Environment model", model_));
   config->push_back(CRP("task", "task", "Task to perform in the environment (should match model)", task_));
 }
 
 void FixedObservationModel::configure(Configuration &config)
 {
+  ObservationModel::configure(config);
+  
   model_ = (Model*)config["model"].ptr();
   task_ = (Task*)config["task"].ptr();
 }
 
 void FixedObservationModel::reconfigure(const Configuration &config)
 {
+  ObservationModel::reconfigure(config);
 }
 
 FixedObservationModel *FixedObservationModel::clone() const
@@ -122,6 +141,8 @@ double FixedObservationModel::step(const Vector &obs, const Vector &action, Vect
 
 void ApproximatedObservationModel::request(ConfigurationRequest *config)
 {
+  ObservationModel::request(config);
+
   config->push_back(CRP("control_step", "double.control_step", "Control step time (0 = estimate using SMDP approximator)", tau_, CRP::System, 0., DBL_MAX));
   config->push_back(CRP("differential", "int.differential", "Predict state deltas", differential_, CRP::Configuration, 0, 1));
   config->push_back(CRP("wrapping", "vector.wrapping", "Wrapping boundaries", wrapping_));
@@ -136,6 +157,8 @@ void ApproximatedObservationModel::request(ConfigurationRequest *config)
 
 void ApproximatedObservationModel::configure(Configuration &config)
 {
+  ObservationModel::configure(config);
+
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (Representation*)config["representation"].ptr();
 
@@ -167,6 +190,7 @@ void ApproximatedObservationModel::configure(Configuration &config)
 
 void ApproximatedObservationModel::reconfigure(const Configuration &config)
 {
+  ObservationModel::reconfigure(config);
 }
 
 ApproximatedObservationModel *ApproximatedObservationModel::clone() const
@@ -270,6 +294,7 @@ void FixedRewardObservationModel::configure(Configuration &config)
 
 void FixedRewardObservationModel::reconfigure(const Configuration &config)
 {
+  ApproximatedObservationModel::reconfigure(config);
 }
 
 FixedRewardObservationModel *FixedRewardObservationModel::clone() const
