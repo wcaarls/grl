@@ -30,6 +30,7 @@
 
 #include <grl/grl.h>
 #include <grl/configurable.h>
+#include <grl/exporter.h>
 
 namespace grl
 {
@@ -37,15 +38,45 @@ namespace grl
 /// Estimates a function from Transition%s.
 class Predictor : public Configurable
 {
+  protected:
+    Exporter *exporter_;
+
   public:
-    virtual ~Predictor() { }
+    Predictor() : exporter_(NULL) { }
+
+    // From Configurable
+    virtual void request(ConfigurationRequest *config)
+    {
+      config->push_back(CRP("exporter", "exporter", "Optional exporter for transition log (supports observation, action, reward, next_observation, next_action)", exporter_, true));
+    }
+    
+    virtual void configure(Configuration &config)
+    {
+      exporter_ = (Exporter*) config["exporter"].ptr();
+      if (exporter_)
+      {
+        exporter_->init({"observation", "action", "reward", "next_observation", "next_action"});
+        exporter_->open();
+      }
+    }
+    
+    virtual void reconfigure(const Configuration &config)
+    {
+    }
+    
     virtual Predictor *clone() const = 0;
     
     /// Update the estimation.
-    virtual void update(const Transition &transition) = 0;
+    virtual void update(const Transition &transition)
+    {
+      if (exporter_)
+        exporter_->write({transition.prev_obs, transition.prev_action, Vector{transition.reward}, transition.obs, transition.action});
+    }
     
     /// Signal completion of a set of updates (episode or batch).
-    virtual void finalize() = 0;
+    virtual void finalize()
+    {
+    }
 };
 
 }

@@ -33,6 +33,8 @@ REGISTER_CONFIGURABLE(QVPredictor)
 
 void QVPredictor::request(ConfigurationRequest *config)
 {
+  Predictor::request(config);
+
   config->push_back(CRP("alpha", "State-action value learning rate", alpha_));
   config->push_back(CRP("beta", "State value learning rate", beta_));
   config->push_back(CRP("gamma", "Discount rate", gamma_));
@@ -47,6 +49,8 @@ void QVPredictor::request(ConfigurationRequest *config)
 
 void QVPredictor::configure(Configuration &config)
 {
+  Predictor::configure(config);
+  
   q_projector_ = (Projector*)config["q_projector"].ptr();
   q_representation_ = (Representation*)config["q_representation"].ptr();
   v_projector_ = (Projector*)config["v_projector"].ptr();
@@ -61,6 +65,8 @@ void QVPredictor::configure(Configuration &config)
 
 void QVPredictor::reconfigure(const Configuration &config)
 {
+  Predictor::reconfigure(config);
+  
   if (config.has("action") && config["action"].str() == "reset")
     finalize();
 }
@@ -72,6 +78,8 @@ QVPredictor *QVPredictor::clone() const
 
 void QVPredictor::update(const Transition &transition)
 {
+  Predictor::update(transition);
+
   ProjectionPtr qp = q_projector_->project(transition.prev_obs, transition.prev_action);
   ProjectionPtr vp = v_projector_->project(transition.prev_obs);
   
@@ -99,5 +107,7 @@ void QVPredictor::update(const Transition &transition)
 
 void QVPredictor::finalize()
 {
+  Predictor::finalize();
+  
   trace_->clear();
 }

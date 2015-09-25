@@ -33,6 +33,8 @@ REGISTER_CONFIGURABLE(GGQPredictor)
 
 void GGQPredictor::request(ConfigurationRequest *config)
 {
+  Predictor::request(config);
+
   config->push_back(CRP("alpha", "Learning rate", alpha_));
   config->push_back(CRP("eta", "Relative secondary learning rate (actual is alpha*eta)", eta_));
   config->push_back(CRP("gamma", "Discount rate", gamma_));
@@ -44,6 +46,8 @@ void GGQPredictor::request(ConfigurationRequest *config)
 
 void GGQPredictor::configure(Configuration &config)
 {
+  Predictor::configure(config);
+  
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (Representation*)config["representation"].ptr();
   policy_ = (QPolicy*)config["policy"].ptr();
@@ -55,6 +59,8 @@ void GGQPredictor::configure(Configuration &config)
 
 void GGQPredictor::reconfigure(const Configuration &config)
 {
+  Predictor::reconfigure(config);
+  
 }
 
 GGQPredictor *GGQPredictor::clone() const
@@ -64,6 +70,8 @@ GGQPredictor *GGQPredictor::clone() const
 
 void GGQPredictor::update(const Transition &transition)
 {
+  Predictor::update(transition);
+
   Vector v;
   
   // phi (actual taken action)
@@ -106,4 +114,5 @@ void GGQPredictor::update(const Transition &transition)
 
 void GGQPredictor::finalize()
 {
+  Predictor::finalize();
 }

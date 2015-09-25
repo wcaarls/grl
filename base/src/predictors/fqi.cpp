@@ -33,6 +33,8 @@ REGISTER_CONFIGURABLE(FQIPredictor)
 
 void FQIPredictor::request(ConfigurationRequest *config)
 {
+  Predictor::request(config);
+
   config->push_back(CRP("gamma", "Discount rate", gamma_));
   config->push_back(CRP("transitions", "Maximum number of transitions to store", max_samples_, CRP::Configuration, 1));
   config->push_back(CRP("iterations", "Number of policy improvement rounds per episode", iterations_, CRP::Configuration, 1));
@@ -52,6 +54,8 @@ void FQIPredictor::request(ConfigurationRequest *config)
 
 void FQIPredictor::configure(Configuration &config)
 {
+  Predictor::configure(config);
+  
   discretizer_ = (Discretizer*)config["discretizer"].ptr();
   discretizer_->options(&variants_);
   
@@ -75,6 +79,8 @@ void FQIPredictor::configure(Configuration &config)
 
 void FQIPredictor::reconfigure(const Configuration &config)
 {
+  Predictor::reconfigure(config);
+  
   if (config.has("action") && config["action"].str() == "reset")
   {
     DEBUG("Initializing transition store");
@@ -186,11 +192,15 @@ FQIPredictor *FQIPredictor::clone() const
 
 void FQIPredictor::update(const Transition &transition)
 {
+  Predictor::update(transition);
+
   transitions_.push_back(CachedTransition(transition));
 }
 
 void FQIPredictor::finalize()
 {
+  Predictor::finalize();
+
   // rebuilding predictor every macro_batch_size_ episodes or do not rebuild at all
   if (macro_batch_size_ && ((++macro_batch_counter_ % macro_batch_size_) == 0))
     rebuild();

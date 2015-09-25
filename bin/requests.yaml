@@ -276,16 +276,16 @@ environment/modeled:
     mutability: configuration
     default: 0
     optional: 0
+  exporter:
+    type: exporter
+    description: Optional exporter for transition log (supports time, state, observation, action, reward, terminal)
+    mutability: configuration
+    default: 0
+    optional: 1
   state:
     type: state
     description: Current state of the model
     mutability: provided
-  output:
-    type: string
-    description: Base filename for state transition log
-    mutability: online
-    default: ""
-    optional: 1
 environment/ode:
   description: Open Dynamics Engine simulation environment
   xml:
@@ -546,6 +546,29 @@ experiment/online_learning:
     type: state
     description: Learning curve
     mutability: provided
+exporter/csv:
+  description: Comma-separated values exporter
+  file:
+    type: string
+    description: Output base filename
+    mutability: configuration
+    default: ""
+    optional: 1
+  fields:
+    type: string
+    description: Comma-separated list of fields to write
+    mutability: configuration
+    default: ""
+    optional: 1
+  style:
+    type: string
+    description: Header style
+    mutability: configuration
+    default: line
+    optional: 1
+    options:
+      - line
+      - meshup
 mapping/multisine:
   description: Sum of sines mapping
   inputs:
@@ -1254,6 +1277,12 @@ policy/uct:
     max: 1.797693134862316e+308
 predictor/ac/action:
   description: Actor-critic predictor for direct action policies
+  exporter:
+    type: exporter
+    description: Optional exporter for transition log (supports observation, action, reward, next_observation, next_action)
+    mutability: configuration
+    default: 0
+    optional: 1
   alpha:
     type: double
     description: Critic learning rate
@@ -1324,6 +1353,12 @@ predictor/ac/action:
     optional: 0
 predictor/ac/probability:
   description: Actor-critic predictor for action-probability policies
+  exporter:
+    type: exporter
+    description: Optional exporter for transition log (supports observation, action, reward, next_observation, next_action)
+    mutability: configuration
+    default: 0
+    optional: 1
   alpha:
     type: double
     description: Critic learning rate
@@ -1400,6 +1435,12 @@ predictor/ac/probability:
     optional: 0
 predictor/expected_sarsa:
   description: Expected SARSA low-variance on-policy value function predictor
+  exporter:
+    type: exporter
+    description: Optional exporter for transition log (supports observation, action, reward, next_observation, next_action)
+    mutability: configuration
+    default: 0
+    optional: 1
   alpha:
     type: double
     description: Learning rate
@@ -1456,6 +1497,12 @@ predictor/expected_sarsa:
     optional: 0
 predictor/fqi:
   description: Fitted Q-iteration predictor
+  exporter:
+    type: exporter
+    description: Optional exporter for transition log (supports observation, action, reward, next_observation, next_action)
+    mutability: configuration
+    default: 0
+    optional: 1
   gamma:
     type: double
     description: Discount rate
@@ -1518,6 +1565,12 @@ predictor/fqi:
     optional: 0
 predictor/full/qi:
   description: Deterministic model-based action-value function predictor
+  exporter:
+    type: exporter
+    description: Optional exporter for transition log (supports observation, action, reward, next_observation, next_action)
+    mutability: configuration
+    default: 0
+    optional: 1
   gamma:
     type: double
     description: Discount rate
@@ -1552,6 +1605,12 @@ predictor/full/qi:
     optional: 0
 predictor/full/vi:
   description: Deterministic model-based state-value function predictor
+  exporter:
+    type: exporter
+    description: Optional exporter for transition log (supports observation, action, reward, next_observation, next_action)
+    mutability: configuration
+    default: 0
+    optional: 1
   gamma:
     type: double
     description: Discount rate
@@ -1586,6 +1645,12 @@ predictor/full/vi:
     optional: 0
 predictor/ggq:
   description: Greedy-GQ off-policy value function predictor
+  exporter:
+    type: exporter
+    description: Optional exporter for transition log (supports observation, action, reward, next_observation, next_action)
+    mutability: configuration
+    default: 0
+    optional: 1
   alpha:
     type: double
     description: Learning rate
@@ -1630,6 +1695,12 @@ predictor/ggq:
     optional: 0
 predictor/model:
   description: Observation model predictor
+  exporter:
+    type: exporter
+    description: Optional exporter for transition log (supports observation, action, reward, next_observation, next_action)
+    mutability: configuration
+    default: 0
+    optional: 1
   differential:
     type: int.differential
     description: Predict state deltas
@@ -1658,6 +1729,12 @@ predictor/model:
     optional: 0
 predictor/qv:
   description: QV on-policy value function predictor
+  exporter:
+    type: exporter
+    description: Optional exporter for transition log (supports observation, action, reward, next_observation, next_action)
+    mutability: configuration
+    default: 0
+    optional: 1
   alpha:
     type: double
     description: State-action value learning rate
@@ -1722,6 +1799,12 @@ predictor/qv:
     optional: 0
 predictor/sarsa:
   description: SARSA on-policy value function predictor
+  exporter:
+    type: exporter
+    description: Optional exporter for transition log (supports observation, action, reward, next_observation, next_action)
+    mutability: configuration
+    default: 0
+    optional: 1
   alpha:
     type: double
     description: Learning rate
@@ -1766,6 +1849,12 @@ predictor/sarsa:
     optional: 0
 predictor/td:
   description: TD value function predictor
+  exporter:
+    type: exporter
+    description: Optional exporter for transition log (supports observation, action, reward, next_observation, next_action)
+    mutability: configuration
+    default: 0
+    optional: 1
   alpha:
     type: double
     description: Learning rate

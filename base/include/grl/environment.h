@@ -31,6 +31,7 @@
 #include <grl/configurable.h>
 #include <grl/state.h>
 #include <grl/policy.h>
+#include <grl/exporter.h>
 
 namespace grl
 {
@@ -106,14 +107,13 @@ class ModeledEnvironment : public Environment
     Task *task_;
     Vector state_, obs_;
     State *state_obj_;
+    Exporter *exporter_;
     
-    std::string output_;
-    std::ofstream output_stream_;
     bool test_;
     double time_test_, time_learn_;
 
   public:
-    ModeledEnvironment() : model_(NULL), task_(NULL), state_obj_(NULL), test_(false), time_test_(0.), time_learn_(0.) { }
+    ModeledEnvironment() : model_(NULL), task_(NULL), state_obj_(NULL), exporter_(NULL), test_(false), time_test_(0.), time_learn_(0.) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);
