@@ -1,5 +1,5 @@
 /** \file exporter.h
- * \brief Variable exporter source file.
+ * \brief Comma separated values exporter source file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
  * \author    Ivan Koryakovskiy <i.koryakovskiy@tudelft.nl>
@@ -93,9 +93,19 @@ void CSVExporter::init(const std::initializer_list<std::string> &headers)
         field.erase(ws, 1);
 
       // Find associated header
+      bool found=false;
       for (size_t ii=0; ii < headers_.size(); ++ii)
         if (headers_[ii] == field)
+        {
           order_.push_back(ii);
+          found = true;
+        }
+        
+      if (!found)
+      {
+        ERROR("Requested unregistered field '" << field << "'");
+        throw bad_param("exporter/csv:fields");
+      }
     } while (fields != "");
   }
 }
@@ -116,6 +126,12 @@ void CSVExporter::open(const std::string &variant, bool append)
 
 void CSVExporter::write(const std::initializer_list<Vector> &vars)
 {
+  if (vars.size() != headers_.size())
+  {
+    ERROR("Variable list does not match header list");
+    return;
+  }
+
   std::vector<Vector> var_vec;
   var_vec.insert(var_vec.end(), vars.begin(), vars.end());
 
@@ -126,23 +142,15 @@ void CSVExporter::write(const std::initializer_list<Vector> &vars)
       
     for (size_t ii=0; ii < order_.size(); ++ii)
     {
-      if (order_[ii] < var_vec.size())
+      Vector &v = var_vec[order_[ii]];
+      for (size_t jj = 0; jj < v.size(); ++jj)
       {
-        Vector &v = var_vec[order_[ii]];
-        for (size_t jj = 0; jj < v.size(); ++jj)
-        {
-          stream_ << headers_[order_[ii]] << "[" << jj << "]";
-          if (ii < order_.size()-1 || jj < v.size() -1)
-            stream_ << ", ";
-          if (style_ == "meshup")
-            stream_ << std::endl;
-        } 
-      }
-      else
-      {
-        ERROR("Variable list does not match header list");
-        return;
-      }
+        stream_ << headers_[order_[ii]] << "[" << jj << "]";
+        if (ii < order_.size()-1 || jj < v.size() -1)
+          stream_ << ", ";
+        if (style_ == "meshup")
+          stream_ << std::endl;
+      } 
     }
     
     if (style_ == "meshup")
@@ -155,20 +163,12 @@ void CSVExporter::write(const std::initializer_list<Vector> &vars)
 
   for (size_t ii=0; ii < order_.size(); ++ii)
   {
-    if (order_[ii] < var_vec.size())
+    Vector &v = var_vec[order_[ii]];
+    for (size_t jj = 0; jj < v.size(); ++jj)
     {
-      Vector &v = var_vec[order_[ii]];
-      for (size_t jj = 0; jj < v.size(); ++jj)
-      {
-        stream_ << v[jj];
-        if (ii < order_.size()-1 || jj < v.size() -1)
-          stream_ << ", "; 
-      }
-    }
-    else
-    {
-      ERROR("Variable list does not match header list");
-      return;
+      stream_ << v[jj];
+      if (ii < order_.size()-1 || jj < v.size() -1)
+        stream_ << ", "; 
     }
   }
   

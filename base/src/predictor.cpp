@@ -31,11 +31,13 @@ using namespace grl;
 
 void Predictor::request(ConfigurationRequest *config)
 {
+  config->push_back(CRP("importer", "importer", "Optional importer for pre-training", importer_, true));
   config->push_back(CRP("exporter", "exporter", "Optional exporter for transition log (supports observation, action, reward, next_observation, next_action)", exporter_, true));
 }
 
 void Predictor::configure(Configuration &config)
 {
+  importer_ = (Importer*) config["importer"].ptr();
   exporter_ = (Exporter*) config["exporter"].ptr();
   if (exporter_)
   {
@@ -51,8 +53,47 @@ void Predictor::reconfigure(const Configuration &config)
 
 void Predictor::update(const Transition &transition)
 {
+  if (importer_)
+  {
+    Importer *importer = importer_;
+    importer_ = NULL;
+  
+    NOTICE("Pre-training");
+    
+    importer->init({"observation", "action", "reward", "next_observation", "next_action"});
+    importer->open();
+    
+    Transition t;
+    Vector r;
+    while (importer->read({&t.prev_obs, &t.prev_action, &r, &t.obs, &t.action}))
+    {
+      if (!isfinite(t.obs[0]))
+      {
+        t.obs.clear();
+        t.action.clear();
+      }
+      
+      t.reward = r[0];
+      CRAWL(t);
+      update(t);
+    }
+    
+    finalize();
+    
+    NOTICE("Pre-training done");
+  }
+
   if (exporter_)
+  {
+    Transition t = transition;
+    if (t.obs.empty())
+    {
+      t.obs = Vector(nan(""), t.prev_obs.size());
+      t.action = Vector(nan(""), t.prev_action.size());
+    }
+  
     exporter_->write({transition.prev_obs, transition.prev_action, Vector{transition.reward}, transition.obs, transition.action});
+  }
 }
 
 void Predictor::finalize()

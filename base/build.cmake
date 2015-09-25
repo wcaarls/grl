@@ -28,6 +28,7 @@ add_library(${TARGET} SHARED
             ${SRC}/experiments/online_learning.cpp
             ${SRC}/experiments/batch_learning.cpp
             ${SRC}/exporters/csv.cpp
+            ${SRC}/importers/csv.cpp
             ${SRC}/policies/random.cpp
             ${SRC}/policies/action.cpp
             ${SRC}/policies/v.cpp

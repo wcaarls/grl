@@ -1,9 +1,8 @@
-/** \file exporter.h
- * \brief Variable exporter header file.
+/** \file importer.h
+ * \brief Variable importer header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \author    Ivan Koryakovskiy <i.koryakovskiy@tudelft.nl>
- * \date      2015-07-15
+ * \date      2015-09-25
  *
  * \copyright \verbatim
  * Copyright (c) 2015, Wouter Caarls and Ivan Koryakovskiy
@@ -26,60 +25,57 @@
  * \endverbatim
  */
 
-#ifndef GRL_EXPORTER_H_
-#define GRL_EXPORTER_H_
+#ifndef GRL_IMPORTER_H_
+#define GRL_IMPORTER_H_
 
 #include <grl/configurable.h>
 #include <initializer_list>
 
 namespace grl {
 
-class Exporter : public Configurable
+class Importer : public Configurable
 {
   public:
-    /// Register header names of variables that will be written.
+    /// Register header names of variables that will be read.
     virtual void init(const std::initializer_list<std::string> &list) = 0;
     
     /// Open a file.
-    virtual void open(const std::string &variant="", bool append=true) = 0;
+    virtual void open(const std::string &variant="") = 0;
 
     /**
-     * \brief Write a line.
+     * \brief Read a line.
      * 
      * The variable list should correspond to the header name.
      */
-    virtual void write(const std::initializer_list<Vector> &list) = 0;
+    virtual bool read(const std::initializer_list<Vector*> &list) = 0;
 };
 
-class CSVExporter : public Exporter
+class CSVImporter : public Importer
 {
   public:
-    TYPEINFO("exporter/csv", "Comma-separated values exporter");
+    TYPEINFO("importer/csv", "Comma-separated values importer");
     
   protected:
     std::string file_;
-    std::string fields_;
-    std::string style_;
     
-    std::ofstream stream_;
+    std::ifstream stream_;
     std::vector<size_t> order_;
     std::vector<std::string> headers_;
-    bool write_header_;
 
   public:
-    CSVExporter() : style_("line"), write_header_(true) { }
+    CSVImporter() { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
 
-    // From Exporter
-    void init(const std::initializer_list<std::string> &headers);
-    void open(const std::string &variant="", bool append=true);
-    void write(const std::initializer_list<Vector> &vars);
+    // From Importer
+    virtual void init(const std::initializer_list<std::string> &list);
+    virtual void open(const std::string &variant="");
+    virtual bool read(const std::initializer_list<Vector*> &list);
 };
 
 }
 
-#endif // GRL_EXPORTER_H_
+#endif // GRL_IMPORTER_H_

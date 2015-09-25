@@ -570,6 +570,14 @@ exporter/csv:
       - none
       - line
       - meshup
+importer/csv:
+  description: Comma-separated values importer
+  file:
+    type: string
+    description: Input base filename
+    mutability: configuration
+    default: ""
+    optional: 1
 mapping/multisine:
   description: Sum of sines mapping
   inputs:
@@ -1278,6 +1286,12 @@ policy/uct:
     max: 1.797693134862316e+308
 predictor/ac/action:
   description: Actor-critic predictor for direct action policies
+  importer:
+    type: importer
+    description: Optional importer for pre-training
+    mutability: configuration
+    default: 0
+    optional: 1
   exporter:
     type: exporter
     description: Optional exporter for transition log (supports observation, action, reward, next_observation, next_action)
@@ -1354,6 +1368,12 @@ predictor/ac/action:
     optional: 0
 predictor/ac/probability:
   description: Actor-critic predictor for action-probability policies
+  importer:
+    type: importer
+    description: Optional importer for pre-training
+    mutability: configuration
+    default: 0
+    optional: 1
   exporter:
     type: exporter
     description: Optional exporter for transition log (supports observation, action, reward, next_observation, next_action)
@@ -1436,6 +1456,12 @@ predictor/ac/probability:
     optional: 0
 predictor/expected_sarsa:
   description: Expected SARSA low-variance on-policy value function predictor
+  importer:
+    type: importer
+    description: Optional importer for pre-training
+    mutability: configuration
+    default: 0
+    optional: 1
   exporter:
     type: exporter
     description: Optional exporter for transition log (supports observation, action, reward, next_observation, next_action)
@@ -1498,6 +1524,12 @@ predictor/expected_sarsa:
     optional: 0
 predictor/fqi:
   description: Fitted Q-iteration predictor
+  importer:
+    type: importer
+    description: Optional importer for pre-training
+    mutability: configuration
+    default: 0
+    optional: 1
   exporter:
     type: exporter
     description: Optional exporter for transition log (supports observation, action, reward, next_observation, next_action)
@@ -1566,6 +1598,12 @@ predictor/fqi:
     optional: 0
 predictor/full/qi:
   description: Deterministic model-based action-value function predictor
+  importer:
+    type: importer
+    description: Optional importer for pre-training
+    mutability: configuration
+    default: 0
+    optional: 1
   exporter:
     type: exporter
     description: Optional exporter for transition log (supports observation, action, reward, next_observation, next_action)
@@ -1606,6 +1644,12 @@ predictor/full/qi:
     optional: 0
 predictor/full/vi:
   description: Deterministic model-based state-value function predictor
+  importer:
+    type: importer
+    description: Optional importer for pre-training
+    mutability: configuration
+    default: 0
+    optional: 1
   exporter:
     type: exporter
     description: Optional exporter for transition log (supports observation, action, reward, next_observation, next_action)
@@ -1646,6 +1690,12 @@ predictor/full/vi:
     optional: 0
 predictor/ggq:
   description: Greedy-GQ off-policy value function predictor
+  importer:
+    type: importer
+    description: Optional importer for pre-training
+    mutability: configuration
+    default: 0
+    optional: 1
   exporter:
     type: exporter
     description: Optional exporter for transition log (supports observation, action, reward, next_observation, next_action)
@@ -1696,6 +1746,12 @@ predictor/ggq:
     optional: 0
 predictor/model:
   description: Observation model predictor
+  importer:
+    type: importer
+    description: Optional importer for pre-training
+    mutability: configuration
+    default: 0
+    optional: 1
   exporter:
     type: exporter
     description: Optional exporter for transition log (supports observation, action, reward, next_observation, next_action)
@@ -1730,6 +1786,12 @@ predictor/model:
     optional: 0
 predictor/qv:
   description: QV on-policy value function predictor
+  importer:
+    type: importer
+    description: Optional importer for pre-training
+    mutability: configuration
+    default: 0
+    optional: 1
   exporter:
     type: exporter
     description: Optional exporter for transition log (supports observation, action, reward, next_observation, next_action)
@@ -1800,6 +1862,12 @@ predictor/qv:
     optional: 0
 predictor/sarsa:
   description: SARSA on-policy value function predictor
+  importer:
+    type: importer
+    description: Optional importer for pre-training
+    mutability: configuration
+    default: 0
+    optional: 1
   exporter:
     type: exporter
     description: Optional exporter for transition log (supports observation, action, reward, next_observation, next_action)
@@ -1850,6 +1918,12 @@ predictor/sarsa:
     optional: 0
 predictor/td:
   description: TD value function predictor
+  importer:
+    type: importer
+    description: Optional importer for pre-training
+    mutability: configuration
+    default: 0
+    optional: 1
   exporter:
     type: exporter
     description: Optional exporter for transition log (supports observation, action, reward, next_observation, next_action)

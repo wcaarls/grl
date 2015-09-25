@@ -30,6 +30,7 @@
 
 #include <grl/grl.h>
 #include <grl/configurable.h>
+#include <grl/importer.h>
 #include <grl/exporter.h>
 
 namespace grl
@@ -39,10 +40,11 @@ namespace grl
 class Predictor : public Configurable
 {
   protected:
+    Importer *importer_;
     Exporter *exporter_;
 
   public:
-    Predictor() : exporter_(NULL) { }
+    Predictor() : importer_(NULL), exporter_(NULL) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
