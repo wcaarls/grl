@@ -567,6 +567,7 @@ exporter/csv:
     default: line
     optional: 1
     options:
+      - none
       - line
       - meshup
 mapping/multisine:

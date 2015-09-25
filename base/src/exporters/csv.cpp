@@ -37,7 +37,7 @@ void CSVExporter::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("file", "Output base filename", file_));
   config->push_back(CRP("fields", "Comma-separated list of fields to write", fields_));
-  config->push_back(CRP("style", "Header style", style_, CRP::Configuration, {"line", "meshup"}));
+  config->push_back(CRP("style", "Header style", style_, CRP::Configuration, {"none", "line", "meshup"}));
 }
 
 void CSVExporter::configure(Configuration &config)
@@ -119,7 +119,7 @@ void CSVExporter::write(const std::initializer_list<Vector> &vars)
   std::vector<Vector> var_vec;
   var_vec.insert(var_vec.end(), vars.begin(), vars.end());
 
-  if (write_header_)
+  if (write_header_ && style_ != "none")
   {
     if (style_ == "meshup")
       stream_ << "COLUMNS:" << std::endl;
@@ -149,9 +149,9 @@ void CSVExporter::write(const std::initializer_list<Vector> &vars)
       stream_ << "DATA:" << std::endl;
     else
       stream_ << std::endl;
-      
-    write_header_ = false;
   }
+  
+  write_header_ = false;
 
   for (size_t ii=0; ii < order_.size(); ++ii)
   {

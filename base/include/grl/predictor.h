@@ -45,38 +45,17 @@ class Predictor : public Configurable
     Predictor() : exporter_(NULL) { }
 
     // From Configurable
-    virtual void request(ConfigurationRequest *config)
-    {
-      config->push_back(CRP("exporter", "exporter", "Optional exporter for transition log (supports observation, action, reward, next_observation, next_action)", exporter_, true));
-    }
-    
-    virtual void configure(Configuration &config)
-    {
-      exporter_ = (Exporter*) config["exporter"].ptr();
-      if (exporter_)
-      {
-        exporter_->init({"observation", "action", "reward", "next_observation", "next_action"});
-        exporter_->open();
-      }
-    }
-    
-    virtual void reconfigure(const Configuration &config)
-    {
-    }
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
     
     virtual Predictor *clone() const = 0;
     
     /// Update the estimation.
-    virtual void update(const Transition &transition)
-    {
-      if (exporter_)
-        exporter_->write({transition.prev_obs, transition.prev_action, Vector{transition.reward}, transition.obs, transition.action});
-    }
+    virtual void update(const Transition &transition);
     
     /// Signal completion of a set of updates (episode or batch).
-    virtual void finalize()
-    {
-    }
+    virtual void finalize();
 };
 
 }
