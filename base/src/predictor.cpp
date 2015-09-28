@@ -88,11 +88,11 @@ void Predictor::update(const Transition &transition)
     Transition t = transition;
     if (t.obs.empty())
     {
-      t.obs = Vector(nan(""), t.prev_obs.size());
-      t.action = Vector(nan(""), t.prev_action.size());
+      t.obs = Vector(t.prev_obs.size(), nan(""));
+      t.action = Vector(t.prev_action.size(), nan(""));
     }
   
-    exporter_->write({transition.prev_obs, transition.prev_action, Vector{transition.reward}, transition.obs, transition.action});
+    exporter_->write({t.prev_obs, t.prev_action, Vector{t.reward}, t.obs, t.action});
   }
 }
 

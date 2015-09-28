@@ -107,19 +107,28 @@ bool CSVImporter::read(const std::initializer_list<Vector*> &vars)
   for (size_t ii=0; ii != headers_.size(); ++ii)
     var_vec[ii]->clear();
 
-  if (!stream_.good())
-    return false;
-
-  for (size_t ii=0; ii < order_.size() && stream_.good(); ++ii)
+  std::string str;
+  size_t ii=0;
+  while (ii < order_.size() && stream_.good())
   {
-    double v;
-    stream_ >> v;
-    var_vec[order_[ii]]->push_back(v);
+    char c = stream_.get();
     
-    char c;
-    while ((c = stream_.get()) == ',' || c == ' ' || c == '\t');
-    if (c != '\n') stream_.putback(c);
+    if (c == ',' || c == '\n' || !stream_.good())
+    {
+      if (str == "nan")
+        var_vec[order_[ii]]->push_back(nan(""));
+      else
+        var_vec[order_[ii]]->push_back(atof(str.c_str()));
+        
+      str.clear();
+      ++ii;
+      
+      if (c == '\n' || !stream_.good())
+        break;
+    }
+    else if (!isspace(c))
+      str.push_back(c);
   }
   
-  return stream_.good();
+  return ii == order_.size();
 }
