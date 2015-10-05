@@ -1454,6 +1454,76 @@ predictor/ac/probability:
     mutability: configuration
     default: 0
     optional: 0
+predictor/advantage:
+  description: Advantage learning off-policy value function predictor
+  importer:
+    type: importer
+    description: Optional importer for pre-training
+    mutability: configuration
+    default: 0
+    optional: 1
+  exporter:
+    type: exporter
+    description: Optional exporter for transition log (supports observation, action, reward, next_observation, next_action)
+    mutability: configuration
+    default: 0
+    optional: 1
+  alpha:
+    type: double
+    description: Learning rate
+    mutability: configuration
+    default: 0.2
+    optional: 1
+    min: 0
+    max: 1
+  gamma:
+    type: double
+    description: Discount rate
+    mutability: configuration
+    default: 0.97
+    optional: 1
+    min: 0
+    max: 1
+  lambda:
+    type: double
+    description: Trace decay rate
+    mutability: configuration
+    default: 0.65
+    optional: 1
+    min: 0
+    max: 1
+  kappa:
+    type: double
+    description: Advantage scaling factor
+    mutability: configuration
+    default: 0.2
+    optional: 1
+    min: 0
+    max: 1
+  discretizer:
+    type: discretizer.action
+    description: Action discretizer
+    mutability: configuration
+    default: 0
+    optional: 0
+  projector:
+    type: projector.pair
+    description: Projects observation-action pairs onto representation space
+    mutability: configuration
+    default: 0
+    optional: 0
+  representation:
+    type: representation.value/action
+    description: A-value representation
+    mutability: configuration
+    default: 0
+    optional: 0
+  trace:
+    type: trace
+    description: Trace of projections
+    mutability: configuration
+    default: 0
+    optional: 0
 predictor/expected_sarsa:
   description: Expected SARSA low-variance on-policy value function predictor
   importer:

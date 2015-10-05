@@ -68,6 +68,7 @@ class Projector : public Configurable
     {
       Vector v = base;
 
+      out->clear();
       for (size_t ii=0; ii < variants.size(); ++ii)
       {
         v.insert(v.end(), variants[ii].begin(), variants[ii].end());
