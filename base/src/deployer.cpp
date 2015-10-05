@@ -189,7 +189,8 @@ int main(int argc, char **argv)
   if (file.empty())
   {
     file = argv[optind];
-    file.resize(file.rfind('.'));
+    if (file.rfind(".yaml") != std::string::npos)
+      file.resize(file.rfind(".yaml"));
   }
   
   if (read)
