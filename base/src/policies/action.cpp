@@ -52,11 +52,11 @@ void ActionPolicy::configure(Configuration &config)
   min_ = config["output_min"];
   max_ = config["output_max"];
   
-  if (min_.size() != max_.size() || min_.empty())
+  if (min_.size() != max_.size() || !min_.size())
     throw bad_param("policy/action:{output_min,output_max}");
   
-  if (sigma_.empty())
-    sigma_.resize(min_.size(), 0.);
+  if (!sigma_.size())
+    sigma_ = ConstantVector(min_.size(), 0.);
 }
 
 void ActionPolicy::reconfigure(const Configuration &config)
@@ -77,7 +77,7 @@ void ActionPolicy::act(const Vector &in, Vector *out) const
   representation_->read(p, out);
   
   // Some representations may not always return a value.
-  if (out->empty())
+  if (!out->size())
     *out = (min_+max_)/2;
   
   for (size_t ii=0; ii < out->size(); ++ii)

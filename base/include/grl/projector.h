@@ -58,29 +58,21 @@ class Projector : public Configurable
     /// Project a single input, provided as a base and a variant (e.g. state and action).
     virtual ProjectionPtr project(const Vector &base, const Vector &variant) const
     {
-      Vector v = base;
-      v.insert(v.end(), variant.begin(), variant.end());
-      return project(v);
+      return project(extend(base, variant));
     }
 
     /// Project a set of inputs, provided as a base and a set of variants (e.g. state and possible actions).
     virtual void project(const Vector &base, const std::vector<Vector> &variants, std::vector<ProjectionPtr> *out) const
     {
-      Vector v = base;
-
       out->clear();
       for (size_t ii=0; ii < variants.size(); ++ii)
-      {
-        v.insert(v.end(), variants[ii].begin(), variants[ii].end());
-        out->push_back(project(v));
-        v.erase(v.end()-variants[ii].size(), v.end());
-      }
+        out->push_back(project(extend(base, variants[ii])));
     }
     
     /// Returns the Jacobian of the projection around the input vector.
     virtual Matrix jacobian(const Vector &in) const
     {
-      return Matrix::Identity(in.size());
+      return Matrix::Identity(in.size(), in.size());
     }
 };
 

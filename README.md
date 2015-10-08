@@ -26,13 +26,8 @@ interface.
 
 # Installation (Ubuntu 14.04)
 ```
-sudo apt-get install git cmake g++
+sudo apt-get install git cmake g++ libeigen3-dev
 git clone https://github.com/wcaarls/grl.git
-```
-
-For the locally linear approximation, additionally install
-```
-sudo apt-get install libeigen3-dev
 ```
 
 For the visualization, additionally install
@@ -80,3 +75,7 @@ policies, and the integrated environments (e.g. pendulum
 swing-up, cart-pole swing-up, compass walker)
 
 ![Visualizations](/doc/grl2.png)
+
+# Further reading
+
+See [grl.pdf](/doc/grl.pdf)

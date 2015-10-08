@@ -68,7 +68,7 @@ void CompassWalkerVisualization::draw()
 
   Vector state = state_->get();
 
-  if (!state.empty())
+  if (state.size())
   {
     // Make sure we can visualize observations as well
     double x = 0;

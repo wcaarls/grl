@@ -88,9 +88,6 @@ void BoundedQPolicy::filter(const Vector &prev_out, const Vector &qvalues, Vecto
   if (prev_out.size() != bound_.size())
     ERROR("Previous action has wrong size");
     
-  filtered->clear();
-  filtered->reserve(qvalues.size());
-  
   idx->clear();
   idx->reserve(qvalues.size());
   
@@ -107,10 +104,11 @@ void BoundedQPolicy::filter(const Vector &prev_out, const Vector &qvalues, Vecto
     }
     
     if (valid)
-    {
-      filtered->push_back(qvalues[ii]);
       idx->push_back(ii);
-    }
   }
+  
+  filtered->resize(idx->size());
+  for (size_t ii=0; ii < idx->size(); ++ii)
+    (*filtered)[ii] = qvalues[(*idx)[ii]];
 }
             

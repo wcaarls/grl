@@ -67,7 +67,7 @@ void CartPoleVisualization::draw()
   
   Vector state = state_->get();
   
-  if (!state.empty())
+  if (state.size())
   {
     double phi, x;
     

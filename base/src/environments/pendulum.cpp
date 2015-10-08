@@ -143,7 +143,7 @@ bool PendulumSwingupTask::invert(const Vector &obs, Vector *state) const
 {
   *state = obs;
   (*state)[0] -= M_PI;
-  state->push_back(0.);
+  *state = extend(*state, VectorConstructor(0.));
   
   return true;
 }

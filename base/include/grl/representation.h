@@ -68,7 +68,7 @@ class Representation : public Mapping
     virtual void write(const ProjectionPtr projection, const Vector &target, double alpha=1.)
     {
       Vector valpha;
-      valpha.resize(target.size(), alpha);
+      valpha = ConstantVector(target.size(), alpha);
       write(projection, target, valpha);
     }
     

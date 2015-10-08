@@ -50,32 +50,32 @@ void PIDPolicy::request(ConfigurationRequest *config)
 void PIDPolicy::configure(Configuration &config)
 {
   setpoint_ = config["setpoint"];
-  if (setpoint_.empty())
+  if (!setpoint_.size())
     throw bad_param("policy/pid:setpoint");
     
   outputs_ = config["outputs"];
 
   p_ = config["p"];
-  if (p_.empty())
-    p_.resize(setpoint_.size()*outputs_, 0.);
+  if (!p_.size())
+    p_ = ConstantVector(setpoint_.size()*outputs_, 0.);
   if (p_.size() != setpoint_.size()*outputs_)
     throw bad_param("policy/pid:p");
     
   i_ = config["i"];
-  if (i_.empty())
-    i_.resize(setpoint_.size()*outputs_, 0.);
+  if (!i_.size())
+    i_ = ConstantVector(setpoint_.size()*outputs_, 0.);
   if (i_.size() != setpoint_.size()*outputs_)
     throw bad_param("policy/pid:i");
     
   d_ = config["d"];
-  if (d_.empty())
-    d_.resize(setpoint_.size()*outputs_, 0.);
+  if (!d_.size())
+    d_ = ConstantVector(setpoint_.size()*outputs_, 0.);
   if (d_.size() != setpoint_.size()*outputs_)
     throw bad_param("policy/pid:d");
     
   il_ = config["il"];
-  if (il_.empty())
-    il_.resize(setpoint_.size()*outputs_, 0.);
+  if (!il_.size())
+    il_ = ConstantVector(setpoint_.size()*outputs_, 0.);
   if (il_.size() != setpoint_.size()*outputs_)
     throw bad_param("policy/pid:il");
     
@@ -88,8 +88,7 @@ void PIDPolicy::reconfigure(const Configuration &config)
 {
   if (config.has("action") && config["action"].str() == "reset")
   {
-    ival_.clear();
-    ival_.resize(setpoint_.size()*outputs_, 0.);
+    ival_ = ConstantVector(setpoint_.size()*outputs_, 0.);
   }
 }
 
@@ -124,8 +123,7 @@ void PIDPolicy::act(double time, const Vector &in, Vector *out)
   if (time == 0.)
   {
     // First action in episode, clear integrator
-    ival_.clear();
-    ival_.resize(setpoint_.size()*outputs_, 0.);
+    ival_ = ConstantVector(setpoint_.size()*outputs_, 0.);
     prev_in_ = in;
   }
 

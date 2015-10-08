@@ -81,7 +81,7 @@ ERTreeNode::ERTreeNode(ERTree *tree, Sample **samples, size_t num_samples, Vecto
     double point = RandGen::getUniform(min[attr], max[attr]);
     
     // Calculate means
-    Vector mean_l(tree->outputs(), 0.), mean_r = mean_l;
+    Vector mean_l = ConstantVector(tree->outputs(), 0.), mean_r = mean_l;
     size_t samples_l=0, samples_r=0;
     
     for (size_t ii=0; ii < num_samples_; ++ii)
@@ -114,7 +114,7 @@ ERTreeNode::ERTreeNode(ERTree *tree, Sample **samples, size_t num_samples, Vecto
     }
     
     // Calculate variances
-    Vector var_l(tree->outputs(), 0.), var_r = var;
+    Vector var_l = ConstantVector(tree->outputs(), 0.), var_r = var;
     
     for (size_t ii=0; ii < num_samples_; ++ii)
     {
@@ -208,7 +208,7 @@ Vector ERTree::variance(StorePtr storeptr, size_t outputs)
   SampleStore &store = *storeptr.get();
   
   // Calculate means
-  Vector mean(outputs, 0.);
+  Vector mean = ConstantVector(outputs, 0.);
   
   for (size_t ii=0; ii < store.size(); ++ii)
     for (size_t jj=0; jj < outputs; ++jj)
@@ -218,7 +218,7 @@ Vector ERTree::variance(StorePtr storeptr, size_t outputs)
     mean[jj] /= store.size();
   
   // Calculate variances
-  Vector var(outputs, 0.);
+  Vector var = ConstantVector(outputs, 0.);
   
   for (size_t ii=0; ii < store.size(); ++ii)
     for (size_t jj=0; jj < outputs; ++jj)
@@ -353,7 +353,7 @@ ProjectionPtr ERTreeProjector::project(const Vector &in) const
   }
   
   // ERTree doesn't really have weights...
-  projection->weights.resize(projection->neighbors.size(), 1.);
+  projection->weights = ConstantVector(projection->neighbors.size(), 1.);
 
   return ProjectionPtr(projection);
 }

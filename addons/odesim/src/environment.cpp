@@ -83,8 +83,8 @@ bool ODESTGEnvironment::configure(Configuration &config)
     configresult &= statevar.resolve(&simulator_);
     sensors_.push_back(statevar);
     
-    configresult &= stateNode.get("min", &val); observation_min.push_back(val);
-    configresult &= stateNode.get("max", &val); observation_max.push_back(val);
+    configresult &= stateNode.get("min", &val); observation_min = extend(observation_min, VectorConstructor(val));
+    configresult &= stateNode.get("max", &val); observation_max = extend(observation_max, VectorConstructor(val));
   }
 
   for (CConfigSection actionNode = configNode.section("actionvar"); !actionNode.isNull();
@@ -95,8 +95,8 @@ bool ODESTGEnvironment::configure(Configuration &config)
     configresult &= actionvar.resolve(&simulator_);
     actuators_.push_back(actionvar);
 
-    configresult &= actionNode.get("min", &val); action_min.push_back(val);
-    configresult &= actionNode.get("max", &val); action_max.push_back(val);
+    configresult &= actionNode.get("min", &val); action_min = extend(action_min, VectorConstructor(val));
+    configresult &= actionNode.get("max", &val); action_max = extend(action_max, VectorConstructor(val));
   }
 
   CConfigSection terminationNode = configNode.section("termination");

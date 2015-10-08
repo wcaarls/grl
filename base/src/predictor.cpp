@@ -25,6 +25,7 @@
  * \endverbatim
  */
 
+#include <cmath>
 #include <grl/predictor.h>
 
 using namespace grl;
@@ -67,10 +68,10 @@ void Predictor::update(const Transition &transition)
     Vector r;
     while (importer->read({&t.prev_obs, &t.prev_action, &r, &t.obs, &t.action}))
     {
-      if (!isfinite(t.obs[0]))
+      if (!std::isfinite(t.obs[0]))
       {
-        t.obs.clear();
-        t.action.clear();
+        t.obs = Vector();
+        t.action = Vector();
       }
       
       t.reward = r[0];
@@ -86,13 +87,13 @@ void Predictor::update(const Transition &transition)
   if (exporter_)
   {
     Transition t = transition;
-    if (t.obs.empty())
+    if (!t.obs.size())
     {
-      t.obs = Vector(t.prev_obs.size(), nan(""));
-      t.action = Vector(t.prev_action.size(), nan(""));
+      t.obs = ConstantVector(t.prev_obs.size(), nan(""));
+      t.action = ConstantVector(t.prev_action.size(), nan(""));
     }
   
-    exporter_->write({t.prev_obs, t.prev_action, Vector{t.reward}, t.obs, t.action});
+    exporter_->write({t.prev_obs, t.prev_action, VectorConstructor(t.reward), t.obs, t.action});
   }
 }
 

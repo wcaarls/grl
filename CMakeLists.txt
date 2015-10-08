@@ -9,6 +9,10 @@ else()
   message("-- Build type: ${CMAKE_BUILD_TYPE}")
 endif()
 
+# Find Eigen
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(EIGEN3 REQUIRED eigen3)
+
 # Use OpenMP if available
 find_package(OpenMP)
 set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-std=c++0x -Wno-unused-parameter -Wno-variadic-macros -Wno-pedantic ${OpenMP_CXX_FLAGS}")

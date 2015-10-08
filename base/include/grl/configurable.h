@@ -149,6 +149,16 @@ struct CRP
       oss << v;
       value = oss.str();
     }
+
+    /// Sets the value member to a string description of the given vector parameter.
+    void setValue(const Vector& v)
+    {
+      std::ostringstream oss;
+      std::vector<double> v_out;
+      fromVector(v, v_out);
+      oss << v_out;
+      value = oss.str();
+    }
 };
 
 /// Set of requested parameters.

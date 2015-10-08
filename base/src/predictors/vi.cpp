@@ -90,7 +90,7 @@ void ValueIterationPredictor::update(const Transition &transition)
     int terminal;
     model_->step(transition.prev_obs, variants_[aa], &next, &reward, &terminal);
     
-    if (!next.empty())
+    if (next.size())
     {
       if (!terminal)
       {
@@ -141,7 +141,7 @@ void QIterationPredictor::update(const Transition &transition)
     int terminal;
     model_->step(transition.prev_obs, variants_[aa], &next, &reward, &terminal);
     
-    if (!next.empty())
+    if (next.size())
     {
       if (!terminal)
       {

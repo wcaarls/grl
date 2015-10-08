@@ -81,13 +81,11 @@ void UCBPolicy::values(const Vector &in, Vector *out) const
 
 void UCBPolicy::act(const Vector &in, Vector *out) const
 {
-  Vector qvalues, visits;
+  Vector qvalues(variants_.size()), visits(variants_.size());
   double state_visits = 0;
   std::vector<ProjectionPtr> projections;
   projector_->project(in, variants_, &projections);
   
-  qvalues.resize(variants_.size());
-  visits.resize(variants_.size());
   Vector value;
   
   for (size_t ii=0; ii < variants_.size(); ++ii)

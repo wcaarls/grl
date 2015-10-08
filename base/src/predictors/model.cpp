@@ -73,9 +73,9 @@ void ModelPredictor::update(const Transition &transition)
   Vector target;
   
   if (wrapping_.size() < transition.obs.size())
-    wrapping_.resize(transition.obs.size(), 0.);
+    wrapping_ = extend(wrapping_, ConstantVector(transition.obs.size()-wrapping_.size(), 0.));
   
-  if (!transition.obs.empty())
+  if (transition.obs.size())
   {
     if (differential_)
       target = transition.obs-transition.prev_obs;
@@ -91,15 +91,13 @@ void ModelPredictor::update(const Transition &transition)
           target[ii] += wrapping_[ii];
       }
     
-    target.push_back(transition.reward);
-    target.push_back(0);
+    target = extend(target, VectorConstructor(transition.reward, 0.));
   }
   else
   {
     // Absorbing state
-    target.resize(transition.prev_obs.size(), 0.);
-    target.push_back(transition.reward);
-    target.push_back(1);
+    target = ConstantVector(transition.prev_obs.size()+2, 0.);
+    target[target.size()-2] = transition.reward;
   }
   
   ProjectionPtr p = projector_->project(extend(transition.prev_obs, transition.prev_action));

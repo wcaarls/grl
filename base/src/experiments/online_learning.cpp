@@ -141,13 +141,13 @@ void OnlineLearningExperiment::run()
         
         if (terminal == 2)
           agent->end(tau, reward);
-        else if (!obs.empty())
+        else if (obs.size())
         {
           agent->step(tau, obs, reward, &action);
           state_->set(obs);
         }
           
-        if (!test && !obs.empty()) ss++;
+        if (!test && obs.size()) ss++;
       } while (!terminal);
 
       if (test_interval_)

@@ -88,7 +88,7 @@ void QVPredictor::update(const Transition &transition)
 
   // Calculate target value
   double target = transition.reward;
-  if (!transition.obs.empty())
+  if (transition.obs.size())
     target += gamma_*vnext;
 
   // Q update  

@@ -102,10 +102,7 @@ bool CSVImporter::read(const std::initializer_list<Vector*> &vars)
     return false;
   }
 
-  std::vector<Vector*> var_vec;
-  var_vec.insert(var_vec.end(), vars.begin(), vars.end());
-  for (size_t ii=0; ii != headers_.size(); ++ii)
-    var_vec[ii]->clear();
+  std::vector<std::vector<double> > var_vec(vars.size());
 
   std::string str;
   size_t ii=0;
@@ -116,9 +113,9 @@ bool CSVImporter::read(const std::initializer_list<Vector*> &vars)
     if (c == ',' || c == '\n' || !stream_.good())
     {
       if (str == "nan")
-        var_vec[order_[ii]]->push_back(nan(""));
+        var_vec[order_[ii]].push_back(nan(""));
       else
-        var_vec[order_[ii]]->push_back(atof(str.c_str()));
+        var_vec[order_[ii]].push_back(atof(str.c_str()));
         
       str.clear();
       ++ii;
@@ -129,6 +126,11 @@ bool CSVImporter::read(const std::initializer_list<Vector*> &vars)
     else if (!isspace(c))
       str.push_back(c);
   }
+  
+  auto it = var_vec.begin();
+  auto jt = vars.begin();
+  for (; it != var_vec.end(); ++it, ++jt)
+    toVector(*it, **jt);
   
   return ii == order_.size();
 }

@@ -97,7 +97,7 @@ void ActionACPredictor::update(const Transition &transition)
   Vector v, u, delta_u, target_u;
   
   double target = transition.reward;
-  if (!transition.obs.empty())
+  if (transition.obs.size())
     target += gamma_*critic_representation_->read(critic_projector_->project(transition.obs), &v);
   double delta = target - critic_representation_->read(cp, &v);
   
@@ -106,8 +106,8 @@ void ActionACPredictor::update(const Transition &transition)
   critic_trace_->add(cp, gamma_*lambda_);
   
   actor_representation_->read(ap, &u);
-  if (u.empty())
-    u.resize(transition.prev_action.size(), 0.);
+  if (!u.size())
+    u = ConstantVector(transition.prev_action.size(), 0.);
   target_u = u + delta*(transition.prev_action - u);
 
   actor_representation_->write(ap, target_u, beta_);

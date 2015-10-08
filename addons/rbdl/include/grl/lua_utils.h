@@ -57,7 +57,7 @@ inline Vector lua_tovector(lua_State *L, int index)
     return Vector();
   }
 
-  Vector v(lua_objlen(L, index), 0.);
+  Vector v = ConstantVector(lua_objlen(L, index), 0.);
 
   for (size_t ii=0; ii < v.size(); ++ii)
   {

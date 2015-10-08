@@ -87,6 +87,15 @@ class ConfigurationParameter
       value_ = oss.str();
     }
 
+    ConfigurationParameter(Vector value)
+    {
+      std::ostringstream oss;
+      std::vector<double> v_out;
+      fromVector(value, v_out);
+      oss << v_out;
+      value_ = oss.str();
+    }
+    
     ConfigurationParameter(const ConfigurationParameter &other)
     {
       value_ = other.str();
@@ -104,6 +113,24 @@ class ConfigurationParameter
       {
         std::istringstream iss(value_);
         iss >> value;
+        return !iss.fail();
+      }
+    }
+
+    // Specialization for Vector that goes through a std::vector<double>
+    bool get(Vector &value) const
+    {
+      if (value_.empty())
+      {
+        value = Vector();
+        return true;
+      }
+      else
+      {
+        std::istringstream iss(value_);
+        std::vector<double> v_in;
+        iss >> v_in;
+        toVector(v_in, value);
         return !iss.fail();
       }
     }

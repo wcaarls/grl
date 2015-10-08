@@ -80,18 +80,18 @@ void LLRRepresentation::configure(Configuration &config)
   input_nominals_ = config["input_nominals"];
   output_nominals_ = config["output_nominals"];
 
-  if (!output_nominals_.empty() && output_nominals_.size() != outputs_)
+  if (output_nominals_.size() && output_nominals_.size() != outputs_)
     throw bad_param("representation/lrr:output_nominals");
 
   min_ = config["output_min"];
   max_ = config["output_max"];
 
-  if (min_.empty())
-    min_.resize(outputs_, -DBL_MAX);
+  if (!min_.size())
+    min_ = ConstantVector(outputs_, -DBL_MAX);
   if (min_.size() != outputs_)
     throw bad_param("representation/llr:output_min");
-  if (max_.empty())
-    max_.resize(outputs_, DBL_MAX);
+  if (!max_.size())
+    max_ = ConstantVector(outputs_, DBL_MAX);
   if (max_.size() != outputs_)
     throw bad_param("representation/llr:output_max");
 }
@@ -112,7 +112,7 @@ double LLRRepresentation::read(const ProjectionPtr &projection, Vector *result, 
   if (!p)
     throw Exception("representation/llr requires projector/sample");
   
-  result->clear();
+  *result = Vector();
 
   // Get input and output matrices
   Matrix A, b;
@@ -125,7 +125,7 @@ double LLRRepresentation::read(const ProjectionPtr &projection, Vector *result, 
   {
     // Zeroth-order regression (averaging)
     double weight = 0;
-    result->resize(outputs_, 0.);
+    *result = ConstantVector(outputs_, 0.);
     
     for (size_t ii=0; ii < A.rows(); ++ii)
     {
@@ -242,8 +242,8 @@ void LLRRepresentation::write(const ProjectionPtr projection, const Vector &targ
     Vector out;
     read(projection, &out, NULL);
     
-    if (out.empty())
-      out.resize(target.size(), 0.);
+    if (!out.size())
+      out = ConstantVector(target.size(), 0.);
     
     Vector delta = target-out;
     
@@ -320,7 +320,7 @@ Matrix LLRRepresentation::jacobian(const ProjectionPtr projection) const
     throw Exception("representation/llr requires projector/sample");
 
   if (!order_)
-    return grl::Matrix::Zeros(outputs_, p->query.size());
+    return grl::Matrix::Zero(outputs_, p->query.size());
   
   // Get input and output matrices
   Matrix A, b;
@@ -346,7 +346,7 @@ void LLRRepresentation::getMatrices(const SampleProjection *p, Matrix *A, Matrix
   std::vector<bool> eligible(p->neighbors.size(), true);
 
   // Filter samples with different input nominal than query
-  if (!input_nominals_.empty())
+  if (input_nominals_.size())
   {
     Guard guard(*p->store);
 
@@ -371,7 +371,7 @@ void LLRRepresentation::getMatrices(const SampleProjection *p, Matrix *A, Matrix
   }
 
   // Filter samples with different than most likely output nominal
-  if (!output_nominals_.empty())  
+  if (output_nominals_.size())  
   {
     Guard guard(*p->store);
 

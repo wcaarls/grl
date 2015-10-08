@@ -105,7 +105,7 @@ double ModeledEnvironment::step(const Vector &action, Vector *obs, double *rewar
   double &time = test_?time_test_:time_learn_;
   
   if (exporter_)
-    exporter_->write({Vector{time}, state_, obs_, action, Vector{*reward}, Vector{(double)*terminal}});
+    exporter_->write({VectorConstructor(time), state_, obs_, action, VectorConstructor(*reward), VectorConstructor((double)*terminal)});
 
   time += tau;
 

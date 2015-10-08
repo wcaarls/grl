@@ -296,19 +296,25 @@ std::string YAMLConfigurator::parse(const std::string &value) const
       
     // Parse values
     std::istringstream issa, issb;
-    Vector a, b, c;
+    std::vector<double> a_in, b_in, c_out;
 
-    issa.str(left);  issa >> a;
-    issb.str(right); issb >> b;
+    issa.str(left);  issa >> a_in;
+    issb.str(right); issb >> b_in;
+    
+    Vector a, b, c;
+    toVector(a_in, a);
+    toVector(b_in, b);
     
     // Perform operation
     if (a.size() == 1 && b.size() == 1) c = a + b;
     else                                c = extend(a, b);
     
+    fromVector(c, c_out);
+    
     // Replace in original string
     std::ostringstream oss;
-    if (c.size() == 1) oss << c[0];
-    else               oss << c;
+    if (c.size() == 1) oss << c_out[0];
+    else               oss << c_out;
     
     expv.replace(start, end-start, oss.str());
   }

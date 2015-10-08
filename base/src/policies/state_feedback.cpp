@@ -47,16 +47,16 @@ void StateFeedbackPolicy::request(ConfigurationRequest *config)
 void StateFeedbackPolicy::configure(Configuration &config)
 {
   operating_state_ = config["operating_state"];
-  if (operating_state_.empty())
+  if (!operating_state_.size())
     throw bad_param("policy/parameterized/state_feedback:operating_state");
 
   operating_action_ = config["operating_action"];
-  if (operating_action_.empty())
+  if (!operating_action_.size())
     throw bad_param("policy/parameterized/state_feedback:operating_action");
     
   gains_ = config["gains"];
-  if (gains_.empty())
-    gains_.resize(operating_state_.size()*operating_action_.size(), 0.);
+  if (!gains_.size())
+    gains_ = ConstantVector(operating_state_.size()*operating_action_.size(), 0.);
   if (gains_.size() != operating_state_.size()*operating_action_.size())
     throw bad_param("policy/parameterized/state_feedback:{gains,operating_state,operating_action}");
     

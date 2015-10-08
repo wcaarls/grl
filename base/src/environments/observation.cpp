@@ -126,7 +126,7 @@ double FixedObservationModel::step(const Vector &obs, const Vector &action, Vect
   if (!task_->invert(obs, &state))
   {
     ERROR("Task does not support inversion");
-    next->clear();
+    *next = Vector();
     return 0.;
   }
   
@@ -165,7 +165,7 @@ void ApproximatedObservationModel::configure(Configuration &config)
   observation_min_ = config["observation_min"];
   observation_max_ = config["observation_max"];
   
-  if (observation_min_.empty() || observation_min_.size() != observation_max_.size())
+  if (!observation_min_.size() || observation_min_.size() != observation_max_.size())
     throw bad_param("observation_model/approximated:{observation_min,observation_max}");
 
   stddev_limit_ = config["stddev_limit"];
@@ -181,8 +181,8 @@ void ApproximatedObservationModel::configure(Configuration &config)
   differential_ = config["differential"];
   wrapping_ = config["wrapping"];
   
-  if (wrapping_.empty())
-    wrapping_.resize(observation_min_.size(), 0.);
+  if (!wrapping_.size())
+    wrapping_ = ConstantVector(observation_min_.size(), 0.);
     
   if (wrapping_.size() != observation_min_.size())
     throw bad_param("observation_model/approximated:wrapping");
@@ -207,19 +207,21 @@ double ApproximatedObservationModel::step(const Vector &obs, const Vector &actio
   
   if (!p)
   {
-    next->clear();
+    *next = Vector();
     return 0.;
   }
  
-  Vector stddev;
-  representation_->read(p, next, &stddev);
+  Vector pred, stddev;
+  representation_->read(p, &pred, &stddev);
   
-  if (next->empty())
+  if (!pred.size())
     return 0.;
 
-  *reward = (*next)[next->size()-2];
-  *terminal = (*next)[next->size()-1] > 0.5;
-  next->resize(next->size()-2);
+  *reward = pred[pred.size()-2];
+  *terminal = pred[pred.size()-1] > 0.5;
+  next->resize(pred.size()-2);
+  for (size_t ii=0; ii < next->size(); ++ii)
+    (*next)[ii] = pred[ii];
   
   for (size_t ii=0; ii < obs.size(); ++ii)
   {
@@ -232,7 +234,7 @@ double ApproximatedObservationModel::step(const Vector &obs, const Vector &actio
     // Don't predict starting from outside observable interval
     if (obs[ii] < observation_min_[ii] || obs[ii] > observation_max_[ii])
     {
-      next->clear();
+      *next = Vector();
       return 0.;
     }
   }
@@ -244,7 +246,7 @@ double ApproximatedObservationModel::step(const Vector &obs, const Vector &actio
       // Don't accept inaccurate predictions
       if (stddev[ii] > stddev_limit_*(observation_max_[ii]-observation_min_[ii]))
       {
-        next->clear();
+        *next = Vector();
         return 0.;
       }
     }
@@ -310,7 +312,7 @@ double FixedRewardObservationModel::step(const Vector &obs, const Vector &action
 {
   double tau = ApproximatedObservationModel::step(obs, action, next, reward, terminal);
   
-  if (next->empty())
+  if (!next->size())
     return 0.;
   
   Vector state, next_state, next_obs;

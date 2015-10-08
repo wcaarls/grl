@@ -162,7 +162,7 @@ void FieldVisualization::run()
   while (ok())
   {
     // Create point iteration order lookup table  
-    Vector dim_order;
+    std::vector<int> dim_order;
     for (int ii=0; ii < state_dims_; ++ii)
       if (ii != dims_[0] && ii != dims_[1])
         dim_order.push_back(ii);

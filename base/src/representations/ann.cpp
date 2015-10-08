@@ -154,7 +154,7 @@ double ANNRepresentation::read(const ProjectionPtr &projection, Vector *result, 
   else
     throw Exception("representation/parameterized/ann requires a projector returning a VectorProjection");
     
-  if (stddev) stddev->clear();
+  if (stddev) *stddev = Vector();
   
   return (*result)[0];
 }

@@ -100,7 +100,7 @@ void AdvantagePredictor::update(const Transition &transition)
     
   double target = v + (transition.reward - v)/kappa_;
   
-  if (!transition.obs.empty())
+  if (transition.obs.size())
   {
     // Find max_u A(x_{t+1}, u)
     projector_->project(transition.obs, variants_, &actions);

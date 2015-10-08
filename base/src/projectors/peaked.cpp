@@ -89,5 +89,5 @@ Matrix PeakedProjector::jacobian(const Vector &in) const
       diag[ii] = 1.;
   }
   
-  return projector_->jacobian((squash(2.*(in-min_)*scaling_-1., peaking_)+1.)*range2_+min_)*Matrix::Diagonal(diag);
+  return projector_->jacobian((squash(2.*(in-min_)*scaling_-1., peaking_)+1.)*range2_+min_)*diagonal(diag);
 }

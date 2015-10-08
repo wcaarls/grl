@@ -73,7 +73,7 @@ double ValueVisualization::value(const Vector &in) const
 {
   Vector v;
   representation_->read(projector_->project(in), &v);
-  if (v.empty())
+  if (!v.size())
     return 0;
   else
     return v[dim_];

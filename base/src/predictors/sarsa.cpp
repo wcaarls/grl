@@ -83,7 +83,7 @@ void SARSAPredictor::update(const Transition &transition)
   Vector q;
 
   double target = transition.reward;
-  if (!transition.obs.empty())
+  if (transition.obs.size())
     target += gamma_*representation_->read(projector_->project(transition.obs, transition.action), &q);
   double delta = target - representation_->read(p, &q);
   
@@ -158,7 +158,7 @@ void ExpectedSARSAPredictor::update(const Transition &transition)
 
   double target = transition.reward;
   
-  if (!transition.obs.empty())
+  if (transition.obs.size())
   {
     Vector values, distribution;
     policy_->values(transition.obs, &values);

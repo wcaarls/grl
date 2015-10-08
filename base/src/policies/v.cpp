@@ -83,7 +83,7 @@ void VPolicy::values(const Vector &in, Vector *out) const
     
     model_->step(in, variants_[ii], &next, &reward, &terminal);
     
-    if (!next.empty())
+    if (next.size())
     {
       if (!terminal)
       {
