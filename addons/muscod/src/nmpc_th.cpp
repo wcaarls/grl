@@ -93,7 +93,7 @@ void NMPCPolicyTh::configure(Configuration &config)
   so_set_path(problem_path, lua_model_);
 
   //----------------- Observation converter ----------------- //
-  so_convert_obs_for_muscod = (void (*)(const std::vector<double>&, std::vector<double>&))
+  so_convert_obs_for_muscod = (void (*)(const std::vector<double>*, std::vector<double>*))
           dlsym(so_handle_, "convert_obs_for_muscod");
   if (so_convert_obs_for_muscod==NULL)
   {
@@ -103,16 +103,9 @@ void NMPCPolicyTh::configure(Configuration &config)
   }
 
   //------------------- Initialize MUSCOD ------------------- //
-//  data_.model_path = problem_path;
-//  data_.relative_dat_path = ".";
-//  data_.model_name = model_name_;
-
   muscod_ = new MUSCOD();
   muscod_->setModelPathAndName(problem_path.c_str(), model_name_.c_str());
   muscod_->loadFromDatFile(".", model_name_.c_str());
-
-//  muscod_->setModelPathAndName(model_path_.c_str(), model_name_.c_str());
-//  muscod_->loadFromDatFile(NULL, NULL);
   muscod_->setLogLevelScreen(-1);
   muscod_->setLogLevelAndFile(-1, NULL, NULL);
 
@@ -168,75 +161,13 @@ void NMPCPolicyTh::configure(Configuration &config)
 
   pthread_cond_wait(&cond_iv_ready_, &mutex_);
   pthread_mutex_unlock(&mutex_);
-
-  //muscod_init();
-}
-
-void NMPCPolicyTh::muscod_init()
-{/*
-  // Prepare to start thread
-  qc_cnt_ = 0;
-  qc_cnt_base_ = 0;
-
-  // Be sure thread will not quit (since thread has not started yet it is safe)
-  data_.quit = false;
-
-  // Initialize mutex and condition variable objects
-  pthread_mutex_init(&mutex_, NULL);
-  pthread_cond_init (&cond_iv_ready_, NULL);
-
-  // Start MUSCOD-II in a thread running a signal triggered execution loop
-  if (verbose_)
-    std::cout << "In " << __func__ << ": creating MUSCOD-II thread" << std::endl;
-  int rc = pthread_create(&muscod_thread_, NULL, muscod_run, static_cast<void*> (&data_));
-  if (rc)
-  {
-      std::cerr << "ERROR: pthread_create() failed with " << rc << std::endl;
-      std::cerr << "bailing out..." << rc << std::endl;
-      abort();
-  }
-
-  // wait for MUSCOD thread to initialize data structure
-  if (verbose_)
-    std::cout << "MUSCOD: Waiting for MUSCOD thread..." << std::endl;
-  pthread_mutex_lock(&mutex_);
-  pthread_cond_wait(&cond_iv_ready_, &mutex_);
-  pthread_mutex_unlock(&mutex_);
-
-  // get dimensions from data structure
-  unsigned long NMSN, NXD, NXA, NU, NP;
-  pthread_mutex_lock(&mutex_);
-  NMSN_ = data_.NMSN;
-  NXD_  = data_.NXD;
-  NXA_  = data_.NXA;
-  NU_   = data_.NU;
-  NP_   = data_.NP;
-  pthread_mutex_unlock(&mutex_);
-
-  muscod_obs_.resize(inputs_);
-  muscod_action_.resize(NMSN_);
-  for (int i = 0; i < NMSN_; i++)
-    muscod_action_[i].resize(outputs_);
-
-  // Copy initial solution to do warm control
-  pthread_mutex_lock(&mutex_);
-  for (int IMSN = 0; IMSN < NMSN_; ++IMSN)
-    muscod_action_[IMSN] = data_.qc[IMSN];
-  pthread_mutex_unlock(&mutex_);
-  */
 }
 
 void NMPCPolicyTh::muscod_reset(Vector &initial_obs, double time)
 {
-  // Finalise thread from previous episode (if required)
-//  muscod_quit(&data_);
-//  int r = pthread_join(muscod_thread_, NULL);
-//  if (r)
-//    std::cout << "pthread_join resulted in error: " << strerror(r) << std::endl;
-
   // Wait for thread to stop at the condition variable
   pthread_mutex_lock(&mutex_);
-  while (!iv_ready_)
+  while (!iv_ready_) // TODO: do something with this!
   {
     pthread_mutex_unlock(&mutex_);
     usleep(100000);
@@ -289,31 +220,8 @@ void *NMPCPolicyTh::muscod_run(void *indata)
   }
   MuscodData& data = *static_cast<MuscodData*> (indata);
 
-/*
-  // NMPC SETUP
-  muscod_->setLogLevelScreen(-1);
-  muscod_->setLogLevelAndFile(-1, NULL, NULL);
-  muscod_->setModelPathAndName(data.model_path.c_str(), data.model_name.c_str());
-  muscod_->loadFromDatFile(data.relative_dat_path.c_str(), data.model_name.c_str());
-  muscod_->sqpInitialize(muscod_->getSSpec(), NULL, NULL);
-  muscod_->sqpSolve();
-  muscod_->options->wflag = MS_WARM;
-
-  // get dimensions from MUSCOD instance
-  unsigned long NMSN = muscod_->getNMSN(0);
-  unsigned long NXD, NXA, NU, NP;
-  muscod_->getDimIMSN(0, &NXD, &NXA, &NU);
-  NP = muscod_->data.dataMSSQP->vdim.pf;
-*/
-
   // instantiate values of data structure
   pthread_mutex_lock(&mutex_);
-/*  data.NMSN = NMSN;
-  data.NXD  = NXD;
-  data.NXA  = NXA;
-  data.NU   = NU;
-  data.NP   = NP;
-*/
   unsigned long NMSN = data.NMSN;
   unsigned long NXD  = data.NXD;
   unsigned long NP   = data.NP;
@@ -330,11 +238,7 @@ void *NMPCPolicyTh::muscod_run(void *indata)
   data.qc = std::vector<std::vector<double>> (NMSN, first_qc);
 
   data.is_initialized = true;
-  // PUT CONTROLS INTO DATA STRUCTURE: should be avaliable to a user right away
-/*  for (int IMSN = 0; IMSN < NMSN; ++IMSN) {
-    muscod_->getNodeQC (IMSN, &data.qc[IMSN][0]);
-  }
-*/
+
   pthread_cond_signal(&cond_iv_ready_);
   pthread_mutex_unlock(&mutex_);
 
@@ -378,16 +282,9 @@ void *NMPCPolicyTh::muscod_run(void *indata)
     {
       muscod_->nmpcFeedback(initial_sd.data(), initial_pf.data(), first_qc.data());
       muscod_->nmpcTransition();
-//      muscod_->nmpcShift(3);
+//      muscod_->nmpcShift(3); TODO: Second iteration does not work
       muscod_->nmpcPrepare();
     }
-
-
-    // EMBED INITIAL VALUES AND PARAMETERS
-//    muscod_->nmpcEmbedding (&initial_sd[0], &initial_pf[0]);
-
-    // SOLVE UNTIL CONVERGENCE
-//    muscod_->sqpSolve();
   } // END OF EXECUTION LOOP
 
   std::cout << "MUSCOD: Exit thread" << std::endl;
@@ -408,11 +305,9 @@ void NMPCPolicyTh::act(double time, const Vector &in, Vector *out)
 {
   if (time == 0.0)
   {
-    // Reset internal counters
-    std::vector<double> dummy;
-    so_convert_obs_for_muscod(dummy, dummy);
+    so_convert_obs_for_muscod(NULL, NULL); // Reset internal counters
     // Convert
-    so_convert_obs_for_muscod(in, muscod_obs_);
+    so_convert_obs_for_muscod(&in, &muscod_obs_);
     muscod_reset(muscod_obs_, time);
   }
 
@@ -427,7 +322,7 @@ void NMPCPolicyTh::act(double time, const Vector &in, Vector *out)
   }
 
   // Convert MPRL states into MUSCOD states
-  so_convert_obs_for_muscod(in, muscod_obs_);
+  so_convert_obs_for_muscod(&in, &muscod_obs_);
 
   if (verbose_)
   {

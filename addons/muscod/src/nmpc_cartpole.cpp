@@ -132,8 +132,8 @@ extern "C" {
    * @param from: wrapped MPRL state
    * @param to: continuous MUSCOD state
    */
-  void convert_obs_for_muscod(const std::vector<double> &from, std::vector<double> &to){
-    if (from.size() == 0 && to.size() == 0)
+  void convert_obs_for_muscod(const std::vector<double> *from, std::vector<double> *to){
+    if (from == NULL || to == NULL)
     {
       // initialize
       angleCnt = M_PI;
@@ -141,10 +141,10 @@ extern "C" {
       std::cout << "NMPC: Observation converter is initialized." <<std::endl;
       return;
     }
-    to[0] = from[0];
-    to[1] = mapAngleToMuscod(from[1]);
-    to[2] = from[2];
-    to[3] = from[3];
+    (*to)[0] = from->at(0);
+    (*to)[1] = mapAngleToMuscod(from->at(1));
+    (*to)[2] = from->at(2);
+    (*to)[3] = from->at(3);
   }
 }
 
