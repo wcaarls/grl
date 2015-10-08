@@ -36,7 +36,7 @@ class NMPCPolicyTh: public Policy
     // pthread thread, conditions and mutexes
     void   print_array(const double* arr, const unsigned int len);
     void   muscod_init();
-    void   muscod_reset();
+    void   muscod_reset(Vector &initial_obs, double time);
     void   muscod_quit(void* data);
     static void*  muscod_run(void *indata);
     static bool   iv_ready_;

@@ -165,6 +165,18 @@ void OnlineLearningExperiment::run()
       }
     }
     
+    // ivan: save policy
+    if (true)
+    {
+      std::ostringstream oss;
+      oss << output_ << "-" << rr << "-";
+
+      Configuration saveconfig;
+      saveconfig.set("action", "save");
+      saveconfig.set("file", oss.str().c_str());
+      agent_->walk(saveconfig);
+    }
+
     if (ofs.is_open())
       ofs.close();
       

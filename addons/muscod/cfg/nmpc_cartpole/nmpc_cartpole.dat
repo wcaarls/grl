@@ -779,7 +779,7 @@ libqps
 qps_qpopt
 
 libplot
-plot_pgplot
+plot_noplot
 *plot_noplot
 *plot_pgplot
 

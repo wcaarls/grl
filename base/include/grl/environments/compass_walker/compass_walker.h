@@ -73,9 +73,11 @@ class CompassWalkerWalkTask : public Task
   
   protected:
     double T_;
+    double initial_state_variation_;
+    mutable int timestep_cnt_;
 
   public:
-    CompassWalkerWalkTask() : T_(100) { }
+    CompassWalkerWalkTask() : T_(100), initial_state_variation_(0.2), timestep_cnt_(0) { }
     
     // From Configurable
     virtual void request(ConfigurationRequest *config);

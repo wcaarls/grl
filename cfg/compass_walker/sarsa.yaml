@@ -1,7 +1,7 @@
 experiment: 
   type: experiment/online_learning
-  runs: 5
-  trials: 2000
+  runs: 10
+  trials: 10000
   steps: 0
   rate: 0
   test_interval: 10
@@ -15,6 +15,7 @@ experiment:
     task: 
       type: task/compass_walker/walk
       timeout: 100
+      initial_state_variation: 0.2
   agent: 
     type: agent/td
     policy: 
@@ -23,7 +24,7 @@ experiment:
         type: discretizer/uniform
         min: experiment/environment/task/action_min
         max: experiment/environment/task/action_max
-        steps: [15]
+        steps: [3]
       projector: 
         type: projector/tile_coding
         tilings: 16

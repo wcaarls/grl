@@ -226,7 +226,7 @@ void NMPCPolicyTh::muscod_init()
   */
 }
 
-void NMPCPolicyTh::muscod_reset()
+void NMPCPolicyTh::muscod_reset(Vector &initial_obs, double time)
 {
   // Finalise thread from previous episode (if required)
 //  muscod_quit(&data_);
@@ -247,10 +247,16 @@ void NMPCPolicyTh::muscod_reset()
   // Reload solution state
   data_.restore_muscod_state(muscod_);
 
+  // Reinitialize state and time
+  for (int IXD = 0; IXD < NXD_; ++IXD)
+    data_.initial_sd[IXD] = initial_obs[IXD];
+  for (int IP = 0; IP < NP_; ++IP)
+    data_.initial_pf[IP] = time;
+
   // Solve until convergence to prepare solver
   for (int ii=0; ii < 100; ++ii) // TODO: check error instead
   {
-    muscod_->nmpcFeedback(NULL, NULL, NULL);
+    muscod_->nmpcFeedback(data_.initial_sd.data(), data_.initial_pf.data(), NULL);
     muscod_->nmpcTransition();
     muscod_->nmpcPrepare();
   }
@@ -259,10 +265,6 @@ void NMPCPolicyTh::muscod_reset()
   for (int IMSN = 0; IMSN < NMSN_; ++IMSN)
     muscod_->getNodeQC (IMSN, &data_.qc[IMSN][0]);
   data_.qc = data_.backup_qc;
-
-  // Reset internal counters
-  std::vector<double> dummy;
-  so_convert_obs_for_muscod(dummy, dummy);
 
   // Reset counters
   qc_cnt_ = 0;
@@ -405,7 +407,14 @@ void NMPCPolicyTh::muscod_quit(void* data)
 void NMPCPolicyTh::act(double time, const Vector &in, Vector *out)
 {
   if (time == 0.0)
-    muscod_reset();
+  {
+    // Reset internal counters
+    std::vector<double> dummy;
+    so_convert_obs_for_muscod(dummy, dummy);
+    // Convert
+    so_convert_obs_for_muscod(in, muscod_obs_);
+    muscod_reset(muscod_obs_, time);
+  }
 
   out->resize(outputs_);
 

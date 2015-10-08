@@ -99,11 +99,13 @@ void CompassWalkerWalkTask::request(ConfigurationRequest *config)
   Task::request(config);
 
   config->push_back(CRP("timeout", "Episode timeout", T_, CRP::Configuration, 0., DBL_MAX));
+  config->push_back(CRP("initial_state_variation", "Variation of initial state", initial_state_variation_, CRP::Configuration, 0., DBL_MAX));
 }
 
 void CompassWalkerWalkTask::configure(Configuration &config)
 {
   T_ = config["timeout"];
+  initial_state_variation_ = config["initial_state_variation"];
 
   config.set("observation_dims", 5);
   config.set("observation_min", VectorConstructor(-M_PI/8, -M_PI/4, -M_PI, -M_PI, 0.));
@@ -129,16 +131,15 @@ void CompassWalkerWalkTask::start(int test, Vector *state) const
   CSWModelState swstate, initial_state;
 
   initial_state.init(0, 0.1534, -0.1561, 2.0*0.1534, -0.0073);
-  double initial_state_variation = 0.2; // 0.2
-  
+
   swstate.mStanceFootX = 0;
 
   do
   {
-    swstate.mStanceLegAngle     = initial_state.mStanceLegAngle     * (1.0-(initial_state_variation) + 2.0*initial_state_variation*drand48());
-    swstate.mHipAngle           = initial_state.mHipAngle           * (1.0-(initial_state_variation) + 2.0*initial_state_variation*drand48());
-    swstate.mStanceLegAngleRate = initial_state.mStanceLegAngleRate * (1.0-(initial_state_variation) + 2.0*initial_state_variation*drand48());
-    swstate.mHipAngleRate       = initial_state.mHipAngleRate       * (1.0-(initial_state_variation) + 2.0*initial_state_variation*drand48());
+    swstate.mStanceLegAngle     = initial_state.mStanceLegAngle     * (1.0-(initial_state_variation_) + 2.0*initial_state_variation_*drand48());
+    swstate.mHipAngle           = initial_state.mHipAngle           * (1.0-(initial_state_variation_) + 2.0*initial_state_variation_*drand48());
+    swstate.mStanceLegAngleRate = initial_state.mStanceLegAngleRate * (1.0-(initial_state_variation_) + 2.0*initial_state_variation_*drand48());
+    swstate.mHipAngleRate       = initial_state.mHipAngleRate       * (1.0-(initial_state_variation_) + 2.0*initial_state_variation_*drand48());
   }
   while (swstate.getKinEnergy() + swstate.getHipY()*cos(SLOPE_ANGLE) < cos(SLOPE_ANGLE));
 
@@ -180,12 +181,19 @@ void CompassWalkerWalkTask::evaluate(const Vector &state, const Vector &action, 
   if (state.size() != 8 || action.size() != 1 || next.size() != 8)
     throw Exception("task/compass_walker/walk requires model/compass_walker");
 
-  *reward = -1;
+  timestep_cnt_++;
+
+  *reward = -1*0;
 
   // Instead of using LastHipX, which is non-Markov, assume the last step
   // was just as long as this one.
   if (next[CompassWalker::siStanceLegChanged])
-    *reward = fmin(50 * 4 * sin(next[CompassWalker::siStanceLegAngle]), 30);
+  {
+    //*reward = fmin(50 * 4 * sin(next[CompassWalker::siStanceLegAngle]), 30);
+    double velocity = sin(next[CompassWalker::siStanceLegAngle]) / (timestep_cnt_*0.2);
+    *reward = 30*exp(-(pow(velocity - 0.122, 2.0))/0.0053);
+    timestep_cnt_ = 0;
+  }
 
   if (fabs(next[CompassWalker::siStanceLegAngle]) > M_PI/8 || fabs(next[CompassWalker::siHipAngle] - 2 * next[CompassWalker::siStanceLegAngle]) > M_PI/4)
     *reward = -100;
