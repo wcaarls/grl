@@ -540,9 +540,9 @@ policy/discrete/v:
     optional: 0
 policy/nmpc:
   description: Nonlinear model predictive control policy using the MUSCOD library
-  model_path:
+  lua_model:
     type: string
-    description: Path to MUSCOD model library
+    description: Lua model used by MUSCOD
     mutability: configuration
     default: ""
     optional: 1
@@ -560,6 +560,14 @@ policy/nmpc:
     optional: 1
     min: 1
     max: 2147483647
+  verbose:
+    type: int
+    description: Verbose mode
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
 policy/nmpc_th:
   description: Nonlinear multistep (thread-based) model predictive control policy using the MUSCOD library
   model_name:
@@ -602,7 +610,7 @@ policy/nmpc_th:
     type: int
     description: Verbose mode
     mutability: system
-    default: 1818386802
+    default: 0
     optional: 1
     min: 0
     max: 1

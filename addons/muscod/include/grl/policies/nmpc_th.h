@@ -47,7 +47,7 @@ class NMPCPolicyTh: public Policy
     bool qc_ready_first_;
 
   public:
-    NMPCPolicyTh(): single_step_(0), qc_cnt_(0), qc_cnt_base_(0), inputs_(0), outputs_(0) {};
+    NMPCPolicyTh(): single_step_(0), qc_cnt_(0), qc_cnt_base_(0), inputs_(0), outputs_(0), verbose_(0) {};
     ~NMPCPolicyTh();
 
     // From Configurable

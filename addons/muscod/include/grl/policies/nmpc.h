@@ -44,10 +44,15 @@ class NMPCPolicy : public Policy
 
   protected:
     int verbose_;
+
+    // MUSCOD-II interface
+    void *so_handle_; // hangle to a shared library with problem definitions
+    void (*so_convert_obs_for_muscod)(const std::vector<double> *from, std::vector<double> *to);
     MuscodData data_;
     MUSCOD *muscod_;
-    std::string model_path_, model_name_;
+    std::string model_name_, lua_model_;
     size_t outputs_;
+    Vector pf_;
 
   public:
     NMPCPolicy() : muscod_(NULL), outputs_(1), verbose_(false) { }
@@ -57,7 +62,7 @@ class NMPCPolicy : public Policy
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
-    virtual void muscod_reset();
+    virtual void muscod_reset(Vector &initial_obs, double time);
 
     // From Policy
     virtual NMPCPolicy *clone() const;

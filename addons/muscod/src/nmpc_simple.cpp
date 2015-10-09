@@ -9,6 +9,8 @@
  */
 
 #include <cmath>
+#include <iostream>
+#include <vector>
 #include "def_usrmod.hpp"
 
 #define  NMOS   1
@@ -26,6 +28,13 @@ const double w1 =  1.0;
 
 const double sw0 = sqrt(w0);
 const double sw1 = sqrt(w1);
+
+extern "C" {
+  void set_path(std::string new_problem_path, std::string new_lua_model){
+  }
+  void convert_obs_for_muscod(const std::vector<double> *from, std::vector<double> *to){
+  }
+}
 
 static void lfcn(double *t, double *xd, double *xa, double *u,
   double *p, double *lval, double *rwh, long *iwh, InfoPtr *info) {

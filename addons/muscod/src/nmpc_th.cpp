@@ -185,7 +185,7 @@ void NMPCPolicyTh::muscod_reset(Vector &initial_obs, double time)
     data_.initial_pf[IP] = time;
 
   // Solve until convergence to prepare solver
-  for (int ii=0; ii < 100; ++ii) // TODO: check error instead
+  for (int ii=0; ii < 20; ++ii) // TODO: check error instead
   {
     muscod_->nmpcFeedback(data_.initial_sd.data(), data_.initial_pf.data(), NULL);
     muscod_->nmpcTransition();
@@ -305,9 +305,8 @@ void NMPCPolicyTh::act(double time, const Vector &in, Vector *out)
 {
   if (time == 0.0)
   {
-    so_convert_obs_for_muscod(NULL, NULL); // Reset internal counters
-    // Convert
-    so_convert_obs_for_muscod(&in, &muscod_obs_);
+    so_convert_obs_for_muscod(NULL, NULL);        // Reset internal counters
+    so_convert_obs_for_muscod(&in, &muscod_obs_); // Convert
     muscod_reset(muscod_obs_, time);
   }
 
