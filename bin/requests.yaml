@@ -1564,6 +1564,64 @@ task/cart_pole/swingup:
     optional: 1
     min: 0
     max: 1
+task/compass_walker/vref:
+  description: Compass walker tracking velocity task
+  observation_dims:
+    type: int.observation_dims
+    description: Number of observation dimensions
+    mutability: provided
+  observation_min:
+    type: vector.observation_min
+    description: Lower limit on observations
+    mutability: provided
+  observation_max:
+    type: vector.observation_max
+    description: Upper limit on observations
+    mutability: provided
+  action_dims:
+    type: int.action_dims
+    description: Number of action dimensions
+    mutability: provided
+  action_min:
+    type: vector.action_min
+    description: Lower limit on actions
+    mutability: provided
+  action_max:
+    type: vector.action_max
+    description: Upper limit on actions
+    mutability: provided
+  reward_min:
+    type: double.reward_min
+    description: Lower limit on immediate reward
+    mutability: provided
+  reward_max:
+    type: double.reward_max
+    description: Upper limit on immediate reward
+    mutability: provided
+  timeout:
+    type: double
+    description: Episode timeout
+    mutability: configuration
+    default: 100
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
+  initial_state_variation:
+    type: double
+    description: Variation of initial state
+    mutability: configuration
+    default: 0.2
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
+  reference_velocity:
+    type: double
+    description: Reference velocity
+    mutability: configuration
+    default: 0.1
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
 task/compass_walker/walk:
   description: Compass walker walking task
   observation_dims:

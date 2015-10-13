@@ -24,7 +24,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * \endverbatim
  */
- 
+
+#include <cmath>
 #include <grl/environments/compass_walker/SWModel.h>
 #include <grl/environments/compass_walker/compass_walker.h>
 
@@ -34,6 +35,7 @@ using namespace grl;
 
 REGISTER_CONFIGURABLE(CompassWalkerModel)
 REGISTER_CONFIGURABLE(CompassWalkerWalkTask)
+REGISTER_CONFIGURABLE(CompassWalkerVrefTask)
 
 // *** CompassWalkerModel ***
 
@@ -152,6 +154,7 @@ void CompassWalkerWalkTask::start(int test, Vector *state) const
   (*state)[CompassWalker::siStanceLegChanged] = false;
   (*state)[CompassWalker::siLastHipX] = swstate.getHipX();
   (*state)[CompassWalker::siTime] = 0;
+  prev_step_time_ = 0;
 }
 
 void CompassWalkerWalkTask::observe(const Vector &state, Vector *obs, int *terminal) const
@@ -181,19 +184,12 @@ void CompassWalkerWalkTask::evaluate(const Vector &state, const Vector &action, 
   if (state.size() != 8 || action.size() != 1 || next.size() != 8)
     throw Exception("task/compass_walker/walk requires model/compass_walker");
 
-  timestep_cnt_++;
-
-  *reward = -1*0;
+  *reward = -1;
 
   // Instead of using LastHipX, which is non-Markov, assume the last step
   // was just as long as this one.
   if (next[CompassWalker::siStanceLegChanged])
-  {
-    //*reward = fmin(50 * 4 * sin(next[CompassWalker::siStanceLegAngle]), 30);
-    double velocity = sin(next[CompassWalker::siStanceLegAngle]) / (timestep_cnt_*0.2);
-    *reward = 30*exp(-(pow(velocity - 0.122, 2.0))/0.0053);
-    timestep_cnt_ = 0;
-  }
+    *reward = fmin(50 * 4 * sin(next[CompassWalker::siStanceLegAngle]), 30);
 
   if (fabs(next[CompassWalker::siStanceLegAngle]) > M_PI/8 || fabs(next[CompassWalker::siHipAngle] - 2 * next[CompassWalker::siStanceLegAngle]) > M_PI/4)
     *reward = -100;
@@ -213,4 +209,42 @@ bool CompassWalkerWalkTask::invert(const Vector &obs, Vector *state) const
   (*state)[CompassWalker::siTime] = 0;
 
   return true;
+}
+
+// *** CompassWalkerVrefTask ***
+
+void CompassWalkerVrefTask::evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const
+{
+
+  if (state.size() != 8 || action.size() != 1 || next.size() != 8)
+    throw Exception("task/compass_walker/walk requires model/compass_walker");
+
+  *reward = 0;
+
+  // Instead of using LastHipX, which is non-Markov, assume the last step
+  // was just as long as this one.
+  if (next[CompassWalker::siStanceLegChanged])
+  {
+    double variance = pow(0.5*vref_, 2)/(2*std::log(2.0)); // 2.0 times decay of exp() at +-0.1 deviation from velocity_ref
+    double velocity = sin(next[CompassWalker::siStanceLegAngle]) / (next[CompassWalker::siTime]-prev_step_time_);
+    *reward = exp( -(pow(velocity - vref_, 2))/(2*variance) );
+    prev_step_time_ = next[CompassWalker::siTime];
+  }
+
+  if (fabs(next[CompassWalker::siStanceLegAngle]) > M_PI/8 || fabs(next[CompassWalker::siHipAngle] - 2 * next[CompassWalker::siStanceLegAngle]) > M_PI/4)
+    *reward = -10;
+}
+
+void CompassWalkerVrefTask::request(ConfigurationRequest *config)
+{
+  Task::request(config);
+  CompassWalkerWalkTask::request(config);
+
+  config->push_back(CRP("reference_velocity", "Reference velocity", vref_, CRP::Configuration, 0., DBL_MAX));
+}
+
+void CompassWalkerVrefTask::configure(Configuration &config)
+{
+  CompassWalkerWalkTask::configure(config);
+  vref_ = config["reference_velocity"];
 }

@@ -74,10 +74,10 @@ class CompassWalkerWalkTask : public Task
   protected:
     double T_;
     double initial_state_variation_;
-    mutable int timestep_cnt_;
+    mutable int prev_step_time_;
 
   public:
-    CompassWalkerWalkTask() : T_(100), initial_state_variation_(0.2), timestep_cnt_(0) { }
+    CompassWalkerWalkTask() : T_(100), initial_state_variation_(0.2), prev_step_time_(0) { }
     
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -90,6 +90,25 @@ class CompassWalkerWalkTask : public Task
     virtual void observe(const Vector &state, Vector *obs, int *terminal) const;
     virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const;
     virtual bool invert(const Vector &obs, Vector *state) const;
+};
+
+class CompassWalkerVrefTask : public CompassWalkerWalkTask
+{
+  public:
+    TYPEINFO("task/compass_walker/vref", "Compass walker tracking velocity task")
+
+  protected:
+    double vref_;
+
+  public:
+    CompassWalkerVrefTask() : vref_(0.1) { }
+
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+
+    // From Task
+    virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const;
 };
 
 }

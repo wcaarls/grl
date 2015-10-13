@@ -13,9 +13,10 @@ experiment:
       control_step: 0.2
       integration_steps: 20
     task: 
-      type: task/compass_walker/walk
+      type: task/compass_walker/vref
       timeout: 100
-      initial_state_variation: 0.0
+      initial_state_variation: 0
+      reference_velocity: 0.122
     output: compass_walker_sarsa
   agent: 
     type: agent/td

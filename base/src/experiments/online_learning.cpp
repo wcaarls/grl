@@ -166,7 +166,7 @@ void OnlineLearningExperiment::run()
     }
     
     // ivan: save policy
-    if (true)
+    if (false)
     {
       std::ostringstream oss;
       oss << output_ << "-" << rr << "-";

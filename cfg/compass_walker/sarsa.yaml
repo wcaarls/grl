@@ -1,7 +1,7 @@
 experiment: 
   type: experiment/online_learning
-  runs: 10
-  trials: 10000
+  runs: 1
+  trials: 2000
   steps: 0
   rate: 0
   test_interval: 10
@@ -13,9 +13,10 @@ experiment:
       control_step: 0.2
       integration_steps: 20
     task: 
-      type: task/compass_walker/walk
+      type: task/compass_walker/vref
       timeout: 100
       initial_state_variation: 0.2
+      reference_velocity: 0.122
   agent: 
     type: agent/td
     policy: 
