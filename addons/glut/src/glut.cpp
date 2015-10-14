@@ -98,6 +98,11 @@ void GLUTVisualizer::refreshWindow(Visualization *window)
   glutPostWindowRedisplay(window->id());
 }
 
+void GLUTVisualizer::setTitle(const char *name)
+{
+  glutSetWindowTitle(name);
+}
+
 void GLUTVisualizer::swap()
 {
   glutSwapBuffers();
@@ -199,6 +204,8 @@ void GLUTVisualizer::run()
       glutReshapeFunc(reshape);
       glutVisibilityFunc(visible);  
       glutCloseFunc(close);
+      glutKeyboardFunc(key);
+      glutMouseFunc(click);
     
       new_window_ptr_->id(glutGetWindow());
       windows_[new_window_ptr_->id()] = new_window_ptr_;

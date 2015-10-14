@@ -39,37 +39,82 @@ using namespace std;
 static YAMLConfigurator configurator;
 struct sigaction act, oldact;
 
+void reconfigure()
+{
+  NOTICE("Awaiting reconfiguration. Use [action] [object] [parameter=value]...");
+
+  while (1)
+  {
+    Configuration config;
+    std::string line;
+    std::vector<std::string> words;
+    getline(cin, line);
+    if (line.empty())
+      break;
+      
+    size_t seppos = 0, newpos;
+    do
+    {
+      // Split into commands
+      newpos = line.find(' ', seppos);
+      std::string command = line.substr(seppos, newpos-seppos);
+      
+      if (!command.empty())
+      {
+        size_t eqpos = command.find('=');
+        if (eqpos != std::string::npos)
+        {
+          // key=value
+          std::string key = command.substr(0, eqpos);
+          std::string value = command.substr(eqpos+1);
+          
+          config.set(key, value);
+        }
+        else
+        {
+          // action or object
+          words.push_back(command);
+        }
+      }
+      seppos = newpos+1;
+    }
+    while (newpos != std::string::npos);
+    
+    if (words.empty())
+    {
+      // <key=value...>
+      configurator.reconfigure(config);
+    }
+    else if (words.size() == 1)
+    {
+      if (configurator.references().has(words[0]))
+      {
+        // object <key=value...>
+        configurator.reconfigure(config, words[0]);
+      }
+      else
+      {
+        // action <key=value...>
+        config.set("action", words[0]);
+        configurator.reconfigure(config);
+      }
+    }
+    else
+    {
+      // action object <key=value...>
+      config.set("action", words[0]);
+      configurator.reconfigure(config, words[1]);
+    }
+  }
+  
+  NOTICE("Reconfiguration complete");
+}
+
 void sighandler(int signum)
 {
   sigaction(SIGINT, &oldact, NULL);
 
-  NOTICE("Interrupted. Awaiting reconfiguration");
-
-  Configuration config;
-  
-  while (1)
-  {
-    std::string line;
-    getline(cin, line);
-    if (line.empty())
-      break;
-
-    size_t seppos = line.rfind(':');
-    
-    if (seppos != std::string::npos)
-    {
-      std::string key = line.substr(0, seppos);
-      std::string value = line.substr(seppos+1);
-    
-      config.set(key, value);
-    }
-    else
-      WARNING("Unknown command '" << line << "'");
-  } 
-  
-  configurator.reconfigure(config);
-
-  NOTICE("Reconfiguration complete");
+  reconfigure();
   
   sigaction(SIGINT, &act, NULL);
 }
@@ -77,11 +122,11 @@ void sighandler(int signum)
 int main(int argc, char **argv)
 {
   int seed = 0;
-  bool read = false, write = false;
+  bool read = false, write = false, user_config = false;
   std::string file;
 
   int c;
-  while ((c = getopt (argc, argv, "vs:rwf:")) != -1)
+  while ((c = getopt (argc, argv, "vs:rwf:c")) != -1)
   {
     switch (c)
     {
@@ -100,6 +145,9 @@ int main(int argc, char **argv)
       case 'f':
         file = optarg;
         break;
+      case 'c':
+        user_config = true;
+        break;
       default:
         return 1;    
     }
@@ -107,7 +155,7 @@ int main(int argc, char **argv)
 
   if (optind != argc-1)
   {
-    ERROR("Usage: " << endl << "  " << argv[0] << " [-v] [-s seed] [-r] [-w] [-f file] <yaml file>");
+    ERROR("Usage: " << endl << "  " << argv[0] << " [-v] [-c] [-s seed] [-r] [-w] [-f file] <yaml file>");
     return 1;
   }
   
@@ -141,7 +189,8 @@ int main(int argc, char **argv)
   if (file.empty())
   {
     file = argv[optind];
-    file.resize(file.rfind('.'));
+    if (file.rfind(".yaml") != std::string::npos)
+      file.resize(file.rfind(".yaml"));
   }
   
   if (read)
@@ -152,10 +201,15 @@ int main(int argc, char **argv)
     configurator.walk(loadconfig);
   }
   
+  if (user_config)
+    reconfigure();
+  
   bzero(&act, sizeof(struct sigaction));
   act.sa_handler = sighandler;
   act.sa_flags = SA_NODEFER;
   sigaction(SIGINT, &act, &oldact);
+  
+  NOTICE("Starting experiment");
   
   experiment->run();
   

@@ -69,6 +69,7 @@ visualization:
   input_min: experiment/environment/task/observation_min
   input_max: experiment/environment/task/observation_max
   points: 65536
+  savepoints: 1048576
   projection: mean
   projector: experiment/agent/policy/projector
   representation: experiment/agent/policy/representation

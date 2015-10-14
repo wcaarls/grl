@@ -65,6 +65,7 @@ class GLUTVisualizer : public Visualizer
     virtual void destroyWindow(Visualization *window, bool glutDestroy=true);
     virtual void refreshWindow(Visualization *window);
     
+    virtual void setTitle(const char *name);
     virtual void swap();
     virtual void clear();
     virtual void initProjection(double x1, double x2, double y1, double y2);
@@ -134,6 +135,20 @@ class GLUTVisualizer : public Visualizer
         glutInstance()->destroyWindow(window, false);
         window->close();
       }
+    }
+
+    static void key(unsigned char k, int x, int y)
+    {
+      Visualization* window = glutInstance()->getCurrentWindow();
+      if (window)
+        window->key(k, x, y);
+    }
+    
+    static void click(int button, int state, int x, int y)
+    {
+      Visualization* window = glutInstance()->getCurrentWindow();
+      if (window)
+        window->click(button, state, x, y);
     }
 };
 

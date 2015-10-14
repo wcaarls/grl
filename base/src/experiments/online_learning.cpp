@@ -48,7 +48,8 @@ void OnlineLearningExperiment::request(ConfigurationRequest *config)
   config->push_back(CRP("agent", "agent", "Agent", agent_));
   config->push_back(CRP("test_agent", "agent", "Agent to use in test trials", agent_, true));
   
-  config->push_back(CRP("state", "state", "Current observed state of the environment", CRP::Provided));  
+  config->push_back(CRP("state", "state", "Current observed state of the environment", CRP::Provided));
+  config->push_back(CRP("curve", "state", "Learning curve", CRP::Provided));
 }
 
 void OnlineLearningExperiment::configure(Configuration &config)
@@ -65,8 +66,10 @@ void OnlineLearningExperiment::configure(Configuration &config)
   output_ = config["output"].str();
   
   state_ = new State();
+  curve_ = new State();
   
   config.set("state", state_);
+  config.set("curve", curve_);
   
   if (test_interval_ && !test_agent_)
     throw bad_param("experiment/online_learning:test_agent");
@@ -109,6 +112,7 @@ void OnlineLearningExperiment::run()
       double reward, total_reward=0;
       int terminal;
       bool test = (test_interval_ && tt%(test_interval_+1) == test_interval_);
+      timer step_timer;
 
       Agent *agent = agent_;      
       if (test) agent = test_agent_;
@@ -121,7 +125,13 @@ void OnlineLearningExperiment::run()
   
       do
       {
-        if (rate_) usleep(1000000./rate_);
+        if (rate_)
+        {
+          double sleep_time = 1./rate_-step_timer.elapsed();
+          if (sleep_time > 0)
+            usleep(1000000.*sleep_time);
+          step_timer.restart();
+        }
         
         double tau = environment_->step(action, &obs, &reward, &terminal);
         
@@ -131,13 +141,13 @@ void OnlineLearningExperiment::run()
         
         if (terminal == 2)
           agent->end(tau, reward);
-        else if (!obs.empty())
+        else if (obs.size())
         {
           agent->step(tau, obs, reward, &action);
           state_->set(obs);
         }
           
-        if (!test && !obs.empty()) ss++;
+        if (!test && obs.size()) ss++;
       } while (!terminal);
 
       if (test_interval_)
@@ -147,6 +157,7 @@ void OnlineLearningExperiment::run()
           std::ostringstream oss;
           oss << std::setw(15) << tt+1-(tt+1)/(test_interval_+1) << std::setw(15) << ss << std::setw(15) << total_reward;
           agent_->report(oss);
+          curve_->set(VectorConstructor(total_reward));
         
           INFO(oss.str());
           if (ofs.is_open())
@@ -158,6 +169,7 @@ void OnlineLearningExperiment::run()
         std::ostringstream oss;
         oss << std::setw(15) << tt << std::setw(15) << ss << std::setw(15) << total_reward;
         agent_->report(oss);
+        curve_->set(VectorConstructor(total_reward));
         
         INFO(oss.str());
         if (ofs.is_open())
@@ -166,7 +178,7 @@ void OnlineLearningExperiment::run()
     }
     
     // ivan: save policy
-    if (false)
+    if (true)
     {
       std::ostringstream oss;
       oss << output_ << "-" << rr << "-";

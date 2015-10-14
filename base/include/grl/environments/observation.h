@@ -38,7 +38,17 @@ namespace grl
 /// Model that works on observations instead of states.
 class ObservationModel : public Configurable
 {
+  protected:
+    double jacobian_step_;
+    
   public:
+    ObservationModel() : jacobian_step_(0.001) { }
+  
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+    
     virtual ObservationModel *clone() const = 0;
     virtual double step(const Vector &obs, const Vector &action, Vector *next, double *reward, int *terminal) const = 0;
     virtual Matrix jacobian(const Vector &obs, const Vector &action) const;

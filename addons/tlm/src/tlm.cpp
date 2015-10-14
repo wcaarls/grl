@@ -198,7 +198,7 @@ void TwoLinkManipulatorVisualization::draw()
   
   Vector state = state_->get();
   
-  if (!state.empty())
+  if (state.size())
   {
     double phi1 = state[0]+M_PI/2;
     double phi2 = state[1];

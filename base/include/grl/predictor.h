@@ -30,6 +30,8 @@
 
 #include <grl/grl.h>
 #include <grl/configurable.h>
+#include <grl/importer.h>
+#include <grl/exporter.h>
 
 namespace grl
 {
@@ -37,15 +39,25 @@ namespace grl
 /// Estimates a function from Transition%s.
 class Predictor : public Configurable
 {
+  protected:
+    Importer *importer_;
+    Exporter *exporter_;
+
   public:
-    virtual ~Predictor() { }
+    Predictor() : importer_(NULL), exporter_(NULL) { }
+
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+    
     virtual Predictor *clone() const = 0;
     
     /// Update the estimation.
-    virtual void update(const Transition &transition) = 0;
+    virtual void update(const Transition &transition);
     
     /// Signal completion of a set of updates (episode or batch).
-    virtual void finalize() = 0;
+    virtual void finalize();
 };
 
 }

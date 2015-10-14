@@ -175,7 +175,7 @@ bool CartPoleSwingupTask::invert(const Vector &obs, Vector *state) const
 {
   *state = obs;
   (*state)[1] -= M_PI;
-  state->push_back(0.);
+  *state = extend(*state, VectorConstructor(0.));
   
   return true;
 }
@@ -273,7 +273,7 @@ void CartPoleBalancingTask::evaluate(const Vector &state, const Vector &action, 
 bool CartPoleBalancingTask::invert(const Vector &obs, Vector *state) const
 {
   *state = obs;
-  state->push_back(0.);
+  *state = extend(*state, VectorConstructor(0.));
   
   return true;
 }

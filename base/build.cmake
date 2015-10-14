@@ -27,6 +27,8 @@ add_library(${TARGET} SHARED
 #            ${SRC}/experiments/approx_test.cpp
             ${SRC}/experiments/online_learning.cpp
 #            ${SRC}/experiments/batch_learning.cpp
+            ${SRC}/exporters/csv.cpp
+            ${SRC}/importers/csv.cpp
             ${SRC}/policies/random.cpp
             ${SRC}/policies/action.cpp
             ${SRC}/policies/v.cpp
@@ -37,6 +39,7 @@ add_library(${TARGET} SHARED
 #            ${SRC}/policies/mcts.cpp
 #            ${SRC}/policies/ucb.cpp
             ${SRC}/policies/state_feedback.cpp
+            ${SRC}/predictor.cpp
             ${SRC}/predictors/model.cpp
             ${SRC}/predictors/sarsa.cpp
 #            ${SRC}/predictors/ggq.cpp
@@ -45,6 +48,7 @@ add_library(${TARGET} SHARED
             ${SRC}/predictors/qv.cpp
             ${SRC}/predictors/td.cpp
             ${SRC}/predictors/vi.cpp
+            ${SRC}/predictors/advantage.cpp
             ${SRC}/projectors/identity.cpp
             ${SRC}/projectors/normalizing.cpp
             ${SRC}/projectors/peaked.cpp

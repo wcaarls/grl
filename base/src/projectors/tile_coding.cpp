@@ -48,15 +48,16 @@ void TileCodingProjector::configure(Configuration &config)
   resolution_ = config["resolution"];
   wrapping_ = config["wrapping"];
 
-  if (wrapping_.empty())
-    wrapping_.resize(resolution_.size(), 0.);
+  if (!wrapping_.size())
+    wrapping_ = ConstantVector(resolution_.size(), 0.);
     
   if (wrapping_.size() != resolution_.size())
     throw bad_param("projector/tile_coding:wrapping");
   
+  scaling_ = Vector(resolution_.size());
   for (size_t ii=0; ii < resolution_.size(); ++ii)
   {
-    scaling_.push_back(tilings_/resolution_[ii]);
+    scaling_[ii] = tilings_/resolution_[ii];
     wrapping_[ii] *= scaling_[ii];
     if (fabs(wrapping_[ii]-round(wrapping_[ii])) > 0.001)
       throw bad_param("projector/tile_coding:wrapping");

@@ -33,6 +33,8 @@ REGISTER_CONFIGURABLE(FQIPredictor)
 
 void FQIPredictor::request(ConfigurationRequest *config)
 {
+  Predictor::request(config);
+
   config->push_back(CRP("gamma", "Discount rate", gamma_));
   config->push_back(CRP("transitions", "Maximum number of transitions to store", max_samples_, CRP::Configuration, 1));
   config->push_back(CRP("iterations", "Number of policy improvement rounds per episode", iterations_, CRP::Configuration, 1));
@@ -52,6 +54,8 @@ void FQIPredictor::request(ConfigurationRequest *config)
 
 void FQIPredictor::configure(Configuration &config)
 {
+  Predictor::configure(config);
+  
   discretizer_ = (Discretizer*)config["discretizer"].ptr();
   discretizer_->options(&variants_);
   
@@ -75,6 +79,8 @@ void FQIPredictor::configure(Configuration &config)
 
 void FQIPredictor::reconfigure(const Configuration &config)
 {
+  Predictor::reconfigure(config);
+  
   if (config.has("action") && config["action"].str() == "reset")
   {
     DEBUG("Initializing transition store");
@@ -114,13 +120,13 @@ void FQIPredictor::reconfigure(const Configuration &config)
       fileInStream.read(reinterpret_cast<char*>(&(tr.action[0])), tr.action.size()*sizeof(double));
       if (std::isnan(tr.obs[0]))
       { // this is a terminal or absorbing transition
-        tr.obs.clear();
-        tr.action.clear();
+        tr.obs = Vector();
+        tr.action = Vector();
       }
       fileInStream.read(reinterpret_cast<char*>(&(tr.reward)), sizeof(double));
 
       transitions_.push_back(ctr);
-      if (tr.obs.empty())
+      if (!tr.obs.size())
       { // restore
         tr.obs.resize(count_obs);
         tr.action.resize(count_action);
@@ -157,7 +163,7 @@ void FQIPredictor::reconfigure(const Configuration &config)
       fileOutStream.write(reinterpret_cast<const char*>(&(transitions_[i].transition.prev_obs[0])), count_obs*sizeof(double));
       fileOutStream.write(reinterpret_cast<const char*>(&(transitions_[i].transition.prev_action[0])), count_action*sizeof(double));
 
-      if (transitions_[i].transition.obs.empty())
+      if (!transitions_[i].transition.obs.size())
       {
         // dymmy write of NaNs
         fileOutStream.write(reinterpret_cast<const char*>(&(dummy_obs[0])), count_obs*sizeof(double));
@@ -186,11 +192,15 @@ FQIPredictor *FQIPredictor::clone() const
 
 void FQIPredictor::update(const Transition &transition)
 {
+  Predictor::update(transition);
+
   transitions_.push_back(CachedTransition(transition));
 }
 
 void FQIPredictor::finalize()
 {
+  Predictor::finalize();
+
   // rebuilding predictor every macro_batch_size_ episodes or do not rebuild at all
   if (macro_batch_size_ && ((++macro_batch_counter_ % macro_batch_size_) == 0))
     rebuild();
@@ -228,9 +238,9 @@ void FQIPredictor::rebuild()
         CachedTransition& t = transitions_[jj];
         double target = t.transition.reward;
 
-        if (!t.transition.obs.empty())
+        if (t.transition.obs.size())
         {
-          if (t.actions.empty() || reproject_actions)
+          if (!t.actions.size() || reproject_actions)
           {
             // Rebuild next state-action projections
             t.actions.clear();

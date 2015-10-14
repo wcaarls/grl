@@ -22,7 +22,7 @@
 
 \title{GRL: a generic C++ reinforcement learning library}
 \author{Wouter Caarls $<$\url{mailto:wouter@caarls.org}$>$}
-\date{June 11th, 2015}
+\date{October 5th, 2015}
 \begin{document}
 \maketitle
 
@@ -48,6 +48,7 @@ interface.
 |       |-- projectors       State projectors (tile coding, fourier)
 |       |-- representations  Representations (linear, ann) 
 |       |-- samplers         Action samplers (greedy, e-greedy)
+|       |-- solvers          MDP solvers (VI, rollout-based)
 |       |-- traces           Elibility traces (accumulating, replacing)
 |       `-- visualizations   Visualizations (value function, policy)
 |-- addons                   Optional modules
@@ -55,6 +56,7 @@ interface.
 |   |-- gl                   OpenGL-based visualizations
 |   |-- glut                 GLUT-based visualizer
 |   |-- llr                  Locally linear regression representation
+|   |-- lqr                  Linear Quadratic Regulator solver
 |   |-- matlab               Matlab interoperability
 |   |-- muscod               Muscod interoperability
 |   |-- odesim               Open Dynamics Engine environment
@@ -64,6 +66,7 @@ interface.
 |-- externals                Imported external library code
 |-- cfg                      Sample configurations
 |-- share                    Misc files
+|   `-- taskmaster           Taskmaster parameter study example
 |-- tests                    Unit tests
 |-- CMakeLists.txt           CMake instructions to build everything
 `-- grl.cmake                CMake helper functions
@@ -78,7 +81,6 @@ is
 \begin{itemize}
   \item Git
   \item GCC (including g++)
-  \item Boost (for shared\_ptr)
   \item Eigen
   \item GLUT
   \item QT4 (including the OpenGL bindings)
@@ -91,9 +93,9 @@ is
 On Ubuntu 14.04, these may be installed with the following command:
 
 \begin{code}
-\prompt \inp{git cmake g++ libboost-dev1 libeigen3-dev1 \textbackslash}
-\inp{libgl1-mesa-dev-lts-utopic freeglut3-dev1 libqt4-opengl-dev \textbackslash}
-\inp{libtinyxml-dev libmuparser-dev libode-dev1 python-yaml python-tk1 \textbackslash}
+\prompt \inp{git cmake g++ libeigen3-dev \textbackslash}
+\inp{libgl1-mesa-dev freeglut3-dev libqt4-opengl-dev \textbackslash}
+\inp{libtinyxml-dev libmuparser-dev libode-dev python-yaml python-tk \textbackslash}
 \end{code}
 
 \section{Building}
@@ -209,6 +211,8 @@ running
 \begin{code}
 \promptmn ./grlq
 \end{code}
+
+and is also available in the appendices of this document.
 
 A typical example of the information flow between the various classes can be seen in Figure~\ref{fig:td},
 which depicts the standard TD control setting.
@@ -484,5 +488,9 @@ reinitialize the agent with different options), call
 \begin{code}
 >> grl_agent('fini');
 \end{code}
+
+\appendix
+
+\input{objects.tex}
 
 \end{document}

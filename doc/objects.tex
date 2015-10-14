@@ -1,0 +1,1105 @@
+\section{Agents}
+\subsection{agent/black\_box}
+\noindent Agent that learns from the cumulative reward of complete rollouts\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+episodes&int&Number of episodes to evaluate policy\\
+optimizer&optimizer&Policy optimizer\\
+\end{tabular}
+\subsection{agent/dyna}
+\noindent Agent that learns from both observed and predicted state transitions\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+planning\_steps&int&Number of planning steps per control step\\
+planning\_horizon&int&Planning episode length\\
+asynchronous&int&Asynchronous planning (actual planning\_steps depends on control step time and processing power)\\
+policy&policy&Control policy\\
+predictor&predictor&Value function predictor\\
+model&observation\_model&Observation model used for planning\\
+model\_predictor&predictor/model&Model predictor\\
+model\_agent&agent&Agent used for planning episodes\\
+\end{tabular}
+\\
+
+\noindent Provided parameters\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+state&state&Current observed state of planning\\
+\end{tabular}
+\subsection{agent/fixed}
+\noindent Fixed-policy agent\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+policy&policy&Control policy\\
+\end{tabular}
+\subsection{agent/master/exclusive}
+\noindent Master agent that selects one sub-agent to execute\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+gamma&double&Discount rate\\
+agent1&agent/sub&First subagent\\
+agent2&agent/sub&Second subagent\\
+\end{tabular}
+\subsection{agent/master/sequential}
+\noindent Master agent that executes sub-agents sequentially\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+agent1&agent&First subagent, providing the suggested action\\
+agent2&agent&Second subagent, providing the final action\\
+\end{tabular}
+\subsection{agent/solver}
+\noindent Agent that successively solves learned models of the environment\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+interval&int&Episodes between successive solutions (0=asynchronous)\\
+policy&policy&Control policy\\
+predictor&predictor&Optional (model) predictor\\
+solver&solver&Model-based solver\\
+\end{tabular}
+\subsection{agent/sub/compartmentalized}
+\noindent Sub agent that is valid in a fixed state-space region\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+min&vector.observation\_min&Minimum of compartment bounding box\\
+max&vector.observation\_max&Maximum of compartment bounding box\\
+agent&agent&Sub agent\\
+\end{tabular}
+\subsection{agent/td}
+\noindent Agent that learns from observed state transitions\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+policy&policy&Control policy\\
+predictor&predictor&Value function predictor\\
+\end{tabular}
+\section{Discretizers}
+\subsection{discretizer/peaked}
+\noindent Peaked discretizer, with more resolution around center\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+min&vector&Lower limit\\
+max&vector&Upper limit\\
+steps&vector&Discretization steps per dimension\\
+peaking&vector&Extra resolution factor around center (offset by 1/factor at edges)\\
+\end{tabular}
+\subsection{discretizer/uniform}
+\noindent Uniform discretizer\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+min&vector&Lower limit\\
+max&vector&Upper limit\\
+steps&vector&Discretization steps per dimension\\
+\end{tabular}
+\section{Dynamics}
+\subsection{dynamics/acrobot}
+\noindent Acrobot dynamics\\
+
+\subsection{dynamics/cart\_pole}
+\noindent Cart-pole dynamics from Barto et al.\\
+
+\subsection{dynamics/pendulum}
+\noindent Pendulum dynamics based on the DCSC MOPS\\
+
+\subsection{dynamics/rbdl}
+\noindent RBDL rigid body dynamics\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+file&string&RBDL Lua model file\\
+\end{tabular}
+\subsection{dynamics/tlm}
+\noindent Two-link manipulator dynamics\\
+
+\section{Environments}
+\subsection{environment/leo2}
+\noindent LEO/2 environment\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+port&string&Device ID of FTDI usb-to-serial converter\\
+bps&int&Bit rate\\
+\end{tabular}
+\\
+
+\noindent Provided parameters\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+state&state&Current state of the robot\\
+\end{tabular}
+\subsection{environment/modeled}
+\noindent Environment that uses a state transition model internally\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+model&model&Environment model\\
+task&task&Task to perform in the environment (should match model)\\
+exporter&exporter&Optional exporter for transition log (supports time, state, observation, action, reward, terminal)\\
+\end{tabular}
+\\
+
+\noindent Provided parameters\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+state&state&Current state of the model\\
+\end{tabular}
+\subsection{environment/ode}
+\noindent Open Dynamics Engine simulation environment\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+xml&string&XML configuration filename\\
+\end{tabular}
+\\
+
+\noindent Provided parameters\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+observation\_dims&int.observation\_dims&Number of observation dimensions\\
+observation\_min&vector.observation\_min&Lower limit on observations\\
+observation\_max&vector.observation\_max&Upper limit on observations\\
+action\_dims&int.action\_dims&Number of action dimensions\\
+action\_min&vector.action\_min&Lower limit on actions\\
+action\_max&vector.action\_max&Upper limit on actions\\
+reward\_min&double.reward\_min&Lower limit on immediate reward\\
+reward\_max&double.reward\_max&Upper limit on immediate reward\\
+\end{tabular}
+\section{Experiments}
+\subsection{experiment/approx\_test}
+\noindent Approximator test experiment (supervised learning)\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+train\_samples&int&Number of training samples\\
+test\_samples&int&Number of test samples\\
+file&string&Output file (csv format)\\
+input\_min&vector&Lower limit for drawing samples\\
+input\_max&vector&Upper limit for drawing samples\\
+projector&projector&Projector (should match representation)\\
+representation&representation&Learned representation\\
+mapping&mapping&Function to learn\\
+\end{tabular}
+\subsection{experiment/batch\_learning}
+\noindent Batch learning experiment using randomly sampled experience\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+runs&int&Number of separate learning runs to perform\\
+batches&int&Number of batches per learning run\\
+batch\_size&int&Number of transitions per batch\\
+rate&int&Test trial control step frequency in Hz\\
+output&string&Output base filename\\
+model&model&Model in which the task is set\\
+task&task&Task to be solved\\
+predictor&predictor&Learner\\
+test\_agent&agent&Agent to use in test trials after each batch\\
+observation\_min&vector.observation\_min&Lower limit for observations\\
+observation\_max&vector.observation\_max&Upper limit for observations\\
+action\_min&vector.action\_min&Lower limit for actions\\
+action\_max&vector.action\_max&Upper limit for actions\\
+\end{tabular}
+\\
+
+\noindent Provided parameters\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+state&state&Current observed state of the environment\\
+\end{tabular}
+\subsection{experiment/online\_learning}
+\noindent Interactive learning experiment\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+runs&int&Number of separate learning runs to perform\\
+trials&int&Number of episodes per learning run\\
+steps&int&Number of steps per learning run\\
+rate&int&Control step frequency in Hz\\
+test\_interval&int&Number of episodes in between test trials\\
+output&string&Output base filename\\
+environment&environment&Environment in which the agent acts\\
+agent&agent&Agent\\
+test\_agent&agent&Agent to use in test trials\\
+\end{tabular}
+\\
+
+\noindent Provided parameters\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+state&state&Current observed state of the environment\\
+curve&state&Learning curve\\
+\end{tabular}
+\section{Exporters}
+\subsection{exporter/csv}
+\noindent Comma-separated values exporter\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+file&string&Output base filename\\
+fields&string&Comma-separated list of fields to write\\
+style&string&Header style\\
+\end{tabular}
+\section{Importers}
+\subsection{importer/csv}
+\noindent Comma-separated values importer\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+file&string&Input base filename\\
+\end{tabular}
+\section{Mappings}
+\subsection{mapping/multisine}
+\noindent Sum of sines mapping\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+inputs&int&Number of input dimensions\\
+outputs&int&Number of output dimensions\\
+sines&int&Number of sines\\
+\end{tabular}
+\section{Models}
+\subsection{model/compass\_walker}
+\noindent Simplest walker model from Garcia et al.\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+control\_step&double.control\_step&Control step time\\
+integration\_steps&int&Number of integration steps per control step\\
+\end{tabular}
+\subsection{model/dynamical}
+\noindent State transition model that integrates equations of motion\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+control\_step&double.control\_step&Control step time\\
+integration\_steps&int&Number of integration steps per control step\\
+dynamics&dynamics&Equations of motion\\
+\end{tabular}
+\subsection{model/pinball}
+\noindent Model of a ball on a plate\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+control\_step&double.control\_step&Control step time\\
+integration\_steps&int&Number of integration steps per control step\\
+restitution&double&Coefficient of restitution\\
+radius&double&Ball radius\\
+\end{tabular}
+\subsection{model/windy}
+\noindent Sutton \& Barto's windy gridworld model\\
+
+\section{Observation\_models}
+\subsection{observation\_model/approximated}
+\noindent Observation model based on observed transitions\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+jacobian\_step&double&Step size for Jacobian estimation\\
+control\_step&double.control\_step&Control step time (0 = estimate using SMDP approximator)\\
+differential&int.differential&Predict state deltas\\
+wrapping&vector.wrapping&Wrapping boundaries\\
+observation\_min&vector.observation\_min&Lower limit on observations\\
+observation\_max&vector.observation\_max&Upper limit on observations\\
+stddev\_limit&double&Maximum standard deviation of acceptable predictions, as fraction of range\\
+projector&projector.pair&Projector for transition model (|S|+|A| dimensions)\\
+representation&representation.transition&Representation for transition model (|S|+2 dimensions)\\
+\end{tabular}
+\subsection{observation\_model/fixed}
+\noindent Observation model based on known state transition model\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+jacobian\_step&double&Step size for Jacobian estimation\\
+model&model&Environment model\\
+task&task&Task to perform in the environment (should match model)\\
+\end{tabular}
+\subsection{observation\_model/fixed\_reward}
+\noindent Observation model based on observed transitions but known task\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+jacobian\_step&double&Step size for Jacobian estimation\\
+control\_step&double.control\_step&Control step time (0 = estimate using SMDP approximator)\\
+differential&int.differential&Predict state deltas\\
+wrapping&vector.wrapping&Wrapping boundaries\\
+observation\_min&vector.observation\_min&Lower limit on observations\\
+observation\_max&vector.observation\_max&Upper limit on observations\\
+stddev\_limit&double&Maximum standard deviation of acceptable predictions, as fraction of range\\
+projector&projector.pair&Projector for transition model (|S|+|A| dimensions)\\
+representation&representation.transition&Representation for transition model (|S|+2 dimensions)\\
+task&task&Task to perform in the environment\\
+\end{tabular}
+\section{Optimizers}
+\subsection{optimizer/cma}
+\noindent Coverance matrix adaptation black-box optimizer\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+population&int&Population size\\
+sigma&vector&Initial standard deviation (a single-element vector will be replicated for all parameters)\\
+policy&policy/parameterized&Control policy prototype\\
+\end{tabular}
+\section{Policies}
+\subsection{policy/action}
+\noindent Policy based on a direct action representation\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+sigma&vector&Standard deviation of exploration distribution\\
+output\_min&vector.action\_min&Lower limit on outputs\\
+output\_max&vector.action\_max&Upper limit on outputs\\
+projector&projector.observation&Projects observations onto representation space\\
+representation&representation.action&Action representation\\
+\end{tabular}
+\subsection{policy/action\_probability}
+\noindent Policy based on an action-probability representation\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+discretizer&discretizer&Action discretizer\\
+projector&projector&Projects observation-action pairs onto representation space\\
+representation&representation&Action-probability representation\\
+\end{tabular}
+\subsection{policy/discrete/q}
+\noindent Q-value based policy\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+discretizer&discretizer.action&Action discretizer\\
+projector&projector.pair&Projects observation-action pairs onto representation space\\
+representation&representation.value/action&Action-value representation\\
+sampler&sampler&Samples actions from action-values\\
+\end{tabular}
+\subsection{policy/discrete/q/bounded}
+\noindent Q-value based policy with bounded action deltas\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+bound&vector&Maximum action delta\\
+discretizer&discretizer.action&Action discretizer\\
+projector&projector.pair&Projects observation-action pairs onto representation space\\
+representation&representation.value/action&Action-value representation\\
+sampler&sampler&Samples actions from action-values\\
+\end{tabular}
+\subsection{policy/discrete/q/ucb}
+\noindent UCB1 policy\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+discretizer&discretizer.action&Action discretizer\\
+projector&projector.pair&Projects observation-action pairs onto representation space\\
+representation&representation.value/action&Q-value representation\\
+visit\_representation&representation.value/action&Visit count representation\\
+c\_p&double&UCB1 exploration term\\
+\end{tabular}
+\subsection{policy/discrete/random}
+\noindent Policy that chooses discrete random actions\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+discretizer&discretizer.action&Action discretizer\\
+\end{tabular}
+\subsection{policy/discrete/v}
+\noindent State-value based policy\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+gamma&double&Discount rate\\
+discretizer&discretizer.action&Action discretizer\\
+model&observation\_model&Observation model\\
+projector&projector.observation&Projects observations onto representation space\\
+representation&representation.value/state&State-value representation\\
+sampler&sampler&Samples actions from state-values\\
+\end{tabular}
+\subsection{policy/mcts}
+\noindent Monte-Carlo Tree Search policy\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+model&observation\_model&Observation model used for planning\\
+discretizer&discretizer.action&Action discretizer\\
+gamma&double&Discount rate\\
+epsilon&double&Exploration rate\\
+horizon&int&Planning horizon\\
+budget&double&Computational budget\\
+\end{tabular}
+\subsection{policy/nmpc}
+\noindent Nonlinear model predictive control policy using the MUSCOD library\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+model\_path&string&Path to MUSCOD model library\\
+model\_name&string&Name of MUSCOD model library\\
+outputs&int.action\_dims&Number of outputs\\
+\end{tabular}
+\subsection{policy/parameterized/action}
+\noindent Parameterized policy based on a direct action representation\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+sigma&vector&Standard deviation of exploration distribution\\
+output\_min&vector.action\_min&Lower limit on outputs\\
+output\_max&vector.action\_max&Upper limit on outputs\\
+projector&projector.observation&Projects observations onto representation space\\
+representation&representation/parameterized.action&Action representation\\
+\end{tabular}
+\subsection{policy/parameterized/pid}
+\noindent Parameterized policy based on a proportional-integral-derivative controller\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+setpoint&vector&Setpoint\\
+outputs&int.action\_dims&Number of outputs\\
+p&vector&P gains ([in1\_out1, ..., in1\_outN, ..., inN\_out1, ..., inN\_outN])\\
+i&vector&I gains\\
+d&vector&D gains (use P gain on velocity instead, if available)\\
+il&vector&Integration limits\\
+\end{tabular}
+\subsection{policy/parameterized/state\_feedback}
+\noindent Parameterized policy based on a state feedback controller\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+operating\_state&vector&Operating state around which gains are defined\\
+operating\_action&vector&Operating action around which gains are defined\\
+gains&vector&Gains ([in1\_out1, ..., in1\_outN, ..., inN\_out1, ..., inN\_outN])\\
+output\_min&vector.action\_min&Lower action limit\\
+output\_max&vector.action\_max&Upper action limit\\
+\end{tabular}
+\subsection{policy/random}
+\noindent Policy that chooses continuous random actions\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+output\_min&vector.action\_min&Lower action limit\\
+output\_max&vector.action\_max&Upper action limit\\
+\end{tabular}
+\subsection{policy/uct}
+\noindent Monte-Carlo Tree Search policy using UCB1 action selection\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+model&observation\_model&Observation model used for planning\\
+discretizer&discretizer.action&Action discretizer\\
+gamma&double&Discount rate\\
+epsilon&double&Exploration rate\\
+horizon&int&Planning horizon\\
+budget&double&Computational budget\\
+\end{tabular}
+\section{Predictors}
+\subsection{predictor/ac/action}
+\noindent Actor-critic predictor for direct action policies\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+importer&importer&Optional importer for pre-training\\
+exporter&exporter&Optional exporter for transition log (supports observation, action, reward, next\_observation, next\_action)\\
+alpha&double&Critic learning rate\\
+beta&double&Actor learning rate\\
+gamma&double&Discount rate\\
+lambda&double&Trace decay rate\\
+critic\_projector&projector.observation&Projects observations onto critic representation space\\
+critic\_representation&representation.value/state&Value function representation\\
+critic\_trace&trace&Trace of critic projections\\
+actor\_projector&projector.observation&Projects observations onto actor representation space\\
+actor\_representation&representation.action&Action representation\\
+actor\_trace&trace&Trace of actor projections\\
+\end{tabular}
+\subsection{predictor/ac/probability}
+\noindent Actor-critic predictor for action-probability policies\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+importer&importer&Optional importer for pre-training\\
+exporter&exporter&Optional exporter for transition log (supports observation, action, reward, next\_observation, next\_action)\\
+alpha&double&Critic learning rate\\
+beta&double&Actor learning rate\\
+gamma&double&Discount rate\\
+lambda&double&Trace decay rate\\
+critic\_projector&projector.observation&Projects observations onto critic representation space\\
+critic\_representation&representation.value/state&Value function representation\\
+critic\_trace&trace&Trace of critic projections\\
+actor\_projector&projector.pair&Projects observation-action pairs onto actor representation space\\
+actor\_representation&representation.value/action&Action-probability representation\\
+actor\_trace&trace&Trace of actor projections\\
+discretizer&discretizer.action&Action discretizer\\
+\end{tabular}
+\subsection{predictor/advantage}
+\noindent Advantage learning off-policy value function predictor\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+importer&importer&Optional importer for pre-training\\
+exporter&exporter&Optional exporter for transition log (supports observation, action, reward, next\_observation, next\_action)\\
+alpha&double&Learning rate\\
+gamma&double&Discount rate\\
+lambda&double&Trace decay rate\\
+kappa&double&Advantage scaling factor\\
+discretizer&discretizer.action&Action discretizer\\
+projector&projector.pair&Projects observation-action pairs onto representation space\\
+representation&representation.value/action&A-value representation\\
+trace&trace&Trace of projections\\
+\end{tabular}
+\subsection{predictor/expected\_sarsa}
+\noindent Expected SARSA low-variance on-policy value function predictor\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+importer&importer&Optional importer for pre-training\\
+exporter&exporter&Optional exporter for transition log (supports observation, action, reward, next\_observation, next\_action)\\
+alpha&double&Learning rate\\
+gamma&double&Discount rate\\
+lambda&double&Trace decay rate\\
+projector&projector.pair&Projects observation-action pairs onto representation space\\
+representation&representation.value/action&Q-value representation\\
+policy&policy/discrete/q&Q-value based policy\\
+sampler&sampler&Target distribution\\
+trace&trace&Trace of projections\\
+\end{tabular}
+\subsection{predictor/fqi}
+\noindent Fitted Q-iteration predictor\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+importer&importer&Optional importer for pre-training\\
+exporter&exporter&Optional exporter for transition log (supports observation, action, reward, next\_observation, next\_action)\\
+gamma&double&Discount rate\\
+transitions&int&Maximum number of transitions to store\\
+iterations&int&Number of policy improvement rounds per episode\\
+reset\_strategy&string&At which point to reset the representation\\
+macro\_batch\_size&int&Number of episodes/batches after which prediction is rebuilt. Use 0 for no rebuilds.\\
+discretizer&discretizer.action&Action discretizer\\
+projector&projector.pair&Projects observations onto critic representation space\\
+representation&representation.value/action&Value function representation\\
+\end{tabular}
+\subsection{predictor/full/qi}
+\noindent Deterministic model-based action-value function predictor\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+importer&importer&Optional importer for pre-training\\
+exporter&exporter&Optional exporter for transition log (supports observation, action, reward, next\_observation, next\_action)\\
+gamma&double&Discount rate\\
+model&observation\_model&Observation model used for planning\\
+discretizer&discretizer.action&Action discretizer\\
+projector&projector.pair&Projects observation-action pairs onto representation space\\
+representation&representation.value/action&Action-value function representation\\
+\end{tabular}
+\subsection{predictor/full/vi}
+\noindent Deterministic model-based state-value function predictor\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+importer&importer&Optional importer for pre-training\\
+exporter&exporter&Optional exporter for transition log (supports observation, action, reward, next\_observation, next\_action)\\
+gamma&double&Discount rate\\
+model&observation\_model&Observation model used for planning\\
+discretizer&discretizer.action&Action discretizer\\
+projector&projector.observation&Projects observations onto representation space\\
+representation&representation.value/state&State-value function representation\\
+\end{tabular}
+\subsection{predictor/ggq}
+\noindent Greedy-GQ off-policy value function predictor\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+importer&importer&Optional importer for pre-training\\
+exporter&exporter&Optional exporter for transition log (supports observation, action, reward, next\_observation, next\_action)\\
+alpha&double&Learning rate\\
+eta&double&Relative secondary learning rate (actual is alpha*eta)\\
+gamma&double&Discount rate\\
+projector&projector.pair&Projects observation-action pairs onto representation space\\
+representation&representation.value/action&(Q, w) representation\\
+policy&policy/discrete/q&Greedy target policy\\
+\end{tabular}
+\subsection{predictor/model}
+\noindent Observation model predictor\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+importer&importer&Optional importer for pre-training\\
+exporter&exporter&Optional exporter for transition log (supports observation, action, reward, next\_observation, next\_action)\\
+differential&int.differential&Predict state deltas\\
+wrapping&vector.wrapping&Wrapping boundaries\\
+projector&projector.pair&Projector for transition model (|S|+|A| dimensions)\\
+representation&representation.transition&Representation for transition model (|S|+2 dimensions)\\
+\end{tabular}
+\subsection{predictor/qv}
+\noindent QV on-policy value function predictor\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+importer&importer&Optional importer for pre-training\\
+exporter&exporter&Optional exporter for transition log (supports observation, action, reward, next\_observation, next\_action)\\
+alpha&double&State-action value learning rate\\
+beta&double&State value learning rate\\
+gamma&double&Discount rate\\
+lambda&double&Trace decay rate\\
+q\_projector&projector.pair&Projects observation-action pairs onto representation space\\
+q\_representation&representation.value/action&State-action value representation (Q)\\
+v\_projector&projector.observation&Projects observations onto representation space\\
+v\_representation&representation.value/state&State value representation (V)\\
+trace&trace&Trace of projections\\
+\end{tabular}
+\subsection{predictor/sarsa}
+\noindent SARSA on-policy value function predictor\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+importer&importer&Optional importer for pre-training\\
+exporter&exporter&Optional exporter for transition log (supports observation, action, reward, next\_observation, next\_action)\\
+alpha&double&Learning rate\\
+gamma&double&Discount rate\\
+lambda&double&Trace decay rate\\
+projector&projector.pair&Projects observation-action pairs onto representation space\\
+representation&representation.value/action&Q-value representation\\
+trace&trace&Trace of projections\\
+\end{tabular}
+\subsection{predictor/td}
+\noindent TD value function predictor\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+importer&importer&Optional importer for pre-training\\
+exporter&exporter&Optional exporter for transition log (supports observation, action, reward, next\_observation, next\_action)\\
+alpha&double&Learning rate\\
+gamma&double&Discount rate\\
+lambda&double&Trace decay rate\\
+projector&projector.observation&Projects observations onto representation space\\
+representation&representation.value/state&State value representation\\
+trace&trace&Trace of projections\\
+\end{tabular}
+\section{Projectors}
+\subsection{projector/fourier}
+\noindent Fourier basis function projector\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+input\_min&vector&Lower input dimension limit (for scaling)\\
+input\_max&vector&Upper input dimension limit (for scaling)\\
+order&int&Order of approximation (bases per dimension)\\
+parity&string&Whether to use odd or even bases\\
+\end{tabular}
+\\
+
+\noindent Provided parameters\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+memory&int.memory&Feature vector size\\
+\end{tabular}
+\subsection{projector/grid}
+\noindent Standard discretization\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+input\_min&vector&Lower input dimension limit\\
+input\_max&vector&Upper input dimension limit\\
+steps&vector&Grid cells per dimension\\
+\end{tabular}
+\\
+
+\noindent Provided parameters\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+memory&int.memory&Grid size\\
+\end{tabular}
+\subsection{projector/identity}
+\noindent Simply returns the input vector\\
+
+\subsection{projector/pre/normalizing}
+\noindent Preprocesses projection onto a normalized [0, 1] vector\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+input\_min&vector&Lower input dimension limit (for scaling)\\
+input\_max&vector&Upper input dimension limit (for scaling)\\
+projector&projector.&Downstream projector\\
+\end{tabular}
+\subsection{projector/pre/peaked}
+\noindent Preprocesses projection for more resolution around center\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+peaking&vector&Extra resolution factor around center (offset by 1/factor at edges)\\
+input\_min&vector&Lower input dimension limit (for scaling)\\
+input\_max&vector&Upper input dimension limit (for scaling)\\
+projector&projector.&Downstream projector\\
+\end{tabular}
+\subsection{projector/pre/scaling}
+\noindent Preprocesses projection onto a scaled vector\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+scaling&vector&Scaling vector\\
+projector&projector.&Downstream projector\\
+\end{tabular}
+\subsection{projector/sample/ann}
+\noindent Projects onto samples found through approximate nearest-neighbor search\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+samples&int&Maximum number of samples to store\\
+neighbors&int&Number of neighbors to return\\
+locality&double&Locality of weighing function\\
+bucket\_size&int&?\\
+error\_bound&double&?\\
+inputs&int&Number of input dimensions\\
+\end{tabular}
+\subsection{projector/sample/ertree}
+\noindent Projects onto samples found through the Extra-trees algorithm by Geurts et al.\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+samples&int&Maximum number of samples to store\\
+trees&int&Number of trees in the forest\\
+splits&int&Number of candidate splits\\
+leaf\_size&int&Maximum number of samples in a leaf\\
+inputs&int&Number of input dimensions\\
+outputs&int&Number of output dimensions\\
+\end{tabular}
+\subsection{projector/tile\_coding}
+\noindent Hashed tile coding projector\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+tilings&int&Number of tilings\\
+memory&int.memory&Hash table size\\
+resolution&vector&Size of a single tile\\
+wrapping&vector.wrapping&Wrapping boundaries (must be multiple of resolution)\\
+\end{tabular}
+\section{Representations}
+\subsection{representation/llr}
+\noindent Performs locally linear regression through samples\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+ridge&double&Ridge regression (Tikhonov) factor\\
+order&int&Order of regression model\\
+input\_nominals&vector&Vector indicating which input dimensions are nominal\\
+output\_nominals&vector&Vector indicating which output dimensions are nominal\\
+outputs&int&Number of output dimensions\\
+output\_min&vector&Lower output limit\\
+output\_max&vector&Upper output limit\\
+projector&projector/sample&Projector used to generate input for this representation\\
+\end{tabular}
+\subsection{representation/parameterized/ann}
+\noindent Parameterized artificial neural network representation\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+inputs&int&Number of input dimensions\\
+output\_min&vector&Lower limit on outputs\\
+output\_max&vector&Upper limit on outputs\\
+hiddens&int&Number of hidden nodes\\
+steepness&double&Steepness of activation function\\
+bias&int&Use bias nodes\\
+recurrent&int&Feed hidden activation back as input\\
+\end{tabular}
+\subsection{representation/parameterized/linear}
+\noindent Linear-in-parameters representation\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+init\_min&vector&Lower initial value limit\\
+init\_max&vector&Upper initial value limit\\
+memory&int.memory&Feature vector size\\
+outputs&int&Number of outputs\\
+output\_min&vector&Lower output limit\\
+output\_max&vector&Upper output limit\\
+\end{tabular}
+\section{Samplers}
+\subsection{sampler/epsilon\_greedy}
+\noindent Maximum search with a uniform random chance of non-maximums\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+epsilon&double&Exploration rate\\
+\end{tabular}
+\subsection{sampler/greedy}
+\noindent Maximum search\\
+
+\subsection{sampler/softmax}
+\noindent Softmax (Gibbs/Boltzmann) sampler\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+tau&double&Temperature of Boltzmann distribution\\
+\end{tabular}
+\section{Solvers}
+\subsection{solver/agent}
+\noindent Solver that uses a simulated agent\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+steps&int&Number of planning steps before solution is returned\\
+horizon&int&Planning episode length\\
+start&vector&Starting state for planning\\
+model&observation\_model&Observation model used for planning\\
+agent&agent&Agent used for planning episodes\\
+\end{tabular}
+\\
+
+\noindent Provided parameters\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+state&state&Current observed state of planning\\
+\end{tabular}
+\subsection{solver/lqr}
+\noindent Linear Quadratic Regulator solver\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+operating\_state&vector&Operating state around which to linearize\\
+operating\_action&vector&Operating action around which to linearize\\
+q&vector&Q (state cost) matrix diagonal\\
+r&vector&R (action cost) matrix diagonal\\
+model&observation\_model&Observation model\\
+policy&policy/parameterized/state\_feedback&State feedback policy to adjust\\
+\end{tabular}
+\subsection{solver/vi}
+\noindent Value iteration solver\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+sweeps&int&Number of planning sweeps before solution is returned\\
+parallel&int&Perform backups in parallel (requires reentrant representation)\\
+discretizer&discretizer.observation&State space discretizer\\
+predictor&predictor/full&Predictor to iterate\\
+\end{tabular}
+\section{Tasks}
+\subsection{task/acrobot/balancing}
+\noindent Acrobot balancing task\\
+
+\noindent Provided parameters\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+observation\_dims&int.observation\_dims&Number of observation dimensions\\
+observation\_min&vector.observation\_min&Lower limit on observations\\
+observation\_max&vector.observation\_max&Upper limit on observations\\
+action\_dims&int.action\_dims&Number of action dimensions\\
+action\_min&vector.action\_min&Lower limit on actions\\
+action\_max&vector.action\_max&Upper limit on actions\\
+reward\_min&double.reward\_min&Lower limit on immediate reward\\
+reward\_max&double.reward\_max&Upper limit on immediate reward\\
+\end{tabular}
+\subsection{task/cart\_pole/balancing}
+\noindent Cart-pole balancing task\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+timeout&double&Episode timeout\\
+\end{tabular}
+\\
+
+\noindent Provided parameters\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+observation\_dims&int.observation\_dims&Number of observation dimensions\\
+observation\_min&vector.observation\_min&Lower limit on observations\\
+observation\_max&vector.observation\_max&Upper limit on observations\\
+action\_dims&int.action\_dims&Number of action dimensions\\
+action\_min&vector.action\_min&Lower limit on actions\\
+action\_max&vector.action\_max&Upper limit on actions\\
+reward\_min&double.reward\_min&Lower limit on immediate reward\\
+reward\_max&double.reward\_max&Upper limit on immediate reward\\
+\end{tabular}
+\subsection{task/cart\_pole/swingup}
+\noindent Cart-pole swing-up task\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+timeout&double&Episode timeout\\
+randomization&int&Start state randomization\\
+shaping&int&Whether to use reward shaping\\
+gamma&double&Discount rate for reward shaping\\
+\end{tabular}
+\\
+
+\noindent Provided parameters\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+observation\_dims&int.observation\_dims&Number of observation dimensions\\
+observation\_min&vector.observation\_min&Lower limit on observations\\
+observation\_max&vector.observation\_max&Upper limit on observations\\
+action\_dims&int.action\_dims&Number of action dimensions\\
+action\_min&vector.action\_min&Lower limit on actions\\
+action\_max&vector.action\_max&Upper limit on actions\\
+reward\_min&double.reward\_min&Lower limit on immediate reward\\
+reward\_max&double.reward\_max&Upper limit on immediate reward\\
+\end{tabular}
+\subsection{task/compass\_walker/walk}
+\noindent Compass walker walking task\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+timeout&double&Episode timeout\\
+\end{tabular}
+\\
+
+\noindent Provided parameters\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+observation\_dims&int.observation\_dims&Number of observation dimensions\\
+observation\_min&vector.observation\_min&Lower limit on observations\\
+observation\_max&vector.observation\_max&Upper limit on observations\\
+action\_dims&int.action\_dims&Number of action dimensions\\
+action\_min&vector.action\_min&Lower limit on actions\\
+action\_max&vector.action\_max&Upper limit on actions\\
+reward\_min&double.reward\_min&Lower limit on immediate reward\\
+reward\_max&double.reward\_max&Upper limit on immediate reward\\
+\end{tabular}
+\subsection{task/lua}
+\noindent User-provided task specification in LUA\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+file&string&Lua task file\\
+options&string&Option string to pass to task configuration function\\
+\end{tabular}
+\\
+
+\noindent Provided parameters\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+observation\_dims&int.observation\_dims&Number of observation dimensions\\
+observation\_min&vector.observation\_min&Lower limit on observations\\
+observation\_max&vector.observation\_max&Upper limit on observations\\
+action\_dims&int.action\_dims&Number of action dimensions\\
+action\_min&vector.action\_min&Lower limit on actions\\
+action\_max&vector.action\_max&Upper limit on actions\\
+reward\_min&double.reward\_min&Lower limit on immediate reward\\
+reward\_max&double.reward\_max&Upper limit on immediate reward\\
+\end{tabular}
+\subsection{task/pendulum/swingup}
+\noindent Pendulum swing-up task\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+timeout&double&Episode timeout\\
+randomization&double&Level of start state randomization\\
+\end{tabular}
+\\
+
+\noindent Provided parameters\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+observation\_dims&int.observation\_dims&Number of observation dimensions\\
+observation\_min&vector.observation\_min&Lower limit on observations\\
+observation\_max&vector.observation\_max&Upper limit on observations\\
+action\_dims&int.action\_dims&Number of action dimensions\\
+action\_min&vector.action\_min&Lower limit on actions\\
+action\_max&vector.action\_max&Upper limit on actions\\
+reward\_min&double.reward\_min&Lower limit on immediate reward\\
+reward\_max&double.reward\_max&Upper limit on immediate reward\\
+\end{tabular}
+\subsection{task/pinball/movement}
+\noindent Pinball movement task\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+tolerance&double&Goal tolerance\\
+\end{tabular}
+\\
+
+\noindent Provided parameters\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+observation\_dims&int.observation\_dims&Number of observation dimensions\\
+observation\_min&vector.observation\_min&Lower limit on observations\\
+observation\_max&vector.observation\_max&Upper limit on observations\\
+action\_dims&int.action\_dims&Number of action dimensions\\
+action\_min&vector.action\_min&Lower limit on actions\\
+action\_max&vector.action\_max&Upper limit on actions\\
+reward\_min&double.reward\_min&Lower limit on immediate reward\\
+reward\_max&double.reward\_max&Upper limit on immediate reward\\
+\end{tabular}
+\subsection{task/tlm/balancing}
+\noindent Two-link manipulator balancing task\\
+
+\noindent Provided parameters\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+observation\_dims&int.observation\_dims&Number of observation dimensions\\
+observation\_min&vector.observation\_min&Lower limit on observations\\
+observation\_max&vector.observation\_max&Upper limit on observations\\
+action\_dims&int.action\_dims&Number of action dimensions\\
+action\_min&vector.action\_min&Lower limit on actions\\
+action\_max&vector.action\_max&Upper limit on actions\\
+reward\_min&double.reward\_min&Lower limit on immediate reward\\
+reward\_max&double.reward\_max&Upper limit on immediate reward\\
+\end{tabular}
+\subsection{task/windy/movement}
+\noindent Windy gridworld movement task\\
+
+\noindent Provided parameters\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+observation\_dims&int.observation\_dims&Number of observation dimensions\\
+observation\_min&vector.observation\_min&Lower limit on observations\\
+observation\_max&vector.observation\_max&Upper limit on observations\\
+action\_dims&int.action\_dims&Number of action dimensions\\
+action\_min&vector.action\_min&Lower limit on actions\\
+action\_max&vector.action\_max&Upper limit on actions\\
+reward\_min&double.reward\_min&Lower limit on immediate reward\\
+reward\_max&double.reward\_max&Upper limit on immediate reward\\
+\end{tabular}
+\section{Traces}
+\subsection{trace/enumerated/accumulating}
+\noindent Accumulating eligibility trace using a queue of projections\\
+
+\subsection{trace/enumerated/replacing}
+\noindent Replacing eligibility trace using a queue of projections\\
+
+\section{Visualizations}
+\subsection{visualization/acrobot}
+\noindent Acrobot visualization\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+state&state&Acrobot state to visualize\\
+\end{tabular}
+\subsection{visualization/cart\_pole}
+\noindent Cart-pole visualization\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+state&state&Cart-pole state to visualize\\
+\end{tabular}
+\subsection{visualization/compass\_walker}
+\noindent Compass walker visualization\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+state&state&Compass walker state to visualize\\
+\end{tabular}
+\subsection{visualization/field/policy/action}
+\noindent Visualizes a policy over a field of states\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+field\_dims&vector&Dimensions to visualize\\
+input\_min&vector&Lower input dimension limit\\
+input\_max&vector&Upper input dimension limit\\
+points&int&Number of points to evaluate\\
+savepoints&int&Number of points to evaluate when saving to file ('s')\\
+projection&string&Method of projecting values onto 2d space\\
+policy&policy&Control policy\\
+output\_dim&int&Action dimension to visualize\\
+\end{tabular}
+\subsection{visualization/field/policy/value}
+\noindent Visualizes the value of a policy over a field of states\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+field\_dims&vector&Dimensions to visualize\\
+input\_min&vector&Lower input dimension limit\\
+input\_max&vector&Upper input dimension limit\\
+points&int&Number of points to evaluate\\
+savepoints&int&Number of points to evaluate when saving to file ('s')\\
+projection&string&Method of projecting values onto 2d space\\
+projector&projector.pair&Projects observation-action pairs onto representation space\\
+representation&representation.value/action&Q-value representation\\
+policy&policy/discrete/q&Q-value based control policy\\
+\end{tabular}
+\subsection{visualization/field/value}
+\noindent Visualizes an approximation over a field of states\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+field\_dims&vector&Dimensions to visualize\\
+input\_min&vector&Lower input dimension limit\\
+input\_max&vector&Upper input dimension limit\\
+points&int&Number of points to evaluate\\
+savepoints&int&Number of points to evaluate when saving to file ('s')\\
+projection&string&Method of projecting values onto 2d space\\
+output\_dim&int&Output dimension to visualize\\
+projector&projector&Projects inputs onto representation space\\
+representation&representation&Value representation\\
+\end{tabular}
+\subsection{visualization/pendulum}
+\noindent Pendulum visualization\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+state&state&Pendulum state to visualize\\
+\end{tabular}
+\subsection{visualization/pinball}
+\noindent Pinball visualization\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+state&state&Pinball state to visualize\\
+\end{tabular}
+\subsection{visualization/sample}
+\noindent Visualizes a sample-based approximation\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+field\_dims&vector&Dimensions to visualize\\
+field\_min&vector&Lower visualization dimension limit\\
+field\_max&vector&Upper visualization dimension limit\\
+output\_dim&int&Output dimension to visualize\\
+points&int&Texture size\\
+projector&projector/sample&Sample projector whose store to visualize\\
+\end{tabular}
+\subsection{visualization/sample/random}
+\noindent Visualizes an approximation over randomly sampled states\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+field\_dims&vector&Dimensions to visualize\\
+input\_min&vector&Lower input dimension limit\\
+input\_max&vector&Upper input dimension limit\\
+output\_dim&int&Output dimension to visualize\\
+points&int&Texture size\\
+projector&projector&Projects inputs onto representation space\\
+representation&representation&Value representation\\
+\end{tabular}
+\subsection{visualization/state}
+\noindent Plots state values\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+input\_dims&vector&Input dimensions to visualize\\
+input\_min&vector&Lower input dimension limit\\
+input\_max&vector&Upper input dimension limit\\
+memory&int&Number of data points to draw\\
+state&state&State to visualize\\
+\end{tabular}
+\subsection{visualization/tlm}
+\noindent Two-link manipulator visualization\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+state&state&Two-link manipulator state to visualize\\
+\end{tabular}
+\subsection{visualization/windy}
+\noindent Windy gridworld visualization\\
+
+\noindent\begin{tabular}{@{}lll@{}}
+state&state&Windy gridworld state to visualize\\
+\end{tabular}
+\section{Visualizers}
+\subsection{visualizer/glut}
+\noindent Visualizer based on the GLUT library\\
+

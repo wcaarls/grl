@@ -34,6 +34,8 @@ REGISTER_CONFIGURABLE(ExpectedSARSAPredictor)
 
 void SARSAPredictor::request(ConfigurationRequest *config)
 {
+  Predictor::request(config);
+  
   config->push_back(CRP("alpha", "Learning rate", alpha_));
   config->push_back(CRP("gamma", "Discount rate", gamma_));
   config->push_back(CRP("lambda", "Trace decay rate", lambda_));
@@ -45,6 +47,8 @@ void SARSAPredictor::request(ConfigurationRequest *config)
 
 void SARSAPredictor::configure(Configuration &config)
 {
+  Predictor::configure(config);
+  
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (Representation*)config["representation"].ptr();
   trace_ = (Trace*)config["trace"].ptr();
@@ -56,6 +60,8 @@ void SARSAPredictor::configure(Configuration &config)
 
 void SARSAPredictor::reconfigure(const Configuration &config)
 {
+  Predictor::reconfigure(config);
+  
   if (config.has("action") && config["action"].str() == "reset")
     finalize();
 }
@@ -71,11 +77,13 @@ SARSAPredictor *SARSAPredictor::clone() const
 
 void SARSAPredictor::update(const Transition &transition)
 {
+  Predictor::update(transition);
+
   ProjectionPtr p = projector_->project(transition.prev_obs, transition.prev_action);
   Vector q;
 
   double target = transition.reward;
-  if (!transition.obs.empty())
+  if (transition.obs.size())
     target += gamma_*representation_->read(projector_->project(transition.obs, transition.action), &q);
   double delta = target - representation_->read(p, &q);
   
@@ -90,11 +98,15 @@ void SARSAPredictor::update(const Transition &transition)
 
 void SARSAPredictor::finalize()
 {
+  Predictor::finalize();
+  
   trace_->clear();
 }
 
 void ExpectedSARSAPredictor::request(ConfigurationRequest *config)
 {
+  Predictor::request(config);
+  
   config->push_back(CRP("alpha", "Learning rate", alpha_));
   config->push_back(CRP("gamma", "Discount rate", gamma_));
   config->push_back(CRP("lambda", "Trace decay rate", lambda_));
@@ -108,6 +120,8 @@ void ExpectedSARSAPredictor::request(ConfigurationRequest *config)
 
 void ExpectedSARSAPredictor::configure(Configuration &config)
 {
+  Predictor::configure(config);
+  
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (Representation*)config["representation"].ptr();
   policy_ = (QPolicy*)config["policy"].ptr();
@@ -121,6 +135,8 @@ void ExpectedSARSAPredictor::configure(Configuration &config)
 
 void ExpectedSARSAPredictor::reconfigure(const Configuration &config)
 {
+  Predictor::reconfigure(config);
+  
 }
 
 ExpectedSARSAPredictor *ExpectedSARSAPredictor::clone() const
@@ -136,11 +152,13 @@ ExpectedSARSAPredictor *ExpectedSARSAPredictor::clone() const
 
 void ExpectedSARSAPredictor::update(const Transition &transition)
 {
+  Predictor::update(transition);
+
   ProjectionPtr p = projector_->project(transition.prev_obs, transition.prev_action);
 
   double target = transition.reward;
   
-  if (!transition.obs.empty())
+  if (transition.obs.size())
   {
     Vector values, distribution;
     policy_->values(transition.obs, &values);
@@ -165,6 +183,8 @@ void ExpectedSARSAPredictor::update(const Transition &transition)
 
 void ExpectedSARSAPredictor::finalize()
 {
+  Predictor::finalize();
+  
   trace_->clear();
 }
 

@@ -95,7 +95,7 @@ void BatchLearningExperiment::run()
 
   for (size_t rr=0; rr < runs_; ++rr)
   {
-    if (!output_.empty())
+    if (output_.size())
     {
       std::ostringstream oss;
       oss << output_ << "-" << rr << ".txt";
@@ -171,7 +171,7 @@ void BatchLearningExperiment::run()
         
         if (terminal == 2)
           test_agent_->end(tau, reward);
-        else if (!obs.empty())
+        else if (obs.size())
         {
           test_agent_->step(tau, obs, reward, &action);
         }

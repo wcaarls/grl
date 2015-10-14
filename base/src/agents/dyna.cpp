@@ -187,7 +187,7 @@ void DynaAgent::runModel()
     state_->set(obs);
         
     // Guard against failed model prediction    
-    if (!obs.empty())
+    if (obs.size())
     {
       if (terminal == 2)
         model_agent_->end(tau, reward);

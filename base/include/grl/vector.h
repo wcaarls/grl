@@ -28,6 +28,12 @@
 #ifndef GRL_VECTOR_H_
 #define GRL_VECTOR_H_
 
+//#define GRL_EIGEN_VECTOR
+
+#ifdef GRL_EIGEN_VECTOR
+#include <eigen3/Eigen/Dense>
+#endif 
+
 #include <vector>
 #include <iostream>
 
@@ -35,37 +41,6 @@
 #include <string.h>
 
 #include <grl/compat.h>
-
-template<class T>
-inline std::vector<T> VectorConstructor(T a)
-{
-  std::vector<T> v; v.push_back(a); return v;
-}
-template<class T>
-inline std::vector<T> VectorConstructor(T a, T b)
-{
-  std::vector<T> v = VectorConstructor(a); v.push_back(b); return v;
-}
-template<class T>
-inline std::vector<T> VectorConstructor(T a, T b, T c)
-{
-  std::vector<T> v = VectorConstructor(a, b); v.push_back(c); return v;
-}
-template<class T>
-inline std::vector<T> VectorConstructor(T a, T b, T c, T d)
-{
-  std::vector<T> v = VectorConstructor(a, b, c); v.push_back(d); return v;
-}
-template<class T>
-inline std::vector<T> VectorConstructor(T a, T b, T c, T d, T e)
-{
-  std::vector<T> v = VectorConstructor(a, b, c, d); v.push_back(e); return v;
-}
-template<class T>
-inline std::vector<T> VectorConstructor(T a, T b, T c, T d, T e, T f)
-{
-  std::vector<T> v = VectorConstructor(a, b, c, d, e); v.push_back(f); return v;
-}
 
 template < class T >
 inline std::ostream& operator << (std::ostream& os, const std::vector<T>& v)
@@ -136,7 +111,77 @@ namespace grl {
 using ::operator >>;
 using ::operator <<;
 
+#ifdef GRL_EIGEN_VECTOR
+typedef Eigen::Array<double,1,Eigen::Dynamic> Vector;
+
+typedef Eigen::Matrix<double,1,Eigen::Dynamic> RowVector;
+typedef Eigen::Matrix<double,Eigen::Dynamic,1> ColumnVector;
+
+inline Vector ConstantVector(size_t sz, double d)
+{
+  return Vector::Constant(sz, d);
+}
+inline Vector VectorConstructor(double a)
+{
+  Vector v(1); v << a; return v;
+}
+inline Vector VectorConstructor(double a, double b)
+{
+  Vector v(2); v << a, b; return v;
+}
+inline Vector VectorConstructor(double a, double b, double c)
+{
+  Vector v(3); v << a, b, c; return v;
+}
+inline Vector VectorConstructor(double a, double b, double c, double d)
+{
+  Vector v(4); v << a, b, c, d; return v;
+}
+inline Vector VectorConstructor(double a, double b, double c, double d, double e)
+{
+  Vector v(5); v << a, b, c, d, e; return v;
+}
+inline Vector VectorConstructor(double a, double b, double c, double d, double e, double f)
+{
+  Vector v(6); v << a, b, c, d ,e, f; return v;
+}
+
+using ::pow;
+using Eigen::pow;
+using ::log;
+using Eigen::log;
+
+#else
 typedef std::vector<double> Vector;
+
+inline Vector ConstantVector(size_t sz, double d)
+{
+  return Vector(sz, d);
+}
+inline Vector VectorConstructor(double a)
+{
+  Vector v; v.push_back(a); return v;
+}
+inline Vector VectorConstructor(double a, double b)
+{
+  Vector v = VectorConstructor(a); v.push_back(b); return v;
+}
+inline Vector VectorConstructor(double a, double b, double c)
+{
+  Vector v = VectorConstructor(a, b); v.push_back(c); return v;
+}
+inline Vector VectorConstructor(double a, double b, double c, double d)
+{
+  Vector v = VectorConstructor(a, b, c); v.push_back(d); return v;
+}
+inline Vector VectorConstructor(double a, double b, double c, double d, double e)
+{
+  Vector v = VectorConstructor(a, b, c, d); v.push_back(e); return v;
+}
+inline Vector VectorConstructor(double a, double b, double c, double d, double e, double f)
+{
+  Vector v = VectorConstructor(a, b, c, d, e); v.push_back(f); return v;
+}
 
 inline Vector operator+ (const Vector &a, const Vector &b)
 {
@@ -228,6 +273,28 @@ inline Vector operator* (const Vector &a, const Vector &b)
   return c;
 }
 
+using ::pow;
+
+inline Vector pow(const Vector &a, const Vector &b)
+{
+  Vector c;
+  c.resize(std::min(a.size(), b.size()));
+  for (size_t ii=0; ii < c.size(); ++ii)
+    c[ii] = pow(a[ii], b[ii]);
+  return c;
+}
+
+using ::log;
+
+inline Vector log(const Vector &a)
+{
+  Vector c(a.size());
+  for (size_t ii=0; ii < c.size(); ++ii)
+    c[ii] = log(a[ii]);
+  return c;
+}
+#endif
+
 inline double sum (const Vector &a)
 {
   double e = 0;
@@ -279,17 +346,14 @@ inline void toVector(const T &from, Vector &vector)
     vector[ii] = from[ii];
 }
 
-using ::pow;
+#ifdef GRL_EIGEN_VECTOR
+typedef Eigen::MatrixXd Matrix;
 
-inline Vector pow(const Vector &a, const Vector &b)
+inline Matrix diagonal(const Vector &v)
 {
-  Vector c;
-  c.resize(std::min(a.size(), b.size()));
-  for (size_t ii=0; ii < c.size(); ++ii)
-    c[ii] = pow(a[ii], b[ii]);
-  return c;
+  return v.matrix().asDiagonal();
 }
-
+#else
 class Matrix
 {
   protected:
@@ -343,27 +407,18 @@ class Matrix
       return cols_;
     }
     
-    static Matrix Zeros(size_t rows, size_t cols)
+    static Matrix Zero(size_t rows, size_t cols)
     {
       Matrix m(rows, cols);
       memset(m.data_, 0, rows*cols*sizeof(double));
       return m;
     }
     
-    static Matrix Identity(size_t sz)
+    static Matrix Identity(size_t rows, size_t cols)
     {
-      Matrix m = Zeros(sz, sz);
-      for (size_t ii=0; ii < sz; ++ii)
+      Matrix m = Zero(rows, cols);
+      for (size_t ii=0; ii < rows && ii < cols; ++ii)
         m(ii, ii) = 1.;
-      return m;
-    }
-    
-    static Matrix Diagonal(Vector v)
-    {
-      size_t sz = v.size();
-      Matrix m = Zeros(sz, sz);
-      for (size_t ii=0; ii < sz; ++ii)
-        m(ii, ii) = v[ii];
       return m;
     }
     
@@ -374,7 +429,7 @@ class Matrix
     
       grl_assert(cols_ == rhs.rows_);
       
-      Matrix m = Zeros(rows_, rhs.cols_);
+      Matrix m = Zero(rows_, rhs.cols_);
 
       for (size_t rr=0; rr < rows_; ++rr)
         for (size_t cc=0; cc < rhs.cols_; ++cc)
@@ -406,6 +461,16 @@ class Matrix
       return os;
     }
 };
+
+inline Matrix diagonal(const Vector &v)
+{
+  size_t sz = v.size();
+  Matrix m = Matrix::Zero(sz, sz);
+  for (size_t ii=0; ii < sz; ++ii)
+    m(ii, ii) = v[ii];
+  return m;
+}
+#endif
 
 }
 

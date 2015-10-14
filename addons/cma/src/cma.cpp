@@ -51,7 +51,7 @@ void CMAOptimizer::configure(Configuration &config)
   sigma_ = config["sigma"];
   
   if (sigma_.size() == 1)
-    sigma_ = Vector(params_, sigma_[0]);
+    sigma_ = ConstantVector(params_, sigma_[0]);
     
   if (sigma_.size() != params_)
     throw bad_param("optimizer/cma:sigma");

@@ -123,6 +123,14 @@ void CGenericActuator::actuate(double value, ISTGActuation *iface)
         logCrawlLn(mStgLog, "Actuator " << mName << " (" << mIndex << ") set " << mType << " to " << value);
         iface->setJointTorque(mIndex, value);
         break;
+      case amForce:
+        logCrawlLn(mStgLog, "Actuator " << mName << " (" << mIndex << ") set " << mType << " to " << value);
+        iface->setJointForce(mIndex, value);
+        break;
+      case amVoltage:
+        logCrawlLn(mStgLog, "Actuator " << mName << " (" << mIndex << ") set " << mType << " to " << value);
+        iface->setJointVoltage(mIndex, value);
+        break;
       default:
         logErrorLn(mStgLog, "Unimplemented actuation mode " << mActuationMode << " for ActionVar " << mName);
     }

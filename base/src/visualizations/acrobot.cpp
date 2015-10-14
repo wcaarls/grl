@@ -67,7 +67,7 @@ void AcrobotVisualization::draw()
   
   Vector state = state_->get();
   
-  if (!state.empty())
+  if (state.size())
   {
     double theta1 = state[0] - M_PI/2,
            theta2 = state[0] + state[1] - M_PI/2;

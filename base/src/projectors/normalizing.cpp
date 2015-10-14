@@ -88,5 +88,5 @@ ProjectionPtr NormalizingProjector::project(const Vector &in) const
 
 Matrix NormalizingProjector::jacobian(const Vector &in) const
 {
-  return projector_->jacobian((in-min_)*scaling_)*Matrix::Diagonal(scaling_);
+  return projector_->jacobian((in-min_)*scaling_)*diagonal(scaling_);
 }

@@ -53,10 +53,10 @@ void LQRSolver::configure(Configuration &config)
   q_ = config["q"];
   r_ = config["r"];
   
-  if (operating_state_.empty())
+  if (!operating_state_.size())
     throw bad_param("solver/lqr:operating_state");
 
-  if (operating_action_.empty())
+  if (!operating_action_.size())
     throw bad_param("solver/lqr:operating_action");
     
   if (q_.size() != operating_state_.size())

@@ -33,6 +33,8 @@ REGISTER_CONFIGURABLE(TDPredictor)
 
 void TDPredictor::request(ConfigurationRequest *config)
 {
+  Predictor::request(config);
+  
   config->push_back(CRP("alpha", "Learning rate", alpha_));
   config->push_back(CRP("gamma", "Discount rate", gamma_));
   config->push_back(CRP("lambda", "Trace decay rate", lambda_));
@@ -44,6 +46,8 @@ void TDPredictor::request(ConfigurationRequest *config)
 
 void TDPredictor::configure(Configuration &config)
 {
+  Predictor::configure(config);
+  
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (Representation*)config["representation"].ptr();
   trace_ = (Trace*)config["trace"].ptr();
@@ -55,6 +59,8 @@ void TDPredictor::configure(Configuration &config)
 
 void TDPredictor::reconfigure(const Configuration &config)
 {
+  Predictor::reconfigure(config);
+  
   if (config.has("action") && config["action"].str() == "reset")
     finalize();
 }
@@ -66,11 +72,13 @@ TDPredictor *TDPredictor::clone() const
 
 void TDPredictor::update(const Transition &transition)
 {
+  Predictor::update(transition);
+
   ProjectionPtr p = projector_->project(transition.obs);
   Vector v;
 
   double target = transition.reward;
-  if (!transition.obs.empty())
+  if (transition.obs.size())
     target += gamma_*representation_->read(projector_->project(transition.obs), &v);
   double delta = target - representation_->read(p, &v);
 
@@ -85,5 +93,7 @@ void TDPredictor::update(const Transition &transition)
 
 void TDPredictor::finalize()
 {
+  Predictor::finalize();
+  
   trace_->clear();
 }

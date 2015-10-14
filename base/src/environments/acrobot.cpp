@@ -110,8 +110,7 @@ AcrobotBalancingTask *AcrobotBalancingTask::clone() const
 
 void AcrobotBalancingTask::start(int test, Vector *state) const
 {
-  state->clear();
-  state->resize(5);
+  *state = ConstantVector(5, 0.);
   (*state)[AcrobotDynamics::siAngle1] = M_PI+RandGen::get()*0.01-0.005;
   (*state)[AcrobotDynamics::siAngle2] = RandGen::get()*0.01-0.005;
 }

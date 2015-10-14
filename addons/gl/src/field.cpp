@@ -31,6 +31,8 @@
 
 #include <grl/visualizations/field.h>
 
+#include <libics.h>
+
 #define EPS 0.001
 
 using namespace grl;
@@ -41,6 +43,7 @@ void FieldVisualization::request(ConfigurationRequest *config)
   config->push_back(CRP("input_min", "Lower input dimension limit", state_min_, CRP::System));
   config->push_back(CRP("input_max", "Upper input dimension limit", state_max_, CRP::System));
   config->push_back(CRP("points", "Number of points to evaluate", points_));
+  config->push_back(CRP("savepoints", "Number of points to evaluate when saving to file ('s')", savepoints_));
   
   std::vector<std::string> options;
   options.push_back("mean");
@@ -63,22 +66,22 @@ void FieldVisualization::configure(Configuration &config)
   state_min_ = config["input_min"];
   state_max_ = config["input_max"];
   state_dims_ = state_min_.size();
-  config.get("points", points_, 1048576);
+  points_ = config["points"];
+  savepoints_ = pow((int)pow(config["savepoints"], 1./state_dims_), state_dims_);
 
   dims_ = config["field_dims"];
   if (dims_.size() != 2)
     throw bad_param("visualization/field:field_dims");
   
   // Divide points among dimensions
-  dimpoints_ = pow(points_, 1./state_dims_);  // size of texture along one dimention
-  points_ = pow(dimpoints_, state_dims_);     // number of points in which value function is evaluated
-  texpoints_ = dimpoints_*dimpoints_;         // size of texture (2D on a monitor)
+  dimpoints_ = 4*ceil(pow(points_, 1./state_dims_)/4);
+  points_ = pow(dimpoints_, state_dims_);
+  texpoints_ = dimpoints_*dimpoints_;
   
   // Allocate texture
   data_ = (unsigned char*) malloc(texpoints_*3*sizeof(unsigned char));
   
-  DEBUG("Delta: " << (state_max_-state_min_)/(dimpoints_-1));
-}
+  DEBUG("Calculating " << dimpoints_ << "x" << dimpoints_ << " (" << texpoints_ << ") texture from " << points_ << " points with spacing " << (state_max_-state_min_)/(dimpoints_-1));}
 
 void FieldVisualization::reconfigure(const Configuration &config)
 {
@@ -98,6 +101,59 @@ void FieldVisualization::reshape(int width, int height)
   initProjection(-1, 1, -1, 1);
 }
 
+void FieldVisualization::key(unsigned char k, int x, int y)
+{
+  if (k == 's')
+    save("grl.ics");
+}
+
+void FieldVisualization::save(const std::string &file) const
+{
+  size_t dimpoints = pow(savepoints_, 1./state_dims_);
+  float *field = new float[savepoints_];
+  
+  const Vector delta = (state_max_-state_min_)/(dimpoints-1);
+  
+  // Gather data
+  Vector ss = state_min_;
+  for (int ii=0; ii < savepoints_; ++ii)
+  {
+    field[ii] = value(ss);
+            
+    for (int dd=0; dd < state_dims_; ++dd)
+    {
+      ss[dd] = ss[dd] + delta[dd];
+      if (ss[dd] > (state_max_[dd]+EPS))
+        ss[dd] = state_min_[dd];
+      else
+        break;
+    }
+  }
+  
+  ICS* ip;
+  size_t dims[state_dims_];
+  for (int ii=0; ii < state_dims_; ++ii)
+    dims[ii] = dimpoints;
+
+  // Write value function
+  if (IcsOpen(&ip, file.c_str(), "w2") != IcsErr_Ok)
+    throw Exception("Couldn't open ICS file for writing");
+
+  IcsSetLayout(ip, Ics_real32, state_dims_, dims);
+  for (int ii=0; ii < state_dims_; ++ii)
+  {
+    char buf[256]; sprintf(buf, "x%d", ii+1);
+    IcsSetOrder(ip, ii, buf, buf);
+    IcsSetPosition (ip, ii, state_min_[ii], delta[ii], "relative");
+  }
+  IcsSetData (ip, (void*)field, savepoints_ * sizeof(float));
+
+  if (IcsClose(ip) != IcsErr_Ok)
+    throw Exception("Error closing value ICS file");
+
+  delete[] field;
+}
+
 void FieldVisualization::run()
 {
   float *field = new float[texpoints_];
@@ -106,7 +162,7 @@ void FieldVisualization::run()
   while (ok())
   {
     // Create point iteration order lookup table  
-    Vector dim_order;
+    std::vector<int> dim_order;
     for (int ii=0; ii < state_dims_; ++ii)
       if (ii != dims_[0] && ii != dims_[1])
         dim_order.push_back(ii);

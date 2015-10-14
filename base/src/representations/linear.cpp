@@ -66,27 +66,27 @@ void LinearRepresentation::configure(Configuration &config)
   
   init_min_ = config["init_min"];
   if (init_min_.size() && init_min_.size() < outputs_)
-    init_min_.resize(outputs_, init_min_[0]);
+    init_min_ = ConstantVector(outputs_, init_min_[0]);
   if (init_min_.size() != outputs_)
     throw bad_param("representation/parameterized/linear:init_min");
   
   init_max_ = config["init_max"];
   if (init_max_.size() && init_max_.size() < outputs_)
-    init_max_.resize(outputs_, init_max_[0]);
+    init_max_ = ConstantVector(outputs_, init_max_[0]);
   if (init_max_.size() != outputs_)
     throw bad_param("representation/parameterized/linear:max");
 
   params_.resize(memory_ * outputs_);
   
   output_min_ = config["output_min"];
-  if (output_min_.empty())
-    output_min_.resize(outputs_, -DBL_MAX);
+  if (!output_min_.size())
+    output_min_ = ConstantVector(outputs_, -DBL_MAX);
   if (output_min_.size() != outputs_)
     throw bad_param("representation/parameterized/linear:output_min");
     
   output_max_ = config["output_max"];
-  if (output_max_.empty())
-    output_max_.resize(outputs_, DBL_MAX);
+  if (!output_max_.size())
+    output_max_ = ConstantVector(outputs_, DBL_MAX);
   if (output_max_.size() != outputs_)
     throw bad_param("representation/parameterized/linear:output_max");
   
@@ -170,8 +170,7 @@ double LinearRepresentation::read(const ProjectionPtr &projection, Vector *resul
   IndexProjection *ip = dynamic_cast<IndexProjection*>(&p);
   if (ip)
   {
-    result->clear();
-    result->resize(outputs_, 0);
+    *result = ConstantVector(outputs_, 0);
     
     for (size_t ii=0; ii < ip->indices.size(); ++ii)
       for (size_t jj=0; jj < outputs_; ++jj)
@@ -187,8 +186,7 @@ double LinearRepresentation::read(const ProjectionPtr &projection, Vector *resul
       if (vp->vector.size() != memory_)
         throw bad_param("representation/parameterized/linear:memory (or matching projector)");
     
-      result->clear();
-      result->resize(outputs_, 0);
+      *result = ConstantVector(outputs_, 0);
       
       for (size_t ii=0; ii < vp->vector.size(); ++ii)
         for (size_t jj=0; jj < outputs_; ++jj)
@@ -201,7 +199,7 @@ double LinearRepresentation::read(const ProjectionPtr &projection, Vector *resul
   for (size_t ii=0; ii < outputs_; ++ii)
     (*result)[ii] = fmin(fmax((*result)[ii], output_min_[ii]), output_max_[ii]);
 
-  if (stddev) stddev->clear();
+  if (stddev) *stddev = Vector();
   
   return (*result)[0];
 }

@@ -57,7 +57,10 @@ class Visualization : public Configurable
     
     /// Refresh graphics (causes draw() to be called).
     void refresh();
-
+    
+    /// Change the window title.
+    void setTitle(const char *name);
+    
     /// Swap buffers. May only be called from draw() callback.
     void swap();
     
@@ -93,6 +96,12 @@ class Visualization : public Configurable
     
     /// Callback that is called when the window is closed.
     virtual void close() { }
+
+    /// Callback that is called when a key is pressed.
+    virtual void key(unsigned char k, int x, int y) { }
+    
+    /// Callback that is called when a mouse button is clicked.
+    virtual void click(int button, int state, int x, int y) { }
 };
 
 /// Visualizer (basically a GL window manager).
@@ -115,7 +124,10 @@ class Visualizer : public Configurable
     
     /// Called by a Visualization to refresh its window.
     virtual void refreshWindow(Visualization *window) = 0;
-
+    
+    /// Called by a Visualization to change the window title.
+    virtual void setTitle(const char *name) = 0;
+    
     /// Called by a Visualization to swap buffers.
     virtual void swap() = 0;
     
@@ -157,6 +169,11 @@ inline void Visualization::destroy()
 inline void Visualization::refresh()
 {
   Visualizer::instance()->refreshWindow(this);
+}
+
+inline void Visualization::setTitle(const char *name)
+{
+  Visualizer::instance()->setTitle(name);
 }
 
 inline void Visualization::swap()

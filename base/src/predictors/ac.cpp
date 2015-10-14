@@ -34,6 +34,8 @@ REGISTER_CONFIGURABLE(ProbabilityACPredictor)
 
 void ActionACPredictor::request(ConfigurationRequest *config)
 {
+  Predictor::request(config);
+
   config->push_back(CRP("alpha", "Critic learning rate", alpha_));
   config->push_back(CRP("beta", "Actor learning rate", beta_));
   config->push_back(CRP("gamma", "Discount rate", gamma_));
@@ -50,6 +52,8 @@ void ActionACPredictor::request(ConfigurationRequest *config)
 
 void ActionACPredictor::configure(Configuration &config)
 {
+  Predictor::configure(config);
+
   critic_projector_ = (Projector*)config["critic_projector"].ptr();
   critic_representation_ = (Representation*)config["critic_representation"].ptr();
   critic_trace_ = (Trace*)config["critic_trace"].ptr();
@@ -66,6 +70,8 @@ void ActionACPredictor::configure(Configuration &config)
 
 void ActionACPredictor::reconfigure(const Configuration &config)
 {
+  Predictor::reconfigure(config);
+
   if (config.has("action") && config["action"].str() == "reset")
     finalize();
 }
@@ -84,12 +90,14 @@ ActionACPredictor *ActionACPredictor::clone() const
 
 void ActionACPredictor::update(const Transition &transition)
 {
+  Predictor::update(transition);
+
   ProjectionPtr cp = critic_projector_->project(transition.prev_obs);
   ProjectionPtr ap = actor_projector_->project(transition.prev_obs);
   Vector v, u, delta_u, target_u;
   
   double target = transition.reward;
-  if (!transition.obs.empty())
+  if (transition.obs.size())
     target += gamma_*critic_representation_->read(critic_projector_->project(transition.obs), &v);
   double delta = target - critic_representation_->read(cp, &v);
   
@@ -98,8 +106,8 @@ void ActionACPredictor::update(const Transition &transition)
   critic_trace_->add(cp, gamma_*lambda_);
   
   actor_representation_->read(ap, &u);
-  if (u.empty())
-    u.resize(transition.prev_action.size(), 0.);
+  if (!u.size())
+    u = ConstantVector(transition.prev_action.size(), 0.);
   target_u = u + delta*(transition.prev_action - u);
 
   actor_representation_->write(ap, target_u, beta_);
@@ -112,12 +120,16 @@ void ActionACPredictor::update(const Transition &transition)
 
 void ActionACPredictor::finalize()
 {
+  Predictor::finalize();
+
   critic_trace_->clear();
   actor_trace_->clear();
 }
 
 void ProbabilityACPredictor::request(ConfigurationRequest *config)
 {
+  Predictor::request(config);
+  
   config->push_back(CRP("alpha", "Critic learning rate", alpha_));
   config->push_back(CRP("beta", "Actor learning rate", beta_));
   config->push_back(CRP("gamma", "Discount rate", gamma_));
@@ -136,6 +148,8 @@ void ProbabilityACPredictor::request(ConfigurationRequest *config)
 
 void ProbabilityACPredictor::configure(Configuration &config)
 {
+  Predictor::configure(config);
+  
   critic_projector_ = (Projector*)config["critic_projector"].ptr();
   critic_representation_ = (Representation*)config["critic_representation"].ptr();
   critic_trace_ = (Trace*)config["critic_trace"].ptr();
@@ -154,6 +168,8 @@ void ProbabilityACPredictor::configure(Configuration &config)
 
 void ProbabilityACPredictor::reconfigure(const Configuration &config)
 {
+  Predictor::reconfigure(config);
+  
   if (config.has("action") && config["action"].str() == "reset")
     finalize();
 }
@@ -172,11 +188,15 @@ ProbabilityACPredictor *ProbabilityACPredictor::clone() const
 
 void ProbabilityACPredictor::update(const Transition &transition)
 {
+  Predictor::update(transition);
+
   throw Exception("ProbabilityACPredictor::update not implemented");
 }
 
 void ProbabilityACPredictor::finalize()
 {
+  Predictor::finalize();
+
   critic_trace_->clear();
   actor_trace_->clear();
 }

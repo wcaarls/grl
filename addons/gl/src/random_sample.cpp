@@ -61,7 +61,7 @@ void RandomSampleVisualization::configure(Configuration &config)
     throw bad_param("visualization/sample/random:field_dims");
   min_ = config["input_min"];
   max_ = config["input_max"];
-  if (min_.empty() || min_.size() != max_.size())
+  if (!min_.size() || min_.size() != max_.size())
     throw bad_param("visualization/sample/random:{min,max}");
   dim_ = config["output_dim"];  
   points_ = config["points"];
@@ -103,7 +103,7 @@ void RandomSampleVisualization::idle()
 
     ProjectionPtr vp = projector_->project(in);
     representation_->read(vp, &out);
-    if (!out.empty())
+    if (out.size())
     {
       int dx = std::max(std::min((int)(dimpoints_*(in[d0]-min_[0])/(max_[0]-min_[0])), dimpoints_-1), 0),
           dy = std::max(std::min((int)(dimpoints_*(in[d1]-min_[1])/(max_[1]-min_[1])), dimpoints_-1), 0);

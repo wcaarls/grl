@@ -36,6 +36,8 @@ REGISTER_CONFIGURABLE(QIterationPredictor)
 
 void ValueIterationPredictor::request(ConfigurationRequest *config)
 {
+  Predictor::request(config);
+  
   config->push_back(CRP("gamma", "Discount rate", gamma_));
   
   config->push_back(CRP("model", "observation_model", "Observation model used for planning", model_));
@@ -46,6 +48,8 @@ void ValueIterationPredictor::request(ConfigurationRequest *config)
 
 void ValueIterationPredictor::configure(Configuration &config)
 {
+  Predictor::configure(config);
+  
   gamma_ = config["gamma"];
   
   model_ = (ObservationModel*)config["model"].ptr();
@@ -58,6 +62,7 @@ void ValueIterationPredictor::configure(Configuration &config)
 
 void ValueIterationPredictor::reconfigure(const Configuration &config)
 {
+  Predictor::reconfigure(config);
 }
 
 ValueIterationPredictor *ValueIterationPredictor::clone() const
@@ -74,6 +79,8 @@ ValueIterationPredictor *ValueIterationPredictor::clone() const
 
 void ValueIterationPredictor::update(const Transition &transition)
 {
+  Predictor::update(transition);
+  
   double v=-std::numeric_limits<double>::infinity();
   
   for (size_t aa=0; aa < variants_.size(); ++aa)
@@ -83,7 +90,7 @@ void ValueIterationPredictor::update(const Transition &transition)
     int terminal;
     model_->step(transition.prev_obs, variants_[aa], &next, &reward, &terminal);
     
-    if (!next.empty())
+    if (next.size())
     {
       if (!terminal)
       {
@@ -101,6 +108,8 @@ void ValueIterationPredictor::update(const Transition &transition)
 
 void QIterationPredictor::request(ConfigurationRequest *config)
 {
+  Predictor::request(config);
+  
   config->push_back(CRP("gamma", "Discount rate", gamma_));
   
   config->push_back(CRP("model", "observation_model", "Observation model used for planning", model_));
@@ -123,6 +132,8 @@ QIterationPredictor *QIterationPredictor::clone() const
 
 void QIterationPredictor::update(const Transition &transition)
 {
+  Predictor::update(transition);
+  
   for (size_t aa=0; aa < variants_.size(); ++aa)
   {
     Vector next;
@@ -130,7 +141,7 @@ void QIterationPredictor::update(const Transition &transition)
     int terminal;
     model_->step(transition.prev_obs, variants_[aa], &next, &reward, &terminal);
     
-    if (!next.empty())
+    if (next.size())
     {
       if (!terminal)
       {

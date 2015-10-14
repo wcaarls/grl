@@ -67,7 +67,7 @@ void PendulumVisualization::draw()
   
   Vector state = state_->get();
   
-  if (!state.empty())
+  if (state.size())
   {
     double phi = -state[0]+M_PI/2;
   

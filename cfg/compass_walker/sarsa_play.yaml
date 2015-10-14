@@ -17,7 +17,10 @@ experiment:
       timeout: 100
       initial_state_variation: 0
       reference_velocity: 0.122
-    output: compass_walker_sarsa
+    exporter: 
+      type: exporter/csv
+      file: test_csv
+      style: meshup
   agent: 
     type: agent/td
     policy: 
@@ -73,6 +76,7 @@ vis:
   input_min: experiment/environment/task/observation_min
   input_max: experiment/environment/task/observation_max
   points: 65536
+  savepoints: 1048576
   projection: mean
   projector: experiment/agent/policy/projector
   representation: experiment/agent/policy/representation
