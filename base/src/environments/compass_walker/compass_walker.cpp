@@ -227,13 +227,11 @@ void CompassWalkerVrefTask::evaluate(const Vector &state, const Vector &action, 
 
   *reward = 0;
 
-  // Instead of using LastHipX, which is non-Markov, assume the last step
-  // was just as long as this one.
+  // Calculate deviation from reference velocity
   if (next[CompassWalker::siStanceLegChanged])
   {
-    double variance = pow(0.1*vref_, 2)/(2*std::log(2.0)); // 2.0 times decay of exp() at +-0.5 deviation from velocity_ref
     double velocity = sin(next[CompassWalker::siStanceLegAngle]) / (next[CompassWalker::siTime]-next[CompassWalker::siPrevTime]);
-    *reward = exp( -(pow(velocity - vref_, 2))/(2*variance) );
+    *reward = exp( -(pow(velocity - vref_, 2))/vref_2var_);
   }
 
   if (fabs(next[CompassWalker::siStanceLegAngle]) > M_PI/8 || fabs(next[CompassWalker::siHipAngle] - 2 * next[CompassWalker::siStanceLegAngle]) > M_PI/4)
@@ -251,4 +249,5 @@ void CompassWalkerVrefTask::configure(Configuration &config)
 {
   CompassWalkerWalkTask::configure(config);
   vref_ = config["reference_velocity"];
+  vref_2var_ = pow(0.1*vref_, 2)/(std::log(2.0)); // 2.0 times decay of exp() at +-0.1 deviation from reference velocity
 }

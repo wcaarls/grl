@@ -16,7 +16,7 @@ experiment:
       type: task/compass_walker/vref
       timeout: 100
       initial_state_variation: 0.2
-      reference_velocity: 0.2
+      reference_velocity: 0.3
   agent: 
     type: agent/td
     policy: 

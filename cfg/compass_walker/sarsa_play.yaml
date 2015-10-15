@@ -16,7 +16,7 @@ experiment:
       type: task/compass_walker/vref
       timeout: 100
       initial_state_variation: 0
-      reference_velocity: 0.122
+      reference_velocity: 0.3
     exporter: 
       type: exporter/csv
       file: test_csv
