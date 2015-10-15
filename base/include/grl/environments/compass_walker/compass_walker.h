@@ -38,7 +38,8 @@ class CompassWalker
 {
   public:
     enum stateIndex { siStanceLegAngle, siHipAngle, siStanceLegAngleRate, siHipAngleRate,
-                      siStanceLegChanged, siStanceFootX, siLastHipX, siTime };
+                      siStanceLegChanged, siStanceFootX, siLastHipX, siTime, siPrevTime };
+    enum stateSize  { ssStateSize = siPrevTime+1};
 };
 
 // Compass (simplest) walker model.
@@ -74,10 +75,9 @@ class CompassWalkerWalkTask : public Task
   protected:
     double T_;
     double initial_state_variation_;
-    mutable int prev_step_time_;
 
   public:
-    CompassWalkerWalkTask() : T_(100), initial_state_variation_(0.2), prev_step_time_(0) { }
+    CompassWalkerWalkTask() : T_(100), initial_state_variation_(0.2){ }
     
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -92,6 +92,7 @@ class CompassWalkerWalkTask : public Task
     virtual bool invert(const Vector &obs, Vector *state) const;
 };
 
+// Walk forward with a reference trajectory task for compass walker.
 class CompassWalkerVrefTask : public CompassWalkerWalkTask
 {
   public:

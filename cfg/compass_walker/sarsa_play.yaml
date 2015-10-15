@@ -3,7 +3,7 @@ experiment:
   runs: 1
   trials: 1
   steps: 0
-  rate: 200
+  rate: 20
   test_interval: 0
   output: compass_walker_sarsa
   environment: 
