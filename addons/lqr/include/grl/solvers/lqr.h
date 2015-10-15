@@ -58,7 +58,7 @@ class LQRSolver : public Solver
 
     // From Solver
     virtual LQRSolver *clone() const;
-    virtual void solve();
+    virtual bool solve();
 };
 
 }

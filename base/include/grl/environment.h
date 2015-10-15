@@ -94,6 +94,12 @@ class Task : public Configurable
      * Returns false if not implemented by a specific task.
      */
     virtual bool invert(const Vector &obs, Vector *state) const { return false; }
+    
+    /// Returns the Hessian of the reward around the given state and action.
+    virtual Matrix rewardHessian(const Vector &state, const Vector &action) const
+    {
+      return Matrix();
+    }
 };
 
 /// Environment that uses a transition model internally.

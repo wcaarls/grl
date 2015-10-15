@@ -74,7 +74,7 @@ AgentSolver *AgentSolver::clone() const
   return solver;
 }
 
-void AgentSolver::solve()
+bool AgentSolver::solve()
 {
   Vector obs, action;
   int terminal=1;
@@ -113,4 +113,6 @@ void AgentSolver::solve()
     if (horizon_ && steps++ == horizon_)
       terminal = 1;
   }
+  
+  return true;
 }

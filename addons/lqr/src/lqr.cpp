@@ -81,7 +81,7 @@ LQRSolver *LQRSolver::clone() const
   return new LQRSolver(*this);
 }
 
-void LQRSolver::solve()
+bool LQRSolver::solve()
 {
   Eigen::VectorXd q(q_.size()), r(r_.size());
   memcpy(q.data(), q_.data(), q_.size()*sizeof(double));
@@ -129,8 +129,16 @@ void LQRSolver::solve()
           policy_->params()[ii*(size_t)L.rows()+oo] = L(oo, ii);
     }
     else
+    {
       WARNING("Calculated gain matrix contains infinities");
+      return false;
+    }
   }
   else
+  {
     WARNING("Could not determine gain matrix");
+    return false;
+  }
+    
+  return true;
 }

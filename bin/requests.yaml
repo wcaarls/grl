@@ -1238,6 +1238,20 @@ policy/random:
     mutability: system
     default: "[  ]"
     optional: 1
+policy/sample_feedback:
+  description: Policy based on state feedback controller defined over samples
+  output_min:
+    type: vector.action_min
+    description: Lower action limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  output_max:
+    type: vector.action_max
+    description: Upper action limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
 policy/uct:
   description: Monte-Carlo Tree Search policy using UCB1 action selection
   model:
@@ -2507,6 +2521,52 @@ solver/agent:
     type: state
     description: Current observed state of planning
     mutability: provided
+solver/ilqg:
+  description: Iterative Linear Quadratic Gaussian trajectory optimizer
+  horizon:
+    type: int
+    description: Horizon
+    mutability: configuration
+    default: 100
+    optional: 1
+    min: 0
+    max: 2147483647
+  iterations:
+    type: int
+    description: Maximum number of iterations
+    mutability: configuration
+    default: 100
+    optional: 1
+    min: 0
+    max: 2147483647
+  stddev:
+    type: vector
+    description: Standard deviation of initial random action sequence
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  regularization:
+    type: string
+    description: Regularization method
+    mutability: configuration
+    default: state
+    optional: 1
+    options:
+      - none
+      - state
+      - controls
+  model:
+    type: observation_model
+    description: Observation model
+    mutability: configuration
+    default: 0
+    optional: 0
+  policy:
+    type: policy/sample_feedback
+    description: Sample feedback policy to adjust
+    mutability: configuration
+    default: 0
+    optional: 0
 solver/lqr:
   description: Linear Quadratic Regulator solver
   operating_state:

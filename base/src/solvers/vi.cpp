@@ -68,7 +68,7 @@ ValueIterationSolver *ValueIterationSolver::clone() const
   return solver;
 }
 
-void ValueIterationSolver::solve()
+bool ValueIterationSolver::solve()
 {
   for (size_t ii=0; ii < sweeps_; ++ii)
   {
@@ -107,4 +107,6 @@ void ValueIterationSolver::solve()
       }
     }
   }
+  
+  return true;
 }

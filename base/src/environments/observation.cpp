@@ -50,32 +50,32 @@ void ObservationModel::reconfigure(const Configuration &config)
 
 Matrix ObservationModel::jacobian(const Vector &obs, const Vector &action) const
 {
-  Matrix J(obs.size(), obs.size()+action.size());
+  Matrix J(obs.size()+1, obs.size()+action.size());
   
   // Central differences 
   for (size_t ii=0; ii < obs.size()+action.size(); ++ii)
   {
     Vector res1, res2;
-    double reward;
+    double reward1, reward2;
     int terminal;
     
     if (ii < obs.size())
     {
       // d obs / d obs
       Vector state1 = obs, state2 = obs;
-      state1[ii] -= jacobian_step_/2, state2[ii] += jacobian_step_/2;
+      state1[ii] -= jacobian_step_/2; state2[ii] += jacobian_step_/2;
     
-      step(state1, action, &res1, &reward, &terminal);
-      step(state2, action, &res2, &reward, &terminal);
+      step(state1, action, &res1, &reward1, &terminal);
+      step(state2, action, &res2, &reward2, &terminal);
     }
     else
     {
       // d obs / d action
       Vector action1 = action, action2 = action;
-      action1[ii-obs.size()] -= jacobian_step_/2, action2[ii-obs.size()] += jacobian_step_/2;
+      action1[ii-obs.size()] -= jacobian_step_/2; action2[ii-obs.size()] += jacobian_step_/2;
       
-      step(obs, action1, &res1, &reward, &terminal);
-      step(obs, action2, &res2, &reward, &terminal);
+      step(obs, action1, &res1, &reward1, &terminal);
+      step(obs, action2, &res2, &reward2, &terminal);
     }
     
     if (!res1.size() || !res2.size())
@@ -83,9 +83,43 @@ Matrix ObservationModel::jacobian(const Vector &obs, const Vector &action) const
     
     for (size_t jj=0; jj < obs.size(); ++jj)
       J(jj, ii) = (res2[jj]-res1[jj])/jacobian_step_;
+    J(obs.size(), ii) = (reward2-reward1)/jacobian_step_;
   }
 
   return J;
+}
+
+Matrix ObservationModel::rewardHessian(const Vector &obs, const Vector &action) const
+{
+  Matrix H(obs.size()+action.size(), obs.size()+action.size());
+  
+  // Central differences 
+  for (size_t ii=0; ii < obs.size()+action.size(); ++ii)
+  {
+    double grad1, grad2;
+    Vector obs1=obs, obs2=obs, action1=action, action2=action;
+  
+    if (ii < obs.size())
+    {
+      obs1[ii] -= jacobian_step_/2;
+      obs2[ii] += jacobian_step_/2;
+    }
+    else
+    {
+      action1[ii-obs.size()] -= jacobian_step_/2;
+      action2[ii-obs.size()] += jacobian_step_/2;
+    }
+    
+    Matrix J1 = jacobian(obs1, action1), J2 = jacobian(obs2, action2);
+    
+    if (!J1.size() || !J2.size())
+      return Matrix();
+  
+    for (size_t jj=ii; jj < obs.size()+action.size(); ++jj)
+      H(ii, jj) = H(jj, ii) = (J2(obs.size(), jj)-J1(obs.size(), jj))/jacobian_step_;
+  }    
+
+  return H;
 }
  
 // FixedObservationModel
@@ -135,6 +169,15 @@ double FixedObservationModel::step(const Vector &obs, const Vector &action, Vect
   task_->evaluate(state, action, next_state, reward);
   
   return tau;
+}
+
+Matrix FixedObservationModel::rewardHessian(const Vector &obs, const Vector &action) const
+{
+  Matrix H = task_->rewardHessian(obs, action);
+  if (!H.size())
+    return ObservationModel::rewardHessian(obs, action);
+  else
+    return H;
 }
 
 // ApproximatedObservationModel
@@ -327,4 +370,13 @@ double FixedRewardObservationModel::step(const Vector &obs, const Vector &action
   task_->observe(next_state, &next_obs, terminal);
   
   return tau;
+}
+
+Matrix FixedRewardObservationModel::rewardHessian(const Vector &obs, const Vector &action) const
+{
+  Matrix H = task_->rewardHessian(obs, action);
+  if (!H.size())
+    return ApproximatedObservationModel::rewardHessian(obs, action);
+  else
+    return H;
 }

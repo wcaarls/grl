@@ -58,7 +58,7 @@ class ValueIterationSolver : public Solver
 
     // From Solver
     virtual ValueIterationSolver *clone() const;
-    virtual void solve();
+    virtual bool solve();
 };
 
 }

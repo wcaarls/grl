@@ -52,6 +52,7 @@ class ObservationModel : public Configurable
     virtual ObservationModel *clone() const = 0;
     virtual double step(const Vector &obs, const Vector &action, Vector *next, double *reward, int *terminal) const = 0;
     virtual Matrix jacobian(const Vector &obs, const Vector &action) const;
+    virtual Matrix rewardHessian(const Vector &obs, const Vector &action) const;
 };
 
 /// Observation model that is all given beforehand.
@@ -75,6 +76,7 @@ class FixedObservationModel : public ObservationModel
     // From ObservationModel
     virtual FixedObservationModel *clone() const;
     virtual double step(const Vector &obs, const Vector &action, Vector *next, double *reward, int *terminal) const;
+    virtual Matrix rewardHessian(const Vector &obs, const Vector &action) const;
 };
 
 /// Observation model that is all learned
@@ -127,6 +129,7 @@ class FixedRewardObservationModel : public ApproximatedObservationModel
     // From ObservationModel
     virtual FixedRewardObservationModel *clone() const;
     virtual double step(const Vector &obs, const Vector &action, Vector *next, double *reward, int *terminal) const;
+    virtual Matrix rewardHessian(const Vector &obs, const Vector &action) const;
 };
 
 }
