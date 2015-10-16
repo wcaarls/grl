@@ -104,6 +104,9 @@ bool ILQGSolver::resolve(double t, const Vector &xt)
     double reward;
     int terminal;
     step_ = model_->step(xt, stddev_, &next, &reward, &terminal);
+    
+    if (!step_)
+      return false;
   }
 
   // Reset on new episode
@@ -134,21 +137,25 @@ bool ILQGSolver::resolve(double t, const Vector &xt)
   {
     CRAWL("Starting from previous solution shifted by " << start << " steps");
     
-    grl_assert(x_.cols() == N+1);
+    size_t Nx = std::max(std::min((size_t)x_.cols(), N), start);
+    size_t NL = std::max(std::min((size_t)L_.size(), N), start);
     grl_assert(u_.cols() == N);
-    grl_assert(L_.size() == N);
   
     // Throw away solution before t
     u_.leftCols(N-start) = u_.rightCols(N-start).eval();
-    x_ = x_.block(0, start, n, N-start).eval();
-    for (size_t ii=0; ii < N-start; ++ii)
+    x_ = x_.block(0, start, n, Nx-start).eval();
+    for (size_t ii=0; ii < NL-start; ++ii)
       L_[ii].swap(L_[ii+start]);
-    L_.resize(N-start);
+    L_.resize(NL-start);
      
     // Pad actions with last action
     for (size_t ii=N-start; ii < N; ++ii)
       u_.col(ii) = u_.col(N-1);
+
+    trajectory_->set(x_);
   }
+  
+  t0_ = t;
 
   Matrix x,       // States,         n x (N+1)
          u;       // Actions,        m x N
@@ -163,9 +170,6 @@ bool ILQGSolver::resolve(double t, const Vector &xt)
     return false;
   }
 
-  // Make sure we repeat everything if something goes wrong
-  u_ = Matrix();
-  
   Matrix3D J(N+1), // Dynamics and cost Jacobian, (n+1) x (n+m) x (N+1)
            H(N+1); // Cost Hessian,               (n+m) x (n+m) x (N+1)
   Matrix l;        // Action gradient, m x N
@@ -286,6 +290,17 @@ bool ILQGSolver::resolve(double t, const Vector &xt)
       // Decrease regularization parameter
       dlambda   = fmin(dlambda / lambda_factor_, 1./lambda_factor_);
       lambda    = lambda * dlambda * (lambda > lambda_min_);
+
+      // Save for next call
+      x_ = x;
+      u_= u;
+      L_ = L;
+      
+      trajectory_->set(x_);
+      
+      policy_->clear();
+      for (size_t ii=0; ii < N; ++ii)
+        policy_->push(SampleFeedbackPolicy::Sample(x_.col(ii).transpose(), u_.col(ii).transpose(), L_[ii]));
     }
     else
     {
@@ -301,18 +316,6 @@ bool ILQGSolver::resolve(double t, const Vector &xt)
       }
     }
   }
-  
-  // Save for next call
-  t0_ = t;
-  x.swap(x_);
-  u.swap(u_);
-  L.swap(L_);
-  
-  trajectory_->set(x_);
-  
-  policy_->clear();
-  for (size_t ii=0; ii < N; ++ii)
-    policy_->push(SampleFeedbackPolicy::Sample(x_.col(ii).transpose(), u_.col(ii).transpose(), L_[ii]));
   
   return true;
 }

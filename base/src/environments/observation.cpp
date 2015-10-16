@@ -307,15 +307,15 @@ Matrix ApproximatedObservationModel::jacobian(const Vector &obs, const Vector &a
   if (!J.size())
     return ObservationModel::jacobian(obs, action);
   
-  // Return only the rows relating to the state.
-  Matrix rJ(obs.size(), J.cols());
+  // Return only the rows relating to the state and reward.
+  Matrix rJ(obs.size()+1, J.cols());
   for (size_t rr=0; rr < rJ.rows(); ++rr)
     for (size_t cc=0; cc < rJ.cols(); ++cc)
       rJ(rr, cc) = J(rr, cc);
 
-  // If model is differential, add identity matrix      
+  // If model is differential, add identity matrix to state rows
   if (differential_)
-    for (size_t ii=0; ii < rJ.rows(); ++ii)
+    for (size_t ii=0; ii < rJ.rows()-1; ++ii)
       rJ(ii, ii) += 1;
       
   return rJ;
