@@ -73,7 +73,7 @@ void FourierProjector::configure(Configuration &config)
   if (min_.size() != max_.size())
     throw bad_param("projector/fourier:{input_min,input_max}");
 
-  scaling_ = 1./(max_-min_);
+  scaling_ = ConstantVector(min_.size(), 1.)/(max_-min_);
   dims_ = min_.size();
 
   order_ = config["order"];

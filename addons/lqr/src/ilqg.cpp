@@ -439,7 +439,8 @@ bool ILQGSolver::backwardPass(const Matrix3D &J, const Matrix3D &H, double lambd
     Matrix K_i = kK.rightCols(n);
     
     // dV          = dV + [k_i'*Qu  .5*k_i'*Quu*k_i];
-    *dV = *dV + VectorConstructor((k_i.transpose()*Qu)[0], .5*(k_i.transpose()*Quu*k_i)[0]).matrix();
+    Matrix temp = k_i.transpose()*Qu;
+    *dV = *dV + VectorConstructor(temp(0, 0), .5*(k_i.transpose()*Quu*k_i)[0]).matrix();
     
     // Vx(:,i)     = Qx  + K_i'*Quu*k_i + K_i'*Qu  + Qux'*k_i;
     Vx.col(i) = Qx + K_i.transpose()*Quu*k_i + K_i.transpose()*Qu + Qux.transpose()*k_i;
