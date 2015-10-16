@@ -1,8 +1,8 @@
-/** \file lqr.h
- * \brief LQR solver header file.
+/** \file trajectory.h
+ * \brief Transferrable trajectory object.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-08-26
+ * \date      2015-10-16
  *
  * \copyright \verbatim
  * Copyright (c) 2015, Wouter Caarls
@@ -25,42 +25,52 @@
  * \endverbatim
  */
 
-#ifndef GRL_LQR_SOLVER_H_
-#define GRL_LQR_SOLVER_H_
+#ifndef GRL_TRAJECTORY_H_
+#define GRL_TRAJECTORY_H_
 
-#include <eigen3/Eigen/Eigen>
+#include <itc/itc.h>
 
-#include <grl/solver.h>
-#include <grl/environments/observation.h>
-#include <grl/policies/state_feedback.h>
+#include <grl/configurable.h>
+#include <grl/mutex.h>
 
 namespace grl
 {
 
-/// Linear Quadratic Regulator solver
-class LQRSolver : public Solver
+/// Encapsulates a trajectory.
+class Trajectory : public Configurable
 {
   public:
-    TYPEINFO("solver/lqr", "Linear Quadratic Regulator solver")
-
+    TYPEINFO("trajectory", "Encapsulates a trajectory");
+    
   protected:
-    ObservationModel *model_;
-    StateFeedbackPolicy *policy_;
-    Vector operating_state_, operating_action_;
+    itc::SharedVariable<Matrix> var_;
 
   public:
-    LQRSolver() : model_(NULL), policy_(NULL) { }
-  
-    // From Configurable
-    virtual void request(ConfigurationRequest *config);
-    virtual void configure(Configuration &config);
-    virtual void reconfigure(const Configuration &config);
+    /// Returns current value.
+    virtual Matrix get()
+    {
+      return var_.get();
+    }
 
-    // From Solver
-    virtual LQRSolver *clone() const;
-    virtual bool solve();
+    /// Sets new value.    
+    virtual void set(const Matrix &trajectory)
+    {
+      var_.write(trajectory);
+    }
+
+    /// Returns true if the value has changed.
+    virtual bool test()
+    {
+      return var_.test();
+    }
+
+    /// Reads a new value, waiting until it changes if necessary.    
+    virtual Matrix read()
+    {
+      return var_.read();
+    }
 };
 
 }
 
-#endif /* GRL_LQR_SOLVER_H_ */
+#endif /* GRL_TRAJECTORY_H_ */

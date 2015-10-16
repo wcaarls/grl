@@ -102,6 +102,84 @@ class Task : public Configurable
     }
 };
 
+/// Task that regulates to a goal state with quadratic cost.
+class RegulatorTask : public Task
+{
+  protected:
+    Vector start_, goal_, stddev_, q_, r_;
+
+  public:
+    
+    void request(ConfigurationRequest *config)
+    {
+      Task::request(config);
+      
+      config->push_back(CRP("start", "Starting state", start_));
+      config->push_back(CRP("goal", "Goal state", goal_));
+      config->push_back(CRP("stddev", "Starting state standard deviation", stddev_));
+      config->push_back(CRP("q", "Q (state cost) matrix diagonal", q_));
+      config->push_back(CRP("r", "R (action cost) matrix diagonal", r_));
+    }
+
+    void configure(Configuration &config)
+    {
+      start_ = config["start"];
+      goal_ = config["goal"];
+      stddev_ = config["stddev"];
+      q_ = config["q"];
+      r_ = config["r"];
+
+      if (!start_.size())
+        throw bad_param("task/regulator:start");
+      
+      if (start_.size() != goal_.size())
+        throw bad_param("task/regulator:{start,goal}");
+
+      if (!stddev_.size())
+        stddev_ = ConstantVector(start_.size(), 0.);
+
+      if (start_.size() != stddev_.size())
+        throw bad_param("task/regulator:stddev");
+        
+      if (start_.size() != q_.size())
+        throw bad_param("task/regulator:q");
+        
+      if (!r_.size())
+        throw bad_param("task/regulator:r");
+      
+      config.set("observation_dims", q_.size());
+      config.set("action_dims", r_.size());
+      config.set("reward_min", -1000);
+      config.set("reward_max", 0);
+    }
+
+    void start(int test, Vector *state) const
+    {
+      *state = ConstantVector(start_.size()+1, 0.);
+
+      for (size_t ii=0; ii < stddev_.size(); ++ii)
+        (*state)[ii] = RandGen::getNormal(start_[ii], test?0.:stddev_[ii]);
+    }
+
+    void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const
+    {
+      if (state.size() != q_.size()+1 || action.size() != r_.size() || next.size() != q_.size()+1)
+        throw Exception("Unexpected state or action size");
+
+      *reward = 0.;
+      
+      for (size_t ii=0; ii < q_.size(); ++ii)
+        *reward -= 0.5*q_[ii]*pow(state[ii]-goal_[ii], 2);
+      for (size_t ii=0; ii < r_.size(); ++ii)
+        *reward -= 0.5*r_[ii]*pow(action[ii], 2);
+    }
+
+    Matrix rewardHessian(const Vector &state, const Vector &action) const
+    {
+      return diagonal(-extend(q_, r_));
+    }
+};
+
 /// Environment that uses a transition model internally.
 class ModeledEnvironment : public Environment
 {
