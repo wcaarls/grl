@@ -55,6 +55,8 @@ void ILQGSolver::request(ConfigurationRequest *config)
 
   config->push_back(CRP("model", "observation_model", "Observation model", model_));
   config->push_back(CRP("policy", "policy/sample_feedback", "Sample feedback policy to adjust", policy_));
+
+  config->push_back(CRP("trajectory", "trajectory", "Predicted trajectory", CRP::Provided));
 }
 
 void ILQGSolver::configure(Configuration &config)
@@ -69,6 +71,9 @@ void ILQGSolver::configure(Configuration &config)
   
   if (!stddev_.size())
     throw bad_param("solver/ilqg:stddev");
+
+  trajectory_ = new Trajectory();
+  config.set("trajectory", trajectory_);
 }
 
 void ILQGSolver::reconfigure(const Configuration &config)
@@ -302,6 +307,8 @@ bool ILQGSolver::resolve(double t, const Vector &xt)
   x.swap(x_);
   u.swap(u_);
   L.swap(L_);
+  
+  trajectory_->set(x_);
   
   policy_->clear();
   for (size_t ii=0; ii < N; ++ii)

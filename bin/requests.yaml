@@ -2567,6 +2567,10 @@ solver/ilqg:
     mutability: configuration
     default: 0
     optional: 0
+  trajectory:
+    type: trajectory
+    description: Predicted trajectory
+    mutability: provided
 solver/lqr:
   description: Linear Quadratic Regulator solver
   operating_state:
@@ -3388,6 +3392,32 @@ visualization/tlm:
   state:
     type: state
     description: Two-link manipulator state to visualize
+    mutability: configuration
+    default: 0
+    optional: 0
+visualization/trajectory:
+  description: Plots trajectories
+  input_dims:
+    type: vector
+    description: Input dimensions to visualize
+    mutability: online
+    default: "[  ]"
+    optional: 1
+  input_min:
+    type: vector
+    description: Lower input dimension limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  input_max:
+    type: vector
+    description: Upper input dimension limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  trajectory:
+    type: trajectory
+    description: Trajectory to visualize
     mutability: configuration
     default: 0
     optional: 0
