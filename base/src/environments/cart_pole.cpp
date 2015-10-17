@@ -299,8 +299,8 @@ void CartPoleRegulatorTask::configure(Configuration &config)
   
   T_ = config["timeout"];
 
-  config.set("observation_min", VectorConstructor(-2.4, -12*M_PI/180, -5.0, -M_PI));
-  config.set("observation_max", VectorConstructor( 2.4,  12*M_PI/180,  5.0,  M_PI));
+  config.set("observation_min", VectorConstructor(-2.4, -M_PI, -10.0, -5*M_PI));
+  config.set("observation_max", VectorConstructor( 2.4,  M_PI,  10.0,  5*M_PI));
   config.set("action_min", VectorConstructor(-15.));
   config.set("action_max", VectorConstructor( 15.));
 }

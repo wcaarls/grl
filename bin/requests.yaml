@@ -2993,6 +2993,70 @@ task/lua:
     mutability: configuration
     default: ""
     optional: 1
+task/pendulum/regulator:
+  description: Pendulum regulator task
+  observation_dims:
+    type: int.observation_dims
+    description: Number of observation dimensions
+    mutability: provided
+  observation_min:
+    type: vector.observation_min
+    description: Lower limit on observations
+    mutability: provided
+  observation_max:
+    type: vector.observation_max
+    description: Upper limit on observations
+    mutability: provided
+  action_dims:
+    type: int.action_dims
+    description: Number of action dimensions
+    mutability: provided
+  action_min:
+    type: vector.action_min
+    description: Lower limit on actions
+    mutability: provided
+  action_max:
+    type: vector.action_max
+    description: Upper limit on actions
+    mutability: provided
+  reward_min:
+    type: double.reward_min
+    description: Lower limit on immediate reward
+    mutability: provided
+  reward_max:
+    type: double.reward_max
+    description: Upper limit on immediate reward
+    mutability: provided
+  start:
+    type: vector
+    description: Starting state
+    mutability: configuration
+    default: "[ 3.14159, 0 ]"
+    optional: 1
+  goal:
+    type: vector
+    description: Goal state
+    mutability: configuration
+    default: "[ 0, 0 ]"
+    optional: 1
+  stddev:
+    type: vector
+    description: Starting state standard deviation
+    mutability: configuration
+    default: "[ 0.1, 0 ]"
+    optional: 1
+  q:
+    type: vector
+    description: Q (state cost) matrix diagonal
+    mutability: configuration
+    default: "[ 1, 0 ]"
+    optional: 1
+  r:
+    type: vector
+    description: R (action cost) matrix diagonal
+    mutability: configuration
+    default: "[ 0.01 ]"
+    optional: 1
 task/pendulum/swingup:
   description: Pendulum swing-up task
   observation_dims:

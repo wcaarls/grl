@@ -83,8 +83,8 @@ class ILQGSolver : public Solver
     virtual bool resolve(double t, const Vector &xt);
 
   protected:
-    bool forwardPass(const ColumnVector &x0, const Matrix &x, const Matrix &u, const Matrix3D &L, Matrix *xnew, Matrix *unew, RowVector *cnew);
-    bool backwardPass(const Matrix3D &J, const Matrix3D &H, double lambda, Matrix *l, Matrix3D *L, RowVector *dV);
+    bool forwardPass(const ColumnVector &x0, const Matrix &x, const Matrix &u, const Matrix3D &L, Matrix *xnew, Matrix *unew, RowVector *cnew) const;
+    bool backwardPass(const Matrix3D &J, const Matrix3D &H, double lambda, Matrix *l, Matrix3D *L, RowVector *dV) const;
 };
 
 }

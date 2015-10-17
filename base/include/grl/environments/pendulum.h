@@ -78,6 +78,33 @@ class PendulumSwingupTask : public Task
     virtual bool invert(const Vector &obs, Vector *state) const;
 };
 
+/// Pendulum balancing task with quadratic costs
+class PendulumRegulatorTask : public RegulatorTask
+{
+  public:
+    TYPEINFO("task/pendulum/regulator", "Pendulum regulator task")
+
+  public:
+    PendulumRegulatorTask()
+    {
+      start_ = VectorConstructor(M_PI, 0);
+      goal_ = VectorConstructor(0, 0);
+      stddev_ = VectorConstructor(0.1, 0);
+      q_ = VectorConstructor(1, 0);
+      r_ = VectorConstructor(0.01);
+    }
+  
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+
+    // From Task
+    virtual PendulumRegulatorTask *clone() const;
+    virtual void observe(const Vector &state, Vector *obs, int *terminal) const;
+    virtual bool invert(const Vector &obs, Vector *state) const;
+};
+
 }
 
 #endif /* GRL_PENDULUM_ENVIRONMENT_H_ */

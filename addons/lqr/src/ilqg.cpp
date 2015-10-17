@@ -221,7 +221,7 @@ bool ILQGSolver::resolve(double t, const Vector &xt)
     }
     
     // check for termination due to small gradient
-    double g_norm = (abs(l.array()) / (abs(u.array())+1)).colwise().maxCoeff().mean();
+    double g_norm = (abs(l.array()) / (abs(u.array())+1)).rowwise().maxCoeff().mean();
     if (g_norm < tolerance_ && lambda < 1e-5)
     {
       DEBUG("iLQG converged after " << iteration << " iterations (gradient)");
@@ -320,7 +320,7 @@ bool ILQGSolver::resolve(double t, const Vector &xt)
   return true;
 }
 
-bool ILQGSolver::forwardPass(const ColumnVector &x0, const Matrix &x, const Matrix &u, const Matrix3D &L, Matrix *xnew, Matrix *unew, RowVector *cnew)
+bool ILQGSolver::forwardPass(const ColumnVector &x0, const Matrix &x, const Matrix &u, const Matrix3D &L, Matrix *xnew, Matrix *unew, RowVector *cnew) const
 {
   size_t n = x0.rows(), // Number of state dimensions
          m = u.rows(),  // Number of action dimensions
@@ -365,7 +365,7 @@ bool ILQGSolver::forwardPass(const ColumnVector &x0, const Matrix &x, const Matr
   return true;
 }
 
-bool ILQGSolver::backwardPass(const Matrix3D &J, const Matrix3D &H, double lambda, Matrix *l, Matrix3D *L, RowVector *dV)
+bool ILQGSolver::backwardPass(const Matrix3D &J, const Matrix3D &H, double lambda, Matrix *l, Matrix3D *L, RowVector *dV) const
 {
   // J is the Dynamics and cost Jacobian, (n+1) x (n+m) x (N+1)
   // H is the Cost Hessian,               (n+m) x (n+m) x (N+1)
