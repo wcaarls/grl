@@ -121,10 +121,10 @@ void NMPCPolicyTh::configure(Configuration &config)
   // save solver state
   data_.backup_muscod_state(muscod_);
 
-  NMSN_ = data_.NMSN;
-  NXD_  = data_.NXD;
-  NP_   = data_.NP;
-  NU_   = data_.NU;
+//  NMSN_ = data_.NMSN;
+//  NXD_  = data_.NXD;
+//  NP_   = data_.NP;
+//  NU_   = data_.NU;
 
   // prepare muscod structures
   muscod_obs_.resize(inputs_);
@@ -179,21 +179,21 @@ void NMPCPolicyTh::muscod_reset(Vector &initial_obs, double time)
   data_.restore_muscod_state(muscod_);
 
   // Reinitialize state and time
-  for (int IXD = 0; IXD < NXD_; ++IXD)
-    data_.initial_sd[IXD] = initial_obs[IXD];
-  for (int IP = 0; IP < NP_; ++IP)
-    data_.initial_pf[IP] = time;
+  for (int IXD = 0; IXD < data_.NXD; ++IXD)
+    data_.sd[IXD] = initial_obs[IXD];
+  for (int IP = 0; IP < data_.NP; ++IP)
+    data_.pf[IP] = time;
 
   // Solve until convergence to prepare solver
   for (int ii=0; ii < 20; ++ii) // TODO: check error instead
   {
-    muscod_->nmpcFeedback(data_.initial_sd.data(), data_.initial_pf.data(), NULL);
+    muscod_->nmpcFeedback(data_.sd.data(), data_.pf.data(), NULL);
     muscod_->nmpcTransition();
     muscod_->nmpcPrepare();
   }
 
   // Copy initial controls to provide immediate feedback
-  for (int IMSN = 0; IMSN < NMSN_; ++IMSN)
+  for (int IMSN = 0; IMSN < data_.NMSN; ++IMSN)
     muscod_->getNodeQC (IMSN, data_.qc.row(IMSN).data());
   //  muscod_->getNodeQC (IMSN, &data_.qc[IMSN][0]);
   data_.qc = data_.backup_qc;
@@ -232,13 +232,13 @@ void *NMPCPolicyTh::muscod_run(void *indata)
   //std::vector<double> initial_sd (NXD, 0.0);
   //std::vector<double> initial_pf (NP,  0.0);
   //std::vector<double> first_qc   (NU,  0.0);
-  Vector initial_sd = ConstantVector(NXD, 0.0);
-  Vector initial_pf = ConstantVector(NP,  0.0);
+  Vector sd = ConstantVector(NXD, 0.0);
+  Vector pf = ConstantVector(NP,  0.0);
   Vector first_qc   = ConstantVector(NU,  0.0);
 
   // same for exchange TODO: move this to backup_muscod_state
-  data.initial_sd = ConstantVector(NXD, 0.0); //std::vector<double> (NXD, 0.0);
-  data.initial_pf = ConstantVector(NP,  0.0); //std::vector<double> (NP,  0.0);
+  data.sd = ConstantVector(NXD, 0.0); //std::vector<double> (NXD, 0.0);
+  data.pf = ConstantVector(NP,  0.0); //std::vector<double> (NP,  0.0);
 //  data.qc = std::vector<std::vector<double>> (NMSN, first_qc);
   data.qc = Matrix::Constant(NMSN, NU, 0.0);
 
@@ -275,18 +275,18 @@ void *NMPCPolicyTh::muscod_run(void *indata)
     {
       // GET INITIAL VALUES FROM DATA
       for (int IXD = 0; IXD < NXD; ++IXD)
-        initial_sd[IXD] = data.initial_sd[IXD];
+        sd[IXD] = data.sd[IXD];
 
       // GET GLOBAL PARAMETERS FROM DATA
       for (int IP = 0; IP < NP; ++IP)
-        initial_pf[IP] = data.initial_pf[IP];
+        pf[IP] = data.pf[IP];
     }
     pthread_mutex_unlock(&mutex_);
 
     // NMPC loop, assume that it converges after 3 iterations
     for (int ii=0; ii < 4; ++ii)
     {
-      muscod_->nmpcFeedback(initial_sd.data(), initial_pf.data(), first_qc.data());
+      muscod_->nmpcFeedback(sd.data(), pf.data(), first_qc.data());
       muscod_->nmpcTransition();
 //      muscod_->nmpcShift(3); TODO: Second iteration does not work
       muscod_->nmpcPrepare();
@@ -338,7 +338,7 @@ void NMPCPolicyTh::act(double time, const Vector &in, Vector *out)
 
     if (verbose_)
       std::cout << "Obtained Control - 1:"
-                << muscod_action_.block(0,0,10,NU_).transpose() << std::endl;
+                << muscod_action_.block(0,0,10,data_.NU).transpose() << std::endl;
 //    {
 //      std::cout << "Obtained Control - 1:";
 //      for (int IMSN = 0; IMSN < 10; ++IMSN)
@@ -347,10 +347,10 @@ void NMPCPolicyTh::act(double time, const Vector &in, Vector *out)
 //    }
 
     // Provide state and time
-    for (int IXD = 0; IXD < NXD_; ++IXD)
-      data_.initial_sd[IXD] = muscod_obs_[IXD];
-    for (int IP = 0; IP < NP_; ++IP)
-      data_.initial_pf[IP] = time;
+    for (int IXD = 0; IXD < data_.NXD; ++IXD)
+      data_.sd[IXD] = muscod_obs_[IXD];
+    for (int IP = 0; IP < data_.NP; ++IP)
+      data_.pf[IP] = time;
 
     iv_ready_ = false;
     // signal to MUSCOD thread to embed initial values and start the computation
@@ -374,7 +374,7 @@ void NMPCPolicyTh::act(double time, const Vector &in, Vector *out)
     if (verbose_)
     {
       std::cout << "Obtained Controls:"
-                << muscod_action_.block(0,0,10,NU_).transpose() << std::endl;
+                << muscod_action_.block(0,0,10,data_.NU).transpose() << std::endl;
       std::cout << "Start from " << qc_cnt_base_ << std::endl;
     }
 //    {

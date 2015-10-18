@@ -32,7 +32,7 @@ class NMPCPolicyTh: public Policy
     Vector muscod_obs_;
     //std::vector<Vector> muscod_action_;
     Matrix muscod_action_;
-    long   NP_, NMSN_, NXD_, NU_;
+//    long   NP_, NMSN_, NXD_, NU_;
 
     // pthread thread, conditions and mutexes
     void   print_array(const double* arr, const unsigned int len);

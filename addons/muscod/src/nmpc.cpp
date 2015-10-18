@@ -125,7 +125,9 @@ void NMPCPolicy::configure(Configuration &config)
 
   // save solver state
   data_.backup_muscod_state(muscod_);
-  pf_.resize(data_.NP);
+//  pf_.resize(data_.NP);
+  data_.sd = ConstantVector(data_.NXD, 0.0); //std::vector<double> (NXD, 0.0);
+  data_.pf = ConstantVector(data_.NP,  0.0); //std::vector<double> (NP,  0.0);
 
   if (verbose_)
     std::cout << "MUSCOD is ready!" << std::endl;
@@ -141,10 +143,14 @@ void NMPCPolicy::muscod_reset(Vector &initial_obs, double time)
   // load solution state
   data_.restore_muscod_state(muscod_);
 
+  // Reinitialize state and time
+  for (int IP = 0; IP < data_.NP; ++IP)
+    data_.pf[IP] = time;
+
   // solve until convergence to prepare solver
   for (int ii=0; ii < 20; ++ii)
   {
-    muscod_->nmpcFeedback(NULL, NULL, NULL);
+    muscod_->nmpcFeedback(initial_obs.data(), data_.pf.data(), NULL);
     muscod_->nmpcTransition();
     muscod_->nmpcPrepare();
   }
@@ -167,7 +173,7 @@ void NMPCPolicy::act(double time, const Vector &in, Vector *out)
   obs.resize(in.size());
   if (time == 0.0)
   {
-    so_convert_obs_for_muscod(NULL, NULL);        // Reset internal counters
+    so_convert_obs_for_muscod(NULL, NULL);            // Reset internal counters
     so_convert_obs_for_muscod(in.data(), obs.data()); // Convert
     muscod_reset(obs, time);
   }
@@ -180,10 +186,10 @@ void NMPCPolicy::act(double time, const Vector &in, Vector *out)
 
   out->resize(outputs_);
   for (int IP = 0; IP < data_.NP; ++IP)
-    pf_[IP] = time;
+    data_.pf[IP] = time;
   for (int ii=0; ii < 10; ++ii)
   {
-    muscod_->nmpcFeedback(obs.data(), pf_.data(), out->data());
+    muscod_->nmpcFeedback(obs.data(),  data_.pf.data(), out->data());
     muscod_->nmpcTransition();
 //    muscod_->nmpcShift(3); TODO: Doesn't work for cart-pole
     muscod_->nmpcPrepare();

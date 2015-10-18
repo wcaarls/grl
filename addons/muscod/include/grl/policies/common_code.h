@@ -22,8 +22,8 @@ struct MuscodData {
 
 //  std::vector<double> initial_sd; // only first shooting node contains initial values
 //  std::vector<double> initial_pf; // global parameters
-  Vector initial_sd; // only first shooting node contains initial values
-  Vector initial_pf; // global parameters
+  Vector sd; // only first shooting node contains initial values
+  Vector pf; // global parameters
   //std::vector<std::vector<double> > qc; // all controls have to saved
   Matrix qc; // all controls have to saved
 

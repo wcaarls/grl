@@ -52,7 +52,7 @@ class NMPCPolicy : public Policy
     MUSCOD *muscod_;
     std::string model_name_, lua_model_;
     size_t outputs_;
-    Vector pf_;
+//    Vector pf_;
 
   public:
     NMPCPolicy() : muscod_(NULL), outputs_(1), verbose_(false) { }
