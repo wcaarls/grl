@@ -125,9 +125,8 @@ void NMPCPolicy::configure(Configuration &config)
 
   // save solver state
   data_.backup_muscod_state(muscod_);
-//  pf_.resize(data_.NP);
-  data_.sd = ConstantVector(data_.NXD, 0.0); //std::vector<double> (NXD, 0.0);
-  data_.pf = ConstantVector(data_.NP,  0.0); //std::vector<double> (NP,  0.0);
+  data_.sd = ConstantVector(data_.NXD, 0.0);
+  data_.pf = ConstantVector(data_.NP,  0.0);
 
   if (verbose_)
     std::cout << "MUSCOD is ready!" << std::endl;
