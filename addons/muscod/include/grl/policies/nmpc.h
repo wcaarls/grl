@@ -47,7 +47,7 @@ class NMPCPolicy : public Policy
 
     // MUSCOD-II interface
     void *so_handle_; // hangle to a shared library with problem definitions
-    void (*so_convert_obs_for_muscod)(const std::vector<double> *from, std::vector<double> *to);
+    void (*so_convert_obs_for_muscod)(const double *from, double *to);
     MuscodData data_;
     MUSCOD *muscod_;
     std::string model_name_, lua_model_;

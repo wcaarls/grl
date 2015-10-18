@@ -27,10 +27,11 @@ class NMPCPolicyTh: public Policy
 
     // MUSCOD-II interface
     void *so_handle_; // hangle to a shared library with problem definitions
-    void (*so_convert_obs_for_muscod)(const std::vector<double> *from, std::vector<double> *to);
+    void (*so_convert_obs_for_muscod)(const double *from, double *to);
     static MUSCOD *muscod_;
     Vector muscod_obs_;
-    std::vector<Vector> muscod_action_;
+    //std::vector<Vector> muscod_action_;
+    Matrix muscod_action_;
     long   NP_, NMSN_, NXD_, NU_;
 
     // pthread thread, conditions and mutexes

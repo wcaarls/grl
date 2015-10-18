@@ -28,7 +28,7 @@
 #ifndef GRL_VECTOR_H_
 #define GRL_VECTOR_H_
 
-//#define GRL_EIGEN_VECTOR
+#define GRL_EIGEN_VECTOR
 
 #ifdef GRL_EIGEN_VECTOR
 #include <eigen3/Eigen/Dense>

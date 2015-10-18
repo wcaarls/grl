@@ -97,8 +97,7 @@ void NMPCPolicy::configure(Configuration &config)
   so_set_path(problem_path, lua_model_);
 
   //----------------- Observation converter ----------------- //
-  so_convert_obs_for_muscod = (void (*)(const std::vector<double>*, std::vector<double>*))
-          dlsym(so_handle_, "convert_obs_for_muscod");
+  so_convert_obs_for_muscod = (void (*)(const double *from, double *to)) dlsym(so_handle_, "convert_obs_for_muscod");
   if (so_convert_obs_for_muscod==NULL)
   {
     std::cout << "ERROR: Could not symbol in shared library: 'convert_obs_for_muscod'" << std::endl;
@@ -162,33 +161,22 @@ NMPCPolicy *NMPCPolicy::clone() const
 void NMPCPolicy::act(double time, const Vector &in, Vector *out)
 {
   if (verbose_)
-  {
-    std::cout << "observation state: [ ";
-    std::copy(in.begin(), in.end(),
-              std::ostream_iterator<double>(std::cout, " "));
-    std::cout << "]" << std::endl;
-  }
+    std::cout << "observation state: [ " << in << "]" << std::endl;
 
   Vector obs;
   obs.resize(in.size());
   if (time == 0.0)
   {
     so_convert_obs_for_muscod(NULL, NULL);        // Reset internal counters
-    so_convert_obs_for_muscod(&in, &obs); // Convert
+    so_convert_obs_for_muscod(in.data(), obs.data()); // Convert
     muscod_reset(obs, time);
   }
 
   // Convert MPRL states into MUSCOD states
-  so_convert_obs_for_muscod(&in, &obs);
+  so_convert_obs_for_muscod(in.data(), obs.data());
 
   if (verbose_)
-  {
-    std::cout << "time: [ " << time << " ];  ";
-    std::cout << "state: [ ";
-    std::copy(obs.begin(), obs.end(),
-              std::ostream_iterator<double>(std::cout, " "));
-    std::cout << "]" << std::endl;
-  }
+    std::cout << "time: [ " << time << " ]; state: [ " << obs << "]" << std::endl;
 
   out->resize(outputs_);
   for (int IP = 0; IP < data_.NP; ++IP)
@@ -202,10 +190,5 @@ void NMPCPolicy::act(double time, const Vector &in, Vector *out)
   }
 
   if (verbose_)
-  {
-    std::cout << "Feedback Control: [";
-    std::copy(out->begin(), out->end(),
-              std::ostream_iterator<double>(std::cout, " "));
-    std::cout << "]" << std::endl;
-  }
+    std::cout << "Feedback Control: [" << *out << "]" << std::endl;
 }

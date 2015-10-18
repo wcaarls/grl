@@ -8,6 +8,7 @@
 #ifndef COMMON_CODE_H_
 #define COMMON_CODE_H_
 
+#include <grl/vector.h>
 #include "wrapper.hpp" // MUSCOD-II interface
 
 namespace grl {
@@ -19,13 +20,18 @@ struct MuscodData {
   bool got_dimensions;
   bool quit;
 
-  std::vector<double> initial_sd; // only first shooting node contains initial values
-  std::vector<double> initial_pf; // global parameters
-  std::vector<std::vector<double> > qc; // all controls have to saved
+//  std::vector<double> initial_sd; // only first shooting node contains initial values
+//  std::vector<double> initial_pf; // global parameters
+  Vector initial_sd; // only first shooting node contains initial values
+  Vector initial_pf; // global parameters
+  //std::vector<std::vector<double> > qc; // all controls have to saved
+  Matrix qc; // all controls have to saved
 
   // place holder for initial solution
-  std::vector<double> backup_h, backup_p;
-  std::vector<std::vector<double> > backup_xd, backup_qc;
+//  std::vector<double> backup_h, backup_p;
+  Vector backup_h, backup_p;
+//  std::vector<std::vector<double> > backup_xd, backup_qc;
+  Matrix backup_xd, backup_qc;
 
   // TODO add thread-safe getter and setter for initial values and controls
 
@@ -43,22 +49,29 @@ struct MuscodData {
     {
       get_muscod_dimensions(muscod);
     }
+
     backup_h.resize(NH);
     backup_p.resize(NP);
-    backup_xd.resize(NMSN);
-    backup_qc.resize(NMSN);
+    //backup_xd.resize(NMSN);
+    //backup_qc.resize(NMSN);
+    backup_xd = Matrix::Constant(NMSN, NXD, 0.0);
+    backup_qc = Matrix::Constant(NMSN, NU,  0.0);
 
     muscod->getHF(backup_h.data());
     muscod->getPF(backup_p.data());
 
-    std::vector<double> mssqp_xd(NXD);
-    std::vector<double> mssqp_qc(NU);
+//    std::vector<double> mssqp_xd(NXD);
+//    std::vector<double> mssqp_qc(NU);
+    Vector mssqp_xd = ConstantVector(NXD, 0.0);
+    Vector mssqp_qc = ConstantVector(NU,  0.0);
     for (unsigned int imsn = 0; imsn < NMSN; ++imsn)
     {
       muscod->getNodeSD(imsn, mssqp_xd.data());
       muscod->getNodeQC(imsn, mssqp_qc.data());
-      backup_xd[imsn] = mssqp_xd;
-      backup_qc[imsn] = mssqp_qc;
+      //backup_xd[imsn] = mssqp_xd;
+      //backup_qc[imsn] = mssqp_qc;
+      backup_xd.row(imsn) = mssqp_xd;
+      backup_qc.row(imsn) = mssqp_qc;
     }
   };
 
@@ -68,11 +81,12 @@ struct MuscodData {
       muscod->setPF(backup_p.data());
       for (unsigned int imsn = 0; imsn < NMSN; ++imsn)
       {
-        muscod->setNodeSD(imsn, backup_xd[imsn].data());
-        muscod->setNodeQC(imsn, backup_qc[imsn].data());
+//        muscod->setNodeSD(imsn, backup_xd[imsn].data());
+//        muscod->setNodeQC(imsn, backup_qc[imsn].data());
+        muscod->setNodeSD(imsn, backup_xd.row(imsn).data());
+        muscod->setNodeQC(imsn, backup_qc.row(imsn).data());
       }
   };
-
 
   // Constructor
   MuscodData() :
