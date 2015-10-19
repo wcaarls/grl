@@ -1,0 +1,32 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 0
+  steps: 0
+  rate: 0
+  test_interval: 0
+  environment: 
+    type: environment/modeled
+    model: 
+      type: model/dynamical
+      control_step: 0.05
+      integration_steps: 10
+      dynamics: 
+        type: dynamics/rbdl
+        file: cart_pendulum_mprl.lua
+    task: 
+      type: task/lua
+      file: cart_pendulum_rl_nmpc.lua
+  agent: 
+    type: agent/fixed
+    policy: 
+      type: policy/nmpc
+      lua_model: experiment/environment/model/dynamics/file
+      model_name: nmpc_cartpole
+      outputs: experiment/environment/task/action_dims
+      verbose: 0
+visualizer: 
+  type: visualizer/glut
+visualization: 
+  type: visualization/cart_pole
+  state: experiment/environment/state
