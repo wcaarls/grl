@@ -3,7 +3,7 @@ experiment:
   runs: 1
   trials: 1
   steps: 0
-  rate: 20
+  rate: 200
   test_interval: 0
   output: compass_walker_sarsa
   environment: 
@@ -19,7 +19,7 @@ experiment:
       reference_velocity: 0.3
     exporter: 
       type: exporter/csv
-      file: test_csv
+      file: simplest_walker_sarsa
       style: meshup
   agent: 
     type: agent/td

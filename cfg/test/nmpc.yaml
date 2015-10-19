@@ -4,7 +4,7 @@ experiment:
   trials: 0
   steps: 0
   rate: 0
-  test_interval: 0
+  test_interval: -1
   environment: 
     type: environment/modeled
     model: 
@@ -21,6 +21,6 @@ experiment:
     type: agent/fixed
     policy: 
       type: policy/nmpc
-      model_path: /media/ivan/ivan/Project/Software/grl/src/grl/addons/muscod/cfg/nmpc_simple
       model_name: nmpc_simple
       outputs: experiment/environment/task/action_dims
+      verbose: 0

@@ -47,14 +47,15 @@ class OnlineLearningExperiment : public Experiment
     Environment *environment_;
     State *state_, *curve_;
 
-    size_t runs_, trials_, steps_, test_interval_;
+    int test_interval_;
+    size_t runs_, trials_, steps_;
     double rate_;
     std::string output_;
 
     ExportCSV csv_;
 
   public:
-    OnlineLearningExperiment() : agent_(NULL), test_agent_(NULL), environment_(NULL), state_(NULL), runs_(1), trials_(0), steps_(0), test_interval_(0), rate_(0) { }
+    OnlineLearningExperiment() : agent_(NULL), test_agent_(NULL), environment_(NULL), state_(NULL), runs_(1), trials_(0), steps_(0), test_interval_(-1), rate_(0) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);

@@ -5,7 +5,7 @@ experiment:
   steps: 0
   rate: 0
   test_interval: 10
-  output: compass_walker_sarsa
+  output: simplest_walker_sarsa
   environment: 
     type: environment/modeled
     model: 
@@ -17,6 +17,10 @@ experiment:
       timeout: 100
       initial_state_variation: 0.2
       reference_velocity: 0.3
+    exporter: 
+      type: exporter/csv
+      file: simplest_walker_sarsa
+      style: meshup
   agent: 
     type: agent/td
     policy: 
@@ -76,4 +80,4 @@ visualization:
   policy: experiment/test_agent/policy
 viz2: 
   type: visualization/compass_walker
-  state: experiment/state
+  state: experiment/environment/state

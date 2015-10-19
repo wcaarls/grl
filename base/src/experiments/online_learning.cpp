@@ -71,7 +71,7 @@ void OnlineLearningExperiment::configure(Configuration &config)
   config.set("state", state_);
   config.set("curve", curve_);
   
-  if (test_interval_ && !test_agent_)
+  if (test_interval_ >= 0 && !test_agent_)
     throw bad_param("experiment/online_learning:test_agent");
 }
 
@@ -111,7 +111,7 @@ void OnlineLearningExperiment::run()
       Vector obs, action;
       double reward, total_reward=0;
       int terminal;
-      bool test = (test_interval_ && tt%(test_interval_+1) == test_interval_);
+      bool test = (test_interval_ >= 0 && tt%(test_interval_+1) == test_interval_);
       timer step_timer;
 
       Agent *agent = agent_;      
@@ -150,7 +150,7 @@ void OnlineLearningExperiment::run()
         if (!test && obs.size()) ss++;
       } while (!terminal);
 
-      if (test_interval_)
+      if (test_interval_ >= 0)
       {
         if (test)
         {

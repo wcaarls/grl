@@ -174,7 +174,7 @@ experiment/online_learning:
     type: int
     description: Number of episodes in between test trials
     mutability: configuration
-    default: 0
+    default: -1
     optional: 1
     min: 0
     max: 2147483647
