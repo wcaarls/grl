@@ -4,7 +4,8 @@ experiment:
   trials: 0
   steps: 0
   rate: 0
-  test_interval: -1
+  test_interval: 0
+  output: cart_pole_nmpc_th
   environment: 
     type: environment/modeled
     model: 
@@ -17,6 +18,10 @@ experiment:
     task: 
       type: task/lua
       file: cart_pendulum_rl_nmpc.lua
+    exporter: 
+      type: exporter/csv
+      file: cart_pole_nmpc_th
+      style: meshup
   agent: 
     type: agent/fixed
     policy: 
@@ -27,6 +32,7 @@ experiment:
       outputs: experiment/environment/task/action_dims
       single_step: 1
       verbose: 0
+  test_agent: experiment/agent
 visualizer: 
   type: visualizer/glut
 visualization: 

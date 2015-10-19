@@ -41,7 +41,7 @@ void OnlineLearningExperiment::request(ConfigurationRequest *config)
   config->push_back(CRP("trials", "Number of episodes per learning run", (int)trials_));
   config->push_back(CRP("steps", "Number of steps per learning run", (int)steps_));
   config->push_back(CRP("rate", "Control step frequency in Hz", (int)rate_, CRP::Online));
-  config->push_back(CRP("test_interval", "Number of episodes in between test trials", (int)test_interval_));
+  config->push_back(CRP("test_interval", "Number of episodes in between test trials", test_interval_, CRP::Configuration, -1));
   config->push_back(CRP("output", "Output base filename", output_));
   
   config->push_back(CRP("environment", "environment", "Environment in which the agent acts", environment_));

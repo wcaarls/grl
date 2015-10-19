@@ -4,7 +4,7 @@ experiment:
   trials: 0
   steps: 0
   rate: 0
-  test_interval: -1
+  test_interval: 0
   environment: 
     type: environment/modeled
     model: 
@@ -24,3 +24,4 @@ experiment:
       model_name: nmpc_simple
       outputs: experiment/environment/task/action_dims
       verbose: 0
+  test_agent: experiment/agent
