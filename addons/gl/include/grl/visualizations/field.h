@@ -32,6 +32,7 @@
 
 #include <itc/itc.h>
 #include <grl/visualization.h>
+#include <grl/state.h>
 
 namespace grl
 {
@@ -42,6 +43,7 @@ class FieldVisualization : public Visualization, public itc::Thread
   protected:
     enum ValueProjection { vpMean, vpMin, vpMax };
   
+    State *state_;
     int state_dims_;
     Vector state_min_, state_max_, dims_;
     int points_, savepoints_, dimpoints_, texpoints_;
@@ -53,7 +55,7 @@ class FieldVisualization : public Visualization, public itc::Thread
     ValueProjection projection_;
   
   public:
-    FieldVisualization() : state_dims_(0), points_(65536), savepoints_(1048576), dimpoints_(0), texpoints_(0), texture_(0), data_(NULL), value_min_(0), value_max_(0), updated_(true), projection_str_("mean"), projection_(vpMean)
+    FieldVisualization() : state_(NULL), state_dims_(0), points_(65536), savepoints_(1048576), dimpoints_(0), texpoints_(0), texture_(0), data_(NULL), value_min_(0), value_max_(0), updated_(true), projection_str_("mean"), projection_(vpMean)
     {
       dims_ = VectorConstructor(0., 1.);
     }

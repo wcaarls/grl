@@ -3476,6 +3476,12 @@ visualization/field/policy/action:
     optional: 1
     min: 0
     max: 2147483647
+  state:
+    type: state
+    description: Optional current state to overlay
+    mutability: configuration
+    default: 0
+    optional: 1
   projection:
     type: string
     description: Method of projecting values onto 2d space
@@ -3536,6 +3542,12 @@ visualization/field/policy/value:
     optional: 1
     min: 0
     max: 2147483647
+  state:
+    type: state
+    description: Optional current state to overlay
+    mutability: configuration
+    default: 0
+    optional: 1
   projection:
     type: string
     description: Method of projecting values onto 2d space
@@ -3600,6 +3612,12 @@ visualization/field/value:
     optional: 1
     min: 0
     max: 2147483647
+  state:
+    type: state
+    description: Optional current state to overlay
+    mutability: configuration
+    default: 0
+    optional: 1
   projection:
     type: string
     description: Method of projecting values onto 2d space
