@@ -30,6 +30,7 @@
 
 #include <string.h>
 #include <pthread.h>
+#include <deque>
 
 #include <grl/state.h>
 #include <grl/visualization.h>

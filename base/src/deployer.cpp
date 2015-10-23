@@ -122,11 +122,10 @@ void sighandler(int signum)
 int main(int argc, char **argv)
 {
   int seed = 0;
-  bool read = false, write = false, user_config = false;
-  std::string file;
+  bool user_config = false;
 
   int c;
-  while ((c = getopt (argc, argv, "vs:rwf:c")) != -1)
+  while ((c = getopt (argc, argv, "vs:c")) != -1)
   {
     switch (c)
     {
@@ -135,15 +134,6 @@ int main(int argc, char **argv)
         break;
       case 's':
         seed = atoi(optarg);
-        break;
-      case 'r':
-        read = true;
-        break;
-      case 'w':
-        write = true;
-        break;
-      case 'f':
-        file = optarg;
         break;
       case 'c':
         user_config = true;
@@ -185,22 +175,7 @@ int main(int argc, char **argv)
     ERROR("Specified experiment has wrong type");
     return 1;
   }
-  
-  if (file.empty())
-  {
-    file = argv[optind];
-    if (file.rfind(".yaml") != std::string::npos)
-      file.resize(file.rfind(".yaml"));
-  }
-  
-  if (read)
-  {
-    Configuration loadconfig;
-    loadconfig.set("action", "load");
-    loadconfig.set("file", file + "-");
-    configurator.walk(loadconfig);
-  }
-  
+    
   if (user_config)
     reconfigure();
   
@@ -213,13 +188,6 @@ int main(int argc, char **argv)
   
   experiment->run();
   
-  if (write)
-  {
-    Configuration saveconfig;
-    saveconfig.set("action", "save");
-    saveconfig.set("file", file + "-");
-    configurator.walk(saveconfig);
-  }
   
   NOTICE("Exiting");
   

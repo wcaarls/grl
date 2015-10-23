@@ -209,6 +209,7 @@ void FieldVisualization::run()
         
         for (int dd=0; dd < state_dims_; ++dd)
         {
+          // In 'dim_order_' last 2 elements define visualized dimentions, along other elements value function is summed up.
           int oo = dim_order[dd];
       
           ss[oo] = ss[oo] + delta[oo];

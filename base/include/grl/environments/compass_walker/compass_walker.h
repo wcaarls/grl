@@ -38,7 +38,9 @@ class CompassWalker
 {
   public:
     enum stateIndex { siStanceLegAngle, siHipAngle, siStanceLegAngleRate, siHipAngleRate,
-                      siStanceLegChanged, siStanceFootX, siLastHipX, siTime };
+                      siStanceLegChanged, siStanceFootX, siLastHipX, siTime, siPrevTime,
+                      siLastStanceLegAngle, siLastHipAngle, siLastStanceLegAngleRate, siLastHipAngleRate};
+    enum stateSize  { ssStateSize = siLastHipAngleRate+1};
 };
 
 // Compass (simplest) walker model.
@@ -73,9 +75,10 @@ class CompassWalkerWalkTask : public Task
   
   protected:
     double T_;
+    double initial_state_variation_;
 
   public:
-    CompassWalkerWalkTask() : T_(100) { }
+    CompassWalkerWalkTask() : T_(100), initial_state_variation_(0.2){ }
     
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -88,6 +91,39 @@ class CompassWalkerWalkTask : public Task
     virtual void observe(const Vector &state, Vector *obs, int *terminal) const;
     virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const;
     virtual bool invert(const Vector &obs, Vector *state) const;
+};
+
+// Walk forward with a reference trajectory task for compass walker.
+class CompassWalkerVrefTask : public CompassWalkerWalkTask
+{
+  public:
+    TYPEINFO("task/compass_walker/vref", "Compass walker tracking velocity task")
+
+  protected:
+    double vref_, vref_2var_;
+
+  public:
+    CompassWalkerVrefTask() : vref_(0.1) { }
+
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+
+    // From Task
+    virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const;
+};
+
+// Walk forward with a reference trajectory task for compass walker.
+class CompassWalkerLcTask : public CompassWalkerVrefTask
+{
+  public:
+    TYPEINFO("task/compass_walker/lc", "Compass walker limit cycle task task")
+
+  public:
+    CompassWalkerLcTask() { }
+
+    // From Task
+    virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const;
 };
 
 }

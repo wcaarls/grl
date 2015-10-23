@@ -41,7 +41,7 @@ void OnlineLearningExperiment::request(ConfigurationRequest *config)
   config->push_back(CRP("trials", "Number of episodes per learning run", (int)trials_));
   config->push_back(CRP("steps", "Number of steps per learning run", (int)steps_));
   config->push_back(CRP("rate", "Control step frequency in Hz", (int)rate_, CRP::Online));
-  config->push_back(CRP("test_interval", "Number of episodes in between test trials", (int)test_interval_));
+  config->push_back(CRP("test_interval", "Number of episodes in between test trials", test_interval_, CRP::Configuration, -1));
   config->push_back(CRP("output", "Output base filename", output_));
   
   config->push_back(CRP("environment", "environment", "Environment in which the agent acts", environment_));
@@ -50,6 +50,9 @@ void OnlineLearningExperiment::request(ConfigurationRequest *config)
   
   config->push_back(CRP("state", "state", "Current observed state of the environment", CRP::Provided));
   config->push_back(CRP("curve", "state", "Learning curve", CRP::Provided));
+
+  config->push_back(CRP("load_file", "Load policy filename", load_file_));
+  config->push_back(CRP("save_every", "Save policy to 'output' at the end of event", save_every_, CRP::Configuration, {"never", "run", "test", "trail"}));
 }
 
 void OnlineLearningExperiment::configure(Configuration &config)
@@ -64,14 +67,16 @@ void OnlineLearningExperiment::configure(Configuration &config)
   rate_ = config["rate"];
   test_interval_ = config["test_interval"];
   output_ = config["output"].str();
+  load_file_ = config["load_file"].str();
+  save_every_ = config["save_every"].str();
   
   state_ = new State();
   curve_ = new State();
   
   config.set("state", state_);
   config.set("curve", curve_);
-  
-  if (test_interval_ && !test_agent_)
+
+  if (test_interval_ >= 0 && !test_agent_)
     throw bad_param("experiment/online_learning:test_agent");
 }
 
@@ -99,6 +104,15 @@ void OnlineLearningExperiment::run()
 
   for (size_t rr=0; rr < runs_; ++rr)
   {
+    // Load policy/store
+    if (!load_file_.empty())
+    {
+      Configuration loadconfig;
+      loadconfig.set("action", "load");
+      loadconfig.set("file", load_file_ + "-" + std::to_string((int)rr) + "-");
+       agent_->walk(loadconfig);
+    }
+
     if (!output_.empty())
     {
       std::ostringstream oss;
@@ -111,7 +125,7 @@ void OnlineLearningExperiment::run()
       Vector obs, action;
       double reward, total_reward=0;
       int terminal;
-      bool test = (test_interval_ && tt%(test_interval_+1) == test_interval_);
+      bool test = (test_interval_ >= 0 && tt%(test_interval_+1) == test_interval_);
       timer step_timer;
 
       Agent *agent = agent_;      
@@ -150,7 +164,7 @@ void OnlineLearningExperiment::run()
         if (!test && obs.size()) ss++;
       } while (!terminal);
 
-      if (test_interval_)
+      if (test_interval_ >= 0)
       {
         if (test)
         {
@@ -175,8 +189,30 @@ void OnlineLearningExperiment::run()
         if (ofs.is_open())
           ofs << oss.str() << std::endl;
       }
+
+      // Save policy/store every trial or every test trial
+      if (((save_every_ == "trial") || (test && save_every_ == "test")) && !output_.empty() )
+      {
+        std::ostringstream oss;
+        oss << output_ << "-" << rr << "-" << ss << "-";
+        Configuration saveconfig;
+        saveconfig.set("action", "save");
+        saveconfig.set("file", oss.str().c_str());
+        agent_->walk(saveconfig);
+      }
     }
     
+    // Save policy/store every run
+    if (save_every_ == "run" && !output_.empty())
+    {
+      std::ostringstream oss;
+      oss << output_ << "-" << rr << "-";
+      Configuration saveconfig;
+      saveconfig.set("action", "save");
+      saveconfig.set("file", oss.str().c_str());
+      agent_->walk(saveconfig);
+    }
+
     if (ofs.is_open())
       ofs.close();
       

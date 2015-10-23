@@ -4,7 +4,7 @@ set(TARGET addon_muscod)
 FIND_PACKAGE(MUSCOD)
 
 if (MUSCOD_FOUND)
-  message("-- Building MUSCOD-II addon")
+  add_definitions(-DMUSCOD_CONFIG_DIR="${SRC}/../cfg")
 
   # Find preferred Muscod build type
   if (${CMAKE_BUILD_TYPE} MATCHES "Debug")
@@ -44,6 +44,7 @@ if (MUSCOD_FOUND)
   # Build library
   add_library(${TARGET} SHARED
               ${SRC}/nmpc.cpp
+              ${SRC}/nmpc_th.cpp
              )
 
   # Add dependencies
@@ -51,4 +52,9 @@ if (MUSCOD_FOUND)
   grl_link_libraries(${TARGET} base)
   install(TARGETS ${TARGET} DESTINATION ${GRL_LIB_DESTINATION})
   install(DIRECTORY ${SRC}/../include/grl DESTINATION ${GRL_INCLUDE_DESTINATION} FILES_MATCHING PATTERN "*.h")
+
+  # Build models
+  grl_build_library(addons/muscod/models)
+else()
+  message(WARNING "-- MUSCOD-II not found")
 endif()

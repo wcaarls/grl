@@ -510,9 +510,9 @@ experiment/online_learning:
     type: int
     description: Number of episodes in between test trials
     mutability: configuration
-    default: 0
+    default: -1
     optional: 1
-    min: 0
+    min: -1
     max: 2147483647
   output:
     type: string
@@ -546,6 +546,23 @@ experiment/online_learning:
     type: state
     description: Learning curve
     mutability: provided
+  load_file:
+    type: string
+    description: Load policy filename
+    mutability: configuration
+    default: ""
+    optional: 1
+  save_every:
+    type: string
+    description: Save policy to 'output' at the end of event
+    mutability: configuration
+    default: never
+    optional: 1
+    options:
+      - never
+      - run
+      - test
+      - trail
 exporter/csv:
   description: Comma-separated values exporter
   file:
@@ -1100,9 +1117,9 @@ policy/mcts:
     max: 1.797693134862316e+308
 policy/nmpc:
   description: Nonlinear model predictive control policy using the MUSCOD library
-  model_path:
+  lua_model:
     type: string
-    description: Path to MUSCOD model library
+    description: Lua model used by MUSCOD
     mutability: configuration
     default: ""
     optional: 1
@@ -1120,6 +1137,60 @@ policy/nmpc:
     optional: 1
     min: 1
     max: 2147483647
+  verbose:
+    type: int
+    description: Verbose mode
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
+policy/nmpc_th:
+  description: Nonlinear multistep (thread-based) model predictive control policy using the MUSCOD library
+  model_name:
+    type: string
+    description: Name of MUSCOD model library
+    mutability: configuration
+    default: ""
+    optional: 1
+  lua_model:
+    type: string
+    description: Lua model used by MUSCOD
+    mutability: configuration
+    default: ""
+    optional: 1
+  inputs:
+    type: int.observation_dims
+    description: Number of inputs
+    mutability: system
+    default: 0
+    optional: 1
+    min: 1
+    max: 2147483647
+  outputs:
+    type: int.action_dims
+    description: Number of outputs
+    mutability: system
+    default: 0
+    optional: 1
+    min: 1
+    max: 2147483647
+  single_step:
+    type: int
+    description: Run NMPC in single-step mode
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
+  verbose:
+    type: int
+    description: Verbose mode
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
 policy/parameterized/action:
   description: Parameterized policy based on a direct action representation
   sigma:
@@ -2905,6 +2976,122 @@ task/cart_pole/swingup:
     optional: 1
     min: 0
     max: 1
+task/compass_walker/lc:
+  description: Compass walker limit cycle task task
+  observation_dims:
+    type: int.observation_dims
+    description: Number of observation dimensions
+    mutability: provided
+  observation_min:
+    type: vector.observation_min
+    description: Lower limit on observations
+    mutability: provided
+  observation_max:
+    type: vector.observation_max
+    description: Upper limit on observations
+    mutability: provided
+  action_dims:
+    type: int.action_dims
+    description: Number of action dimensions
+    mutability: provided
+  action_min:
+    type: vector.action_min
+    description: Lower limit on actions
+    mutability: provided
+  action_max:
+    type: vector.action_max
+    description: Upper limit on actions
+    mutability: provided
+  reward_min:
+    type: double.reward_min
+    description: Lower limit on immediate reward
+    mutability: provided
+  reward_max:
+    type: double.reward_max
+    description: Upper limit on immediate reward
+    mutability: provided
+  timeout:
+    type: double
+    description: Episode timeout
+    mutability: configuration
+    default: 100
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
+  initial_state_variation:
+    type: double
+    description: Variation of initial state
+    mutability: configuration
+    default: 0.2
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
+  reference_velocity:
+    type: double
+    description: Reference velocity
+    mutability: configuration
+    default: 0.1
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
+task/compass_walker/vref:
+  description: Compass walker tracking velocity task
+  observation_dims:
+    type: int.observation_dims
+    description: Number of observation dimensions
+    mutability: provided
+  observation_min:
+    type: vector.observation_min
+    description: Lower limit on observations
+    mutability: provided
+  observation_max:
+    type: vector.observation_max
+    description: Upper limit on observations
+    mutability: provided
+  action_dims:
+    type: int.action_dims
+    description: Number of action dimensions
+    mutability: provided
+  action_min:
+    type: vector.action_min
+    description: Lower limit on actions
+    mutability: provided
+  action_max:
+    type: vector.action_max
+    description: Upper limit on actions
+    mutability: provided
+  reward_min:
+    type: double.reward_min
+    description: Lower limit on immediate reward
+    mutability: provided
+  reward_max:
+    type: double.reward_max
+    description: Upper limit on immediate reward
+    mutability: provided
+  timeout:
+    type: double
+    description: Episode timeout
+    mutability: configuration
+    default: 100
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
+  initial_state_variation:
+    type: double
+    description: Variation of initial state
+    mutability: configuration
+    default: 0.2
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
+  reference_velocity:
+    type: double
+    description: Reference velocity
+    mutability: configuration
+    default: 0.1
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
 task/compass_walker/walk:
   description: Compass walker walking task
   observation_dims:
@@ -2944,6 +3131,14 @@ task/compass_walker/walk:
     description: Episode timeout
     mutability: configuration
     default: 100
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
+  initial_state_variation:
+    type: double
+    description: Variation of initial state
+    mutability: configuration
+    default: 0.2
     optional: 1
     min: 0
     max: 1.797693134862316e+308

@@ -51,10 +51,6 @@ void ModeledEnvironment::configure(Configuration &config)
   {
     // Register headers
     exporter_->init({"time", "state", "observation", "action", "reward", "terminal"});
-  
-    // Truncate existing files
-    exporter_->open("-test", false);
-    exporter_->open("-learn", false);
   }
   
   state_obj_ = new State();
@@ -91,7 +87,7 @@ void ModeledEnvironment::start(int test, Vector *obs)
   test_ = test;
   
   if (exporter_)
-    exporter_->open(std::string("-")+(test_?"test":"learn"));
+    exporter_->open(std::string("-")+(test_?"test":"learn"), (test_?time_test_:time_learn_) != 0.0);
 }
 
 double ModeledEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)

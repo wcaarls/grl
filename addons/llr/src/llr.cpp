@@ -139,7 +139,7 @@ double LLRRepresentation::read(const ProjectionPtr &projection, Vector *result, 
       for (size_t jj=0; jj < outputs_; ++jj)
         (*result)[jj] /= weight;
       
-    return (*result)[0];
+    return (*result)[0]; // return average here
   }
   
   // Convert query

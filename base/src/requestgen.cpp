@@ -64,6 +64,7 @@ int main(int argc, char **argv)
     
     for (ConfigurationRequest::iterator jj=request.begin(); jj != request.end(); ++jj)
     {
+
       CRP::split(jj->type, &base, &templ);
       
       if (!templ.empty())
