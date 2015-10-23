@@ -122,12 +122,10 @@ void sighandler(int signum)
 int main(int argc, char **argv)
 {
   int seed = 0;
-  bool read = false, write = false, user_config = false;
-//  std::string file;
+  bool user_config = false;
 
   int c;
-//  while ((c = getopt (argc, argv, "vs:rwf:c")) != -1)
-  while ((c = getopt (argc, argv, "vs:rc")) != -1)
+  while ((c = getopt (argc, argv, "vs:c")) != -1)
   {
     switch (c)
     {
@@ -137,15 +135,6 @@ int main(int argc, char **argv)
       case 's':
         seed = atoi(optarg);
         break;
-      case 'r':
-        read = true;
-        break;
-//      case 'w':
-//        write = true;
-//        break;
-//      case 'f':
-//        file = optarg;
-//        break;
       case 'c':
         user_config = true;
         break;
