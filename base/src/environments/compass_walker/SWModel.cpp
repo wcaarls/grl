@@ -13,13 +13,12 @@
 
 void CSWModelState::init(double xOffset, double stanceLegAngle, double stanceLegAngleRate, double hipAngle, double hipAngleRate)
 {
-	mStanceLegAngle		= stanceLegAngle;
-	mStanceLegAngleRate	= stanceLegAngleRate;
-	mHipAngle			= hipAngle;
-	mHipAngleRate		= hipAngleRate;
-	mStanceFootX		= xOffset;
-
-	mStanceLegChanged	= false;
+  mStanceLegAngle     = stanceLegAngle;
+  mStanceLegAngleRate = stanceLegAngleRate;
+  mHipAngle           = hipAngle;
+  mHipAngleRate       = hipAngleRate;
+  mStanceFootX        = xOffset;
+  mStanceLegChanged   = false;
 }
 
 // **************************************************************** //

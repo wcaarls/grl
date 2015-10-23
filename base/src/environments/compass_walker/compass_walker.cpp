@@ -24,7 +24,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * \endverbatim
  */
- 
+
+#include <cmath>
 #include <grl/environments/compass_walker/SWModel.h>
 #include <grl/environments/compass_walker/compass_walker.h>
 
@@ -34,7 +35,8 @@ using namespace grl;
 
 REGISTER_CONFIGURABLE(CompassWalkerModel)
 REGISTER_CONFIGURABLE(CompassWalkerWalkTask)
-
+REGISTER_CONFIGURABLE(CompassWalkerVrefTask)
+REGISTER_CONFIGURABLE(CompassWalkerLcTask)
 // *** CompassWalkerModel ***
 
 void CompassWalkerModel::request(ConfigurationRequest *config)
@@ -63,7 +65,7 @@ CompassWalkerModel *CompassWalkerModel::clone() const
 
 double CompassWalkerModel::step(const Vector &state, const Vector &action, Vector *next) const
 {
-  if (state.size() != 8 || action.size() != 1)
+  if (state.size() != CompassWalker::ssStateSize || action.size() != 1)
     throw Exception("model/compass_walker requires a task/compass_walker subclass");
 
   CSWModelState swstate;
@@ -84,11 +86,25 @@ double CompassWalkerModel::step(const Vector &state, const Vector &action, Vecto
   (*next)[CompassWalker::siStanceFootX] = swstate.mStanceFootX;
   (*next)[CompassWalker::siStanceLegChanged] = swstate.mStanceLegChanged;
   if (swstate.mStanceLegChanged)
+  {
     (*next)[CompassWalker::siLastHipX] = swstate.getHipX();
+    (*next)[CompassWalker::siPrevTime] = state[CompassWalker::siTime];
+    (*next)[CompassWalker::siLastStanceLegAngle] = state[CompassWalker::siStanceLegAngle];
+    (*next)[CompassWalker::siLastHipAngle] = state[CompassWalker::siHipAngle];
+    (*next)[CompassWalker::siLastStanceLegAngleRate] = state[CompassWalker::siStanceLegAngleRate];
+    (*next)[CompassWalker::siLastHipAngleRate] = state[CompassWalker::siHipAngleRate];
+  }
   else
+  {
     (*next)[CompassWalker::siLastHipX] = state[CompassWalker::siLastHipX];
+    (*next)[CompassWalker::siPrevTime] = state[CompassWalker::siPrevTime];
+    (*next)[CompassWalker::siLastStanceLegAngle] = state[CompassWalker::siLastStanceLegAngle];
+    (*next)[CompassWalker::siLastHipAngle] = state[CompassWalker::siLastHipAngle];
+    (*next)[CompassWalker::siLastStanceLegAngleRate] = state[CompassWalker::siLastStanceLegAngleRate];
+    (*next)[CompassWalker::siLastHipAngleRate] = state[CompassWalker::siLastHipAngleRate];
+  }
   (*next)[CompassWalker::siTime] = state[CompassWalker::siTime] + tau_;
-  
+
   return tau_;
 }
 
@@ -99,11 +115,13 @@ void CompassWalkerWalkTask::request(ConfigurationRequest *config)
   Task::request(config);
 
   config->push_back(CRP("timeout", "Episode timeout", T_, CRP::Configuration, 0., DBL_MAX));
+  config->push_back(CRP("initial_state_variation", "Variation of initial state", initial_state_variation_, CRP::Configuration, 0., DBL_MAX));
 }
 
 void CompassWalkerWalkTask::configure(Configuration &config)
 {
   T_ = config["timeout"];
+  initial_state_variation_ = config["initial_state_variation"];
 
   config.set("observation_dims", 5);
   config.set("observation_min", VectorConstructor(-M_PI/8, -M_PI/4, -M_PI, -M_PI, 0.));
@@ -129,20 +147,19 @@ void CompassWalkerWalkTask::start(int test, Vector *state) const
   CSWModelState swstate, initial_state;
 
   initial_state.init(0, 0.1534, -0.1561, 2.0*0.1534, -0.0073);
-  double initial_state_variation = 0.2;
-  
+
   swstate.mStanceFootX = 0;
 
   do
   {
-    swstate.mStanceLegAngle     = initial_state.mStanceLegAngle     * (1.0-(initial_state_variation) + 2.0*initial_state_variation*drand48());
-    swstate.mHipAngle           = initial_state.mHipAngle           * (1.0-(initial_state_variation) + 2.0*initial_state_variation*drand48());
-    swstate.mStanceLegAngleRate = initial_state.mStanceLegAngleRate * (1.0-(initial_state_variation) + 2.0*initial_state_variation*drand48());
-    swstate.mHipAngleRate       = initial_state.mHipAngleRate       * (1.0-(initial_state_variation) + 2.0*initial_state_variation*drand48());
+    swstate.mStanceLegAngle     = initial_state.mStanceLegAngle     * (1.0-(initial_state_variation_) + 2.0*initial_state_variation_*drand48());
+    swstate.mHipAngle           = initial_state.mHipAngle           * (1.0-(initial_state_variation_) + 2.0*initial_state_variation_*drand48());
+    swstate.mStanceLegAngleRate = initial_state.mStanceLegAngleRate * (1.0-(initial_state_variation_) + 2.0*initial_state_variation_*drand48());
+    swstate.mHipAngleRate       = initial_state.mHipAngleRate       * (1.0-(initial_state_variation_) + 2.0*initial_state_variation_*drand48());
   }
   while (swstate.getKinEnergy() + swstate.getHipY()*cos(SLOPE_ANGLE) < cos(SLOPE_ANGLE));
 
-  state->resize(8);
+  state->resize(CompassWalker::ssStateSize);
   (*state)[CompassWalker::siStanceLegAngle] = swstate.mStanceLegAngle;
   (*state)[CompassWalker::siHipAngle] = swstate.mHipAngle;
   (*state)[CompassWalker::siStanceLegAngleRate] = swstate.mStanceLegAngleRate;
@@ -151,11 +168,16 @@ void CompassWalkerWalkTask::start(int test, Vector *state) const
   (*state)[CompassWalker::siStanceLegChanged] = false;
   (*state)[CompassWalker::siLastHipX] = swstate.getHipX();
   (*state)[CompassWalker::siTime] = 0;
+  (*state)[CompassWalker::siPrevTime] = 0;
+  (*state)[CompassWalker::siLastStanceLegAngle] = (*state)[CompassWalker::siStanceLegAngle];
+  (*state)[CompassWalker::siLastHipAngle] = (*state)[CompassWalker::siHipAngle];
+  (*state)[CompassWalker::siLastStanceLegAngleRate] = (*state)[CompassWalker::siStanceLegAngleRate];
+  (*state)[CompassWalker::siLastHipAngleRate] = (*state)[CompassWalker::siHipAngleRate];
 }
 
 void CompassWalkerWalkTask::observe(const Vector &state, Vector *obs, int *terminal) const
 {
-  if (state.size() != 8)
+  if (state.size() != CompassWalker::ssStateSize)
     throw Exception("task/compass_walker/walk requires model/compass_walker");
 
   obs->resize(5);
@@ -175,7 +197,7 @@ void CompassWalkerWalkTask::observe(const Vector &state, Vector *obs, int *termi
 
 void CompassWalkerWalkTask::evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const
 {
-  if (state.size() != 8 || action.size() != 1 || next.size() != 8)
+  if (state.size() != CompassWalker::ssStateSize || action.size() != 1 || next.size() != CompassWalker::ssStateSize)
     throw Exception("task/compass_walker/walk requires model/compass_walker");
 
   *reward = -1;
@@ -191,7 +213,7 @@ void CompassWalkerWalkTask::evaluate(const Vector &state, const Vector &action, 
 
 bool CompassWalkerWalkTask::invert(const Vector &obs, Vector *state) const
 {
-  state->resize(8);
+  state->resize(CompassWalker::ssStateSize);
 
   (*state)[CompassWalker::siStanceLegAngle] = obs[CompassWalker::siStanceLegAngle];
   (*state)[CompassWalker::siHipAngle] = obs[CompassWalker::siHipAngle] + 2 * obs[CompassWalker::siStanceLegAngle];
@@ -201,6 +223,73 @@ bool CompassWalkerWalkTask::invert(const Vector &obs, Vector *state) const
   (*state)[CompassWalker::siStanceFootX] = 0;
   (*state)[CompassWalker::siLastHipX] = 0;
   (*state)[CompassWalker::siTime] = 0;
+  (*state)[CompassWalker::siPrevTime] = 0;
+  (*state)[CompassWalker::siLastStanceLegAngle] = (*state)[CompassWalker::siStanceLegAngle];
+  (*state)[CompassWalker::siLastHipAngle] = (*state)[CompassWalker::siHipAngle];
+  (*state)[CompassWalker::siLastStanceLegAngleRate] = (*state)[CompassWalker::siStanceLegAngleRate];
+  (*state)[CompassWalker::siLastHipAngleRate] = (*state)[CompassWalker::siHipAngleRate];
 
   return true;
 }
+
+// *** CompassWalkerVrefTask ***
+void CompassWalkerVrefTask::evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const
+{
+
+  if (state.size() != CompassWalker::ssStateSize || action.size() != 1 || next.size() != CompassWalker::ssStateSize)
+    throw Exception("task/compass_walker/walk requires model/compass_walker");
+
+  *reward = 0;
+
+  // Calculate deviation from reference velocity
+  if (next[CompassWalker::siStanceLegChanged])
+  {
+    double velocity = sin(next[CompassWalker::siStanceLegAngle]) / (next[CompassWalker::siTime]-next[CompassWalker::siPrevTime]);
+    *reward = exp( -(pow(velocity - vref_, 2))/vref_2var_);
+  }
+
+  if (fabs(next[CompassWalker::siStanceLegAngle]) > M_PI/8 || fabs(next[CompassWalker::siHipAngle] - 2 * next[CompassWalker::siStanceLegAngle]) > M_PI/4)
+    *reward = -10;
+}
+
+void CompassWalkerVrefTask::request(ConfigurationRequest *config)
+{
+  Task::request(config);
+  CompassWalkerWalkTask::request(config);
+  config->push_back(CRP("reference_velocity", "Reference velocity", vref_, CRP::Configuration, 0., DBL_MAX));
+}
+
+void CompassWalkerVrefTask::configure(Configuration &config)
+{
+  CompassWalkerWalkTask::configure(config);
+  vref_ = config["reference_velocity"];
+  vref_2var_ = pow(0.1*vref_, 2)/(std::log(2.0)); // 2.0 times decay of exp() at +-0.1 deviation from reference velocity
+}
+
+
+// *** CompassWalkerVrefTask ***
+void CompassWalkerLcTask::evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const
+{
+
+  if (state.size() != CompassWalker::ssStateSize || action.size() != 1 || next.size() != CompassWalker::ssStateSize)
+    throw Exception("task/compass_walker/walk requires model/compass_walker");
+
+  *reward = 0;
+
+  // Calculate deviation from reference velocity
+  if (next[CompassWalker::siStanceLegChanged])
+  {
+    double velocity = sin(next[CompassWalker::siStanceLegAngle]) / (next[CompassWalker::siTime]-next[CompassWalker::siPrevTime]);
+    double s1 = next[CompassWalker::siStanceLegAngle]-next[CompassWalker::siLastStanceLegAngle];
+    double s2 = next[CompassWalker::siHipAngle]-next[CompassWalker::siLastHipAngle];
+    double s3 = next[CompassWalker::siStanceLegAngleRate]-next[CompassWalker::siLastStanceLegAngleRate];
+    double s4 = next[CompassWalker::siHipAngleRate]-next[CompassWalker::siLastHipAngleRate];
+
+    double a = 0.01, b = 1;
+    *reward = -a*pow(velocity - vref_, 2) - b*(pow(s1,2) + pow(s2,2) + pow(s3,2) + pow(s4,2));
+  }
+
+  if (fabs(next[CompassWalker::siStanceLegAngle]) > M_PI/8 || fabs(next[CompassWalker::siHipAngle] - 2 * next[CompassWalker::siStanceLegAngle]) > M_PI/4)
+    *reward = -1000;
+}
+

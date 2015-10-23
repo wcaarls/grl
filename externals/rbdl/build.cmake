@@ -8,8 +8,9 @@ if (NOT LUA51_FOUND)
 endif()
 
 find_package(PkgConfig)
+
 pkg_check_modules(RBDL rbdl>=2.4.0)
- 
+
 if (RBDL_FOUND)
   find_library(LUA_ADDON_LIB NAMES rbdl_luamodel HINTS ${RBDL_LIBRARY_DIRS})
   find_path(LUA_ADDON_INC rbdl/addons/luamodel/luamodel.h ${RBDL_INCLUDE_DIRS})
@@ -19,8 +20,6 @@ if (RBDL_FOUND)
     return()
   endif()
 endif()
-
-message("-- Building included RBDL library")
 
 FIND_PACKAGE (Eigen3 3.0.0)
 IF (EIGEN3_FOUND)
@@ -59,3 +58,4 @@ execute_process(
 )
 
 add_subdirectory(${CMAKE_BINARY_DIR}/externals/rbdl ${CMAKE_BINARY_DIR}/externals/rbdl/build)
+

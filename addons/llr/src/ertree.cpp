@@ -289,6 +289,9 @@ void ERTreeProjector::push(Sample *sample)
   store_->push_back(sample);
 }
 
+/**
+ * @brief Actual build of trees happen here
+ */
 void ERTreeProjector::reindex()
 {
   // Create new pruned store
@@ -328,6 +331,11 @@ ERTreeProjector *ERTreeProjector::clone() const
   return NULL;
 }
 
+/**
+ * @brief Find idexies of neighbours of the query
+ * @param in - query point
+ * @return If there are constructed trees, then the function returnes idexies of neighbours of the query point
+ */
 ProjectionPtr ERTreeProjector::project(const Vector &in) const
 {
   ReadGuard guard(rwlock_);

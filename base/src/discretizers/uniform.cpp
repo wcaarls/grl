@@ -61,7 +61,7 @@ void UniformDiscretizer::configure(Configuration &config)
   if (min_.size() != max_.size() || min_.size() != steps_.size())
     throw bad_param("discretizer/uniform:{min,max,steps}");
   
-  Vector range, delta;
+  Vector range, delta;  
 
   range = max_-min_;
   delta = range/(steps_-1);

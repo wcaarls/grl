@@ -64,15 +64,21 @@ QPolicy *QPolicy::clone() const
   return qp;
 }
 
+/**
+ * @brief QPolicy::values calculates Q(s,a) values for provided state 'in' and for all actions 'a'
+ * @param in: state
+ * @param out: each element containes an (e.g. LLR) approximation of a value function Q(s, a), whrere 'a' is an index of vector 'out'
+ */
 void QPolicy::values(const Vector &in, Vector *out) const
 {
+  // projections contains list of neighbours around state 'in' and any possible action. Number of projections is equal to number of possible actions.
   std::vector<ProjectionPtr> projections;
   projector_->project(in, variants_, &projections);
-  
+
   out->resize(variants_.size());
   Vector value;
   for (size_t ii=0; ii < variants_.size(); ++ii)
-    (*out)[ii] = representation_->read(projections[ii], &value);
+    (*out)[ii] = representation_->read(projections[ii], &value); // reading approximated values
 }
 
 void QPolicy::act(const Vector &in, Vector *out) const
@@ -84,4 +90,3 @@ void QPolicy::act(const Vector &in, Vector *out) const
   
   *out = variants_[action];
 }
-            

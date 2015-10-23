@@ -4,7 +4,23 @@ set(TARGET addon_muscod)
 FIND_PACKAGE(MUSCOD)
 
 if (MUSCOD_FOUND)
-  message("-- Building MUSCOD-II addon")
+
+	pkg_check_modules(RBDL rbdl>=2.4.0)
+	if (NOT RBDL_FOUND)
+		message(SEND_ERROR "Trying to building MUSCOD-II addon without RBDL")
+	endif()
+
+	pkg_check_modules(RBDL_LUAMODEL rbdl_luamodel>=2.4.0)
+	if (NOT RBDL_LUAMODEL_FOUND)
+		message(SEND_ERROR "RBDL Lua Model library is not found. Perhaps, you have to create rbdl_luamodel.pc manually.")
+	endif()
+
+	FIND_PACKAGE ( PGPLOT REQUIRED )
+	if (NOT PGPLOT_FOUND)
+		message(WARRING "PG Plot is not found.")
+	endif()
+
+	add_definitions(-DMUSCOD_CONFIG_DIR="${SRC}/../cfg")
 
   # Find preferred Muscod build type
   if (${CMAKE_BUILD_TYPE} MATCHES "Debug")
@@ -44,6 +60,7 @@ if (MUSCOD_FOUND)
   # Build library
   add_library(${TARGET} SHARED
               ${SRC}/nmpc.cpp
+              ${SRC}/nmpc_th.cpp
              )
 
   # Add dependencies
@@ -51,4 +68,28 @@ if (MUSCOD_FOUND)
   grl_link_libraries(${TARGET} base)
   install(TARGETS ${TARGET} DESTINATION ${GRL_LIB_DESTINATION})
   install(DIRECTORY ${SRC}/../include/grl DESTINATION ${GRL_INCLUDE_DESTINATION} FILES_MATCHING PATTERN "*.h")
+
+	################################################################################
+	# MUSCOD problems
+	set(TARGETS nmpc_cartpole nmpc_simple)
+
+	FOREACH (TARGET ${TARGETS})
+		ADD_LIBRARY ( ${TARGET} SHARED 
+		              ${SRC}/${TARGET}.cpp
+		            )
+
+		TARGET_LINK_LIBRARIES ( ${TARGET}
+		                        muscod_base
+		                        ${RBDL_LIBRARIES}
+		                        ${RBDL_LUAMODEL_LIBRARIES}
+		                        ${PGPLOT_CPGPLOT_LIBRARY}
+		                        ${PGPLOT_PGPLOT_LIBRARY}
+		                      )
+
+		grl_link_libraries(${TARGET} base)
+		install(TARGETS ${TARGET} DESTINATION ${GRL_LIB_DESTINATION})
+		install(DIRECTORY ${SRC}/../include/grl DESTINATION ${GRL_INCLUDE_DESTINATION} FILES_MATCHING PATTERN "*.h")
+	ENDFOREACH(TARGET)
+else()
+	message(WARNING "-- MUSCOD-II not found")
 endif()

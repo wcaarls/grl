@@ -28,6 +28,7 @@
 #ifndef GRL_TRACE_H_
 #define GRL_TRACE_H_
 
+#include <deque>
 #include <grl/configurable.h>
 #include <grl/projection.h>
 
