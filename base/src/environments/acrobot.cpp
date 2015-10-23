@@ -31,6 +31,7 @@ using namespace grl;
 
 REGISTER_CONFIGURABLE(AcrobotDynamics)
 REGISTER_CONFIGURABLE(AcrobotBalancingTask)
+REGISTER_CONFIGURABLE(AcrobotRegulatorTask)
 
 void AcrobotDynamics::request(ConfigurationRequest *config)
 {
@@ -153,4 +154,59 @@ bool AcrobotBalancingTask::failed(const Vector &state) const
 {
   return fabs(state[AcrobotDynamics::siAngle1]-M_PI) > 12*M_PI/180 ||
          fabs(state[AcrobotDynamics::siAngle2]) > 12*M_PI/180;
+}
+
+// Regulator
+
+void AcrobotRegulatorTask::request(ConfigurationRequest *config)
+{
+  RegulatorTask::request(config);
+}
+
+void AcrobotRegulatorTask::configure(Configuration &config)
+{
+  RegulatorTask::configure(config);
+  
+  if (q_.size() != 4)
+    throw bad_param("task/acrobot/regulator:q");
+  if (r_.size() != 1)
+    throw bad_param("task/acrobot/regulator:r");
+
+  config.set("observation_min", VectorConstructor(0,      -M_PI, -4*M_PI, -9*M_PI));
+  config.set("observation_max", VectorConstructor(2*M_PI,  M_PI,  4*M_PI,  9*M_PI));
+  config.set("action_min", VectorConstructor(-1));
+  config.set("action_max", VectorConstructor(1));
+}
+
+void AcrobotRegulatorTask::reconfigure(const Configuration &config)
+{
+  RegulatorTask::reconfigure(config);
+}
+
+AcrobotRegulatorTask *AcrobotRegulatorTask::clone() const
+{
+  return new AcrobotRegulatorTask(*this);
+}
+
+void AcrobotRegulatorTask::observe(const Vector &state, Vector *obs, int *terminal) const
+{
+  if (state.size() != 5)
+    throw Exception("task/acrobot/regulator requires dynamics/acrobot");
+    
+  obs->resize(4);
+  for (size_t ii=0; ii < 4; ++ii)
+    (*obs)[ii] = state[ii];
+
+  *terminal = state[AcrobotDynamics::siTime] > 20;
+}
+
+bool AcrobotRegulatorTask::invert(const Vector &obs, Vector *state) const
+{
+  *state = VectorConstructor(obs[AcrobotDynamics::siAngle1],
+                             obs[AcrobotDynamics::siAngle2],
+                             obs[AcrobotDynamics::siAngleRate1],
+                             obs[AcrobotDynamics::siAngleRate2],
+                             0.);
+
+  return true;
 }

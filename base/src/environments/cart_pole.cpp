@@ -32,6 +32,7 @@ using namespace grl;
 REGISTER_CONFIGURABLE(CartPoleDynamics)
 REGISTER_CONFIGURABLE(CartPoleSwingupTask)
 REGISTER_CONFIGURABLE(CartPoleBalancingTask)
+REGISTER_CONFIGURABLE(CartPoleRegulatorTask)
 
 void CartPoleDynamics::request(ConfigurationRequest *config)
 {
@@ -281,4 +282,60 @@ bool CartPoleBalancingTask::invert(const Vector &obs, Vector *state) const
 bool CartPoleBalancingTask::failed(const Vector &state) const
 {
   return fabs(state[0]) > 2.4 || fabs(state[1]) > 12*M_PI/180;
+}
+
+// Regulator
+
+void CartPoleRegulatorTask::request(ConfigurationRequest *config)
+{
+  RegulatorTask::request(config);
+
+  config->push_back(CRP("timeout", "Episode timeout", T_, CRP::Configuration, 0., DBL_MAX));
+}
+
+void CartPoleRegulatorTask::configure(Configuration &config)
+{
+  RegulatorTask::configure(config);
+  
+  T_ = config["timeout"];
+
+  config.set("observation_min", VectorConstructor(-2.4, -M_PI, -10.0, -5*M_PI));
+  config.set("observation_max", VectorConstructor( 2.4,  M_PI,  10.0,  5*M_PI));
+  config.set("action_min", VectorConstructor(-15.));
+  config.set("action_max", VectorConstructor( 15.));
+}
+
+void CartPoleRegulatorTask::reconfigure(const Configuration &config)
+{
+  RegulatorTask::reconfigure(config);
+}
+
+CartPoleRegulatorTask *CartPoleRegulatorTask::clone() const
+{
+  return new CartPoleRegulatorTask(*this);
+}
+
+void CartPoleRegulatorTask::observe(const Vector &state, Vector *obs, int *terminal) const
+{
+  if (state.size() != 5)
+    throw Exception("task/cart_pole/regulator requires dynamics/cart_pole");
+
+  obs->resize(4);
+  (*obs)[0] = state[0];
+  (*obs)[1] = state[1];
+  (*obs)[2] = state[2];
+  (*obs)[3] = state[3];
+
+  if (state[4] > T_)
+    *terminal = 1;
+  else
+    *terminal = 0;
+}
+
+bool CartPoleRegulatorTask::invert(const Vector &obs, Vector *state) const
+{
+  *state = obs;
+  *state = extend(*state, VectorConstructor(0.));
+  
+  return true;
 }

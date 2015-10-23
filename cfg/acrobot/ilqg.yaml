@@ -17,23 +17,22 @@ experiment:
       type: task/acrobot/regulator
       start: [3.14159, 0, 0, 0]
       goal: [3.14159, 0, 0, 0]
-      stddev: [0.005, 0.005, 0, 0]
+      stddev: [0.01, 0.01, 0, 0]
       q: [1, 1, 0, 0]
       r: [0.01]
   agent: 
     type: agent/solver
     interval: 1
     policy: 
-      type: policy/parameterized/state_feedback
-      operating_state: experiment/environment/task/goal
-      operating_action: [0]
-      gains: []
+      type: policy/sample_feedback
       output_min: experiment/environment/task/action_min
       output_max: experiment/environment/task/action_max
     solver: 
-      type: solver/lqr
-      operating_state: experiment/agent/policy/operating_state
-      operating_action: experiment/agent/policy/operating_action
+      type: solver/ilqg
+      horizon: 50
+      iterations: 100
+      stddev: experiment/environment/task/action_max
+      regularization: state
       model: 
         type: observation_model/fixed
         jacobian_step: 0.001
@@ -46,3 +45,9 @@ visualizer:
 visualization: 
   type: visualization/acrobot
   state: experiment/environment/state
+visualization2: 
+  type: visualization/trajectory
+  input_dims: [0, 1]
+  input_min: experiment/environment/task/observation_min
+  input_max: experiment/environment/task/observation_max
+  trajectory: experiment/agent/solver/trajectory

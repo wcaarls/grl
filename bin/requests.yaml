@@ -1829,6 +1829,82 @@ solver/agent:
     type: state
     description: Current observed state of planning
     mutability: provided
+solver/ilqg:
+  description: Iterative Linear Quadratic Gaussian trajectory optimizer
+  horizon:
+    type: int
+    description: Horizon
+    mutability: configuration
+    default: 100
+    optional: 1
+    min: 0
+    max: 2147483647
+  iterations:
+    type: int
+    description: Maximum number of iterations
+    mutability: configuration
+    default: 100
+    optional: 1
+    min: 0
+    max: 2147483647
+  stddev:
+    type: vector
+    description: Standard deviation of initial random action sequence
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  regularization:
+    type: string
+    description: Regularization method
+    mutability: configuration
+    default: state
+    optional: 1
+    options:
+      - none
+      - state
+      - controls
+  model:
+    type: observation_model
+    description: Observation model
+    mutability: configuration
+    default: 0
+    optional: 0
+  policy:
+    type: policy/sample_feedback
+    description: Sample feedback policy to adjust
+    mutability: configuration
+    default: 0
+    optional: 0
+  trajectory:
+    type: trajectory
+    description: Predicted trajectory
+    mutability: provided
+solver/lqr:
+  description: Linear Quadratic Regulator solver
+  operating_state:
+    type: vector
+    description: Operating state around which to linearize
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  operating_action:
+    type: vector
+    description: Operating action around which to linearize
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  model:
+    type: observation_model
+    description: Observation model
+    mutability: configuration
+    default: 0
+    optional: 0
+  policy:
+    type: policy/parameterized/state_feedback
+    description: State feedback policy to adjust
+    mutability: configuration
+    default: 0
+    optional: 0
 solver/vi:
   description: Value iteration solver
   sweeps:
@@ -1859,6 +1935,40 @@ solver/vi:
     mutability: configuration
     default: 0
     optional: 0
+task/acrobot/balancing:
+  description: Acrobot balancing task
+  observation_dims:
+    type: int.observation_dims
+    description: Number of observation dimensions
+    mutability: provided
+  observation_min:
+    type: vector.observation_min
+    description: Lower limit on observations
+    mutability: provided
+  observation_max:
+    type: vector.observation_max
+    description: Upper limit on observations
+    mutability: provided
+  action_dims:
+    type: int.action_dims
+    description: Number of action dimensions
+    mutability: provided
+  action_min:
+    type: vector.action_min
+    description: Lower limit on actions
+    mutability: provided
+  action_max:
+    type: vector.action_max
+    description: Upper limit on actions
+    mutability: provided
+  reward_min:
+    type: double.reward_min
+    description: Lower limit on immediate reward
+    mutability: provided
+  reward_max:
+    type: double.reward_max
+    description: Upper limit on immediate reward
+    mutability: provided
 task/cart_pole/balancing:
   description: Cart-pole balancing task
   observation_dims:
@@ -1893,6 +2003,78 @@ task/cart_pole/balancing:
     type: double.reward_max
     description: Upper limit on immediate reward
     mutability: provided
+  timeout:
+    type: double
+    description: Episode timeout
+    mutability: configuration
+    default: 9.99
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
+task/cart_pole/regulator:
+  description: Cart-pole regulator task
+  observation_dims:
+    type: int.observation_dims
+    description: Number of observation dimensions
+    mutability: provided
+  observation_min:
+    type: vector.observation_min
+    description: Lower limit on observations
+    mutability: provided
+  observation_max:
+    type: vector.observation_max
+    description: Upper limit on observations
+    mutability: provided
+  action_dims:
+    type: int.action_dims
+    description: Number of action dimensions
+    mutability: provided
+  action_min:
+    type: vector.action_min
+    description: Lower limit on actions
+    mutability: provided
+  action_max:
+    type: vector.action_max
+    description: Upper limit on actions
+    mutability: provided
+  reward_min:
+    type: double.reward_min
+    description: Lower limit on immediate reward
+    mutability: provided
+  reward_max:
+    type: double.reward_max
+    description: Upper limit on immediate reward
+    mutability: provided
+  start:
+    type: vector
+    description: Starting state
+    mutability: configuration
+    default: "[ 0, 0, 0, 0 ]"
+    optional: 1
+  goal:
+    type: vector
+    description: Goal state
+    mutability: configuration
+    default: "[ 0, 0, 0, 0 ]"
+    optional: 1
+  stddev:
+    type: vector
+    description: Starting state standard deviation
+    mutability: configuration
+    default: "[ 0.1, 0.1, 0, 0 ]"
+    optional: 1
+  q:
+    type: vector
+    description: Q (state cost) matrix diagonal
+    mutability: configuration
+    default: "[ 1, 1, 0, 0 ]"
+    optional: 1
+  r:
+    type: vector
+    description: R (action cost) matrix diagonal
+    mutability: configuration
+    default: "[ 0.01 ]"
+    optional: 1
   timeout:
     type: double
     description: Episode timeout
@@ -2022,6 +2204,70 @@ task/compass_walker/lc:
     description: Reference velocity
     mutability: configuration
     default: 0.1
+    optional: 1
+task/pendulum/regulator:
+  description: Pendulum regulator task
+  observation_dims:
+    type: int.observation_dims
+    description: Number of observation dimensions
+    mutability: provided
+  observation_min:
+    type: vector.observation_min
+    description: Lower limit on observations
+    mutability: provided
+  observation_max:
+    type: vector.observation_max
+    description: Upper limit on observations
+    mutability: provided
+  action_dims:
+    type: int.action_dims
+    description: Number of action dimensions
+    mutability: provided
+  action_min:
+    type: vector.action_min
+    description: Lower limit on actions
+    mutability: provided
+  action_max:
+    type: vector.action_max
+    description: Upper limit on actions
+    mutability: provided
+  reward_min:
+    type: double.reward_min
+    description: Lower limit on immediate reward
+    mutability: provided
+  reward_max:
+    type: double.reward_max
+    description: Upper limit on immediate reward
+    mutability: provided
+  start:
+    type: vector
+    description: Starting state
+    mutability: configuration
+    default: "[ 3.14159, 0 ]"
+    optional: 1
+  goal:
+    type: vector
+    description: Goal state
+    mutability: configuration
+    default: "[ 0, 0 ]"
+    optional: 1
+  stddev:
+    type: vector
+    description: Starting state standard deviation
+    mutability: configuration
+    default: "[ 0.1, 0 ]"
+    optional: 1
+  q:
+    type: vector
+    description: Q (state cost) matrix diagonal
+    mutability: configuration
+    default: "[ 1, 0 ]"
+    optional: 1
+  r:
+    type: vector
+    description: R (action cost) matrix diagonal
+    mutability: configuration
+    default: "[ 0.01 ]"
     optional: 1
     min: 0
     max: 1.797693134862316e+308
@@ -2560,6 +2806,48 @@ visualization/state:
   state:
     type: state
     description: State to visualize
+    mutability: configuration
+    default: 0
+    optional: 0
+visualization/tlm:
+  description: Two-link manipulator visualization
+  state:
+    type: state
+    description: Two-link manipulator state to visualize
+    mutability: configuration
+    default: 0
+    optional: 0
+visualization/trajectory:
+  description: Plots trajectories
+  input_dims:
+    type: vector
+    description: Input dimensions to visualize
+    mutability: online
+    default: "[  ]"
+    optional: 1
+  input_min:
+    type: vector
+    description: Lower input dimension limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  input_max:
+    type: vector
+    description: Upper input dimension limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  trajectory:
+    type: trajectory
+    description: Trajectory to visualize
+    mutability: configuration
+    default: 0
+    optional: 0
+visualization/windy:
+  description: Windy gridworld visualization
+  state:
+    type: state
+    description: Windy gridworld state to visualize
     mutability: configuration
     default: 0
     optional: 0

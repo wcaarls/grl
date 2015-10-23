@@ -77,10 +77,12 @@ void SolverAgent::start(const Vector &obs, Vector *action)
 
   time_= 0.;
   episodes_++;
-  policy_->act(time_, obs, action);
   
   if (interval_ && (episodes_%interval_)==0)
     solver_->solve();
+  solver_->solve(obs);
+
+  policy_->act(time_, obs, action);
   
   prev_obs_ = obs;
   prev_action_ = *action;
@@ -89,6 +91,7 @@ void SolverAgent::start(const Vector &obs, Vector *action)
 void SolverAgent::step(double tau, const Vector &obs, double reward, Vector *action)
 {
   time_ += tau;
+  solver_->resolve(time_, obs);
   policy_->act(time_, obs, action);
   
   if (predictor_)

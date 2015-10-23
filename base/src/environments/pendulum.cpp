@@ -31,6 +31,7 @@ using namespace grl;
 
 REGISTER_CONFIGURABLE(PendulumDynamics)
 REGISTER_CONFIGURABLE(PendulumSwingupTask)
+REGISTER_CONFIGURABLE(PendulumRegulatorTask)
 
 void PendulumDynamics::request(ConfigurationRequest *config)
 {
@@ -144,6 +145,57 @@ bool PendulumSwingupTask::invert(const Vector &obs, Vector *state) const
   *state = obs;
   (*state)[0] -= M_PI;
   *state = extend(*state, VectorConstructor(0.));
+  
+  return true;
+}
+
+// Regulator
+
+void PendulumRegulatorTask::request(ConfigurationRequest *config)
+{
+  RegulatorTask::request(config);
+}
+
+void PendulumRegulatorTask::configure(Configuration &config)
+{
+  RegulatorTask::configure(config);
+  
+  if (q_.size() != 2)
+    throw bad_param("task/pendulum/regulator:q");
+  if (r_.size() != 1)
+    throw bad_param("task/pendulum/regulator:r");
+
+  config.set("observation_min", VectorConstructor(-M_PI, -12*M_PI));
+  config.set("observation_max", VectorConstructor( M_PI,  12*M_PI));
+  config.set("action_min", VectorConstructor(-3));
+  config.set("action_max", VectorConstructor(3));
+}
+
+void PendulumRegulatorTask::reconfigure(const Configuration &config)
+{
+  RegulatorTask::reconfigure(config);
+}
+
+PendulumRegulatorTask *PendulumRegulatorTask::clone() const
+{
+  return new PendulumRegulatorTask(*this);
+}
+
+void PendulumRegulatorTask::observe(const Vector &state, Vector *obs, int *terminal) const
+{
+  if (state.size() != 3)
+    throw Exception("task/pendulum/regulator requires dynamics/pendulum");
+    
+  obs->resize(2);
+  for (size_t ii=0; ii < 2; ++ii)
+    (*obs)[ii] = state[ii];
+
+  *terminal = state[2] > 3;
+}
+
+bool PendulumRegulatorTask::invert(const Vector &obs, Vector *state) const
+{
+  *state = extend(obs, VectorConstructor(0.));
   
   return true;
 }

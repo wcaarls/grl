@@ -1,8 +1,8 @@
-/** \file vi.h
- * \brief Value iteration solver header file.
+/** \file trajectory.h
+ * \brief Simple trajectory plot header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-08-28
+ * \date      2015-10-16
  *
  * \copyright \verbatim
  * Copyright (c) 2015, Wouter Caarls
@@ -25,42 +25,44 @@
  * \endverbatim
  */
 
-#ifndef GRL_VALUE_ITERATION_SOLVER_H_
-#define GRL_VALUE_ITERATION_SOLVER_H_
+#ifndef GRL_TRAJECTORY_VISUALIZATION_H_
+#define GRL_TRAJECTORY_VISUALIZATION_H_
 
-#include <grl/solver.h>
-#include <grl/discretizer.h>
-#include <grl/predictor.h>
+#include <string.h>
+#include <pthread.h>
+
+#include <grl/trajectory.h>
+#include <grl/visualization.h>
 
 namespace grl
 {
 
-/// Solve MDPs by value iteration.
-class ValueIterationSolver : public Solver
+/// Trajectory plot.
+class TrajectoryVisualization : public Visualization
 {
   public:
-    TYPEINFO("solver/vi", "Value iteration solver");
+    TYPEINFO("visualization/trajectory", "Plots trajectories")
 
   protected:
-    Discretizer *discretizer_;
-    Predictor *predictor_;
-    
-    size_t sweeps_;
-    int parallel_;
-    
-  public:
-    ValueIterationSolver() : discretizer_(NULL), predictor_(NULL), sweeps_(1), parallel_(1) { }
+    Trajectory *trajectory_;
+    Vector dims_, min_, max_;
   
-    // From Configurable    
+  public:
+    TrajectoryVisualization() : trajectory_(NULL)
+    {
+    }
+    
+    // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
 
-    // From Solver
-    virtual ValueIterationSolver *clone() const;
-    virtual bool solve();
+    // From Visualization
+    virtual void idle(); 
+    virtual void draw(); 
+    virtual void reshape(int width, int height);
 };
 
 }
 
-#endif /* GRL_VALUE_ITERATION_SOLVER_H_ */
+#endif /* GRL_TRAJECTORY_VISUALIZATION_H_ */

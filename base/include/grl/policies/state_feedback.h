@@ -62,6 +62,40 @@ class StateFeedbackPolicy : public ParameterizedPolicy
     virtual Vector &params() { return gains_; }
 };
 
+/// State feedback policy defined over samples
+class SampleFeedbackPolicy : public Policy
+{
+  public:
+    TYPEINFO("policy/sample_feedback", "Policy based on state feedback controller defined over samples")
+    
+    struct Sample
+    {
+      Vector x, u;
+      Matrix L;
+      
+      Sample(const Vector &_x, const Vector &_u, const Matrix &_L) : x(_x), u(_u), L(_L) { }
+    };
+
+  protected:
+    std::vector<Sample> samples_;
+    Vector min_, max_;
+
+  public:
+    SampleFeedbackPolicy() { }
+  
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+
+    // From Policy
+    virtual SampleFeedbackPolicy *clone() const;
+    virtual void act(const Vector &in, Vector *out) const;
+
+    virtual void clear();
+    virtual void push(const Sample &sample);
+};
+
 }
 
 #endif /* GRL_STATE_FEEDBACK_POLICY_H_ */

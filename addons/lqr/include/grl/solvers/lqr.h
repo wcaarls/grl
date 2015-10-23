@@ -46,7 +46,7 @@ class LQRSolver : public Solver
   protected:
     ObservationModel *model_;
     StateFeedbackPolicy *policy_;
-    Vector operating_state_, operating_action_, q_, r_;
+    Vector operating_state_, operating_action_;
 
   public:
     LQRSolver() : model_(NULL), policy_(NULL) { }
@@ -58,7 +58,7 @@ class LQRSolver : public Solver
 
     // From Solver
     virtual LQRSolver *clone() const;
-    virtual void solve();
+    virtual bool solve();
 };
 
 }

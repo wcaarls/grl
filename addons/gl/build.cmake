@@ -13,6 +13,7 @@ if (OPENGL_FOUND)
               ${SRC}/value.cpp
               ${SRC}/policy.cpp
               ${SRC}/state.cpp
+              ${SRC}/trajectory.cpp
              )
 
   # Add dependencies

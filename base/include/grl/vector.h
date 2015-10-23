@@ -147,9 +147,7 @@ inline Vector VectorConstructor(double a, double b, double c, double d, double e
 }
 
 using ::pow;
-using Eigen::pow;
 using ::log;
-using Eigen::log;
 
 #else
 typedef std::vector<double> Vector;

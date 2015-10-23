@@ -37,8 +37,6 @@ void LQRSolver::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("operating_state", "Operating state around which to linearize", operating_state_));
   config->push_back(CRP("operating_action", "Operating action around which to linearize", operating_action_));
-  config->push_back(CRP("q", "Q (state cost) matrix diagonal", q_));
-  config->push_back(CRP("r", "R (action cost) matrix diagonal", r_));
 
   config->push_back(CRP("model", "observation_model", "Observation model", model_));
   config->push_back(CRP("policy", "policy/parameterized/state_feedback", "State feedback policy to adjust", policy_));
@@ -50,8 +48,6 @@ void LQRSolver::configure(Configuration &config)
   policy_ = (StateFeedbackPolicy*)config["policy"].ptr();
   operating_state_ = config["operating_state"];
   operating_action_ = config["operating_action"];
-  q_ = config["q"];
-  r_ = config["r"];
   
   if (!operating_state_.size())
     throw bad_param("solver/lqr:operating_state");
@@ -59,15 +55,9 @@ void LQRSolver::configure(Configuration &config)
   if (!operating_action_.size())
     throw bad_param("solver/lqr:operating_action");
     
-  if (q_.size() != operating_state_.size())
-    throw bad_param("solver/lqr:{operating_state,q}");
-  
-  if (r_.size() != operating_action_.size())
-    throw bad_param("solver/lqr:{operating_action,r}");
-    
-  if (policy_->size() != q_.size()*r_.size())
+  if (policy_->size() != operating_state_.size()*operating_action_.size())
   {
-    ERROR("Policy doesn't have the right size. Expected: " << q_.size()*r_.size() << ", got " << policy_->size());
+    ERROR("Policy doesn't have the right size. Expected: " << operating_state_.size()*operating_action_.size() << ", got " << policy_->size());
     throw bad_param("solver/lqr:{policy,operating_state,operating_action}");
   }
 }
@@ -81,15 +71,16 @@ LQRSolver *LQRSolver::clone() const
   return new LQRSolver(*this);
 }
 
-void LQRSolver::solve()
+bool LQRSolver::solve()
 {
-  Eigen::VectorXd q(q_.size()), r(r_.size());
-  memcpy(q.data(), q_.data(), q_.size()*sizeof(double));
-  memcpy(r.data(), r_.data(), r_.size()*sizeof(double));
-  
   Matrix J = model_->jacobian(operating_state_, operating_action_);
-  if (J.size())
+  Matrix H = model_->rewardHessian(operating_state_, operating_action_);
+  
+  if (J.size() && H.size())
   {
+    Matrix Q = -H.block(0, 0, operating_state_.size(), operating_state_.size());
+    Matrix R = -H.block(operating_state_.size(), operating_state_.size(), operating_action_.size(), operating_action_.size());
+  
     Eigen::MatrixXd A(operating_state_.size(), operating_state_.size()), B(operating_state_.size(), operating_action_.size());
     for (size_t rr=0; rr < operating_state_.size(); ++rr)
     {
@@ -104,8 +95,6 @@ void LQRSolver::solve()
 
     Eigen::MatrixXd At = A.transpose(),
                     Bt = B.transpose(),
-                    Q = q.asDiagonal(),
-                    R = r.asDiagonal(),
                     X = Q;
 
     // Iterate discrete-time algebraic Riccati equation until convergence
@@ -129,8 +118,16 @@ void LQRSolver::solve()
           policy_->params()[ii*(size_t)L.rows()+oo] = L(oo, ii);
     }
     else
+    {
       WARNING("Calculated gain matrix contains infinities");
+      return false;
+    }
   }
   else
+  {
     WARNING("Could not determine gain matrix");
+    return false;
+  }
+    
+  return true;
 }

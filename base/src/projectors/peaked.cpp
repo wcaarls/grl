@@ -48,7 +48,7 @@ void PeakedProjector::configure(Configuration &config)
   if (peaking_.size() != min_.size())
     throw bad_param("projector/peaked:peaking");
 
-  scaling_ = 1./(max_-min_);
+  scaling_ = ConstantVector(min_.size(), 1.)/(max_-min_);
   range2_ = (max_-min_)/2.;
 }
 

@@ -12,6 +12,7 @@ if (PKG_CONFIG_FOUND)
     # Build library
     add_library(${TARGET} SHARED
                 ${SRC}/lqr.cpp
+                ${SRC}/ilqg.cpp
                )
 
     # Add dependencies

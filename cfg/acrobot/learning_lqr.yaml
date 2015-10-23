@@ -14,7 +14,12 @@ experiment:
       dynamics: 
         type: dynamics/acrobot
     task: 
-      type: task/acrobot/balancing
+      type: task/acrobot/regulator
+      start: [ 3.14159, 0, 0, 0 ]
+      goal: [ 3.14159, 0, 0, 0 ]
+      stddev: [ 0.005, 0.005, 0, 0 ]
+      q: [ 1, 1, 0, 0 ]
+      r: [ 0.01 ]
   agent: 
     type: agent/solver
     interval: 1
@@ -46,20 +51,20 @@ experiment:
         projector: experiment/agent/predictor/projector
     solver: 
       type: solver/lqr
-      operating_state: [3.1415, 0, 0, 0]
+      operating_state: experiment/environment/task/goal
       operating_action: [0]
-      q: [1, 1, 0, 0]
-      r: [1]
       model: 
-        type: observation_model/approximated
+        type: observation_model/fixed_reward
+        jacobian_step: 0.001
         control_step: experiment/environment/model/control_step
         differential: 1
-        wrapping: []
+        wrapping: [  ]
         observation_min: experiment/environment/task/observation_min
         observation_max: experiment/environment/task/observation_max
         stddev_limit: 1
         projector: experiment/agent/predictor/projector
         representation: experiment/agent/predictor/representation
+        task: experiment/environment/task
       policy: 
         type: policy/parameterized/state_feedback
         operating_state: experiment/agent/solver/operating_state
@@ -78,6 +83,7 @@ visualization:
   input_min: experiment/environment/task/observation_min
   input_max: experiment/environment/task/observation_max
   points: 65536
+  savepoints: 1048576
   projection: mean
   policy: experiment/test_agent/policy
   output_dim: 0

@@ -14,14 +14,19 @@ experiment:
       dynamics: 
         type: dynamics/cart_pole
     task: 
-      type: task/cart_pole/balancing
+      type: task/cart_pole/regulator
+      start: [ 0, 0, 0, 0 ]
+      goal: [ 0, 0, 0, 0 ]
+      stddev: [ 0.1, 0.1, 0, 0 ]
+      q: [ 1, 1, 0, 0 ]
+      r: [ 0.001 ]
       timeout: 9.99
   agent: 
     type: agent/solver
     interval: 1
     policy: 
       type: policy/parameterized/state_feedback
-      operating_state: [0, 0, 0, 0]
+      operating_state: experiment/environment/task/goal
       operating_action: [0]
       gains: []
       output_min: experiment/environment/task/action_min
@@ -30,10 +35,9 @@ experiment:
       type: solver/lqr
       operating_state: experiment/agent/policy/operating_state
       operating_action: experiment/agent/policy/operating_action
-      q: [1, 1, 0, 0]
-      r: [1]
       model: 
         type: observation_model/fixed
+        jacobian_step: 0.001
         model: experiment/environment/model
         task: experiment/environment/task
       policy: experiment/agent/policy

@@ -1,8 +1,8 @@
-/** \file vi.h
- * \brief Value iteration solver header file.
+/** \file trajectory.h
+ * \brief Transferrable trajectory object.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-08-28
+ * \date      2015-10-16
  *
  * \copyright \verbatim
  * Copyright (c) 2015, Wouter Caarls
@@ -25,42 +25,52 @@
  * \endverbatim
  */
 
-#ifndef GRL_VALUE_ITERATION_SOLVER_H_
-#define GRL_VALUE_ITERATION_SOLVER_H_
+#ifndef GRL_TRAJECTORY_H_
+#define GRL_TRAJECTORY_H_
 
-#include <grl/solver.h>
-#include <grl/discretizer.h>
-#include <grl/predictor.h>
+#include <itc/itc.h>
+
+#include <grl/configurable.h>
+#include <grl/mutex.h>
 
 namespace grl
 {
 
-/// Solve MDPs by value iteration.
-class ValueIterationSolver : public Solver
+/// Encapsulates a trajectory.
+class Trajectory : public Configurable
 {
   public:
-    TYPEINFO("solver/vi", "Value iteration solver");
-
+    TYPEINFO("trajectory", "Encapsulates a trajectory");
+    
   protected:
-    Discretizer *discretizer_;
-    Predictor *predictor_;
-    
-    size_t sweeps_;
-    int parallel_;
-    
-  public:
-    ValueIterationSolver() : discretizer_(NULL), predictor_(NULL), sweeps_(1), parallel_(1) { }
-  
-    // From Configurable    
-    virtual void request(ConfigurationRequest *config);
-    virtual void configure(Configuration &config);
-    virtual void reconfigure(const Configuration &config);
+    itc::SharedVariable<Matrix> var_;
 
-    // From Solver
-    virtual ValueIterationSolver *clone() const;
-    virtual bool solve();
+  public:
+    /// Returns current value.
+    virtual Matrix get()
+    {
+      return var_.get();
+    }
+
+    /// Sets new value.    
+    virtual void set(const Matrix &trajectory)
+    {
+      var_.write(trajectory);
+    }
+
+    /// Returns true if the value has changed.
+    virtual bool test()
+    {
+      return var_.test();
+    }
+
+    /// Reads a new value, waiting until it changes if necessary.    
+    virtual Matrix read()
+    {
+      return var_.read();
+    }
 };
 
 }
 
-#endif /* GRL_VALUE_ITERATION_SOLVER_H_ */
+#endif /* GRL_TRAJECTORY_H_ */

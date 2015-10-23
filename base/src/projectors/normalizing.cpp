@@ -67,7 +67,7 @@ void NormalizingProjector::configure(Configuration &config)
   if (min_.size() != max_.size())
     throw bad_param("projector/normalizing:{input_min,input_max}");
 
-  scaling_ = 1./(max_-min_);
+  scaling_ = ConstantVector(min_.size(), 1.)/(max_-min_);
 }
 
 void NormalizingProjector::reconfigure(const Configuration &config)

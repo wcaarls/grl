@@ -41,7 +41,13 @@ class Solver : public Configurable
     virtual Solver *clone() const = 0;
     
     /// Solve MDP.
-    virtual void solve() = 0;
+    virtual bool solve() = 0;
+
+    /// Solve MDP from a certain starting point.
+    virtual bool solve(const Vector &x0) { }
+
+    /// Resolve MDP based on previous solution, but from a later starting point.
+    virtual bool resolve(double t, const Vector &xt) { }
 };
 
 }

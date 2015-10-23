@@ -58,7 +58,7 @@ class AgentSolver : public Solver
 
     // From Solver
     virtual AgentSolver *clone() const;
-    virtual void solve();
+    virtual bool solve();
 };
 
 }

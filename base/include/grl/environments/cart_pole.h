@@ -118,6 +118,36 @@ class CartPoleBalancingTask : public Task
     bool failed(const Vector &state) const;
 };
 
+/// Cart-Pole balancing task with quadratic costs.
+class CartPoleRegulatorTask : public RegulatorTask
+{
+  public:
+    TYPEINFO("task/cart_pole/regulator", "Cart-pole regulator task")
+  
+  public:
+    double T_;
+  
+  public:
+    CartPoleRegulatorTask() : T_(9.99)
+    {
+      start_ = VectorConstructor(0, 0, 0, 0);
+      goal_ = VectorConstructor(0, 0, 0, 0);
+      stddev_ = VectorConstructor(0.1, 0.1, 0, 0);
+      q_ = VectorConstructor(1, 1, 0, 0);
+      r_ = VectorConstructor(0.01);
+    }
+  
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+
+    // From Task
+    virtual CartPoleRegulatorTask *clone() const;
+    virtual void observe(const Vector &state, Vector *obs, int *terminal) const;
+    virtual bool invert(const Vector &obs, Vector *state) const;
+};
+
 }
 
 #endif /* GRL_CART_POLE_ENVIRONMENT_H_ */
