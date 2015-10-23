@@ -21,6 +21,8 @@ if (RBDL_FOUND)
   endif()
 endif()
 
+message("-- Building included RBDL library")
+
 FIND_PACKAGE (Eigen3 3.0.0)
 IF (EIGEN3_FOUND)
   INCLUDE_DIRECTORIES (${EIGEN3_INCLUDE_DIR})
