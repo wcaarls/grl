@@ -104,6 +104,8 @@ discretizer/uniform:
     optional: 1
 dynamics/cart_pole:
   description: Cart-pole dynamics from Barto et al.
+dynamics/pendulum:
+  description: Pendulum dynamics based on the DCSC MOPS
 dynamics/rbdl:
   description: RBDL rigid body dynamics
   file:
@@ -176,7 +178,7 @@ experiment/online_learning:
     mutability: configuration
     default: -1
     optional: 1
-    min: 0
+    min: -1
     max: 2147483647
   output:
     type: string
@@ -210,6 +212,23 @@ experiment/online_learning:
     type: state
     description: Learning curve
     mutability: provided
+  load_file:
+    type: string
+    description: Load policy filename
+    mutability: configuration
+    default: ""
+    optional: 1
+  save_every:
+    type: string
+    description: Save policy to 'output' at the end of event
+    mutability: configuration
+    default: never
+    optional: 1
+    options:
+      - never
+      - run
+      - test
+      - trail
 exporter/csv:
   description: Comma-separated values exporter
   file:
@@ -752,6 +771,176 @@ policy/random:
     mutability: system
     default: "[  ]"
     optional: 1
+predictor/ac/action:
+  description: Actor-critic predictor for direct action policies
+  importer:
+    type: importer
+    description: Optional importer for pre-training
+    mutability: configuration
+    default: 0
+    optional: 1
+  exporter:
+    type: exporter
+    description: Optional exporter for transition log (supports observation, action, reward, next_observation, next_action)
+    mutability: configuration
+    default: 0
+    optional: 1
+  alpha:
+    type: double
+    description: Critic learning rate
+    mutability: configuration
+    default: 0.2
+    optional: 1
+    min: 0
+    max: 1
+  beta:
+    type: double
+    description: Actor learning rate
+    mutability: configuration
+    default: 0.01
+    optional: 1
+    min: 0
+    max: 1
+  gamma:
+    type: double
+    description: Discount rate
+    mutability: configuration
+    default: 0.97
+    optional: 1
+    min: 0
+    max: 1
+  lambda:
+    type: double
+    description: Trace decay rate
+    mutability: configuration
+    default: 0.65
+    optional: 1
+    min: 0
+    max: 1
+  critic_projector:
+    type: projector.observation
+    description: Projects observations onto critic representation space
+    mutability: configuration
+    default: 0
+    optional: 0
+  critic_representation:
+    type: representation.value/state
+    description: Value function representation
+    mutability: configuration
+    default: 0
+    optional: 0
+  critic_trace:
+    type: trace
+    description: Trace of critic projections
+    mutability: configuration
+    default: 0
+    optional: 0
+  actor_projector:
+    type: projector.observation
+    description: Projects observations onto actor representation space
+    mutability: configuration
+    default: 0
+    optional: 0
+  actor_representation:
+    type: representation.action
+    description: Action representation
+    mutability: configuration
+    default: 0
+    optional: 0
+  actor_trace:
+    type: trace
+    description: Trace of actor projections
+    mutability: configuration
+    default: 0
+    optional: 0
+predictor/ac/probability:
+  description: Actor-critic predictor for action-probability policies
+  importer:
+    type: importer
+    description: Optional importer for pre-training
+    mutability: configuration
+    default: 0
+    optional: 1
+  exporter:
+    type: exporter
+    description: Optional exporter for transition log (supports observation, action, reward, next_observation, next_action)
+    mutability: configuration
+    default: 0
+    optional: 1
+  alpha:
+    type: double
+    description: Critic learning rate
+    mutability: configuration
+    default: 0.2
+    optional: 1
+    min: 0
+    max: 1
+  beta:
+    type: double
+    description: Actor learning rate
+    mutability: configuration
+    default: 0.1
+    optional: 1
+    min: 0
+    max: 1
+  gamma:
+    type: double
+    description: Discount rate
+    mutability: configuration
+    default: 0.97
+    optional: 1
+    min: 0
+    max: 1
+  lambda:
+    type: double
+    description: Trace decay rate
+    mutability: configuration
+    default: 0.65
+    optional: 1
+    min: 0
+    max: 1
+  critic_projector:
+    type: projector.observation
+    description: Projects observations onto critic representation space
+    mutability: configuration
+    default: 0
+    optional: 0
+  critic_representation:
+    type: representation.value/state
+    description: Value function representation
+    mutability: configuration
+    default: 0
+    optional: 0
+  critic_trace:
+    type: trace
+    description: Trace of critic projections
+    mutability: configuration
+    default: 0
+    optional: 0
+  actor_projector:
+    type: projector.pair
+    description: Projects observation-action pairs onto actor representation space
+    mutability: configuration
+    default: 0
+    optional: 0
+  actor_representation:
+    type: representation.value/action
+    description: Action-probability representation
+    mutability: configuration
+    default: 0
+    optional: 0
+  actor_trace:
+    type: trace
+    description: Trace of actor projections
+    mutability: configuration
+    default: 0
+    optional: 0
+  discretizer:
+    type: discretizer.action
+    description: Action discretizer
+    mutability: configuration
+    default: 0
+    optional: 0
 predictor/advantage:
   description: Advantage learning off-policy value function predictor
   importer:
@@ -1778,6 +1967,64 @@ task/cart_pole/swingup:
     optional: 1
     min: 0
     max: 1
+task/compass_walker/lc:
+  description: Compass walker limit cycle task task
+  observation_dims:
+    type: int.observation_dims
+    description: Number of observation dimensions
+    mutability: provided
+  observation_min:
+    type: vector.observation_min
+    description: Lower limit on observations
+    mutability: provided
+  observation_max:
+    type: vector.observation_max
+    description: Upper limit on observations
+    mutability: provided
+  action_dims:
+    type: int.action_dims
+    description: Number of action dimensions
+    mutability: provided
+  action_min:
+    type: vector.action_min
+    description: Lower limit on actions
+    mutability: provided
+  action_max:
+    type: vector.action_max
+    description: Upper limit on actions
+    mutability: provided
+  reward_min:
+    type: double.reward_min
+    description: Lower limit on immediate reward
+    mutability: provided
+  reward_max:
+    type: double.reward_max
+    description: Upper limit on immediate reward
+    mutability: provided
+  timeout:
+    type: double
+    description: Episode timeout
+    mutability: configuration
+    default: 100
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
+  initial_state_variation:
+    type: double
+    description: Variation of initial state
+    mutability: configuration
+    default: 0.2
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
+  reference_velocity:
+    type: double
+    description: Reference velocity
+    mutability: configuration
+    default: 0.1
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
 task/compass_walker/vref:
   description: Compass walker tracking velocity task
   observation_dims:
@@ -1932,6 +2179,56 @@ task/lua:
     mutability: configuration
     default: ""
     optional: 1
+task/pendulum/swingup:
+  description: Pendulum swing-up task
+  observation_dims:
+    type: int.observation_dims
+    description: Number of observation dimensions
+    mutability: provided
+  observation_min:
+    type: vector.observation_min
+    description: Lower limit on observations
+    mutability: provided
+  observation_max:
+    type: vector.observation_max
+    description: Upper limit on observations
+    mutability: provided
+  action_dims:
+    type: int.action_dims
+    description: Number of action dimensions
+    mutability: provided
+  action_min:
+    type: vector.action_min
+    description: Lower limit on actions
+    mutability: provided
+  action_max:
+    type: vector.action_max
+    description: Upper limit on actions
+    mutability: provided
+  reward_min:
+    type: double.reward_min
+    description: Lower limit on immediate reward
+    mutability: provided
+  reward_max:
+    type: double.reward_max
+    description: Upper limit on immediate reward
+    mutability: provided
+  timeout:
+    type: double
+    description: Episode timeout
+    mutability: configuration
+    default: 2.99
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
+  randomization:
+    type: double
+    description: Level of start state randomization
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
 trace/enumerated/accumulating:
   description: Accumulating eligibility trace using a queue of projections
 trace/enumerated/replacing:

@@ -101,8 +101,11 @@ void ActionACPredictor::update(const Transition &transition)
     target += gamma_*critic_representation_->read(critic_projector_->project(transition.obs), &v);
   double delta = target - critic_representation_->read(cp, &v);
   
+  // Add LLR sample to DB of samples
   critic_representation_->write(cp, VectorConstructor(target), alpha_);
+  // ???
   critic_representation_->update(*critic_trace_, VectorConstructor(alpha_*delta), gamma_*lambda_);
+  //
   critic_trace_->add(cp, gamma_*lambda_);
   
   actor_representation_->read(ap, &u);

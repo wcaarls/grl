@@ -18,7 +18,7 @@ add_library(${TARGET} SHARED
 #            ${SRC}/environments/acrobot.cpp
             ${SRC}/environments/observation.cpp
             ${SRC}/environments/modeled.cpp
-#            ${SRC}/environments/pendulum.cpp
+            ${SRC}/environments/pendulum.cpp
             ${SRC}/environments/cart_pole.cpp
 #            ${SRC}/environments/pinball.cpp
 #            ${SRC}/environments/windy.cpp
@@ -43,7 +43,7 @@ add_library(${TARGET} SHARED
             ${SRC}/predictors/model.cpp
             ${SRC}/predictors/sarsa.cpp
 #            ${SRC}/predictors/ggq.cpp
-#            ${SRC}/predictors/ac.cpp
+            ${SRC}/predictors/ac.cpp
 #            ${SRC}/predictors/fqi.cppЗ
             ${SRC}/predictors/qv.cpp
             ${SRC}/predictors/td.cpp
@@ -71,7 +71,6 @@ add_library(${TARGET} SHARED
             ${SRC}/visualizations/compass_walker.cpp
 #            ${SRC}/visualizations/pinball.cpp
 #            ${SRC}/visualizations/windy.cpp
-		${SRC}/log/export_csv.cpp
            )
 
 # Dependencies

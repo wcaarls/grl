@@ -1,22 +1,27 @@
 experiment: 
   type: experiment/online_learning
-  runs: 1
-  trials: 5000
+  runs: 5
+  trials: 1
   steps: 0
   rate: 20
-  test_interval: 10
+  test_interval: 0
   environment: 
     type: environment/modeled
     model: 
       type: model/dynamical
       control_step: 0.05
-      integration_steps: 5
+      integration_steps: 10
       dynamics: 
         type: dynamics/rbdl
         file: cart_pendulum_mprl.lua
     task: 
       type: task/lua
-      file: cart_pendulum_mprl_swingup_play.lua
+      file: cart_pendulum_swingup_play.lua
+    exporter: 
+      type: exporter/csv
+      file: cartpole_sarsa
+      fields: time, state, action, reward, terminal
+      style: meshup
   agent: 
     type: agent/td
     policy: 
@@ -61,6 +66,8 @@ experiment:
       representation: experiment/agent/policy/representation
       sampler: 
         type: sampler/greedy
+  load_file: cartpole_sarsa_swingup
+  save_every: never
 visualiser: 
   type: visualizer/glut
 visualisation: 
@@ -72,6 +79,7 @@ visualisation2:
   input_min: experiment/environment/task/observation_min
   input_max: experiment/environment/task/observation_max
   points: 65536
+  savepoints: 1048576
   projection: mean
   projector: experiment/agent/policy/projector
   representation: experiment/agent/policy/representation

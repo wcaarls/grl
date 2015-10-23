@@ -57,8 +57,8 @@ function configure(argstr)
           observation_min = {-2.4, 0,         -5, -10*math.pi},
           observation_max = { 2.4, 2*math.pi,  5,  10*math.pi},
           action_dims = 1,
-          action_min = {-15},
-          action_max = {15},
+          action_min = {-150},
+          action_max = {150},
           reward_min = -10000,
           reward_max = 0
           }

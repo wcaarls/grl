@@ -96,7 +96,6 @@ void LinearRepresentation::configure(Configuration &config)
 
 void LinearRepresentation::reconfigure(const Configuration &config)
 {
-  std::cout << "Ivan: reconfigure" << ((config["action"].str() == "save")?config["file"].str():"") << std::endl;
   if (config.has("action"))
   {
     if (config["action"].str() == "reset")
