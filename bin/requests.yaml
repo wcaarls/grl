@@ -240,6 +240,12 @@ dynamics/rbdl:
     mutability: configuration
     default: ""
     optional: 1
+  options:
+    type: string
+    description: Lua string to execute when loading model
+    mutability: configuration
+    default: ""
+    optional: 1
 dynamics/tlm:
   description: Two-link manipulator dynamics
 environment/leo2:

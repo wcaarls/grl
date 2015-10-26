@@ -42,7 +42,7 @@ class RBDLDynamics : public Dynamics
     TYPEINFO("dynamics/rbdl", "RBDL rigid body dynamics")
 
   public:
-    std::string file_;
+    std::string file_, options_;
     class RigidBodyDynamics::Model *model_;
     class lua_State *L_;
   

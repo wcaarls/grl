@@ -42,20 +42,43 @@ REGISTER_CONFIGURABLE(LuaTask)
 void RBDLDynamics::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("file", "RBDL Lua model file", file_, CRP::Configuration));
+  config->push_back(CRP("options", "Lua string to execute when loading model", options_, CRP::Configuration));
 }
 
 void RBDLDynamics::configure(Configuration &config)
 {
   file_ = config["file"].str();
+  options_ = config["options"].str();
   
   struct stat buffer;   
   if (stat (file_.c_str(), &buffer) != 0)
     file_ = std::string(RBDL_LUA_CONFIG_DIR) + "/" + file_;
   
+  L_ = luaL_newstate();
+  luaL_openlibs(L_);
+  
+  // Add script path to search directory
+  char buf[PATH_MAX];
+  strcpy(buf, file_.c_str());
+  std::string ls = "package.path = package.path .. ';";
+  ls = ls + dirname(buf) + "/?.lua'";
+  luaL_dostring(L_, ls.c_str()); 
+
+  if (!options_.empty())
+    luaL_dostring(L_, options_.c_str()); 
+
   model_ = new RigidBodyDynamics::Model();
 
   INFO("Loading model from " << file_);
-  if (!RigidBodyDynamics::Addons::LuaModelReadFromFile(file_.c_str(), model_))
+  
+  if (luaL_dofile(L_, file_.c_str()))
+  {
+    ERROR("Error executing model file: " << lua_tostring(L_, -1));
+    lua_pop(L_, 1);
+    throw bad_param("dynamics/rbdl:file");
+  }
+
+  if (!RigidBodyDynamics::Addons::LuaModelReadFromLuaState(L_, model_))
   {
     ERROR("Error loading model " << file_);
     throw bad_param("dynamics/rbdl:file");
@@ -67,23 +90,11 @@ void RBDLDynamics::configure(Configuration &config)
     using namespace RigidBodyDynamics::Math;
     Body &body = model_->mBodies[i];
     SpatialRigidBodyInertia body_rbi = SpatialRigidBodyInertia::createFromMassComInertiaC(body.mMass, body.mCenterOfMass, body.mInertia);
-    std::cout << "=============== Spatial inertia of body " << i << " ===============" << std::endl;
-    std::cout << body_rbi.toMatrix() << std::endl << std::endl;
+    DEBUG("=============== Spatial inertia of body " << i << " ===============");
+    DEBUG(body_rbi.toMatrix() << std::endl);
   }
   
   NOTICE("Loaded RBDL model with " << model_->dof_count << " degrees of freedom");
-  
-  L_ = luaL_newstate();
-  luaL_openlibs(L_);
-  
-  // Add script path to search directory
-  char buf[PATH_MAX];
-  strcpy(buf, file_.c_str());
-  std::string ls = "package.path = package.path .. ';";
-  ls = ls + dirname(buf) + "/?.lua'";
-  luaL_dostring(L_, ls.c_str()); 
-  
-  luaL_dofile(L_, file_.c_str());
 }
 
 void RBDLDynamics::reconfigure(const Configuration &config)
