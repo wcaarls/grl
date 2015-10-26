@@ -5,7 +5,7 @@ experiment:
   steps: 0
   rate: 200
   test_interval: 0
-  output: compass_walker_sarsa
+  output: walker_sarsa_vref_play
   environment: 
     type: environment/modeled
     model: 
@@ -65,6 +65,8 @@ experiment:
       representation: experiment/agent/policy/representation
       sampler: 
         type: sampler/greedy
+  load_file: walker_sarsa_vref
+  save_every: never
 visualizer: 
   type: visualizer/glut
 visualization: 

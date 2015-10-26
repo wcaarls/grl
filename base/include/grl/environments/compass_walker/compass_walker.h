@@ -39,8 +39,8 @@ class CompassWalker
   public:
     enum stateIndex { siStanceLegAngle, siHipAngle, siStanceLegAngleRate, siHipAngleRate,
                       siStanceLegChanged, siStanceFootX, siLastHipX, siTime, siPrevTime,
-                      siLastStanceLegAngle, siLastHipAngle, siLastStanceLegAngleRate, siLastHipAngleRate};
-    enum stateSize  { ssStateSize = siLastHipAngleRate+1};
+                      siLastStanceLegAngle, siLastStanceLegAngleRate};
+    enum stateSize  { ssStateSize = siLastStanceLegAngleRate+1};
 };
 
 // Compass (simplest) walker model.
@@ -100,7 +100,7 @@ class CompassWalkerVrefTask : public CompassWalkerWalkTask
     TYPEINFO("task/compass_walker/vref", "Compass walker tracking velocity task")
 
   protected:
-    double vref_, vref_2var_;
+    double vref_;//, vref_2var_;
 
   public:
     CompassWalkerVrefTask() : vref_(0.1) { }

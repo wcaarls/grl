@@ -61,7 +61,7 @@ experiment:
       representation: experiment/agent/policy/representation
       sampler: 
         type: sampler/greedy
-  save_every: never
+  save_every: run
 visualizer: 
   type: visualizer/glut
 visualization: 

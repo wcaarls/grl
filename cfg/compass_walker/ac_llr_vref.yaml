@@ -81,8 +81,4 @@ experiment:
       output_max: experiment/environment/task/action_max
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
-visualizer: 
-  type: visualizer/glut
-vis_model: 
-  type: visualization/compass_walker
-  state: experiment/environment/state
+  save_every: never

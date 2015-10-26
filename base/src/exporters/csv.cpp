@@ -167,7 +167,7 @@ void CSVExporter::write(const std::initializer_list<Vector> &vars)
     Vector &v = var_vec[order_[ii]];
     for (size_t jj = 0; jj < v.size(); ++jj)
     {
-      stream_ << std::fixed << std::setw(7) << std::setprecision(5) << v[jj]; // count for sign and .
+      stream_ << std::fixed << std::setw(6) << std::setprecision(3) << v[jj];
       if (ii < order_.size()-1 || jj < v.size() -1)
         stream_ << ", "; 
     }

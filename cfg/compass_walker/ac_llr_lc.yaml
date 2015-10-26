@@ -1,6 +1,6 @@
 experiment: 
   type: experiment/online_learning
-  runs: 2
+  runs: 5
   trials: 5000
   steps: 0
   rate: 0
@@ -82,8 +82,3 @@ experiment:
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
   save_every: never
-visualizer: 
-  type: visualizer/glut
-vis_model: 
-  type: visualization/compass_walker
-  state: experiment/environment/state
