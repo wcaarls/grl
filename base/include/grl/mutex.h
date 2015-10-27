@@ -233,6 +233,58 @@ class WriteGuard
     }
 };
 
+template<class T>
+class Instance   
+{
+  public:
+    typedef std::function<T*(void)> Factory;
+
+  protected:
+    pthread_mutex_t mutex_;
+    pthread_key_t key_;
+    std::list<T*> instances_;
+    Factory factory_;
+
+  public:
+    Instance(Factory factory) : factory_(factory)
+    {
+      grl_assert(pthread_key_create(&key_, NULL)==0);
+      grl_assert(pthread_mutex_init(&mutex_, NULL)==0);
+    }
+       
+    ~Instance()
+    {
+      pthread_key_delete(key_);
+      pthread_mutex_destroy(&mutex_);
+    
+      for (typename std::list<T*>::iterator it=instances_.begin(); it != instances_.end(); ++it)
+        delete *it;
+        
+      instances_.clear();
+    }
+
+    T *instance()
+    {
+      T *instance = (T*) pthread_getspecific(key_);
+      if (!instance)
+      {
+        pthread_mutex_lock(&mutex_);
+        instance = factory_();
+        grl_assert(pthread_setspecific(key_, instance)==0);
+        pthread_mutex_unlock(&mutex_);
+        
+        instances_.push_back(instance);
+      }
+       
+      return instance;
+    }
+
+    T *operator->()
+    {
+      return instance();
+    }
+};   
+
 }
 
 #endif /* GRL_MUTEX_H_ */

@@ -51,10 +51,6 @@ void ModeledEnvironment::configure(Configuration &config)
   {
     // Register headers
     exporter_->init({"time", "state", "observation", "action", "reward", "terminal"});
-  
-    // Truncate existing files
-    exporter_->open("-test", true);
-    exporter_->open("-learn", true);
   }
   
   state_obj_ = new State();

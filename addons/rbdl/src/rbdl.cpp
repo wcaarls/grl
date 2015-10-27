@@ -42,48 +42,17 @@ REGISTER_CONFIGURABLE(LuaTask)
 void RBDLDynamics::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("file", "RBDL Lua model file", file_, CRP::Configuration));
+  config->push_back(CRP("options", "Lua string to execute when loading model", options_, CRP::Configuration));
 }
 
 void RBDLDynamics::configure(Configuration &config)
 {
   file_ = config["file"].str();
+  options_ = config["options"].str();
   
   struct stat buffer;   
   if (stat (file_.c_str(), &buffer) != 0)
     file_ = std::string(RBDL_LUA_CONFIG_DIR) + "/" + file_;
-  
-  model_ = new RigidBodyDynamics::Model();
-
-  INFO("Loading model from " << file_);
-  if (!RigidBodyDynamics::Addons::LuaModelReadFromFile(file_.c_str(), model_))
-  {
-    ERROR("Error loading model " << file_);
-    throw bad_param("dynamics/rbdl:file");
-  }
-
-  for (unsigned int i = 1; i < model_->mBodies.size(); i++)
-  {
-    using namespace RigidBodyDynamics;
-    using namespace RigidBodyDynamics::Math;
-    Body &body = model_->mBodies[i];
-    SpatialRigidBodyInertia body_rbi = SpatialRigidBodyInertia::createFromMassComInertiaC(body.mMass, body.mCenterOfMass, body.mInertia);
-    std::cout << "=============== Spatial inertia of body " << i << " ===============" << std::endl;
-    std::cout << body_rbi.toMatrix() << std::endl << std::endl;
-  }
-  
-  NOTICE("Loaded RBDL model with " << model_->dof_count << " degrees of freedom");
-  
-  L_ = luaL_newstate();
-  luaL_openlibs(L_);
-  
-  // Add script path to search directory
-  char buf[PATH_MAX];
-  strcpy(buf, file_.c_str());
-  std::string ls = "package.path = package.path .. ';";
-  ls = ls + dirname(buf) + "/?.lua'";
-  luaL_dostring(L_, ls.c_str()); 
-  
-  luaL_dofile(L_, file_.c_str());
 }
 
 void RBDLDynamics::reconfigure(const Configuration &config)
@@ -97,25 +66,27 @@ RBDLDynamics *RBDLDynamics::clone() const
 
 void RBDLDynamics::eom(const Vector &state, const Vector &action, Vector *xd) const
 {
-  size_t dim = model_->dof_count;
+  RBDLState *rbdl = rbdl_state_.instance();
+
+  size_t dim = rbdl->model->dof_count;
   
   if (state.size() != 2*dim+1)
     throw Exception("dynamics/rbdl is incompatible with specified task");
     
   // Convert action to forces and torques
   Vector controls;
-  lua_getglobal(L_, "control");  /* function to be called */
-  if (!lua_isnil(L_, -1))
+  lua_getglobal(rbdl->L, "control");  /* function to be called */
+  if (!lua_isnil(rbdl->L, -1))
   {
-    lua_pushvector(L_, state);
-    lua_pushvector(L_, action);
-    if (lua_pcall(L_, 2, 1, 0) != 0)
+    lua_pushvector(rbdl->L, state);
+    lua_pushvector(rbdl->L, action);
+    if (lua_pcall(rbdl->L, 2, 1, 0) != 0)
     {
-      ERROR("Cannot find controls: " << lua_tostring(L_, -1));
-      lua_pop(L_, 1);
+      ERROR("Cannot find controls: " << lua_tostring(rbdl->L, -1));
+      lua_pop(rbdl->L, 1);
       throw bad_param("dynamics/rbdl:file");
     }
-    controls = lua_tovector(L_, -1);
+    controls = lua_tovector(rbdl->L, -1);
     if (controls.size() != dim)
       throw Exception("Controller is incompatible with dynamics");
   }
@@ -126,7 +97,7 @@ void RBDLDynamics::eom(const Vector &state, const Vector &action, Vector *xd) co
       throw Exception("Policy is incompatible with dynamics");
   }
 
-  lua_pop(L_, 1);
+  lua_pop(rbdl->L, 1);
 
   RigidBodyDynamics::Math::VectorNd u = RigidBodyDynamics::Math::VectorNd::Zero(dim);
   RigidBodyDynamics::Math::VectorNd q = RigidBodyDynamics::Math::VectorNd::Zero(dim);
@@ -140,7 +111,7 @@ void RBDLDynamics::eom(const Vector &state, const Vector &action, Vector *xd) co
     qd[ii] = state[ii + dim];
   }
 
-  RigidBodyDynamics::ForwardDynamics(*model_, q, qd, u, qdd);
+  RigidBodyDynamics::ForwardDynamics(*rbdl->model, q, qd, u, qdd);
 
   xd->resize(2*dim+1);
 
@@ -152,12 +123,61 @@ void RBDLDynamics::eom(const Vector &state, const Vector &action, Vector *xd) co
   (*xd)[2*dim] = 1.;
 }
 
+RBDLState *RBDLDynamics::createRBDLState() const
+{
+  RBDLState *rbdl = new RBDLState;
+
+  rbdl->L = luaL_newstate();
+  luaL_openlibs(rbdl->L);
+  
+  // Add script path to search directory
+  char buf[PATH_MAX];
+  strcpy(buf, file_.c_str());
+  std::string ls = "package.path = package.path .. ';";
+  ls = ls + dirname(buf) + "/?.lua'";
+  luaL_dostring(rbdl->L, ls.c_str()); 
+
+  if (!options_.empty())
+    luaL_dostring(rbdl->L, options_.c_str()); 
+
+  INFO("Loading model from " << file_);
+  
+  if (luaL_dofile(rbdl->L, file_.c_str()))
+  {
+    ERROR("Error executing model file: " << lua_tostring(rbdl->L, -1));
+    lua_pop(rbdl->L, 1);
+    throw bad_param("dynamics/rbdl:file");
+  }
+
+  rbdl->model = new RigidBodyDynamics::Model();
+
+  if (!RigidBodyDynamics::Addons::LuaModelReadFromLuaState(rbdl->L, rbdl->model))
+  {
+    ERROR("Error loading model " << file_);
+    throw bad_param("dynamics/rbdl:file");
+  }
+
+  for (unsigned int i = 1; i < rbdl->model->mBodies.size(); i++)
+  {
+    using namespace RigidBodyDynamics;
+    using namespace RigidBodyDynamics::Math;
+    Body &body = rbdl->model->mBodies[i];
+    SpatialRigidBodyInertia body_rbi = SpatialRigidBodyInertia::createFromMassComInertiaC(body.mMass, body.mCenterOfMass, body.mInertia);
+    DEBUG("=============== Spatial inertia of body " << i << " ===============");
+    DEBUG(body_rbi.toMatrix() << std::endl);
+  }
+  
+  NOTICE("Loaded RBDL model with " << rbdl->model->dof_count << " degrees of freedom");
+  
+  return rbdl;
+}
+
 void LuaTask::request(ConfigurationRequest *config)
 {
   Task::request(config);
   
   config->push_back(CRP("file", "Lua task file", file_, CRP::Configuration));
-  config->push_back(CRP("options", "Option string to pass to task configuration function", options_, CRP::Configuration));
+  config->push_back(CRP("options", "Lua string to execute when loading task", options_, CRP::Configuration));
 }
 
 void LuaTask::configure(Configuration &config)
@@ -168,40 +188,32 @@ void LuaTask::configure(Configuration &config)
   struct stat buffer;   
   if (stat (file_.c_str(), &buffer) != 0)
     file_ = std::string(RBDL_LUA_CONFIG_DIR) + "/" + file_;
+
+  LuaState *lua = lua_state_.instance();
   
-  L_ = luaL_newstate();
-  luaL_openlibs(L_);
-  
-  if (luaL_dofile(L_, file_.c_str()))
+  lua_getglobal(lua->L, "configure");
+  if (lua_pcall(lua->L, 0, 1, 0) != 0)
   {
-    ERROR("Error loading task " << file_ << ": " << lua_tostring(L_, -1));
+    ERROR("Cannot configure task: " << lua_tostring(lua->L, -1));
     throw bad_param("task/lua:file");
   }
   
-  lua_getglobal(L_, "configure");
-  lua_pushstring(L_, options_.c_str());
-  if (lua_pcall(L_, 1, 1, 0) != 0)
-  {
-    ERROR("Cannot configure task: " << lua_tostring(L_, -1));
-    throw bad_param("task/lua:file");
-  }
-  
-  if (!lua_istable(L_, -1))
+  if (!lua_istable(lua->L, -1))
   {
     ERROR("Task configuration should return a table");
     throw bad_param("task/lua:file");
   }
   
-  config.set("observation_dims", lua_gettablenumber(L_, "observation_dims"));
-  config.set("observation_min", lua_gettablevector(L_, "observation_min"));
-  config.set("observation_max", lua_gettablevector(L_, "observation_max"));
-  config.set("action_dims", lua_gettablenumber(L_, "action_dims"));
-  config.set("action_min", lua_gettablevector(L_, "action_min"));
-  config.set("action_max", lua_gettablevector(L_, "action_max"));
-  config.set("reward_min", lua_gettablenumber(L_, "reward_min"));
-  config.set("reward_max", lua_gettablenumber(L_, "reward_max"));
-  
-  lua_pop(L_, 1);
+  config.set("observation_dims", lua_gettablenumber(lua->L, "observation_dims"));
+  config.set("observation_min", lua_gettablevector(lua->L, "observation_min"));
+  config.set("observation_max", lua_gettablevector(lua->L, "observation_max"));
+  config.set("action_dims", lua_gettablenumber(lua->L, "action_dims"));
+  config.set("action_min", lua_gettablevector(lua->L, "action_min"));
+  config.set("action_max", lua_gettablevector(lua->L, "action_max"));
+  config.set("reward_min", lua_gettablenumber(lua->L, "reward_min"));
+  config.set("reward_max", lua_gettablenumber(lua->L, "reward_max"));
+
+  lua_pop(lua->L, 1);
 }
 
 void LuaTask::reconfigure(const Configuration &config)
@@ -215,72 +227,106 @@ LuaTask *LuaTask::clone() const
  
 void LuaTask::start(int test, Vector *state) const
 {
-  lua_getglobal(L_, "start");
-  lua_pushnumber(L_, test);
-  if (lua_pcall(L_, 1, 1, 0) != 0)
+  LuaState *lua = lua_state_.instance();
+
+  lua_getglobal(lua->L, "start");
+  lua_pushnumber(lua->L, test);
+  if (lua_pcall(lua->L, 1, 1, 0) != 0)
   {
-    ERROR("Cannot find start state: " << lua_tostring(L_, -1));
-    lua_pop(L_, 1);
+    ERROR("Cannot find start state: " << lua_tostring(lua->L, -1));
+    lua_pop(lua->L, 1);
     throw bad_param("task/lua:file");
   }
   
-  *state = lua_tovector(L_, -1);
-  lua_pop(L_, 1);
+  *state = lua_tovector(lua->L, -1);
+  lua_pop(lua->L, 1);
 }
  
 void LuaTask::observe(const Vector &state, Vector *obs, int *terminal) const
 {
-  lua_getglobal(L_, "observe");  /* function to be called */
-  lua_pushvector(L_, state);
-  if (lua_pcall(L_, 1, 2, 0) != 0)
+  LuaState *lua = lua_state_.instance();
+
+  lua_getglobal(lua->L, "observe");  /* function to be called */
+  lua_pushvector(lua->L, state);
+  if (lua_pcall(lua->L, 1, 2, 0) != 0)
   {
-    ERROR("Cannot observe state: " << lua_tostring(L_, -1));
-    lua_pop(L_, 2);
+    ERROR("Cannot observe state: " << lua_tostring(lua->L, -1));
+    lua_pop(lua->L, 2);
     throw bad_param("task/lua:file");
   }
   
-  *obs = lua_tovector(L_, -2);
+  *obs = lua_tovector(lua->L, -2);
   
-  if (!lua_isnumber(L_, -1))
+  if (!lua_isnumber(lua->L, -1))
     WARNING("Termination condition is not a number");
   
-  *terminal = lua_tointeger(L_, -1);
-  lua_pop(L_, 2);
+  *terminal = lua_tointeger(lua->L, -1);
+  lua_pop(lua->L, 2);
 }
 
 void LuaTask::evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const
 {
-  lua_getglobal(L_, "evaluate");  /* function to be called */
-  lua_pushvector(L_, state);
-  lua_pushvector(L_, action);
-  lua_pushvector(L_, next);
-  if (lua_pcall(L_, 3, 1, 0) != 0)
+  LuaState *lua = lua_state_.instance();
+
+  lua_getglobal(lua->L, "evaluate");  /* function to be called */
+  lua_pushvector(lua->L, state);
+  lua_pushvector(lua->L, action);
+  lua_pushvector(lua->L, next);
+  if (lua_pcall(lua->L, 3, 1, 0) != 0)
   {
-    ERROR("Cannot evaluate reward: " << lua_tostring(L_, -1));
-    lua_pop(L_, 1);
+    ERROR("Cannot evaluate reward: " << lua_tostring(lua->L, -1));
+    lua_pop(lua->L, 1);
     throw bad_param("task/lua:file");
   }
   
-  if (!lua_isnumber(L_, -1))
+  if (!lua_isnumber(lua->L, -1))
     WARNING("Reward is not a number");
 
-  *reward = lua_tonumber(L_, -1);
-  lua_pop(L_, 1);
+  *reward = lua_tonumber(lua->L, -1);
+  lua_pop(lua->L, 1);
 }
  
 bool LuaTask::invert(const Vector &obs, Vector *state) const
 {
-  lua_getglobal(L_, "invert");  /* function to be called */
-  lua_pushvector(L_, obs);
-  if (lua_pcall(L_, 1, 1, 0) != 0)
+  LuaState *lua = lua_state_.instance();
+
+  lua_getglobal(lua->L, "invert");  /* function to be called */
+  lua_pushvector(lua->L, obs);
+  if (lua_pcall(lua->L, 1, 1, 0) != 0)
   {
-    WARNING("Cannot invert observation: " << lua_tostring(L_, -1));
-    lua_pop(L_, 1);
+    WARNING("Cannot invert observation: " << lua_tostring(lua->L, -1));
+    lua_pop(lua->L, 1);
     return false;
   }
   
-  *state = lua_tovector(L_, -1);
-  lua_pop(L_, 1);
+  *state = lua_tovector(lua->L, -1);
+  lua_pop(lua->L, 1);
   
   return true;
+}
+
+LuaState *LuaTask::createLuaState() const
+{
+  LuaState *lua = new LuaState;
+  
+  lua->L = luaL_newstate();
+  luaL_openlibs(lua->L);
+  
+  // Add script path to search directory
+  char buf[PATH_MAX];
+  strcpy(buf, file_.c_str());
+  std::string ls = "package.path = package.path .. ';";
+  ls = ls + dirname(buf) + "/?.lua'";
+  luaL_dostring(lua->L, ls.c_str()); 
+
+  if (!options_.empty())
+    luaL_dostring(lua->L, options_.c_str()); 
+
+  if (luaL_dofile(lua->L, file_.c_str()))
+  {
+    ERROR("Error loading task " << file_ << ": " << lua_tostring(lua->L, -1));
+    throw bad_param("task/lua:file");
+  }
+  
+  return lua;
 }

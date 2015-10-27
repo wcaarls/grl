@@ -114,6 +114,12 @@ dynamics/rbdl:
     mutability: configuration
     default: ""
     optional: 1
+  options:
+    type: string
+    description: Lua string to execute when loading model
+    mutability: configuration
+    default: ""
+    optional: 1
 environment/modeled:
   description: Environment that uses a state transition model internally
   model:
@@ -2261,7 +2267,7 @@ task/lua:
     optional: 1
   options:
     type: string
-    description: Option string to pass to task configuration function
+    description: Lua string to execute when loading task
     mutability: configuration
     default: ""
     optional: 1
@@ -2435,6 +2441,12 @@ visualization/field/policy/action:
     optional: 1
     min: 0
     max: 2147483647
+  state:
+    type: state
+    description: Optional current state to overlay
+    mutability: configuration
+    default: 0
+    optional: 1
   projection:
     type: string
     description: Method of projecting values onto 2d space
@@ -2495,6 +2507,12 @@ visualization/field/policy/value:
     optional: 1
     min: 0
     max: 2147483647
+  state:
+    type: state
+    description: Optional current state to overlay
+    mutability: configuration
+    default: 0
+    optional: 1
   projection:
     type: string
     description: Method of projecting values onto 2d space
@@ -2559,6 +2577,12 @@ visualization/field/value:
     optional: 1
     min: 0
     max: 2147483647
+  state:
+    type: state
+    description: Optional current state to overlay
+    mutability: configuration
+    default: 0
+    optional: 1
   projection:
     type: string
     description: Method of projecting values onto 2d space

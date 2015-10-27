@@ -5,9 +5,11 @@
 --    Wouter Caarls <wouter@caarls.org>
 --]]
 
-function configure(timeout)
-  T = tonumber(timeout)
-  
+if not T then
+  T = 3
+end
+
+function configure()
   return {observation_dims = 2,
           observation_min = {0, -12*math.pi},
           observation_max = {2*math.pi, 12*math.pi},

@@ -28,12 +28,25 @@
 #ifndef GRL_RBDL_ENVIRONMENT_H_
 #define GRL_RBDL_ENVIRONMENT_H_
 
+#include <functional>
 #include <grl/environment.h>
 
 namespace RigidBodyDynamics {}
 
 namespace grl
 {
+
+struct RBDLState
+{
+  class RigidBodyDynamics::Model *model;
+  class lua_State *L;
+  
+  ~RBDLState()
+  {
+    delete model;
+    lua_close(L);
+  }
+};
 
 /// RBDL dynamics
 class RBDLDynamics : public Dynamics
@@ -42,11 +55,12 @@ class RBDLDynamics : public Dynamics
     TYPEINFO("dynamics/rbdl", "RBDL rigid body dynamics")
 
   public:
-    std::string file_;
-    class RigidBodyDynamics::Model *model_;
-    class lua_State *L_;
+    std::string file_, options_;
+    mutable Instance<RBDLState> rbdl_state_;
   
   public:
+    RBDLDynamics() : rbdl_state_(std::bind(&RBDLDynamics::createRBDLState, this)) { }
+  
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
@@ -55,6 +69,19 @@ class RBDLDynamics : public Dynamics
     // From Dynamics
     virtual RBDLDynamics *clone() const;
     virtual void eom(const Vector &state, const Vector &action, Vector *xd) const;
+    
+  protected:
+    RBDLState *createRBDLState() const;
+};
+
+struct LuaState
+{
+  class lua_State *L;
+  
+  ~LuaState()
+  {
+    lua_close(L);
+  }
 };
 
 class LuaTask : public Task
@@ -64,9 +91,11 @@ class LuaTask : public Task
     
   public:
     std::string file_, options_;
-    class lua_State *L_;
-    
+    mutable Instance<LuaState> lua_state_;
+  
   public:
+    LuaTask() : lua_state_(std::bind(&LuaTask::createLuaState, this)) { }
+
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
@@ -78,6 +107,9 @@ class LuaTask : public Task
     virtual void observe(const Vector &state, Vector *obs, int *terminal) const;
     virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const;
     virtual bool invert(const Vector &obs, Vector *state) const;
+    
+  protected:
+    LuaState *createLuaState() const;
 };
 
 }

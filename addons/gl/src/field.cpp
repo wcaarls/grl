@@ -44,6 +44,7 @@ void FieldVisualization::request(ConfigurationRequest *config)
   config->push_back(CRP("input_max", "Upper input dimension limit", state_max_, CRP::System));
   config->push_back(CRP("points", "Number of points to evaluate", points_));
   config->push_back(CRP("savepoints", "Number of points to evaluate when saving to file ('s')", savepoints_));
+  config->push_back(CRP("state", "state", "Optional current state to overlay", state_, true));
   
   std::vector<std::string> options;
   options.push_back("mean");
@@ -56,6 +57,8 @@ void FieldVisualization::configure(Configuration &config)
 {
   if (!Visualizer::instance())
     throw Exception("visualization/field requires a configured visualizer to run");
+    
+  state_ = (State*)config["state"].ptr();
 
   projection_str_ = config["projection"].str();
   if (projection_str_ == "mean")     projection_ = vpMean;
@@ -259,7 +262,7 @@ void FieldVisualization::run()
 
 void FieldVisualization::idle()
 {
-  if (updated_)
+  if (updated_ || state_ && state_->test())
     refresh();
 }
 
@@ -297,20 +300,24 @@ void FieldVisualization::draw()
   glEnd();
   
   glDisable(GL_TEXTURE_2D);
-/*  
-  char buf[255];
-  sprintf(buf, "%8.2f - %8.2f", value_min_, value_max_);
   
-  glColor3f(1.0, 1.0, 1.0);
-  glRasterPos2f(-1.0, -1.0);
-  glutBitmapString(GLUT_BITMAP_9_BY_15, (unsigned char*)buf);
-  
-  glBegin(GL_LINES);
-  glVertex2d(state_[0]-0.05, state_[1]);
-  glVertex2d(state_[0]+0.05, state_[1]);
-  glVertex2d(state_[0], state_[1]-0.05);
-  glVertex2d(state_[0], state_[1]+0.05);
-  glEnd();
-*/ 
+  if (state_)
+  {
+    Vector state = state_->get();
+    
+    if (state.size() >= 2)
+    {
+      double x = 2 * (state[dims_[0]] - state_min_[dims_[0]]) / (state_max_[dims_[0]] - state_min_[dims_[0]]) - 1;
+      double y = 2 * (state[dims_[1]] - state_min_[dims_[1]]) / (state_max_[dims_[1]] - state_min_[dims_[1]]) - 1;
+
+      glBegin(GL_LINES);
+      glVertex2d(x-0.05, y);
+      glVertex2d(x+0.05, y);
+      glVertex2d(x, y-0.05);
+      glVertex2d(x, y+0.05);
+      glEnd();
+    }
+  }
+
   swap();
 }

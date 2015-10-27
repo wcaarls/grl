@@ -29,7 +29,7 @@
 #define GRL_NMPC_POLICY_H_
 
 #include <grl/policy.h>
-#include <grl/policies/common_code.h> // MUSCOD-II thread-safe data structure
+#include <grl/policies/muscod_data.h> // MUSCOD-II thread-safe data structure
 
 class MUSCOD;
 
