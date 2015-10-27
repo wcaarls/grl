@@ -238,7 +238,6 @@ void CompassWalkerVrefTask::evaluate(const Vector &state, const Vector &action, 
   if (next[CompassWalker::siStanceLegChanged])
   {
     double velocity = 2.0*sin(next[CompassWalker::siStanceLegAngle]) / (state[CompassWalker::siTime]-state[CompassWalker::siPrevTime]);
-    //*reward = exp( -(pow(velocity - vref_, 2))/vref_2var_);
     // Always give a positive reward each time walker makes a step
     *reward = fmax(1, 10 - 100.0*pow(velocity - vref_, 2));
   }
@@ -258,7 +257,6 @@ void CompassWalkerVrefTask::configure(Configuration &config)
 {
   CompassWalkerWalkTask::configure(config);
   vref_ = config["reference_velocity"];
-//  vref_2var_ = pow(0.1*vref_, 2)/(std::log(2.0)); // 2.0 times decay of exp() at +-0.1 deviation from reference velocity
 }
 
 

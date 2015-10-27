@@ -100,7 +100,7 @@ class CompassWalkerVrefTask : public CompassWalkerWalkTask
     TYPEINFO("task/compass_walker/vref", "Compass walker tracking velocity task")
 
   protected:
-    double vref_;//, vref_2var_;
+    double vref_;
 
   public:
     CompassWalkerVrefTask() : vref_(0.1) { }
