@@ -12,11 +12,11 @@ experiment:
       control_step: 0.03
       integration_steps: 5
       dynamics: 
-        type: dynamics/pendulum
+        type: dynamics/rbdl
+        file: pendulum.lua
     task: 
-      type: task/pendulum/swingup
-      timeout: 2.99
-      randomization: 0
+      type: task/lua
+      file: pendulum_swingup.lua
   agent: 
     type: agent/solver
     interval: 1
