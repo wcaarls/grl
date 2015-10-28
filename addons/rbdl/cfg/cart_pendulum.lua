@@ -7,9 +7,15 @@
 
 -- define some convenience functions
 
+-- Friction
+if (p_friction == nil) then
+    -- if friction is not defined use 0
+    p_friction = 0
+end
+
 function control(state, action)
     -- mprl uses different parameters, multiply controls.
-    return {action[0], 0}
+    return {action[0] - p_friction, 0}
 end
 
 function get_point_by_name (container, name)

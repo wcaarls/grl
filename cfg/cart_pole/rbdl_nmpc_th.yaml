@@ -15,6 +15,7 @@ experiment:
       dynamics: 
         type: dynamics/rbdl
         file: cart_pendulum.lua
+        options: p_friction = 10
     task: 
       type: task/lua
       file: cart_pendulum_swingup.lua
