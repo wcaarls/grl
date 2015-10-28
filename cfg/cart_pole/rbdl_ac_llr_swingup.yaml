@@ -14,10 +14,10 @@ experiment:
       integration_steps: 10
       dynamics: 
         type: dynamics/rbdl
-        file: cart_pendulum_mprl.lua
+        file: cart_pendulum.lua
     task: 
       type: task/lua
-      file: cart_pendulum_swingup.lua
+      file: cart_pendulum_swingup_rand.lua
   agent: 
     type: agent/td
     policy: 

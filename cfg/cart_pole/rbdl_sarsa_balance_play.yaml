@@ -13,7 +13,7 @@ experiment:
       integration_steps: 5
       dynamics: 
         type: dynamics/rbdl
-        file: cart_pendulum_mprl.lua
+        file: cart_pendulum.lua
     task: 
       type: task/lua
       file: cart_pendulum_balance.lua

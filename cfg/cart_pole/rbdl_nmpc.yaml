@@ -13,10 +13,10 @@ experiment:
       integration_steps: 10
       dynamics: 
         type: dynamics/rbdl
-        file: cart_pendulum_mprl.lua
+        file: cart_pendulum.lua
     task: 
       type: task/lua
-      file: cart_pendulum_rl_nmpc.lua
+      file: cart_pendulum_swingup.lua
   agent: 
     type: agent/fixed
     policy: 
@@ -26,6 +26,7 @@ experiment:
       outputs: experiment/environment/task/action_dims
       verbose: 0
   test_agent: experiment/agent
+  save_every: never
 visualizer: 
   type: visualizer/glut
 visualization: 

@@ -14,7 +14,7 @@ experiment:
       integration_steps: 10
       dynamics: 
         type: dynamics/rbdl
-        file: cart_pendulum_mprl.lua
+        file: cart_pendulum.lua
     task: 
       type: task/lua
       file: cart_pendulum_balance.lua
@@ -63,3 +63,19 @@ experiment:
       sampler: 
         type: sampler/greedy
   save_every: never
+visualiser: 
+  type: visualizer/glut
+visualisation: 
+  type: visualization/cart_pole
+  state: experiment/environment/state
+visualisation2: 
+  type: visualization/field/policy/value
+  field_dims: [0, 2]
+  input_min: experiment/environment/task/observation_min
+  input_max: experiment/environment/task/observation_max
+  points: 65536
+  savepoints: 1048576
+  projection: mean
+  projector: experiment/agent/policy/projector
+  representation: experiment/agent/policy/representation
+  policy: experiment/test_agent/policy

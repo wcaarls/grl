@@ -1,23 +1,22 @@
 experiment: 
   type: experiment/online_learning
-  runs: 5
-  trials: 600
+  runs: 1
+  trials: 1
   steps: 0
-  rate: 0
-  test_interval: 10
-  output: pendulum_sarsa_tc
+  rate: 20
+  test_interval: 0
   environment: 
     type: environment/modeled
     model: 
       type: model/dynamical
-      control_step: 0.03
-      integration_steps: 5
+      control_step: 0.05
+      integration_steps: 10
       dynamics: 
-        type: dynamics/pendulum
+        type: dynamics/rbdl
+        file: cart_pendulum.lua
     task: 
-      type: task/pendulum/swingup
-      timeout: 2.99
-      randomization: 0
+      type: task/lua
+      file: cart_pendulum_balance.lua
   agent: 
     type: agent/td
     policy: 
@@ -30,9 +29,9 @@ experiment:
       projector: 
         type: projector/tile_coding
         tilings: 16
-        memory: 8388608
-        resolution: [0.897597901, 10.771174812, 3]
-        wrapping: [6.283185307, 0, 0]
+        memory: 67108864
+        resolution: [2.5, 0.157075, 2.5, 1.57075, 15]
+        wrapping: [0, 6.283, 0, 0, 0]
       representation: 
         type: representation/parameterized/linear
         init_min: [0]
@@ -43,12 +42,14 @@ experiment:
         output_max: []
       sampler: 
         type: sampler/epsilon_greedy
-        epsilon: 0.05
+        epsilon: 0.0
     predictor: 
-      type: predictor/sarsa
-      alpha: 0.2
+      type: predictor/advantage
+      alpha: 0.0
       gamma: 0.97
       lambda: 0.65
+      kappa: 1
+      discretizer: experiment/agent/policy/discretizer
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
       trace: 
@@ -62,12 +63,16 @@ experiment:
       representation: experiment/agent/policy/representation
       sampler: 
         type: sampler/greedy
-  save_every: run
-visualizer: 
+  load_file: cartpole_qlearning_balance
+  save_every: never
+visualiser: 
   type: visualizer/glut
-visualization: 
+visualisation: 
+  type: visualization/cart_pole
+  state: experiment/environment/state
+visualisation2: 
   type: visualization/field/policy/value
-  field_dims: [0, 1]
+  field_dims: [0, 2]
   input_min: experiment/environment/task/observation_min
   input_max: experiment/environment/task/observation_max
   points: 65536

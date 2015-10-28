@@ -66,7 +66,7 @@ add_library(${TARGET} SHARED
             ${SRC}/solvers/vi.cpp
             ${SRC}/traces/enumerated.cpp
 #            ${SRC}/visualizations/acrobot.cpp
-#            ${SRC}/visualizations/pendulum.cpp
+            ${SRC}/visualizations/pendulum.cpp
             ${SRC}/visualizations/cart_pole.cpp
             ${SRC}/visualizations/compass_walker.cpp
 #            ${SRC}/visualizations/pinball.cpp

@@ -9,6 +9,13 @@
 
 -- Helper functions
 
+-- Set the following values to enable reward shaping
+reward_shaping = false
+shaping_gamma = 1.00
+
+-- Set the following value to enable termination on swingup
+terminate_on_swingup = false
+
 function wrap_angle(a)
   a = a%(2*math.pi)  
   if a < math.pi then
@@ -73,11 +80,11 @@ function configure(argstr)
 end
 
 function start()
-  return {0, math.pi, 0, 0, 0}
+  return {0, math.pi+math.random()*0.1-0.05, 0, 0, 0}
 end
 
 function observe(state)
-  if failed(state) then
+  if failed(state) or (succeeded(state) and terminate_on_swingup) then
     t = 2
   elseif state[4] > T - 1E-3 then
     t = 1
@@ -92,7 +99,25 @@ function evaluate(state, action, next)
   if failed(next) then
     return -1000
   else
-		return getPotential(next)
+    return getPotential(next)
+  end
+
+  if failed(next) then
+    if not reward_shaping then
+      return -1000
+    else
+      return -100
+    end
+  else
+    if not reward_shaping then
+      return getPotential(next)
+    else
+      reward = shaping_gamma * getPotential(next) - getPotential(state)
+      if succeeded(next) then
+        reward = reward + 10
+      end
+      return reward
+    end
   end
 end
 

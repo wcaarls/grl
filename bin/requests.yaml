@@ -2613,6 +2613,14 @@ visualization/field/value:
     mutability: configuration
     default: 0
     optional: 0
+visualization/pendulum:
+  description: Pendulum visualization
+  state:
+    type: state
+    description: Pendulum state to visualize
+    mutability: configuration
+    default: 0
+    optional: 0
 visualization/sample:
   description: Visualizes a sample-based approximation
   field_dims:

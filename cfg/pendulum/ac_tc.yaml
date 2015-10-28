@@ -1,10 +1,11 @@
 experiment: 
   type: experiment/online_learning
-  runs: 1
-  trials: 0
+  runs: 5
+  trials: 600
   steps: 0
   rate: 0
   test_interval: 10
+  output: pendulum_ac_tc
   environment: 
     type: environment/modeled
     model: 
@@ -16,6 +17,7 @@ experiment:
     task: 
       type: task/pendulum/swingup
       timeout: 2.99
+      randomization: 0
   agent: 
     type: agent/td
     policy: 
@@ -27,8 +29,8 @@ experiment:
         type: projector/tile_coding
         tilings: 16
         memory: 8388608
-        resolution: [0.31415, 3.1415]
-        wrapping: [6.283, 0]
+        resolution: [0.897597901, 10.771174812]
+        wrapping: [6.283185307, 0]
       representation: 
         type: representation/parameterized/linear
         init_min: [0]
@@ -39,8 +41,8 @@ experiment:
         output_max: experiment/environment/task/action_max
     predictor: 
       type: predictor/ac/action
-      alpha: 0.2
-      beta: 0.01
+      alpha: 0.1
+      beta: 0.005
       gamma: 0.97
       lambda: 0.65
       critic_projector: 
@@ -72,14 +74,16 @@ experiment:
       output_max: experiment/environment/task/action_max
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
+  save_every: never
 visualizer: 
   type: visualizer/glut
 visualization: 
   type: visualization/field/policy/action
-  field_dims: [ 0, 1 ]
+  field_dims: [0, 1]
   input_min: experiment/environment/task/observation_min
   input_max: experiment/environment/task/observation_max
   points: 65536
+  savepoints: 1048576
   projection: mean
   policy: experiment/test_agent/policy
   output_dim: 0
@@ -89,6 +93,7 @@ visualization2:
   input_min: experiment/environment/task/observation_min
   input_max: experiment/environment/task/observation_max
   points: 65536
+  savepoints: 1048576
   projection: mean
   output_dim: 0
   projector: experiment/agent/predictor/critic_projector
