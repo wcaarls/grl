@@ -5,7 +5,7 @@ experiment:
   steps: 0
   rate: 0
   test_interval: 10
-  output: walker_ac_vref
+  output: walker_ac_llr_vref
   environment: 
     type: environment/modeled
     model: 

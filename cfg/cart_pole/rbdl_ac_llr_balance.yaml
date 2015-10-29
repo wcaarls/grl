@@ -5,7 +5,7 @@ experiment:
   steps: 0
   rate: 0
   test_interval: 10
-  output: cartpole_ac_balance
+  output: cartpole_ac_llr_balance
   environment: 
     type: environment/modeled
     model: 
