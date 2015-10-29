@@ -63,12 +63,12 @@ experiment:
       sampler: 
         type: sampler/greedy
   save_every: never
-visualiser: 
+visualizer: 
   type: visualizer/glut
-visualisation: 
+visualization: 
   type: visualization/cart_pole
   state: experiment/environment/state
-visualisation2: 
+visualization2: 
   type: visualization/field/policy/value
   field_dims: [0, 2]
   input_min: experiment/environment/task/observation_min

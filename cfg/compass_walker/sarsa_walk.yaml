@@ -74,6 +74,6 @@ visualization:
   projector: experiment/agent/policy/projector
   representation: experiment/agent/policy/representation
   policy: experiment/test_agent/policy
-viz2: 
+visualization2:
   type: visualization/compass_walker
   state: experiment/environment/state
