@@ -4,7 +4,7 @@ experiment:
   trials: 10000
   steps: 0
   rate: 0
-  test_interval: 10
+  test_interval: 9999
   output: cartpole_ac_tc_swingup
   environment: 
     type: environment/modeled
@@ -18,6 +18,11 @@ experiment:
     task: 
       type: task/lua
       file: cart_pendulum_swingup_rand.lua
+    exporter: 
+      type: exporter/csv
+      file: cartpole_ac_tc_swingup
+      fields: time, state, action, reward, terminal
+      style: meshup
   agent: 
     type: agent/td
     policy: 

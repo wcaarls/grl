@@ -125,7 +125,7 @@ void OnlineLearningExperiment::run()
       Vector obs, action;
       double reward, total_reward=0;
       int terminal;
-      bool test = (test_interval_ >= 0 && tt%(test_interval_+1) == test_interval_);
+      int test = (test_interval_ >= 0 && tt%(test_interval_+1) == test_interval_) * (rr+1);
       timer step_timer;
 
       Agent *agent = agent_;      

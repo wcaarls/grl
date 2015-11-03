@@ -31,13 +31,13 @@ end
 function getPotential(state)
   angle = wrap_angle(state[1]) - math.pi
 
--- Type 1:
+-- Literature (lit):
 --  return -1    *  state[0]^2 
 --         -10   *  angle^2
 --         -0.1  *  state[2]^2 
 --         -0.1  *  state[3]^2
 
---  Type 2:
+--  RL (rl):
   return -2    *  state[0]^2 
          -1    *  angle^2
          -0.1  *  state[2]^2 

@@ -193,7 +193,7 @@ class ModeledEnvironment : public Environment
     State *state_obj_;
     Exporter *exporter_;
     
-    bool test_;
+    int test_;
     double time_test_, time_learn_;
 
   public:

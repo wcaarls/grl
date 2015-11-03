@@ -87,7 +87,9 @@ void ModeledEnvironment::start(int test, Vector *obs)
   test_ = test;
   
   if (exporter_)
-    exporter_->open(std::string("-")+(test_?"test":"learn"), (test_?time_test_:time_learn_) != 0.0);
+//    exporter_->open(std::string("-")+(test_?"test":"learn"), (test_?time_test_:time_learn_) != 0.0);
+    if (test_)
+      exporter_->open(std::string("-test-")+std::to_string(test_-1), time_test_ != 0.0);
 }
 
 double ModeledEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)
@@ -101,7 +103,8 @@ double ModeledEnvironment::step(const Vector &action, Vector *obs, double *rewar
   double &time = test_?time_test_:time_learn_;
   
   if (exporter_)
-    exporter_->write({VectorConstructor(time), state_, obs_, action, VectorConstructor(*reward), VectorConstructor((double)*terminal)});
+    if (test_)
+      exporter_->write({VectorConstructor(time), state_, obs_, action, VectorConstructor(*reward), VectorConstructor((double)*terminal)});
 
   time += tau;
 
