@@ -97,12 +97,6 @@ end
 
 function evaluate(state, action, next)
   if failed(next) then
-    return -1000
-  else
-    return getPotential(next)
-  end
-
-  if failed(next) then
     if not reward_shaping then
       return -1000
     else

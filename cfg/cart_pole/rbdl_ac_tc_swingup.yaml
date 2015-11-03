@@ -17,7 +17,7 @@ experiment:
         file: cart_pendulum.lua
     task: 
       type: task/lua
-      file: cart_pendulum_swingup_rand.lua
+      file: cart_pendulum_swingup_epc.lua
     exporter: 
       type: exporter/csv
       file: cartpole_ac_tc_swingup

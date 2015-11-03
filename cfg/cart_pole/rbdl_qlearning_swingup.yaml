@@ -4,7 +4,7 @@ experiment:
   trials: 10000
   steps: 0
   rate: 0
-  test_interval: 10
+  test_interval: 9999
   output: cartpole_qlearning_swingup
   environment: 
     type: environment/modeled
@@ -17,7 +17,12 @@ experiment:
         file: cart_pendulum.lua
     task: 
       type: task/lua
-      file: cart_pendulum_swingup_rand.lua
+      file: cart_pendulum_swingup_epc.lua
+    exporter: 
+      type: exporter/csv
+      file: cartpole_qlearning_swingup
+      fields: time, state, action, reward, terminal
+      style: meshup
   agent: 
     type: agent/td
     policy: 
@@ -26,7 +31,7 @@ experiment:
         type: discretizer/uniform
         min: experiment/environment/task/action_min
         max: experiment/environment/task/action_max
-        steps: [3]
+        steps: [11]
       projector: 
         type: projector/tile_coding
         tilings: 16

@@ -47,9 +47,10 @@ class ActionPolicy : public Policy
     Representation *representation_;
     
     Vector min_, max_, sigma_;
+    mutable int action_perturbation_policy_;
 
   public:
-    ActionPolicy() : projector_(NULL), representation_(NULL) { }
+    ActionPolicy() : projector_(NULL), representation_(NULL), action_perturbation_policy_(0) { }
     
     // From Configurable  
     virtual void request(ConfigurationRequest *config);
