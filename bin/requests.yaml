@@ -1456,7 +1456,7 @@ predictor/ac/action:
     description: Trace of actor projections
     mutability: configuration
     default: 0
-    optional: 0
+    optional: 1
 predictor/ac/probability:
   description: Actor-critic predictor for action-probability policies
   importer:
@@ -1538,7 +1538,7 @@ predictor/ac/probability:
     description: Trace of actor projections
     mutability: configuration
     default: 0
-    optional: 0
+    optional: 1
   discretizer:
     type: discretizer.action
     description: Action discretizer
@@ -3190,7 +3190,7 @@ task/lua:
     optional: 1
   options:
     type: string
-    description: Option string to pass to task configuration function
+    description: Lua string to execute when loading task
     mutability: configuration
     default: ""
     optional: 1

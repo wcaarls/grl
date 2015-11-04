@@ -16,6 +16,7 @@ experiment:
     task: 
       type: task/pendulum/swingup
       timeout: 2.99
+      randomization: 0
   agent: 
     type: agent/td
     policy: 
@@ -24,49 +25,57 @@ experiment:
       output_min: experiment/environment/task/action_min
       output_max: experiment/environment/task/action_max
       projector: 
-        type: projector/sample/ann
-        samples: 2000
-        neighbors: 20
-        bucket_size: 10
-        error_bound: 0.1
-        scaling: [  ]
-        inputs: experiment/environment/task/observation_dims
+        type: projector/pre/scaling
+        scaling: [1, 0.1]
+        projector: 
+          type: projector/sample/ann
+          samples: 2000
+          neighbors: 20
+          locality: 1
+          bucket_size: 10
+          error_bound: 0.1
+          inputs: experiment/environment/task/observation_dims
       representation: 
         type: representation/llr
         ridge: 1e-05
         order: 1
+        input_nominals: []
+        output_nominals: []
         outputs: experiment/environment/task/action_dims
         output_min: experiment/environment/task/action_min
         output_max: experiment/environment/task/action_max
-        projector: experiment/agent/policy/projector
+        projector: experiment/agent/policy/projector/projector
     predictor: 
       type: predictor/ac/action
-      alpha: 0.2
-      beta: 0.01
+      alpha: 0.3
+      beta: 0.05
       gamma: 0.97
       lambda: 0.65
       critic_projector: 
-        type: projector/sample/ann
-        samples: 2000
-        neighbors: 20
-        bucket_size: 10
-        error_bound: 0.1
-        scaling: [  ]
-        inputs: experiment/environment/task/observation_dims
+        type: projector/pre/scaling
+        scaling: [1, 0.1]
+        projector: 
+          type: projector/sample/ann
+          samples: 2000
+          neighbors: 10
+          locality: 1
+          bucket_size: 10
+          error_bound: 0.1
+          inputs: experiment/environment/task/observation_dims
       critic_representation: 
         type: representation/llr
         ridge: 1e-05
         order: 1
+        input_nominals: []
+        output_nominals: []
         outputs: 1
-        output_min: [  ]
-        output_max: [  ]
-        projector: experiment/agent/predictor/critic_projector
+        output_min: []
+        output_max: []
+        projector: experiment/agent/predictor/critic_projector/projector
       critic_trace: 
         type: trace/enumerated/replacing
       actor_projector: experiment/agent/policy/projector
       actor_representation: experiment/agent/policy/representation
-      actor_trace: 
-        type: trace/enumerated/replacing
   test_agent: 
     type: agent/fixed
     policy: 
@@ -76,21 +85,22 @@ experiment:
       output_max: experiment/environment/task/action_max
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
+  save_every: never
 visualizer: 
   type: visualizer/glut
 visualization: 
   type: visualization/sample
-  field_dims: [ 0, 1 ]
-  field_min: experiment/environment/task/observation_min
-  field_max: experiment/environment/task/observation_max
+  field_dims: [0, 1]
+  field_min: [0, -3.14]
+  field_max: [6.28, 3.14]
   output_dim: 0
   points: 65536
-  projector: experiment/agent/predictor/critic_projector
+  projector: experiment/agent/predictor/critic_projector/projector
 visualization2: 
   type: visualization/sample
-  field_dims: [ 0, 1 ]
-  field_min: experiment/environment/task/observation_min
-  field_max: experiment/environment/task/observation_max
+  field_dims: [0, 1]
+  field_min: [0, -3.14]
+  field_max: [6.28, 3.14]
   output_dim: 0
   points: 65536
-  projector: experiment/agent/policy/projector
+  projector: experiment/agent/policy/projector/projector
