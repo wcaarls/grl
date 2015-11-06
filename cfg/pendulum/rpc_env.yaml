@@ -1,0 +1,19 @@
+experiment: 
+  type: experiment/rpc/environment
+  port: 31033
+  environment: 
+    type: environment/modeled
+    model: 
+      type: model/dynamical
+      control_step: 0.03
+      integration_steps: 5
+      dynamics: 
+        type: dynamics/pendulum
+    task: 
+      type: task/pendulum/swingup
+      timeout: 2.99
+visualizer: 
+  type: visualizer/glut
+visualization: 
+  type: visualization/pendulum
+  state: experiment/environment/state

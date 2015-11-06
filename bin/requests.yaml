@@ -569,6 +569,22 @@ experiment/online_learning:
       - run
       - test
       - trail
+experiment/rpc/environment:
+  description: Environment RPC server
+  port:
+    type: int
+    description: Listen port
+    mutability: configuration
+    default: 31033
+    optional: 1
+    min: 0
+    max: 2147483647
+  environment:
+    type: environment
+    description: Environment to interface
+    mutability: configuration
+    default: 0
+    optional: 0
 exporter/csv:
   description: Comma-separated values exporter
   file:
