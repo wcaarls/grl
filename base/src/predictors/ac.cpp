@@ -47,7 +47,7 @@ void ActionACPredictor::request(ConfigurationRequest *config)
 
   config->push_back(CRP("actor_projector", "projector.observation", "Projects observations onto actor representation space", actor_projector_));
   config->push_back(CRP("actor_representation", "representation.action", "Action representation", actor_representation_));
-  config->push_back(CRP("actor_trace", "trace", "Trace of actor projections", actor_trace_));
+  config->push_back(CRP("actor_trace", "trace", "Trace of actor projections", actor_trace_, true));
 }
 
 void ActionACPredictor::configure(Configuration &config)
@@ -84,7 +84,8 @@ ActionACPredictor *ActionACPredictor::clone() const
   aap->critic_trace_ = critic_trace_->clone();
   aap->actor_projector_ = actor_projector_->clone();
   aap->actor_representation_= actor_representation_->clone();
-  aap->actor_trace_ = actor_trace_->clone();
+  if (actor_trace_)
+    aap->actor_trace_ = actor_trace_->clone();
   return aap;
 }
 
@@ -114,8 +115,11 @@ void ActionACPredictor::update(const Transition &transition)
   target_u = u + delta*(transition.prev_action - u);
 
   actor_representation_->write(ap, target_u, beta_);
-  actor_representation_->update(*actor_trace_, beta_*(target_u-u), gamma_*lambda_);
-  actor_trace_->add(ap, gamma_*lambda_);
+  if (actor_trace_)
+  {
+    actor_representation_->update(*actor_trace_, beta_*(target_u-u), gamma_*lambda_);
+    actor_trace_->add(ap, gamma_*lambda_);
+  }
   
   critic_representation_->finalize();
   actor_representation_->finalize();
@@ -126,7 +130,8 @@ void ActionACPredictor::finalize()
   Predictor::finalize();
 
   critic_trace_->clear();
-  actor_trace_->clear();
+  if (actor_trace_)
+    actor_trace_->clear();
 }
 
 void ProbabilityACPredictor::request(ConfigurationRequest *config)
@@ -144,7 +149,7 @@ void ProbabilityACPredictor::request(ConfigurationRequest *config)
 
   config->push_back(CRP("actor_projector", "projector.pair", "Projects observation-action pairs onto actor representation space", actor_projector_));
   config->push_back(CRP("actor_representation", "representation.value/action", "Action-probability representation", actor_representation_));
-  config->push_back(CRP("actor_trace", "trace", "Trace of actor projections", actor_trace_));
+  config->push_back(CRP("actor_trace", "trace", "Trace of actor projections", actor_trace_, true));
 
   config->push_back(CRP("discretizer", "discretizer.action", "Action discretizer", discretizer_));
 }
@@ -185,7 +190,8 @@ ProbabilityACPredictor *ProbabilityACPredictor::clone() const
   pap->critic_trace_ = critic_trace_->clone();
   pap->actor_projector_ = actor_projector_->clone();
   pap->actor_representation_= actor_representation_->clone();
-  pap->actor_trace_ = actor_trace_->clone();
+  if (actor_trace_)
+    pap->actor_trace_ = actor_trace_->clone();
   return pap;
 }
 
@@ -201,5 +207,6 @@ void ProbabilityACPredictor::finalize()
   Predictor::finalize();
 
   critic_trace_->clear();
-  actor_trace_->clear();
+  if (actor_trace_)
+    actor_trace_->clear();
 }

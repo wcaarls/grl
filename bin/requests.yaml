@@ -235,6 +235,22 @@ experiment/online_learning:
       - run
       - test
       - trail
+experiment/rpc/environment:
+  description: Environment RPC server
+  port:
+    type: int
+    description: Listen port
+    mutability: configuration
+    default: 31033
+    optional: 1
+    min: 0
+    max: 2147483647
+  environment:
+    type: environment
+    description: Environment to interface
+    mutability: configuration
+    default: 0
+    optional: 0
 exporter/csv:
   description: Comma-separated values exporter
   file:
@@ -872,7 +888,7 @@ predictor/ac/action:
     description: Trace of actor projections
     mutability: configuration
     default: 0
-    optional: 0
+    optional: 1
 predictor/ac/probability:
   description: Actor-critic predictor for action-probability policies
   importer:
@@ -954,7 +970,7 @@ predictor/ac/probability:
     description: Trace of actor projections
     mutability: configuration
     default: 0
-    optional: 0
+    optional: 1
   discretizer:
     type: discretizer.action
     description: Action discretizer
