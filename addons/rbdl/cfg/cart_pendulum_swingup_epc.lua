@@ -105,9 +105,9 @@ function evaluate(state, action, next)
     end
   else
     if not reward_shaping then
-      reward = getPotential(next) -- -1
+      reward = getPotential(next) -1
       if succeeded(next) and (next[4] > T - 0.05*0.5) then -- last timestep
-        reward = reward + 10
+        reward = reward + 60
       end
 --        print(reward + "\n")
 --      if succeeded(next) and (next[4] > T - 0.5*1.5) then -- last timestep

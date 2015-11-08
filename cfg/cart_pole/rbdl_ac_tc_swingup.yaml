@@ -1,10 +1,10 @@
 experiment: 
   type: experiment/online_learning
   runs: 5
-  trials: 10000
+  trials: 100000
   steps: 0
   rate: 0
-  test_interval: 9999
+  test_interval: 99999
   output: cartpole_ac_tc_swingup
   environment: 
     type: environment/modeled
