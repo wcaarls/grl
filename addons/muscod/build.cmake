@@ -38,8 +38,9 @@ if (MUSCOD_FOUND)
       endif()
     endforeach()
   endif()
-    
-  set(MUSCOD_BUILD_TYPE ${MBT} CACHE STRING "Muscod build output subdirectory")
+
+  #set(MUSCOD_BUILD_TYPE ${MBT} CACHE STRING "Muscod build output subdirectory")
+  set(MUSCOD_BUILD_TYPE ${MBT})
 
   # Using some kind of weird build type, bail
   if (NOT EXISTS ${MUSCOD_DIR}/../../Packages/COMMON_CODE/${MUSCOD_BUILD_TYPE})

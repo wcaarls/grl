@@ -37,6 +37,7 @@ REGISTER_CONFIGURABLE(CompassWalkerModel)
 REGISTER_CONFIGURABLE(CompassWalkerWalkTask)
 REGISTER_CONFIGURABLE(CompassWalkerVrefTask)
 REGISTER_CONFIGURABLE(CompassWalkerLcTask)
+REGISTER_CONFIGURABLE(CompassWalkerLcuTask)
 // *** CompassWalkerModel ***
 
 void CompassWalkerModel::request(ConfigurationRequest *config)
@@ -260,7 +261,7 @@ void CompassWalkerVrefTask::configure(Configuration &config)
 }
 
 
-// *** CompassWalkerVrefTask ***
+// *** CompassWalkerLcTask ***
 void CompassWalkerLcTask::evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const
 {
 
@@ -278,10 +279,34 @@ void CompassWalkerLcTask::evaluate(const Vector &state, const Vector &action, co
 
     const double a = 100.0, b = 1000.0;
     // Always give a positive reward each time walker makes a step
-    *reward = fmax(1, 10 - a*pow(velocity - vref_, 2) - b*(pow(da,2) + pow(dr,2)) - pow(action[0],2));
+    *reward = fmax(1, 10 - a*pow(velocity - vref_, 2) - b*(pow(da,2) + pow(dr,2)));
   }
 
   if (fabs(next[CompassWalker::siStanceLegAngle]) > M_PI/8 || fabs(next[CompassWalker::siHipAngle] - 2 * next[CompassWalker::siStanceLegAngle]) > M_PI/4)
     *reward = -100;
 }
 
+// *** CompassWalkerLcuTask ***
+void CompassWalkerLcuTask::evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const
+{
+
+  if (state.size() != CompassWalker::ssStateSize || action.size() != 1 || next.size() != CompassWalker::ssStateSize)
+    throw Exception("task/compass_walker/walk requires model/compass_walker");
+
+  *reward = 0;
+
+  // Calculate deviation from reference velocity
+  if (next[CompassWalker::siStanceLegChanged])
+  {
+    double velocity = 2.0*sin(next[CompassWalker::siStanceLegAngle]) / (state[CompassWalker::siTime]-state[CompassWalker::siPrevTime]);
+    double da = state[CompassWalker::siStanceLegAngle]-state[CompassWalker::siLastStanceLegAngle];
+    double dr = state[CompassWalker::siStanceLegAngleRate]-state[CompassWalker::siLastStanceLegAngleRate];
+
+    const double a = 100.0, b = 1000.0;
+    // Always give a positive reward each time walker makes a step
+    *reward = fmax(1, 10 - a*pow(velocity - vref_, 2) - b*(pow(da,2) + pow(dr,2)) - pow(action[0],2)) ;
+  }
+
+  if (fabs(next[CompassWalker::siStanceLegAngle]) > M_PI/8 || fabs(next[CompassWalker::siHipAngle] - 2 * next[CompassWalker::siStanceLegAngle]) > M_PI/4)
+    *reward = -100;
+}
