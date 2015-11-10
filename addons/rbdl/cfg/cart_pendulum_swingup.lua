@@ -105,7 +105,7 @@ function evaluate(state, action, next)
   else
     if not reward_shaping then
       print(action)
-      return getPotential(next) - 0.005*action*action
+      return getPotential(next) - 0.005*action[0]*action[0]
     else
       reward = shaping_gamma * getPotential(next) - getPotential(state)
       if succeeded(next) then

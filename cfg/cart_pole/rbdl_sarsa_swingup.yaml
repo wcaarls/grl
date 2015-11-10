@@ -4,7 +4,7 @@ experiment:
   trials: 10000
   steps: 0
   rate: 0
-  test_interval: 9999
+  test_interval: 10
   output: cartpole_sarsa_swingup
   environment: 
     type: environment/modeled
@@ -17,12 +17,7 @@ experiment:
         file: cart_pendulum.lua
     task: 
       type: task/lua
-      file: cart_pendulum_swingup_epc.lua
-    exporter: 
-      type: exporter/csv
-      file: cartpole_sarsa_swingup
-      fields: time, state, action, reward, terminal
-      style: meshup
+      file: cart_pendulum_swingup.lua
   agent: 
     type: agent/td
     policy: 

@@ -27,7 +27,7 @@ experiment:
       output_max: experiment/environment/task/action_max
       projector: 
         type: projector/pre/scaling
-        scaling: [1, 0.25, 0.125, 0.0625]
+        scaling: [1, 1, 0.1, 0.1]
         projector: 
           type: projector/sample/ann
           samples: 8000
@@ -54,7 +54,7 @@ experiment:
       lambda: 0.65
       critic_projector: 
         type: projector/pre/scaling
-        scaling: [1, 0.25, 0.125, 0.0625]
+        scaling: [1, 1, 0.1, 0.1]
         projector: 
           type: projector/sample/ann
           samples: 8000
