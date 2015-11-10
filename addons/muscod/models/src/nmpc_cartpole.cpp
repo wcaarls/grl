@@ -88,11 +88,24 @@ const double w2 =  0.1000;
 const double w3 =  0.1000;
 const double w4 =  0.0001;
 
+const double rl_w0 = 2.0000;
+const double rl_w1 = 1.0000;
+const double rl_w2 = 0.2000;
+const double rl_w3 = 0.5000;
+const double rl_w4 = 1.0000;
+
+// square-roots of weights for Gauss-Newton residual
 const double sw0 = sqrt(w0);
 const double sw1 = sqrt(w1);
 const double sw2 = sqrt(w2);
 const double sw3 = sqrt(w3);
 const double sw4 = sqrt(w4);
+
+const double rl_sw0 = sqrt(rl_w0);
+const double rl_sw1 = sqrt(rl_w1);
+const double rl_sw2 = sqrt(rl_w2);
+const double rl_sw3 = sqrt(rl_w3);
+const double rl_sw4 = sqrt(rl_w4);
 
 // ********************************o
 // *
@@ -312,7 +325,7 @@ static void mfcn_penalty(double *ts, double *xd, double *xa, double *p, double *
   *mval +=  w3 * ( xd[3] ) * ( xd[3] ); // = 0
 }
 
-static void lsqfcn(double *ts, double *sd, double *sa, double *u,
+static void lsqfcn_tracking(double *ts, double *sd, double *sa, double *u,
   double *p, double *pr, double *res, long *dpnd, InfoPtr *info)
 {
   if (*dpnd) { *dpnd = RFCN_DPND(0, *sd, 0, *u, 0, 0); return; }
@@ -327,6 +340,42 @@ static void lsqfcn(double *ts, double *sd, double *sa, double *u,
   res[1] = sw1 * ( sd[1] - xref_xd(1, real_ts) );
   res[2] = sw2 * ( sd[2] - xref_xd(2, real_ts) );
   res[3] = sw3 * ( sd[3] - xref_xd(3, real_ts) );
+  //res[4] = sw4 * (  u[0] - xref_u (0, real_ts) );
+}
+
+static void lsqfcn_lit(double *ts, double *sd, double *sa, double *u,
+  double *p, double *pr, double *res, long *dpnd, InfoPtr *info)
+{
+  if (*dpnd) { *dpnd = RFCN_DPND(0, *sd, 0, 0, 0, 0); return; }
+  // res = r(t,x,u,p)
+  // L   = ||r(x)||_2^2
+
+  // get real_time from nmpc_loop
+  double real_ts = *ts + p[0];
+
+  // res = sqrt(w) * quantity
+  res[0] = sw0 * sd[0];
+  res[1] = sw1 * sd[1];
+  res[2] = sw2 * sd[2];
+  res[3] = sw3 * sd[3];
+  //res[4] = sw4 * (  u[0] - xref_u (0, real_ts) );
+}
+
+static void lsqfcn_rl(double *ts, double *sd, double *sa, double *u,
+  double *p, double *pr, double *res, long *dpnd, InfoPtr *info)
+{
+  if (*dpnd) { *dpnd = RFCN_DPND(0, *sd, 0, 0, 0, 0); return; }
+  // res = r(t,x,u,p)
+  // L   = ||r(x)||_2^2
+
+  // get real_time from nmpc_loop
+  double real_ts = *ts + p[0];
+
+  // res = sqrt(w) * quantity
+  res[0] = rl_sw0 * sd[0];
+  res[1] = rl_sw1 * sd[1];
+  res[2] = rl_sw2 * sd[2];
+  res[3] = rl_sw3 * sd[3];
   //res[4] = sw4 * (  u[0] - xref_u (0, real_ts) );
 }
 
@@ -432,7 +481,7 @@ extern "C" void def_model(void);
 void def_model(void)
 {
     // open and process reference trajectories
-    xref_setup();
+    // xref_setup();
 
     // load LUA model
     model = new Model;
@@ -475,5 +524,7 @@ void def_model(void)
             );
 
     // define LSQ objective
-    def_lsq(0, "*", 0, 4, lsqfcn);
+    // def_lsq(0, "*", 0, 4, lsqfcn_tracking);
+    def_lsq(0, "*", 0, 4, lsqfcn_rl);
+    // def_lsq(0, "*", 0, 4, lsqfcn_lit);
 }
