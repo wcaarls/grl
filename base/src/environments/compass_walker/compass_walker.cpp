@@ -180,7 +180,7 @@ void CompassWalkerWalkTask::observe(const Vector &state, Vector *obs, int *termi
   (*obs)[CompassWalker::siHipAngle] = state[CompassWalker::siHipAngle] - 2 * state[CompassWalker::siStanceLegAngle];
   (*obs)[CompassWalker::siStanceLegAngleRate] = state[CompassWalker::siStanceLegAngleRate];
   (*obs)[CompassWalker::siHipAngleRate] = state[CompassWalker::siHipAngleRate] - 2 * state[CompassWalker::siStanceLegAngleRate];
-  (*obs)[CompassWalker::siStanceLegChanged] = state[CompassWalker::siStanceLegChanged];
+  (*obs)[CompassWalker::siStanceLegChanged] = state[CompassWalker::siStanceLegChanged]; // ivan: why is it in a state?
   
   if (fabs(state[CompassWalker::siStanceLegAngle]) > M_PI/8 || fabs(state[CompassWalker::siHipAngle] - 2 * state[CompassWalker::siStanceLegAngle]) > M_PI/4)
     *terminal = 2;
@@ -278,7 +278,7 @@ void CompassWalkerLcTask::evaluate(const Vector &state, const Vector &action, co
 
     const double a = 100.0, b = 1000.0;
     // Always give a positive reward each time walker makes a step
-    *reward = fmax(1, 10 - a*pow(velocity - vref_, 2) - b*(pow(da,2) + pow(dr,2)));
+    *reward = fmax(1, 10 - a*pow(velocity - vref_, 2) - b*(pow(da,2) + pow(dr,2)) - pow(action[0],2));
   }
 
   if (fabs(next[CompassWalker::siStanceLegAngle]) > M_PI/8 || fabs(next[CompassWalker::siHipAngle] - 2 * next[CompassWalker::siStanceLegAngle]) > M_PI/4)

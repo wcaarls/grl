@@ -62,8 +62,6 @@ experiment:
         type: trace/enumerated/replacing
       actor_projector: experiment/agent/policy/projector
       actor_representation: experiment/agent/policy/representation
-      actor_trace: 
-        type: trace/enumerated/replacing
   test_agent: 
     type: agent/fixed
     policy: 

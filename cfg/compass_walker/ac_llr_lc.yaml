@@ -25,13 +25,16 @@ experiment:
       output_min: experiment/environment/task/action_min
       output_max: experiment/environment/task/action_max
       projector: 
-        type: projector/sample/ann
-        samples: 8000
-        neighbors: 20
-        locality: 1
-        bucket_size: 10
-        error_bound: 0.01
-        inputs: experiment/environment/task/observation_dims
+        type: projector/pre/scaling
+        scaling: [1, 1, 1, 1, 1]
+        projector: 
+          type: projector/sample/ann
+          samples: 8000
+          neighbors: 20
+          locality: 1
+          bucket_size: 10
+          error_bound: 0.01
+          inputs: experiment/environment/task/observation_dims
       representation: 
         type: representation/llr
         ridge: 1e-05
@@ -41,7 +44,7 @@ experiment:
         outputs: experiment/environment/task/action_dims
         output_min: experiment/environment/task/action_min
         output_max: experiment/environment/task/action_max
-        projector: experiment/agent/policy/projector
+        projector: experiment/agent/policy/projector/projector
     predictor: 
       type: predictor/ac/action
       alpha: 0.2
@@ -49,13 +52,16 @@ experiment:
       gamma: 0.97
       lambda: 0.65
       critic_projector: 
-        type: projector/sample/ann
-        samples: 8000
-        neighbors: 20
-        locality: 1
-        bucket_size: 10
-        error_bound: 0.1
-        inputs: experiment/environment/task/observation_dims
+        type: projector/pre/scaling
+        scaling: [1, 1, 1, 1, 1]
+        projector: 
+          type: projector/sample/ann
+          samples: 8000
+          neighbors: 20
+          locality: 1
+          bucket_size: 10
+          error_bound: 0.1
+          inputs: experiment/environment/task/observation_dims
       critic_representation: 
         type: representation/llr
         ridge: 1e-05
@@ -65,13 +71,11 @@ experiment:
         outputs: 1
         output_min: []
         output_max: []
-        projector: experiment/agent/predictor/critic_projector
+        projector: experiment/agent/predictor/critic_projector/projector
       critic_trace: 
         type: trace/enumerated/replacing
       actor_projector: experiment/agent/policy/projector
       actor_representation: experiment/agent/policy/representation
-      actor_trace: 
-        type: trace/enumerated/replacing
   test_agent: 
     type: agent/fixed
     policy: 
