@@ -52,10 +52,11 @@ class ODEEnvironment: public grl::Environment, public itc::Thread
     ODESTGEnvironment *env_;
     Configuration *config_;
     std::string xml_;
+    int visualize_;
     bool initialized_;
 
   public:
-    ODEEnvironment() : app_(NULL), env_(NULL), config_(NULL), xml_("../addons/odesim/cfg/robot.xml"), initialized_(false) { }
+    ODEEnvironment() : app_(NULL), env_(NULL), config_(NULL), xml_("../addons/odesim/cfg/robot.xml"), visualize_(1), initialized_(false) { }
     ~ODEEnvironment();
   
     // From Configurable

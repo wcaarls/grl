@@ -218,6 +218,7 @@ ODEEnvironment::~ODEEnvironment()
 void ODEEnvironment::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("xml", "XML configuration filename", xml_));
+  config->push_back(CRP("visualize", "Whether to display 3D visualization", visualize_, CRP::Configuration, 0, 1));
   
   config->push_back(CRP("observation_dims", "int.observation_dims", "Number of observation dimensions", CRP::Provided));
   config->push_back(CRP("observation_min", "vector.observation_min", "Lower limit on observations", CRP::Provided));
@@ -231,6 +232,8 @@ void ODEEnvironment::request(ConfigurationRequest *config)
 
 void ODEEnvironment::configure(Configuration &config)
 {
+  visualize_ = config["visualize"];
+
   config_ = &config;
     
   itc::Thread::start();
@@ -247,21 +250,20 @@ void ODEEnvironment::reconfigure(const Configuration &config)
 
 void ODEEnvironment::run()
 {
-  bool useGUI = getenv("DISPLAY") != 0;
   int argc=1;
   char *argv[1];
   argv[0] = (char*)malloc(7*sizeof(char));
   strcpy(argv[0], "odesim");
   
   NOTICE("Initializing Qt");
-
-  app_ = new QApplication(argc, argv, useGUI);
+  
+  app_ = new QApplication(argc, argv, visualize_);
   env_ = new ODESTGEnvironment();
   
   if (!env_->configure(*config_))
     throw Exception("Could not initialize STG ODE environment");
     
-  if (useGUI)
+  if (visualize_)
   {
     ODEDialog dialog(env_);
 
