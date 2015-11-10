@@ -69,27 +69,8 @@ if (MUSCOD_FOUND)
   install(TARGETS ${TARGET} DESTINATION ${GRL_LIB_DESTINATION})
   install(DIRECTORY ${SRC}/../include/grl DESTINATION ${GRL_INCLUDE_DESTINATION} FILES_MATCHING PATTERN "*.h")
 
-	################################################################################
-	# MUSCOD problems
-	set(TARGETS nmpc_cartpole nmpc_simple)
-
-	FOREACH (TARGET ${TARGETS})
-		ADD_LIBRARY ( ${TARGET} SHARED 
-		              ${SRC}/${TARGET}.cpp
-		            )
-
-		TARGET_LINK_LIBRARIES ( ${TARGET}
-		                        muscod_base
-		                        ${RBDL_LIBRARIES}
-		                        ${RBDL_LUAMODEL_LIBRARIES}
-		                        ${PGPLOT_CPGPLOT_LIBRARY}
-		                        ${PGPLOT_PGPLOT_LIBRARY}
-		                      )
-
-		grl_link_libraries(${TARGET} base)
-		install(TARGETS ${TARGET} DESTINATION ${GRL_LIB_DESTINATION})
-		install(DIRECTORY ${SRC}/../include/grl DESTINATION ${GRL_INCLUDE_DESTINATION} FILES_MATCHING PATTERN "*.h")
-	ENDFOREACH(TARGET)
+  # Build models
+  grl_build_library(addons/muscod/models)
 else()
   message(WARNING "-- MUSCOD-II not found")
 endif()

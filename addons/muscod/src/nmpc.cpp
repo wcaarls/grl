@@ -116,7 +116,7 @@ void NMPCPolicy::configure(Configuration &config)
   muscod_->nmpcInitialize(muscod_->getSSpec(), NULL, NULL);
 
   // solve until convergence to prepare solver
-  for (int ii=0; ii < 20; ++ii)
+  for (int ii=0; ii < 50; ++ii)
   {
     muscod_->nmpcFeedback(NULL, NULL, NULL);
     muscod_->nmpcTransition();
@@ -147,7 +147,7 @@ void NMPCPolicy::muscod_reset(Vector &initial_obs, double time)
     data_.pf[IP] = time;
 
   // solve until convergence to prepare solver
-  for (int ii=0; ii < 20; ++ii)
+  for (int ii=0; ii < 50; ++ii)
   {
     muscod_->nmpcFeedback(initial_obs.data(), data_.pf.data(), NULL);
     muscod_->nmpcTransition();

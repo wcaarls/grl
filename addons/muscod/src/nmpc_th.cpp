@@ -111,7 +111,7 @@ void NMPCPolicyTh::configure(Configuration &config)
   // get proper dimensions
   muscod_->nmpcInitialize(muscod_->getSSpec(), NULL, NULL);
   // solve until convergence to prepare solver
-  for (int ii=0; ii < 20; ++ii)  // TODO: check error instead
+  for (int ii=0; ii < 50; ++ii)  // TODO: check error instead
   {
     muscod_->nmpcFeedback(NULL, NULL, NULL);
     muscod_->nmpcTransition();
@@ -268,7 +268,7 @@ void *NMPCPolicyTh::muscod_run(void *indata)
     pthread_mutex_unlock(&mutex_);
 
     // NMPC loop, assume that it converges after 3 iterations
-    for (int ii=0; ii < 4; ++ii)
+    for (int ii=0; ii < 10; ++ii)
     {
       muscod_->nmpcFeedback(sd.data(), pf.data(), first_qc.data());
       muscod_->nmpcTransition();

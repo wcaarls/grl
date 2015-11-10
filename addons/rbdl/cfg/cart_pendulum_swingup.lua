@@ -40,7 +40,7 @@ function getPotential(state)
 --  Type 2:
   return -2    *  state[0]^2 
          -1    *  angle^2
-         -0.1  *  state[2]^2 
+         -0.2  *  state[2]^2
          -0.5  *  state[3]^2
 end
 
@@ -104,7 +104,6 @@ function evaluate(state, action, next)
     end
   else
     if not reward_shaping then
-      print(action)
       return getPotential(next) - 0.005*action[0]*action[0]
     else
       reward = shaping_gamma * getPotential(next) - getPotential(state)
