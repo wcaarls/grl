@@ -211,7 +211,8 @@ double ODESTGEnvironment::step(const Vector &action, Vector *obs, double *reward
 
 ODEEnvironment::~ODEEnvironment()
 {
-  app_->exit();
+  if (app_)
+    app_->exit();
   itc::Thread::stopAndJoin();
 }
 
@@ -255,29 +256,29 @@ void ODEEnvironment::run()
   argv[0] = (char*)malloc(7*sizeof(char));
   strcpy(argv[0], "odesim");
   
-  NOTICE("Initializing Qt");
-  
-  app_ = new QApplication(argc, argv, visualize_);
   env_ = new ODESTGEnvironment();
-  
   if (!env_->configure(*config_))
     throw Exception("Could not initialize STG ODE environment");
-    
+
+  initialized_ = true;
+  
   if (visualize_)
   {
-    ODEDialog dialog(env_);
-
-    initialized_ = true;
+    NOTICE("Initializing Qt");
   
+    app_ = new QApplication(argc, argv);
+    ODEDialog *dialog = new ODEDialog(env_);
+
     NOTICE("Starting Qt main loop");
     app_->exec();
     WARNING("Return from Qt main loop");
-  }
-  else
-    initialized_ = true;
     
-  while (ok()) usleep(10000);
+    env_->getSim()->stop();
+    safe_delete(&dialog);
+    safe_delete(&app_);
+  }
+ 
+  while (ok()) usleep(1000);
 
   safe_delete(&env_);
-  safe_delete(&app_);
 }
