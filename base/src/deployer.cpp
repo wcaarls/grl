@@ -36,8 +36,8 @@
 using namespace grl;
 using namespace std;
 
-static YAMLConfigurator configurator;
-struct sigaction act, oldact;
+static YAMLConfigurator *configurator = new YAMLConfigurator();
+static struct sigaction act, oldact;
 
 void reconfigure()
 {
@@ -83,27 +83,27 @@ void reconfigure()
     if (words.empty())
     {
       // <key=value...>
-      configurator.reconfigure(config);
+      configurator->reconfigure(config);
     }
     else if (words.size() == 1)
     {
-      if (configurator.references().has(words[0]))
+      if (configurator->references().has(words[0]))
       {
         // object <key=value...>
-        configurator.reconfigure(config, words[0]);
+        configurator->reconfigure(config, words[0]);
       }
       else
       {
         // action <key=value...>
         config.set("action", words[0]);
-        configurator.reconfigure(config);
+        configurator->reconfigure(config);
       }
     }
     else
     {
       // action object <key=value...>
       config.set("action", words[0]);
-      configurator.reconfigure(config, words[1]);
+      configurator->reconfigure(config, words[1]);
     }
   }
   
@@ -165,7 +165,7 @@ int main(int argc, char **argv)
   
   Configuration config;
   
-  configurator.load(argv[optind], &config);
+  configurator->load(argv[optind], &config);
   
   Configurable *obj = (Configurable*)config["experiment"].ptr();
   Experiment *experiment = dynamic_cast<Experiment*>(obj);
@@ -188,8 +188,11 @@ int main(int argc, char **argv)
   
   experiment->run();
   
+  NOTICE("Cleaning up");
+  
+  delete configurator;
   
   NOTICE("Exiting");
-  
+
   return 0;
 }

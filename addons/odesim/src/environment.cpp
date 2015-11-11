@@ -217,6 +217,8 @@ ODEEnvironment::~ODEEnvironment()
     
     if (app_)
       app_->exit();
+      
+    usleep(0);
   }
   
   itc::Thread::stopAndJoin();
