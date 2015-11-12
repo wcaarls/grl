@@ -83,7 +83,7 @@ void FQIPredictor::reconfigure(const Configuration &config)
   
   if (config.has("action") && config["action"].str() == "reset")
   {
-    DEBUG("Initializing transition store");
+    TRACE("Initializing transition store");
   
     transitions_.clear();
     macro_batch_counter_ = 0;

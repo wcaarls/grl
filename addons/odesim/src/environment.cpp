@@ -143,7 +143,7 @@ bool ODESTGEnvironment::configure(Configuration &config)
     return false;
   }
   
-  DEBUG("Waiting for initial STG state");
+  TRACE("Waiting for initial STG state");
     
   if (!listener_.waitForNewState())
   {
@@ -247,10 +247,13 @@ void ODEEnvironment::configure(Configuration &config)
     
   itc::Thread::start();
   
-  while (!initialized_)
+  while (init_state_ == isUninitialized)
     usleep(0);
     
   config_ = NULL;
+  
+  if (init_state_ == isError)
+    throw Exception("Could not start environment thread");
 }
 
 void ODEEnvironment::reconfigure(const Configuration &config)
@@ -266,7 +269,11 @@ void ODEEnvironment::run()
   
   env_ = new ODESTGEnvironment();
   if (!env_->configure(*config_))
-    throw Exception("Could not initialize STG ODE environment");
+  {
+    ERROR("Could not initialize STG ODE environment");
+    init_state_ = isError;
+    return;
+  }
   
   if (visualize_)
   {
@@ -275,7 +282,7 @@ void ODEEnvironment::run()
     app_ = new QApplication(argc, argv);
     ODEDialog *dialog = new ODEDialog(env_);
 
-    initialized_ = true;
+    init_state_ = isInitialized;
     
     NOTICE("Starting Qt main loop");
     app_->exec();
@@ -288,7 +295,7 @@ void ODEEnvironment::run()
     safe_delete(&app_);
   }
   else
-    initialized_ = true;
+    init_state_ = isInitialized;
  
   while (ok()) usleep(1000);
 

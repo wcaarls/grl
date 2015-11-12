@@ -59,7 +59,6 @@ bool ODESimulator::stop()
   PosixNonRealTimeThread::stop();
   // Force the loop to continue
   mEvtActuation = true;
-  //printf("[DEBUG] mEvtActuation is now %d\n", (bool)mEvtActuation);
   // Await termination
   PosixNonRealTimeThread::awaitTermination();
   return mSim.stop();

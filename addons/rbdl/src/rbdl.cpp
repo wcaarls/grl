@@ -163,8 +163,8 @@ RBDLState *RBDLDynamics::createRBDLState() const
     using namespace RigidBodyDynamics::Math;
     Body &body = rbdl->model->mBodies[i];
     SpatialRigidBodyInertia body_rbi = SpatialRigidBodyInertia::createFromMassComInertiaC(body.mMass, body.mCenterOfMass, body.mInertia);
-    DEBUG("=============== Spatial inertia of body " << i << " ===============");
-    DEBUG(body_rbi.toMatrix() << std::endl);
+    TRACE("=============== Spatial inertia of body " << i << " ===============");
+    TRACE(body_rbi.toMatrix() << std::endl);
   }
   
   NOTICE("Loaded RBDL model with " << rbdl->model->dof_count << " degrees of freedom");

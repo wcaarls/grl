@@ -104,7 +104,7 @@ void CMAOptimizer::report(size_t ii, double reward)
     memcpy(policy_->params().data(), policies_[ii]->params().data(), params_*sizeof(double));
   }
   else
-    DEBUG(policies_[ii]->params() << " = " << reward);
+    TRACE(policies_[ii]->params() << " = " << reward);
 
   // cmaes minimizes fitness
   fitness_[ii] = -reward;

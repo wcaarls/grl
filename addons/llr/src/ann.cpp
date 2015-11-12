@@ -69,7 +69,7 @@ void ANNProjector::reconfigure(const Configuration &config)
 {
   if (config.has("action") && config["action"].str() == "reset")
   {
-    DEBUG("Initializing sample store");
+    TRACE("Initializing sample store");
   
     WriteGuard guard(rwlock_);
     store_ = StorePtr(new SampleStore());
@@ -89,7 +89,7 @@ void ANNProjector::reindex()
   // Create new pruned store
   StorePtr newstore = StorePtr(store_->prune(max_samples_));
   
-  DEBUG("Building kd-tree with " << newstore->size() << " samples");
+  TRACE("Building kd-tree with " << newstore->size() << " samples");
 
   // Build new index using new store
   ANNkd_tree *newindex = new ANNkd_tree((ANNcoord**)newstore->samples(), newstore->size(), dims_, bucket_size_);
