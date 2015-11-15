@@ -35,8 +35,8 @@ class CSWModelState
 
 		// The stance leg angle is absolute (= angle with the normal to the floor)
 		// The absolute angle of the swing leg is: mStanceLegAngle - mHipAngle
-		inline double	getHipX() const						{return mStanceFootX - sin(mStanceLegAngle);}
-		inline double	getHipY() const						{return cos(mStanceLegAngle);}
+    inline double	getHipX() const             {return mStanceFootX - sin(mStanceLegAngle);}
+    inline double	getHipY() const             {return cos(mStanceLegAngle);}
 		inline double	getSwingFootX() const				{return getHipX() + sin(mStanceLegAngle - mHipAngle);}
 		inline double	getSwingFootY() const				{return getHipY() - cos(mStanceLegAngle - mHipAngle);}
 		inline virtual double	getKinEnergy() const		{return SQR(mStanceLegAngleRate)/2.0;}

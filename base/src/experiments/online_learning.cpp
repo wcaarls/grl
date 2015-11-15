@@ -110,7 +110,7 @@ void OnlineLearningExperiment::run()
       Configuration loadconfig;
       loadconfig.set("action", "load");
       loadconfig.set("file", load_file_ + "-" + std::to_string((int)rr) + "-");
-       agent_->walk(loadconfig);
+      agent_->walk(loadconfig);
     }
 
     if (!output_.empty())

@@ -38,7 +38,7 @@ class CompassWalker
 {
   public:
     enum stateIndex { siStanceLegAngle, siHipAngle, siStanceLegAngleRate, siHipAngleRate,
-                      siStanceLegChanged, siStanceFootX, siLastHipX, siTime, siPrevTime,
+                      siStanceLegChanged, siStanceFootX, siHipX, siPrevHipX, siTime, siLastTime,
                       siLastStanceLegAngle, siLastStanceLegAngleRate};
     enum stateSize  { ssStateSize = siLastStanceLegAngleRate+1};
 };

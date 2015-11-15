@@ -86,17 +86,18 @@ double CompassWalkerModel::step(const Vector &state, const Vector &action, Vecto
   (*next)[CompassWalker::siHipAngleRate] = swstate.mHipAngleRate;
   (*next)[CompassWalker::siStanceFootX] = swstate.mStanceFootX;
   (*next)[CompassWalker::siStanceLegChanged] = swstate.mStanceLegChanged;
+  (*next)[CompassWalker::siHipX] = swstate.getHipX();
   if (swstate.mStanceLegChanged)
   {
-    (*next)[CompassWalker::siLastHipX] = swstate.getHipX();
-    (*next)[CompassWalker::siPrevTime] = state[CompassWalker::siTime];
+    (*next)[CompassWalker::siPrevHipX] = swstate.getHipX();
+    (*next)[CompassWalker::siLastTime] = state[CompassWalker::siTime];
     (*next)[CompassWalker::siLastStanceLegAngle] = state[CompassWalker::siStanceLegAngle];
     (*next)[CompassWalker::siLastStanceLegAngleRate] = state[CompassWalker::siStanceLegAngleRate];
   }
   else
   {
-    (*next)[CompassWalker::siLastHipX] = state[CompassWalker::siLastHipX];
-    (*next)[CompassWalker::siPrevTime] = state[CompassWalker::siPrevTime];
+    (*next)[CompassWalker::siPrevHipX] = state[CompassWalker::siPrevHipX];
+    (*next)[CompassWalker::siLastTime] = state[CompassWalker::siLastTime];
     (*next)[CompassWalker::siLastStanceLegAngle] = state[CompassWalker::siLastStanceLegAngle];
     (*next)[CompassWalker::siLastStanceLegAngleRate] = state[CompassWalker::siLastStanceLegAngleRate];
   }
@@ -120,12 +121,12 @@ void CompassWalkerWalkTask::configure(Configuration &config)
   T_ = config["timeout"];
   initial_state_variation_ = config["initial_state_variation"];
 
-  config.set("observation_dims", 5);
-  config.set("observation_min", VectorConstructor(-M_PI/8, -M_PI/4, -M_PI, -M_PI, 0.));
-  config.set("observation_max", VectorConstructor( M_PI/8,  M_PI/4,  M_PI,  M_PI, 1.));
+  config.set("observation_dims", 4);
+  config.set("observation_min", VectorConstructor(-M_PI/8, -M_PI/4, -M_PI, -M_PI));
+  config.set("observation_max", VectorConstructor( M_PI/8,  M_PI/4,  M_PI,  M_PI));
   config.set("action_dims", 1);
-  config.set("action_min", VectorConstructor(-1.2));
-  config.set("action_max", VectorConstructor( 1.2));
+  config.set("action_min", VectorConstructor(-12));
+  config.set("action_max", VectorConstructor( 12));
   config.set("reward_min", -101);
   config.set("reward_max",  50);
 }
@@ -163,9 +164,10 @@ void CompassWalkerWalkTask::start(int test, Vector *state) const
   (*state)[CompassWalker::siHipAngleRate] = swstate.mHipAngleRate;
   (*state)[CompassWalker::siStanceFootX] = swstate.mStanceFootX;
   (*state)[CompassWalker::siStanceLegChanged] = false;
-  (*state)[CompassWalker::siLastHipX] = swstate.getHipX();
+  (*state)[CompassWalker::siHipX] = swstate.getHipX();
+  (*state)[CompassWalker::siPrevHipX] = swstate.getHipX();
   (*state)[CompassWalker::siTime] = 0;
-  (*state)[CompassWalker::siPrevTime] = 0;
+  (*state)[CompassWalker::siLastTime] = 0;
   // before impact:
   (*state)[CompassWalker::siLastStanceLegAngle] = -swstate.mStanceLegAngle;
   (*state)[CompassWalker::siLastStanceLegAngleRate] = swstate.mStanceLegAngleRate / cos(-2.0*swstate.mStanceLegAngle);
@@ -176,14 +178,14 @@ void CompassWalkerWalkTask::observe(const Vector &state, Vector *obs, int *termi
   if (state.size() != CompassWalker::ssStateSize)
     throw Exception("task/compass_walker/walk requires model/compass_walker");
 
-  obs->resize(5);
+  obs->resize(4);
   (*obs)[CompassWalker::siStanceLegAngle] = state[CompassWalker::siStanceLegAngle];
   (*obs)[CompassWalker::siHipAngle] = state[CompassWalker::siHipAngle] - 2 * state[CompassWalker::siStanceLegAngle];
   (*obs)[CompassWalker::siStanceLegAngleRate] = state[CompassWalker::siStanceLegAngleRate];
   (*obs)[CompassWalker::siHipAngleRate] = state[CompassWalker::siHipAngleRate] - 2 * state[CompassWalker::siStanceLegAngleRate];
-  (*obs)[CompassWalker::siStanceLegChanged] = state[CompassWalker::siStanceLegChanged]; // ivan: why is it in a state?
   
-  if (fabs(state[CompassWalker::siStanceLegAngle]) > M_PI/8 || fabs(state[CompassWalker::siHipAngle] - 2 * state[CompassWalker::siStanceLegAngle]) > M_PI/4)
+//  if (fabs(state[CompassWalker::siStanceLegAngle]) > M_PI/8 || fabs(state[CompassWalker::siHipAngle] - 2 * state[CompassWalker::siStanceLegAngle]) > M_PI/4)
+  if (fabs(state[CompassWalker::siStanceLegAngle]) > M_PI/4 || fabs(state[CompassWalker::siHipAngle] - 2 * state[CompassWalker::siStanceLegAngle]) > M_PI/4)
     *terminal = 2;
   else if (state[CompassWalker::siTime] > T_)
     *terminal = 1;
@@ -217,9 +219,10 @@ bool CompassWalkerWalkTask::invert(const Vector &obs, Vector *state) const
   (*state)[CompassWalker::siHipAngleRate] = obs[CompassWalker::siHipAngleRate] + 2 * obs[CompassWalker::siStanceLegAngleRate];
   (*state)[CompassWalker::siStanceLegChanged] = obs[CompassWalker::siStanceLegChanged];
   (*state)[CompassWalker::siStanceFootX] = 0;
-  (*state)[CompassWalker::siLastHipX] = 0;
+  (*state)[CompassWalker::siHipX] = 0;
+  (*state)[CompassWalker::siPrevHipX] = 0;
   (*state)[CompassWalker::siTime] = 0;
-  (*state)[CompassWalker::siPrevTime] = 0;
+  (*state)[CompassWalker::siLastTime] = 0;
   (*state)[CompassWalker::siLastStanceLegAngle] = (*state)[CompassWalker::siStanceLegAngle];
   (*state)[CompassWalker::siLastStanceLegAngleRate] = (*state)[CompassWalker::siStanceLegAngleRate];
 
@@ -233,17 +236,14 @@ void CompassWalkerVrefTask::evaluate(const Vector &state, const Vector &action, 
   if (state.size() != CompassWalker::ssStateSize || action.size() != 1 || next.size() != CompassWalker::ssStateSize)
     throw Exception("task/compass_walker/walk requires model/compass_walker");
 
-  *reward = 0;
+  // instantaneous reward for velocity
+  double velocity = (next[CompassWalker::siHipX]-state[CompassWalker::siHipX]) / (next[CompassWalker::siTime]-state[CompassWalker::siTime]);
 
-  // Calculate deviation from reference velocity
-  if (next[CompassWalker::siStanceLegChanged])
-  {
-    double velocity = 2.0*sin(next[CompassWalker::siStanceLegAngle]) / (state[CompassWalker::siTime]-state[CompassWalker::siPrevTime]);
-    // Always give a positive reward each time walker makes a step
-    *reward = fmax(1, 10 - 100.0*pow(velocity - vref_, 2));
-  }
+  // seems like a good reward
+  *reward = fmax(0, 4 - 100.0*pow(velocity - vref_, 2));
 
-  if (fabs(next[CompassWalker::siStanceLegAngle]) > M_PI/8 || fabs(next[CompassWalker::siHipAngle] - 2 * next[CompassWalker::siStanceLegAngle]) > M_PI/4)
+//  if (fabs(next[CompassWalker::siStanceLegAngle]) > M_PI/8 || fabs(next[CompassWalker::siHipAngle] - 2 * next[CompassWalker::siStanceLegAngle]) > M_PI/4)
+  if (fabs(next[CompassWalker::siStanceLegAngle]) > M_PI/4 || fabs(next[CompassWalker::siHipAngle] - 2 * next[CompassWalker::siStanceLegAngle]) > M_PI/4)
     *reward = -100;
 }
 
@@ -273,7 +273,7 @@ void CompassWalkerLcTask::evaluate(const Vector &state, const Vector &action, co
   // Calculate deviation from reference velocity
   if (next[CompassWalker::siStanceLegChanged])
   {
-    double velocity = 2.0*sin(next[CompassWalker::siStanceLegAngle]) / (state[CompassWalker::siTime]-state[CompassWalker::siPrevTime]);
+    double velocity = 2.0*sin(next[CompassWalker::siStanceLegAngle]) / (state[CompassWalker::siTime]-state[CompassWalker::siLastTime]);
     double da = state[CompassWalker::siStanceLegAngle]-state[CompassWalker::siLastStanceLegAngle];
     double dr = state[CompassWalker::siStanceLegAngleRate]-state[CompassWalker::siLastStanceLegAngleRate];
 
@@ -293,20 +293,19 @@ void CompassWalkerLcuTask::evaluate(const Vector &state, const Vector &action, c
   if (state.size() != CompassWalker::ssStateSize || action.size() != 1 || next.size() != CompassWalker::ssStateSize)
     throw Exception("task/compass_walker/walk requires model/compass_walker");
 
-  *reward = 0;
-
   // Calculate deviation from reference velocity
-  if (next[CompassWalker::siStanceLegChanged])
-  {
-    double velocity = 2.0*sin(next[CompassWalker::siStanceLegAngle]) / (state[CompassWalker::siTime]-state[CompassWalker::siPrevTime]);
-    double da = state[CompassWalker::siStanceLegAngle]-state[CompassWalker::siLastStanceLegAngle];
-    double dr = state[CompassWalker::siStanceLegAngleRate]-state[CompassWalker::siLastStanceLegAngleRate];
+//  if (next[CompassWalker::siStanceLegChanged])
+//    *reward = 30;
 
-    const double a = 100.0, b = 1000.0;
-    // Always give a positive reward each time walker makes a step
-    *reward = fmax(1, 10 - a*pow(velocity - vref_, 2) - b*(pow(da,2) + pow(dr,2)) - pow(action[0],2)) ;
-  }
+  // instantaneous reward for velocity
+  double velocity = (next[CompassWalker::siHipX]-state[CompassWalker::siHipX]) / (next[CompassWalker::siTime]-state[CompassWalker::siTime]);
 
-  if (fabs(next[CompassWalker::siStanceLegAngle]) > M_PI/8 || fabs(next[CompassWalker::siHipAngle] - 2 * next[CompassWalker::siStanceLegAngle]) > M_PI/4)
+// saam like a good reward
+  *reward = fmax(0, 4 - 100.0*pow(velocity - vref_, 2)) - 0.1*action[0]*action[0];
+//  double gamma = 0.1;
+//  *reward += 4*gamma*gamma / (gamma*gamma + pow(velocity - vref_, 2));
+
+//  if (fabs(next[CompassWalker::siStanceLegAngle]) > M_PI/8 || fabs(next[CompassWalker::siHipAngle] - 2 * next[CompassWalker::siStanceLegAngle]) > M_PI/4)
+  if (fabs(next[CompassWalker::siStanceLegAngle]) > M_PI/4 || fabs(next[CompassWalker::siHipAngle] - 2 * next[CompassWalker::siStanceLegAngle]) > M_PI/4)
     *reward = -100;
 }
