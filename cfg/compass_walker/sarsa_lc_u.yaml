@@ -5,7 +5,7 @@ experiment:
   steps: 0
   rate: 0
   test_interval: 10
-  output: walker_sarsa_lc
+  output: walker_sarsa_lc_u
   environment: 
     type: environment/modeled
     model: 
@@ -13,10 +13,10 @@ experiment:
       control_step: 0.2
       integration_steps: 20
     task: 
-      type: task/compass_walker/lc
+      type: task/compass_walker/lcu
       timeout: 100
       initial_state_variation: 0.2
-      reference_velocity: 0.3
+      reference_velocity: 0.2
   agent: 
     type: agent/td
     policy: 

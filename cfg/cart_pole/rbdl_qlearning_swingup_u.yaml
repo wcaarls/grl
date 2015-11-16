@@ -1,22 +1,23 @@
 experiment: 
   type: experiment/online_learning
   runs: 5
-  trials: 2000
+  trials: 20000
   steps: 0
   rate: 0
   test_interval: 10
-  output: walker_sarsa_lc
+  output: cartpole_qlearning_swingup_u
   environment: 
     type: environment/modeled
     model: 
-      type: model/compass_walker
-      control_step: 0.2
-      integration_steps: 20
+      type: model/dynamical
+      control_step: 0.05
+      integration_steps: 10
+      dynamics: 
+        type: dynamics/rbdl
+        file: cart_pendulum.lua
     task: 
-      type: task/compass_walker/lc
-      timeout: 100
-      initial_state_variation: 0.2
-      reference_velocity: 0.3
+      type: task/lua
+      file: cart_pendulum_swingup_u.lua
   agent: 
     type: agent/td
     policy: 
@@ -25,13 +26,13 @@ experiment:
         type: discretizer/uniform
         min: experiment/environment/task/action_min
         max: experiment/environment/task/action_max
-        steps: [3]
+        steps: [5]
       projector: 
         type: projector/tile_coding
         tilings: 16
-        memory: 8388608
-        resolution: [0.0838, 0.1047, 0.1111, 0.2222, 1.2]
-        wrapping: []
+        memory: 67108864
+        resolution: [2.5, 0.157075, 2.5, 1.57075, 15]
+        wrapping: [0, 6.283, 0, 0, 0]
       representation: 
         type: representation/parameterized/linear
         init_min: [0]
@@ -44,10 +45,12 @@ experiment:
         type: sampler/epsilon_greedy
         epsilon: 0.05
     predictor: 
-      type: predictor/sarsa
-      alpha: 0.4
-      gamma: 0.99
-      lambda: 0.92
+      type: predictor/advantage
+      alpha: 0.2
+      gamma: 0.97
+      lambda: 0.65
+      kappa: 1
+      discretizer: experiment/agent/policy/discretizer
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
       trace: 
@@ -65,8 +68,11 @@ experiment:
 visualizer: 
   type: visualizer/glut
 visualization: 
+  type: visualization/cart_pole
+  state: experiment/environment/state
+visualization2: 
   type: visualization/field/policy/value
-  field_dims: [0, 1]
+  field_dims: [0, 2]
   input_min: experiment/environment/task/observation_min
   input_max: experiment/environment/task/observation_max
   points: 65536
@@ -75,6 +81,3 @@ visualization:
   projector: experiment/agent/policy/projector
   representation: experiment/agent/policy/representation
   policy: experiment/test_agent/policy
-visualization2: 
-  type: visualization/compass_walker
-  state: experiment/environment/state
