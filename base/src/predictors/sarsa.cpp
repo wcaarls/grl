@@ -31,6 +31,7 @@ using namespace grl;
 
 REGISTER_CONFIGURABLE(SARSAPredictor)
 REGISTER_CONFIGURABLE(ExpectedSARSAPredictor)
+REGISTER_CONFIGURABLE(UncoupledSARSAPredictor)
 
 void SARSAPredictor::request(ConfigurationRequest *config)
 {
@@ -188,4 +189,54 @@ void ExpectedSARSAPredictor::finalize()
   trace_->clear();
 }
 
+void UncoupledSARSAPredictor::request(ConfigurationRequest *config)
+{
+  SARSAPredictor::request(config);
+  
+  config->push_back(CRP("update_representation", "representation.value/action", "Q-value representation used to calculate the update", update_representation_));
+}
 
+void UncoupledSARSAPredictor::configure(Configuration &config)
+{
+  SARSAPredictor::configure(config);
+  
+  update_representation_ = (Representation*)config["update_representation"].ptr();
+}
+
+void UncoupledSARSAPredictor::reconfigure(const Configuration &config)
+{
+  SARSAPredictor::reconfigure(config);
+}
+
+UncoupledSARSAPredictor *UncoupledSARSAPredictor::clone() const
+{
+  return NULL;
+}
+
+void UncoupledSARSAPredictor::update(const Transition &transition)
+{
+  Predictor::update(transition);
+
+  ProjectionPtr p = projector_->project(transition.prev_obs, transition.prev_action);
+  Vector q;
+
+  double target = transition.reward;
+  if (transition.obs.size())
+    target += gamma_*update_representation_->read(projector_->project(transition.obs, transition.action), &q);
+  double delta = target - update_representation_->read(p, &q);
+
+  // Should be just update that adds point to LLR memory  
+  representation_->read(p, &q);
+  representation_->write(p, VectorConstructor(q[0]+delta), alpha_);
+
+  // TODO: recently added point is not in trace
+  representation_->update(*trace_, VectorConstructor(alpha_*delta), gamma_*lambda_);
+  trace_->add(p, gamma_*lambda_);
+  
+  representation_->finalize();
+}
+
+void UncoupledSARSAPredictor::finalize()
+{
+  SARSAPredictor::finalize();
+}

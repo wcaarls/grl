@@ -94,6 +94,29 @@ class ExpectedSARSAPredictor : public Predictor
     virtual void finalize();
 };
 
+/// SARSA value function predictor with uncoupled prediction and update representations.
+class UncoupledSARSAPredictor : public SARSAPredictor
+{
+  public:
+    TYPEINFO("predictor/uncoupled_sarsa", "SARSA predictor with uncoupled prediction and update representations")
+
+  protected:
+    Representation *update_representation_;
+
+  public:
+    UncoupledSARSAPredictor() : SARSAPredictor(), update_representation_(NULL) { }
+  
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+    
+    // From Predictor
+    virtual UncoupledSARSAPredictor *clone() const;
+    virtual void update(const Transition &transition);
+    virtual void finalize();
+};
+
 }
 
 #endif /* GRL_SARSA_PREDICTOR_H_ */

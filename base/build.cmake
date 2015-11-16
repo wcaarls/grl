@@ -61,6 +61,7 @@ add_library(${TARGET} SHARED
             ${SRC}/representations/multisine.cpp
             ${SRC}/representations/ann.cpp
 #            ${SRC}/representations/dmp.cpp
+            ${SRC}/representations/additive.cpp
             ${SRC}/samplers/greedy.cpp
             ${SRC}/samplers/softmax.cpp
             ${SRC}/solvers/agent.cpp

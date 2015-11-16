@@ -36,7 +36,7 @@ REGISTER_CONFIGURABLE(DynaAgent)
 
 void DynaAgent::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("planning_steps", "Number of planning steps per control step", planning_steps_, CRP::Configuration, 0));
+  config->push_back(CRP("planning_steps", "Number of planning steps per control step", planning_steps_, CRP::Online, 0));
   config->push_back(CRP("planning_horizon", "Planning episode length", planning_horizon_, CRP::Configuration, 0));
   config->push_back(CRP("asynchronous", "Asynchronous planning (actual planning_steps depends on control step time and processing power)", asynchronous_, CRP::Configuration, 0, 1));
 
@@ -74,6 +74,8 @@ void DynaAgent::reconfigure(const Configuration &config)
 {
   if (config.has("action") && config["action"].str() == "reset")
     total_planned_steps_ = 0;
+    
+  config.get("planning_steps", planning_steps_);
 }
 
 DynaAgent *DynaAgent::clone() const
