@@ -36,8 +36,7 @@ using namespace grl;
 REGISTER_CONFIGURABLE(CompassWalkerModel)
 REGISTER_CONFIGURABLE(CompassWalkerWalkTask)
 REGISTER_CONFIGURABLE(CompassWalkerVrefTask)
-REGISTER_CONFIGURABLE(CompassWalkerLcTask)
-REGISTER_CONFIGURABLE(CompassWalkerLcuTask)
+REGISTER_CONFIGURABLE(CompassWalkerVrefuTask)
 // *** CompassWalkerModel ***
 
 void CompassWalkerModel::request(ConfigurationRequest *config)
@@ -125,8 +124,8 @@ void CompassWalkerWalkTask::configure(Configuration &config)
   config.set("observation_min", VectorConstructor(-M_PI/8, -M_PI/4, -M_PI, -M_PI));
   config.set("observation_max", VectorConstructor( M_PI/8,  M_PI/4,  M_PI,  M_PI));
   config.set("action_dims", 1);
-  config.set("action_min", VectorConstructor(-12));
-  config.set("action_max", VectorConstructor( 12));
+  config.set("action_min", VectorConstructor(-1.2));
+  config.set("action_max", VectorConstructor( 1.2));
   config.set("reward_min", -101);
   config.set("reward_max",  50);
 }
@@ -144,7 +143,8 @@ void CompassWalkerWalkTask::start(int test, Vector *state) const
 {
   CSWModelState swstate, initial_state;
 
-  initial_state.init(0, 0.1534, -0.1561, 2.0*0.1534, -0.0073);
+//  initial_state.init(0, 0.1534, -0.1561, 2.0*0.1534, -0.0073);
+  initial_state.init(0, 0.132513, -0.169405, 0.265026, -0.00591467);
 
   swstate.mStanceFootX = 0;
 
@@ -184,7 +184,6 @@ void CompassWalkerWalkTask::observe(const Vector &state, Vector *obs, int *termi
   (*obs)[CompassWalker::siStanceLegAngleRate] = state[CompassWalker::siStanceLegAngleRate];
   (*obs)[CompassWalker::siHipAngleRate] = state[CompassWalker::siHipAngleRate] - 2 * state[CompassWalker::siStanceLegAngleRate];
   
-//  if (fabs(state[CompassWalker::siStanceLegAngle]) > M_PI/8 || fabs(state[CompassWalker::siHipAngle] - 2 * state[CompassWalker::siStanceLegAngle]) > M_PI/4)
   if (fabs(state[CompassWalker::siStanceLegAngle]) > M_PI/4 || fabs(state[CompassWalker::siHipAngle] - 2 * state[CompassWalker::siStanceLegAngle]) > M_PI/4)
     *terminal = 2;
   else if (state[CompassWalker::siTime] > T_)
@@ -232,18 +231,22 @@ bool CompassWalkerWalkTask::invert(const Vector &obs, Vector *state) const
 // *** CompassWalkerVrefTask ***
 void CompassWalkerVrefTask::evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const
 {
-
   if (state.size() != CompassWalker::ssStateSize || action.size() != 1 || next.size() != CompassWalker::ssStateSize)
-    throw Exception("task/compass_walker/walk requires model/compass_walker");
+    throw Exception("task/compass_walker/vref requires model/compass_walker");
+
+  *reward = 0;
+
+  // Calculate deviation from reference velocity
+  //if (next[CompassWalker::siStanceLegChanged])
+  //  *reward = 1;
 
   // instantaneous reward for velocity
   double velocity = (next[CompassWalker::siHipX]-state[CompassWalker::siHipX]) / (next[CompassWalker::siTime]-state[CompassWalker::siTime]);
 
   // seems like a good reward
-  *reward = fmax(0, 4 - 100.0*pow(velocity - vref_, 2));
+  *reward += fmax(0, 4 - 100.0*pow(velocity - vref_, 2));
 
-//  if (fabs(next[CompassWalker::siStanceLegAngle]) > M_PI/8 || fabs(next[CompassWalker::siHipAngle] - 2 * next[CompassWalker::siStanceLegAngle]) > M_PI/4)
-  if (fabs(next[CompassWalker::siStanceLegAngle]) > M_PI/4 || fabs(next[CompassWalker::siHipAngle] - 2 * next[CompassWalker::siStanceLegAngle]) > M_PI/4)
+  if (fabs(next[CompassWalker::siStanceLegAngle]) > M_PI/8 || fabs(next[CompassWalker::siHipAngle] - 2 * next[CompassWalker::siStanceLegAngle]) > M_PI/4)
     *reward = -100;
 }
 
@@ -260,52 +263,16 @@ void CompassWalkerVrefTask::configure(Configuration &config)
   vref_ = config["reference_velocity"];
 }
 
-
-// *** CompassWalkerLcTask ***
-void CompassWalkerLcTask::evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const
+// *** CompassWalkerVrefuTask ***
+void CompassWalkerVrefuTask::evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const
 {
-
   if (state.size() != CompassWalker::ssStateSize || action.size() != 1 || next.size() != CompassWalker::ssStateSize)
-    throw Exception("task/compass_walker/walk requires model/compass_walker");
+    throw Exception("task/compass_walker/vrefu requires model/compass_walker");
 
-  *reward = 0;
+  CompassWalkerVrefTask::evaluate(state, action, next, reward);
 
-  // Calculate deviation from reference velocity
-  if (next[CompassWalker::siStanceLegChanged])
-  {
-    double velocity = 2.0*sin(next[CompassWalker::siStanceLegAngle]) / (state[CompassWalker::siTime]-state[CompassWalker::siLastTime]);
-    double da = state[CompassWalker::siStanceLegAngle]-state[CompassWalker::siLastStanceLegAngle];
-    double dr = state[CompassWalker::siStanceLegAngleRate]-state[CompassWalker::siLastStanceLegAngleRate];
-
-    const double a = 100.0, b = 1000.0;
-    // Always give a positive reward each time walker makes a step
-    *reward = fmax(1, 10 - a*pow(velocity - vref_, 2) - b*(pow(da,2) + pow(dr,2)));
-  }
+  *reward -= 0.01*action[0]*action[0]; // add action penalty to the reward
 
   if (fabs(next[CompassWalker::siStanceLegAngle]) > M_PI/8 || fabs(next[CompassWalker::siHipAngle] - 2 * next[CompassWalker::siStanceLegAngle]) > M_PI/4)
-    *reward = -100;
-}
-
-// *** CompassWalkerLcuTask ***
-void CompassWalkerLcuTask::evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const
-{
-
-  if (state.size() != CompassWalker::ssStateSize || action.size() != 1 || next.size() != CompassWalker::ssStateSize)
-    throw Exception("task/compass_walker/walk requires model/compass_walker");
-
-  // Calculate deviation from reference velocity
-//  if (next[CompassWalker::siStanceLegChanged])
-//    *reward = 30;
-
-  // instantaneous reward for velocity
-  double velocity = (next[CompassWalker::siHipX]-state[CompassWalker::siHipX]) / (next[CompassWalker::siTime]-state[CompassWalker::siTime]);
-
-// saam like a good reward
-  *reward = fmax(0, 4 - 100.0*pow(velocity - vref_, 2)) - 0.01*action[0]*action[0];
-//  double gamma = 0.1;
-//  *reward += 4*gamma*gamma / (gamma*gamma + pow(velocity - vref_, 2));
-
-//  if (fabs(next[CompassWalker::siStanceLegAngle]) > M_PI/8 || fabs(next[CompassWalker::siHipAngle] - 2 * next[CompassWalker::siStanceLegAngle]) > M_PI/4)
-  if (fabs(next[CompassWalker::siStanceLegAngle]) > M_PI/4 || fabs(next[CompassWalker::siHipAngle] - 2 * next[CompassWalker::siStanceLegAngle]) > M_PI/4)
     *reward = -100;
 }

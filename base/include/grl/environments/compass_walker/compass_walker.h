@@ -113,27 +113,14 @@ class CompassWalkerVrefTask : public CompassWalkerWalkTask
     virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const;
 };
 
-// Walk forward with a reference velocity task for compass walker in limit cycle.
-class CompassWalkerLcTask : public CompassWalkerVrefTask
-{
-  public:
-    TYPEINFO("task/compass_walker/lc", "Compass walker limit cycle task")
-
-  public:
-    CompassWalkerLcTask() { }
-
-    // From Task
-    virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const;
-};
-
 // Walk forward with a reference velocity task for compass walker in limit cycle and control minimization.
-class CompassWalkerLcuTask : public CompassWalkerVrefTask
+class CompassWalkerVrefuTask : public CompassWalkerVrefTask
 {
   public:
-    TYPEINFO("task/compass_walker/lcu", "Compass walker limit cycle task with control minimization")
+    TYPEINFO("task/compass_walker/vrefu", "Compass walker tracking velocity task with controls minimization")
 
   public:
-    CompassWalkerLcuTask() { }
+    CompassWalkerVrefuTask() { }
 
     // From Task
     virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const;

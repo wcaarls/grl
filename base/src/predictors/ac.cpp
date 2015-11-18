@@ -93,6 +93,7 @@ void ActionACPredictor::update(const Transition &transition)
 {
   Predictor::update(transition);
 
+  // (LLR) obtain buckets with nearest neighbours
   ProjectionPtr cp = critic_projector_->project(transition.prev_obs);
   ProjectionPtr ap = actor_projector_->project(transition.prev_obs);
   Vector v, u, delta_u, target_u;
