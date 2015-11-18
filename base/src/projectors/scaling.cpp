@@ -57,10 +57,16 @@ ScalingProjector *ScalingProjector::clone() const
 
 ProjectionPtr ScalingProjector::project(const Vector &in) const
 {
+  if (in.size() != scaling_.size())
+    throw bad_param("projector/pre/scaling:scaling");
+    
   return projector_->project(in*scaling_);
 }
 
 Matrix ScalingProjector::jacobian(const Vector &in) const
 {
+  if (in.size() != scaling_.size())
+    throw bad_param("projector/pre/scaling:scaling");
+
   return projector_->jacobian(in*scaling_)*diagonal(scaling_);
 }

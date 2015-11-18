@@ -39,6 +39,7 @@ void ANNProjector::request(const std::string &role, ConfigurationRequest *config
   config->push_back(CRP("samples", "Maximum number of samples to store", max_samples_, CRP::Configuration, 100));
   config->push_back(CRP("neighbors", "Number of neighbors to return", neighbors_, CRP::Configuration, 1, ANN_MAX_NEIGHBORS));
   config->push_back(CRP("locality", "Locality of weighing function", locality_, CRP::Configuration, 0., DBL_MAX));
+  config->push_back(CRP("interval", "Samples to accumulate before rebuilding kd-tree", interval_, CRP::Online, 1));
   config->push_back(CRP("bucket_size", "?", bucket_size_, CRP::Configuration, 1));
   config->push_back(CRP("error_bound", "?", error_bound_, CRP::Configuration, 0., DBL_MAX));
   
@@ -60,6 +61,7 @@ void ANNProjector::configure(Configuration &config)
   bucket_size_ = config["bucket_size"];
   error_bound_ = config["error_bound"];
   dims_ = config["inputs"];
+  interval_ = config["interval"];
 
   // Initialize memory
   reset();
@@ -67,6 +69,8 @@ void ANNProjector::configure(Configuration &config)
 
 void ANNProjector::reconfigure(const Configuration &config)
 {
+  config.get("interval", interval_);
+
   if (config.has("action") && config["action"].str() == "reset")
   {
     TRACE("Initializing sample store");
@@ -199,6 +203,6 @@ ProjectionPtr ANNProjector::project(const Vector &in) const
 
 void ANNProjector::finalize()
 {
-  if (store_->size() > indexed_samples_ + 10)
+  if (store_->size() >= indexed_samples_ + interval_)
     reindex();
 }
