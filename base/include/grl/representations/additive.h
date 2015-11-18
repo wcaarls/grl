@@ -41,10 +41,9 @@ class AdditiveRepresentation : public Representation
 
   protected:
     Representation* representation1_, *representation2_;
-    double weight_;
     
   public:
-    AdditiveRepresentation() : representation1_(NULL), representation2_(NULL), weight_(0.5)
+    AdditiveRepresentation() : representation1_(NULL), representation2_(NULL)
     {
     }
     

@@ -31,7 +31,7 @@ using namespace grl;
 
 REGISTER_CONFIGURABLE(SARSAPredictor)
 REGISTER_CONFIGURABLE(ExpectedSARSAPredictor)
-REGISTER_CONFIGURABLE(UncoupledSARSAPredictor)
+REGISTER_CONFIGURABLE(ShapedSARSAPredictor)
 
 void SARSAPredictor::request(ConfigurationRequest *config)
 {
@@ -189,45 +189,50 @@ void ExpectedSARSAPredictor::finalize()
   trace_->clear();
 }
 
-void UncoupledSARSAPredictor::request(ConfigurationRequest *config)
+void ShapedSARSAPredictor::request(ConfigurationRequest *config)
 {
   SARSAPredictor::request(config);
   
-  config->push_back(CRP("update_representation", "representation.value/action", "Q-value representation used to calculate the update", update_representation_));
+  config->push_back(CRP("shaping_representation", "representation.value/action", "Q-value representation for shaping rewards", shaping_representation_));
 }
 
-void UncoupledSARSAPredictor::configure(Configuration &config)
+void ShapedSARSAPredictor::configure(Configuration &config)
 {
   SARSAPredictor::configure(config);
   
-  update_representation_ = (Representation*)config["update_representation"].ptr();
+  shaping_representation_ = (Representation*)config["shaping_representation"].ptr();
 }
 
-void UncoupledSARSAPredictor::reconfigure(const Configuration &config)
+void ShapedSARSAPredictor::reconfigure(const Configuration &config)
 {
   SARSAPredictor::reconfigure(config);
 }
 
-UncoupledSARSAPredictor *UncoupledSARSAPredictor::clone() const
+ShapedSARSAPredictor *ShapedSARSAPredictor::clone() const
 {
   return NULL;
 }
 
-void UncoupledSARSAPredictor::update(const Transition &transition)
+void ShapedSARSAPredictor::update(const Transition &transition)
 {
   Predictor::update(transition);
 
-  ProjectionPtr p = projector_->project(transition.prev_obs, transition.prev_action);
+  ProjectionPtr p  = projector_->project(transition.prev_obs, transition.prev_action),
+                pp = projector_->project(transition.obs, transition.action);
   Vector q;
 
   double target = transition.reward;
   if (transition.obs.size())
-    target += gamma_*update_representation_->read(projector_->project(transition.obs, transition.action), &q);
-  double delta = target - update_representation_->read(p, &q);
+  {
+    // Shaping
+    target += gamma_*shaping_representation_->read(pp, &q) - shaping_representation_->read(p, &q);
+    
+    // Recursion
+    target += gamma_*representation_->read(pp, &q);
+  }
+  double delta = target - representation_->read(p, &q);
 
-  // Should be just update that adds point to LLR memory  
-  representation_->read(p, &q);
-  representation_->write(p, VectorConstructor(q[0]+delta), alpha_);
+  representation_->write(p, VectorConstructor(target), alpha_);
 
   // TODO: recently added point is not in trace
   representation_->update(*trace_, VectorConstructor(alpha_*delta), gamma_*lambda_);
@@ -236,7 +241,7 @@ void UncoupledSARSAPredictor::update(const Transition &transition)
   representation_->finalize();
 }
 
-void UncoupledSARSAPredictor::finalize()
+void ShapedSARSAPredictor::finalize()
 {
   SARSAPredictor::finalize();
 }

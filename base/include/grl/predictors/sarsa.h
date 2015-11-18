@@ -94,17 +94,17 @@ class ExpectedSARSAPredictor : public Predictor
     virtual void finalize();
 };
 
-/// SARSA value function predictor with uncoupled prediction and update representations.
-class UncoupledSARSAPredictor : public SARSAPredictor
+/// SARSA value function predictor with shaping rewards.
+class ShapedSARSAPredictor : public SARSAPredictor
 {
   public:
-    TYPEINFO("predictor/uncoupled_sarsa", "SARSA predictor with uncoupled prediction and update representations")
+    TYPEINFO("predictor/shaped_sarsa", "SARSA predictor with shaping rewards")
 
   protected:
-    Representation *update_representation_;
+    Representation *shaping_representation_;
 
   public:
-    UncoupledSARSAPredictor() : SARSAPredictor(), update_representation_(NULL) { }
+    ShapedSARSAPredictor() : SARSAPredictor(), shaping_representation_(NULL) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -112,7 +112,7 @@ class UncoupledSARSAPredictor : public SARSAPredictor
     virtual void reconfigure(const Configuration &config);
     
     // From Predictor
-    virtual UncoupledSARSAPredictor *clone() const;
+    virtual ShapedSARSAPredictor *clone() const;
     virtual void update(const Transition &transition);
     virtual void finalize();
 };

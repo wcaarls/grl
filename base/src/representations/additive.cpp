@@ -33,8 +33,6 @@ REGISTER_CONFIGURABLE(AdditiveRepresentation)
 
 void AdditiveRepresentation::request(const std::string &role, ConfigurationRequest *config)
 {
-  config->push_back(CRP("weight", "Relative weight of first representation", weight_, CRP::Online));
-
   config->push_back(CRP("representation1", "representation." + role, "First representation", representation1_));
   config->push_back(CRP("representation2", "representation." + role, "Second representation", representation2_));
 }
@@ -43,13 +41,10 @@ void AdditiveRepresentation::configure(Configuration &config)
 {
   representation1_ = (Representation*)config["representation1"].ptr();
   representation2_ = (Representation*)config["representation2"].ptr();
-  
-  weight_ = config["weight"];
 }
 
 void AdditiveRepresentation::reconfigure(const Configuration &config)
 {
-  config.get("weight", weight_);
 }
 
 AdditiveRepresentation *AdditiveRepresentation::clone() const
@@ -65,10 +60,10 @@ double AdditiveRepresentation::read(const ProjectionPtr &projection, Vector *res
   representation1_->read(projection, &res1, &stddev1);
   representation2_->read(projection, &res2, &stddev2);
   
-  *result = res1+res2; //weight_*res1+(1-weight_)*res2;
+  *result = res1+res2;
   
   if (stddev)
-    *stddev = stddev1+stddev2; //sqrt(weight_*stddev1+(1-weight_)*stddev2);
+    *stddev = sqrt(stddev1*stddev1+stddev2*stddev2);
   
   return (*result)[0];
 }

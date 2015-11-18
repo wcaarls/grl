@@ -2101,64 +2101,8 @@ predictor/sarsa:
     mutability: configuration
     default: 0
     optional: 0
-predictor/td:
-  description: TD value function predictor
-  importer:
-    type: importer
-    description: Optional importer for pre-training
-    mutability: configuration
-    default: 0
-    optional: 1
-  exporter:
-    type: exporter
-    description: Optional exporter for transition log (supports observation, action, reward, next_observation, next_action)
-    mutability: configuration
-    default: 0
-    optional: 1
-  alpha:
-    type: double
-    description: Learning rate
-    mutability: configuration
-    default: 0.2
-    optional: 1
-    min: 0
-    max: 1
-  gamma:
-    type: double
-    description: Discount rate
-    mutability: configuration
-    default: 0.97
-    optional: 1
-    min: 0
-    max: 1
-  lambda:
-    type: double
-    description: Trace decay rate
-    mutability: configuration
-    default: 0.65
-    optional: 1
-    min: 0
-    max: 1
-  projector:
-    type: projector.observation
-    description: Projects observations onto representation space
-    mutability: configuration
-    default: 0
-    optional: 0
-  representation:
-    type: representation.value/state
-    description: State value representation
-    mutability: configuration
-    default: 0
-    optional: 0
-  trace:
-    type: trace
-    description: Trace of projections
-    mutability: configuration
-    default: 0
-    optional: 0
-predictor/uncoupled_sarsa:
-  description: SARSA predictor with uncoupled prediction and update representations
+predictor/shaped_sarsa:
+  description: SARSA predictor with shaping rewards
   importer:
     type: importer
     description: Optional importer for pre-training
@@ -2213,9 +2157,65 @@ predictor/uncoupled_sarsa:
     mutability: configuration
     default: 0
     optional: 0
-  update_representation:
+  shaping_representation:
     type: representation.value/action
-    description: Q-value representation used to calculate the update
+    description: Q-value representation for shaping rewards
+    mutability: configuration
+    default: 0
+    optional: 0
+predictor/td:
+  description: TD value function predictor
+  importer:
+    type: importer
+    description: Optional importer for pre-training
+    mutability: configuration
+    default: 0
+    optional: 1
+  exporter:
+    type: exporter
+    description: Optional exporter for transition log (supports observation, action, reward, next_observation, next_action)
+    mutability: configuration
+    default: 0
+    optional: 1
+  alpha:
+    type: double
+    description: Learning rate
+    mutability: configuration
+    default: 0.2
+    optional: 1
+    min: 0
+    max: 1
+  gamma:
+    type: double
+    description: Discount rate
+    mutability: configuration
+    default: 0.97
+    optional: 1
+    min: 0
+    max: 1
+  lambda:
+    type: double
+    description: Trace decay rate
+    mutability: configuration
+    default: 0.65
+    optional: 1
+    min: 0
+    max: 1
+  projector:
+    type: projector.observation
+    description: Projects observations onto representation space
+    mutability: configuration
+    default: 0
+    optional: 0
+  representation:
+    type: representation.value/state
+    description: State value representation
+    mutability: configuration
+    default: 0
+    optional: 0
+  trace:
+    type: trace
+    description: Trace of projections
     mutability: configuration
     default: 0
     optional: 0
@@ -2480,14 +2480,6 @@ projector/tile_coding:
     optional: 1
 representation/additive:
   description: Linear combination of two representations
-  weight:
-    type: double
-    description: Relative weight of first representation
-    mutability: online
-    default: 0.5
-    optional: 1
-    min: 0
-    max: 1
   representation1:
     type: representation.
     description: First representation
@@ -4215,14 +4207,6 @@ projector/tile_coding.pair:
     optional: 1
 representation/additive.transition:
   description: Linear combination of two representations
-  weight:
-    type: double
-    description: Relative weight of first representation
-    mutability: online
-    default: 0.5
-    optional: 1
-    min: 0
-    max: 1
   representation1:
     type: representation.transition
     description: First representation
@@ -4648,14 +4632,6 @@ projector/tile_coding.observation:
     optional: 1
 representation/additive.action:
   description: Linear combination of two representations
-  weight:
-    type: double
-    description: Relative weight of first representation
-    mutability: online
-    default: 0.5
-    optional: 1
-    min: 0
-    max: 1
   representation1:
     type: representation.action
     description: First representation
@@ -4868,14 +4844,6 @@ discretizer/uniform.action:
     optional: 1
 representation/additive.value/action:
   description: Linear combination of two representations
-  weight:
-    type: double
-    description: Relative weight of first representation
-    mutability: online
-    default: 0.5
-    optional: 1
-    min: 0
-    max: 1
   representation1:
     type: representation.value/action
     description: First representation
@@ -5042,14 +5010,6 @@ representation/parameterized/linear.value/action:
     optional: 1
 representation/additive.value/state:
   description: Linear combination of two representations
-  weight:
-    type: double
-    description: Relative weight of first representation
-    mutability: online
-    default: 0.5
-    optional: 1
-    min: 0
-    max: 1
   representation1:
     type: representation.value/state
     description: First representation

@@ -37,7 +37,6 @@ experiment:
         wrapping: [6.283, 0, 0]
       representation: 
         type: representation/additive
-        weight: 0.5
         representation1: 
           type: representation/parameterized/linear
           init_min: [0]
@@ -58,7 +57,7 @@ experiment:
         type: sampler/epsilon_greedy
         epsilon: 0.05
     predictor: 
-      type: predictor/uncoupled_sarsa
+      type: predictor/shaped_sarsa
       alpha: 0.2
       gamma: 0.97
       lambda: 0.65
@@ -66,7 +65,7 @@ experiment:
       representation: experiment/agent/policy/representation/representation2
       trace: 
         type: trace/enumerated/replacing
-      update_representation: experiment/agent/policy/representation
+      shaping_representation: experiment/agent/policy/representation/representation1
     model: 
       type: observation_model/approximated
       jacobian_step: 0.001
@@ -81,6 +80,7 @@ experiment:
         samples: 10000
         neighbors: 12
         locality: 1
+        interval: 10
         bucket_size: 10
         error_bound: 0.1
         inputs: experiment/environment/task/observation_dims+experiment/environment/task/action_dims
