@@ -143,8 +143,8 @@ void CompassWalkerWalkTask::start(int test, Vector *state) const
 {
   CSWModelState swstate, initial_state;
 
-//  initial_state.init(0, 0.1534, -0.1561, 2.0*0.1534, -0.0073);     // default
-  initial_state.init(0, 0.132513, -0.169405, 0.265026, -0.00591467); // Vref = 0.122515153781
+  initial_state.init(0, 0.1534, -0.1561, 2.0*0.1534, -0.0073);     // default
+//  initial_state.init(0, 0.132513, -0.169405, 0.265026, -0.00591467); // Vref = 0.122515153781
 //  initial_state.init(0, 0.087248, -0.211805, 0.174496, -0.00321644);  // Vref = 0.20
 
   swstate.mStanceFootX = 0;
