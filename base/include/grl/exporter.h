@@ -34,6 +34,8 @@
 
 namespace grl {
 
+enum ExportDataType {edtLearn, edtTest, edtLearnTest};
+
 class Exporter : public Configurable
 {
   public:
@@ -60,6 +62,7 @@ class CSVExporter : public Exporter
     std::string file_;
     std::string fields_;
     std::string style_;
+    ExportDataType data_type_;
     
     std::ofstream stream_;
     std::vector<size_t> order_;

@@ -1,7 +1,7 @@
 experiment: 
   type: experiment/online_learning
-  runs: 10
-  trials: 100000
+  runs: 1
+  trials: 500000
   steps: 0
   rate: 0
   test_interval: -1
@@ -19,7 +19,7 @@ experiment:
       reference_velocity: 0.122515153781
     exporter: 
       type: exporter/csv
-      file: walker_ac_tc_vref_gen
+      file: walker_ac_tc_vref_gen-test
       style: meshup
   agent: 
     type: agent/td

@@ -46,6 +46,13 @@ void CSVExporter::configure(Configuration &config)
   file_ = config["file"].str();
   fields_ = config["fields"].str();
   style_ = config["style"].str();
+
+  if (file_.find("learn") != std::string::npos)
+    data_type_ =  ExportDataType::edtLearn;
+  else if (file_.find("test") != std::string::npos)
+    data_type_ =  ExportDataType::edtTest;
+  else
+    data_type_ =  ExportDataType::edtLearnTest;
   
   if (file_.empty())
     throw bad_param("exporter/csv:file");
@@ -113,16 +120,25 @@ void CSVExporter::init(const std::initializer_list<std::string> &headers)
 
 void CSVExporter::open(const std::string &variant, bool append)
 {
+  // check if our export objective does not coinside with exporter variant
+  if (((file_.find("learn") != std::string::npos) && (data_type_ == ExportDataType::edtTest)) ||
+    ((file_.find("test") != std::string::npos) && (data_type_ == ExportDataType::edtLearn)))
+    return;
+
+  std::string file = file_;
+  if (data_type_ == ExportDataType::edtLearnTest)
+    file = file_ + "-" + variant;
+
   if (stream_.is_open())
     stream_.close();
-    
+
   struct stat buffer;   
-  if (stat((file_+variant+".csv").c_str(), &buffer) != 0 || !buffer.st_size || !append)
+  if (stat((file+".csv").c_str(), &buffer) != 0 || !buffer.st_size || !append)
     write_header_ = true;
   else
     write_header_ = false;
     
-  stream_.open((file_+variant+".csv").c_str(), std::ofstream::out | (append?std::ofstream::app:std::ofstream::trunc));
+  stream_.open((file+".csv").c_str(), std::ofstream::out | (append?std::ofstream::app:std::ofstream::trunc));
 }
 
 void CSVExporter::write(const std::initializer_list<Vector> &vars)
