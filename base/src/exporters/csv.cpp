@@ -121,8 +121,8 @@ void CSVExporter::init(const std::initializer_list<std::string> &headers)
 void CSVExporter::open(const std::string &variant, bool append)
 {
   // check if our export objective does not coinside with exporter variant
-  if (((file_.find("learn") != std::string::npos) && (data_type_ == ExportDataType::edtTest)) ||
-    ((file_.find("test") != std::string::npos) && (data_type_ == ExportDataType::edtLearn)))
+  if ((variant == "learn" && data_type_ == ExportDataType::edtTest)  ||
+      (variant == "test"  && data_type_ == ExportDataType::edtLearn))
     return;
 
   std::string file = file_;

@@ -1,7 +1,7 @@
 experiment: 
   type: experiment/online_learning
   runs: 1
-  trials: 3
+  trials: 1
   steps: 0
   rate: 0
   test_interval: 0
@@ -13,9 +13,9 @@ experiment:
       integration_steps: 20
     task: 
       type: task/compass_walker/vref
-      timeout: 100
-      initial_state_variation: 0.0
-      reference_velocity: 0.122515153781
+      timeout: 200
+      initial_state_variation: 0.2
+      reference_velocity: 0.12
     exporter: 
       type: exporter/csv
       file: walker_ac_tc_vref_gen-test

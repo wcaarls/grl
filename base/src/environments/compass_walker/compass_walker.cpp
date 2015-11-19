@@ -124,8 +124,8 @@ void CompassWalkerWalkTask::configure(Configuration &config)
   config.set("observation_min", VectorConstructor(-M_PI/8, -M_PI/4, -M_PI, -M_PI));
   config.set("observation_max", VectorConstructor( M_PI/8,  M_PI/4,  M_PI,  M_PI));
   config.set("action_dims", 1);
-  config.set("action_min", VectorConstructor(-1.2));
-  config.set("action_max", VectorConstructor( 1.2));
+  config.set("action_min", VectorConstructor(-10));
+  config.set("action_max", VectorConstructor( 10));
   config.set("reward_min", -101);
   config.set("reward_max",  50);
 }
@@ -242,8 +242,8 @@ void CompassWalkerVrefTask::evaluate(const Vector &state, const Vector &action, 
   //  *reward = 1;
 
   // instantaneous reward for velocity
-//  double velocity = (next[CompassWalker::siHipX]-state[CompassWalker::siHipX]) / (next[CompassWalker::siTime]-state[CompassWalker::siTime]);
-  double velocity = -state[CompassWalker::siStanceLegAngleRate] * cos(state[CompassWalker::siStanceLegAngle]);
+  double velocity = (next[CompassWalker::siHipX]-state[CompassWalker::siHipX]) / (next[CompassWalker::siTime]-state[CompassWalker::siTime]);
+//  double velocity = -state[CompassWalker::siStanceLegAngleRate] * cos(state[CompassWalker::siStanceLegAngle]);
 
   // seems like a good reward
   *reward += fmax(0, 4 - 100.0*pow(velocity - vref_, 2));
