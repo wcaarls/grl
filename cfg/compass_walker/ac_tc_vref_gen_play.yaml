@@ -3,7 +3,7 @@ experiment:
   runs: 10
   trials: 1
   steps: 0
-  rate: 200
+  rate: 0
   test_interval: 0
   environment: 
     type: environment/modeled
@@ -14,8 +14,8 @@ experiment:
     task: 
       type: task/compass_walker/vref
       timeout: 200
-      initial_state_variation: 0.2
-      reference_velocity: 0.12
+      initial_state_variation: 0.0
+      reference_velocity: 0.122515153781
     exporter: 
       type: exporter/csv
       file: walker_ac_tc_vref_gen
