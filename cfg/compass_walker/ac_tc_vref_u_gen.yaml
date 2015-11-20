@@ -1,6 +1,6 @@
 experiment: 
   type: experiment/online_learning
-  runs: 1
+  runs: 5
   trials: 1000000
   steps: 0
   rate: 0

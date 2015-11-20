@@ -68,6 +68,7 @@ class CSVExporter : public Exporter
     std::vector<size_t> order_;
     std::vector<std::string> headers_;
     bool write_header_;
+    static int run_cnt_;
 
   public:
     CSVExporter() : style_("line"), write_header_(true) { }

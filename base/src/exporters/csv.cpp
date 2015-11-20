@@ -34,6 +34,8 @@ using namespace grl;
 
 REGISTER_CONFIGURABLE(CSVExporter)
 
+int CSVExporter::run_cnt_ = 0;
+
 void CSVExporter::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("file", "Output base filename", file_));
@@ -128,6 +130,7 @@ void CSVExporter::open(const std::string &variant, bool append)
   std::string file = file_;
   if (data_type_ == ExportDataType::edtLearnTest)
     file = file_ + "-" + variant;
+  file = file + "-" + std::to_string(run_cnt_);
 
   if (stream_.is_open())
     stream_.close();
@@ -137,8 +140,11 @@ void CSVExporter::open(const std::string &variant, bool append)
     write_header_ = true;
   else
     write_header_ = false;
-    
+
   stream_.open((file+".csv").c_str(), std::ofstream::out | (append?std::ofstream::app:std::ofstream::trunc));
+
+  if (!append)
+    run_cnt_++;
 }
 
 void CSVExporter::write(const std::initializer_list<Vector> &vars)
