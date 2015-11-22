@@ -31,14 +31,14 @@ experiment:
       output_max: experiment/environment/task/action_max
       projector: 
         type: projector/pre/peaked
-        peaking: [-5, -5, -5, -5]
+        peaking: [0, 0, 0, 0]
         input_min: experiment/environment/task/observation_min
         input_max: experiment/environment/task/observation_max
         projector: 
           type: projector/tile_coding
           tilings: 16
           memory: 67108864
-          resolution: [2.5, 0.157075, 2.5, 1.57075]
+          resolution: [0.5, 0.031415, 0.5, 0.523583333]
           wrapping: [0, 6.283, 0, 0]
       representation: 
         type: representation/parameterized/linear
@@ -91,5 +91,5 @@ experiment:
 visualizer: 
   type: visualizer/glut
 visualization: 
-  type: visualization/compass_walker
+  type: visualization/cart_pole
   state: experiment/environment/state
