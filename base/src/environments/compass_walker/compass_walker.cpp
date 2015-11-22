@@ -132,6 +132,7 @@ void CompassWalkerWalkTask::configure(Configuration &config)
 
 void CompassWalkerWalkTask::reconfigure(const Configuration &config)
 {
+  T_ = config["timeout"];
 }
 
 CompassWalkerWalkTask *CompassWalkerWalkTask::clone() const

@@ -122,6 +122,10 @@ void CSVExporter::init(const std::initializer_list<std::string> &headers)
 
 void CSVExporter::open(const std::string &variant, bool append)
 {
+  // close stream from previous iteration
+  if (stream_.is_open())
+    stream_.close();
+
   // check if our export objective does not coinside with exporter variant
   if ((variant == "learn" && data_type_ == ExportDataType::edtTest)  ||
       (variant == "test"  && data_type_ == ExportDataType::edtLearn))
@@ -130,10 +134,11 @@ void CSVExporter::open(const std::string &variant, bool append)
   std::string file = file_;
   if (data_type_ == ExportDataType::edtLearnTest)
     file = file_ + "-" + variant;
-  file = file + "-" + std::to_string(run_cnt_);
 
-  if (stream_.is_open())
-    stream_.close();
+  // account for 'run'
+  if (!append)
+    run_cnt_++;
+  file = file + "-" + std::to_string(run_cnt_-1);
 
   struct stat buffer;   
   if (stat((file+".csv").c_str(), &buffer) != 0 || !buffer.st_size || !append)
@@ -142,9 +147,6 @@ void CSVExporter::open(const std::string &variant, bool append)
     write_header_ = false;
 
   stream_.open((file+".csv").c_str(), std::ofstream::out | (append?std::ofstream::app:std::ofstream::trunc));
-
-  if (!append)
-    run_cnt_++;
 }
 
 void CSVExporter::write(const std::initializer_list<Vector> &vars)
