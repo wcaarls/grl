@@ -1,0 +1,82 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 3
+  trials: 500000
+  steps: 0
+  rate: 0
+  test_interval: -1
+  output: walker_qlearning_vref_gen_500
+  environment: 
+    type: environment/modeled
+    model: 
+      type: model/compass_walker
+      control_step: 0.2
+      integration_steps: 20
+    task: 
+      type: task/compass_walker/vref
+      timeout: 100
+      initial_state_variation: 0.2
+      reference_velocity: 0.12
+  agent:
+    type: agent/td
+    policy: 
+      type: policy/discrete/q
+      discretizer: 
+        type: discretizer/uniform
+        min: experiment/environment/task/action_min
+        max: experiment/environment/task/action_max
+        steps: [5]
+      projector: 
+        type: projector/tile_coding
+        tilings: 16
+        memory: 8388608
+        resolution: [0.0419, 0.0524, 0.05555, 0.1111, 10]
+        wrapping: []
+      representation: 
+        type: representation/parameterized/linear
+        init_min: [0]
+        init_max: [1]
+        memory: experiment/agent/policy/projector/memory
+        outputs: 1
+        output_min: []
+        output_max: []
+      sampler: 
+        type: sampler/epsilon_greedy
+        epsilon: 0.05
+    predictor: 
+      type: predictor/advantage
+      alpha: 0.2
+      gamma: 0.97
+      lambda: 0.65
+      kappa: 1
+      discretizer: experiment/agent/policy/discretizer
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+      trace: 
+        type: trace/enumerated/replacing
+  test_agent: 
+    type: agent/fixed
+    policy: 
+      type: policy/discrete/q
+      discretizer: experiment/agent/policy/discretizer
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+      sampler: 
+        type: sampler/greedy
+  save_every: run
+visualizer: 
+  type: visualizer/glut
+visualization: 
+  type: visualization/field/policy/value
+  field_dims: [0, 1]
+  input_min: experiment/environment/task/observation_min
+  input_max: experiment/environment/task/observation_max
+  points: 65536
+  savepoints: 1048576
+  projection: mean
+  projector: experiment/agent/policy/projector
+  representation: experiment/agent/policy/representation
+  policy: experiment/test_agent/policy
+visualization2: 
+  type: visualization/compass_walker
+  state: experiment/environment/state

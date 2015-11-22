@@ -49,9 +49,9 @@ void CSVExporter::configure(Configuration &config)
   fields_ = config["fields"].str();
   style_ = config["style"].str();
 
-  if (file_.find("learn") != std::string::npos)
+  if (file_.find("-learn") != std::string::npos)
     data_type_ =  ExportDataType::edtLearn;
-  else if (file_.find("test") != std::string::npos)
+  else if (file_.find("-test") != std::string::npos)
     data_type_ =  ExportDataType::edtTest;
   else
     data_type_ =  ExportDataType::edtLearnTest;
