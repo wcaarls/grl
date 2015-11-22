@@ -1,10 +1,11 @@
 experiment: 
   type: experiment/online_learning
   runs: 3
-  trials: 1
+  trials: 100000
   steps: 0
-  rate: 20
-  test_interval: 0
+  rate: 0
+  test_interval: -1
+  output: cartpole_ac_tc_swingup_gen_100
   environment: 
     type: environment/modeled
     model: 
@@ -16,12 +17,7 @@ experiment:
         file: cart_pendulum.lua
     task: 
       type: task/lua
-      file: cart_pendulum_swingup_rand.lua
-    exporter: 
-      type: exporter/csv
-      file: cartpole_ac_tc_swingup
-      fields: time, state, action, reward, terminal
-      style: meshup
+      file: cart_pendulum_swingup_ras_rand.lua
   agent: 
     type: agent/td
     policy: 
@@ -31,14 +27,14 @@ experiment:
       output_max: experiment/environment/task/action_max
       projector: 
         type: projector/pre/peaked
-        peaking: [0, 0, 0, 0]
+        peaking: [5, 5, 5, 5]
         input_min: experiment/environment/task/observation_min
         input_max: experiment/environment/task/observation_max
         projector: 
           type: projector/tile_coding
           tilings: 16
           memory: 67108864
-          resolution: [0.5, 0.031415, 0.5, 0.523583333]
+          resolution: [2.5, 0.157075, 2.5, 1.57075]
           wrapping: [0, 6.283, 0, 0]
       representation: 
         type: representation/parameterized/linear
@@ -86,10 +82,4 @@ experiment:
       output_max: experiment/environment/task/action_max
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
-  load_file: cartpole_ac_tc_swingup_gen
-  save_every: never
-visualizer: 
-  type: visualizer/glut
-visualization: 
-  type: visualization/cart_pole
-  state: experiment/environment/state
+  save_every: run
