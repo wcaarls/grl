@@ -29,6 +29,7 @@
 #define GRL_TRACE_H_
 
 #include <deque>
+#include <grl/mutex.h>
 #include <grl/configurable.h>
 #include <grl/projection.h>
 
@@ -149,7 +150,7 @@ class EnumeratedTrace : public Trace
       }
     };
 
-    std::deque<ProjectionDecay> projections_;
+    mutable Instance<std::deque<ProjectionDecay> > projections_;
 
   public:
     /// EnumeratedTrace iterator.
@@ -164,7 +165,7 @@ class EnumeratedTrace : public Trace
 
         virtual const ProjectionPtr projection() const
         {
-          return trace_.projections_[trace_.projections_.size()-index()-1].projection;
+          return (*trace_.projections_)[trace_.projections_->size()-index()-1].projection;
         }
 
         virtual double weight() const
@@ -175,7 +176,7 @@ class EnumeratedTrace : public Trace
       protected:
         virtual void inc()
         {
-          weight_ *= trace_.projections_[trace_.projections_.size()-index()-1].decay;
+          weight_ *= (*trace_.projections_)[trace_.projections_->size()-index()-1].decay;
           TraceIteratorImpl::inc();
         }
     };
@@ -187,18 +188,18 @@ class EnumeratedTrace : public Trace
     }
 
   public:
-    virtual size_t size() const { return projections_.size(); }
+    virtual size_t size() const { return projections_->size(); }
     virtual void add(ProjectionPtr projection, double decay=1.0) = 0;
     virtual const ProjectionPtr back() const
     {
       if (size())
-        return projections_[size()-1].projection;
+        return (*projections_)[size()-1].projection;
       else
         return ProjectionPtr();
     }
     virtual void clear()
     {
-      projections_.clear();
+      projections_->clear();
     }
 };
 
@@ -216,30 +217,29 @@ class ReplacingEnumeratedTrace : public EnumeratedTrace
   
     virtual ReplacingEnumeratedTrace *clone() const
     {
-      ReplacingEnumeratedTrace *trace = new ReplacingEnumeratedTrace();
-      for (size_t ii=0; ii < size(); ++ii)
-       trace->projections_.push_back(projections_[ii].clone());
-      return trace;
+      return new ReplacingEnumeratedTrace();
    }
 
     virtual void add(ProjectionPtr projection, double decay=1.0)
     {
+      std::deque<ProjectionDecay> *p = projections_.instance();
+    
       if (decay < 0.01)
       {
-        projections_.clear();
+        p->clear();
         total_decay_ = 1.0;
       }
     
       for (size_t ii=0; ii < size(); ++ii)
-        projections_[ii].projection->ssub(*projection);
+        (*p)[ii].projection->ssub(*projection);
 
-      projections_.push_back(ProjectionDecay(projection, decay));
+      p->push_back(ProjectionDecay(projection, decay));
       total_decay_ *= decay;
       
-      while (total_decay_ < 0.01 && projections_.size() > 1)
+      while (total_decay_ < 0.01 && p->size() > 1)
       {
-        total_decay_ /= projections_.front().decay;
-        projections_.pop_front();
+        total_decay_ /= p->front().decay;
+        p->pop_front();
       }
     }
 };
@@ -258,27 +258,26 @@ class AccumulatingEnumeratedTrace : public EnumeratedTrace
   
     virtual AccumulatingEnumeratedTrace *clone() const
     {
-      AccumulatingEnumeratedTrace *trace = new AccumulatingEnumeratedTrace();
-      for (size_t ii=0; ii < size(); ++ii)
-        trace->projections_.push_back(projections_[ii].clone());
-      return trace;
+      return new AccumulatingEnumeratedTrace();
     }
 
     virtual void add(ProjectionPtr projection, double decay=1.0)
     {
+      std::deque<ProjectionDecay> *p = projections_.instance();
+    
       if (decay < 0.01)
       {
-        projections_.clear();
+        p->clear();
         total_decay_ = 1.0;
       }
     
-      projections_.push_back(ProjectionDecay(projection, decay));
+      p->push_back(ProjectionDecay(projection, decay));
       total_decay_ *= decay;
       
-      while (total_decay_ < 0.01 && projections_.size() > 1)
+      while (total_decay_ < 0.01 && p->size() > 1)
       {
-        total_decay_ /= projections_.front().decay;
-        projections_.pop_front();
+        total_decay_ /= p->front().decay;
+        p->pop_front();
       }
     }
 };

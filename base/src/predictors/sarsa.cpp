@@ -217,13 +217,15 @@ void ShapedSARSAPredictor::update(const Transition &transition)
 {
   Predictor::update(transition);
 
-  ProjectionPtr p  = projector_->project(transition.prev_obs, transition.prev_action),
-                pp = projector_->project(transition.obs, transition.action);
+  ProjectionPtr p = projector_->project(transition.prev_obs, transition.prev_action);
+  
   Vector q;
 
   double target = transition.reward;
   if (transition.obs.size())
   {
+    ProjectionPtr pp = projector_->project(transition.obs, transition.action);
+  
     // Shaping
     target += gamma_*shaping_representation_->read(pp, &q) - shaping_representation_->read(p, &q);
     

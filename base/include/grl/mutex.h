@@ -27,6 +27,12 @@
 #ifndef GRL_MUTEX_H_
 #define GRL_MUTEX_H_
 
+#include <functional>
+#include <list>
+#include <pthread.h>
+
+#include <grl/compat.h>
+
 namespace grl {
 
 /// Object that may be locked by a Guard.
@@ -246,7 +252,7 @@ class Instance
     Factory factory_;
 
   public:
-    Instance(Factory factory) : factory_(factory)
+    Instance(Factory factory=&constructorFactory) : factory_(factory)
     {
       grl_assert(pthread_key_create(&key_, NULL)==0);
       grl_assert(pthread_mutex_init(&mutex_, NULL)==0);
@@ -282,6 +288,17 @@ class Instance
     T *operator->()
     {
       return instance();
+    }
+    
+    T &operator*()
+    {
+      return *instance();
+    }
+    
+  protected:
+    static T* constructorFactory()
+    {
+      return new T();
     }
 };   
 

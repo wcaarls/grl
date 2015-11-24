@@ -185,8 +185,16 @@ int main(int argc, char **argv)
   sigaction(SIGINT, &act, &oldact);
   
   NOTICE("Starting experiment");
-  
-  experiment->run();
+
+  try
+  {
+    experiment->run();
+  }
+  catch (Exception &e)
+  {
+    ERROR(e.what());
+    ERROR("Stack trace:\n" << e.trace());
+  }
   
   NOTICE("Cleaning up");
   
