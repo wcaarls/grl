@@ -29,8 +29,6 @@
 #include <grl/environments/compass_walker/SWModel.h>
 #include <grl/environments/compass_walker/compass_walker.h>
 
-#define SLOPE_ANGLE 0.004
-
 using namespace grl;
 
 REGISTER_CONFIGURABLE(CompassWalkerModel)
@@ -43,14 +41,16 @@ void CompassWalkerModel::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("control_step", "double.control_step", "Control step time", tau_, CRP::Configuration, 0.001, DBL_MAX));
   config->push_back(CRP("integration_steps", "Number of integration steps per control step", (int)steps_, CRP::Configuration, 1));
+  config->push_back(CRP("slope_angle", "Inclination of the slope", slope_angle_, CRP::Configuration, -DBL_MAX, DBL_MAX));
 }
 
 void CompassWalkerModel::configure(Configuration &config)
 {
   tau_ = config["control_step"];
   steps_ = config["integration_steps"];
+  slope_angle_ = config["slope_angle"];
 
-  model_.setSlopeAngle(SLOPE_ANGLE);
+  model_.setSlopeAngle(slope_angle_);
   model_.setTiming(tau_, steps_);
 }
 
@@ -149,7 +149,7 @@ void CompassWalkerWalkTask::start(int test, Vector *state) const
 //  initial_state.init(0, 0.087248, -0.211805, 0.174496, -0.00321644);  // Vref = 0.20
 
   swstate.mStanceFootX = 0;
-
+/*
   do
   {
     swstate.mStanceLegAngle     = initial_state.mStanceLegAngle     * (1.0-(initial_state_variation_) + 2.0*initial_state_variation_*drand48());
@@ -158,7 +158,7 @@ void CompassWalkerWalkTask::start(int test, Vector *state) const
     swstate.mHipAngleRate       = initial_state.mHipAngleRate       * (1.0-(initial_state_variation_) + 2.0*initial_state_variation_*drand48());
   }
   while (swstate.getKinEnergy() + swstate.getHipY()*cos(SLOPE_ANGLE) < cos(SLOPE_ANGLE));
-
+*/
   state->resize(CompassWalker::ssStateSize);
   (*state)[CompassWalker::siStanceLegAngle] = swstate.mStanceLegAngle;
   (*state)[CompassWalker::siHipAngle] = swstate.mHipAngle;
@@ -248,6 +248,7 @@ void CompassWalkerVrefTask::evaluate(const Vector &state, const Vector &action, 
 
   // seems like a good reward
   *reward += fmax(0, 4 - 100.0*pow(velocity - vref_, 2));
+//  *reward += -100.0*pow(velocity - vref_, 2);
 
   if (fabs(next[CompassWalker::siStanceLegAngle]) > M_PI/8 || fabs(next[CompassWalker::siHipAngle] - 2 * next[CompassWalker::siStanceLegAngle]) > M_PI/4)
     *reward = -100;

@@ -14,8 +14,9 @@ if (p_friction == nil) then
 end
 
 function control(state, action)
-    -- mprl uses different parameters, multiply controls.
-    return {action[0] - p_friction, 0}
+    -- Friction always works in an opposite direction
+--    return {action[0] - copysign(p_friction, action[0]), 0} -- copysign returns a value whose absolute value matches that of x, but whose sign bit matches that of y.
+    return {action[0], 0}
 end
 
 function get_point_by_name (container, name)

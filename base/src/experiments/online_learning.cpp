@@ -130,7 +130,8 @@ void OnlineLearningExperiment::run()
 
       Agent *agent = agent_;      
       if (test) agent = test_agent_;
-      
+
+/*
       // Make test timeout 2 times longer for the simplest walker
       if (!test)
       {
@@ -146,7 +147,7 @@ void OnlineLearningExperiment::run()
         timeoutConfig.set("timeout", "200");
         environment_->walk(timeoutConfig);
       }
-
+*/
       environment_->start(test, &obs);
       agent->start(obs, &action);
       state_->set(obs);

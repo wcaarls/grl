@@ -10,7 +10,7 @@
 -- Helper functions
 
 -- Set the following values to enable reward shaping
-reward_shaping = true
+reward_shaping = false
 shaping_gamma = 1.00
 
 -- Set the following value to enable termination on swingup

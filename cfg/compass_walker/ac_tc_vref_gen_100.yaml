@@ -25,7 +25,7 @@ experiment:
     type: agent/td
     policy: 
       type: policy/action
-      sigma: [0.48]
+      sigma: [0.5]
       output_min: experiment/environment/task/action_min
       output_max: experiment/environment/task/action_max
       projector: 
@@ -44,10 +44,10 @@ experiment:
         output_max: experiment/environment/task/action_max
     predictor: 
       type: predictor/ac/action
-      alpha: 0.2
+      alpha: 0.1
       beta: 0.01
       gamma: 0.97
-      lambda: 0.65
+      lambda: 0.85
       critic_projector: 
         type: projector/tile_coding
         tilings: experiment/agent/policy/projector/tilings
