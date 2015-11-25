@@ -156,8 +156,8 @@ void FQIPredictor::reconfigure(const Configuration &config)
     fileOutStream.write(reinterpret_cast<const char*>(&count_action),	sizeof(size_t));
     // prepare dymmy symbols to obay format
     Vector dummy_obs, dummy_action;
-    dummy_obs.resize(count_obs, std::numeric_limits<double>::signaling_NaN());
-    dummy_action.resize(count_action, std::numeric_limits<double>::signaling_NaN());
+    dummy_obs = ConstantVector(count_obs, std::numeric_limits<double>::signaling_NaN());
+    dummy_action = ConstantVector(count_action, std::numeric_limits<double>::signaling_NaN());
     for (unsigned int i = 0; i < count; i++)
     {
       fileOutStream.write(reinterpret_cast<const char*>(&(transitions_[i].transition.prev_obs[0])), count_obs*sizeof(double));
