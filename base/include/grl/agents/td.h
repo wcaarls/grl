@@ -31,6 +31,7 @@
 #include <grl/agent.h>
 #include <grl/policy.h>
 #include <grl/predictor.h>
+#include <grl/mutex.h>
 
 namespace grl
 {
@@ -41,15 +42,20 @@ class TDAgent : public Agent
   public:
     TYPEINFO("agent/td", "Agent that learns from observed state transitions")
 
+    struct TDAgentState
+    {
+      double time;
+      Vector prev_obs, prev_action;
+    };
+
   protected:
     Policy *policy_;
     Predictor *predictor_;
     
-    Vector prev_obs_, prev_action_;
-    double time_;
+    Instance<TDAgentState> agent_state_;
     
   public:
-    TDAgent() : policy_(NULL), predictor_(NULL), time_(0.) { }
+    TDAgent() : policy_(NULL), predictor_(NULL) { }
   
     // From Configurable    
     virtual void request(ConfigurationRequest *config);
