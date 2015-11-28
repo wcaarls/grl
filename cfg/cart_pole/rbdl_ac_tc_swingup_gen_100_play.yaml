@@ -1,6 +1,6 @@
 experiment: 
   type: experiment/online_learning
-  runs: 3
+  runs: 10
   trials: 1
   steps: 0
   rate: 20
@@ -26,7 +26,7 @@ experiment:
     type: agent/td
     policy: 
       type: policy/action
-      sigma: [90]
+      sigma: [10]
       output_min: experiment/environment/task/action_min
       output_max: experiment/environment/task/action_max
       projector: 
@@ -51,8 +51,8 @@ experiment:
     predictor: 
       type: predictor/ac/action
       alpha: 0.2
-      beta: 0.01
-      gamma: 0.9999
+      beta: 0.02
+      gamma: 1.0
       lambda: 0.65
       critic_projector: 
         type: projector/pre/peaked
@@ -86,7 +86,7 @@ experiment:
       output_max: experiment/environment/task/action_max
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
-  load_file: cartpole_ac_tc_swingup_gen_100
+  load_file: cartpole_ac_tc_swingup_gen_100-run$run
   save_every: never
 visualizer: 
   type: visualizer/glut

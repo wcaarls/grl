@@ -104,15 +104,6 @@ void OnlineLearningExperiment::run()
 
   for (size_t rr=0; rr < runs_; ++rr)
   {
-    // Load policy/store
-    if (!load_file_.empty())
-    {
-      Configuration loadconfig;
-      loadconfig.set("action", "load");
-      loadconfig.set("file", load_file_ + "-" + std::to_string((int)rr) + "-");
-      agent_->walk(loadconfig);
-    }
-
     if (!output_.empty())
     {
       std::ostringstream oss;
@@ -122,6 +113,37 @@ void OnlineLearningExperiment::run()
     
     for (size_t ss=0, tt=0; (!trials_ || tt < trials_) && (!steps_ || ss < steps_); ++tt)
     { 
+      // Load policy
+      if (!load_file_.empty())
+      {
+        // calculate number of variables
+        int var_count = 0;
+        for (size_t offset = load_file_.find("$"); offset != std::string::npos; offset = load_file_.find("$", offset + 1))
+          var_count++;
+        std::string load_file = load_file_ + "-";
+        switch(var_count)
+        {
+        case 1:   // reload policy every run, increment $run variable
+          str_replace(load_file, "$run", std::to_string((int)rr));
+          break;
+        case 2:   // reload policy every trail, increment $run and $trail variables
+          str_replace(load_file, "$run", std::to_string((int)rr));
+          str_replace(load_file, "$trail", std::to_string((int)tt));
+          break;
+        default:  // reload policy every run, but always use the same one
+          break;
+        }
+
+        if ( (((var_count == 0) || (var_count == 1)) && (tt == 0)) || var_count == 2)
+        {
+          std::cout << "Loading policy: " << load_file << std::endl;
+          Configuration loadconfig;
+          loadconfig.set("action", "load");
+          loadconfig.set("file", load_file );
+          agent_->walk(loadconfig);
+        }
+      }
+
       Vector obs, action;
       double reward, total_reward=0;
       int terminal;
@@ -131,23 +153,6 @@ void OnlineLearningExperiment::run()
       Agent *agent = agent_;      
       if (test) agent = test_agent_;
 
-/*
-      // Make test timeout 2 times longer for the simplest walker
-      if (!test)
-      {
-        // learn
-        Configuration timeoutConfig;
-        timeoutConfig.set("timeout", "100");
-        environment_->walk(timeoutConfig);
-      }
-      else
-      {
-        // test
-        Configuration timeoutConfig;
-        timeoutConfig.set("timeout", "200");
-        environment_->walk(timeoutConfig);
-      }
-*/
       environment_->start(test, &obs);
       agent->start(obs, &action);
       state_->set(obs);
@@ -207,11 +212,11 @@ void OnlineLearningExperiment::run()
           ofs << oss.str() << std::endl;
       }
 
-      // Save policy/store every trial or every test trial
+      // Store policy every trial or every test trial
       if (((save_every_ == "trial") || (test && save_every_ == "test")) && !output_.empty() )
       {
         std::ostringstream oss;
-        oss << output_ << "-" << rr << "-" << ss << "-";
+        oss << output_ << "-run" << rr << "-trial" << tt << "-";
         Configuration saveconfig;
         saveconfig.set("action", "save");
         saveconfig.set("file", oss.str().c_str());
@@ -219,11 +224,11 @@ void OnlineLearningExperiment::run()
       }
     }
     
-    // Save policy/store every run
+    // Store policy every run
     if (save_every_ == "run" && !output_.empty())
     {
       std::ostringstream oss;
-      oss << output_ << "-" << rr << "-";
+      oss << output_ << "-run" << rr << "-";
       Configuration saveconfig;
       saveconfig.set("action", "save");
       saveconfig.set("file", oss.str().c_str());

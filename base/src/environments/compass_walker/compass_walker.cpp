@@ -41,7 +41,7 @@ void CompassWalkerModel::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("control_step", "double.control_step", "Control step time", tau_, CRP::Configuration, 0.001, DBL_MAX));
   config->push_back(CRP("integration_steps", "Number of integration steps per control step", (int)steps_, CRP::Configuration, 1));
-  config->push_back(CRP("slope_angle", "Inclination of the slope", slope_angle_, CRP::Configuration, -DBL_MAX, DBL_MAX));
+  config->push_back(CRP("slope_angle", "double.slope_angle", "Inclination of the slope", slope_angle_, CRP::Configuration, -DBL_MAX, DBL_MAX));
 }
 
 void CompassWalkerModel::configure(Configuration &config)
@@ -111,14 +111,16 @@ void CompassWalkerWalkTask::request(ConfigurationRequest *config)
 {
   Task::request(config);
 
-  config->push_back(CRP("timeout", "Episode timeout", T_, CRP::Configuration, 0., DBL_MAX));
+  config->push_back(CRP("timeout", "Learning episode timeout", T_, CRP::Configuration, 0., DBL_MAX));
   config->push_back(CRP("initial_state_variation", "Variation of initial state", initial_state_variation_, CRP::Configuration, 0., DBL_MAX));
+  config->push_back(CRP("slope_angle", "double.slope_angle", "Inclination of the slope", slope_angle_, CRP::System, -DBL_MAX, DBL_MAX));
 }
 
 void CompassWalkerWalkTask::configure(Configuration &config)
 {
   T_ = config["timeout"];
   initial_state_variation_ = config["initial_state_variation"];
+  slope_angle_ = config["slope_angle"];
 
   config.set("observation_dims", 4);
   config.set("observation_min", VectorConstructor(-M_PI/8, -M_PI/4, -M_PI, -M_PI));
@@ -132,7 +134,6 @@ void CompassWalkerWalkTask::configure(Configuration &config)
 
 void CompassWalkerWalkTask::reconfigure(const Configuration &config)
 {
-  T_ = config["timeout"];
 }
 
 CompassWalkerWalkTask *CompassWalkerWalkTask::clone() const
@@ -149,7 +150,7 @@ void CompassWalkerWalkTask::start(int test, Vector *state) const
 //  initial_state.init(0, 0.087248, -0.211805, 0.174496, -0.00321644);  // Vref = 0.20
 
   swstate.mStanceFootX = 0;
-/*
+
   do
   {
     swstate.mStanceLegAngle     = initial_state.mStanceLegAngle     * (1.0-(initial_state_variation_) + 2.0*initial_state_variation_*drand48());
@@ -157,8 +158,8 @@ void CompassWalkerWalkTask::start(int test, Vector *state) const
     swstate.mStanceLegAngleRate = initial_state.mStanceLegAngleRate * (1.0-(initial_state_variation_) + 2.0*initial_state_variation_*drand48());
     swstate.mHipAngleRate       = initial_state.mHipAngleRate       * (1.0-(initial_state_variation_) + 2.0*initial_state_variation_*drand48());
   }
-  while (swstate.getKinEnergy() + swstate.getHipY()*cos(SLOPE_ANGLE) < cos(SLOPE_ANGLE));
-*/
+  while (swstate.getKinEnergy() + swstate.getHipY()*cos(slope_angle_) < cos(slope_angle_));
+
   state->resize(CompassWalker::ssStateSize);
   (*state)[CompassWalker::siStanceLegAngle] = swstate.mStanceLegAngle;
   (*state)[CompassWalker::siHipAngle] = swstate.mHipAngle;
@@ -173,6 +174,11 @@ void CompassWalkerWalkTask::start(int test, Vector *state) const
   // before impact:
   (*state)[CompassWalker::siLastStanceLegAngle] = -swstate.mStanceLegAngle;
   (*state)[CompassWalker::siLastStanceLegAngleRate] = swstate.mStanceLegAngleRate / cos(-2.0*swstate.mStanceLegAngle);
+
+  if (test)
+    timeout_ = 2*T_;
+  else
+    timeout_ = T_;
 }
 
 void CompassWalkerWalkTask::observe(const Vector &state, Vector *obs, int *terminal) const
@@ -188,7 +194,7 @@ void CompassWalkerWalkTask::observe(const Vector &state, Vector *obs, int *termi
   
   if (fabs(state[CompassWalker::siStanceLegAngle]) > M_PI/4 || fabs(state[CompassWalker::siHipAngle] - 2 * state[CompassWalker::siStanceLegAngle]) > M_PI/4)
     *terminal = 2;
-  else if (state[CompassWalker::siTime] > T_)
+  else if (state[CompassWalker::siTime] > timeout_)
     *terminal = 1;
   else
     *terminal = 0;

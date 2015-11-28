@@ -11,10 +11,12 @@ experiment:
       type: model/compass_walker
       control_step: 0.2
       integration_steps: 20
+      slope_angle: 0.030
     task: 
       type: task/compass_walker/vref
-      timeout: 200
+      timeout: 100
       initial_state_variation: 0.2
+      slope_angle: experiment/environment/model/slope_angle
       reference_velocity: 0.12
     exporter: 
       type: exporter/csv
@@ -43,10 +45,10 @@ experiment:
         output_max: experiment/environment/task/action_max
     predictor: 
       type: predictor/ac/action
-      alpha: 0.1
+      alpha: 0.2
       beta: 0.01
       gamma: 0.97
-      lambda: 0.85
+      lambda: 0.65
       critic_projector: 
         type: projector/tile_coding
         tilings: experiment/agent/policy/projector/tilings
@@ -74,7 +76,7 @@ experiment:
       output_max: experiment/environment/task/action_max
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
-  load_file: walker_ac_tc_vref_gen_100
+  load_file: walker_ac_tc_vref_gen_100-run$run
   save_every: never
 visualizer: 
   type: visualizer/glut

@@ -50,7 +50,8 @@ class CompassWalkerModel : public Model
     TYPEINFO("model/compass_walker", "Simplest walker model from Garcia et al.")
     
   protected:
-    double tau_, slope_angle_;
+    double tau_;
+    double slope_angle_;
     size_t steps_;
     CSWModel model_;
     
@@ -75,10 +76,12 @@ class CompassWalkerWalkTask : public Task
   
   protected:
     double T_;
+    mutable double timeout_;
     double initial_state_variation_;
+    double slope_angle_;
 
   public:
-    CompassWalkerWalkTask() : T_(100), initial_state_variation_(0.2){ }
+    CompassWalkerWalkTask() : T_(100), initial_state_variation_(0.2), slope_angle_(0.004){ }
     
     // From Configurable
     virtual void request(ConfigurationRequest *config);

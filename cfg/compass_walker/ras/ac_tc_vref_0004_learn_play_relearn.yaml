@@ -1,12 +1,11 @@
 experiment: 
   type: experiment/online_learning
-  runs: 3
-  trials: 500000
+  runs: 10
+  trials: 10001
   steps: 0
   rate: 0
-  test_interval: -1
-  output: walker_ac_tc_vref_gen
-  environment: 
+  test_interval: 10000
+  environment:
     type: environment/modeled
     model: 
       type: model/compass_walker
@@ -21,7 +20,7 @@ experiment:
       reference_velocity: 0.12
     exporter: 
       type: exporter/csv
-      file: walker_ac_tc_vref_gen-test
+      file: ???
       style: meshup
   agent: 
     type: agent/td
@@ -77,7 +76,8 @@ experiment:
       output_max: experiment/environment/task/action_max
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
-  save_every: run
+  load_file: ???
+  save_every: never
 visualizer: 
   type: visualizer/glut
 visualization: 
