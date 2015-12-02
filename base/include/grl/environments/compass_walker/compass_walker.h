@@ -40,6 +40,9 @@ class CompassWalker
     enum stateIndex { siStanceLegAngle, siHipAngle, siStanceLegAngleRate, siHipAngleRate,
                       siStanceLegChanged, siStanceFootX, siHipX, siPrevHipX, siTime, siLastTime,
                       siLastStanceLegAngle, siLastStanceLegAngleRate};
+
+    enum observationIndex { oiStanceLegAngle, oiHipAngle, oiStanceLegAngleRate, oiHipAngleRate, oiHipAvgVelocity};
+
     enum stateSize  { ssStateSize = siLastStanceLegAngleRate+1};
 };
 
@@ -54,7 +57,7 @@ class CompassWalkerModel : public Model
     double slope_angle_;
     size_t steps_;
     CSWModel model_;
-    
+
   public:
     CompassWalkerModel() : tau_(0.2), steps_(20), slope_angle_(0.004) { }
   
@@ -79,9 +82,11 @@ class CompassWalkerWalkTask : public Task
     mutable double timeout_;
     double initial_state_variation_;
     double slope_angle_;
+    mutable std::deque<double> hip_velocity_;
+    mutable double hip_avg_velocity_;
 
   public:
-    CompassWalkerWalkTask() : T_(100), initial_state_variation_(0.2), slope_angle_(0.004){ }
+    CompassWalkerWalkTask() : T_(100), initial_state_variation_(0.2), slope_angle_(0.004), hip_avg_velocity_(0){ }
     
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -113,6 +118,7 @@ class CompassWalkerVrefTask : public CompassWalkerWalkTask
     virtual void configure(Configuration &config);
 
     // From Task
+    virtual void start(int test, Vector *state) const;
     virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const;
 };
 
