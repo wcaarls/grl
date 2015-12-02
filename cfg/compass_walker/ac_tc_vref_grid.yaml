@@ -27,7 +27,7 @@ experiment:
     type: agent/td
     policy: 
       type: policy/action
-      sigma: [0.48]
+      sigma: [0.5]
       output_min: experiment/environment/task/action_min
       output_max: experiment/environment/task/action_max
       projector: 
