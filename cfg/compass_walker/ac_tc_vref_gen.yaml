@@ -18,7 +18,7 @@ experiment:
       timeout: 100
       initial_state_variation: 0.2
       slope_angle: experiment/environment/model/slope_angle
-      reference_velocity: 0.12
+      reference_velocity: 0.22
     exporter: 
       type: exporter/csv
       file: walker_ac_tc_vref_gen-test

@@ -226,10 +226,7 @@ void CompassWalkerWalkTask::observe(const Vector &state, Vector *obs, int *termi
 
   if (*terminal)
   {
-    std::cout << hip_velocity_per_step_.size() << ": " << hip_avg_velocity_ << std::endl;
-//    for (int i = 1; i < fmin(8, hip_velocity_.size()); ++i)
-//        std::cout << std::setw(8) << hip_velocity_[hip_velocity_.size()-i] << " ";
-//   std::cout << std::endl;
+//    std::cout << hip_velocity_per_step_.size() << ": " << hip_avg_velocity_ << std::endl;
   }
 }
 
@@ -293,13 +290,14 @@ void CompassWalkerVrefTask::evaluate(const Vector &state, const Vector &action, 
 //    *reward = 30;
 
   // instantaneous reward for velocity
-  double velocity = (next[CompassWalker::siHipX]-state[CompassWalker::siHipX]) / (next[CompassWalker::siTime]-state[CompassWalker::siTime]);
-//  double velocity = -state[CompassWalker::siStanceLegAngleRate] * cos(state[CompassWalker::siStanceLegAngle]);
+//  double velocity = (next[CompassWalker::siHipX]-state[CompassWalker::siHipX]) / (next[CompassWalker::siTime]-state[CompassWalker::siTime]);
+  double velocity = -state[CompassWalker::siStanceLegAngleRate] * cos(state[CompassWalker::siStanceLegAngle]);
 
   // seems like a good reward
   *reward += fmax(0, 4 - 100.0*pow(velocity - vref_, 2));
 //  *reward += -100.0*pow(velocity - vref_, 2);
 
+  std::cout << vref_ << std::endl;
 //  *reward += 0.1*fmax(0, 4 - 100.0*pow(hip_avg_velocity_ - vref_, 2));
 
   if (fabs(next[CompassWalker::siStanceLegAngle]) > M_PI/8 || fabs(next[CompassWalker::siHipAngle] - 2 * next[CompassWalker::siStanceLegAngle]) > M_PI/4)
