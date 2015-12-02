@@ -297,7 +297,7 @@ void CompassWalkerVrefTask::evaluate(const Vector &state, const Vector &action, 
   *reward += fmax(0, 4 - 100.0*pow(velocity - vref_, 2));
 //  *reward += -100.0*pow(velocity - vref_, 2);
 
-  std::cout << vref_ << std::endl;
+//  std::cout << vref_ << std::endl;
 //  *reward += 0.1*fmax(0, 4 - 100.0*pow(hip_avg_velocity_ - vref_, 2));
 
   if (fabs(next[CompassWalker::siStanceLegAngle]) > M_PI/8 || fabs(next[CompassWalker::siHipAngle] - 2 * next[CompassWalker::siStanceLegAngle]) > M_PI/4)
