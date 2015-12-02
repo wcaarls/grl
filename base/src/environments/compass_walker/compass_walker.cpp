@@ -291,7 +291,7 @@ void CompassWalkerVrefTask::evaluate(const Vector &state, const Vector &action, 
   // Calculate deviation from reference velocity
 //  if (next[CompassWalker::siStanceLegChanged])
 //    *reward = 30;
-/*
+
   // instantaneous reward for velocity
   double velocity = (next[CompassWalker::siHipX]-state[CompassWalker::siHipX]) / (next[CompassWalker::siTime]-state[CompassWalker::siTime]);
 //  double velocity = -state[CompassWalker::siStanceLegAngleRate] * cos(state[CompassWalker::siStanceLegAngle]);
@@ -299,9 +299,8 @@ void CompassWalkerVrefTask::evaluate(const Vector &state, const Vector &action, 
   // seems like a good reward
   *reward += fmax(0, 4 - 100.0*pow(velocity - vref_, 2));
 //  *reward += -100.0*pow(velocity - vref_, 2);
-*/
 
-  *reward += 0.1*fmax(0, 4 - 100.0*pow(hip_avg_velocity_ - vref_, 2));
+//  *reward += 0.1*fmax(0, 4 - 100.0*pow(hip_avg_velocity_ - vref_, 2));
 
   if (fabs(next[CompassWalker::siStanceLegAngle]) > M_PI/8 || fabs(next[CompassWalker::siHipAngle] - 2 * next[CompassWalker::siStanceLegAngle]) > M_PI/4)
     *reward = -100;
