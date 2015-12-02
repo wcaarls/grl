@@ -195,14 +195,27 @@ void CompassWalkerWalkTask::observe(const Vector &state, Vector *obs, int *termi
   (*obs)[CompassWalker::oiStanceLegAngleRate] = state[CompassWalker::siStanceLegAngleRate];
   (*obs)[CompassWalker::oiHipAngleRate] = state[CompassWalker::siHipAngleRate] - 2 * state[CompassWalker::siStanceLegAngleRate];
 
-  double velocity = -state[CompassWalker::siStanceLegAngleRate] * cos(state[CompassWalker::siStanceLegAngle]);
-  hip_velocity_.push_back(velocity);
-  if (hip_velocity_.size() > 500)
-    hip_velocity_.pop_front();
+  if (state[CompassWalker::siStanceLegChanged])
+  {
+    // First, calculate average velocity of a step
+    double sum = std::accumulate(hip_instant_velocity_.begin(), hip_instant_velocity_.end(), 0.0);
+    double velocity_per_step = sum / hip_instant_velocity_.size();
 
-  double sum = std::accumulate(hip_velocity_.begin(), hip_velocity_.end(), 0.0);
-  hip_avg_velocity_ = sum / hip_velocity_.size();
+    // Second, add new value of the average velocity of a step to a vector with previous steps averages
+    hip_velocity_per_step_.push_back(velocity_per_step);
+    if (hip_velocity_per_step_.size() >= 2)
+      hip_velocity_per_step_.pop_front();
+    sum = std::accumulate(hip_velocity_per_step_.begin(), hip_velocity_per_step_.end(), 0.0);
+    hip_avg_velocity_ = sum / hip_velocity_per_step_.size();
+
+    // Lastly
+    hip_instant_velocity_.clear();
+  }
+
   (*obs)[CompassWalker::oiHipAvgVelocity] = hip_avg_velocity_;
+
+  double velocity = -state[CompassWalker::siStanceLegAngleRate] * cos(state[CompassWalker::siStanceLegAngle]);
+  hip_instant_velocity_.push_back(velocity);
   
   if (fabs(state[CompassWalker::siStanceLegAngle]) > M_PI/8 || fabs(state[CompassWalker::siHipAngle] - 2 * state[CompassWalker::siStanceLegAngle]) > M_PI/4)
     *terminal = 2;
@@ -213,10 +226,10 @@ void CompassWalkerWalkTask::observe(const Vector &state, Vector *obs, int *termi
 
   if (*terminal)
   {
-    std::cout << hip_velocity_.size() << ": " << hip_avg_velocity_ << std::endl;
-    for (int i = 1; i < fmin(8, hip_velocity_.size()); ++i)
-        std::cout << std::setw(8) << hip_velocity_[hip_velocity_.size()-i] << " ";
-    std::cout << std::endl;
+    std::cout << hip_velocity_per_step_.size() << ": " << hip_avg_velocity_ << std::endl;
+//    for (int i = 1; i < fmin(8, hip_velocity_.size()); ++i)
+//        std::cout << std::setw(8) << hip_velocity_[hip_velocity_.size()-i] << " ";
+//   std::cout << std::endl;
   }
 }
 
@@ -263,8 +276,9 @@ void CompassWalkerVrefTask::start(int test, Vector *state) const
 //  hip_avg_velocity_ = vref_;
 //  hip_velocity_.assign (30, vref_);
 
-  hip_avg_velocity_ = 0;
-  hip_velocity_.clear();
+  hip_avg_velocity_ = 0.05;
+  hip_velocity_per_step_.clear();
+  hip_instant_velocity_.clear();
 }
 
 void CompassWalkerVrefTask::evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const

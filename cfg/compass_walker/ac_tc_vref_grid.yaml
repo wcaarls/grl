@@ -1,7 +1,7 @@
 experiment: 
   type: experiment/online_learning
   runs: 1
-  trials: 500005
+  trials: 300003
   steps: 0
   rate: 0
   test_interval: 100000
@@ -34,7 +34,7 @@ experiment:
         type: projector/tile_coding
         tilings: 16
         memory: 67108864
-        resolution: [0.0419, 0.0524, 0.05555, 0.1111]
+        resolution: [0.0419, 0.0524, 0.05555, 0.1111, 0.01]
         wrapping: []
       representation: 
         type: representation/parameterized/linear

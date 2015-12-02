@@ -82,7 +82,7 @@ class CompassWalkerWalkTask : public Task
     mutable double timeout_;
     double initial_state_variation_;
     double slope_angle_;
-    mutable std::deque<double> hip_velocity_;
+    mutable std::deque<double> hip_velocity_per_step_, hip_instant_velocity_;
     mutable double hip_avg_velocity_;
 
   public:
