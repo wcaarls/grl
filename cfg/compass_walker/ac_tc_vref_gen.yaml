@@ -1,7 +1,7 @@
 experiment: 
   type: experiment/online_learning
   runs: 1
-  trials: 300000
+  trials: 200000
   steps: 0
   rate: 0
   test_interval: -1
@@ -12,7 +12,7 @@ experiment:
       type: model/compass_walker
       control_step: 0.2
       integration_steps: 20
-      slope_angle: 0.012
+      slope_angle: 0.004
     task: 
       type: task/compass_walker/vref
       timeout: 100
