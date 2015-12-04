@@ -151,6 +151,7 @@ class EnumeratedTrace : public Trace
     };
 
     mutable Instance<std::deque<ProjectionDecay> > projections_;
+    mutable Instance<double> total_decay_;
 
   public:
     /// EnumeratedTrace iterator.
@@ -186,8 +187,14 @@ class EnumeratedTrace : public Trace
     {
       return new EnumeratedTraceIteratorImpl(*this, it);
     }
+    
+    static double *oneConstructor()
+    {
+      return new double(1.);
+    }
 
   public:
+    EnumeratedTrace() : total_decay_(&EnumeratedTrace::oneConstructor) { }
     virtual size_t size() const { return projections_->size(); }
     virtual void add(ProjectionPtr projection, double decay=1.0) = 0;
     virtual const ProjectionPtr back() const
@@ -200,6 +207,7 @@ class EnumeratedTrace : public Trace
     virtual void clear()
     {
       projections_->clear();
+      *total_decay_ = 1.;
     }
 };
 
@@ -209,12 +217,7 @@ class ReplacingEnumeratedTrace : public EnumeratedTrace
   public:
     TYPEINFO("trace/enumerated/replacing", "Replacing eligibility trace using a queue of projections")
     
-  protected:
-    double total_decay_;
-    
   public:
-    ReplacingEnumeratedTrace() : total_decay_(1.0) { }
-  
     virtual ReplacingEnumeratedTrace *clone() const
     {
       return new ReplacingEnumeratedTrace();
@@ -223,22 +226,20 @@ class ReplacingEnumeratedTrace : public EnumeratedTrace
     virtual void add(ProjectionPtr projection, double decay=1.0)
     {
       std::deque<ProjectionDecay> *p = projections_.instance();
+      double *total_decay = total_decay_.instance();
     
       if (decay < 0.01)
-      {
-        p->clear();
-        total_decay_ = 1.0;
-      }
+        clear();
     
       for (size_t ii=0; ii < size(); ++ii)
         (*p)[ii].projection->ssub(*projection);
 
       p->push_back(ProjectionDecay(projection, decay));
-      total_decay_ *= decay;
+      *total_decay *= decay;
       
-      while (total_decay_ < 0.01 && p->size() > 1)
+      while (*total_decay < 0.01 && p->size() > 1)
       {
-        total_decay_ /= p->front().decay;
+        *total_decay /= p->front().decay;
         p->pop_front();
       }
     }
@@ -250,12 +251,7 @@ class AccumulatingEnumeratedTrace : public EnumeratedTrace
   public:
     TYPEINFO("trace/enumerated/accumulating", "Accumulating eligibility trace using a queue of projections")
 
-  protected:
-    double total_decay_;
-    
   public:
-    AccumulatingEnumeratedTrace() : total_decay_(1.0) { }
-  
     virtual AccumulatingEnumeratedTrace *clone() const
     {
       return new AccumulatingEnumeratedTrace();
@@ -264,19 +260,17 @@ class AccumulatingEnumeratedTrace : public EnumeratedTrace
     virtual void add(ProjectionPtr projection, double decay=1.0)
     {
       std::deque<ProjectionDecay> *p = projections_.instance();
+      double *total_decay = total_decay_.instance();
     
       if (decay < 0.01)
-      {
-        p->clear();
-        total_decay_ = 1.0;
-      }
+        clear();
     
       p->push_back(ProjectionDecay(projection, decay));
-      total_decay_ *= decay;
+      *total_decay *= decay;
       
-      while (total_decay_ < 0.01 && p->size() > 1)
+      while (*total_decay < 0.01 && p->size() > 1)
       {
-        total_decay_ /= p->front().decay;
+        *total_decay /= p->front().decay;
         p->pop_front();
       }
     }
