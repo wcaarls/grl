@@ -1,7 +1,7 @@
 experiment: 
   type: experiment/online_learning
-  runs: 10
-  trials: 200000
+  runs: 1
+  trials: 1000000
   steps: 0
   rate: 0
   test_interval: -1
@@ -18,7 +18,7 @@ experiment:
       timeout: 100
       initial_state_variation: 0.2
       slope_angle: experiment/environment/model/slope_angle
-      reference_velocity: 0.12
+      reference_velocity: 0.3
     exporter: 
       type: exporter/csv
       file: walker_ac_tc_vref_gen-test
@@ -78,8 +78,3 @@ experiment:
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
   save_every: run
-visualizer: 
-  type: visualizer/glut
-visualization: 
-  type: visualization/compass_walker
-  state: experiment/environment/state
