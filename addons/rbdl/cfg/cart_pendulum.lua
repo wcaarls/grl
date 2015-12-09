@@ -15,7 +15,7 @@ end
 
 function control(state, action)
     -- Friction always works in an opposite direction
-    print(-friction*state[3])
+    --print(-friction*state[3])
     return {action[0], -friction*state[3]}
 end
 

@@ -8,6 +8,7 @@
 --]]
 
 -- Helper functions
+math.randomseed( os.time() )
 
 -- Set the following values to enable reward shaping
 reward_shaping = true

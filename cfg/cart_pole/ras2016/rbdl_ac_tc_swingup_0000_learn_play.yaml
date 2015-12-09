@@ -1,10 +1,10 @@
 experiment: 
   type: experiment/online_learning
   runs: 1
-  trials: 10000
+  trials: 1
   steps: 0
   rate: 0
-  test_interval: -1
+  test_interval: 0
   output: cartpole_ac_tc_swingup_0000
   environment: 
     type: environment/modeled
@@ -15,9 +15,14 @@ experiment:
       dynamics: 
         type: dynamics/rbdl
         file: cart_pendulum.lua
+        options: friction=0
     task: 
       type: task/lua
-      file: cart_pendulum_swingup_ras_rand.lua
+      file: cart_pendulum_swingup_ras.lua
+    exporter: 
+      type: exporter/csv
+      file: ???
+      style: meshup
   agent: 
     type: agent/td
     policy: 
@@ -48,7 +53,7 @@ experiment:
       type: predictor/ac/action
       alpha: 0.2
       beta: 0.02
-      gamma: 0.97
+      gamma: 0.99
       lambda: 0.65
       critic_projector: 
         type: projector/pre/peaked
@@ -82,9 +87,10 @@ experiment:
       output_max: experiment/environment/task/action_max
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
-  save_every: run
-visualizer:
+  load_file: cart_pole_ras2016_rbdl_ac_tc_swingup_0000_learn-mp$run-run0
+  save_every: never
+visualizer: 
   type: visualizer/glut
-visualization:
+visualization: 
   type: visualization/cart_pole
   state: experiment/environment/state

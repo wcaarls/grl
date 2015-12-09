@@ -101,7 +101,9 @@ double ModeledEnvironment::step(const Vector &action, Vector *obs, double *rewar
   double &time = test_?time_test_:time_learn_;
   
   if (exporter_)
-    exporter_->write({VectorConstructor(time), state_, obs_, action, VectorConstructor(*reward), VectorConstructor((double)*terminal)});
+    // was obs_, which is basically same as state. But reward is calculated from 'next' state. Thus, in order to calculate same reward using only csv file,
+    // we have to export new obserbations 'obs', not the old one.
+    exporter_->write({VectorConstructor(time), state_, *obs, action, VectorConstructor(*reward), VectorConstructor((double)*terminal)});
 
   time += tau;
 
