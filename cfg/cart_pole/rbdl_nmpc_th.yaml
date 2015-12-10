@@ -21,7 +21,6 @@ experiment:
     exporter: 
       type: exporter/csv
       file: cartpole_nmpc_th
-      fields: time, state, action, reward, terminal
       style: meshup
   agent: 
     type: agent/fixed

@@ -175,7 +175,7 @@ void NMPCPolicyTh::muscod_reset(Vector &initial_obs, double time)
     data_.pf[IP] = time;
 
   // Solve until convergence to prepare solver
-  for (int ii=0; ii < 20; ++ii) // TODO: check error instead
+  for (int ii=0; ii < 50; ++ii) // TODO: check error instead
   {
     muscod_->nmpcFeedback(data_.sd.data(), data_.pf.data(), NULL);
     muscod_->nmpcTransition();
@@ -185,7 +185,6 @@ void NMPCPolicyTh::muscod_reset(Vector &initial_obs, double time)
   // Copy initial controls to provide immediate feedback
   for (int IMSN = 0; IMSN < data_.NMSN; ++IMSN)
     muscod_->getNodeQC (IMSN, data_.qc.row(IMSN).data());
-  data_.qc = data_.backup_qc;
 
   // Reset counters
   qc_cnt_ = 0;
@@ -220,7 +219,7 @@ void *NMPCPolicyTh::muscod_run(void *indata)
   // define initial value and placeholder for feedback
   Vector sd = ConstantVector(NXD, 0.0);
   Vector pf = ConstantVector(NP,  0.0);
-  Vector first_qc   = ConstantVector(NU,  0.0);
+  Vector qc = ConstantVector(NU,  0.0);
 
   // same for exchange TODO: move this to backup_muscod_state
   data.sd = ConstantVector(NXD, 0.0);
@@ -237,7 +236,7 @@ void *NMPCPolicyTh::muscod_run(void *indata)
   // EXECUTION LOOP
   while (true)
   {
-    pthread_mutex_lock(&mutex_);
+    pthread_mutex_lock(&mutex_); // --> Lock the mutex
     if (data.quit)
     {
       pthread_mutex_unlock(&mutex_);
@@ -249,7 +248,7 @@ void *NMPCPolicyTh::muscod_run(void *indata)
       muscod_->getNodeQC (IMSN, data.qc.row(IMSN).data());
     iv_ready_ = true; // Let know main thread that controls are ready and thread requires new state
 
-    pthread_cond_wait(&cond_iv_ready_, &mutex_);
+    pthread_cond_wait(&cond_iv_ready_, &mutex_); // --> Unlock the mutex, wait for cond_iv_ready_ signal and then lock the mutex again
     if (data.quit)
     {
       pthread_mutex_unlock(&mutex_);
@@ -265,12 +264,12 @@ void *NMPCPolicyTh::muscod_run(void *indata)
       for (int IP = 0; IP < NP; ++IP)
         pf[IP] = data.pf[IP];
     }
-    pthread_mutex_unlock(&mutex_);
+    pthread_mutex_unlock(&mutex_); // --> Unlock the mutex
 
     // NMPC loop, assume that it converges after 3 iterations
     for (int ii=0; ii < 10; ++ii)
     {
-      muscod_->nmpcFeedback(sd.data(), pf.data(), first_qc.data());
+      muscod_->nmpcFeedback(sd.data(), pf.data(), qc.data());
       muscod_->nmpcTransition();
 //      muscod_->nmpcShift(3); TODO: Second iteration does not work
       muscod_->nmpcPrepare();
