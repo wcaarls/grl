@@ -88,6 +88,13 @@ void StateFeedbackPolicy::act(const Vector &in, Vector *out) const
     throw bad_param("policy/parameterized/state_feedback:operating_state");
 
   out->resize(operating_action_.size()); 
+  
+  // If all gains are zero (== undefined), apply random action
+  if (gains_.minCoeff() == 0 && gains_.maxCoeff() == 0)
+  {
+    *out = min_ + RandGen::getVector(min_.size())*(max_-min_);
+    return;
+  }
 
   for (size_t oo=0; oo < out->size(); ++oo)
   {
