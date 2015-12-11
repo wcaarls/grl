@@ -305,6 +305,30 @@ bool LuaTask::invert(const Vector &obs, Vector *state) const
   return true;
 }
 
+Matrix LuaTask::rewardHessian(const Vector &state, const Vector &action) const
+{
+  LuaState *lua = lua_state_.instance();
+  Matrix hessian;
+
+  lua_getglobal(lua->L, "rewardHessian");  /* function to be called */
+  if (!lua_isnil(lua->L, -1))
+  {
+    lua_pushvector(lua->L, state);
+    lua_pushvector(lua->L, action);
+    if (lua_pcall(lua->L, 2, 1, 0) != 0)
+    {
+      WARNING("Cannot determine reward hessian: " << lua_tostring(lua->L, -1));
+      lua_pop(lua->L, 1);
+      return Matrix();
+    }
+  
+    hessian = lua_tomatrix(lua->L, -1);
+  }
+  
+  lua_pop(lua->L, 1);
+  return hessian;
+}
+
 LuaState *LuaTask::createLuaState() const
 {
   LuaState *lua = new LuaState;
