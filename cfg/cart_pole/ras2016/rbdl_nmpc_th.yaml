@@ -3,7 +3,7 @@ experiment:
   runs: 1
   trials: 1
   steps: 0
-  rate: 0
+  rate: 10
   test_interval: 0
   environment: 
     type: environment/modeled
@@ -30,7 +30,7 @@ experiment:
       lua_model: experiment/environment/model/dynamics/file
       inputs: experiment/environment/task/observation_dims
       outputs: experiment/environment/task/action_dims
-      single_step: 1
+      single_step: 0
       verbose: 1
   test_agent: experiment/agent
   save_every: never

@@ -267,11 +267,11 @@ void *NMPCPolicyTh::muscod_run(void *indata)
     pthread_mutex_unlock(&mutex_); // --> Unlock the mutex
 
     // NMPC loop, assume that it converges after 3 iterations
-    for (int ii=0; ii < 10; ++ii)
+    for (int ii=0; ii < 3; ++ii)
     {
       muscod_->nmpcFeedback(sd.data(), pf.data(), qc.data());
       muscod_->nmpcTransition();
-//      muscod_->nmpcShift(3); TODO: Second iteration does not work
+      //muscod_->nmpcShift(3); //TODO: Second iteration does not work
       muscod_->nmpcPrepare();
     }
   } // END OF EXECUTION LOOP

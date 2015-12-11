@@ -190,7 +190,7 @@ void NMPCPolicy::act(double time, const Vector &in, Vector *out)
   {
     muscod_->nmpcFeedback(obs.data(),  data_.pf.data(), out->data());
     muscod_->nmpcTransition();
-//    muscod_->nmpcShift(3); TODO: Doesn't work for cart-pole
+    //muscod_->nmpcShift(3); // TODO: Doesn't work for cart-pole
     muscod_->nmpcPrepare();
   }
 
