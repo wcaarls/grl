@@ -3,7 +3,7 @@ experiment:
   runs: 1
   trials: 1
   steps: 0
-  rate: 10
+  rate: 20
   test_interval: 0
   environment: 
     type: environment/modeled
@@ -14,7 +14,7 @@ experiment:
       dynamics: 
         type: dynamics/rbdl
         file: cart_pendulum.lua
-        options: friction=0
+        options: friction=0.0
     task: 
       type: task/lua
       file: cart_pendulum_swingup_ras.lua
@@ -31,7 +31,7 @@ experiment:
       inputs: experiment/environment/task/observation_dims
       outputs: experiment/environment/task/action_dims
       single_step: 0
-      verbose: 1
+      verbose: 0
   test_agent: experiment/agent
   save_every: never
 visualizer: 

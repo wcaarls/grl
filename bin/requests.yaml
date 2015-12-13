@@ -2119,7 +2119,7 @@ task/compass_walker/vref:
     mutability: provided
   timeout:
     type: double
-    description: Episode timeout
+    description: Learning episode timeout
     mutability: configuration
     default: 100
     optional: 1
@@ -2185,7 +2185,7 @@ task/compass_walker/vrefu:
     mutability: provided
   timeout:
     type: double
-    description: Episode timeout
+    description: Learning episode timeout
     mutability: configuration
     default: 100
     optional: 1
@@ -2251,7 +2251,7 @@ task/compass_walker/walk:
     mutability: provided
   timeout:
     type: double
-    description: Episode timeout
+    description: Learning episode timeout
     mutability: configuration
     default: 100
     optional: 1
