@@ -78,7 +78,7 @@ void TDPredictor::update(const Transition &transition)
   Vector v;
 
   double target = transition.reward;
-  if (transition.obs.size())
+  if (transition.action.size())
     target += gamma_*representation_->read(projector_->project(transition.obs), &v);
   double delta = target - representation_->read(p, &v);
 

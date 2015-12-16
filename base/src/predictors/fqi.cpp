@@ -118,17 +118,15 @@ void FQIPredictor::reconfigure(const Configuration &config)
       fileInStream.read(reinterpret_cast<char*>(&(tr.prev_action[0])), tr.prev_action.size()*sizeof(double));
       fileInStream.read(reinterpret_cast<char*>(&(tr.obs[0])), tr.obs.size()*sizeof(double));
       fileInStream.read(reinterpret_cast<char*>(&(tr.action[0])), tr.action.size()*sizeof(double));
-      if (std::isnan(tr.obs[0]))
+      if (std::isnan(tr.action[0]))
       { // this is a terminal or absorbing transition
-        tr.obs = Vector();
         tr.action = Vector();
       }
       fileInStream.read(reinterpret_cast<char*>(&(tr.reward)), sizeof(double));
 
       transitions_.push_back(ctr);
-      if (!tr.obs.size())
+      if (!tr.action.size())
       { // restore
-        tr.obs.resize(count_obs);
         tr.action.resize(count_action);
       }
     }
@@ -155,23 +153,21 @@ void FQIPredictor::reconfigure(const Configuration &config)
     size_t count_action = transitions_[0].transition.action.size();
     fileOutStream.write(reinterpret_cast<const char*>(&count_action),	sizeof(size_t));
     // prepare dymmy symbols to obay format
-    Vector dummy_obs, dummy_action;
-    dummy_obs = ConstantVector(count_obs, std::numeric_limits<double>::signaling_NaN());
+    Vector dummy_action;
     dummy_action = ConstantVector(count_action, std::numeric_limits<double>::signaling_NaN());
     for (unsigned int i = 0; i < count; i++)
     {
       fileOutStream.write(reinterpret_cast<const char*>(&(transitions_[i].transition.prev_obs[0])), count_obs*sizeof(double));
       fileOutStream.write(reinterpret_cast<const char*>(&(transitions_[i].transition.prev_action[0])), count_action*sizeof(double));
+      fileOutStream.write(reinterpret_cast<const char*>(&(transitions_[i].transition.obs[0])), count_obs*sizeof(double));
 
-      if (!transitions_[i].transition.obs.size())
+      if (!transitions_[i].transition.action.size())
       {
         // dymmy write of NaNs
-        fileOutStream.write(reinterpret_cast<const char*>(&(dummy_obs[0])), count_obs*sizeof(double));
         fileOutStream.write(reinterpret_cast<const char*>(&(dummy_action[0])), count_action*sizeof(double));
       }
       else
       {
-        fileOutStream.write(reinterpret_cast<const char*>(&(transitions_[i].transition.obs[0])), count_obs*sizeof(double));
         fileOutStream.write(reinterpret_cast<const char*>(&(transitions_[i].transition.action[0])), count_action*sizeof(double));
       }
 
@@ -238,7 +234,7 @@ void FQIPredictor::rebuild()
         CachedTransition& t = transitions_[jj];
         double target = t.transition.reward;
 
-        if (t.transition.obs.size())
+        if (t.transition.action.size())
         {
           if (!t.actions.size() || reproject_actions)
           {

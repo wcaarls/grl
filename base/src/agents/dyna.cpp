@@ -137,9 +137,9 @@ void DynaAgent::step(double tau, const Vector &obs, double reward, Vector *actio
   total_control_steps_++;
 }
 
-void DynaAgent::end(double tau, double reward)
+void DynaAgent::end(double tau, const Vector &obs, double reward)
 {
-  Transition t(prev_obs_, prev_action_, reward);
+  Transition t(prev_obs_, prev_action_, reward, obs);
   predictor_->update(t);
   if (model_predictor_)
     model_predictor_->update(t);
@@ -190,7 +190,7 @@ void DynaAgent::runModel()
     if (obs.size())
     {
       if (terminal == 2)
-        model_agent_->end(tau, reward);
+        model_agent_->end(tau, obs, reward);
       else
         model_agent_->step(tau, obs, reward, &action);
         

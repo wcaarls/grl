@@ -153,15 +153,17 @@ void OnlineLearningExperiment::run()
         
         total_reward += reward;
         
-        if (terminal == 2)
-          agent->end(tau, reward);
-        else if (obs.size())
+        if (obs.size())
         {
-          agent->step(tau, obs, reward, &action);
+          if (terminal == 2)
+            agent->end(tau, obs, reward);
+          else
+            agent->step(tau, obs, reward, &action);
+
           state_->set(obs);
-        }
           
-        if (!test && obs.size()) ss++;
+          if (!test) ss++;
+        }
       } while (!terminal);
 
       if (test_interval_ >= 0)

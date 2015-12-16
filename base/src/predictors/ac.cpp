@@ -98,7 +98,7 @@ void ActionACPredictor::update(const Transition &transition)
   Vector v, u, delta_u, target_u;
   
   double target = transition.reward;
-  if (transition.obs.size())
+  if (transition.action.size())
     target += gamma_*critic_representation_->read(critic_projector_->project(transition.obs), &v);
   double delta = target - critic_representation_->read(cp, &v);
   

@@ -94,7 +94,7 @@ void BlackBoxAgent::step(double tau, const Vector &obs, double reward, Vector *a
   policy_->act(time_, obs, action);
 }
 
-void BlackBoxAgent::end(double tau, double reward)
+void BlackBoxAgent::end(double tau, const Vector &obs, double reward)
 {
   reward_ += reward;
 }

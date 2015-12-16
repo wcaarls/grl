@@ -95,7 +95,7 @@ void ModelPredictor::update(const Transition &transition)
   }
   else
   {
-    // Absorbing state
+    // Undefined absorbing state
     target = ConstantVector(transition.prev_obs.size()+2, 0.);
     target[target.size()-2] = transition.reward;
   }

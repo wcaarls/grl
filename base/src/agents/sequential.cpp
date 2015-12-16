@@ -64,8 +64,8 @@ void SequentialMasterAgent::step(double tau, const Vector &obs, double reward, V
   agent_[1]->step(tau, obs, reward, action);
 }
 
-void SequentialMasterAgent::end(double tau, double reward)
+void SequentialMasterAgent::end(double tau, const Vector &obs, double reward)
 {
-  agent_[0]->end(tau, reward);
-  agent_[1]->end(tau, reward);
+  agent_[0]->end(tau, obs, reward);
+  agent_[1]->end(tau, obs, reward);
 }

@@ -59,7 +59,7 @@ class BlackBoxAgent : public Agent
     virtual BlackBoxAgent *clone() const;
     virtual void start(const Vector &obs, Vector *action);
     virtual void step(double tau, const Vector &obs, double reward, Vector *action);
-    virtual void end(double tau, double reward);
+    virtual void end(double tau, const Vector &obs, double reward);
 };
 
 }
