@@ -186,7 +186,7 @@ void NMPCPolicy::act(double time, const Vector &in, Vector *out)
   out->resize(outputs_);
   for (int IP = 0; IP < data_.NP; ++IP)
     data_.pf[IP] = time;
-  for (int ii=0; ii < 4; ++ii)
+  for (int ii=0; ii < 3; ++ii)
   {
     muscod_->nmpcFeedback(obs.data(),  data_.pf.data(), out->data());
     muscod_->nmpcTransition();
