@@ -24,6 +24,7 @@ add_library(${TARGET} SHARED
             ${SRC}/environments/windy.cpp
             ${SRC}/environments/compass_walker/SWModel.cpp
             ${SRC}/environments/compass_walker/compass_walker.cpp
+            ${SRC}/environments/noise.cpp
             ${SRC}/experiments/approx_test.cpp
             ${SRC}/experiments/online_learning.cpp
             ${SRC}/experiments/batch_learning.cpp

@@ -340,6 +340,26 @@ environment/ode:
     type: double.reward_max
     description: Upper limit on immediate reward
     mutability: provided
+environment/pre/noise:
+  description: Injects noise into an environment
+  environment:
+    type: environment
+    description: Environment to inject noise into
+    mutability: configuration
+    default: 0
+    optional: 0
+  sensor_noise:
+    type: vector
+    description: Additive sensor noise standard deviation
+    mutability: configuration
+    default: "[ 0 ]"
+    optional: 1
+  actuator_noise:
+    type: vector
+    description: Additive actuator noise standard deviation
+    mutability: configuration
+    default: "[ 0 ]"
+    optional: 1
 experiment/approx_test:
   description: Approximator test experiment (supervised learning)
   train_samples:
