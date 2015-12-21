@@ -1,65 +1,76 @@
 experiment: 
   type: experiment/online_learning
   runs: 1
-  trials: 1
+  trials: 100001
   steps: 0
-  rate: 100
-  test_interval: 0
+  rate: 0
+  test_interval: 100000
+  output: cartpole_ac_tc_swingup_sse
   environment: 
     type: environment/modeled
     model: 
-      type: model/compass_walker
-      control_step: 0.2
-      integration_steps: 20
-      slope_angle: 0.004
+      type: model/dynamical
+      control_step: 0.05
+      integration_steps: 10
+      dynamics: 
+        type: dynamics/rbdl
+        file: cart_pendulum.lua
     task: 
-      type: task/compass_walker/vref
-      timeout: 200
-      initial_state_variation: 0.2
-      slope_angle: experiment/environment/model/slope_angle
-      reference_velocity: 0.12
+      type: task/lua
+      file: cart_pendulum_swingup_ras_sse_rand.lua
+      options: shaping_weight=0
     exporter: 
       type: exporter/csv
-      file: walker_ac_tc_vref_gen-test
+      file: ???
       style: meshup
   agent: 
     type: agent/td
     policy: 
       type: policy/action
-      sigma: [0.5]
+      sigma: [10]
       output_min: experiment/environment/task/action_min
       output_max: experiment/environment/task/action_max
       projector: 
-        type: projector/tile_coding
-        tilings: 16
-        memory: 67108864
-        resolution: [0.0419, 0.0524, 0.05555, 0.1111, 0.01]
-        wrapping: []
+        type: projector/pre/peaked
+        peaking: [5, 5, 5, 5]
+        input_min: experiment/environment/task/observation_min
+        input_max: experiment/environment/task/observation_max
+        projector: 
+          type: projector/tile_coding
+          tilings: 16
+          memory: 67108864
+          resolution: [2.5, 0.157075, 2.5, 1.57075]
+          wrapping: [0, 6.283, 0, 0]
       representation: 
         type: representation/parameterized/linear
         init_min: [0]
         init_max: [1]
-        memory: experiment/agent/policy/projector/memory
+        memory: experiment/agent/policy/projector/projector/memory
         outputs: experiment/environment/task/action_dims
         output_min: experiment/environment/task/action_min
         output_max: experiment/environment/task/action_max
     predictor: 
       type: predictor/ac/action
       alpha: 0.2
-      beta: 0.01
-      gamma: 0.97
+      beta: 0.02
+      gamma: 0.99
       lambda: 0.65
       critic_projector: 
-        type: projector/tile_coding
-        tilings: experiment/agent/policy/projector/tilings
-        memory: experiment/agent/policy/projector/memory
-        resolution: experiment/agent/policy/projector/resolution
-        wrapping: experiment/agent/policy/projector/wrapping
+        type: projector/pre/peaked
+        peaking: experiment/agent/policy/projector/peaking
+        input_min: experiment/environment/task/observation_min
+        input_max: experiment/environment/task/observation_max
+        projector: 
+          type: projector/tile_coding
+          tilings: experiment/agent/policy/projector/projector/tilings
+          memory: experiment/agent/policy/projector/projector/memory
+          resolution: experiment/agent/policy/projector/projector/resolution
+          wrapping: experiment/agent/policy/projector/projector/wrapping
       critic_representation: 
         type: representation/parameterized/linear
         init_min: [0]
         init_max: [1]
-        memory: experiment/agent/predictor/critic_projector/memory
+        memory: experiment/agent/policy/projector/projector/memory
         outputs: 1
         output_min: []
         output_max: []
@@ -76,10 +87,9 @@ experiment:
       output_max: experiment/environment/task/action_max
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
-  load_file: walker_ac_tc_vref_gen-run0
   save_every: never
 visualizer: 
   type: visualizer/glut
 visualization: 
-  type: visualization/compass_walker
+  type: visualization/cart_pole
   state: experiment/environment/state
