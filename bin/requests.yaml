@@ -2141,6 +2141,14 @@ task/compass_walker/vref:
     optional: 1
     min: -1.797693134862316e+308
     max: 1.797693134862316e+308
+  negative_reward:
+    type: double
+    description: Negative reward
+    mutability: configuration
+    default: -100
+    optional: 1
+    min: -1.797693134862316e+308
+    max: 0
   reference_velocity:
     type: double
     description: Reference velocity
@@ -2207,6 +2215,14 @@ task/compass_walker/vrefu:
     optional: 1
     min: -1.797693134862316e+308
     max: 1.797693134862316e+308
+  negative_reward:
+    type: double
+    description: Negative reward
+    mutability: configuration
+    default: -100
+    optional: 1
+    min: -1.797693134862316e+308
+    max: 0
   reference_velocity:
     type: double
     description: Reference velocity
@@ -2273,6 +2289,14 @@ task/compass_walker/walk:
     optional: 1
     min: -1.797693134862316e+308
     max: 1.797693134862316e+308
+  negative_reward:
+    type: double
+    description: Negative reward
+    mutability: configuration
+    default: -100
+    optional: 1
+    min: -1.797693134862316e+308
+    max: 0
 task/lua:
   description: User-provided task specification in LUA
   observation_dims:

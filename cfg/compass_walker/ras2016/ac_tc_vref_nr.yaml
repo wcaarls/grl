@@ -1,8 +1,8 @@
 experiment: 
   type: experiment/online_learning
   runs: 1
-  trials: 202021
-  steps: 0
+  trials: 0
+  steps: 87000000
   rate: 0
   test_interval: 100
   output: ???
@@ -14,10 +14,11 @@ experiment:
       integration_steps: 20
       slope_angle: 0.004
     task: 
-      type: task/compass_walker/vrefu
+      type: task/compass_walker/vref
       timeout: 100
       initial_state_variation: 0.2
       slope_angle: experiment/environment/model/slope_angle
+      negative_reward: -100
       reference_velocity: 0.12
   agent: 
     type: agent/td

@@ -76,7 +76,7 @@ experiment:
       output_max: experiment/environment/task/action_max
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
-  load_file: walker_ac_tc_vref_gen_optimistic-run0
+  load_file: walker_ac_tc_vref_gen-run0
   save_every: never
 visualizer: 
   type: visualizer/glut

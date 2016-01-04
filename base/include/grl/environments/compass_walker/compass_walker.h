@@ -79,14 +79,16 @@ class CompassWalkerWalkTask : public Task
   
   protected:
     double T_;
+    bool verbose_;
     mutable double timeout_;
     double initial_state_variation_;
     double slope_angle_;
+    double neg_reward_;
     mutable std::deque<double> hip_velocity_per_step_, hip_instant_velocity_;
     mutable double hip_avg_velocity_;
 
   public:
-    CompassWalkerWalkTask() : T_(100), initial_state_variation_(0.2), slope_angle_(0.004), hip_avg_velocity_(0){ }
+    CompassWalkerWalkTask() : T_(100), initial_state_variation_(0.2), slope_angle_(0.004), hip_avg_velocity_(0), neg_reward_(-100.0), verbose_(false){ }
     
     // From Configurable
     virtual void request(ConfigurationRequest *config);

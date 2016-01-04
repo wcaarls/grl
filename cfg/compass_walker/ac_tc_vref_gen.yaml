@@ -5,14 +5,14 @@ experiment:
   steps: 0
   rate: 0
   test_interval: -1
-  output: walker_ac_tc_vref_gen_optimistic
+  output: walker_ac_tc_vref_gen
   environment: 
     type: environment/modeled
     model: 
       type: model/compass_walker
       control_step: 0.2
       integration_steps: 20
-      slope_angle: 0.024
+      slope_angle: 0.004
     task: 
       type: task/compass_walker/vref
       timeout: 100
@@ -58,8 +58,8 @@ experiment:
         wrapping: experiment/agent/policy/projector/wrapping
       critic_representation: 
         type: representation/parameterized/linear
-        init_min: [14]
-        init_max: [15]
+        init_min: [0]
+        init_max: [1]
         memory: experiment/agent/predictor/critic_projector/memory
         outputs: 1
         output_min: []

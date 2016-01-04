@@ -174,7 +174,7 @@ void OnlineLearningExperiment::run()
         CRAWL(action << " - " << reward << " -> " << obs);
         
         total_reward += reward;
-        
+
         if (terminal == 2)
           agent->end(tau, reward);
         else if (obs.size())

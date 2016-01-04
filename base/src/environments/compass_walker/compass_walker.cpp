@@ -116,6 +116,7 @@ void CompassWalkerWalkTask::request(ConfigurationRequest *config)
   config->push_back(CRP("timeout", "Learning episode timeout", T_, CRP::Configuration, 0., DBL_MAX));
   config->push_back(CRP("initial_state_variation", "Variation of initial state", initial_state_variation_, CRP::Configuration, 0., DBL_MAX));
   config->push_back(CRP("slope_angle", "double.slope_angle", "Inclination of the slope", slope_angle_, CRP::System, -DBL_MAX, DBL_MAX));
+  config->push_back(CRP("negative_reward", "Negative reward", neg_reward_, CRP::Configuration, -DBL_MAX, 0.));
 }
 
 void CompassWalkerWalkTask::configure(Configuration &config)
@@ -123,6 +124,7 @@ void CompassWalkerWalkTask::configure(Configuration &config)
   T_ = config["timeout"];
   initial_state_variation_ = config["initial_state_variation"];
   slope_angle_ = config["slope_angle"];
+  neg_reward_ = config["negative_reward"];
 
   config.set("observation_dims", OBSERVATION_DIMS);
   config.set("observation_min", VectorConstructor(-M_PI/8, -M_PI/4, -M_PI, -M_PI, 0));
@@ -236,7 +238,7 @@ void CompassWalkerWalkTask::observe(const Vector &state, Vector *obs, int *termi
   else
     *terminal = 0;
 
-  if (*terminal)
+  if ((*terminal) && verbose_)
     std::cout << hip_velocity_per_step_.size() << ": " << hip_avg_velocity_ << std::endl;
 }
 
@@ -253,7 +255,8 @@ void CompassWalkerWalkTask::evaluate(const Vector &state, const Vector &action, 
     *reward = fmin(50 * 4 * sin(next[CompassWalker::siStanceLegAngle]), 30);
 
   if (fabs(next[CompassWalker::siStanceLegAngle]) > M_PI/8 || fabs(next[CompassWalker::siHipAngle] - 2 * next[CompassWalker::siStanceLegAngle]) > M_PI/4)
-    *reward = -100;
+    if (neg_reward_)
+      *reward = neg_reward_;
 }
 
 bool CompassWalkerWalkTask::invert(const Vector &obs, Vector *state) const
@@ -308,7 +311,8 @@ void CompassWalkerVrefTask::evaluate(const Vector &state, const Vector &action, 
   *reward += 0.1*fmax(0, 4 - 100.0*pow(hip_avg_velocity_ - vref_, 2));
 
   if (fabs(next[CompassWalker::siStanceLegAngle]) > M_PI/8 || fabs(next[CompassWalker::siHipAngle] - 2 * next[CompassWalker::siStanceLegAngle]) > M_PI/4)
-    *reward = 0;//-100;
+    if (neg_reward_)
+      *reward = neg_reward_;
 }
 
 void CompassWalkerVrefTask::request(ConfigurationRequest *config)
@@ -332,8 +336,9 @@ void CompassWalkerVrefuTask::evaluate(const Vector &state, const Vector &action,
 
   CompassWalkerVrefTask::evaluate(state, action, next, reward);
 
-//  *reward -= 0.01*action[0]*action[0]; // add action penalty to the reward
+  *reward -= 0.01*action[0]*action[0]; // add action penalty to the reward
 
   if (fabs(next[CompassWalker::siStanceLegAngle]) > M_PI/8 || fabs(next[CompassWalker::siHipAngle] - 2 * next[CompassWalker::siStanceLegAngle]) > M_PI/4)
-    *reward = -100;
+    if (neg_reward_)
+      *reward = neg_reward_;
 }
