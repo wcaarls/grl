@@ -115,7 +115,7 @@ function evaluate(state, action, next)
     if not reward_shaping then
       return getPotential(next)
     else
-      return getPotential(next) + 100*(shaping_gamma * int(succeeded(next)) - int(succeeded(state)))
+      return getPotential(next) + 0.0001*action^2 + shaping_weight*(shaping_gamma * int(succeeded(next)) - int(succeeded(state)))
     end
   end
 end

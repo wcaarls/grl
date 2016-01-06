@@ -18,6 +18,7 @@ experiment:
     task: 
       type: task/lua
       file: cart_pendulum_swingup_ras.lua
+      options: shaping_weight=100
     exporter: 
       type: exporter/csv
       file: ???
