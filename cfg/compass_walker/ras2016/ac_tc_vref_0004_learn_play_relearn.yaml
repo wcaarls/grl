@@ -13,7 +13,7 @@ experiment:
       integration_steps: 20
       slope_angle: 0.004
     task: 
-      type: task/compass_walker/vref
+      type: task/compass_walker/vrefu
       timeout: 100
       initial_state_variation: 0.2
       slope_angle: experiment/environment/model/slope_angle
