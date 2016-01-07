@@ -4,8 +4,8 @@ experiment:
   trials: 20000
   steps: 0
   rate: 0
-  test_interval: 10
-  output: cartpole_ac_tc_swingup_gen
+  test_interval: 100
+  output: ras_results/cart-pendulum/grid/cartpole_ac_tc_swingup_grid
   environment: 
     type: environment/modeled
     model: 
@@ -15,14 +15,16 @@ experiment:
       dynamics: 
         type: dynamics/rbdl
         file: cart_pendulum.lua
+        options: friction=0
     task: 
       type: task/lua
       file: cart_pendulum_swingup_ras_rand.lua
+      options: shaping_weight=0
   agent: 
     type: agent/td
     policy: 
       type: policy/action
-      sigma: [90]
+      sigma: [10]
       output_min: experiment/environment/task/action_min
       output_max: experiment/environment/task/action_max
       projector: 
