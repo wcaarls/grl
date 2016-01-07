@@ -246,6 +246,16 @@ dynamics/rbdl:
     mutability: configuration
     default: ""
     optional: 1
+dynamics/swimmer:
+  description: Coulom's swimmer dynamics
+  segments:
+    type: double.swimmer/segments
+    description: Number of swimmer segments
+    mutability: configuration
+    default: 2
+    optional: 1
+    min: 2
+    max: 2147483647
 dynamics/tlm:
   description: Two-link manipulator dynamics
 environment/leo2:
@@ -3478,6 +3488,64 @@ task/pinball/movement:
     optional: 1
     min: 0.001
     max: 1.797693134862316e+308
+task/swimmer/reaching:
+  description: Swimmer reaching task
+  observation_dims:
+    type: int.observation_dims
+    description: Number of observation dimensions
+    mutability: provided
+  observation_min:
+    type: vector.observation_min
+    description: Lower limit on observations
+    mutability: provided
+  observation_max:
+    type: vector.observation_max
+    description: Upper limit on observations
+    mutability: provided
+  action_dims:
+    type: int.action_dims
+    description: Number of action dimensions
+    mutability: provided
+  action_min:
+    type: vector.action_min
+    description: Lower limit on actions
+    mutability: provided
+  action_max:
+    type: vector.action_max
+    description: Upper limit on actions
+    mutability: provided
+  reward_min:
+    type: double.reward_min
+    description: Lower limit on immediate reward
+    mutability: provided
+  reward_max:
+    type: double.reward_max
+    description: Upper limit on immediate reward
+    mutability: provided
+  timeout:
+    type: double
+    description: Episode timeout
+    mutability: configuration
+    default: 20
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
+  randomization:
+    type: double
+    description: Level of start state randomization
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
+  segments:
+    type: double.swimmer/segments
+    description: Number of swimmer segments
+    mutability: system
+    default: 2
+    optional: 1
+    min: 2
+    max: 2147483647
 task/tlm/balancing:
   description: Two-link manipulator balancing task
   observation_dims:
@@ -3919,6 +3987,14 @@ visualization/state:
   state:
     type: state
     description: State to visualize
+    mutability: configuration
+    default: 0
+    optional: 0
+visualization/swimmer:
+  description: Swimmer visualization
+  state:
+    type: state
+    description: Swimmer state to visualize
     mutability: configuration
     default: 0
     optional: 0
