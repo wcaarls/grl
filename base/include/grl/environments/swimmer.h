@@ -35,20 +35,22 @@
 namespace grl
 {
 
-/// Swimmer dynamics, based on Remi Coulom's code.
+/// Swimmer dynamics, based on RLpy version of Tassa's version of Coulom's dynamics.
 class SwimmerDynamics : public Dynamics
 {
   public:
     TYPEINFO("dynamics/swimmer", "Coulom's swimmer dynamics")
-  
+    
   protected:
     int segments_;
   
     ColumnVector masses_, lengths_, inertia_;
-    Matrix P_, U_, G_;
-  
+    Matrix P_, G_;
+    Matrix U_;
+    double total_mass_;
+    
   public:
-    SwimmerDynamics() : segments_(2) { }
+    SwimmerDynamics() : segments_(2), total_mass_(0.) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -60,7 +62,8 @@ class SwimmerDynamics : public Dynamics
     virtual void eom(const Vector &state, const Vector &action, Vector *xd) const;
     
   protected:
-    Matrix v1Mv2(const ColumnVector &v1, const Matrix &M, const ColumnVector &v2) const;
+    template<int d>
+    void staticEOM(Eigen::Matrix<double,2*(d+2)+1,1> state, Eigen::Matrix<double,d-1,1> action, Vector *xd) const;
 };
 
 /// Swimmer reaching task.

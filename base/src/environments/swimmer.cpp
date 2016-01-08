@@ -29,6 +29,10 @@
 
 #include <grl/environments/swimmer.h>
 
+#define ROWMULT(M, v) (((M).array().rowwise()*(v).array().transpose()).matrix())
+#define COLMULT(M, v) (((M).array().colwise()*(v).array()).matrix())
+#define v1Mv2(v1,M,v2) ROWMULT(COLMULT(M, v1), v2)
+
 using namespace grl;
 
 REGISTER_CONFIGURABLE(SwimmerDynamics)
@@ -47,6 +51,7 @@ void SwimmerDynamics::configure(Configuration &config)
   masses_ = ConstantVector(d, 1.);
   lengths_ = ConstantVector(d, 1.);
   inertia_ = masses_.array() * lengths_.array() * lengths_.array() / 12.;
+  total_mass_ = masses_.sum();
 
   Matrix Q = -Matrix::Identity(d, d);
   Q.topRightCorner(d-1, d-1) += Matrix::Identity(d-1, d-1);
@@ -71,6 +76,54 @@ SwimmerDynamics *SwimmerDynamics::clone() const
   return new SwimmerDynamics(*this);
 }
 
+template<int d>
+void SwimmerDynamics::staticEOM(Eigen::Matrix<double,2*(d+2)+1,1> state, Eigen::Matrix<double,d-1,1> action, Vector *xd) const
+{
+  typedef Eigen::Matrix<double,d,1> VectorD;
+  typedef Eigen::Matrix<double,d,d> MatrixD;
+
+  const double k1=7.5, k2=0.3;
+  
+  MatrixD P = P_, G = G_;
+  Eigen::Matrix<double,d,d-1> U = U_;
+  VectorD lengths = lengths_, inertia = inertia_;
+
+  VectorD theta = state.middleRows(2, d);
+  Eigen::Vector2d vcm = state.middleRows(2+d, 2);
+  VectorD dtheta = state.middleRows(4+d, d);
+
+  VectorD cth = theta.array().cos();
+  VectorD sth = theta.array().sin();
+  VectorD rVx = P*dtheta.cwiseProduct(-sth);
+  VectorD rVy = P*dtheta.cwiseProduct(cth);
+  VectorD Vx = rVx.array() + vcm[0];
+  VectorD Vy = rVy.array() + vcm[1];
+
+  VectorD Vn = Vx.cwiseProduct(-sth) + Vy.cwiseProduct(cth);
+  VectorD Vt = Vx.cwiseProduct( cth) + Vy.cwiseProduct(sth);
+  
+  VectorD EL1 = (ROWMULT(v1Mv2(-sth, G, cth) + v1Mv2(cth, G, sth), dtheta) +
+                 COLMULT(v1Mv2(cth, G, -sth) + v1Mv2(sth, G, cth), dtheta)) * dtheta;
+
+  MatrixD DI = inertia.asDiagonal();  
+
+  MatrixD EL3 = DI + v1Mv2(sth, G, sth) + v1Mv2(cth, G, cth);
+  
+  VectorD EL2 = - k1 * ROWMULT(v1Mv2(-sth, P.transpose(), -sth) + v1Mv2(cth, P.transpose(), cth), lengths) * Vn
+                - k1 * (lengths.array().cube() * dtheta.array() / 12.).matrix()
+                - k2 * ROWMULT(v1Mv2(-sth, P.transpose(), cth) + v1Mv2(cth, P.transpose(), sth), lengths) * Vt;
+
+  xd->resize(state.size());
+  xd->leftCols(2) = vcm.transpose();
+  xd->middleCols(2, d) = dtheta.transpose();
+
+  (*xd)[2 + d] = - (k1 * Vn.dot(-sth) + k2 * Vt.dot(cth)) / total_mass_;
+  (*xd)[3 + d] = - (k1 * Vn.dot(cth) + k2 * Vt.dot(sth)) / total_mass_;
+
+  xd->middleCols(4+d, d) = EL3.lu().solve(EL1 + EL2 + U*action).transpose();
+  (*xd)[2*(d+2)] = 1.; // Time
+}
+
 void SwimmerDynamics::eom(const Vector &state, const Vector &action, Vector *xd) const
 {
   if (state.size() != 2*(segments_+2)+1 || action.size() != segments_-1)
@@ -78,46 +131,14 @@ void SwimmerDynamics::eom(const Vector &state, const Vector &action, Vector *xd)
     ERROR("Expected state size " << 2*(segments_+2)+1 << ", action size " << segments_-1 << ", received " << state.size() << " / " << action.size());
     throw Exception("dynamics/swimmer requires a task/swimmer subclass with equal number of segments");
   }
-
-  const int d = segments_;
-  const double k1=7.5, k2=0.3;
   
-  ColumnVector theta = state.middleCols(2, d).transpose();
-  ColumnVector vcm = state.middleCols(2+d, 2).transpose();
-  ColumnVector dtheta = state.middleCols(4+d, d).transpose();
-
-  ColumnVector cth = theta.array().cos();
-  ColumnVector sth = theta.array().sin();
-  ColumnVector rVx = P_*dtheta.cwiseProduct(-sth);
-  ColumnVector rVy = P_*dtheta.cwiseProduct(cth);
-  ColumnVector Vx = rVx.array() + vcm[0];
-  ColumnVector Vy = rVy.array() + vcm[1];
-
-  ColumnVector Vn = Vx.cwiseProduct(-sth) + Vy.cwiseProduct(cth);
-  ColumnVector Vt = Vx.cwiseProduct( cth) + Vy.cwiseProduct(sth);
-  
-  ColumnVector EL1 = ((v1Mv2(-sth, G_, cth) + v1Mv2(cth, G_, sth)) * diagonal(dtheta) +
-                      diagonal(dtheta)*(v1Mv2(cth, G_, -sth) + v1Mv2(sth, G_, cth))) * dtheta;
-  Matrix       EL3 = diagonal(inertia_) + v1Mv2(sth, G_, sth) + v1Mv2(cth, G_, cth);
-  
-  ColumnVector EL2 = - k1 * (v1Mv2(-sth, P_.transpose(), -sth) + v1Mv2(cth, P_.transpose(), cth)) * diagonal(lengths_) * Vn
-                     - k1 * (lengths_.array().cube() * dtheta.array() / 12.).matrix()
-                     - k2 * (v1Mv2(-sth, P_.transpose(), cth) + v1Mv2(cth, P_.transpose(), sth)) * diagonal(lengths_) * Vt;
-
-  ColumnVector ds = ConstantVector(state.size(), 0.);
-  ds.topRows(2) = vcm;
-  ds.middleRows(2, d) = dtheta;
-  ds[2 + d] = - (k1 * Vn.dot(-sth) + k2 * Vt.dot(cth)) / sum(masses_);
-  ds[3 + d] = - (k1 * Vn.dot(cth) + k2 * Vt.dot(sth)) / sum(masses_);
-  ds.middleRows(4+d, d) = EL3.lu().solve(EL1 + EL2 + U_*action.matrix().transpose());
-  ds[2*(d+2)] = 1.; // Time
-
-  *xd = ds.transpose();
-}
-
-Matrix SwimmerDynamics::v1Mv2(const ColumnVector &v1, const Matrix &M, const ColumnVector &v2) const
-{
-  return diagonal(v1)*M*diagonal(v2);
+  switch (segments_)
+  {
+    case 2: staticEOM<2>(state.transpose(), action.transpose(), xd); break;
+    case 3: staticEOM<3>(state.transpose(), action.transpose(), xd); break;
+    default:
+      throw bad_param("Unsupported number of segments");
+  }
 }
 
 void SwimmerReachingTask::request(ConfigurationRequest *config)
@@ -296,8 +317,7 @@ Matrix SwimmerReachingTask::rewardHessian(const Vector &state, const Vector &act
 {
   Vector d = ConstantVector(2*(segments_+2)-1 + segments_-1, 0.);
   d[0] = d[1] = -1;
-  d.middleCols(2*(segments_+2)-1, segments_-1) = ConstantVector(segments_-1, -0.001);
+  d.middleCols(2*(segments_+2)-1, segments_-1) = ConstantVector(segments_-1, -1);
 
   return diagonal(d);
 }
-                  
