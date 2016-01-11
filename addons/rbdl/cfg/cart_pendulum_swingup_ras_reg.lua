@@ -8,7 +8,6 @@
 --]]
 
 -- Helper functions
-math.randomseed( os.time() )
 
 -- Set the following values to enable reward shaping
 reward_shaping = true
@@ -89,7 +88,7 @@ function configure(argstr)
 end
 
 function start()
-  return {0, math.pi+math.random()*0.1-0.05, 0, 0, 0}
+  return {0, math.pi, 0, 0, 0}
 end
 
 function observe(state)
@@ -115,7 +114,7 @@ function evaluate(state, action, next)
     if not reward_shaping then
       return getPotential(next)
     else
-      return getPotential(next) + shaping_weight*(shaping_gamma * int(succeeded(next)) - int(succeeded(state)))
+      return getPotential(next) - 0.0001*action[0]^2 + shaping_weight*(shaping_gamma * int(succeeded(next)) - int(succeeded(state)))
     end
   end
 end
