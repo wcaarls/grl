@@ -1,7 +1,7 @@
 experiment:
   type: experiment/online_learning
   runs: 1
-  trials: 100000
+  trials: 500000
   steps: 0
   rate: 0
   test_interval: -1
@@ -18,7 +18,7 @@ experiment:
         options: friction=0
     task:
       type: task/lua
-      file: cart_pendulum_swingup_ras_rand.lua
+      file: cart_pendulum_swingup_ras_reg_rand.lua
       options: shaping_weight=0
   agent:
     type: agent/td
