@@ -185,7 +185,7 @@ void CompassWalkerWalkTask::observe(const Vector &state, Vector *obs, int *termi
   (*obs)[CompassWalker::siHipAngle] = state[CompassWalker::siHipAngle] - 2 * state[CompassWalker::siStanceLegAngle];
   (*obs)[CompassWalker::siStanceLegAngleRate] = state[CompassWalker::siStanceLegAngleRate];
   (*obs)[CompassWalker::siHipAngleRate] = state[CompassWalker::siHipAngleRate] - 2 * state[CompassWalker::siStanceLegAngleRate];
-  (*obs)[CompassWalker::siStanceLegChanged] = state[CompassWalker::siStanceLegChanged];
+  (*obs)[CompassWalker::siStanceLegChanged] = state[CompassWalker::siStanceLegChanged] > 0.5;
   
   if (fabs(state[CompassWalker::siStanceLegAngle]) > M_PI/8 || fabs(state[CompassWalker::siHipAngle] - 2 * state[CompassWalker::siStanceLegAngle]) > M_PI/4)
     *terminal = 2;
@@ -204,7 +204,7 @@ void CompassWalkerWalkTask::evaluate(const Vector &state, const Vector &action, 
 
   // Instead of using LastHipX, which is non-Markov, assume the last step
   // was just as long as this one.
-  if (next[CompassWalker::siStanceLegChanged])
+  if (next[CompassWalker::siStanceLegChanged] > 0.5)
     *reward = fmin(50 * 4 * sin(next[CompassWalker::siStanceLegAngle]), 30);
 
   if (fabs(next[CompassWalker::siStanceLegAngle]) > M_PI/8 || fabs(next[CompassWalker::siHipAngle] - 2 * next[CompassWalker::siStanceLegAngle]) > M_PI/4)
@@ -219,7 +219,7 @@ bool CompassWalkerWalkTask::invert(const Vector &obs, Vector *state) const
   (*state)[CompassWalker::siHipAngle] = obs[CompassWalker::siHipAngle] + 2 * obs[CompassWalker::siStanceLegAngle];
   (*state)[CompassWalker::siStanceLegAngleRate] = obs[CompassWalker::siStanceLegAngleRate];
   (*state)[CompassWalker::siHipAngleRate] = obs[CompassWalker::siHipAngleRate] + 2 * obs[CompassWalker::siStanceLegAngleRate];
-  (*state)[CompassWalker::siStanceLegChanged] = obs[CompassWalker::siStanceLegChanged];
+  (*state)[CompassWalker::siStanceLegChanged] = obs[CompassWalker::siStanceLegChanged] > 0.5;
   (*state)[CompassWalker::siStanceFootX] = 0;
   (*state)[CompassWalker::siLastHipX] = 0;
   (*state)[CompassWalker::siTime] = 0;

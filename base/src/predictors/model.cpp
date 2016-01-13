@@ -91,13 +91,14 @@ void ModelPredictor::update(const Transition &transition)
           target[ii] += wrapping_[ii];
       }
     
-    target = extend(target, VectorConstructor(transition.reward, 0.));
+    target = extend(target, VectorConstructor(transition.reward, transition.action.size()==0));
   }
   else
   {
     // Undefined absorbing state
     target = ConstantVector(transition.prev_obs.size()+2, 0.);
     target[target.size()-2] = transition.reward;
+    target[target.size()-1] = 1.;
   }
   
   ProjectionPtr p = projector_->project(extend(transition.prev_obs, transition.prev_action));

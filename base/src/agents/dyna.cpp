@@ -83,6 +83,7 @@ void DynaAgent::reconfigure(const Configuration &config)
   {
     stopThreads();
     total_planned_steps_ = total_control_steps_ = 0;
+    start_obs_.clear();
   }
     
   config.get("planning_steps", planning_steps_);
@@ -103,9 +104,6 @@ DynaAgent *DynaAgent::clone() const
 
 void DynaAgent::start(const Vector &obs, Vector *action)
 {
-  if (threads_ && agent_threads_.empty())
-    startThreads();
-
   predictor_->finalize();
   
   time_= 0.;
@@ -113,7 +111,10 @@ void DynaAgent::start(const Vector &obs, Vector *action)
   
   prev_obs_ = obs;
   prev_action_ = *action;
-  start_obs_ = obs;
+  start_obs_.add(obs);
+
+  if (threads_ && agent_threads_.empty())
+    startThreads();
 }
 
 void DynaAgent::step(double tau, const Vector &obs, double reward, Vector *action)
@@ -173,7 +174,7 @@ void DynaAgent::runModel()
     if (terminal)
     {
       steps = 0;
-      obs = start_obs_;
+      obs = start_obs_.draw();
       state_->set(obs);
       model_agent_->start(obs, &action);
     }

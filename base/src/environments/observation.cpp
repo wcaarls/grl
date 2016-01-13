@@ -261,7 +261,7 @@ double ApproximatedObservationModel::step(const Vector &obs, const Vector &actio
     return 0.;
 
   *reward = pred[pred.size()-2];
-  *terminal = pred[pred.size()-1] > 0.5;
+  *terminal = 2*(pred[pred.size()-1] > 0.5);
   next->resize(pred.size()-2);
   for (size_t ii=0; ii < next->size(); ++ii)
     (*next)[ii] = pred[ii];

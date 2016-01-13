@@ -66,10 +66,11 @@ class DynaAgent : public Agent
     ModelPredictor *model_predictor_;
     Agent *model_agent_;
     State *state_;
+    FIFOSampler<Vector> start_obs_;
     
     std::vector<DynaAgentThread*> agent_threads_;
     
-    Vector start_obs_, prev_obs_, prev_action_;
+    Vector prev_obs_, prev_action_;
     size_t planning_steps_, planning_horizon_, total_planned_steps_;
     
     double planning_reward_, actual_reward_;
