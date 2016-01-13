@@ -187,7 +187,7 @@ void ApproximatedObservationModel::request(ConfigurationRequest *config)
   ObservationModel::request(config);
 
   config->push_back(CRP("control_step", "double.control_step", "Control step time (0 = estimate using SMDP approximator)", tau_, CRP::System, 0., DBL_MAX));
-  config->push_back(CRP("differential", "int.differential", "Predict state deltas", differential_, CRP::Configuration, 0, 1));
+  config->push_back(CRP("differential", "vector.differential", "State dimensions for which to predict deltas", differential_, CRP::Configuration));
   config->push_back(CRP("wrapping", "vector.wrapping", "Wrapping boundaries", wrapping_));
   config->push_back(CRP("observation_min", "vector.observation_min", "Lower limit on observations", observation_min_, CRP::System));
   config->push_back(CRP("observation_max", "vector.observation_max", "Upper limit on observations", observation_max_, CRP::System));
@@ -222,8 +222,13 @@ void ApproximatedObservationModel::configure(Configuration &config)
   }
     
   differential_ = config["differential"];
-  wrapping_ = config["wrapping"];
+  if (differential_.size() == 1)
+    differential_ = ConstantVector(observation_min_.size(), differential_[0]);
+    
+  if (differential_.size() != observation_min_.size())
+    throw bad_param("observation_model/approximated:differential");
   
+  wrapping_ = config["wrapping"];
   if (!wrapping_.size())
     wrapping_ = ConstantVector(observation_min_.size(), 0.);
     
@@ -268,7 +273,7 @@ double ApproximatedObservationModel::step(const Vector &obs, const Vector &actio
   
   for (size_t ii=0; ii < obs.size(); ++ii)
   {
-    if (differential_)
+    if (differential_[ii])
       (*next)[ii] += obs[ii];
     
     if (wrapping_[ii])
@@ -314,8 +319,8 @@ Matrix ApproximatedObservationModel::jacobian(const Vector &obs, const Vector &a
       rJ(rr, cc) = J(rr, cc);
 
   // If model is differential, add identity matrix to state rows
-  if (differential_)
-    for (size_t ii=0; ii < rJ.rows()-1; ++ii)
+  for (size_t ii=0; ii < rJ.rows()-1; ++ii)
+    if (differential_[ii])
       rJ(ii, ii) += 1;
       
   return rJ;

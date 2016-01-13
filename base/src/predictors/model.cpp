@@ -35,7 +35,7 @@ void ModelPredictor::request(ConfigurationRequest *config)
 {
   Predictor::request(config);
   
-  config->push_back(CRP("differential", "int.differential", "Predict state deltas", differential_, CRP::Configuration, 0, 1));
+  config->push_back(CRP("differential", "vector.differential", "State dimensions for which to predict deltas", differential_, CRP::Configuration));
   config->push_back(CRP("wrapping", "vector.wrapping", "Wrapping boundaries", wrapping_));
   config->push_back(CRP("projector", "projector.pair", "Projector for transition model (|S|+|A| dimensions)", projector_));
   config->push_back(CRP("representation", "representation.transition", "Representation for transition model (|S|+2 dimensions)", representation_));
@@ -49,6 +49,9 @@ void ModelPredictor::configure(Configuration &config)
   representation_ = (Representation*)config["representation"].ptr();
   
   differential_ = config["differential"];
+  if (!differential_.size())
+    throw bad_param("predictor/model:differential");
+  
   wrapping_ = config["wrapping"];
 }
 
@@ -72,17 +75,21 @@ void ModelPredictor::update(const Transition &transition)
 
   Vector target;
   
+  if (differential_.size() < transition.obs.size())
+    differential_ = extend(differential_, ConstantVector(transition.obs.size()-differential_.size(), differential_[0]));
+  
   if (wrapping_.size() < transition.obs.size())
     wrapping_ = extend(wrapping_, ConstantVector(transition.obs.size()-wrapping_.size(), 0.));
-  
+    
   if (transition.obs.size())
   {
-    if (differential_)
-      target = transition.obs-transition.prev_obs;
-    else
-      target = transition.obs;
+    target = transition.obs;
     
     for (size_t ii=0; ii < target.size(); ++ii)
+    {
+      if (differential_[ii])
+        target[ii] -= transition.prev_obs[ii];
+    
       if (wrapping_[ii])
       {
         if (target[ii] > 0.5*wrapping_[ii])
@@ -90,6 +97,7 @@ void ModelPredictor::update(const Transition &transition)
         else if (target[ii] < -0.5*wrapping_[ii])
           target[ii] += wrapping_[ii];
       }
+    }
     
     target = extend(target, VectorConstructor(transition.reward, transition.action.size()==0));
   }

@@ -778,13 +778,11 @@ observation_model/approximated:
     min: 0
     max: 1.797693134862316e+308
   differential:
-    type: int.differential
-    description: Predict state deltas
+    type: vector.differential
+    description: State dimensions for which to predict deltas (default all)
     mutability: configuration
-    default: 1
+    default: "[ 1 ]"
     optional: 1
-    min: 0
-    max: 1
   wrapping:
     type: vector.wrapping
     description: Wrapping boundaries
@@ -864,13 +862,11 @@ observation_model/fixed_reward:
     min: 0
     max: 1.797693134862316e+308
   differential:
-    type: int.differential
-    description: Predict state deltas
+    type: vector.differential
+    description: State dimensions for which to predict deltas (default all)
     mutability: configuration
-    default: 1
+    default: "[ 1 ]"
     optional: 1
-    min: 0
-    max: 1
   wrapping:
     type: vector.wrapping
     description: Wrapping boundaries
@@ -1974,13 +1970,11 @@ predictor/model:
     default: 0
     optional: 1
   differential:
-    type: int.differential
-    description: Predict state deltas
+    type: vector.differential
+    description: State dimensions for which to predict deltas
     mutability: configuration
-    default: 1
+    default: "[ 1 ]"
     optional: 1
-    min: 0
-    max: 1
   wrapping:
     type: vector.wrapping
     description: Wrapping boundaries
