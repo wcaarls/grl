@@ -1,0 +1,56 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 100000
+  steps: 0
+  rate: 0
+  test_interval: -1
+  output: leo_sarsa_walk
+  environment: 
+    type: environment/ode
+    xml: /home/ivan/work/Project/Software/grl/src/grl/addons/odesim/cfg/leorobot.xml
+  agent: 
+    type: agent/td
+    policy: 
+      type: policy/discrete/q
+      discretizer: 
+        type: discretizer/uniform
+        min: experiment/environment/action_min
+        max: experiment/environment/action_max
+        steps: [7, 7, 7, 7]
+      projector: 
+        type: projector/tile_coding
+        tilings: 16
+        memory: 8388608
+        resolution: [0.14, 0.28, 0.28, 0.28, 0.28, 5, 10, 10, 10, 10, 0.05, 0.05, 0.05, 0.05]
+        wrapping: []
+      representation: 
+        type: representation/parameterized/linear
+        init_min: [0]
+        init_max: [1]
+        memory: experiment/agent/policy/projector/memory
+        outputs: 1
+        output_min: []
+        output_max: []
+      sampler: 
+        type: sampler/epsilon_greedy
+        epsilon: 0.05
+    predictor: 
+      type: predictor/sarsa
+      alpha: 0.4
+      gamma: 0.99
+      lambda: 0.92
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+      trace: 
+        type: trace/enumerated/replacing
+  test_agent: 
+    type: agent/fixed
+    policy: 
+      type: policy/discrete/q
+      discretizer: experiment/agent/policy/discretizer
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+      sampler: 
+        type: sampler/greedy
+  save_every: never
