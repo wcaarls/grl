@@ -31,7 +31,7 @@ set(MODULES base
             addons/glut
             addons/ros
 #            addons/matlab
-#            addons/odesim
+            addons/odesim
             addons/rbdl
             addons/muscod
 #            addons/leo2
