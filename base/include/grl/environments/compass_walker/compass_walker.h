@@ -37,10 +37,10 @@ namespace grl
 class CompassWalker
 {
   public:
-    enum stateIndex { siStanceLegAngle, siHipAngle, siStanceLegAngleRate, siHipAngleRate,
-                      siStanceLegChanged, siStanceFootX, siLastHipX, siTime};
+    enum stateIndex       { siStanceLegAngle, siHipAngle, siStanceLegAngleRate, siHipAngleRate,
+                            siStanceLegChanged, siStanceFootX, siLastHipX, siTime};
 
-    enum stateSize  { ssStateSize = siTime+1};
+    enum stateSize        { ssStateSize = siTime+1};
 
     enum observationIndex { oiStanceLegAngle, oiHipAngle, oiStanceLegAngleRate, oiHipAngleRate, oiStanceLegChanged, oiHipAvgVelocity};
 
@@ -85,7 +85,10 @@ class CompassWalkerWalkTask : public Task
     double initial_state_variation_;
     double slope_angle_;
     double neg_reward_;
-    mutable std::deque<double> hip_velocity_per_step_, hip_instant_velocity_;
+    int observation_dims_;
+    Vector observe_;          // Indicator vector with 1s for observed states
+    mutable Vector obs_;      // Observation vector which contains all observations, masked by 'observe_' vector when observations requested
+    mutable std::deque<double> hip_instant_velocity_;
     mutable double hip_avg_velocity_;
 
   public:
