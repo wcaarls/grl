@@ -28,6 +28,7 @@
 #ifndef GRL_EXCLUSIVE_MASTER_AGENT_H_
 #define GRL_EXCLUSIVE_MASTER_AGENT_H_
 
+#include <grl/predictor.h>
 #include <grl/agent.h>
 
 namespace grl
@@ -40,13 +41,15 @@ class ExclusiveMasterAgent : public Agent
     TYPEINFO("agent/master/exclusive", "Master agent that selects one sub-agent to execute")
 
   protected:
+    Predictor *predictor_;
     std::vector<SubAgent*> agent_;
     std::vector<double> time_;
     double gamma_, reward_;
     int last_agent_, smdp_steps_;
+    Vector prev_obs_, prev_action_;
     
   public:
-    ExclusiveMasterAgent() : agent_(2), time_(2), gamma_(0.97), reward_(0), last_agent_(0), smdp_steps_(0)
+    ExclusiveMasterAgent() : predictor_(0), agent_(2), time_(2), gamma_(0.97), reward_(0), last_agent_(0), smdp_steps_(0)
     {
       agent_[0] = agent_[1] = NULL;
       time_[0] = time_[1] = -1;

@@ -34,12 +34,14 @@ REGISTER_CONFIGURABLE(ExclusiveMasterAgent)
 void ExclusiveMasterAgent::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("gamma", "Discount rate", gamma_));
+  config->push_back(CRP("predictor", "predictor", "Optional (model) predictor", predictor_, true));
   config->push_back(CRP("agent1", "agent/sub", "First subagent", agent_[0]));
   config->push_back(CRP("agent2", "agent/sub", "Second subagent", agent_[1]));
 }
 
 void ExclusiveMasterAgent::configure(Configuration &config)
 {
+  predictor_ = (Predictor*)config["predictor"].ptr();
   agent_[0] = (SubAgent*)config["agent1"].ptr();
   agent_[1] = (SubAgent*)config["agent2"].ptr();
 }
@@ -78,6 +80,8 @@ void ExclusiveMasterAgent::start(const Vector &obs, Vector *action)
   
   reward_ = 0;
   smdp_steps_ = 0;
+  prev_obs_ = obs;
+  prev_action_ = *action;
 }
 
 void ExclusiveMasterAgent::step(double tau, const Vector &obs, double reward, Vector *action)
@@ -112,6 +116,14 @@ void ExclusiveMasterAgent::step(double tau, const Vector &obs, double reward, Ve
   }
 
   time_[new_agent] = time;
+
+  if (predictor_)
+  {
+    Transition t(prev_obs_, prev_action_, reward, obs, *action);
+    predictor_->update(t);
+  }
+  prev_obs_ = obs;
+  prev_action_ = *action;
 }
 
 void ExclusiveMasterAgent::end(double tau, const Vector &obs, double reward)
@@ -127,4 +139,10 @@ void ExclusiveMasterAgent::end(double tau, const Vector &obs, double reward)
   }
   
   time_[0] = time_[1] = -1;
+
+  if (predictor_)
+  {
+    Transition t(prev_obs_, prev_action_, reward, obs);
+    predictor_->update(t);
+  }
 }
