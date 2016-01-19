@@ -38,12 +38,13 @@ class CompassWalker
 {
   public:
     enum stateIndex { siStanceLegAngle, siHipAngle, siStanceLegAngleRate, siHipAngleRate,
-                      siStanceLegChanged, siStanceFootX, siHipX, siPrevHipX, siTime, siLastTime,
-                      siLastStanceLegAngle, siLastStanceLegAngleRate};
+                      siStanceLegChanged, siStanceFootX, siLastHipX, siTime};
 
-    enum observationIndex { oiStanceLegAngle, oiHipAngle, oiStanceLegAngleRate, oiHipAngleRate, oiHipAvgVelocity};
+    enum stateSize  { ssStateSize = siTime+1};
 
-    enum stateSize  { ssStateSize = siLastStanceLegAngleRate+1};
+    enum observationIndex { oiStanceLegAngle, oiHipAngle, oiStanceLegAngleRate, oiHipAngleRate, oiStanceLegChanged, oiHipAvgVelocity};
+
+    enum observationSize  { osMaxObservationSize = oiHipAvgVelocity+1};
 };
 
 // Compass (simplest) walker model.

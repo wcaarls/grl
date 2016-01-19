@@ -34,11 +34,21 @@ using namespace grl;
 
 REGISTER_CONFIGURABLE(DynaAgent)
 
+void DynaAgentThread::run()
+{
+  while (ok())
+  {
+    while (agent_->total_planned_steps_ < agent_->total_control_steps_*agent_->planning_steps_)
+      agent_->runModel();
+    usleep(0);
+  }
+}
+
 void DynaAgent::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("planning_steps", "Number of planning steps per control step", planning_steps_, CRP::Configuration, 0));
+  config->push_back(CRP("planning_steps", "Number of planning steps per control step", planning_steps_, CRP::Online, 0));
   config->push_back(CRP("planning_horizon", "Planning episode length", planning_horizon_, CRP::Configuration, 0));
-  config->push_back(CRP("asynchronous", "Asynchronous planning (actual planning_steps depends on control step time and processing power)", asynchronous_, CRP::Configuration, 0, 1));
+  config->push_back(CRP("threads", "Threads used for planning (0 = synchronous planning. >0 requires reentrant model_agent)", threads_, CRP::Configuration, 0, INT_MAX));
 
   config->push_back(CRP("policy", "policy", "Control policy", policy_));
   config->push_back(CRP("predictor", "predictor", "Value function predictor", predictor_));
@@ -56,7 +66,7 @@ void DynaAgent::configure(Configuration &config)
 
   planning_steps_ = config["planning_steps"];
   planning_horizon_ = config["planning_horizon"];
-  asynchronous_ = config["asynchronous"];
+  threads_ = config["threads"];
   
   model_ = (ObservationModel*)config["model"].ptr();
   model_predictor_ = (ModelPredictor*)config["model_predictor"].ptr();
@@ -65,15 +75,18 @@ void DynaAgent::configure(Configuration &config)
   state_ = new State();
   
   config.set("state", state_);
-  
-  if (asynchronous_)
-    start();
 }
 
 void DynaAgent::reconfigure(const Configuration &config)
 {
   if (config.has("action") && config["action"].str() == "reset")
-    total_planned_steps_ = 0;
+  {
+    stopThreads();
+    total_planned_steps_ = total_control_steps_ = 0;
+    start_obs_.clear();
+  }
+    
+  config.get("planning_steps", planning_steps_);
 }
 
 DynaAgent *DynaAgent::clone() const
@@ -98,7 +111,10 @@ void DynaAgent::start(const Vector &obs, Vector *action)
   
   prev_obs_ = obs;
   prev_action_ = *action;
-  start_obs_ = obs;
+  start_obs_.add(obs);
+
+  if (threads_ && agent_threads_.empty())
+    startThreads();
 }
 
 void DynaAgent::step(double tau, const Vector &obs, double reward, Vector *action)
@@ -111,7 +127,7 @@ void DynaAgent::step(double tau, const Vector &obs, double reward, Vector *actio
   if (model_predictor_)
     model_predictor_->update(t);
   
-  if (!asynchronous_)
+  if (!threads_)
     runModel();
 
   prev_obs_ = obs;
@@ -122,14 +138,14 @@ void DynaAgent::step(double tau, const Vector &obs, double reward, Vector *actio
   total_control_steps_++;
 }
 
-void DynaAgent::end(double tau, double reward)
+void DynaAgent::end(double tau, const Vector &obs, double reward)
 {
-  Transition t(prev_obs_, prev_action_, reward);
+  Transition t(prev_obs_, prev_action_, reward, obs);
   predictor_->update(t);
   if (model_predictor_)
     model_predictor_->update(t);
   
-  if (!asynchronous_)
+  if (!threads_)
     runModel();
 
   actual_reward_ += reward;  
@@ -147,21 +163,6 @@ void DynaAgent::report(std::ostream &os)
   control_steps_ = 0;
 }
 
-void DynaAgent::run()
-{
-  size_t ii=0;
-
-  while (ok())
-  {
-    while (ii < total_control_steps_)
-    {
-      runModel();
-      ii++;
-    }
-    usleep(0);
-  }
-}
-
 void DynaAgent::runModel()
 {
   Vector obs, action;
@@ -173,7 +174,7 @@ void DynaAgent::runModel()
     if (terminal)
     {
       steps = 0;
-      obs = start_obs_;
+      obs = start_obs_.draw();
       state_->set(obs);
       model_agent_->start(obs, &action);
     }
@@ -190,7 +191,7 @@ void DynaAgent::runModel()
     if (obs.size())
     {
       if (terminal == 2)
-        model_agent_->end(tau, reward);
+        model_agent_->end(tau, obs, reward);
       else
         model_agent_->step(tau, obs, reward, &action);
         
@@ -205,4 +206,24 @@ void DynaAgent::runModel()
     if (planning_horizon_ && steps++ == planning_horizon_)
       terminal = 1;
   }
+}
+
+void DynaAgent::startThreads()
+{
+  for (size_t ii=0; ii < threads_; ++ii)
+  {
+    agent_threads_.push_back(new DynaAgentThread(this));
+    agent_threads_.back()->start();
+  }
+}
+
+void DynaAgent::stopThreads()
+{
+  for (size_t ii=0; ii < agent_threads_.size(); ++ii)
+  {
+    agent_threads_[ii]->stopAndJoin();
+    safe_delete(&agent_threads_[ii]);
+  }
+  
+  agent_threads_.clear();
 }

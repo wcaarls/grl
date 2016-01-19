@@ -6,7 +6,7 @@ set(WORKSPACE_DIR ${SRC}/../../../externals/odesim)
 find_package(PkgConfig)
 
 SET(QT_USE_QTOPENGL TRUE)
-find_package(Qt4)
+find_package(Qt4 COMPONENTS QtCore QtGui QtOpenGL)
 
 if (PKG_CONFIG_FOUND AND QT4_FOUND)
   pkg_check_modules(TINYXML tinyxml)

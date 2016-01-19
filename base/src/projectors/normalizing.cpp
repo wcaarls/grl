@@ -83,10 +83,16 @@ NormalizingProjector *NormalizingProjector::clone() const
 
 ProjectionPtr NormalizingProjector::project(const Vector &in) const
 {
+  if (in.size() != scaling_.size())
+    throw bad_param("projector/pre/normalizing:{min,max,scaling}"); 
+
   return projector_->project((in-min_)*scaling_);
 }
 
 Matrix NormalizingProjector::jacobian(const Vector &in) const
 {
+  if (in.size() != scaling_.size())
+    throw bad_param("projector/pre/normalizing:{min,max,scaling}"); 
+
   return projector_->jacobian((in-min_)*scaling_)*diagonal(scaling_);
 }

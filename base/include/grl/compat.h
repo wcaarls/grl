@@ -28,6 +28,8 @@
 #ifndef GRL_COMPAT_H_
 #define GRL_COMPAT_H_
 
+#include <iostream>
+
 #ifdef WIN32
 #include <ctime>
 struct drand48_data { unsigned char dummy; };

@@ -142,9 +142,12 @@ void ROSAgent::step(double tau, const Vector &obs, double reward, Vector *action
   *action = action_reader_++;
 }
 
-void ROSAgent::end(double tau, double reward)
+void ROSAgent::end(double tau, const Vector &obs, double reward)
 {
   mprl_msgs::StateReward statemsg;
+  statemsg.state.resize(obs.size());
+  for (size_t ii=0; ii < obs.size(); ++ii)
+    statemsg.state[ii] = obs[ii];
   statemsg.reward = reward;
   statemsg.terminal = true;
   statemsg.absorbing = true;

@@ -37,6 +37,7 @@
 #include <fstream>
 
 #include <grl/vector.h>
+#include <grl/stacktrace.h>
 
 namespace grl {
 
@@ -50,18 +51,24 @@ template <typename T> struct type_name {
 class Exception : public std::exception
 {
   protected:
-    std::string what_;
+    std::string what_, trace_;
 
   public:
     Exception(std::string what) throw()
     {
       what_ = what;
+      trace_ = stacktrace();
     }
     virtual ~Exception() throw () { }
 
     virtual const char* what() const throw()
     {
       return what_.c_str();
+    }
+
+    virtual const char* trace() const throw()
+    {
+      return trace_.c_str();
     }
 };
 

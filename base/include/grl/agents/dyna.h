@@ -38,9 +38,23 @@
 namespace grl
 {
 
-/// Dyna model-based learning agent.
-class DynaAgent : public Agent, public itc::Thread
+class DynaAgentThread : public itc::Thread
 {
+  protected:
+    class DynaAgent *agent_;
+    
+  public:
+    DynaAgentThread(class DynaAgent *agent) : agent_(agent) { }
+    
+  protected:
+    virtual void run();
+};
+
+/// Dyna model-based learning agent.
+class DynaAgent : public Agent
+{
+  friend class DynaAgentThread;
+
   public:
     TYPEINFO("agent/dyna", "Agent that learns from both observed and predicted state transitions")
 
@@ -52,22 +66,26 @@ class DynaAgent : public Agent, public itc::Thread
     ModelPredictor *model_predictor_;
     Agent *model_agent_;
     State *state_;
+    FIFOSampler<Vector> start_obs_;
     
-    Vector start_obs_, prev_obs_, prev_action_;
+    std::vector<DynaAgentThread*> agent_threads_;
+    
+    Vector prev_obs_, prev_action_;
     size_t planning_steps_, planning_horizon_, total_planned_steps_;
     
     double planning_reward_, actual_reward_;
     size_t planned_steps_, control_steps_, total_control_steps_;
-    int asynchronous_;
+    int threads_;
     
     double time_;
     
   public:
-    DynaAgent() : policy_(NULL), predictor_(NULL), model_(NULL), model_predictor_(NULL), model_agent_(NULL), state_(NULL), planning_steps_(1), planning_horizon_(100), total_planned_steps_(0), planning_reward_(0.), actual_reward_(0.), planned_steps_(0), control_steps_(0), total_control_steps_(0), asynchronous_(0), time_(0.) { }
+    DynaAgent() : policy_(NULL), predictor_(NULL), model_(NULL), model_predictor_(NULL), model_agent_(NULL), state_(NULL), planning_steps_(1), planning_horizon_(100), total_planned_steps_(0), planning_reward_(0.), actual_reward_(0.), planned_steps_(0), control_steps_(0), total_control_steps_(0), threads_(0), time_(0.) { }
+    ~DynaAgent()
+    {
+      stopThreads();
+    }
   
-    // From itc::Thread
-    using itc::Thread::start;
-
     // From Configurable    
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
@@ -77,13 +95,13 @@ class DynaAgent : public Agent, public itc::Thread
     virtual DynaAgent *clone() const;
     virtual void start(const Vector &obs, Vector *action);
     virtual void step(double tau, const Vector &obs, double reward, Vector *action);
-    virtual void end(double tau, double reward);
+    virtual void end(double tau, const Vector &obs, double reward);
     virtual void report(std::ostream &os);
-    
+
   protected:
-    virtual void run();
-    
     void runModel();
+    void startThreads();
+    void stopThreads();
 };
 
 }

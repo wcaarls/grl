@@ -170,11 +170,9 @@ void BatchLearningExperiment::run()
         total_reward += reward;
         
         if (terminal == 2)
-          test_agent_->end(tau, reward);
-        else if (obs.size())
-        {
+          test_agent_->end(tau, obs, reward);
+        else
           test_agent_->step(tau, obs, reward, &action);
-        }
       } while (!terminal);
 
       // Report results

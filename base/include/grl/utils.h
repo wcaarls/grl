@@ -35,6 +35,7 @@
 #include <limits>
 #include <grl/compat.h>
 #include <grl/vector.h>
+#include <grl/mutex.h>
 
 namespace grl
 {
@@ -232,6 +233,54 @@ inline size_t sample(const Vector &dist)
 
   return sample(dist, sum);
 }
+
+template <class T>
+class FIFOSampler
+{
+  protected:
+    size_t sz_, idx_;
+    bool full_;
+    std::vector<T> items_;
+    mutable ReadWriteLock lock_;
+
+  public:
+    FIFOSampler(size_t sz=100) : sz_(sz), idx_(0), full_(false)
+    {
+      items_.resize(sz_);
+    }
+    
+    void clear()
+    {
+      WriteGuard guard(lock_);
+      
+      idx_ = 0;
+      full_ = false;
+    }
+  
+    T draw() const
+    {
+      ReadGuard guard(lock_);
+      
+      if (items_.empty())
+        return T();
+      else if (full_)
+        return items_[RandGen::getInteger(sz_)];
+      else
+        return items_[RandGen::getInteger(idx_)];
+    }
+    
+    void add(const T &item)
+    {
+      WriteGuard guard(lock_);
+      
+      items_[idx_++] = item;
+      if (idx_ == sz_)
+      {
+        full_ = true;
+        idx_ = 0;
+      }
+    }
+};
 
 class timer
 {

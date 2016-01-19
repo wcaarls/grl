@@ -46,7 +46,7 @@ void PeakedProjector::configure(Configuration &config)
   peaking_ = config["peaking"];
   
   if (peaking_.size() != min_.size())
-    throw bad_param("projector/peaked:peaking");
+    throw bad_param("projector/pre/peaked:peaking");
 
   scaling_ = ConstantVector(min_.size(), 1.)/(max_-min_);
   range2_ = (max_-min_)/2.;
@@ -66,13 +66,16 @@ PeakedProjector *PeakedProjector::clone() const
 ProjectionPtr PeakedProjector::project(const Vector &in) const
 {
   // Scale input to [-1, 1], apply squashing, and rescale to range
+  if (in.size() != peaking_.size())
+    throw bad_param("projector/pre/peaked:{min,max,scaling,peaking}"); 
+
   return projector_->project((squash(2.*(in-min_)*scaling_-1., peaking_)+1.)*range2_+min_);
 }
 
 Matrix PeakedProjector::jacobian(const Vector &in) const
 {
   if (in.size() != peaking_.size())
-    throw bad_param("projector/peaked:peaking"); 
+    throw bad_param("projector/pre/peaked:{min,max,scaling,peaking}"); 
 
   Vector diag(in.size());
   

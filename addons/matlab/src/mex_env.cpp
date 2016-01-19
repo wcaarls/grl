@@ -40,6 +40,8 @@ using namespace grl;
 
 static YAMLConfigurator *g_configurator=NULL;
 static Environment *g_env=NULL;
+static int g_action_dims=0;
+static bool g_started=false;
 
 void mexFunction(int nlhs, mxArray *plhs[ ],
                  int nrhs, const mxArray *prhs[ ])
@@ -82,6 +84,9 @@ void mexFunction(int nlhs, mxArray *plhs[ ],
     }
 
     plhs[0] = taskSpecToStruct(g_configurator->references());
+    
+    g_action_dims = mxGetPr(mxGetField(plhs[0], 0, "action_dims"))[0];
+    g_started = false;
 
     mexLock();
 
@@ -104,6 +109,7 @@ void mexFunction(int nlhs, mxArray *plhs[ ],
     
     // TODO: READ TEST ARGUMENT
     g_env->start(0, &obs);
+    g_started = true;
     
     // Process output
     plhs[0] = vectorToArray(obs);
@@ -111,13 +117,20 @@ void mexFunction(int nlhs, mxArray *plhs[ ],
   else if (!strcmp(func, "step"))
   {
     Vector action;
+    
+    if (!g_started)
+      mexErrMsgTxt("Environment not started.");
 
     // Verify input    
     if (nrhs < 2 || !mxIsDouble(prhs[1]))
       mexErrMsgTxt("Missing action.");
-    
+      
     // Prepare input
     int elements = mxGetNumberOfElements(prhs[1]);
+    
+    if (elements != g_action_dims)
+      mexErrMsgTxt("Invalid action size.");
+    
     action.resize(elements);
     for (size_t ii=0; ii < elements; ++ii)
       action[ii] = mxGetPr(prhs[1])[ii];

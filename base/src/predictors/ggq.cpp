@@ -79,7 +79,7 @@ void GGQPredictor::update(const Transition &transition)
   double target = transition.reward;
   
   // phi_next for greedy target policy
-  if (transition.obs.size())
+  if (transition.action.size())
   {
     Vector action;
     policy_->act(transition.obs, &action);
@@ -106,7 +106,7 @@ void GGQPredictor::update(const Transition &transition)
   // Update weights
   representation_->write(phi, VectorConstructor(target, delta), VectorConstructor(alpha_, alpha_*eta_));
   
-  if (transition.obs.size())
+  if (transition.action.size())
     representation_->update(phi_next, VectorConstructor(-alpha_*gamma_*dotwphi, 0.));
     
   representation_->finalize();

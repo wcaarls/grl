@@ -97,7 +97,7 @@ void MCTSPolicy::act(double time, const Vector &in, Vector *out)
     {
       safe_delete(&root_);
       trunk_ = NULL;
-      DEBUG("Cannot use warm start: predicted state " << predicted << " differs from actual state " << in);
+      TRACE("Cannot use warm start: predicted state " << predicted << " differs from actual state " << in);
     }
   }
 
@@ -148,12 +148,12 @@ void MCTSPolicy::act(double time, const Vector &in, Vector *out)
     MCTSNode *node = trunk_->select(0);
     *out = actions_[node->action()];
 
-    DEBUG("Selected action " << *out << " (Q " << node->q()/node->visits() << ") after " << searches << " searches");
+    TRACE("Selected action " << *out << " (Q " << node->q()/node->visits() << ") after " << searches << " searches");
   }
   else
   {
     *out = actions_[lrand48()%actions_.size()];
 
-    DEBUG("Selected random action " << *out);
+    TRACE("Selected random action " << *out);
   }
 }

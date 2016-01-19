@@ -4,7 +4,7 @@ experiment:
   trials: 0
   steps: 0
   rate: 0
-  test_interval: 0
+  test_interval: -1
   environment: 
     type: environment/modeled
     model: 
@@ -21,11 +21,10 @@ experiment:
         max: experiment/environment/task/action_max
         steps: [4]
       projector: 
-        type: projector/tile_coding
-        tilings: 1
-        memory: 1024
-        resolution: [1, 1, 1]
-        wrapping: []
+        type: projector/grid
+        input_min: experiment/environment/task/observation_min+experiment/environment/task/action_min
+        input_max: experiment/environment/task/observation_max+experiment/environment/task/action_max
+        steps: [ 10, 7, 4 ]
       representation: 
         type: representation/parameterized/linear
         init_min: [0]
@@ -55,6 +54,7 @@ experiment:
       representation: experiment/agent/policy/representation
       sampler: 
         type: sampler/greedy
+  save_every: never
 visualizer: 
   type: visualizer/glut
 visualization: 
@@ -63,6 +63,8 @@ visualization:
   input_min: [0, 0]
   input_max: [10, 7]
   points: 65536
+  savepoints: 1048576
+  state: experiment/environment/state
   projection: mean
   projector: experiment/agent/policy/projector
   representation: experiment/agent/policy/representation

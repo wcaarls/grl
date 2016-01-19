@@ -104,11 +104,11 @@ void SolverAgent::step(double tau, const Vector &obs, double reward, Vector *act
   prev_action_ = *action;  
 }
 
-void SolverAgent::end(double tau, double reward)
+void SolverAgent::end(double tau, const Vector &obs, double reward)
 {
   if (predictor_)
   {
-    Transition t(prev_obs_, prev_action_, reward);
+    Transition t(prev_obs_, prev_action_, reward, obs);
     predictor_->update(t);
   }
 }

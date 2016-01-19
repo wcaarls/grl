@@ -266,7 +266,7 @@ void ERTreeProjector::reconfigure(const Configuration &config)
 {
   if (config.has("action") && config["action"].str() == "reset")
   {
-    DEBUG("Initializing sample store");
+    TRACE("Initializing sample store");
     
     {
       WriteGuard guard(rwlock_);
@@ -297,7 +297,7 @@ void ERTreeProjector::reindex()
   // Create new pruned store
   StorePtr newstore = StorePtr(store_->prune(max_samples_));
   
-  DEBUG("Building new forest with " << newstore->size() << " samples");
+  TRACE("Building new forest with " << newstore->size() << " samples");
 
   ERTree **newforest = new ERTree*[trees_];
   

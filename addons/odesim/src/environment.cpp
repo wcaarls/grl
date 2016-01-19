@@ -143,7 +143,7 @@ bool ODESTGEnvironment::configure(Configuration &config)
     return false;
   }
   
-  DEBUG("Waiting for initial STG state");
+  TRACE("Waiting for initial STG state");
     
   if (!listener_.waitForNewState())
   {
@@ -211,13 +211,23 @@ double ODESTGEnvironment::step(const Vector &action, Vector *obs, double *reward
 
 ODEEnvironment::~ODEEnvironment()
 {
-  app_->exit();
+  while (app_)
+  {
+    Guard guard(mutex_);
+    
+    if (app_)
+      app_->exit();
+      
+    usleep(0);
+  }
+  
   itc::Thread::stopAndJoin();
 }
 
 void ODEEnvironment::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("xml", "XML configuration filename", xml_));
+  config->push_back(CRP("visualize", "Whether to display 3D visualization", visualize_, CRP::Configuration, 0, 1));
   
   config->push_back(CRP("observation_dims", "int.observation_dims", "Number of observation dimensions", CRP::Provided));
   config->push_back(CRP("observation_min", "vector.observation_min", "Lower limit on observations", CRP::Provided));
@@ -231,14 +241,19 @@ void ODEEnvironment::request(ConfigurationRequest *config)
 
 void ODEEnvironment::configure(Configuration &config)
 {
+  visualize_ = config["visualize"];
+
   config_ = &config;
     
   itc::Thread::start();
   
-  while (!initialized_)
+  while (init_state_ == isUninitialized)
     usleep(0);
     
   config_ = NULL;
+  
+  if (init_state_ == isError)
+    throw Exception("Could not start environment thread");
 }
 
 void ODEEnvironment::reconfigure(const Configuration &config)
@@ -247,35 +262,42 @@ void ODEEnvironment::reconfigure(const Configuration &config)
 
 void ODEEnvironment::run()
 {
-  bool useGUI = getenv("DISPLAY") != 0;
   int argc=1;
   char *argv[1];
   argv[0] = (char*)malloc(7*sizeof(char));
   strcpy(argv[0], "odesim");
   
-  NOTICE("Initializing Qt");
-
-  app_ = new QApplication(argc, argv, useGUI);
   env_ = new ODESTGEnvironment();
-  
   if (!env_->configure(*config_))
-    throw Exception("Could not initialize STG ODE environment");
-    
-  if (useGUI)
   {
-    ODEDialog dialog(env_);
-
-    initialized_ = true;
+    ERROR("Could not initialize STG ODE environment");
+    init_state_ = isError;
+    return;
+  }
   
+  if (visualize_)
+  {
+    NOTICE("Initializing Qt");
+  
+    app_ = new QApplication(argc, argv);
+    ODEDialog *dialog = new ODEDialog(env_);
+
+    init_state_ = isInitialized;
+    
     NOTICE("Starting Qt main loop");
     app_->exec();
     WARNING("Return from Qt main loop");
+    
+    Guard guard(mutex_);
+    
+    env_->getSim()->stop();
+    safe_delete(&dialog);
+    safe_delete(&app_);
   }
   else
-    initialized_ = true;
-    
-  while (ok()) usleep(10000);
+    init_state_ = isInitialized;
+ 
+  while (ok()) usleep(1000);
 
   safe_delete(&env_);
-  safe_delete(&app_);
 }

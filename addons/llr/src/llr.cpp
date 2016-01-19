@@ -194,9 +194,10 @@ double LLRRepresentation::read(const ProjectionPtr &projection, Vector *result, 
     Guard guard(*p->store);
     for (size_t ii=0; ii < b.rows(); ++ii)
     {
+      double w_r = 1./A(ii, A.cols()-1);
       for (size_t jj=0; jj < outputs_; ++jj)
       {
-        double o = b(ii, jj);
+        double o = b(ii, jj)*w_r;
         mib[jj] = fmin(mib[jj], o);
         mab[jj] = fmax(mab[jj], o);
       }

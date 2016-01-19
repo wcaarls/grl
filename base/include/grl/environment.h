@@ -244,6 +244,35 @@ class DynamicalModel : public Model
     virtual double step(const Vector &state, const Vector &action, Vector *next) const;
 };
 
+/// Environment modifier that adds sensor and actuator noise.
+class NoiseEnvironment : public Environment
+{
+  public:
+    TYPEINFO("environment/pre/noise", "Injects noise into an environment")
+
+  public:
+    Environment *environment_;
+    
+    Vector sensor_noise_, actuator_noise_;
+
+  public:
+    NoiseEnvironment() : environment_(NULL)
+    {
+      sensor_noise_ = VectorConstructor(0.);
+      actuator_noise_ = VectorConstructor(0.);
+    }
+  
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+    
+    // From Environment
+    virtual NoiseEnvironment *clone() const;
+    virtual void start(int test, Vector *obs);
+    virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal);
+};
+
 }
 
 #endif /* GRL_ENVIRONMENT_H_ */

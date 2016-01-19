@@ -1,4 +1,4 @@
-experiment: 
+experiment:
   type: experiment/online_learning
   runs: 1
   trials: 1
@@ -6,17 +6,17 @@ experiment:
   rate: 0
   test_interval: 0
   output: cartpole_ac_tc_swingup_0000
-  environment: 
+  environment:
     type: environment/modeled
-    model: 
+    model:
       type: model/dynamical
       control_step: 0.05
       integration_steps: 10
-      dynamics: 
+      dynamics:
         type: dynamics/rbdl
         file: cart_pendulum.lua
         options: friction=0
-    task: 
+    task:
       type: task/lua
       file: cart_pendulum_swingup_ras_reg.lua
       options: shaping_weight=0
@@ -24,25 +24,25 @@ experiment:
       type: exporter/csv
       file: ???
       style: meshup
-  agent: 
+  agent:
     type: agent/td
-    policy: 
+    policy:
       type: policy/action
       sigma: [30]
       output_min: experiment/environment/task/action_min
       output_max: experiment/environment/task/action_max
-      projector: 
+      projector:
         type: projector/pre/peaked
         peaking: [5, 5, 5, 5]
         input_min: experiment/environment/task/observation_min
         input_max: experiment/environment/task/observation_max
-        projector: 
+        projector:
           type: projector/tile_coding
           tilings: 16
           memory: 67108864
-          resolution: [0.25, 0.0157075, 0.25, 0.157075]
+          resolution: [2.5, 0.157075, 2.5, 1.57075]
           wrapping: [0, 6.283, 0, 0]
-      representation: 
+      representation:
         type: representation/parameterized/linear
         init_min: [0]
         init_max: [1]
@@ -50,24 +50,24 @@ experiment:
         outputs: experiment/environment/task/action_dims
         output_min: experiment/environment/task/action_min
         output_max: experiment/environment/task/action_max
-    predictor: 
+    predictor:
       type: predictor/ac/action
       alpha: 0.2
       beta: 0.01
       gamma: 0.99
       lambda: 0.65
-      critic_projector: 
+      critic_projector:
         type: projector/pre/peaked
         peaking: experiment/agent/policy/projector/peaking
         input_min: experiment/environment/task/observation_min
         input_max: experiment/environment/task/observation_max
-        projector: 
+        projector:
           type: projector/tile_coding
           tilings: experiment/agent/policy/projector/projector/tilings
           memory: experiment/agent/policy/projector/projector/memory
           resolution: experiment/agent/policy/projector/projector/resolution
           wrapping: experiment/agent/policy/projector/projector/wrapping
-      critic_representation: 
+      critic_representation:
         type: representation/parameterized/linear
         init_min: [0]
         init_max: [1]
@@ -75,13 +75,13 @@ experiment:
         outputs: 1
         output_min: []
         output_max: []
-      critic_trace: 
+      critic_trace:
         type: trace/enumerated/replacing
       actor_projector: experiment/agent/policy/projector
       actor_representation: experiment/agent/policy/representation
-  test_agent: 
+  test_agent:
     type: agent/fixed
-    policy: 
+    policy:
       type: policy/action
       sigma: []
       output_min: experiment/environment/task/action_min
@@ -92,6 +92,6 @@ experiment:
   save_every: never
 visualizer: 
   type: visualizer/glut
-visualization: 
+visualization:
   type: visualization/cart_pole
   state: experiment/environment/state

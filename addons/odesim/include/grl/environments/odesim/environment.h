@@ -46,16 +46,20 @@ class ODEEnvironment: public grl::Environment, public itc::Thread
 {
   public:
     TYPEINFO("environment/ode", "Open Dynamics Engine simulation environment")
+    
+    enum InitializationState {isUninitialized, isInitialized, isError};
 
   protected:
     QApplication *app_;
     ODESTGEnvironment *env_;
     Configuration *config_;
     std::string xml_;
-    bool initialized_;
+    int visualize_;
+    InitializationState init_state_;
+    Mutex mutex_;
 
   public:
-    ODEEnvironment() : app_(NULL), env_(NULL), config_(NULL), xml_("../addons/odesim/cfg/robot.xml"), initialized_(false) { }
+    ODEEnvironment() : app_(NULL), env_(NULL), config_(NULL), xml_("../addons/odesim/cfg/robot.xml"), visualize_(1), init_state_(isUninitialized) { }
     ~ODEEnvironment();
   
     // From Configurable

@@ -184,7 +184,7 @@ extern const char *grl_log_levels__[];
 #define WARNING(m) GRLLOG(1, m) ///< Log a warning.
 #define NOTICE(m)  GRLLOG(2, m) ///< Log a notable event.
 #define INFO(m)    GRLLOG(3, m) ///< Log a general event.
-#define DEBUG(m)   GRLLOG(4, m) ///< Log throttled debugging information.
+#define TRACE(m)   GRLLOG(4, m) ///< Log throttled debugging information.
 #define CRAWL(m)   GRLLOG(5, m) ///< Log unthrottled debugging information.
 
 /// Global namespace log writer.

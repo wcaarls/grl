@@ -102,7 +102,7 @@ bool AgentSolver::solve()
     if (obs.size())
     {
       if (terminal == 2)
-        agent_->end(tau, reward);
+        agent_->end(tau, obs, reward);
       else
         agent_->step(tau, obs, reward, &action);
     }

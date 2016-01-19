@@ -58,27 +58,33 @@ TDAgent *TDAgent::clone() const
 
 void TDAgent::start(const Vector &obs, Vector *action)
 {
+  TDAgentState *state = agent_state_.instance();
+
   predictor_->finalize();
   
-  time_ = 0;
-  policy_->act(time_, obs, action);
+  state->time = 0;
+  policy_->act(state->time, obs, action);
   
-  prev_obs_ = obs;
-  prev_action_ = *action;
+  state->prev_obs = obs;
+  state->prev_action = *action;
 }
 
 void TDAgent::step(double tau, const Vector &obs, double reward, Vector *action)
 {
-  time_ += tau;
-  policy_->act(time_, obs, action);
-  
-  predictor_->update(Transition(prev_obs_, prev_action_, reward, obs, *action));
+  TDAgentState *state = agent_state_.instance();
 
-  prev_obs_ = obs;
-  prev_action_ = *action;  
+  state->time += tau;
+  policy_->act(state->time, obs, action);
+  
+  predictor_->update(Transition(state->prev_obs, state->prev_action, reward, obs, *action));
+
+  state->prev_obs = obs;
+  state->prev_action = *action;  
 }
 
-void TDAgent::end(double tau, double reward)
+void TDAgent::end(double tau, const Vector &obs, double reward)
 {
-  predictor_->update(Transition(prev_obs_, prev_action_, reward));
+  TDAgentState *state = agent_state_.instance();
+
+  predictor_->update(Transition(state->prev_obs, state->prev_action, reward, obs));
 }

@@ -163,8 +163,8 @@ RBDLState *RBDLDynamics::createRBDLState() const
     using namespace RigidBodyDynamics::Math;
     Body &body = rbdl->model->mBodies[i];
     SpatialRigidBodyInertia body_rbi = SpatialRigidBodyInertia::createFromMassComInertiaC(body.mMass, body.mCenterOfMass, body.mInertia);
-    DEBUG("=============== Spatial inertia of body " << i << " ===============");
-    DEBUG(body_rbi.toMatrix() << std::endl);
+    TRACE("=============== Spatial inertia of body " << i << " ===============");
+    TRACE(body_rbi.toMatrix() << std::endl);
   }
   
   NOTICE("Loaded RBDL model with " << rbdl->model->dof_count << " degrees of freedom");
@@ -303,6 +303,30 @@ bool LuaTask::invert(const Vector &obs, Vector *state) const
   lua_pop(lua->L, 1);
   
   return true;
+}
+
+Matrix LuaTask::rewardHessian(const Vector &state, const Vector &action) const
+{
+  LuaState *lua = lua_state_.instance();
+  Matrix hessian;
+
+  lua_getglobal(lua->L, "rewardHessian");  /* function to be called */
+  if (!lua_isnil(lua->L, -1))
+  {
+    lua_pushvector(lua->L, state);
+    lua_pushvector(lua->L, action);
+    if (lua_pcall(lua->L, 2, 1, 0) != 0)
+    {
+      WARNING("Cannot determine reward hessian: " << lua_tostring(lua->L, -1));
+      lua_pop(lua->L, 1);
+      return Matrix();
+    }
+  
+    hessian = lua_tomatrix(lua->L, -1);
+  }
+  
+  lua_pop(lua->L, 1);
+  return hessian;
 }
 
 LuaState *LuaTask::createLuaState() const

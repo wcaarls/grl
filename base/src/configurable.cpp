@@ -170,7 +170,7 @@ Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *conf
         WARNING("Spurious parameter " << path << ii->first);
     }
   
-    DEBUG("Configuring " << obj->d_type());
+    TRACE("Configuring " << obj->d_type());
     try
     {
       obj->configure(objconfig);

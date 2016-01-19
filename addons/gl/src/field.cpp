@@ -84,7 +84,7 @@ void FieldVisualization::configure(Configuration &config)
   // Allocate texture
   data_ = (unsigned char*) malloc(texpoints_*3*sizeof(unsigned char));
   
-  DEBUG("Calculating " << dimpoints_ << "x" << dimpoints_ << " (" << texpoints_ << ") texture from " << points_ << " points with spacing " << (state_max_-state_min_)/(dimpoints_-1));}
+  TRACE("Calculating " << dimpoints_ << "x" << dimpoints_ << " (" << texpoints_ << ") texture from " << points_ << " points with spacing " << (state_max_-state_min_)/(dimpoints_-1));}
 
 void FieldVisualization::reconfigure(const Configuration &config)
 {
@@ -231,7 +231,7 @@ void FieldVisualization::run()
       value_min = fmin(v, value_min);
     }
 
-    DEBUG("Range " << value_min_ << " - " << value_max_);
+    TRACE("Range " << value_min_ << " - " << value_max_);
 
     float value_range = value_max-value_min;
     

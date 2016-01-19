@@ -64,7 +64,7 @@ void ExclusiveMasterAgent::start(const Vector &obs, Vector *action)
   {
     double stau = time_[last_agent_] - time_[1-last_agent_];
     CRAWL("Virtual absorbing state for non-running agent " << 1-last_agent_ << " (SMDP reward " << reward_ << " over " << stau << "s)");
-    agent_[1-last_agent_]->end(stau, reward_);
+    agent_[1-last_agent_]->end(stau, obs, reward_);
   }
   
   time_[0] = time_[1] = -1;
@@ -114,16 +114,16 @@ void ExclusiveMasterAgent::step(double tau, const Vector &obs, double reward, Ve
   time_[new_agent] = time;
 }
 
-void ExclusiveMasterAgent::end(double tau, double reward)
+void ExclusiveMasterAgent::end(double tau, const Vector &obs, double reward)
 {
   reward_ += pow(gamma_, smdp_steps_)*reward;
   
-  agent_[last_agent_]->end(tau, reward);
+  agent_[last_agent_]->end(tau, obs, reward);
   
   if (time_[1-last_agent_] >= 0)
   {
     CRAWL("Absorbing state for non-running agent " << 1-last_agent_ << " (SMDP reward " << reward_ << ")");
-    agent_[1-last_agent_]->end(time_[last_agent_]+tau-time_[1-last_agent_], reward_);
+    agent_[1-last_agent_]->end(time_[last_agent_]+tau-time_[1-last_agent_], obs, reward_);
   }
   
   time_[0] = time_[1] = -1;

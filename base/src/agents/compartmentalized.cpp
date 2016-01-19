@@ -68,9 +68,9 @@ void CompartmentalizedSubAgent::step(double tau, const Vector &obs, double rewar
   agent_->step(tau, obs, reward, action);
 }
 
-void CompartmentalizedSubAgent::end(double tau, double reward)
+void CompartmentalizedSubAgent::end(double tau, const Vector &obs, double reward)
 {
-  agent_->end(tau, reward);
+  agent_->end(tau, obs, reward);
 }
 
 double CompartmentalizedSubAgent::confidence(const Vector &obs) const

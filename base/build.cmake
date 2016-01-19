@@ -24,6 +24,8 @@ add_library(${TARGET} SHARED
 #            ${SRC}/environments/windy.cpp
             ${SRC}/environments/compass_walker/SWModel.cpp
             ${SRC}/environments/compass_walker/compass_walker.cpp
+#            ${SRC}/environments/noise.cpp
+#            ${SRC}/environments/swimmer.cpp
 #            ${SRC}/experiments/approx_test.cpp
             ${SRC}/experiments/online_learning.cpp
 #            ${SRC}/experiments/batch_learning.cpp
@@ -61,6 +63,7 @@ add_library(${TARGET} SHARED
 #            ${SRC}/representations/multisine.cpp
             ${SRC}/representations/ann.cpp
 #            ${SRC}/representations/dmp.cpp
+            ${SRC}/representations/additive.cpp
             ${SRC}/samplers/greedy.cpp
             ${SRC}/samplers/softmax.cpp
             ${SRC}/solvers/agent.cpp
@@ -72,6 +75,7 @@ add_library(${TARGET} SHARED
             ${SRC}/visualizations/compass_walker.cpp
 #            ${SRC}/visualizations/pinball.cpp
 #            ${SRC}/visualizations/windy.cpp
+#            ${SRC}/visualizations/swimmer.cpp
            )
 
 # Dependencies

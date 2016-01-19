@@ -51,7 +51,7 @@ class Agent : public Configurable
     virtual void step(double tau, const Vector &obs, double reward, Vector *action) = 0;
     
     /// Signal an absorbing state.
-    virtual void end(double tau, double reward) = 0;
+    virtual void end(double tau, const Vector &obs, double reward) = 0;
     
     /// Progress report.
     virtual void report(std::ostream &os) { }

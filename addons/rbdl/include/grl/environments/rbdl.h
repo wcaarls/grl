@@ -107,6 +107,7 @@ class LuaTask : public Task
     virtual void observe(const Vector &state, Vector *obs, int *terminal) const;
     virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const;
     virtual bool invert(const Vector &obs, Vector *state) const;
+    virtual Matrix rewardHessian(const Vector &state, const Vector &action) const;
     
   protected:
     LuaState *createLuaState() const;

@@ -224,7 +224,7 @@ bool ILQGSolver::resolve(double t, const Vector &xt)
     double g_norm = (abs(l.array()) / (abs(u.array())+1)).rowwise().maxCoeff().mean();
     if (g_norm < tolerance_ && lambda < 1e-5)
     {
-      DEBUG("iLQG converged after " << iteration << " iterations (gradient)");
+      TRACE("iLQG converged after " << iteration << " iterations (gradient)");
       break;
     }
     
@@ -257,7 +257,7 @@ bool ILQGSolver::resolve(double t, const Vector &xt)
       else
       {
         z = sign(dcost);
-        DEBUG("non-positive expected reduction: should not occur");
+        TRACE("non-positive expected reduction: should not occur");
       }
       
       if (z > 0)
@@ -283,7 +283,7 @@ bool ILQGSolver::resolve(double t, const Vector &xt)
       
       if ((total_cost - costsum) < tolerance_)
       {
-        DEBUG("iLQG converged after " << iteration << " iterations (cost change)");
+        TRACE("iLQG converged after " << iteration << " iterations (cost change)");
         break;
       }
       
@@ -351,7 +351,7 @@ bool ILQGSolver::forwardPass(const ColumnVector &x0, const Matrix &x, const Matr
     
     if (!next.size())
     {
-      DEBUG("Model prediction failed at step " << i << "(state " << xnew->col(i).transpose() << ", action " << unew->col(i).transpose() << ")");
+      TRACE("Model prediction failed at step " << i << "(state " << xnew->col(i).transpose() << ", action " << unew->col(i).transpose() << ")");
       return false;
     }
     
@@ -427,7 +427,7 @@ bool ILQGSolver::backwardPass(const Matrix3D &J, const Matrix3D &H, double lambd
     Eigen::LLT<Matrix> chol(QuuF);
     if (chol.info() != Eigen::Success)
     {
-      DEBUG("Cholesky failed at step " << i);
+      TRACE("Cholesky failed at step " << i);
       return false;
     }
 

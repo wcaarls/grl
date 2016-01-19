@@ -65,6 +65,6 @@ void FixedAgent::step(double tau, const Vector &obs, double reward, Vector *acti
   policy_->act(time_, obs, action);
 }
 
-void FixedAgent::end(double tau, double reward)
+void FixedAgent::end(double tau, const Vector &obs, double reward)
 {
 }

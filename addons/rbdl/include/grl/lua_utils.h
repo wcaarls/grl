@@ -72,6 +72,44 @@ inline Vector lua_tovector(lua_State *L, int index)
   return v;
 }
 
+inline Matrix lua_tomatrix(lua_State *L, int index)
+{
+  if (!lua_istable(L, index))
+  {
+    WARNING("Lua object at stack index " << index << " is not a table");
+    return Matrix();
+  }
+
+  size_t m = lua_objlen(L, index), n=0;
+  
+  Matrix mat;
+
+  for (size_t ii=0; ii < m; ++ii)
+  {
+    lua_rawgeti(L, index, ii+1);
+  
+    Vector v = lua_tovector(L, -1);
+    if (!v.size() || (n && v.size() != n))
+    {
+      WARNING("Lua matrix is not consistent at row " << ii);
+      lua_pop(L, 1);
+      return Matrix();
+    }
+    
+    lua_pop(L, 1);
+    
+    if (!n)
+    {
+      n = v.size();
+      mat = Matrix(m, n);
+    }
+    
+    mat.row(ii) = v;
+  }
+  
+  return mat;
+}
+
 inline double lua_gettablenumber(lua_State *L, const char *key)
 {
   int result = 0;
