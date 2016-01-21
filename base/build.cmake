@@ -26,6 +26,7 @@ add_library(${TARGET} SHARED
             ${SRC}/environments/compass_walker/compass_walker.cpp
 #            ${SRC}/environments/noise.cpp
 #            ${SRC}/environments/swimmer.cpp
+            ${SRC}/environments/odesim/leosim.cpp
 #            ${SRC}/experiments/approx_test.cpp
             ${SRC}/experiments/online_learning.cpp
 #            ${SRC}/experiments/batch_learning.cpp
@@ -47,7 +48,7 @@ add_library(${TARGET} SHARED
             ${SRC}/predictors/sarsa.cpp
 #            ${SRC}/predictors/ggq.cpp
             ${SRC}/predictors/ac.cpp
-#            ${SRC}/predictors/fqi.cppЗ
+#            ${SRC}/predictors/fqi.cpp
             ${SRC}/predictors/qv.cpp
             ${SRC}/predictors/td.cpp
             ${SRC}/predictors/vi.cpp

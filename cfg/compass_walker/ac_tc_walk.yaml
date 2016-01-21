@@ -1,10 +1,10 @@
 experiment: 
   type: experiment/online_learning
-  runs: 5
-  trials: 2000
+  runs: 1
+  trials: 10000
   steps: 0
   rate: 0
-  test_interval: 10
+  test_interval: -1
   output: walker_ac_tc_walk
   environment: 
     type: environment/modeled
@@ -12,22 +12,31 @@ experiment:
       type: model/compass_walker
       control_step: 0.2
       integration_steps: 20
+      slope_angle: 0.004
     task: 
       type: task/compass_walker/walk
       timeout: 100
       initial_state_variation: 0.2
+      slope_angle: experiment/environment/model/slope_angle
+      negative_reward: -100
+      observe: [ 1, 1, 1, 1, 1, 0 ]
+      reference_velocity: 0.12
+    exporter: 
+      type: exporter/csv
+      file: walker_ac_tc_vref_u_gen-test
+      style: meshup
   agent: 
     type: agent/td
     policy: 
       type: policy/action
-      sigma: [0.48]
+      sigma: [0.5]
       output_min: experiment/environment/task/action_min
       output_max: experiment/environment/task/action_max
       projector: 
         type: projector/tile_coding
         tilings: 16
         memory: 67108864
-        resolution: [0.0838, 0.1047, 0.1111, 0.2222, 10]
+        resolution: [0.0419, 0.0524, 0.05555, 0.1111, 10]
         wrapping: []
       representation: 
         type: representation/parameterized/linear
@@ -45,8 +54,8 @@ experiment:
       lambda: 0.65
       critic_projector: 
         type: projector/tile_coding
-        tilings: 16
-        memory: 67108864
+        tilings: experiment/agent/policy/projector/tilings
+        memory: experiment/agent/policy/projector/memory
         resolution: experiment/agent/policy/projector/resolution
         wrapping: experiment/agent/policy/projector/wrapping
       critic_representation: 
@@ -70,4 +79,9 @@ experiment:
       output_max: experiment/environment/task/action_max
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
-  save_every: never
+  save_every: run
+visualizer: 
+  type: visualizer/glut
+visualization: 
+  type: visualization/compass_walker
+  state: experiment/environment/state
