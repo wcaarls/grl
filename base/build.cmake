@@ -42,6 +42,7 @@ add_library(${TARGET} SHARED
             ${SRC}/policies/mcts.cpp
             ${SRC}/policies/ucb.cpp
             ${SRC}/policies/state_feedback.cpp
+            ${SRC}/policies/noise.cpp
             ${SRC}/predictor.cpp
             ${SRC}/predictors/model.cpp
             ${SRC}/predictors/sarsa.cpp
