@@ -5,7 +5,7 @@ experiment:
   steps: 100000000
   rate: 0
   test_interval: -1
-  output: cartpole_ac_tc_swingup_tilewidth_1
+  output: cartpole_ac_tc_swingup_tilewidth_5
   environment:
     type: environment/modeled
     model:

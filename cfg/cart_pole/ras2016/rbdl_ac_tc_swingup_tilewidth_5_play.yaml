@@ -5,7 +5,7 @@ experiment:
   steps: 0
   rate: 0
   test_interval: -1
-  output: cartpole_ac_tc_swingup_tilewidth_1_play
+  output: cartpole_ac_tc_swingup_tilewidth_5_play
   environment:
     type: environment/modeled
     model:
@@ -88,7 +88,7 @@ experiment:
       output_max: experiment/environment/task/action_max
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
-  load_file: cart_pole_ras2016_rbdl_ac_tc_swingup_tilewidth_1_learn-mp$run-run0
+  load_file: cart_pole_ras2016_rbdl_ac_tc_swingup_tilewidth_5_learn-mp$run-run0
   save_every: never
 visualizer:
   type: visualizer/glut
