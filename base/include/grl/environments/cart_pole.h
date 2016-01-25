@@ -66,11 +66,11 @@ class CartPoleSwingupTask : public Task
   
   public:
     double T_;
-    int shaping_, randomization_;
+    int shaping_, randomization_, end_stop_penalty_;
     double gamma_;
   
   public:
-    CartPoleSwingupTask() : T_(9.99), shaping_(0), randomization_(0), gamma_(1.0) { }
+    CartPoleSwingupTask() : T_(9.99), shaping_(0), randomization_(0), end_stop_penalty_(1), gamma_(1.0) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);

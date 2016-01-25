@@ -73,13 +73,28 @@ void CartPoleDynamics::eom(const Vector &state, const Vector &action, Vector *xd
              (length_ * ((4./3.) - mass_pole_ * costheta * costheta / total_mass_));
  
   acc  = temp - pole_mass_length_ * thetaacc * costheta / total_mass_;
-
+  
   xd->resize(5);
   (*xd)[0] = state[2];
   (*xd)[1] = state[3];
   (*xd)[2] = acc;
   (*xd)[3] = thetaacc;
   (*xd)[4] = 1;
+  
+  // Simulate end stop
+  // NOTE: Cannot reset position or velocity here, so just keep them from getting larger
+  if (state[0] > 2.4 && state[2] > 0)
+  {
+    (*xd)[0] = 0;
+    if (acc > 0)
+      (*xd)[2] = 0;
+  }
+  else if (state[0] < -2.4 && state[2] < 0)
+  {
+    (*xd)[0] = 0;
+    if (acc < 0)
+      (*xd)[2] = 0;
+  }
 }
 
 void CartPoleSwingupTask::request(ConfigurationRequest *config)
@@ -90,6 +105,7 @@ void CartPoleSwingupTask::request(ConfigurationRequest *config)
   config->push_back(CRP("randomization", "Start state randomization", randomization_, CRP::Online, 0, 1));
   config->push_back(CRP("shaping", "Whether to use reward shaping", shaping_, CRP::Configuration, 0, 1));
   config->push_back(CRP("gamma", "Discount rate for reward shaping", gamma_, CRP::Configuration, 0., 1.));
+  config->push_back(CRP("end_stop_penalty", "Terminate episode with penalty when end stop is reached", end_stop_penalty_, CRP::Configuration, 0, 1));
 }
 
 void CartPoleSwingupTask::configure(Configuration &config)
@@ -98,6 +114,7 @@ void CartPoleSwingupTask::configure(Configuration &config)
   shaping_ = config["shaping"];
   gamma_ = config["gamma"];
   T_ = config["timeout"];
+  end_stop_penalty_ = config["end_stop_penalty"];
 
   config.set("observation_dims", 4);
   config.set("observation_min", VectorConstructor(-2.4, 0.,     -10.0, -5*M_PI));
@@ -108,12 +125,12 @@ void CartPoleSwingupTask::configure(Configuration &config)
   
   if (shaping_)
   {
-    config.set("reward_min", -2*pow(2.4, 2) - 0.1*pow(10, 2) - pow(M_PI, 2) - 0.1*pow(5*M_PI, 2) + 1 - 100);
+    config.set("reward_min", -2*pow(2.4, 2) - 0.1*pow(10, 2) - pow(M_PI, 2) - 0.1*pow(5*M_PI, 2) + 1 - end_stop_penalty_*100);
     config.set("reward_max", 0);
   }
   else
   {
-    config.set("reward_min", -2*pow(2.4, 2) - 0.1*pow(10, 2) - pow(M_PI, 2) - 0.1*pow(5*M_PI, 2) - 10000);
+    config.set("reward_min", -2*pow(2.4, 2) - 0.1*pow(10, 2) - pow(M_PI, 2) - 0.1*pow(5*M_PI, 2) - end_stop_penalty_*10000);
     config.set("reward_max", 0);
   }
 }
@@ -153,7 +170,7 @@ void CartPoleSwingupTask::observe(const Vector &state, Vector *obs, int *termina
   (*obs)[2] = state[2];
   (*obs)[3] = state[3];
 
-  if (failed(state))
+  if (end_stop_penalty_ && failed(state))
     *terminal = 2;
   else if (state[4] > T_)
     *terminal = 1;
@@ -167,9 +184,9 @@ void CartPoleSwingupTask::evaluate(const Vector &state, const Vector &action, co
     throw Exception("task/cart_pole/swingup requires dynamics/cart_pole");
 
   if (shaping_)
-    *reward = gamma_*potential(next) - potential(state) + succeeded(next) - failed(next)*100;
+    *reward = gamma_*potential(next) - potential(state) + succeeded(next) - end_stop_penalty_*failed(next)*100;
   else
-    *reward = potential(next) - failed(next)*10000;
+    *reward = potential(next) - end_stop_penalty_*failed(next)*10000;
 }
 
 bool CartPoleSwingupTask::invert(const Vector &obs, Vector *state) const
