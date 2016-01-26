@@ -120,6 +120,54 @@ dynamics/rbdl:
     mutability: configuration
     default: ""
     optional: 1
+environment/leosim:
+  description: Leo simulation environment
+  xml:
+    type: string
+    description: XML configuration filename
+    mutability: configuration
+    default: ../addons/odesim/cfg/robot.xml
+    optional: 1
+  visualize:
+    type: int
+    description: Whether to display 3D visualization
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 0
+    max: 1
+  observation_dims:
+    type: int.observation_dims
+    description: Number of observation dimensions
+    mutability: provided
+  observation_min:
+    type: vector.observation_min
+    description: Lower limit on observations
+    mutability: provided
+  observation_max:
+    type: vector.observation_max
+    description: Upper limit on observations
+    mutability: provided
+  action_dims:
+    type: int.action_dims
+    description: Number of action dimensions
+    mutability: provided
+  action_min:
+    type: vector.action_min
+    description: Lower limit on actions
+    mutability: provided
+  action_max:
+    type: vector.action_max
+    description: Upper limit on actions
+    mutability: provided
+  reward_min:
+    type: double.reward_min
+    description: Lower limit on immediate reward
+    mutability: provided
+  reward_max:
+    type: double.reward_max
+    description: Upper limit on immediate reward
+    mutability: provided
 environment/modeled:
   description: Environment that uses a state transition model internally
   model:
@@ -191,6 +239,30 @@ environment/ode:
   reward_max:
     type: double.reward_max
     description: Upper limit on immediate reward
+    mutability: provided
+environment/sandbox:
+  description: Non-Markov environment
+  model:
+    type: sandbox_model
+    description: Environment model
+    mutability: configuration
+    default: 0
+    optional: 0
+  task:
+    type: task
+    description: Task to perform in the environment (should match model)
+    mutability: configuration
+    default: 0
+    optional: 0
+  exporter:
+    type: exporter
+    description: Optional exporter for transition log (supports time, state, observation, action, reward, terminal)
+    mutability: configuration
+    default: 0
+    optional: 1
+  state:
+    type: state
+    description: Current state of the model
     mutability: provided
 experiment/online_learning:
   description: Interactive learning experiment
@@ -1959,6 +2031,32 @@ sampler/softmax:
     optional: 1
     min: 0.001
     max: 100
+sandbox_model/compass_walker:
+  description: Simplest walker model from Garcia et al. with a sequential evaluation
+  control_step:
+    type: double.control_step
+    description: Control step time
+    mutability: configuration
+    default: 0.2
+    optional: 1
+    min: 0.001
+    max: 1.797693134862316e+308
+  integration_steps:
+    type: int
+    description: Number of integration steps per control step
+    mutability: configuration
+    default: 20
+    optional: 1
+    min: 1
+    max: 2147483647
+  slope_angle:
+    type: double.slope_angle
+    description: Inclination of the slope
+    mutability: configuration
+    default: 0.004
+    optional: 1
+    min: -1.797693134862316e+308
+    max: 1.797693134862316e+308
 solver/agent:
   description: Solver that uses a simulated agent
   steps:
@@ -2285,7 +2383,7 @@ task/compass_walker/vref:
     type: double
     description: Reference velocity
     mutability: configuration
-    default: 0.1
+    default: 0.12
     optional: 1
     min: 0
     max: 1.797693134862316e+308
@@ -2365,7 +2463,7 @@ task/compass_walker/vrefu:
     type: double
     description: Reference velocity
     mutability: configuration
-    default: 0.1
+    default: 0.12
     optional: 1
     min: 0
     max: 1.797693134862316e+308

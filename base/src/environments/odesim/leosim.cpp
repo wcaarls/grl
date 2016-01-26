@@ -2,6 +2,7 @@
 
 #include <grl/environments/odesim/leosim.h>
 
+
 using namespace grl;
 
 REGISTER_CONFIGURABLE(LeoSimEnvironment)
@@ -44,11 +45,29 @@ LeoSimEnvironment *LeoSimEnvironment::clone()
 void LeoSimEnvironment::start(int test, Vector *obs)
 {
   ODEEnvironment::start(test, obs);
-  
+/*
   // TODO: Parse obs into CLeoState
+  CLeoState leoState;
+  siTorsoAngle,
+  siTorsoAngleRate,
+  siHipStanceAngle,
+  siHipStanceAngleRate,
+  siHipSwingAngle,
+  siHipSwingAngleRate,
+  siKneeStanceAngle,
+  siKneeStanceAngleRate,
+  siKneeSwingAngle,
+  siKneeSwingAngleRate,
+
+//  leoState.mFootContacts = 
+  leoState.mJointAngles[ljTorso] = *(obs)[CLeoBhWalkSym::siTorsoAngle];
+  leoState.mJointAngles[ljHipLeft] = *(obs)[CLeoBhWalkSym::siTorsoAngle];
   
   // TODO: update derived state variables (LeoBhWalkSym.cpp:281)
-
+//  uint64_t newStateTime = getSTG()->getAbsTime();
+//  bhWalk.reset(newStateTime);
+  bhWalk.updateDerivedStateVars(leoState);
+*/
   // TODO: construct new obs from CLeoState (policy.cpp:162)
 }
 

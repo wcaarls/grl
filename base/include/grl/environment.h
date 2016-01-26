@@ -273,6 +273,48 @@ class NoiseEnvironment : public Environment
     virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal);
 };
 
+/// Sequential-access transition model.
+class Sandbox : public Configurable
+{
+  public:
+    virtual ~Sandbox() { }
+    virtual Sandbox *clone() const = 0;
+
+    virtual void start(const Vector &hint, Vector *state) = 0;
+    //virtual double step(const Vector &action, Vector *next) = 0;
+    virtual double step(const Vector &state, const Vector &action, Vector *next) = 0;
+};
+
+/// Sequential-access transition environment.
+class SandboxEnvironment : public Environment
+{
+  public:
+    TYPEINFO("environment/sandbox", "Non-Markov environment")
+
+  public:
+    Sandbox *model_;
+    Task *task_;
+    Vector state_, obs_;
+    State *state_obj_;
+    Exporter *exporter_;
+
+    int test_;
+    double time_test_, time_learn_;
+
+  public:
+    SandboxEnvironment() : model_(NULL), task_(NULL), state_obj_(NULL), exporter_(NULL), test_(false), time_test_(0.), time_learn_(0.) { }
+
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+
+    // From Environment
+    virtual SandboxEnvironment *clone() const;
+    virtual void start(int test, Vector *obs);
+    virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal);
+};
+
 }
 
 #endif /* GRL_ENVIRONMENT_H_ */

@@ -116,25 +116,8 @@ void OnlineLearningExperiment::run()
       // Load policy
       if (!load_file_.empty())
       {
-        // calculate number of variables
-        int var_count = 0;
-        for (size_t offset = load_file_.find("$"); offset != std::string::npos; offset = load_file_.find("$", offset + 1))
-          var_count++;
         std::string load_file = load_file_ + "-";
-        switch(var_count)
-        {
-        case 1:   // reload policy every run, increment $run variable
-          str_replace(load_file, "$run", std::to_string((int)rr));
-          break;
-        case 2:   // reload policy every trail, increment $run and $trail variables
-          str_replace(load_file, "$run", std::to_string((int)rr));
-          str_replace(load_file, "$trail", std::to_string((int)tt));
-          break;
-        default:  // reload policy every run, but always use the same one
-          break;
-        }
-
-        if ( (((var_count == 0) || (var_count == 1)) && (tt == 0)) || var_count == 2)
+        if (str_replace(load_file, "$run", std::to_string((int)rr)))
         {
           std::cout << "Loading policy: " << load_file << std::endl;
           Configuration loadconfig;

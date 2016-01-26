@@ -1,14 +1,15 @@
 experiment: 
   type: experiment/online_learning
   runs: 1
-  trials: 1
+  trials: 300003
   steps: 0
-  rate: 100
-  test_interval: 0
+  rate: 0
+  test_interval: 100000
+  output: walker_ac_tc_vrefu_avg
   environment: 
-    type: environment/modeled
+    type: environment/sandbox
     model: 
-      type: model/compass_walker
+      type: sandbox_model/compass_walker
       control_step: 0.2
       integration_steps: 20
       slope_angle: 0.004
@@ -18,11 +19,11 @@ experiment:
       initial_state_variation: 0.2
       slope_angle: experiment/environment/model/slope_angle
       negative_reward: -100
-      observe: [ 1, 1, 1, 1, 0, 1 ]
+      observe: [ 1, 1, 1, 1, 0, 0 ]
       reference_velocity: 0.12
     exporter: 
       type: exporter/csv
-      file: walker_ac_tc_vref_u_gen-test
+      file: walker_ac_tc_vrefu_avg-test
       style: meshup
   agent: 
     type: agent/td
@@ -35,7 +36,7 @@ experiment:
         type: projector/tile_coding
         tilings: 16
         memory: 67108864
-        resolution: [0.0419, 0.0524, 0.05555, 0.1111, 0.01]
+        resolution: [0.0419, 0.0524, 0.05555, 0.1111]
         wrapping: []
       representation: 
         type: representation/parameterized/linear
@@ -78,7 +79,6 @@ experiment:
       output_max: experiment/environment/task/action_max
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
-  load_file: walker_ac_tc_vref_u_gen-run$run
   save_every: never
 visualizer: 
   type: visualizer/glut

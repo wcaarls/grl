@@ -2,6 +2,8 @@
 #define GRL_LEOSIM_ENVIRONMENT_H_
 
 #include <grl/environments/odesim/environment.h>
+//#include <LeoBhWalkSym.h>
+//#include <STGLeo.h>
 
 namespace grl
 {
@@ -24,6 +26,9 @@ class LeoSimEnvironment : public ODEEnvironment
     // From Environment
     virtual void start(int test, Vector *obs);
     virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal);
+    
+//  private:
+//    CLeoBhWalkSym bhWalk;
 };
 
 }

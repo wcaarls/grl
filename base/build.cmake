@@ -18,6 +18,7 @@ add_library(${TARGET} SHARED
 #            ${SRC}/environments/acrobot.cpp
             ${SRC}/environments/observation.cpp
             ${SRC}/environments/modeled.cpp
+            ${SRC}/environments/sandbox.cpp
             ${SRC}/environments/pendulum.cpp
             ${SRC}/environments/cart_pole.cpp
 #            ${SRC}/environments/pinball.cpp

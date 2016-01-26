@@ -38,13 +38,13 @@ class CompassWalker
 {
   public:
     enum stateIndex       { siStanceLegAngle, siHipAngle, siStanceLegAngleRate, siHipAngleRate,
-                            siStanceLegChanged, siStanceFootX, siLastHipX, siTime};
+                            siStanceLegChanged, siStanceFootX, siLastHipX, siHipVelocity, siTime, siTimeout};
 
-    enum stateSize        { ssStateSize = siTime+1};
+    enum stateSize        { ssStateSize = siTimeout+1};
 
-    enum observationIndex { oiStanceLegAngle, oiHipAngle, oiStanceLegAngleRate, oiHipAngleRate, oiStanceLegChanged, oiHipAvgVelocity};
+    enum observationIndex { oiStanceLegAngle, oiHipAngle, oiStanceLegAngleRate, oiHipAngleRate, oiStanceLegChanged, oiHipVelocity};
 
-    enum observationSize  { osMaxObservationSize = oiHipAvgVelocity+1};
+    enum observationSize  { osMaxObservationSize = oiHipVelocity+1};
 };
 
 // Compass (simplest) walker model.
@@ -72,6 +72,33 @@ class CompassWalkerModel : public Model
     virtual double step(const Vector &state, const Vector &action, Vector *next) const;
 };
 
+// Compass (simplest) walker non-markov model.
+class CompassWalkerSandboxModel : public Sandbox
+{
+  public:
+    TYPEINFO("sandbox_model/compass_walker", "Simplest walker model from Garcia et al. with a sequential evaluation")
+
+  protected:
+    double tau_;
+    double slope_angle_;
+    size_t steps_;
+    CSWModel model_;
+    std::deque<double> hip_instant_velocity_;
+
+  public:
+    CompassWalkerSandboxModel() : tau_(0.2), steps_(20), slope_angle_(0.004) { }
+
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+
+    // From Model
+    virtual CompassWalkerSandboxModel *clone() const;
+    virtual void start(const Vector &hint, Vector *state);
+    virtual double step(const Vector &state, const Vector &action, Vector *next);
+};
+
 // Walk forward task for compass walker.
 class CompassWalkerWalkTask : public Task
 {
@@ -81,18 +108,14 @@ class CompassWalkerWalkTask : public Task
   protected:
     double T_;
     bool verbose_;
-    mutable double timeout_;
     double initial_state_variation_;
     double slope_angle_;
     double neg_reward_;
     int observation_dims_;
-    Vector observe_;          // Indicator vector with 1s for observed states
-    mutable Vector obs_;      // Observation vector which contains all observations, masked by 'observe_' vector when observations requested
-    mutable std::deque<double> hip_instant_velocity_;
-    mutable double hip_avg_velocity_;
+    Vector observe_;          // Indicator vector with 1s for states, which are observed by an agent
 
   public:
-    CompassWalkerWalkTask() : T_(100), initial_state_variation_(0.2), slope_angle_(0.004), hip_avg_velocity_(0), neg_reward_(-100.0), verbose_(false){ }
+    CompassWalkerWalkTask() : T_(100), initial_state_variation_(0.2), slope_angle_(0.004), neg_reward_(-100.0), verbose_(true){ }
     
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -117,7 +140,7 @@ class CompassWalkerVrefTask : public CompassWalkerWalkTask
     double vref_;
 
   public:
-    CompassWalkerVrefTask() : vref_(0.1) { }
+    CompassWalkerVrefTask() : vref_(0.12) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
