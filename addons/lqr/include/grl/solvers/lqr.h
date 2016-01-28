@@ -59,6 +59,9 @@ class LQRSolver : public Solver
     // From Solver
     virtual LQRSolver *clone() const;
     virtual bool solve();
+    
+  protected:
+    virtual int solveDARE(const Matrix &A, const Matrix &B, const Matrix &Q, const Matrix &R, Matrix *X) const;
 };
 
 }

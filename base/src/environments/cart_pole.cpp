@@ -203,6 +203,11 @@ bool CartPoleSwingupTask::failed(const Vector &state) const
   return fabs(state[0]) > 2.4;
 }
 
+Matrix CartPoleSwingupTask::rewardHessian(const Vector &state, const Vector &action) const
+{
+  return diagonal(VectorConstructor(-2, -1, -0.1, -0.1, -0.01));
+}
+
 bool CartPoleSwingupTask::succeeded(const Vector &state) const
 {
   double a = fmod(fabs(state[1]), 2*M_PI);

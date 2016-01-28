@@ -40,6 +40,7 @@ void ANNProjector::request(const std::string &role, ConfigurationRequest *config
   config->push_back(CRP("neighbors", "Number of neighbors to return", neighbors_, CRP::Configuration, 1, ANN_MAX_NEIGHBORS));
   config->push_back(CRP("locality", "Locality of weighing function", locality_, CRP::Configuration, 0., DBL_MAX));
   config->push_back(CRP("interval", "Samples to accumulate before rebuilding kd-tree", interval_, CRP::Online, 1));
+  config->push_back(CRP("incremental", "Search samples that haven't been indexed yet", incremental_, CRP::Online, 0, 1));
   config->push_back(CRP("bucket_size", "?", bucket_size_, CRP::Configuration, 1));
   config->push_back(CRP("error_bound", "?", error_bound_, CRP::Configuration, 0., DBL_MAX));
   
@@ -62,6 +63,7 @@ void ANNProjector::configure(Configuration &config)
   error_bound_ = config["error_bound"];
   dims_ = config["inputs"];
   interval_ = config["interval"];
+  incremental_ = config["incremental"];
 
   // Initialize memory
   reset();
@@ -70,6 +72,7 @@ void ANNProjector::configure(Configuration &config)
 void ANNProjector::reconfigure(const Configuration &config)
 {
   config.get("interval", interval_);
+  config.get("incremental", incremental_);
 
   if (config.has("action") && config["action"].str() == "reset")
   {
@@ -167,20 +170,23 @@ ProjectionPtr ANNProjector::project(const Vector &in) const
       return ProjectionPtr(projection);
     }
 
-    // Search overflowing samples linearly
-    for (size_t ii=0; ii < linear_samples; ++ii)
+    if (incremental_)
     {
-      Sample *sample = (*store_)[indexed_samples_+ii];
-    
-      double dist=0;
-      for (size_t dd=0; dd < dims_; ++dd)
-        dist += pow(sample->in[dd] - query[dd], 2);
+      // Search overflowing samples linearly
+      for (size_t ii=0; ii < linear_samples; ++ii)
+      {
+        Sample *sample = (*store_)[indexed_samples_+ii];
       
-      refs[index_samples+ii].sample = sample;
-      refs[index_samples+ii].dist = (float)dist;
+        double dist=0;
+        for (size_t dd=0; dd < dims_; ++dd)
+          dist += pow(sample->in[dd] - query[dd], 2);
+        
+        refs[index_samples+ii].sample = sample;
+        refs[index_samples+ii].dist = (float)dist;
+      }
+      
+      std::sort(refs.begin(), refs.end());
     }
-    
-    std::sort(refs.begin(), refs.end());
     
     // Return ProjectionPtr pointing to current store
     projection->neighbors.resize(available_samples);
