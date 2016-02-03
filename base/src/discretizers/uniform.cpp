@@ -66,6 +66,10 @@ void UniformDiscretizer::configure(Configuration &config)
   range = max_-min_;
   delta = range/(steps_-1);
 
+  for (size_t dd=0; dd < steps_.size(); ++dd)
+    if (std::isnan(delta[dd]))
+      delta[dd] = 0.;
+
   values_.resize(steps_.size());
 
   for (size_t dd=0; dd < steps_.size(); ++dd)

@@ -110,6 +110,42 @@ agent/master/exclusive:
     mutability: configuration
     default: 0
     optional: 0
+agent/master/predicated:
+  description: Master agent in which execution is predicated on preceding agent confidence
+  gamma:
+    type: double
+    description: Discount rate
+    mutability: configuration
+    default: 0.97
+    optional: 1
+    min: 0
+    max: 1
+  control_step:
+    type: double.control_step
+    description: Characteristic step time on which gamma is defined
+    mutability: system
+    default: 0.05
+    optional: 1
+    min: 0
+    max: 1
+  predictor:
+    type: predictor
+    description: Optional (model) predictor
+    mutability: configuration
+    default: 0
+    optional: 1
+  agent1:
+    type: agent/sub
+    description: First subagent
+    mutability: configuration
+    default: 0
+    optional: 0
+  agent2:
+    type: agent/sub
+    description: Second subagent
+    mutability: configuration
+    default: 0
+    optional: 0
 agent/master/sequential:
   description: Master agent that executes sub-agents sequentially
   agent1:
@@ -172,6 +208,22 @@ agent/sub/compartmentalized:
     mutability: configuration
     default: 0
     optional: 0
+agent/sub/voluntary:
+  description: Sub agent that has confidence as part of the action
+  dim:
+    type: int
+    description: Action dimension that indicates confidence
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 2147483647
+  agent:
+    type: agent
+    description: Sub agent
+    mutability: configuration
+    default: 0
+    optional: 0
 agent/td:
   description: Agent that learns from observed state transitions
   policy:
@@ -212,6 +264,20 @@ discretizer/peaked:
     mutability: configuration
     default: "[  ]"
     optional: 1
+discretizer/split:
+  description: Discretizer composition. Adds dimension indicating affiliation.
+  discretizer1:
+    type: discretizer.
+    description: First discretizer
+    mutability: configuration
+    default: 0
+    optional: 0
+  discretizer2:
+    type: discretizer.
+    description: Second discretizer
+    mutability: configuration
+    default: 0
+    optional: 0
 discretizer/uniform:
   description: Uniform discretizer
   min:
@@ -4964,6 +5030,20 @@ discretizer/peaked.action:
     mutability: configuration
     default: "[  ]"
     optional: 1
+discretizer/split.action:
+  description: Discretizer composition. Adds dimension indicating affiliation.
+  discretizer1:
+    type: discretizer.action
+    description: First discretizer
+    mutability: configuration
+    default: 0
+    optional: 0
+  discretizer2:
+    type: discretizer.action
+    description: Second discretizer
+    mutability: configuration
+    default: 0
+    optional: 0
 discretizer/uniform.action:
   description: Uniform discretizer
   min:
@@ -5342,6 +5422,20 @@ discretizer/peaked.observation:
     mutability: configuration
     default: "[  ]"
     optional: 1
+discretizer/split.observation:
+  description: Discretizer composition. Adds dimension indicating affiliation.
+  discretizer1:
+    type: discretizer.observation
+    description: First discretizer
+    mutability: configuration
+    default: 0
+    optional: 0
+  discretizer2:
+    type: discretizer.observation
+    description: Second discretizer
+    mutability: configuration
+    default: 0
+    optional: 0
 discretizer/uniform.observation:
   description: Uniform discretizer
   min:

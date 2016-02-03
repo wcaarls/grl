@@ -64,7 +64,42 @@ class SubAgent : public Agent
   public:
     virtual ~SubAgent() { }
     virtual SubAgent *clone() const = 0;
-    
+
+    // From Agent
+    virtual void start(const Vector &obs, Vector *action)
+    {
+      double confidence;
+      start(obs, action, &confidence);
+    }
+
+    virtual void step(double tau, const Vector &obs, double reward, Vector *action)
+    {
+      double confidence;
+      step(tau, obs, reward, action, &confidence);
+    }
+
+    /**
+     * Start function that also returns confidence. 
+     * Note that unlike the confidence() function, calling this function
+     * executes a learning step, even when the returned confidence is 0.
+     */
+    virtual void start(const Vector &obs, Vector *action, double *conf)
+    {
+      start(obs, action);
+      *conf = confidence(obs);
+    }
+
+    /**
+     * Step function that also returns confidence. 
+     * Note that unlike the confidence() function, calling this function
+     * executes a learning step, even when the returned confidence is 0.
+     */
+    virtual void step(double tau, const Vector &obs, double reward, Vector *action, double *conf)
+    {
+      step(tau, obs, reward, action);
+      *conf = confidence(obs);
+    }
+
     /// Returns the agent's confidence for a certain observation.
     virtual double confidence(const Vector &obs) const = 0;
 };
