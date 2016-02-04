@@ -73,7 +73,7 @@ class CompassWalkerModel : public Model
 };
 
 // Compass (simplest) walker non-markov model.
-class CompassWalkerSandboxModel : public Sandbox
+class CompassWalkerSandbox : public Sandbox
 {
   public:
     TYPEINFO("sandbox_model/compass_walker", "Simplest walker model from Garcia et al. with a sequential evaluation")
@@ -84,9 +84,10 @@ class CompassWalkerSandboxModel : public Sandbox
     size_t steps_;
     CSWModel model_;
     std::deque<double> hip_instant_velocity_;
+    Vector state_;
 
   public:
-    CompassWalkerSandboxModel() : tau_(0.2), steps_(20), slope_angle_(0.004) { }
+    CompassWalkerSandbox() : tau_(0.2), steps_(20), slope_angle_(0.004) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -94,9 +95,9 @@ class CompassWalkerSandboxModel : public Sandbox
     virtual void reconfigure(const Configuration &config);
 
     // From Model
-    virtual CompassWalkerSandboxModel *clone() const;
+    virtual CompassWalkerSandbox *clone() const;
     virtual void start(const Vector &hint, Vector *state);
-    virtual double step(const Vector &state, const Vector &action, Vector *next);
+    virtual double step(const Vector &action, Vector *next);
 };
 
 // Walk forward task for compass walker.

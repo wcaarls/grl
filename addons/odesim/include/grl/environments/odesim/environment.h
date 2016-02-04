@@ -37,6 +37,8 @@ class ODESTGEnvironment: public QObject
     double step(const Vector &action, Vector *obs, double *reward, int *terminal);
     
     ODESimulator *getSim() { return &simulator_; }
+    const std::vector<CGenericStateVar>  &getSensors()   const { return sensors_; }
+    const std::vector<CGenericActionVar> &getActuators() const { return actuators_; }
 
   signals:
     void drawFrame();  // signal to emit to the GUI to initiate drawing of the screen

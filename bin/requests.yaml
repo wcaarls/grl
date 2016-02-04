@@ -168,6 +168,18 @@ environment/leosim:
     type: double.reward_max
     description: Upper limit on immediate reward
     mutability: provided
+  observe:
+    type: string
+    description: string.observe_
+    mutability: configuration
+    default: Comma-separated list of state elements observed by an agent
+    optional: 1
+  actuate:
+    type: vector
+    description: Comma-separated list of action elements provided by an agent
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
 environment/modeled:
   description: Environment that uses a state transition model internally
   model:
@@ -2375,7 +2387,7 @@ task/compass_walker/vref:
     max: 0
   observe:
     type: vector
-    description: Negative reward
+    description: State elements observed by an agent
     mutability: configuration
     default: "[  ]"
     optional: 1
@@ -2455,7 +2467,7 @@ task/compass_walker/vrefu:
     max: 0
   observe:
     type: vector
-    description: Negative reward
+    description: State elements observed by an agent
     mutability: configuration
     default: "[  ]"
     optional: 1
@@ -2535,7 +2547,7 @@ task/compass_walker/walk:
     max: 0
   observe:
     type: vector
-    description: Negative reward
+    description: State elements observed by an agent
     mutability: configuration
     default: "[  ]"
     optional: 1

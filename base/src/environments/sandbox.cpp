@@ -33,7 +33,7 @@ REGISTER_CONFIGURABLE(SandboxEnvironment)
 
 void SandboxEnvironment::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("model", "sandbox_model", "Environment model", model_));
+  config->push_back(CRP("model", "sandbox_model", "Environment model", sandbox_));
   config->push_back(CRP("task", "task", "Task to perform in the environment (should match model)", task_));
   config->push_back(CRP("exporter", "exporter", "Optional exporter for transition log (supports time, state, observation, action, reward, terminal)", exporter_, true));
   config->push_back(CRP("state", "state", "Current state of the model", CRP::Provided));
@@ -41,7 +41,7 @@ void SandboxEnvironment::request(ConfigurationRequest *config)
 
 void SandboxEnvironment::configure(Configuration &config)
 {
-  model_ = (Sandbox*)config["model"].ptr();
+  sandbox_ = (Sandbox*)config["model"].ptr();
   task_ = (Task*)config["task"].ptr();
   exporter_ = (Exporter*)config["exporter"].ptr();
 
@@ -66,7 +66,7 @@ SandboxEnvironment *SandboxEnvironment::clone() const
 {
   SandboxEnvironment* me = new SandboxEnvironment();
 
-  me->model_ = model_;
+  me->sandbox_ = sandbox_;
   me->task_ = task_;
 
   return me;
@@ -78,7 +78,7 @@ void SandboxEnvironment::start(int test, Vector *obs)
 
   task_->start(test, &state_);
   task_->observe(state_, obs, &terminal);
-  model_->start(Vector(), &state_);
+  sandbox_->start(Vector(), &state_);
 
   obs_ = *obs;
   state_obj_->set(state_);
@@ -93,7 +93,7 @@ double SandboxEnvironment::step(const Vector &action, Vector *obs, double *rewar
 {
   Vector next;
 
-  double tau = model_->step(state_, action, &next);
+  double tau = sandbox_->step(action, &next);
   task_->observe(next, obs, terminal);
   task_->evaluate(state_, action, next, reward);
 

@@ -32,7 +32,7 @@
 using namespace grl;
 
 REGISTER_CONFIGURABLE(CompassWalkerModel)
-REGISTER_CONFIGURABLE(CompassWalkerSandboxModel)
+REGISTER_CONFIGURABLE(CompassWalkerSandbox)
 REGISTER_CONFIGURABLE(CompassWalkerWalkTask)
 REGISTER_CONFIGURABLE(CompassWalkerVrefTask)
 REGISTER_CONFIGURABLE(CompassWalkerVrefuTask)
@@ -98,14 +98,14 @@ double CompassWalkerModel::step(const Vector &state, const Vector &action, Vecto
 }
 
 // *** CompassWalkerSandboxModel ***
-void CompassWalkerSandboxModel::request(ConfigurationRequest *config)
+void CompassWalkerSandbox::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("control_step", "double.control_step", "Control step time", tau_, CRP::Configuration, 0.001, DBL_MAX));
   config->push_back(CRP("integration_steps", "Number of integration steps per control step", (int)steps_, CRP::Configuration, 1));
   config->push_back(CRP("slope_angle", "double.slope_angle", "Inclination of the slope", slope_angle_, CRP::Configuration, -DBL_MAX, DBL_MAX));
 }
 
-void CompassWalkerSandboxModel::configure(Configuration &config)
+void CompassWalkerSandbox::configure(Configuration &config)
 {
   tau_ = config["control_step"];
   steps_ = config["integration_steps"];
@@ -115,32 +115,33 @@ void CompassWalkerSandboxModel::configure(Configuration &config)
   model_.setTiming(tau_, steps_);
 }
 
-void CompassWalkerSandboxModel::reconfigure(const Configuration &config)
+void CompassWalkerSandbox::reconfigure(const Configuration &config)
 {
 }
 
-CompassWalkerSandboxModel *CompassWalkerSandboxModel::clone() const
+CompassWalkerSandbox *CompassWalkerSandbox::clone() const
 {
-  return new CompassWalkerSandboxModel(*this);
+  return new CompassWalkerSandbox(*this);
 }
 
-void CompassWalkerSandboxModel::start(const Vector &hint, Vector *state)
+void CompassWalkerSandbox::start(const Vector &hint, Vector *state)
 {
   hip_instant_velocity_.clear();
+  state_ = *state;
 }
 
-double CompassWalkerSandboxModel::step(const Vector &state, const Vector &action, Vector *next)
+double CompassWalkerSandbox::step(const Vector &action, Vector *next)
 {
-  if (state.size() != CompassWalker::ssStateSize || action.size() != 1)
+  if (state_.size() != CompassWalker::ssStateSize || action.size() != 1)
     throw Exception("model/compass_walker_sandbox requires a task/compass_walker subclass");
 
   CSWModelState swstate;
 
-  swstate.init(state[CompassWalker::siStanceFootX],
-               state[CompassWalker::siStanceLegAngle],
-               state[CompassWalker::siStanceLegAngleRate],
-               state[CompassWalker::siHipAngle],
-               state[CompassWalker::siHipAngleRate]);
+  swstate.init(state_[CompassWalker::siStanceFootX],
+               state_[CompassWalker::siStanceLegAngle],
+               state_[CompassWalker::siStanceLegAngleRate],
+               state_[CompassWalker::siHipAngle],
+               state_[CompassWalker::siHipAngleRate]);
 
   model_.singleStep(swstate, action[0]);
 
@@ -152,7 +153,7 @@ double CompassWalkerSandboxModel::step(const Vector &state, const Vector &action
   double sum = std::accumulate(hip_instant_velocity_.begin(), hip_instant_velocity_.end(), 0.0);
   double hip_avg_velocity = sum / hip_instant_velocity_.size();
 
-  next->resize(state.size());
+  next->resize(state_.size());
   (*next)[CompassWalker::siStanceLegAngle] = swstate.mStanceLegAngle;
   (*next)[CompassWalker::siHipAngle] = swstate.mHipAngle;
   (*next)[CompassWalker::siStanceLegAngleRate] = swstate.mStanceLegAngleRate;
@@ -162,11 +163,12 @@ double CompassWalkerSandboxModel::step(const Vector &state, const Vector &action
   if (swstate.mStanceLegChanged)
     (*next)[CompassWalker::siLastHipX] = swstate.getHipX();
   else
-    (*next)[CompassWalker::siLastHipX] = state[CompassWalker::siLastHipX];
+    (*next)[CompassWalker::siLastHipX] = state_[CompassWalker::siLastHipX];
   (*next)[CompassWalker::siHipVelocity] = hip_avg_velocity;
-  (*next)[CompassWalker::siTime] = state[CompassWalker::siTime] + tau_;
-  (*next)[CompassWalker::siTimeout] = state[CompassWalker::siTimeout];
+  (*next)[CompassWalker::siTime] = state_[CompassWalker::siTime] + tau_;
+  (*next)[CompassWalker::siTimeout] = state_[CompassWalker::siTimeout];
 
+  state_ = *next;
   return tau_;
 }
 
@@ -179,7 +181,7 @@ void CompassWalkerWalkTask::request(ConfigurationRequest *config)
   config->push_back(CRP("initial_state_variation", "Variation of initial state", initial_state_variation_, CRP::Configuration, 0., DBL_MAX));
   config->push_back(CRP("slope_angle", "double.slope_angle", "Inclination of the slope", slope_angle_, CRP::System, -DBL_MAX, DBL_MAX));
   config->push_back(CRP("negative_reward", "Negative reward", neg_reward_, CRP::Configuration, -DBL_MAX, 0.));
-  config->push_back(CRP("observe", "Negative reward", observe_, CRP::Configuration));
+  config->push_back(CRP("observe", "State elements observed by an agent", observe_, CRP::Configuration));
 }
 
 void CompassWalkerWalkTask::configure(Configuration &config)
@@ -252,7 +254,7 @@ void CompassWalkerWalkTask::start(int test, Vector *state) const
   (*state)[CompassWalker::siStanceFootX] = swstate.mStanceFootX;
   (*state)[CompassWalker::siStanceLegChanged] = false;
   (*state)[CompassWalker::siLastHipX] = swstate.getHipX();
-  (*state)[CompassWalker::siHipVelocity] = 0;
+  (*state)[CompassWalker::siHipVelocity] = -swstate.mStanceLegAngleRate * cos(swstate.mStanceLegAngle);
   (*state)[CompassWalker::siTime] = 0;
 
   if (test)
@@ -321,7 +323,7 @@ bool CompassWalkerWalkTask::invert(const Vector &obs, Vector *state) const
   (*state)[CompassWalker::siStanceLegChanged] = obs[CompassWalker::siStanceLegChanged] > 0.5;
   (*state)[CompassWalker::siStanceFootX] = 0;
   (*state)[CompassWalker::siLastHipX] = 0;
-  (*state)[CompassWalker::siHipVelocity] = 0;
+  (*state)[CompassWalker::siHipVelocity] = -(*state)[CompassWalker::siStanceLegAngleRate] * cos((*state)[CompassWalker::siStanceLegAngle]);
   (*state)[CompassWalker::siTime] = 0;
   (*state)[CompassWalker::siTimeout] = 0;
 

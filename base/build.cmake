@@ -27,7 +27,6 @@ add_library(${TARGET} SHARED
             ${SRC}/environments/compass_walker/compass_walker.cpp
 #            ${SRC}/environments/noise.cpp
 #            ${SRC}/environments/swimmer.cpp
-            ${SRC}/environments/odesim/leosim.cpp
 #            ${SRC}/experiments/approx_test.cpp
             ${SRC}/experiments/online_learning.cpp
 #            ${SRC}/experiments/batch_learning.cpp

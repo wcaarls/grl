@@ -80,7 +80,7 @@ bool ODESTGEnvironment::configure(Configuration &config)
   {
     CGenericStateVar statevar;
     configresult &= statevar.readConfig(stateNode);
-    configresult &= statevar.resolve(&simulator_);
+    configresult &= statevar.resolve(&simulator_); // bind sensor values to specific indecies of a state vector
     sensors_.push_back(statevar);
     
     configresult &= stateNode.get("min", &val); observation_min = extend(observation_min, VectorConstructor(val));

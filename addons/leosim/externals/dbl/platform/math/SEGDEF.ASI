@@ -1,0 +1,45 @@
+;                     SEGDEF.ASM                          2001-11-18 AF
+
+; Segment definitions for assembly programs
+; to handle the quirks of different assemblers and linkers
+
+.386
+
+IFDEF OMF           ; OMF format
+
+  IFDEF ??VERSION     ; Borland tasm
+    model flat
+
+    RAN_DATA SEGMENT PARA USE32 PUBLIC 'DATA'
+    RAN_DATA ENDS
+
+    RAN_TEXT   SEGMENT DWORD USE32 PUBLIC 'CODE'
+    RAN_TEXT ENDS
+
+    ASSUME CS:RAN_TEXT, DS:RAN_DATA
+
+  ELSE    ; MS MASM
+
+    .model flat
+
+    RAN_DATA SEGMENT PARA USE32 PUBLIC 'DATA'
+    RAN_DATA ENDS
+
+    RAN_TEXT   SEGMENT DWORD USE32 PUBLIC 'CODE'
+    RAN_TEXT ENDS
+
+  ENDIF
+
+
+ELSE                ; COFF format
+  .model flat
+
+  RAN_DATA SEGMENT PARA USE32 PUBLIC 'DATA'
+  RAN_DATA ENDS
+
+  RAN_TEXT   SEGMENT DWORD USE32 PUBLIC 'CODE'
+  RAN_TEXT ENDS
+  ; ASSUME CS:RAN_TEXT,DS:RAN_DATA
+
+ENDIF
+

@@ -281,8 +281,7 @@ class Sandbox : public Configurable
     virtual Sandbox *clone() const = 0;
 
     virtual void start(const Vector &hint, Vector *state) = 0;
-    //virtual double step(const Vector &action, Vector *next) = 0;
-    virtual double step(const Vector &state, const Vector &action, Vector *next) = 0;
+    virtual double step(const Vector &action, Vector *next) = 0;
 };
 
 /// Sequential-access transition environment.
@@ -292,7 +291,7 @@ class SandboxEnvironment : public Environment
     TYPEINFO("environment/sandbox", "Non-Markov environment")
 
   public:
-    Sandbox *model_;
+    Sandbox *sandbox_;
     Task *task_;
     Vector state_, obs_;
     State *state_obj_;
@@ -302,7 +301,7 @@ class SandboxEnvironment : public Environment
     double time_test_, time_learn_;
 
   public:
-    SandboxEnvironment() : model_(NULL), task_(NULL), state_obj_(NULL), exporter_(NULL), test_(false), time_test_(0.), time_learn_(0.) { }
+    SandboxEnvironment() : sandbox_(NULL), task_(NULL), state_obj_(NULL), exporter_(NULL), test_(false), time_test_(0.), time_learn_(0.) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
