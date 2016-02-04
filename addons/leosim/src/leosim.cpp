@@ -84,13 +84,11 @@ void CGrlLeoBhWalkSym::updateDerivedStateVars(CLeoState* currentSTGState)
 /////////////////////////////////
 
 LeoSimEnvironment::LeoSimEnvironment() :
-  bhWalk_(NULL),
+  bhWalk_(new CSTGLeoSim()),
   observation_dims_(CGrlLeoBhWalkSym::svNumStates),
   action_dims_(CGrlLeoBhWalkSym::svNumActions)
 {
-  // reserve memory
-  odeObs_.resize(CGrlLeoBhWalkSym::svNumStates);
-//  odeObs_.resize(CGrlLeoBhWalkSym::svNumActions);
+
 }
 
 void LeoSimEnvironment::request(ConfigurationRequest *config)
@@ -187,6 +185,8 @@ void LeoSimEnvironment::configure(Configuration &config)
   // which are different because they belong to ODE simulator.
 
   ODEEnvironment::configure(config);
+  ode_observation_dims_ = config["observation_dims"];
+  ode_action_dims_ = config["action_dims"];
 
   std::string xml = config["xml"].str();
 
@@ -208,20 +208,20 @@ void LeoSimEnvironment::configure(Configuration &config)
   std::string observe = config["observe"].str();
   const std::vector<std::string> observeList = cutLongStr(observe);
   fillObserve(env_->getSensors(), observeList, observe_);
-  if (observe_.size() != static_cast<int>(config["observation_dims"])) // config contains all dims!
+  if (observe_.size() != ode_observation_dims_)
     throw bad_param("leosim/walk:observe");
   observation_dims_ = (observe_.array() != 0).count();
 
   // mask observation min/max vectors
-  Vector full_observation_min = config["observation_min"], observation_min;
-  Vector full_observation_max = config["observation_max"], observation_max;
+  Vector ode_observation_min = config["observation_min"], observation_min;
+  Vector ode_observation_max = config["observation_max"], observation_max;
   observation_min.resize(observation_dims_);
   observation_max.resize(observation_dims_);
   for (int i = 0, j = 0; i < observe_.size(); i++)
     if (observe_[i] != 0)
     {
-      observation_min[j]   = full_observation_min[i];
-      observation_max[j++] = full_observation_max[i];
+      observation_min[j]   = ode_observation_min[i];
+      observation_max[j++] = ode_observation_max[i];
     }
   config.set("observation_dims", observation_dims_);
   config.set("observation_min", observation_min);
@@ -231,24 +231,28 @@ void LeoSimEnvironment::configure(Configuration &config)
   std::string actuate = config["actuate"].str();
   std::vector<std::string> actuateList = cutLongStr(actuate);
   fillActuate(env_->getActuators(), actuateList, actuate_);
-  if (actuate_.size() != static_cast<int>(config["action_dims"])) // config contains all dims!
+  if (actuate_.size() != ode_action_dims_)
     throw bad_param("leosim/walk:actuate");
   action_dims_ = (actuate_.array() != 0).count();
 
   // mask observation min/max vectors
-  Vector full_action_min = config["action_min"], action_min;
-  Vector full_action_max = config["action_max"], action_max;
+  Vector ode_action_min = config["action_min"], action_min;
+  Vector ode_action_max = config["action_max"], action_max;
   action_min.resize(action_dims_);
   action_max.resize(action_dims_);
   for (int i = 0, j = 0; i < actuate_.size(); i++)
     if (actuate_[i] != 0)
     {
-      action_min[j]   = full_action_min[i];
-      action_max[j++] = full_action_max[i];
+      action_min[j]   = ode_action_min[i];
+      action_max[j++] = ode_action_max[i];
     }
   config.set("action_dims", action_dims_);
   config.set("action_min", action_min);
   config.set("action_max", action_max);
+
+  // reserve memory
+  ode_obs_.resize(ode_observation_dims_);
+  ode_action_.resize(ode_action_dims_);
 }
 
 void LeoSimEnvironment::reconfigure(const Configuration &config)
@@ -263,12 +267,12 @@ LeoSimEnvironment *LeoSimEnvironment::clone()
 
 void LeoSimEnvironment::start(int test, Vector *obs)
 {
-  ODEEnvironment::start(test, &odeObs_);
+  ODEEnvironment::start(test, &ode_obs_);
 
   bhWalk_.resetState();
 
   // TODO: Parse obs into CLeoState (Start with left leg being the stance leg)
-  bhWalk_.parseOdeObs(odeObs_, leoState_);
+  bhWalk_.parseOdeObs(ode_obs_, leoState_);
   bhWalk_.setCurrentSTGState(&leoState_);
   bhWalk_.setPreviousSTGState(&leoState_);
 
@@ -287,18 +291,20 @@ double LeoSimEnvironment::step(const Vector &action, Vector *obs, double *reward
   bhWalk_.setCurrentSTGState(&leoState_);
 
   // TODO: auto actuate unlearned joints to find complete action vector (LeoBhWalkSym.cpp:880)
-  Vector actionFull, autoActionShoulder, autoActionAnkles;
+  Vector autoActionShoulder, autoActionAnkles;
   bhWalk_.grlAutoActuateAnkles(autoActionAnkles);
   bhWalk_.grlAutoActuateArm(autoActionShoulder);
 
   // concatenation happens in the order of <actionvar> definitions in an xml file
-  actionFull << autoActionShoulder, action, autoActionAnkles;
+  ode_action_ << autoActionShoulder, action, autoActionAnkles;
 
-  ODEEnvironment::step(actionFull, &odeObs_, reward, terminal);
+  TRACE("ode action = " << ode_action_);
+  ODEEnvironment::step(ode_action_, &ode_obs_, reward, terminal);
+  TRACE("ode observation = " << ode_obs_);
 
   // TODO: Filter joint speeds (STGLeoSim.cpp:275)
   // TODO: Parse obs into CLeoState
-  bhWalk_.parseOdeObs(odeObs_, leoState_);
+  bhWalk_.parseOdeObs(ode_obs_, leoState_);
 
   // TODO: update derived state variables (LeoBhWalkSym.cpp:281)
   bhWalk_.updateDerivedStateVars(&leoState_);

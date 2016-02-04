@@ -67,22 +67,23 @@ class CGrlLeoBhWalkSym : public CLeoBhWalkSym
     void setPreviousSTGState(CLeoState *leoState);
     void grlAutoActuateAnkles(Vector &out)
     {
-      CLeoBhWalkSym::autoActuateAnkles(&actuationInterface);
+      CSTGLeoSim* aI = dynamic_cast<CSTGLeoSim*>(mActuationInterface);
+      CLeoBhWalkSym::autoActuateAnkles(aI);
       out.resize(2);
-      out << actuationInterface.getJointVoltage(mAnkleStance), actuationInterface.getJointVoltage(mAnkleSwing);
+      out << aI->getJointVoltage(mAnkleStance), aI->getJointVoltage(mAnkleSwing);
     }
     void grlAutoActuateArm(Vector &out)
     {
-      CLeoBhWalkSym::autoActuateArm(&actuationInterface);
+      CSTGLeoSim* aI = dynamic_cast<CSTGLeoSim*>(mActuationInterface);
+      CLeoBhWalkSym::autoActuateArm(aI);
       out.resize(1);
-      out << actuationInterface.getJointVoltage(ljShoulder);
+      out << aI->getJointVoltage(ljShoulder);
     }
 
   protected:
     void init();
 
   protected:
-    CSTGLeoSim actuationInterface;
     CButterworthFilter<1>	mJointSpeedFilter[ljNumJoints];
 };
 
@@ -112,6 +113,7 @@ class LeoSimEnvironment : public ODEEnvironment
     CLeoState leoState_;
     CGrlLeoBhWalkSym bhWalk_;
     int observation_dims_, action_dims_;
+    int ode_observation_dims_, ode_action_dims_;
 
   private:
     void fillObserve(const std::vector<CGenericStateVar> &genericStates,
@@ -122,8 +124,9 @@ class LeoSimEnvironment : public ODEEnvironment
                      const std::vector<std::string> &actuateList,
                      Vector &out);
   private:
-    Vector odeObs_;
+    Vector ode_obs_;
     Vector observe_, actuate_;
+    Vector ode_action_;
 };
 
 }

@@ -33,6 +33,7 @@ protected:
   CAgentAction	mPreviousAction;
   CLog2					mLog;
   ISTGActuation *mActuationInterface;
+
 };
 
 typedef CSTGAgentQ<CLeoState> CSTGAgentQLeo;
