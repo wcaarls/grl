@@ -21,7 +21,7 @@ INCLUDE_DIRECTORIES(${SRC}/../externals/LEO/leosim)
 INCLUDE (${SRC}/../externals/leo.cmake)
 
 # Add dependencies
-grl_link_libraries(${TARGET} base)
+grl_link_libraries(${TARGET} base addons/odesim)
 target_link_libraries(${TARGET})
 
 install(TARGETS ${TARGET} DESTINATION ${GRL_LIB_DESTINATION})
