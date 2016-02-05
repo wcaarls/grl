@@ -45,8 +45,8 @@ struct Transition
   Vector prev_obs;
   Vector prev_action;
   double reward;
-  Vector obs;
-  Vector action;
+  Vector obs;    ///< Empty observation signifies a terminal absorbing state with discontinued dynamics.
+  Vector action; ///< Empty action signifies a terminal absorbing state with continued dynamics.
   
   Transition(Vector _prev_obs=Vector(), Vector _prev_action=Vector(), double _reward=0., Vector _obs=Vector(), Vector _action=Vector()) :
     prev_obs(_prev_obs), prev_action(_prev_action), reward(_reward), obs(_obs), action(_action)

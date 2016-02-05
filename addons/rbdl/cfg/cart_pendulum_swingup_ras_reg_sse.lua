@@ -29,20 +29,20 @@ end
 
 -- Angle is changed so that it is 0 at swingup, and -pi or pi in the bootom.
 -- This ensures that maximum potential is 0 (at swingup) and minimum is < 0 everywhere else
-function getPotential(state)
+function getPotentialSquared(state)
   angle = wrap_angle(state[1]) - math.pi
-
--- Literature (lit):
---  return -1    *  state[0]^2 
---         -10   *  angle^2
---         -0.1  *  state[2]^2 
---         -0.1  *  state[3]^2
-
---  RL (rl):
   return -2    *  state[0]^2 
          -1    *  angle^2
          -0.2  *  state[2]^2
          -0.5  *  state[3]^2
+end
+
+function getPotentialAbsolute(state)
+  angle = wrap_angle(state[1]) - math.pi
+  return -2    *  abs(state[0]) 
+         -1    *  abs(angle)
+         -0.2  *  abs(state[2])
+         -0.5  *  abs(state[3])
 end
 
 function failed(state)
@@ -88,8 +88,12 @@ function configure(argstr)
           }
 end
 
-function start()
-  return {0, math.pi+math.random()*0.1-0.05, 0, 0, 0}
+function start(test)
+  if test then 
+    return {0, math.pi, 0, 0, 0}
+  else
+    return {0, math.pi+math.random()*0.1-0.05, 0, 0, 0}
+  end
 end
 
 function observe(state)
@@ -113,9 +117,9 @@ function evaluate(state, action, next)
     end
   else
     if not reward_shaping then
-      return getPotential(next)
+      return getPotentialSquared(next)
     else
-      return getPotential(next) - 0.0001*action[0]^2 + shaping_weight*(shaping_gamma * int(succeeded(next)) - int(succeeded(state)))
+      return getPotentialSquared(next) - 0.0001*action[0]^2 + shaping_weight*(shaping_gamma * getPotentialAbsolute(next) - getPotentialAbsolute(state))
     end
   end
 end

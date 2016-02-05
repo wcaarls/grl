@@ -81,7 +81,7 @@ bool LQRSolver::solve()
     Matrix Q = -H.block(0, 0, operating_state_.size(), operating_state_.size());
     Matrix R = -H.block(operating_state_.size(), operating_state_.size(), operating_action_.size(), operating_action_.size());
   
-    Eigen::MatrixXd A(operating_state_.size(), operating_state_.size()), B(operating_state_.size(), operating_action_.size());
+    Matrix A(operating_state_.size(), operating_state_.size()), B(operating_state_.size(), operating_action_.size());
     for (size_t rr=0; rr < operating_state_.size(); ++rr)
     {
       for (size_t cc=0; cc < operating_state_.size(); ++cc)
@@ -90,28 +90,25 @@ bool LQRSolver::solve()
         B(rr, cc) = J(rr, operating_state_.size()+cc);
     }
 
-    CRAWL("State jacobian:\n" << A);
-    CRAWL("Action jacobian:\n" << B);
+    TRACE("State jacobian:\n" << A);
+    TRACE("Action jacobian:\n" << B);
 
-    Eigen::MatrixXd At = A.transpose(),
-                    Bt = B.transpose(),
-                    X = Q;
-
-    // Iterate discrete-time algebraic Riccati equation until convergence
-    for (size_t ii=0; ii < 1000; ++ii)
+    // Solve discrete-time algebraic Riccati equation
+    Matrix X;
+    int res = solveDARE(A, B, Q, R, &X);
+    
+    if (res != 0)
     {
-      Eigen::MatrixXd Xp = X;
-      X = Q + At*X*A - At*X*B*(Bt*X*B+R).inverse()*Bt*X*A;
-      if ((X - Xp).array().abs().sum() < EPS)
-        break;
-    } 
+      WARNING("Could not solve DARE: error " << res);
+      return false;
+    }
     
     // Compute feedback gain matrix
-    Eigen::MatrixXd L = (Bt*X*B+R).inverse()*(Bt*X*A);
+    Matrix L = (B.transpose()*X*B+R).inverse()*(B.transpose()*X*A);
     
     if (std::isfinite(L.array().sum()))
     {
-      CRAWL("Feedback gain matrix:\n" << L);
+      TRACE("Feedback gain matrix:\n" << L);
       
       for (size_t ii=0; ii < (size_t)L.cols(); ++ii)
         for (size_t oo=0; oo < (size_t)L.rows(); ++oo)
@@ -130,4 +127,73 @@ bool LQRSolver::solve()
   }
     
   return true;
+}
+
+#define SSIZE 4096
+extern "C" void sb02od_(char *DICO, char *JOBB, char *FACT, char *UPLO,
+                        char *JOBL, char *SORT, int *N, int *M, int *P,
+                        double *A, int *LDA, double *B, int *LDB,
+                        double *Q, int *LDQ, double *R, int *LDR,
+                        double *L, int *LDL, double *RCOND, double *X,
+                        int *LDX, double *ALFAR, double *ALFAI,
+                        double *BETA, double *S, int *LDS, double *T,
+                        int *LDT, double *U, int *LDU, double *TOL,
+                        int *IWORK, double *DWORK, int *LDWORK, int *BWORK,
+                        int *INFO);
+
+int LQRSolver::solveDARE(const Matrix &A, const Matrix &B, const Matrix &Q, const Matrix &R, Matrix *X) const
+{
+#ifdef WITH_SLICOT
+  char DICO = 'D';
+  char JOBB = 'B';
+  char FACT = 'N';
+  char UPLO = 'U';
+  char JOBL = 'Z';
+  char SORT = 'S';
+  int N = A.cols();
+  int M = B.cols();
+  int P = 0;
+  double L[1];
+  int LDL=1;
+  
+  double RCOND;
+  double ALFAR[SSIZE];
+  double ALFAI[SSIZE];
+  double BETA[SSIZE];
+  double S[SSIZE];
+  int LDS=2*N+M;
+  double T[SSIZE];
+  int LDT=2*N+M;
+  double U[SSIZE];
+  int LDU=2*N;
+  double TOL=1e-5;
+  int IWORK[SSIZE];
+  double DWORK[SSIZE];
+  int LDWORK=SSIZE;
+  int BWORK[SSIZE];
+  int INFO=0;
+  
+  X->resize(N, N);
+  
+  sb02od_(&DICO, &JOBB, &FACT, &UPLO, &JOBL, &SORT, &N, &M, &P, (double*)A.data(),
+          &N, (double*)B.data(), &N, (double*)Q.data(), &N, (double*)R.data(), &M, L, &LDL, &RCOND, (double*)X->data(),
+          &N, ALFAR, ALFAI, BETA, S, &LDS, T, &LDT, U,
+          &LDU, &TOL, IWORK, DWORK, &LDWORK, BWORK, &INFO);
+
+  return INFO;
+#else
+  Matrix At = A.transpose(), Bt = B.transpose();
+  *X = Q;
+
+  double d = EPS;
+  for (size_t ii=0; ii < 1000 && d >= EPS; ++ii)
+  {
+    Matrix Xp = *X;
+    
+    *X = Q + At*(*X)*A - At*(*X)*B*(Bt*(*X)*B+R).inverse()*Bt*(*X)*A;
+    d = (*X - Xp).array().abs().sum();
+  }
+  
+  return d >= EPS;
+#endif
 }

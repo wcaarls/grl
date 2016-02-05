@@ -53,12 +53,12 @@ class ANNProjector : public SampleProjector
   public:
     StorePtr store_;
     class ANNkd_tree *index_;
-    size_t max_samples_, indexed_samples_, dims_, bucket_size_, neighbors_, interval_;
+    size_t max_samples_, indexed_samples_, dims_, bucket_size_, neighbors_, interval_, incremental_;
     double error_bound_, locality_;
     mutable ReadWriteLock rwlock_;
 
   public:
-    ANNProjector() : index_(NULL), max_samples_(1000), dims_(1), bucket_size_(10), neighbors_(20), interval_(10), error_bound_(0.01), locality_(1.) { }
+    ANNProjector() : index_(NULL), max_samples_(1000), dims_(1), bucket_size_(10), neighbors_(20), interval_(10), incremental_(1), error_bound_(0.01), locality_(1.) { }
     void reindex();
     
     // From Configurable

@@ -1,11 +1,11 @@
-/** \file exclusive.h
- * \brief Exclusive master agent header file.
+/** \file voluntary.h
+ * \brief Voluntary sub-agent header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-06-16
+ * \date      2016-02-03
  *
  * \copyright \verbatim
- * Copyright (c) 2015, Wouter Caarls
+ * Copyright (c) 2016, Wouter Caarls
  * All rights reserved.
  *
  * This file is part of GRL, the Generic Reinforcement Learning library.
@@ -25,35 +25,26 @@
  * \endverbatim
  */
 
-#ifndef GRL_EXCLUSIVE_MASTER_AGENT_H_
-#define GRL_EXCLUSIVE_MASTER_AGENT_H_
+#ifndef GRL_VOLUNTARY_AGENT_H_
+#define GRL_VOLUNTARY_AGENT_H_
 
-#include <grl/predictor.h>
 #include <grl/agent.h>
 
 namespace grl
 {
 
 /// Fixed-policy agent.
-class ExclusiveMasterAgent : public Agent
+class VoluntarySubAgent : public SubAgent
 {
   public:
-    TYPEINFO("agent/master/exclusive", "Master agent that selects one sub-agent to execute")
+    TYPEINFO("agent/sub/voluntary", "Sub agent that has confidence as part of the action")
 
   protected:
-    Predictor *predictor_;
-    std::vector<SubAgent*> agent_;
-    std::vector<double> time_;
-    double gamma_, reward_;
-    int last_agent_, smdp_steps_;
-    Vector prev_obs_, prev_action_;
+    Agent *agent_;
+    size_t dim_;
     
   public:
-    ExclusiveMasterAgent() : predictor_(0), agent_(2), time_(2), gamma_(0.97), reward_(0), last_agent_(0), smdp_steps_(0)
-    {
-      agent_[0] = agent_[1] = NULL;
-      time_[0] = time_[1] = -1;
-    }
+    VoluntarySubAgent() : agent_(NULL), dim_(0) { }
   
     // From Configurable    
     virtual void request(ConfigurationRequest *config);
@@ -61,12 +52,18 @@ class ExclusiveMasterAgent : public Agent
     virtual void reconfigure(const Configuration &config);
 
     // From Agent
-    virtual ExclusiveMasterAgent *clone() const;
-    virtual void start(const Vector &obs, Vector *action);
-    virtual void step(double tau, const Vector &obs, double reward, Vector *action);
+    virtual VoluntarySubAgent *clone() const;
     virtual void end(double tau, const Vector &obs, double reward);
+    
+    // From SubAgent
+    virtual void start(const Vector &obs, Vector *action, double *confidence);
+    virtual void step(double tau, const Vector &obs, double reward, Vector *action, double *confidence);
+    double confidence(const Vector &obs) const
+    {
+      ERROR("Cannot determine confidence without executing agent");
+    }
 };
 
 }
 
-#endif /* GRL_EXCLUSIVE_MASTER_AGENT_H_ */
+#endif /* GRL_VOLUNTARY_AGENT_H_ */

@@ -24,8 +24,6 @@ INCLUDE (${SRC}/../externals/leo.cmake)
 grl_link_libraries(${TARGET} base)
 target_link_libraries(${TARGET})
 
-message("Dest " ${CMAKE_CXX_FLAGS})
-
 install(TARGETS ${TARGET} DESTINATION ${GRL_LIB_DESTINATION})
 install(DIRECTORY ${SRC}/../include/grl DESTINATION ${GRL_INCLUDE_DESTINATION} FILES_MATCHING PATTERN "*.h")
 

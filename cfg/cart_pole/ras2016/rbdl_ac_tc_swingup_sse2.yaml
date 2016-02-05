@@ -17,11 +17,11 @@ experiment:
         file: cart_pendulum.lua
     task:
       type: task/lua
-      file: cart_pendulum_swingup_ras_rand.lua
+      file: cart_pendulum_swingup_ras_sse.lua
       options: shaping_weight=0
     exporter: 
       type: exporter/csv
-      file: ???
+      file: aaa-test
       style: meshup
   agent:
     type: agent/td

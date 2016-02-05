@@ -1,24 +1,40 @@
+set(GRL_DIR ${CMAKE_CURRENT_LIST_DIR})
+
+# Find directory of a grl module
+macro(grl_get_module_dir module dir)
+  if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${module}/build.cmake")
+    set(${dir} ${CMAKE_CURRENT_SOURCE_DIR}/${module})
+  else()
+    set(${dir} ${GRL_DIR}/${module})
+  endif()
+endmacro(grl_get_module_dir)
+
 # Specify grl modules a target depends on
 macro(grl_link_libraries target)
   set(${target}_target ${TARGET}) 
   set(TARGET ${target})
   foreach(_dep ${ARGN})
-    if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${_dep}/include")
-      include_directories(${CMAKE_CURRENT_SOURCE_DIR}/${_dep}/include)
+    grl_get_module_dir(${_dep} _depdir)
+
+    if (EXISTS "${_depdir}/include")
+      include_directories(${_depdir}/include)
     endif()
-    include(${CMAKE_CURRENT_SOURCE_DIR}/${_dep}/link.cmake)
+    
+    include(${_depdir}/link.cmake)
   endforeach()
   set(TARGET ${${target}_target})
 endmacro(grl_link_libraries)
 
 # Build a target
 macro(grl_build_library target)
-  set(SRC ${CMAKE_CURRENT_SOURCE_DIR}/${target}/src)
-  if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${target}/cmake")
-    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/${target}/cmake)
+  grl_get_module_dir(${target} _targetdir)
+
+  set(SRC ${_targetdir}/src)
+  if (EXISTS "${_targetdir}/cmake")
+    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${_targetdir}/cmake)
   endif()
-  if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${target}/include")
-    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/${target}/include)
+  if (EXISTS "${_targetdir}/include")
+    include_directories(${_targetdir}/include)
   endif()
-  include(${CMAKE_CURRENT_SOURCE_DIR}/${target}/build.cmake)
+  include(${_targetdir}/build.cmake)
 endmacro(grl_build_library)

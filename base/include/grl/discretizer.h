@@ -65,6 +65,7 @@ class Discretizer : public Configurable
         bool operator!=(const iterator &rhs) const { return idx_ != rhs.idx_; }
         iterator &operator++() { discretizer_->inc(&idx_); return *this; }
         Vector operator*() { return discretizer_->get(idx_); }
+        const IndexVector &idx() { return idx_; }
     };
     
     virtual size_t size() const = 0;
@@ -74,7 +75,6 @@ class Discretizer : public Configurable
       return iterator(this);
     }
     
-  protected:
     virtual void   inc(IndexVector *idx) const = 0;
     virtual Vector get(const IndexVector &idx) const = 0;
 };

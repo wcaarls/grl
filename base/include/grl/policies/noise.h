@@ -1,11 +1,11 @@
-/** \file lqr.h
- * \brief LQR solver header file.
+/** \file noise.h
+ * \brief Post-policy that injects noise header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-08-26
+ * \date      2016-01-21
  *
  * \copyright \verbatim
- * Copyright (c) 2015, Wouter Caarls
+ * Copyright (c) 2016, Wouter Caarls
  * All rights reserved.
  *
  * This file is part of GRL, the Generic Reinforcement Learning library.
@@ -25,45 +25,38 @@
  * \endverbatim
  */
 
-#ifndef GRL_LQR_SOLVER_H_
-#define GRL_LQR_SOLVER_H_
+#ifndef GRL_NOISE_POLICY_H_
+#define GRL_NOISE_POLICY_H_
 
-#include <eigen3/Eigen/Eigen>
-
-#include <grl/solver.h>
-#include <grl/environments/observation.h>
-#include <grl/policies/state_feedback.h>
+#include <grl/policy.h>
 
 namespace grl
 {
 
-/// Linear Quadratic Regulator solver
-class LQRSolver : public Solver
+/// Post-policy that injects noise.
+class NoisePolicy : public Policy
 {
   public:
-    TYPEINFO("solver/lqr", "Linear Quadratic Regulator solver")
+    TYPEINFO("policy/post/noise", "Postprocesses policy output by injecting noise")
 
   protected:
-    ObservationModel *model_;
-    StateFeedbackPolicy *policy_;
-    Vector operating_state_, operating_action_;
+    Policy *policy_;
+    
+    mutable Vector sigma_;
 
   public:
-    LQRSolver() : model_(NULL), policy_(NULL) { }
-  
-    // From Configurable
+    NoisePolicy() : policy_(NULL) { }
+    
+    // From Configurable  
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
 
-    // From Solver
-    virtual LQRSolver *clone() const;
-    virtual bool solve();
-    
-  protected:
-    virtual int solveDARE(const Matrix &A, const Matrix &B, const Matrix &Q, const Matrix &R, Matrix *X) const;
+    // From Policy
+    virtual NoisePolicy *clone() const;
+    virtual void act(const Vector &in, Vector *out) const;
 };
 
 }
 
-#endif /* GRL_LQR_SOLVER_H_ */
+#endif /* GRL_NOISE_POLICY_H_ */

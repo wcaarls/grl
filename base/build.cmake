@@ -10,11 +10,14 @@ add_library(${TARGET} SHARED
 #            ${SRC}/agents/dyna.cpp
             ${SRC}/agents/exclusive.cpp
             ${SRC}/agents/sequential.cpp
+#            ${SRC}/agents/predicated.cpp
 #            ${SRC}/agents/compartmentalized.cpp
+#            ${SRC}/agents/voluntary.cpp
 #            ${SRC}/agents/solver.cpp
             ${SRC}/configurable.cpp
             ${SRC}/discretizers/uniform.cpp
             ${SRC}/discretizers/peaked.cpp
+#            ${SRC}/discretizers/split.cpp
 #            ${SRC}/environments/acrobot.cpp
             ${SRC}/environments/observation.cpp
             ${SRC}/environments/modeled.cpp
@@ -43,6 +46,7 @@ add_library(${TARGET} SHARED
 #            ${SRC}/policies/mcts.cpp
 #            ${SRC}/policies/ucb.cpp
             ${SRC}/policies/state_feedback.cpp
+#            ${SRC}/policies/noise.cpp
             ${SRC}/predictor.cpp
             ${SRC}/predictors/model.cpp
             ${SRC}/predictors/sarsa.cpp
