@@ -39,10 +39,10 @@ end
 
 function getPotentialAbsolute(state)
   angle = wrap_angle(state[1]) - math.pi
-  return -2    *  abs(state[0]) 
-         -1    *  abs(angle)
-         -0.2  *  abs(state[2])
-         -0.5  *  abs(state[3])
+  return -2    *  math.abs(state[0]) 
+         -1    *  math.abs(angle)
+         -0.2  *  math.abs(state[2])
+         -0.5  *  math.abs(state[3])
 end
 
 function failed(state)
