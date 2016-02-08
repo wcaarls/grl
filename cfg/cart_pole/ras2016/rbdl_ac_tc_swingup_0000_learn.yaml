@@ -18,9 +18,9 @@ experiment:
         options: friction=0
     task:
       type: task/lua
-      file: cart_pendulum_swingup_ras_reg.lua
+      file: cart_pendulum_swingup_ras.lua
       options: shaping_weight=0
-  agent:
+  agent: 
     type: agent/td
     policy:
       type: policy/action

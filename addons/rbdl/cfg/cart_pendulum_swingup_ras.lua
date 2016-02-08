@@ -10,6 +10,12 @@
 -- Helper functions
 math.randomseed( os.time() )
 
+-- Default parameters
+if (shaping_weight == nil) then
+    -- if shaping_weight is not defined, controls reqularization is not used
+    shaping_weight = 0
+end
+
 -- Set the following values to enable reward shaping
 reward_shaping = true
 shaping_gamma = 1.00
@@ -29,20 +35,20 @@ end
 
 -- Angle is changed so that it is 0 at swingup, and -pi or pi in the bootom.
 -- This ensures that maximum potential is 0 (at swingup) and minimum is < 0 everywhere else
-function getPotential(state)
+function getPotentialSquared(state)
   angle = wrap_angle(state[1]) - math.pi
-
--- Literature (lit):
---  return -1    *  state[0]^2 
---         -10   *  angle^2
---         -0.1  *  state[2]^2 
---         -0.1  *  state[3]^2
-
---  RL (rl):
   return -2    *  state[0]^2 
          -1    *  angle^2
          -0.2  *  state[2]^2
          -0.5  *  state[3]^2
+end
+
+function getPotentialAbsolute(state)
+  angle = wrap_angle(state[1]) - math.pi
+  return -2    *  math.abs(state[0]) 
+         -1    *  math.abs(angle)
+         -0.2  *  math.abs(state[2])
+         -0.5  *  math.abs(state[3])
 end
 
 function failed(state)
@@ -117,9 +123,9 @@ function evaluate(state, action, next)
     end
   else
     if not reward_shaping then
-      return getPotential(next)
+      return getPotentialSquared(next)
     else
-      return getPotential(next) + shaping_weight*(shaping_gamma * int(succeeded(next)) - int(succeeded(state)))
+      return getPotentialSquared(next) - 0.0001*action[0]^2 + shaping_weight*(shaping_gamma * getPotentialAbsolute(next) - getPotentialAbsolute(state))
     end
   end
 end
