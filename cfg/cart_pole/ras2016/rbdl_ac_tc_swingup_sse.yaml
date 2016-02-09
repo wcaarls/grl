@@ -24,7 +24,7 @@ experiment:
       type: exporter/csv
       file: aaa-test
       style: meshup
-  agent:
+  agent: 
     type: agent/td
     policy:
       type: policy/action
@@ -52,8 +52,8 @@ experiment:
         output_max: experiment/environment/task/action_max
     predictor:
       type: predictor/ac/action
-      alpha: 0.2
-      beta: 0.01
+      alpha: 0.05
+      beta: 0.025
       gamma: 0.99
       lambda: 0.65
       critic_projector:
