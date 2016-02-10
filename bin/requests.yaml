@@ -949,6 +949,20 @@ policy/sample_feedback:
     mutability: system
     default: "[  ]"
     optional: 1
+policy/zeromq:
+  description: Fixed policy which sends and receives messages using ZeroMQ and protobuffers
+  observation_dims:
+    type: string
+    description: int.observation_dims
+    mutability: system
+    default: Number of observation dimensions
+    optional: 1
+  action_dims:
+    type: string
+    description: int.action_dims
+    mutability: system
+    default: Number of action dimensions
+    optional: 1
 predictor/ac/action:
   description: Actor-critic predictor for direct action policies
   importer:

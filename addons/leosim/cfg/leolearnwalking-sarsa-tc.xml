@@ -9,7 +9,7 @@
 		<foam>1</foam>
 		<lynoleum>2</lynoleum>
 		<foamtiles>3</foamtiles>
-		<!-- Initial condition for learning -->
+		<!-- Initial condition for learning, all angles measured with respect to gravity  -->
 		<!-- Don't let the torso lean too much forward; it helps balancing in the beginning -->
 		<leftlegICangle oldvalue="0.0">0.0</leftlegICangle>
 		<rightupperlegICangle oldvalue="-0.72">-0.72</rightupperlegICangle>
@@ -35,6 +35,7 @@
 		<s>surface</s>
 	</strings>
 	<appLogLevel info="2" warn="4" err="5">0</appLogLevel>
+  <loglevel info="2" warn="4" err="5">info</loglevel>
 	<learner>
 		<lifeTime comment="in seconds">36000</lifeTime>
 		<autoSavePolicy>true</autoSavePolicy>

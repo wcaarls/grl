@@ -115,7 +115,7 @@ class CLeoBhWalkSym: public CSTGAgentQLeo
     //void        autoActuateKnees2(ISTGActuation* actuationInterface);
 //    void          autoActuateKnees_StanceLegFunc(ISTGActuation* actuationInterface);
     void          autoActuateAnkles(ISTGActuation* actuationInterface);
-//    void          autoActuateAnkles_FixedPos(ISTGActuation* actuationInterface);
+    void          autoActuateAnkles_FixedPos(ISTGActuation* actuationInterface);
     void          autoActuateArm(ISTGActuation* actuationInterface);
     inline double clip(double value, double min, double max)
     {

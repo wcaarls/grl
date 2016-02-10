@@ -31,6 +31,8 @@ void CGrlLeoBhWalkSym::parseOdeObs(const Vector &obs, CLeoState &leoState)
 {
   leoState.mJointAngles[ljTorso]      = obs[svTorsoAngle];
   leoState.mJointSpeeds[ljTorso]      = mJointSpeedFilter[ljTorso].filter(obs[svTorsoAngleRate]);
+  leoState.mJointAngles[ljShoulder]   = obs[svShoulderAngle];
+  leoState.mJointSpeeds[ljShoulder]   = mJointSpeedFilter[ljTorso].filter(obs[svShoulderAngleRate]);
   leoState.mJointAngles[ljHipRight]   = obs[svRightHipAngle];
   leoState.mJointSpeeds[ljHipRight]   = mJointSpeedFilter[ljHipLeft].filter(obs[svRightHipAngleRate]);
   leoState.mJointAngles[ljHipLeft]    = obs[svLeftHipAngle];

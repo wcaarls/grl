@@ -40,9 +40,9 @@ experiment:
         epsilon: 0.05
     predictor: 
       type: predictor/sarsa
-      alpha: 0.4
-      gamma: 0.99
-      lambda: 0.92
+      alpha: 0.2
+      gamma: 0.996
+      lambda: 0.859
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
       trace: 

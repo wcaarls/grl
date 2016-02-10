@@ -17,8 +17,8 @@ class CGrlLeoBhWalkSym : public CLeoBhWalkSym
     {
       svTorsoAngle,
       svTorsoAngleRate,
-      svLeftArmAngle,
-      svLeftArmAngleRate,
+      svShoulderAngle,
+      svShoulderAngleRate,
       svRightHipAngle,
       svRightHipAngleRate,
       svLeftHipAngle,
@@ -68,7 +68,7 @@ class CGrlLeoBhWalkSym : public CLeoBhWalkSym
     void grlAutoActuateAnkles(Vector &out)
     {
       CSTGLeoSim* aI = dynamic_cast<CSTGLeoSim*>(mActuationInterface);
-      CLeoBhWalkSym::autoActuateAnkles(aI);
+      CLeoBhWalkSym::autoActuateAnkles_FixedPos(aI);
       out.resize(2);
       out << aI->getJointVoltage(mAnkleStance), aI->getJointVoltage(mAnkleSwing);
     }

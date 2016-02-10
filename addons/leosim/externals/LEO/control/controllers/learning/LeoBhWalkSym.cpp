@@ -997,7 +997,7 @@ void CLeoBhWalkSym::autoActuateAnkles(ISTGActuation* actuationInterface)
   getActuationInterface()->setJointVoltage(mAnkleStance,  torqueToVoltage*ankleStanceTorque);
   getActuationInterface()->setJointVoltage(mAnkleSwing,  torqueToVoltage*ankleSwingTorque);
 }
-/*
+
 void CLeoBhWalkSym::autoActuateAnkles_FixedPos(ISTGActuation* actuationInterface)
 {
   // The "torque" here is not actually torque, but a leftover from the "endless turn mode" control from dynamixels, which is actually voltage control
@@ -1011,7 +1011,7 @@ void CLeoBhWalkSym::autoActuateAnkles_FixedPos(ISTGActuation* actuationInterface
   getActuationInterface()->setJointVoltage(ljAnkleLeft,  leftAnkleTorque);
   getActuationInterface()->setJointVoltage(ljAnkleRight,  rightAnkleTorque);
 }
-*/
+
 
 void CLeoBhWalkSym::autoActuateArm(ISTGActuation* actuationInterface)
 {
