@@ -2,7 +2,7 @@
 --  Cart-pole swing-up task for Manuel's RBDL cart-pole simulation
 --  using MPRL-style observations and rewards.
 --
---  Author:
+--  Authors:
 --    Wouter Caarls <wouter@caarls.org>
 --    Ivan Koryakovskiy <i.koryakovskiy@tudelft.nl>
 --]]
@@ -19,6 +19,7 @@ end
 -- Set the following values to enable reward shaping
 reward_shaping = true
 shaping_gamma = 1.00
+cart_pos_max = 1000 --2.4
 
 -- Set the following value to enable termination on swingup
 terminate_on_swingup = false
@@ -52,7 +53,7 @@ function getPotentialAbsolute(state)
 end
 
 function failed(state)
-  if state[0] < -2.4 or state[0] > 2.4 then
+  if state[0] < -cart_pos_max or state[0] > cart_pos_max then
     return true
   else
     return false
@@ -84,11 +85,11 @@ end
 function configure(argstr)
   T = 3
   return {observation_dims = 4,
-          observation_min = {-2.4, 0,         -5, -10*math.pi},
-          observation_max = { 2.4, 2*math.pi,  5,  10*math.pi},
+          observation_min = {-cart_pos_max, 0,         -5, -10*math.pi},
+          observation_max = { cart_pos_max, 2*math.pi,  5,  10*math.pi},
           action_dims = 1,
           action_min = {-150},
-          action_max = {150},
+          action_max = { 150},
           reward_min = -10000,
           reward_max = 0
           }
@@ -123,7 +124,7 @@ function evaluate(state, action, next)
     end
   else
     if not reward_shaping then
-      return getPotentialSquared(next)
+      return getPotentialSquared(next) - 0.0001*action[0]^2
     else
       return getPotentialSquared(next) - 0.0001*action[0]^2 + shaping_weight*(shaping_gamma * getPotentialAbsolute(next) - getPotentialAbsolute(state))
     end
