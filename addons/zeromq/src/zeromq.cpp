@@ -44,29 +44,20 @@ void ZeroMQPolicy::configure(Configuration &config)
   observation_dims_ = config["observation_dims"];
 
   //  Prepare our context
-  context = new zmq::context_t(1);
+  context_ = new zmq::context_t(1);
 
   //prepare publisher
-  publisher = new zmq::socket_t(*context, ZMQ_PUB);
-  publisher->connect("tcp://localhost:5556");
+  publisher_ = new zmq::socket_t(*context_, ZMQ_PUB);
+  publisher_->connect("tcp://localhost:5556");
 
   //prepare subscriber
   int confl = 1;
-  subscriber = new zmq::socket_t(*this->context, ZMQ_SUB);
-  subscriber->setsockopt(ZMQ_CONFLATE,&confl,sizeof(confl));// only receive last message
-  subscriber->connect("tcp://localhost:5555");
-  subscriber->setsockopt(ZMQ_SUBSCRIBE, "", 0);
+  subscriber_ = new zmq::socket_t(*this->context_, ZMQ_SUB);
+  subscriber_->setsockopt(ZMQ_CONFLATE,&confl,sizeof(confl));// only receive last message
+  subscriber_->connect("tcp://localhost:5555");
+  subscriber_->setsockopt(ZMQ_SUBSCRIBE, "", 0);
 
-  //determine dimension
-//  this->stateDimension  = myJoints.size()-1;
-//  this->actionDimension = myJoints.size()-1;
-
-  //set state and action array
-  this->action 			= new double[action_dims_];
-  this->state_pos 	= new double[observation_dims_/2];
-  this->state_vel 	= new double[observation_dims_/2];
-
-  messageCount = 0;
+  messageCount_ = 0;
 }
 
 void ZeroMQPolicy::reconfigure(const Configuration &config)
@@ -80,51 +71,55 @@ ZeroMQPolicy *ZeroMQPolicy::clone() const
 
 void ZeroMQPolicy::act(double time, const Vector &in, Vector *out)
 {
-  if (time == 0.)
-  {
-    // First action in episode, clear integrator
-  }
+  messageCount_ += 1;
 
   out->resize(observation_dims_);
+  zeromqMessages(in, out);
 
+  if (messageCount_ - lastAction_ > 2000) // no message for 2 seconds
+  {
+    //reset action
+    for (int i=0; i < action_dims_; i++)
+      (*out)[i] = 0;
+  }
 }
 
 // helper function to send a message using zeroMQ
 void ZeroMQPolicy::send(DRL_MESSAGES::drl_unimessage &drlSendMessage)
 {
-  drlSendMessage.set_time_index(globalTimeIndex);
+  drlSendMessage.set_time_index(globalTimeIndex_);
   drlSendMessage.set_name("armstate");
   std::string msg_str;
   drlSendMessage.SerializeToString(&msg_str);
   zmq::message_t message (msg_str.size());
   memcpy ((void *) message.data (), msg_str.c_str(), msg_str.size());
-  publisher->send(message);
+  publisher_->send(message);
 }
 
 // helper function to receive a message using zeroMQ
 bool ZeroMQPolicy::receive(DRL_MESSAGES::drl_unimessage* drlRecMessage)
 {
   zmq::message_t update;
-  bool received = subscriber->recv(&update, ZMQ_DONTWAIT);
+  bool received = subscriber_->recv(&update, ZMQ_DONTWAIT);
   if(received)
     drlRecMessage->ParseFromString(std::string(static_cast<char*>(update.data()), update.size()));
   return received;
 }
 
 // Helper function which deals with all communication
-void ZeroMQPolicy::ZeromqMessages()
+void ZeroMQPolicy::zeromqMessages(const Vector &in, Vector *out)
 {
   DRL_MESSAGES::drl_unimessage drlRecMessage;
   bool received = receive(&drlRecMessage);
 
   if(received == true)
   {
-    globalTimeIndex = drlRecMessage.time_index();
+    globalTimeIndex_ = drlRecMessage.time_index();
     if(drlRecMessage.type() == DRL_MESSAGES::drl_unimessage::MESSTR)
     {
       if (std::string(drlRecMessage.msgstr()).compare(std::string("senddim"))==0)
       {
-        isConnected = false;
+        isConnected_ = false;
         //Prepare dimension message
         DRL_MESSAGES::drl_unimessage dimMessage;
         dimMessage.set_type(DRL_MESSAGES::drl_unimessage::DIMENSION);
@@ -145,63 +140,30 @@ void ZeroMQPolicy::ZeromqMessages()
       }
       else if (std::string(drlRecMessage.msgstr()).compare(std::string("synched"))==0)
       {
-        isConnected = true;
+        isConnected_ = true;
       }
     }
-    else if(isConnected && drlRecMessage.type() == DRL_MESSAGES::drl_unimessage::CONTROLACTION)
+    else if(isConnected_ && drlRecMessage.type() == DRL_MESSAGES::drl_unimessage::CONTROLACTION)
     {
-      lastAction = messageCount;
+      lastAction_ = messageCount_;
       //Handle action message
       for (int i=0; i < std::min(action_dims_,  drlRecMessage.action().actions_size()); i++)
-        //action[i] = SCALE[i] * std::max((float)-1.0, std::min(drlRecMessage.action().actions(i), (float)1.0)); ???
-        action[i] = drlRecMessage.action().actions(i);
+        (*out)[i] = SCALE[i] * std::max((float)-1.0, std::min(drlRecMessage.action().actions(i), (float)1.0)); // ???
     }
   }
 
   //Send state on every physics update when in synch
-  if (isConnected == true)
+  if (isConnected_ == true)
   {
     DRL_MESSAGES::drl_unimessage stateMessage;
     stateMessage.set_type(DRL_MESSAGES::drl_unimessage::STATEPART);
     DRL_MESSAGES::drl_unimessage::GeneralStatePart* state = stateMessage.mutable_statepart();
 
-    for (int i=0; i < observation_dims_; i++)
+    for (int i=0; i < observation_dims_/2; i++)
     {
-      //state->add_state(state_pos[i]);
-      //state->add_first_derivative(state_vel[i]);
+      state->add_state(in[i]);
+      state->add_first_derivative(in[i + observation_dims_/2]);
     }
     send(stateMessage);
   }
-}
-
-// Called by the world update start event
-void ZeroMQPolicy::OnUpdate()
-{
-  /*
-  messageCount += 1;
-
-  //get state from gazebo
-  gazebo::physics::Joint_V::iterator it = myJoints.begin();
-
-  int i = 0;
-  for(++it; it != myJoints.end(); ++it)
-  {
-    state_pos[i] = (*it)->GetAngle(0).Radian();
-    state_vel[i] = (*it)->GetVelocity(0);
-    i++;
-  }
-  // communicate with the agent
-  ZeromqMessages();
-
-  if (messageCount - lastAction > 2000) // no message for 2 seconds
-  {
-    //reset action
-    for (int i=0; i < actionDimension; i++)
-      action[i] = 0;
-  }
-
-  // set action
-  for (int i=0; i<2; i++)
-    myJoints[i+1]->SetForce(0, action[i]);
-  */
 }

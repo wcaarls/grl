@@ -32,7 +32,7 @@ experiment:
         type: discretizer/uniform
         min: experiment/environment/task/action_min
         max: experiment/environment/task/action_max
-        steps: [11]
+        steps: [31]
       projector: 
         type: projector/pre/peaked
         peaking: [5, 5, 5, 5, 0]

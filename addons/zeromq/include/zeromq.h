@@ -44,6 +44,17 @@ class ZeroMQPolicy : public Policy
   protected:
     int action_dims_, observation_dims_;
 
+    zmq::context_t* context_;
+    zmq::socket_t* publisher_;
+    zmq::socket_t* subscriber_;
+
+    int lastAction_;
+    int messageCount_;
+    int globalTimeIndex_; // is it used??
+    bool isConnected_;
+
+    const double SCALE[4] = {0.6, 0.3, 0.15, 0.1}; // what is it for?
+
   public:
     ZeroMQPolicy() : observation_dims_(1), action_dims_(1) { }
   
@@ -57,32 +68,9 @@ class ZeroMQPolicy : public Policy
     virtual void act(double time, const Vector &in, Vector *out);
 
   protected:
-    void OnUpdate();
-    void ZeromqMessages();
+    void zeromqMessages(const Vector &in, Vector *out);
     bool receive(DRL_MESSAGES::drl_unimessage* drlRecMessage);
     void send(DRL_MESSAGES::drl_unimessage &drlSendMessage);
-
-  protected:
-    // Pointer to the update event connection
-    //event::ConnectionPtr updateConnection;
-
-    zmq::context_t* context;
-    zmq::socket_t* publisher;
-    zmq::socket_t* subscriber;
-    //gazebo::physics::Joint_V myJoints;
-
-    int lastAction;
-    int messageCount;
-    int globalTimeIndex;
-//    int stateDimension;
-
-//    int actionDimension;
-    bool isConnected;
-    double* action;
-    double* state_pos;
-    double* state_vel;
-
-    const double SCALE[4] = {0.6, 0.3, 0.15, 0.1};
 };
 
 }
