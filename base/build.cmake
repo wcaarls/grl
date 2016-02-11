@@ -42,6 +42,7 @@ add_library(${TARGET} SHARED
             ${SRC}/policies/q.cpp
             ${SRC}/policies/bounded_q.cpp
             ${SRC}/policies/parameterized.cpp
+            ${SRC}/policies/feed_forward.cpp
 #            ${SRC}/policies/pid.cpp
 #            ${SRC}/policies/mcts.cpp
 #            ${SRC}/policies/ucb.cpp

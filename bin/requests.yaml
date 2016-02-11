@@ -781,6 +781,22 @@ policy/discrete/v:
     mutability: configuration
     default: 0
     optional: 0
+policy/feed_forward:
+  description: Feed-forward policy
+  action_dims:
+    type: int
+    description: Number of action dimensions
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 1
+    max: 2147483647
+  time_control:
+    type: vector
+    description: Sequence of control vectors with a timestamp
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
 policy/nmpc:
   description: Nonlinear model predictive control policy using the MUSCOD library
   lua_model:
