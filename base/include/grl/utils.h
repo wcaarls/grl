@@ -321,6 +321,14 @@ class timer
     }
 };
 
+///
+/// \brief squash
+/// \param x - input vector to squash
+/// \param f - input vector which specify amount of squashing of a corresponding element of x.
+/// For each input vector element indexed by i, f[i] < 0 does shrinking, while f[i] > 0 does stretching.
+/// Use f[i] == 0 for no squashing for the element x[i].
+/// \return squashed values
+///
 inline Vector squash(const Vector &x, const Vector &f)
 {
   Vector y(x.size());
@@ -337,6 +345,14 @@ inline Vector squash(const Vector &x, const Vector &f)
   return y;
 }
 
+///
+/// \brief squash
+/// \param x - input vector to squash
+/// \param f - a scalar, which specifies squashing for all elements of x.
+/// f < 0 does shrinking, while f[i] > 0 does stretching of all elements of x.
+/// Use f[i] == 0 for no squashing.
+/// \return squashed values
+///
 inline Vector squash(const Vector &x, double f)
 {
   Vector y(x.size());

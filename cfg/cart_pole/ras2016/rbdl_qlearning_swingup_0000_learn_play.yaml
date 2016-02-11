@@ -1,22 +1,22 @@
-experiment:
+experiment: 
   type: experiment/online_learning
   runs: 1
   trials: 1
   steps: 0
-  rate: 0
+  rate: 20
   test_interval: 0
   output: cartpole_qlearning_swingup_0000
-  environment:
+  environment: 
     type: environment/modeled
-    model:
+    model: 
       type: model/dynamical
       control_step: 0.05
       integration_steps: 10
-      dynamics:
+      dynamics: 
         type: dynamics/rbdl
         file: cart_pendulum.lua
         options: friction=0
-    task:
+    task: 
       type: task/lua
       file: cart_pendulum_swingup_ras.lua
       options: shaping_weight=0
@@ -32,18 +32,23 @@ experiment:
         type: discretizer/uniform
         min: experiment/environment/task/action_min
         max: experiment/environment/task/action_max
-        steps: [7]
+        steps: [11]
       projector: 
-        type: projector/tile_coding
-        tilings: 16
-        memory: 67108864
-        resolution: [2.5, 0.157075, 2.5, 1.57075, 15]
-        wrapping: [0, 6.283, 0, 0, 0]
+        type: projector/pre/peaked
+        peaking: [5, 5, 5, 5, 0]
+        input_min: experiment/environment/task/observation_min+experiment/environment/task/action_min
+        input_max: experiment/environment/task/observation_max+experiment/environment/task/action_max
+        projector: 
+          type: projector/tile_coding
+          tilings: 16
+          memory: 67108864
+          resolution: [2.5, 0.157075, 2.5, 1.57075, 15]
+          wrapping: [0, 6.283, 0, 0, 0]
       representation: 
         type: representation/parameterized/linear
         init_min: [0]
         init_max: [1]
-        memory: experiment/agent/policy/projector/memory
+        memory: experiment/agent/policy/projector/projector/memory
         outputs: 1
         output_min: []
         output_max: []
@@ -70,11 +75,11 @@ experiment:
       representation: experiment/agent/policy/representation
       sampler: 
         type: sampler/greedy
-  load_file: cart_pole_ras2016_rbdl_qlearning_swingup_0000_learn-mp$run-run0
+  load_file: cartpole_qlearning_swingup_0000-run0
   save_every: never
 visualizer: 
   type: visualizer/glut
-visualization:
+visualization: 
   type: visualization/cart_pole
   state: experiment/environment/state
 visualization2: 

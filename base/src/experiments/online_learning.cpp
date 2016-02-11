@@ -110,23 +110,21 @@ void OnlineLearningExperiment::run()
       oss << output_ << "-" << rr << ".txt";
       ofs.open(oss.str().c_str());
     }
+
+    // Load policy every run
+    if (!load_file_.empty())
+    {
+      std::string load_file = load_file_ + "-";
+      str_replace(load_file, "$run", std::to_string((int)rr)); // increment run if needed
+      std::cout << "Loading policy: " << load_file << std::endl;
+      Configuration loadconfig;
+      loadconfig.set("action", "load");
+      loadconfig.set("file", load_file );
+      agent_->walk(loadconfig);
+    }
     
     for (size_t ss=0, tt=0; (!trials_ || tt < trials_) && (!steps_ || ss < steps_); ++tt)
     { 
-      // Load policy
-      if (!load_file_.empty())
-      {
-        std::string load_file = load_file_ + "-";
-        if (str_replace(load_file, "$run", std::to_string((int)rr)))
-        {
-          std::cout << "Loading policy: " << load_file << std::endl;
-          Configuration loadconfig;
-          loadconfig.set("action", "load");
-          loadconfig.set("file", load_file );
-          agent_->walk(loadconfig);
-        }
-      }
-
       Vector obs, action;
       double reward, total_reward=0;
       int terminal;
@@ -197,7 +195,7 @@ void OnlineLearningExperiment::run()
           ofs << oss.str() << std::endl;
       }
 
-      // Store policy every trial or every test trial
+      // Save policy every trial or every test trial
       if (((save_every_ == "trial") || (test && save_every_ == "test")) && !output_.empty() )
       {
         std::ostringstream oss;
@@ -209,7 +207,7 @@ void OnlineLearningExperiment::run()
       }
     }
     
-    // Store policy every run
+    // Save policy every run
     if (save_every_ == "run" && !output_.empty())
     {
       std::ostringstream oss;
