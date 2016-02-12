@@ -19,7 +19,7 @@ end
 -- Set the following values to enable reward shaping
 reward_shaping = true
 shaping_gamma = 1.00
-cart_pos_max = 2.4
+cart_pos_max = 1000--2.4
 
 -- Set the following value to enable termination on swingup
 terminate_on_swingup = false
@@ -96,11 +96,11 @@ function configure(argstr)
 end
 
 function start(test)
-  if test == 1 then -- !!! Lua always treats 'numbers' as 'true'. For a correct boolean expression compare numbers !!! --
+--  if test == 1 then -- !!! Lua always treats 'numbers' as 'true'. For a correct boolean expression compare numbers !!! --
     return {0, math.pi, 0, 0, 0}
-  else
-    return {0, math.pi+math.random()*0.1-0.05, 0, 0, 0}
-  end
+--  else
+--    return {0, math.pi+math.random()*0.1-0.05, 0, 0, 0}
+--  end
 end
 
 function observe(state)
