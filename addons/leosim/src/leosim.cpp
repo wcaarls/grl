@@ -17,6 +17,8 @@ void CGrlLeoBhWalkSym::init()
 
 void CGrlLeoBhWalkSym::resetState()
 {
+  mLearnSwingKnee       = true;
+  mIsObserving          = false;
   mLastRewardedFoot     = lpFootLeft;
   mLastStancelegWasLeft = -1;
   mFootstepLength       = 0.0;
@@ -88,7 +90,8 @@ void CGrlLeoBhWalkSym::updateDerivedStateVars(CLeoState* currentSTGState)
 LeoSimEnvironment::LeoSimEnvironment() :
   bhWalk_(new CSTGLeoSim()),
   observation_dims_(CGrlLeoBhWalkSym::svNumStates),
-  action_dims_(CGrlLeoBhWalkSym::svNumActions)
+  action_dims_(CGrlLeoBhWalkSym::svNumActions),
+  learn_stance_knee_(0)
 {
 
 }
@@ -99,6 +102,7 @@ void LeoSimEnvironment::request(ConfigurationRequest *config)
 
   config->push_back(CRP("observe", "string.observe_", "Comma-separated list of state elements observed by an agent"));
   config->push_back(CRP("actuate", "string.actuate_", "Comma-separated list of action elements provided by an agent"));
+  config->push_back(CRP("learnStanceKnee", "Learn stance knee", learn_stance_knee_, CRP::Configuration, 0, 1));
 }
 
 void LeoSimEnvironment::fillObserve( const std::vector<CGenericStateVar> &genericStates,

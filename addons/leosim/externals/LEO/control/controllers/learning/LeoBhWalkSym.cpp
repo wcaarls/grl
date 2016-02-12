@@ -868,7 +868,7 @@ void CLeoBhWalkSym::autoActuateHips2(ISTGActuation* actuationInterface)
     actuationInterface->setJointVoltage(mHipSwing,  torqueToVoltage*hipSwingTorque);
   }
 }
-
+*/
 void CLeoBhWalkSym::autoActuateKnees(ISTGActuation* actuationInterface)
 {
   // The stance knee contains a weak controller to remain stretched
@@ -903,7 +903,7 @@ void CLeoBhWalkSym::autoActuateKnees(ISTGActuation* actuationInterface)
   }
   // when not observing and actually learning the knee, do nothing
 }
-*/
+
 /*
 void CLeoBhWalkSym::autoActuateKnees2(ISTGActuation* actuationInterface)
 {
@@ -977,6 +977,7 @@ void CLeoBhWalkSym::autoActuateKnees_StanceLegFunc(ISTGActuation* actuationInter
   // when not observing and learning the knee, do nothing
 }
 */
+/*
 void CLeoBhWalkSym::autoActuateAnkles(ISTGActuation* actuationInterface)
 {
   // The "torque" here is not actually torque, but a leftover from the "endless turn mode" control from dynamixels, which is actually voltage control
@@ -997,7 +998,7 @@ void CLeoBhWalkSym::autoActuateAnkles(ISTGActuation* actuationInterface)
   getActuationInterface()->setJointVoltage(mAnkleStance,  torqueToVoltage*ankleStanceTorque);
   getActuationInterface()->setJointVoltage(mAnkleSwing,  torqueToVoltage*ankleSwingTorque);
 }
-
+*/
 void CLeoBhWalkSym::autoActuateAnkles_FixedPos(ISTGActuation* actuationInterface)
 {
   // The "torque" here is not actually torque, but a leftover from the "endless turn mode" control from dynamixels, which is actually voltage control

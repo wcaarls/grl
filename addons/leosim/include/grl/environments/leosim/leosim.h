@@ -114,6 +114,7 @@ class LeoSimEnvironment : public ODEEnvironment
     CGrlLeoBhWalkSym bhWalk_;
     int observation_dims_, action_dims_;
     int ode_observation_dims_, ode_action_dims_;
+    int learn_stance_knee_;
 
   private:
     void fillObserve(const std::vector<CGenericStateVar> &genericStates,
