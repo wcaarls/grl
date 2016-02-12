@@ -54,7 +54,7 @@ experiment:
       type: predictor/ac/action
       alpha: 0.05
       beta: 0.025
-      gamma: 1.0
+      gamma: 0.99
       lambda: 0.65
       critic_projector:
         type: projector/pre/peaked
