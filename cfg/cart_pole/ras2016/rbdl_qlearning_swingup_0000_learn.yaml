@@ -54,7 +54,7 @@ experiment:
     predictor: 
       type: predictor/advantage
       alpha: 0.2
-      gamma: 0.99
+      gamma: 1.0
       lambda: 0.65
       kappa: 1
       discretizer: experiment/agent/policy/discretizer
