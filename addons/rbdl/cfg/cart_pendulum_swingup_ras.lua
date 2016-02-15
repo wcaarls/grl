@@ -83,7 +83,7 @@ end
 -- Exported functions
 
 function configure(argstr)
-  T = 3
+  T = 5
   return {observation_dims = 4,
           observation_min = {-cart_pos_max, 0,         -5, -10*math.pi},
           observation_max = { cart_pos_max, 2*math.pi,  5,  10*math.pi},
@@ -124,7 +124,7 @@ function evaluate(state, action, next)
     end
   else
     if not reward_shaping then
-      return getPotentialSquared(next) - 0.0001*action[0]^2
+      return getPotentialSquared(next) - 0.0005*action[0]^2
     else
       return getPotentialSquared(next) - 0.0005*action[0]^2 + shaping_weight*(shaping_gamma * getPotentialAbsolute(next) - getPotentialAbsolute(state))
     end
