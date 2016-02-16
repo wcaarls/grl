@@ -18,7 +18,7 @@ experiment:
         options: friction=0
     task:
       type: task/lua
-      file: cart_pendulum_swingup_ras.lua
+      file: cart_pendulum_swingup_balance.lua
       options: shaping_weight=0
     exporter: 
       type: exporter/csv
@@ -52,8 +52,8 @@ experiment:
         output_max: experiment/environment/task/action_max
     predictor:
       type: predictor/ac/action
-      alpha: 0.05
-      beta: 0.025
+      alpha: 0.1
+      beta: 0.01
       gamma: 0.99
       lambda: 0.65
       critic_projector:
