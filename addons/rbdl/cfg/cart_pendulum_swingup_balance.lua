@@ -19,7 +19,7 @@ end
 -- Set the following values to enable reward shaping
 reward_shaping = true
 shaping_gamma = 1.00
-cart_pos_max = 1000--2.4
+cart_pos_max = 2.4
 
 -- Set the following value to enable termination on swingup
 terminate_on_swingup = false
