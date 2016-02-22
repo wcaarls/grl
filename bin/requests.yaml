@@ -186,6 +186,14 @@ environment/leosim:
     mutability: configuration
     default: Comma-separated list of action elements provided by an agent
     optional: 1
+  learn_stance_knee:
+    type: int
+    description: Learn stance knee
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
 environment/modeled:
   description: Environment that uses a state transition model internally
   model:

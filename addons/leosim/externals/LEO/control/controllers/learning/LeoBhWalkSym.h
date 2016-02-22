@@ -39,7 +39,7 @@ class CLeoBhWalkSym: public CSTGAgentQLeo
     bool          mUseEffectiveAction;  // Calculate the effectively executed action to improve convergence
     bool          mGeneralizeActions;    // Generalize between actions in the function approximator
     bool          mIsObserving;
-    bool          mLearnSwingKnee;
+//    bool          mLearnSwingKnee;
 
     // Reward variables
     double        mRwTime;        // Time penalty
