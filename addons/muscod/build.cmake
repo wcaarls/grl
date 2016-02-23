@@ -62,6 +62,7 @@ if (MUSCOD_FOUND)
   add_library(${TARGET} SHARED
               ${SRC}/nmpc.cpp
               ${SRC}/nmpc_th.cpp
+              ${SRC}/mhe_nmpc.cpp
              )
 
   # Add dependencies

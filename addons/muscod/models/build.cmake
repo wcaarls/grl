@@ -21,7 +21,7 @@ if (NOT PGPLOT_FOUND)
   return()
 endif()
 
-set(TARGETS nmpc_cartpole nmpc_simple)
+set(TARGETS nmpc_cartpole nmpc_simple mhe_cartpole)
 
 FOREACH (TARGET ${TARGETS})
   ADD_LIBRARY ( ${TARGET} SHARED 

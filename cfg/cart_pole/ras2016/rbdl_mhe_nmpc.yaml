@@ -25,11 +25,12 @@ experiment:
   agent: 
     type: agent/fixed
     policy: 
-      type: policy/nmpc
+      type: policy/mhe_nmpc
       lua_model: experiment/environment/model/dynamics/file
-      model_name: nmpc_cartpole
+      mhe_model_name: mhe_cartpole
+      nmpc_model_name: nmpc_cartpole
       outputs: experiment/environment/task/action_dims
-      verbose: 0
+      verbose: 1
   test_agent: experiment/agent
   save_every: never
 visualizer: 

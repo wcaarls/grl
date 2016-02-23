@@ -10,9 +10,9 @@
 // Includes
 // *****************************************************************************
 
-#include "def_usrmod.hpp"
-#include "model.hpp"
-#include "nmpc_cartpole.h"
+#include <def_usrmod.hpp>
+#include <model.hpp>
+#include <mhe_cartpole.h>
 
 // *****************************************************************************
 // Pre-Processor Macros
@@ -28,7 +28,7 @@
 #endif
 
 // *****************************************************************************
-namespace CommonNMPC { // BEGIN NAMESPACE CommonNMPC
+namespace CommonMHE { // BEGIN NAMESPACE CommonMHE
 // *****************************************************************************
 
 // *****************************************************************************
@@ -84,6 +84,8 @@ const std::string ref_cntrls_path = "RES/u_cart_pendulum_time.csv";
 // *****************************************************************************
 
 bool is_problem_name_initialized = false;
+bool is_tikhonov_initialized = false;
+bool is_horizon_initialized = false;
 bool add_counter = false;
 char problem_name[255];
 long real_nmos, real_nmsn;
@@ -98,35 +100,33 @@ std::vector<double> ref_time;
 std::vector<std::vector<double> > ref_states;
 std::vector<std::vector<double> > ref_cntrls;
 
+// measurements for MHE
+std::vector<double> measurement_times;
+std::vector<std::vector<double> > measurements;
+std::vector<std::vector<double> > sigmas;
+
 // placeholder for plotting
 std::vector<double> _plotting_t_values;
 std::vector<double> _plotting_p_values;
 std::vector<std::vector<double> > _plotting_sd_values;
 std::vector<std::vector<double> > _plotting_u_values;
 
+std::vector<double> _plotting_ts_values;
+std::vector<std::vector<double> > _plotting_hs_values;
+std::vector<std::vector<double> > _plotting_ss_values;
+
+// Tikhonov regularization
+Eigen::VectorXd p0(NP);
+Eigen::VectorXd s0(NP);
+
+// measurement horizon
+// Eigen::VectorXd m_ts; // measurement times
+Eigen::MatrixXd meas_hs; // measurements
+Eigen::MatrixXd meas_ss; // measurement errors
+
 // *****************************************************************************
 // Utilities
 // *****************************************************************************
-double angleCnt = M_PI; // initially start from the bottom
-double angleOld = 0;    // old value of mprl angle
-/**
- * Function which maps angle from MPRL representation to MUSCOD representation
- * @param angle - input angle wrapped around [0; 2*pi] where 0 or 2*pi mean bottom position, pi - upright
- * @return MUSCOD continuous angle where 2*pi*k mean upright position, pi*k - bottom,
- * and k is a period, ...,-1,0,1,2,...
- */
-double mapAngleToMuscod(double angle){
-  int max_k = 1; // consider only +/- 1 period change
-  double delta = 2*M_PI;
-  for (int k = -max_k; k <= max_k; k++)
-    if (fabs(angle-angleOld + k*2*M_PI) < fabs(delta))
-      delta = angle-angleOld + k*2*M_PI;
-
-  angleCnt += delta;
-  angleOld = angle;
-  return angleCnt;
-}
-
 extern "C" {
   void set_path(std::string new_problem_path, std::string new_lua_model){
     rel_data_path = new_problem_path + "/";
@@ -144,26 +144,56 @@ extern "C" {
     std::cout << "plot counter is set to: " << get_plot_counter() << std::endl;
   }
 
-  /**
-   * Function which converts a wrapped MPRL state into continuous MUSCOD state
-   * Use input vectors of size 0 to reinitialize (e.g. when you restart environment)
-   * @param from: wrapped MPRL state
-   * @param to: continuous MUSCOD state
-   */
-  void convert_obs_for_muscod(const double *from, double *to){
-    if (from == NULL || to == NULL)
-    {
-      // initialize
-      angleCnt = M_PI;
-      angleOld = 0;
-      std::cout << "MUSCOD: Observation converter is initialized." <<std::endl;
-      return;
+    void print_horizon(){
+      // std::cout << "meas_ts = " << meas_ts.transpose() << std::endl;
+      // std::cout << std::endl;
+
+      std::cout << "meas_hs = " << std::endl << meas_hs << std::endl;
+      std::cout << std::endl;
+
+      std::cout << "meas_ss = " << std::endl << meas_ss << std::endl;
+      std::cout << std::endl;
     }
-    *(to + 0) = *(from + 0);
-    *(to + 1) = mapAngleToMuscod( *(from+1) );
-    *(to + 2) = *(from + 2);
-    *(to + 3) = *(from + 3);
+
+    void inject_measurement(
+      // double& ts,
+      Eigen::VectorXd& hs,
+      Eigen::VectorXd& ss
+    ){
+      // first get measurements
+      unsigned int n = meas_hs.cols() - 1;
+      // m_ts.head(n) = m_ts.tail(n);
+      meas_hs.leftCols(n) = meas_hs.rightCols(n);
+      meas_ss.leftCols(n) = meas_ss.rightCols(n);
+
+      // second inject ts, hs and ss
+      // m_ts.tail(1) = ts;
+      meas_hs.rightCols(1) = hs;
+      meas_ss.rightCols(1) = ss;
+    }
+
+    void get_reference_to_horizon(
+      // Eigen::VectorXd m_ts,
+      Eigen::MatrixXd* hs,
+      Eigen::MatrixXd* ss
+    ) {
+      // assign pointers
+      hs = &meas_hs;
+      ss = &meas_ss;
+
+      std::cout << "received reference to measurement horizon" << std::endl;
   }
+
+  Eigen::MatrixXd* get_measurements()
+  {
+    return &meas_hs;
+  }
+
+  Eigen::MatrixXd* get_sigmas()
+  {
+    return &meas_ss;
+  }
+
 } // END of extern "C"
 
   // Convenience function to check consistency of variable dimensions
@@ -514,6 +544,138 @@ void mfcn_end_time(
 // Least Squares Functions
 // *****************************************************************************
 
+const unsigned int LSQFCN_FIT_NE = 4;
+void lsqfcn_fit(double *ts, double *sd, double *sa, double *u,
+  double *p, double *pr, double *res, long *dpnd, InfoPtr *info)
+{
+  if (*dpnd) { *dpnd = RFCN_DPND(0, *sd, 0, 0, 0, 0); return; }
+
+  // get measurements
+  const double h_0 = get_value_from_data(measurement_times, measurements, 0, *ts);
+  const double h_1 = get_value_from_data(measurement_times, measurements, 1, *ts);
+  const double h_2 = get_value_from_data(measurement_times, measurements, 2, *ts);
+  const double h_3 = get_value_from_data(measurement_times, measurements, 3, *ts);
+
+  // get sigmas
+  const double s_0 = 1.0; // get_value_from_data(measurement_times, sigmas, 0, info->cnode)
+  const double s_1 = 1.0; // get_value_from_data(measurement_times, sigmas, 1, info->cnode)
+  const double s_2 = 1.0; // get_value_from_data(measurement_times, sigmas, 2, info->cnode)
+  const double s_3 = 1.0; // get_value_from_data(measurement_times, sigmas, 3, info->cnode)
+
+  // L   = ||r(x)||_2^2
+  // res = r(t,x,u,p)
+  //     = (h - h_) / s
+  res[0] = (sd[0] - h_0) / s_0;
+  res[1] = (sd[1] - h_1) / s_1;
+  res[2] = (sd[2] - h_2) / s_2;
+  res[3] = (sd[3] - h_3) / s_3;
+}
+
+const unsigned int LSQFCN_FITTING_NE = 4;
+void lsqfcn_fitting(double *ts, double *sd, double *sa, double *u,
+  double *p, double *pr, double *res, long *dpnd, InfoPtr *info)
+{
+  // define dependencies
+  // NOTE: Dependency pattern determines the derivatives to be computed!
+  if (*dpnd) {
+    // choose dependency pattern
+    bool ts_dpnd = false;
+    bool xd_dpnd = true;
+    bool xa_dpnd = false;
+    bool  u_dpnd = false;
+    bool  p_dpnd = false;
+    bool pr_dpnd = false;
+    // automatically resolve dependencies
+    *dpnd = RFCN_DPND(
+      (double) (ts_dpnd?*ts:0), (double) (xd_dpnd?*sd:0),
+      (double) (xa_dpnd?*sa:0), (double) (u_dpnd?*u:0),
+      (double) (p_dpnd? *p:0), (double) (pr_dpnd?*pr:0)
+      );
+    return;
+  }
+
+  // get measurements and errors
+  if (!is_horizon_initialized) {
+    meas_hs = Eigen::MatrixXd::Zero(NXD + NU, real_nmsn);
+    meas_ss = Eigen::MatrixXd::Ones(NXD + NU, real_nmsn);
+    is_horizon_initialized = true;
+  }
+  Eigen::VectorXd hs = meas_hs.col(info->cnode);
+  Eigen::VectorXd ss = meas_ss.col(info->cnode);
+
+  // L   = ||r(x)||_2^2
+  // res = r(t,x,u,p)
+  //     = (h - h_) / s
+  res[0] = (sd[0] - hs(0)) / ss(0);
+  res[1] = (sd[1] - hs(1)) / ss(1);
+  res[2] = (sd[2] - hs(2)) / ss(2);
+  res[3] = (sd[3] - hs(3)) / ss(3);
+}
+
+const unsigned int LSQFCN_FITTING_REG_NE = 5 + 1;
+void lsqfcn_fitting_reg(
+  double *ts, double *sd, double *sa, double *u, double *p, double *pr,
+  double *res, long *dpnd, InfoPtr *info
+) {
+  // define dependencies
+  // NOTE: Dependency pattern determines the derivatives to be computed!
+  if (*dpnd) {
+    // choose dependency pattern
+    bool ts_dpnd = false;
+    bool xd_dpnd = true;
+    bool xa_dpnd = false;
+    bool  u_dpnd = true;
+    bool  p_dpnd = true;
+    bool pr_dpnd = false;
+    // automatically resolve dependencies
+    *dpnd = RFCN_DPND(
+      (double) (ts_dpnd?*ts:0), (double) (xd_dpnd?*sd:0),
+      (double) (xd_dpnd?*sa:0), (double) (u_dpnd?*u:0),
+      (double) (p_dpnd? *p:0), (double) (pr_dpnd?*pr:0)
+      );
+    return;
+  }
+  // define constraint counters
+  unsigned int res_ne_cnt = 0;
+
+  // debug output
+  // std::cout << "cnode = " << info->cnode << ",\t";
+  // std::cout << "time =  " << *ts << ", ";
+  // std::cout << std::endl;
+
+  // get measurements and errors
+  // NOTE: lazy initialization because MUSCOD sucks
+  if (!is_horizon_initialized) {
+    // std::cout << "real_nmsn = " << real_nmsn << std::endl;
+    meas_hs = Eigen::MatrixXd::Zero(NXD + NU, real_nmsn);
+    meas_ss = Eigen::MatrixXd::Ones(NXD + NU, real_nmsn);
+    is_horizon_initialized = true;
+  }
+  Eigen::VectorXd hs = meas_hs.col(info->cnode);
+  Eigen::VectorXd ss = meas_ss.col(info->cnode);
+
+  // L   = ||r(x)||_2^2
+  // res = r(t,x,u,p)
+  //     = (h - h_) / s
+  res[res_ne_cnt++] = (sd[0] - hs(0)) / ss(0);
+  res[res_ne_cnt++] = (sd[1] - hs(1)) / ss(1);
+  res[res_ne_cnt++] = (sd[2] - hs(2)) / ss(2);
+  res[res_ne_cnt++] = (sd[3] - hs(3)) / ss(3);
+
+  res[res_ne_cnt++] = ( u[0] - hs(4)) / ss(4);
+
+  // Tikhonov regularization
+  // || (p - p0) / s0 ||
+  if (!is_tikhonov_initialized) {
+    p0 << 0.0;
+    s0 << 1000.0;
+  }
+  res[res_ne_cnt++] = (p[0] - p0[0]) / s0[0];
+
+  // check dimensions of function
+  check_dimensions(0, 0, res_ne_cnt, LSQFCN_FITTING_REG_NE, __func__);
+}
+
 const unsigned int LSQFCN_TRACKING_REF_NE = 4;
 void lsqfcn_tracking_ref(
   double *ts, double *sd, double *sa, double *u, double *p, double *pr, double *res,
@@ -797,24 +959,6 @@ void data_in (
   double *h,         /* model stage durations (I/O) */
   double *pr         /* local i.p.c. parameters (I/O) */
  ) {
-  // show configuration
-  static bool has_shown_configuration = false;
-  if (!has_shown_configuration) {
-    std::cout << "MODEL CONFIGURATION" << std::endl;
-    std::cout << std::endl;
-    std::cout << "NMOS = " << NMOS << std::endl;
-    std::cout << "NP   = " << NP   << std::endl;
-    std::cout << "NRC  = " << NRC  << std::endl;
-    std::cout << "NRCE = " << NRCE << std::endl;
-    std::cout << std::endl;
-    std::cout << "NXD  = " << NXD  << std::endl;
-    std::cout << "NXA  = " << NXA  << std::endl;
-    std::cout << "NU   = " << NU   << std::endl;
-    std::cout << "NPR  = " << NPR  << std::endl;
-
-    has_shown_configuration = true;
-  }
-
   // count model stages and shooting nodes
   real_nmos = std::max(real_nmos, *imos);
   real_nmsn = std::max(real_nmsn, *imsn);
@@ -848,11 +992,17 @@ void data_out(
     std::string data_u_file        = std::string("u_");
     std::string data_p_file        = std::string("p_");
 
+    std::string data_hs_file        = std::string("hs_");
+    std::string data_ss_file        = std::string("ss_");
+
     // add problem name identifier
     meshup_header_file += std::string(problem_name);
     data_sd_file       += std::string(problem_name);
     data_u_file        += std::string(problem_name);
     data_p_file        += std::string(problem_name);
+
+    data_hs_file       += std::string(problem_name);
+    data_ss_file       += std::string(problem_name);
 
     // add iteration counter [optional]
     if (add_counter) {
@@ -864,6 +1014,9 @@ void data_out(
       data_sd_file       += sstm.str();
       data_u_file        += sstm.str();
       data_p_file        += sstm.str();
+
+      data_hs_file       += sstm.str();
+      data_ss_file       += sstm.str();
     }
 
     // add file identifier suffix
@@ -872,19 +1025,28 @@ void data_out(
     data_u_file        += std::string(".csv");
     data_p_file        += std::string(".csv");
 
+    data_hs_file        += std::string(".csv");
+    data_ss_file        += std::string(".csv");
+
     std::ofstream meshup_header_stream;
     std::ofstream data_sd_stream;
     std::ofstream data_u_stream;
     std::ofstream data_p_stream;
+
+    std::ofstream data_hs_stream;
+    std::ofstream data_ss_stream;
 
     meshup_header_stream.open (meshup_header_file.c_str(),                   std::ios_base::trunc);
     data_sd_stream.      open ((std::string("RES/") + data_sd_file).c_str(), std::ios_base::trunc);
     data_u_stream.       open ((std::string("RES/") + data_u_file). c_str(), std::ios_base::trunc);
     data_p_stream.       open ((std::string("RES/") + data_p_file). c_str(), std::ios_base::trunc);
 
+    data_hs_stream.      open ((std::string("RES/") + data_hs_file). c_str(), std::ios_base::trunc);
+    data_ss_stream.      open ((std::string("RES/") + data_ss_file). c_str(), std::ios_base::trunc);
+
     if (
       !meshup_header_stream || !data_sd_stream || !data_u_stream ||
-      !data_p_stream
+      !data_p_stream || !data_hs_stream || !data_ss_stream
     ) {
       std::cerr << "Error opening file ";
       if (!meshup_header_stream) {
@@ -898,6 +1060,12 @@ void data_out(
       }
       if (!data_p_stream) {
         std::cerr << data_p_file;
+      }
+      if (!data_hs_stream) {
+        std::cerr << data_hs_file;
+      }
+      if (!data_ss_stream) {
+        std::cerr << data_ss_file;
       }
       std::cerr << std::endl;
       abort();
@@ -928,6 +1096,27 @@ void data_out(
         data_u_stream << std::endl;
       }
 
+      // save shooting node dependent quantities
+      for (unsigned int i = 0; i < _plotting_ts_values.size() - 1; i ++) {
+        // states
+        data_hs_stream << _plotting_ts_values[i] << ", ";
+        for (unsigned int j = 0; j < _plotting_hs_values[i].size(); j++) {
+          data_hs_stream << _plotting_hs_values[i][j];
+          if (j < _plotting_hs_values[i].size() -1 )
+            data_hs_stream << ", ";
+        }
+        data_hs_stream << std::endl;
+
+        // controls
+        data_ss_stream << _plotting_ts_values[i] << ", ";
+        for (unsigned int j = 0; j < _plotting_ss_values[i].size(); j++) {
+          data_ss_stream << _plotting_ss_values[i][j];
+          if (j < _plotting_ss_values[i].size() -1 )
+            data_ss_stream << ", ";
+        }
+        data_ss_stream << std::endl;
+      }
+
       // save time independent quantities
       // parameters
       for (unsigned int j = 0; j < _plotting_p_values.size(); j++) {
@@ -945,10 +1134,17 @@ void data_out(
     _plotting_u_values.clear();
     _plotting_p_values.clear();
 
+    _plotting_ts_values.clear();
+    _plotting_hs_values.clear();
+    _plotting_ss_values.clear();
+
     meshup_header_stream.close();
     data_sd_stream.close();
     data_u_stream.close();
     data_p_stream.close();
+
+    data_hs_stream.close();
+    data_ss_stream.close();
 
     lnode = -1;
   }
@@ -959,6 +1155,24 @@ void data_out(
         _plotting_p_values.push_back(p[i]);
       }
     }
+    std::cout << "t = " << *t << "\t" << "cnode = " << info->cnode << std::endl;
+
+    if (info->cnode < meas_hs.cols() && info->cnode < meas_ss.cols()) {
+      _plotting_ts_values.push_back (*t);
+
+      std::vector<double> _hs_vec (NXD + NU);
+      for (unsigned i = 0; i < NXD + NU; i++){
+        _hs_vec[i] = meas_hs(i, info->cnode);
+      }
+      _plotting_hs_values.push_back (_hs_vec);
+
+      std::vector<double> _ss_vec (NXD + NU);
+      for (unsigned i = 0; i < NXD + NU; i++){
+        _ss_vec[i] = meas_ss(i, info->cnode);
+      }
+      _plotting_ss_values.push_back (_ss_vec);
+    }
+
     // pass new node value
     lnode = info->cnode;
   }
@@ -1009,7 +1223,7 @@ void meshup_output
 }
 
 // *****************************************************************************
-} // END NAMESPACE CommonNMPC
+} // END NAMESPACE CommonMHE
 // *****************************************************************************
 
 // *****************************************************************************
@@ -1017,16 +1231,16 @@ void meshup_output
 // *****************************************************************************
 
 // define MUSCOD-II Dimensions
-// NOTE: To resolve ambiguity we explicitly use CommonNMPC::
-const unsigned int CommonNMPC::NMOS = 1;  // Number of phases (MOdel Stages)
-const unsigned int CommonNMPC::NP   = 1;  // Number of parameters
-const unsigned int CommonNMPC::NRC  = 0;  // Number of coupled constraints
-const unsigned int CommonNMPC::NRCE = 0;  // Number of coupled equality constraints
+// NOTE: To resolve ambiguity we explicitly use CommonMHE::
+const unsigned int CommonMHE::NMOS = 1;  // Number of phases (MOdel Stages)
+const unsigned int CommonMHE::NP   = 1;  // Number of parameters
+const unsigned int CommonMHE::NRC  = 0;  // Number of coupled constraints
+const unsigned int CommonMHE::NRCE = 0;  // Number of coupled equality constraints
 
-const unsigned int CommonNMPC::NXD  = 4;  // Number of differential states
-const unsigned int CommonNMPC::NXA  = 0;  // Number of algebraic states
-const unsigned int CommonNMPC::NU   = 1;  // Number of controls
-const unsigned int CommonNMPC::NPR  = 0;  // Number of local parameters
+const unsigned int CommonMHE::NXD  = 4;  // Number of differential states
+const unsigned int CommonMHE::NXA  = 0;  // Number of algebraic states
+const unsigned int CommonMHE::NU   = 1;  // Number of controls
+const unsigned int CommonMHE::NPR  = 0;  // Number of local parameters
 
 // *****************************************************************************
 // MUSCOD Application
@@ -1043,42 +1257,50 @@ void def_model(void)
 
     // set model dimensions
     def_mdims(
-        CommonNMPC::NMOS, CommonNMPC::NP, CommonNMPC::NRC, CommonNMPC::NRCE
+        CommonMHE::NMOS, CommonMHE::NP, CommonMHE::NRC, CommonMHE::NRCE
     );
 
     // right_flat
     def_mstage(
         imos, // imos,
         // nxd, nxa, nu,
-        CommonNMPC::NXD, CommonNMPC::NXA, CommonNMPC::NU,
+        CommonMHE::NXD, CommonMHE::NXA, CommonMHE::NU,
         NULL, // MayPtr mfcn
         NULL, // LagPtr lfcn,
         // jacmlo, jacmup, astruc,
         0, 0, 0,
         // MatPtr afcn, RHSPtr ffcn, RHSPtr gfcn,
-        NULL, CommonNMPC::ffcn, NULL,
+        NULL, CommonMHE::ffcn, NULL,
         // rwh,  iwh
         NULL, NULL
     );
 
     // define LSQ objective
+    // NOTE: Measurements are defined for all nodes except the last one
+    //       This is the crucial node, which is to be identified and is
+    //       therefore left free to be optimized! The solution acts as new
+    //       initial value for the NMPC MUSCOD instance.
     def_lsq(
-        imos, "*", CommonNMPC::NPR,
-        CommonNMPC::LSQFCN_TRACKING_NE, CommonNMPC::lsqfcn_tracking
+        imos, "s", CommonMHE::NPR,
+        CommonMHE::LSQFCN_FITTING_REG_NE, CommonMHE::lsqfcn_fitting_reg
+    );
+    def_lsq(
+        imos, "i", CommonMHE::NPR,
+        CommonMHE::LSQFCN_FITTING_REG_NE, CommonMHE::lsqfcn_fitting_reg
     );
 
     // increment model stage
     imos++;
 
     // check number of model stages
-    CommonNMPC::check_dimensions(0, 0, imos, CommonNMPC::NMOS, __func__);
+    CommonMHE::check_dimensions(0, 0, imos, CommonMHE::NMOS, __func__);
     // *********************************
 
     // define input and output methods
     // def_mio (NULL , NULL, NULL);
     // TODO: Add routine that creates RBDL models according to shooting nodes
     def_mio (
-        CommonNMPC::data_in, CommonNMPC::meshup_output, CommonNMPC::data_out
+        CommonMHE::data_in , CommonMHE::meshup_output, CommonMHE::data_out
     );
 }
 
