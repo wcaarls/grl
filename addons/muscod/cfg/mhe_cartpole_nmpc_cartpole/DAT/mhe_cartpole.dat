@@ -8,7 +8,7 @@
 
 *  # of multiple shooting intervals on model stages
 nshoot
-0: 15
+0: 10
 
 *  model stage duration start values, scale factors, and bounds
 
