@@ -27,7 +27,7 @@ experiment:
     policy: 
       type: policy/nmpc
       lua_model: experiment/environment/model/dynamics/file
-      model_name: nmpc_cartpole
+      nmpc_model_name: nmpc_cartpole
       outputs: experiment/environment/task/action_dims
       verbose: 0
   test_agent: experiment/agent

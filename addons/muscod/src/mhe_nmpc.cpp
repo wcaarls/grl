@@ -212,7 +212,7 @@ void MHE_NMPCPolicy::act(double time, const Vector &in, Vector *out)
   //    data_.pf[IP] = time;
 
   if (time <= 0.0) {
-    initial_sd_ << in;
+    initial_sd_ << obs;
     initial_pf_ << 0.0;
   }
 

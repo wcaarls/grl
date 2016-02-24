@@ -29,7 +29,6 @@
 #define GRL_MHE_NMPC_H_
 
 #include <grl/policy.h>
-//#include <grl/policies/muscod_data.h> // MUSCOD-II thread-safe data structure
 #include <grl/policies/muscod_mhe.h>
 #include <grl/policies/muscod_nmpc.h>
 
@@ -50,8 +49,7 @@ class MHE_NMPCPolicy : public Policy
     int verbose_;
 
     // MUSCOD-II interface
-    t_obs_converter so_convert_obs_for_muscod_;//(*so_convert_obs_for_muscod)(const double *from, double *to);
-//    MuscodData data_;
+    t_obs_converter so_convert_obs_for_muscod_;
     MUSCOD *muscod_mhe_, *muscod_nmpc_;
     MHEProblem *mhe_;
     NMPCProblem *nmpc_;

@@ -71,8 +71,8 @@ struct MHEProblem : public MUSCODProblem {
     (*m_meas_ss).leftCols(n) = (*m_meas_ss).rightCols(n);
 
     // write new values in rightmost column
-    (*m_meas_hs).rightCols(1) = hs;
-    (*m_meas_ss).rightCols(1) = ss;
+    (*m_meas_hs).col(n) = hs;
+    (*m_meas_ss).col(n) = ss;
 
     // inject qs before last
     std::cout << "m_NMSN = " << m_NMSN << std::endl;
