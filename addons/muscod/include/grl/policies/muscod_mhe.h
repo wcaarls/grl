@@ -75,7 +75,7 @@ struct MHEProblem : public MUSCODProblem {
     (*m_meas_ss).col(n) = ss;
 
     // inject qs before last
-    std::cout << "m_NMSN = " << m_NMSN << std::endl;
+    // std::cout << "m_NMSN = " << m_NMSN << std::endl;
     (*m_meas_hs).block(m_NXD, m_NMSN-2, m_NU, 1) = qs;
     // m_muscod->setNodeQC(m_NMSN-1, qs.data());
   }

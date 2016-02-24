@@ -122,6 +122,7 @@ void MHE_NMPCPolicy::configure(Configuration &config)
 
   hs_ = VectorConstructorFill(mhe_->NXD() + mhe_->NU(), 0);
   ss_ = VectorConstructorFill(mhe_->NXD() + mhe_->NU(), 1);
+  ss_ << 1.00, 1.00, 1.00, 1.00, 0.10; // no error
 
   // FIXME This part is needed
   // if (!verbose_) {
@@ -161,7 +162,7 @@ void MHE_NMPCPolicy::muscod_reset(Vector &initial_obs, double time)
   // initialize NMPC
   for (int inmpc = 0; inmpc < 10; ++inmpc) {
     // 1) Feedback: Embed parameters and initial value from MHE
-    nmpc_->feedback();
+    nmpc_->feedback(initial_obs, initial_pf_, &initial_qc_);
     // 2) Transition
     nmpc_->transition();
     // 3) Preparation
@@ -169,7 +170,7 @@ void MHE_NMPCPolicy::muscod_reset(Vector &initial_obs, double time)
   }
 
   // initialize MHE
-  for (int imhe = 0; imhe < 10; ++imhe) {
+  for (int imhe = 0; imhe < 0; ++imhe) {
     // 1) Feedback
     mhe_->feedback();
     // 2) Transition
@@ -215,9 +216,11 @@ void MHE_NMPCPolicy::act(double time, const Vector &in, Vector *out)
     initial_sd_ << obs;
     initial_pf_ << 0.0;
   }
+  Vector real_pf;
+  real_pf = VectorConstructorFill(nmpc_->NP(), 0);
 
   // Run multiple NMPC iterations
-  const unsigned int nnmpc = 10;
+  const unsigned int nnmpc = 3;
   for (int inmpc = 0; inmpc < nnmpc; ++inmpc) {
     // 1) Feedback: Embed parameters and initial value from MHE
     // NOTE the same initial values (sd, pf) are embedded several time,
@@ -238,8 +241,23 @@ void MHE_NMPCPolicy::act(double time, const Vector &in, Vector *out)
   // Here we can return the feedback control
   (*out) = initial_qc_;
 
+  // Simulate
+  // TODO collect runtime of algorithms and add to simulation time
+  // 1) Get new initial value applying real parameters and NMPC control
+  nmpc_->simulate(
+    initial_sd_,
+    real_pf,
+    initial_qc_,
+    nmpc_->getSamplingRate(),
+    &final_sd_
+    );
+  std::cout << "ERROR:" << std::endl;
+  std::cout << "time:     " << time << std::endl;
+  std::cout << "obs:      " << obs << std::endl;
+  std::cout << "final_sd: " << final_sd_ << std::endl;
+
   // Run mutiple MHE iterations
-  const unsigned int nmhe = 10;
+  const unsigned int nmhe = 4;
   for (int imhe = 0; imhe < nmhe; ++imhe) {
     // NOTE compose and inject measurement only at the first iteration of MHE
     if (nmhe > 0 && imhe == 0) {
@@ -247,8 +265,10 @@ void MHE_NMPCPolicy::act(double time, const Vector &in, Vector *out)
       // NOTE measurement consists of simulation result + feedback control
       // m_hs = [ xd[0], ..., xd[NXD-1], u[0], ..., u[NU-1] ]
       hs_ << obs, VectorConstructorFill(mhe_->NU(), 0);
+      std::cout << "new_measurement = " << hs_ << std::endl;
       // 1) Inject measurements
       mhe_->inject_measurement(hs_, ss_, initial_qc_);
+      mhe_->print_horizon();
     }
     // 2) Feedback
     mhe_->feedback();
@@ -259,6 +279,9 @@ void MHE_NMPCPolicy::act(double time, const Vector &in, Vector *out)
     // 4) Get parameters and state of last shooting node
     if (nmhe > 0 && imhe == nmhe-1) {
       mhe_->get_initial_sd_and_pf(&initial_sd_, &initial_pf_);
+      std::cout << "obs         = " << obs << std::endl;
+      std::cout << "initial_sd_ = " << initial_sd_ << std::endl;
+      std::cout << "initial_pf_ = " << initial_pf_ << std::endl;
 
       // 5) Shifting?
       // NOTE do that only once at last iteration
