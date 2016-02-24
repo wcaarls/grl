@@ -126,32 +126,13 @@ void MHE_NMPCPolicy::configure(Configuration &config)
   // FIXME This part is needed
   // if (!verbose_) {
     // muscod_mhe_->setLogLevelScreen(-1);
-    muscod_mhe_->setLogLevelAndFile(-1, NULL, NULL);
+    // muscod_mhe_->setLogLevelAndFile(-1, NULL, NULL);
     // muscod_nmpc_->setLogLevelScreen(-1);
-    muscod_nmpc_->setLogLevelAndFile(-1, NULL, NULL);
+    // muscod_nmpc_->setLogLevelAndFile(-1, NULL, NULL);
   // }
 
-  // initialize NMPC
-  for (int inmpc = 0; inmpc < 10; ++inmpc) {
-    // 1) Feedback: Embed parameters and initial value from MHE
-    nmpc_->feedback(initial_sd_, initial_pf_, &initial_qc_);
-    // 2) Transition
-    nmpc_->transition();
-    // 3) Preparation
-    nmpc_->preparation();
-  }
-
-  // initialize MHE
-  for (int imhe = 0; imhe < 10; ++imhe) {
-    // 1) Feedback
-    mhe_->feedback();
-    // 2) Transition
-    mhe_->transition();
-    // 3) Preparation
-    mhe_->preparation();
-  }  // save solver state
-
 /*
+  // save solver state
   // FIXME this part is needed
   data_.backup_muscod_state(muscod_);
   data_.sd = ConstantVector(data_.NXD, 0.0);
@@ -169,23 +150,41 @@ void MHE_NMPCPolicy::reconfigure(const Configuration &config)
 
 void MHE_NMPCPolicy::muscod_reset(Vector &initial_obs, double time)
 {
-/*
+
   // FIXME
   // load solution state
-  data_.restore_muscod_state(muscod_);
+  // data_.restore_muscod_state(muscod_);
 
-  // Reinitialize state and time
-  for (int IP = 0; IP < data_.NP; ++IP)
-    data_.pf[IP] = time;
+  // // Reinitialize state and time
+  // for (int IP = 0; IP < data_.NP; ++IP)
+  //   data_.pf[IP] = time;
+  // std::cout << "initial_obs = " << initial_obs << std::endl;
+  // std::cout << "initial_sd_ = " << initial_sd_ << std::endl;
+  // std::cout << "initial_pf_ = " << initial_pf_ << std::endl;
 
-  // solve until convergence to prepare solver
-  for (int ii=0; ii < 50; ++ii)
-  {
-    muscod_->nmpcFeedback(initial_obs.data(), data_.pf.data(), NULL);
-    muscod_->nmpcTransition();
-    muscod_->nmpcPrepare();
+  // initial_sd_ << 0.0, 3.14, 0.0, 0.0;
+  initial_pf_ << 0.0;
+
+  // initialize NMPC
+  for (int inmpc = 0; inmpc < 10; ++inmpc) {
+    // 1) Feedback: Embed parameters and initial value from MHE
+    nmpc_->feedback(initial_obs, initial_pf_, &initial_qc_);
+    // 2) Transition
+    nmpc_->transition();
+    // 3) Preparation
+    nmpc_->preparation();
   }
-*/
+
+  // initialize MHE
+  for (int imhe = 0; imhe < 10; ++imhe) {
+    // 1) Feedback
+    mhe_->feedback();
+    // 2) Transition
+    mhe_->transition();
+    // 3) Preparation
+    mhe_->preparation();
+  }
+
   if (verbose_)
     std::cout << "MUSCOD is reseted!" << std::endl;
 }
@@ -221,6 +220,11 @@ void MHE_NMPCPolicy::act(double time, const Vector &in, Vector *out)
   //  for (int IP = 0; IP < data_.NP; ++IP)
   //    data_.pf[IP] = time;
 
+  if (time <= 0.0) {
+    initial_sd_ << in;
+    initial_pf_ << 0.0;
+  }
+
   // Run multiple NMPC iterations
   const unsigned int nnmpc = 10;
   for (int inmpc = 0; inmpc < nnmpc; ++inmpc) {
@@ -234,7 +238,6 @@ void MHE_NMPCPolicy::act(double time, const Vector &in, Vector *out)
     // 3) Shifting
     // NOTE do that only once at last iteration
     if (nnmpc > 0 && inmpc == nnmpc-1) {
-      // std::cout << "SHIFTING" << std::endl;
       nmpc_->shifting(1);
     }
     // 4) Preparation
@@ -252,8 +255,7 @@ void MHE_NMPCPolicy::act(double time, const Vector &in, Vector *out)
       // 0) Compose new measurement
       // NOTE measurement consists of simulation result + feedback control
       // m_hs = [ xd[0], ..., xd[NXD-1], u[0], ..., u[NU-1] ]
-      hs_ << in, VectorConstructorFill(mhe_->NU(), 0);
-
+      hs_ << obs, VectorConstructorFill(mhe_->NU(), 0);
       // 1) Inject measurements
       mhe_->inject_measurement(hs_, ss_, initial_qc_);
     }
