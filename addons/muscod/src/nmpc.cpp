@@ -171,7 +171,6 @@ void NMPCPolicy::act(double time, const Vector &in, Vector *out)
     so_convert_obs_for_muscod_(in.data(), obs.data()); // Convert
     muscod_reset(obs, time);
   }
-
   // Convert MPRL states into MUSCOD states
   so_convert_obs_for_muscod_(in.data(), obs.data());
 
@@ -185,10 +184,16 @@ void NMPCPolicy::act(double time, const Vector &in, Vector *out)
   if (time <= 0.0) {
     initial_sd_ << obs;
     initial_pf_ << 0.0;
+    initial_qc_ << 0.0;
+  } else {
+    std::cout << "time: [ " << time << " ]" << std::endl;
+    std::cout << "observer  = " << obs << std::endl;
+    std::cout << "final_sd_ = " << final_sd_ << std::endl;
+    std::cout << "ERROR     = " << final_sd_ - obs << std::endl;
   }
 
   // Run multiple NMPC iterations
-  const unsigned int nnmpc = 10;
+  const unsigned int nnmpc = 3;
   for (int inmpc = 0; inmpc < nnmpc; ++inmpc) {
     // 1) Feedback: Embed parameters and initial value from MHE
     // NOTE the same initial values (sd, pf) are embedded several time,
@@ -205,6 +210,18 @@ void NMPCPolicy::act(double time, const Vector &in, Vector *out)
     // 4) Preparation
     nmpc_->preparation();
   }
+
+  Vector real_pf;
+  real_pf = VectorConstructorFill(nmpc_->NP(), 0);
+
+  // Simulate
+  nmpc_->simulate(
+      obs,
+      real_pf,
+      initial_qc_,
+      0.05,
+      &final_sd_
+  );
 
   // Here we can return the feedback control
   (*out) = initial_qc_;
