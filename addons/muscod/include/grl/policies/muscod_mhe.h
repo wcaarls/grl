@@ -49,32 +49,46 @@ struct MHEProblem : public MUSCODProblem {
   }
 
   void initialize_horizon(grl::Vector& hs, grl::Vector& ss, grl::Vector qs){
-    for (int imsn = 0; imsn < m_NMSN-1; ++imsn) {
+    for (int imsn = 0; imsn < m_NMSN; ++imsn) {
       (*m_meas_hs).col(imsn) = hs;
       (*m_meas_ss).col(imsn) = ss;
-        m_muscod->setNodeQC(imsn, qs.data());
     }
-    // TODO fix controls
+    for (int imsn = 0; imsn < m_NMSN-1; ++imsn) {
+      m_muscod->setNodeQC(imsn, qs.data());
+    }
   }
 
   void inject_measurement(
-    const Eigen::VectorXd& hs,
-    const Eigen::VectorXd& ss,
-    const Eigen::VectorXd& qs
+    const grl::Vector& hs,
+    const grl::Vector& ss,
+    const grl::Vector& qs
   ) {
     // shift horizon
     long int n = (*m_meas_hs).cols() - 1;
-    // m_ts.head(n) = m_ts.tail(n);
-    // NOTE: m_meas_xx.leftCols(m_meas_xx.cols()-1) := m_meas_xx[:-1]
+    // NOTE: m_meas_xx.leftCols(m_meas_xx.cols()-1)  := m_meas_xx[:-1]
     //       m_meas_xx.rightCols(m_meas_xx.cols()-1) := m_meas_xx[1:]
     (*m_meas_hs).leftCols(n) = (*m_meas_hs).rightCols(n);
     (*m_meas_ss).leftCols(n) = (*m_meas_ss).rightCols(n);
 
     // write new values in rightmost column
-    // std::cout << (*m_meas_hs).rightCols(1).cols() << " = " << hs.cols() << std::endl;
-    // std::cout << (*m_meas_hs).rightCols(1).rows() << " = " << hs.rows() << std::endl;
     (*m_meas_hs).rightCols(1) = hs;
     (*m_meas_ss).rightCols(1) = ss;
+
+    // inject qs before last
+    std::cout << "m_NMSN = " << m_NMSN << std::endl;
+    (*m_meas_hs).block(m_NXD, m_NMSN-2, m_NU, 1) = qs;
+    // m_muscod->setNodeQC(m_NMSN-1, qs.data());
+  }
+
+  void get_initial_sd_and_pf(
+    grl::Vector* initial_sd,
+    grl::Vector* initial_pf
+  ) {
+    // get global model parameters
+    m_muscod->getPF(initial_pf->data());
+
+    // get last shooting node
+    m_muscod->getNodeSD(m_NMSN-1, initial_sd->data());
   }
 
   // ---------------------------------------------------------------------------

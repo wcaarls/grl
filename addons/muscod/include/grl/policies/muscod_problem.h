@@ -64,6 +64,36 @@ struct MUSCODProblem {
 
   // ---------------------------------------------------------------------------
 
+  void print_states () {
+    // grl::Vector times (m_NMSN);
+    Eigen::MatrixXd states (m_NXD, m_NMSN);
+    // set up measurements on horizon
+    for (int imsn = 0; imsn < m_NMSN; ++imsn) {
+      m_muscod->getNodeSD(imsn, states.col(imsn).data());
+    }
+    // for (int imsn = 0; imsn < m_NMSN; ++imsn) {
+    //   m_muscod->getNodeSD(imsn, states.col(imsn).data());
+    // }
+    std::cout << "states = " << std::endl << states << std::endl;
+  }
+
+  void print_controls () {
+    Eigen::MatrixXd controls (m_NU, m_NMSN);
+    // set up measurements on horizon
+    for (int imsn = 0; imsn < m_NMSN; ++imsn) {
+      m_muscod->getNodeQC(imsn, controls.col(imsn).data());
+    }
+    std::cout << "controls = " << std::endl << controls << std::endl;
+  }
+
+  void print_parameters () {
+    grl::Vector parameters (m_NP);
+    m_muscod->getPF(parameters.data());
+    std::cout << "parameters = " << std::endl << parameters << std::endl;
+  }
+
+  // ---------------------------------------------------------------------------
+
   void feedback(
     const grl::Vector& initial_sd,
     const grl::Vector& initial_pf,
@@ -75,8 +105,8 @@ struct MUSCODProblem {
   }
 
   void feedback(
-    const Eigen::VectorXd& initial_sd,
-    Eigen::VectorXd* first_qc
+    const grl::Vector& initial_sd,
+    grl::Vector* first_qc
   ) {
     m_muscod->nmpcFeedback(initial_sd.data(), NULL, first_qc->data());
   }

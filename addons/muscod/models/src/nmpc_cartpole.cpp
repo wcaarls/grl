@@ -36,7 +36,6 @@ namespace CommonNMPC { // BEGIN NAMESPACE CommonNMPC
 // *****************************************************************************
 
 // RBDL Models for sequential or parallel execution
-RBDLModel rbdl_model;
 std::vector<RBDLModel> rbdl_models;
 
 // *****************************************************************************
@@ -48,12 +47,6 @@ const double rl_y = 0.9900;
 const double rl_sy = sqrt(rl_y);
 
 // weights
-const double w0 =  1.0000;
-const double w1 = 10.0000;
-const double w2 =  0.1000;
-const double w3 =  0.1000;
-const double w4 =  0.0001;
-
 const double rl_w0 = 2.0000;
 const double rl_w1 = 1.0000;
 const double rl_w2 = 0.2000;
@@ -63,12 +56,6 @@ const double rl_w4 = 0.0005;
 // const double rl_w4 = 0.0010;
 
 // square-roots of weights for Gauss-Newton residual
-const double sw0 = sqrt(w0);
-const double sw1 = sqrt(w1);
-const double sw2 = sqrt(w2);
-const double sw3 = sqrt(w3);
-const double sw4 = sqrt(w4);
-
 const double rl_sw0 = sqrt(rl_w0);
 const double rl_sw1 = sqrt(rl_w1);
 const double rl_sw2 = sqrt(rl_w2);
@@ -76,8 +63,8 @@ const double rl_sw3 = sqrt(rl_w3);
 const double rl_sw4 = sqrt(rl_w4);
 
 std::string model_file_name = (std::string) "./model.lua";
-const std::string ref_states_path = "RES/sd_cart_pendulum_time.csv";
-const std::string ref_cntrls_path = "RES/u_cart_pendulum_time.csv";
+const std::string ref_states_path = (std::string) "RES/sd_cart_pendulum_time.csv";
+const std::string ref_cntrls_path = (std::string) "RES/u_cart_pendulum_time.csv";
 
 // *****************************************************************************
 // Variables
@@ -131,8 +118,8 @@ extern "C" {
   void set_path(std::string new_problem_path, std::string new_lua_model){
     rel_data_path = new_problem_path + "/";
     model_file_name = new_lua_model;
-    std::cout << "MHE: setting new problem path to: '" << rel_data_path << "'" <<std::endl;
-    std::cout << "MHE: setting new Lua model file to: '" << model_file_name << "'" <<std::endl;
+    std::cout << "NMPC: setting new problem path to: '" << rel_data_path << "'" <<std::endl;
+    std::cout << "NMPC: setting new Lua model file to: '" << model_file_name << "'" <<std::endl;
   }
 
   bool get_plot_counter(){
@@ -398,117 +385,9 @@ void ref_setup(
 // Objective Functions (Lagrange Type)
 // *****************************************************************************
 
-    void lfcn_time(
-      double *t, double *xd, double *xa, double *u, double *p, double *lval,
-      double *rwh, long *iwh, InfoPtr *info
-      ){
-    // zeroize Lagrange
-      *lval = 0.0;
-
-    // define objective
-    *lval = 1.0; // minimize time by int_0^T 1 dt = T
-  }
-
-  // Objective function (Lagrangian type)
-  void lfcn_energy(
-    double *t, double *xd, double *xa, double *u, double *p, double *lval,
-    double *rwh, long *iwh, InfoPtr *info
-    ){
-    // zeroize Lagrange
-    *lval = 0.0;
-
-    // get right RBDL model
-    RBDLModel* model;
-    model = &rbdl_models[info->cnode];
-
-    // update_states
-    model->update_state(xd, u, p);
-
-    // minimize energy by means of L2-norm of actuation
-    for (int idof = 0; idof < model->nadof; idof++) {
-      *lval += model->tau[idof] * model->tau[idof];
-    }
-  }
-
-  void lfcn_tracking(
-    double *t, double *xd, double *xa, double *u,
-    double *p, double *lval, double *rwh, long *iwh, InfoPtr *info
-    ) {
-
-  // integrate over constant
-    *lval = 0.0;
-
-  // define objective
-  *lval += w0 * ( xd[0] ) * ( xd[0] ); // = 0
-  *lval += w1 * ( xd[1] ) * ( xd[1] ); // = 0
-  *lval += w2 * ( xd[2] ) * ( xd[2] ); // = 0
-  *lval += w3 * ( xd[3] ) * ( xd[3] ); // = 0
-  *lval += w4 * (  u[0] ) * (  u[0] ); // = 0
-}
-
 // ****************************************************************************
 // Objectives Mayer Type
 // ****************************************************************************
-
-void mfcn_end_time(
-  double *ts, double *xd, double *xa, double *p, double *pr, double *mval,
-  long *dpnd, InfoPtr *info
-  ){
-    // define dependencies
-    // NOTE: Dependency pattern determines the derivatives to be computed!
-  if (*dpnd) {
-      // choose dependency pattern
-    bool ts_dpnd = true;
-    bool xd_dpnd = false;
-    bool xa_dpnd = false;
-    bool  p_dpnd = false;
-    bool pr_dpnd = false;
-      // automatically resolve dependencies
-    *dpnd = MFCN_DPND(
-      (double) (ts_dpnd?*ts:0), (double) (xd_dpnd?*xd:0),
-      (double) (xd_dpnd?*xa:0), (double) (p_dpnd? *p:0),
-      (double) (pr_dpnd?*pr:0)
-      );
-    return;
-  }
-    // zeroize Mayer
-  *mval = 0.0;
-
-    // define objective
-    *mval = *ts;  // minimize end time
-  }
-
-/** \brief Objective function (Mayer type) */
-  void mfcn_penalty(
-    double *ts, double *xd, double *xa, double *p, double *pr,
-    double *mval,  long *dpnd, InfoPtr *info
-    ) {
-    // define dependencies
-    // NOTE: Dependency pattern determines the derivatives to be computed!
-    if (*dpnd) {
-      // choose dependency pattern
-      bool ts_dpnd = false;
-      bool xd_dpnd = true;
-      bool xa_dpnd = false;
-      bool  p_dpnd = false;
-      bool pr_dpnd = false;
-      // automatically resolve dependencies
-      *dpnd = MFCN_DPND(
-        (double) (ts_dpnd?*ts:0), (double) (xd_dpnd?*xd:0),
-        (double) (xd_dpnd?*xa:0), (double) (p_dpnd? *p:0),
-        (double) (pr_dpnd?*pr:0)
-        );
-      return;
-    }
-
-  // zeroize Mayer
-    *mval = 0.0;
-
-  *mval +=  w0 * ( xd[0] ) * ( xd[0] ); // = 0
-  *mval +=  w1 * ( xd[1] ) * ( xd[1] ); // = 0
-  *mval +=  w2 * ( xd[2] ) * ( xd[2] ); // = 0
-  *mval +=  w3 * ( xd[3] ) * ( xd[3] ); // = 0
-}
 
 // *****************************************************************************
 // Least Squares Functions
@@ -553,10 +432,10 @@ void lsqfcn_tracking_ref(
   double real_ts = *ts + p[0];
 
     // res = sqrt(w) * quantity
-  res[res_ne_cnt++] = sw0 * ( sd[0] - ref_xd(0, real_ts) );
-  res[res_ne_cnt++] = sw1 * ( sd[1] - ref_xd(1, real_ts) );
-  res[res_ne_cnt++] = sw2 * ( sd[2] - ref_xd(2, real_ts) );
-  res[res_ne_cnt++] = sw3 * ( sd[3] - ref_xd(3, real_ts) );
+  res[res_ne_cnt++] = rl_sw0 * ( sd[0] - ref_xd(0, real_ts) );
+  res[res_ne_cnt++] = rl_sw1 * ( sd[1] - ref_xd(1, real_ts) );
+  res[res_ne_cnt++] = rl_sw2 * ( sd[2] - ref_xd(2, real_ts) );
+  res[res_ne_cnt++] = rl_sw3 * ( sd[3] - ref_xd(3, real_ts) );
 
     // check dimensions of function
   check_dimensions(0, 0, res_ne_cnt, LSQFCN_TRACKING_REF_NE, __func__);
@@ -614,30 +493,6 @@ void lsqfcn_tracking(
 // Right Hand Sides
 // *****************************************************************************
 
-void ffcn_st (
-  double *t, double *xd, double *xa, double *u, double *p, double *rhs,
-  double *rwh, long *iwh, InfoPtr *info
-  ) {
-    // define rhs counter
-  unsigned int rhs_cnt = 0;
-
-  // update_states
-  rbdl_model.update_state(xd, u, p);
-
-  // calculate forward dynamics using RBDL
-  RigidBodyDynamics::ForwardDynamics (
-    rbdl_model.model, rbdl_model.q, rbdl_model.qdot, rbdl_model.tau, rbdl_model.qddot
-  );
-
-  for (unsigned int idof = 0; idof < rbdl_model.ndof; idof++) {
-    rhs[idof] = rbdl_model.qdot [idof]; rhs_cnt++;
-    rhs[idof + rbdl_model.ndof] = rbdl_model.qddot[idof]; rhs_cnt++;
-  }
-
-    // check dimensions of functions
-  check_dimensions(0, 0, rhs_cnt, 4, __func__);
-}
-
 void ffcn (
   double *t, double *xd, double *xa, double *u, double *p, double *rhs,
   double *rwh, long *iwh, InfoPtr *info
@@ -669,116 +524,6 @@ void ffcn (
 // *****************************************************************************
 // Decoupled Constraints
 // *****************************************************************************
-
-///  Constraints at start point
-//                 # of all constraints # of equality constraints
-const unsigned int RDFCN_S_N = 4,       RDFCN_S_NE = 4;
-void rdfcn_s(
-  double *ts, double *sd, double *sa, double *u, double *p, double *pr, double *res,
-  long *dpnd, InfoPtr *info
-  ) {
-  // define dependencies
-  // NOTE: Dependency pattern determines the derivatives to be computed!
-  if (*dpnd) {
-    // choose dependency pattern
-    bool ts_dpnd = false;
-    bool sd_dpnd = true;
-    bool sa_dpnd = false;
-    bool  u_dpnd = false;
-    bool  p_dpnd = false;
-    bool pr_dpnd = false;
-      // automatically resolve dependencies
-    *dpnd = RFCN_DPND(
-      (double) (ts_dpnd?*ts:0), (double) (sd_dpnd?*sd:0),
-      (double) (sa_dpnd?*sa:0), (double) (u_dpnd?*u:0),
-      (double) (p_dpnd? *p:0),  (double) (pr_dpnd?*pr:0)
-      );
-    return;
-  }
-  // define constraint counters
-  unsigned int res_n_cnt  = 0;
-  unsigned int res_ne_cnt = 0;
-
-  // define constraint residuals here, i.e. res[:_ne] = 0 and res[_ne:] >= 0!
-  // NOTE: In C++ the '++' operator as postfix first evaluates the variable
-  //       and then increments it, i.e.
-  //       n = 0;    -> n  = 0
-  //       n2 = n++; -> n2 = 0, n = 1
-
-    // get right RBDL model
-    RBDLModel* model;
-    model = &rbdl_models[info->cnode];
-
-    // update_states
-  model->update_state(sd, u, p);
-
-  // enforce pendulum hanging down on start position
-  // NOTE: We have to scale residuals to enforce them in the solution
-  res[res_n_cnt++] = (        model->q[0] ) * 100.0; res_ne_cnt++;// = 0
-  res[res_n_cnt++] = ( 3.14 - model->q[1] ) * 100.0; res_ne_cnt++;// = 0
-  res[res_n_cnt++] = (     model->qdot[0] ) * 100.0; res_ne_cnt++;// = 0
-  res[res_n_cnt++] = (     model->qdot[1] ) * 100.0; res_ne_cnt++;// = 0
-
-  // check dimensions of constraints
-  check_dimensions(
-    res_n_cnt, RDFCN_S_N, res_ne_cnt, RDFCN_S_NE, __func__
-    );
-}
-
-///  Constraints at end point
-//                 # of all constraints # of equality constraints
-const unsigned int RDFCN_E_N = 4,       RDFCN_E_NE = 4;
-void rdfcn_e(
-  double *ts, double *sd, double *sa, double *u, double *p, double *pr, double *res,
-  long *dpnd, InfoPtr *info
-  ) {
-  // define dependencies
-  // NOTE: Dependency pattern determines the derivatives to be computed!
-  if (*dpnd) {
-    // choose dependency pattern
-    bool ts_dpnd = false;
-    bool sd_dpnd = true;
-    bool sa_dpnd = false;
-    bool  u_dpnd = false;
-    bool  p_dpnd = false;
-    bool pr_dpnd = false;
-    // automatically resolve dependencies
-    *dpnd = RFCN_DPND(
-      (double) (ts_dpnd?*ts:0), (double) (sd_dpnd?*sd:0),
-      (double) (sa_dpnd?*sa:0), (double) (u_dpnd?*u:0),
-      (double) (p_dpnd? *p:0),  (double) (pr_dpnd?*pr:0)
-      );
-    return;
-  }
-  // define constraint counters
-  unsigned int res_n_cnt  = 0;
-  unsigned int res_ne_cnt = 0;
-
-  // define constraint residuals here, i.e. res[:_ne] = 0 and res[_ne:] >= 0!
-  // NOTE: In C++ the '++' operator as postfix first evaluates the variable
-  //       and then increments it, i.e.
-  //       n = 0;    -> n  = 0
-  //       n2 = n++; -> n2 = 0, n = 1
-
-  // get right RBDL model
-  RBDLModel* model;
-  model = &rbdl_models[info->cnode];
-
-    // update_states
-    model->update_state(sd, u, p);
-
-  // enforce pendulum being upright in final position
-  // NOTE: We have to scale residuals to enforce them in the solution
-  res[res_n_cnt++] = ( model->q[0] ) * 100.0; res_ne_cnt++;// = 0
-  res[res_n_cnt++] = ( model->q[1] ) * 100.0; res_ne_cnt++;// = 0
-  res[res_n_cnt++] = ( model->qdot[0] ) * 100.0; res_ne_cnt++;// = 0
-  res[res_n_cnt++] = ( model->qdot[1] ) * 100.0; res_ne_cnt++;// = 0
-
-  // check dimensions of constraints
-  check_dimensions(
-    res_n_cnt, RDFCN_E_N, res_ne_cnt, RDFCN_E_NE, __func__
-    );
-}
 
 // *****************************************************************************
 // Data Output
@@ -1076,9 +821,8 @@ void def_model(void)
 
     // define input and output methods
     // def_mio (NULL , NULL, NULL);
-    // TODO: Add routine that creates RBDL models according to shooting nodes
     def_mio (
-        CommonNMPC::data_in, CommonNMPC::meshup_output, CommonNMPC::data_out
+        CommonNMPC::data_in , NULL, NULL //CommonNMPC::meshup_output, CommonNMPC::data_out
     );
 }
 

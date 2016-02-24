@@ -57,7 +57,7 @@ class MHE_NMPCPolicy : public Policy
     NMPCProblem *nmpc_;
     std::string mhe_model_name_, nmpc_model_name_, lua_model_;
     size_t outputs_;
-    Vector real_pf_, initial_sd_, initial_pf_, initial_qc_, final_sd_, hs_, ss_;
+    Vector initial_sd_, initial_pf_, initial_qc_, final_sd_, hs_, ss_;
 
   public:
     MHE_NMPCPolicy() : muscod_mhe_(NULL), muscod_nmpc_(NULL), outputs_(1), verbose_(false) { }

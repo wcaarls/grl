@@ -104,7 +104,7 @@ void MHE_NMPCPolicy::configure(Configuration &config)
 
   Vector hs(mhe_->NXD() + mhe_->NU()), ss(mhe_->NXD() + mhe_->NU()), qs(mhe_->NU());
   hs << 0.00, 3.14, 0.00, 0.00, 0.00; // hanging down
-  ss << 1.00, 1.00, 1.00, 1.00, 1.00; // no error
+  ss << 1.00, 1.00, 1.00, 1.00, 0.10; // no error
   qs << 0.00; // no control
 
   // initialize measurement horizon with data
@@ -115,9 +115,6 @@ void MHE_NMPCPolicy::configure(Configuration &config)
   nmpc_ = new NMPCProblem(problem_path.c_str(), nmpc_model_name_.c_str(), muscod_nmpc_);
 
   // Allocate memory
-  real_pf_ = VectorConstructorFill(nmpc_->NP(), 0);
-  real_pf_(0) = 0.06;
-
   initial_sd_ = VectorConstructorFill(nmpc_->NXD(), 0);
   initial_pf_ = VectorConstructorFill(nmpc_->NP(), 0);
   initial_qc_ = VectorConstructorFill(nmpc_->NU(), 0);
@@ -126,23 +123,36 @@ void MHE_NMPCPolicy::configure(Configuration &config)
   hs_ = VectorConstructorFill(mhe_->NXD() + mhe_->NU(), 0);
   ss_ = VectorConstructorFill(mhe_->NXD() + mhe_->NU(), 1);
 
-/*  muscod_->setModelPathAndName(problem_path.c_str(), model_name_.c_str());
-  muscod_->loadFromDatFile(".", model_name_.c_str());
-  muscod_->setLogLevelScreen(-1);
-  muscod_->setLogLevelAndFile(-1, NULL, NULL);
+  // FIXME This part is needed
+  // if (!verbose_) {
+    // muscod_mhe_->setLogLevelScreen(-1);
+    muscod_mhe_->setLogLevelAndFile(-1, NULL, NULL);
+    // muscod_nmpc_->setLogLevelScreen(-1);
+    muscod_nmpc_->setLogLevelAndFile(-1, NULL, NULL);
+  // }
 
-  // get proper dimensions
-  muscod_->nmpcInitialize(muscod_->getSSpec(), NULL, NULL);
-
-  // solve until convergence to prepare solver
-  for (int ii=0; ii < 50; ++ii)
-  {
-    muscod_->nmpcFeedback(NULL, NULL, NULL);
-    muscod_->nmpcTransition();
-    muscod_->nmpcPrepare();
+  // initialize NMPC
+  for (int inmpc = 0; inmpc < 10; ++inmpc) {
+    // 1) Feedback: Embed parameters and initial value from MHE
+    nmpc_->feedback(initial_sd_, initial_pf_, &initial_qc_);
+    // 2) Transition
+    nmpc_->transition();
+    // 3) Preparation
+    nmpc_->preparation();
   }
 
-  // save solver state
+  // initialize MHE
+  for (int imhe = 0; imhe < 10; ++imhe) {
+    // 1) Feedback
+    mhe_->feedback();
+    // 2) Transition
+    mhe_->transition();
+    // 3) Preparation
+    mhe_->preparation();
+  }  // save solver state
+
+/*
+  // FIXME this part is needed
   data_.backup_muscod_state(muscod_);
   data_.sd = ConstantVector(data_.NXD, 0.0);
   data_.pf = ConstantVector(data_.NP,  0.0);
@@ -160,6 +170,7 @@ void MHE_NMPCPolicy::reconfigure(const Configuration &config)
 void MHE_NMPCPolicy::muscod_reset(Vector &initial_obs, double time)
 {
 /*
+  // FIXME
   // load solution state
   data_.restore_muscod_state(muscod_);
 
@@ -184,6 +195,8 @@ MHE_NMPCPolicy *MHE_NMPCPolicy::clone() const
   return NULL;
 }
 
+// in: observable
+// out: feedback control
 void MHE_NMPCPolicy::act(double time, const Vector &in, Vector *out)
 {
   if (verbose_)
@@ -205,52 +218,61 @@ void MHE_NMPCPolicy::act(double time, const Vector &in, Vector *out)
     std::cout << "time: [ " << time << " ]; state: [ " << obs << "]" << std::endl;
 
   out->resize(outputs_);
-//  for (int IP = 0; IP < data_.NP; ++IP)
-//    data_.pf[IP] = time;
+  //  for (int IP = 0; IP < data_.NP; ++IP)
+  //    data_.pf[IP] = time;
 
-  for (int ii = 0; ii < 10; ++ii)
-  {
-    // NMPC
+  // Run multiple NMPC iterations
+  const unsigned int nnmpc = 10;
+  for (int inmpc = 0; inmpc < nnmpc; ++inmpc) {
     // 1) Feedback: Embed parameters and initial value from MHE
-    std::cout << "FEEDBACK" << std::endl;
+    // NOTE the same initial values (sd, pf) are embedded several time,
+    //      but this will result in the same solution as running a MUSCOD
+    //      instance for several iterations
     nmpc_->feedback(initial_sd_, initial_pf_, &initial_qc_);
     // 2) Transition
-    std::cout << "TRANSITION" << std::endl;
     nmpc_->transition();
     // 3) Shifting
-    std::cout << "SHIFTING" << std::endl;
-    nmpc_->shifting(1);
+    // NOTE do that only once at last iteration
+    if (nnmpc > 0 && inmpc == nnmpc-1) {
+      // std::cout << "SHIFTING" << std::endl;
+      nmpc_->shifting(1);
+    }
     // 4) Preparation
-    std::cout << "PREPARATION" << std::endl;
     nmpc_->preparation();
+  }
 
-    // Simulate
-    // TODO collect runtime of algorithms and add to simulation time
-    // 1) Get new initial value applying real parameters and NMPC control
-    nmpc_->simulate(
-      initial_sd_,
-      real_pf_,
-      initial_qc_,
-      nmpc_->getSamplingRate(),
-      &final_sd_
-    );
+  // Here we can return the feedback control
+  (*out) = initial_qc_;
 
-    // MHE
-    // 1) Inject measurements
-    std::cout << "INJECT MEASUREMENT" << std::endl;
-    mhe_->inject_measurement(hs_, ss_, initial_qc_);
-    mhe_->print_horizon();
+  // Run mutiple MHE iterations
+  const unsigned int nmhe = 10;
+  for (int imhe = 0; imhe < nmhe; ++imhe) {
+    // NOTE compose and inject measurement only at the first iteration of MHE
+    if (nmhe > 0 && imhe == 0) {
+      // 0) Compose new measurement
+      // NOTE measurement consists of simulation result + feedback control
+      // m_hs = [ xd[0], ..., xd[NXD-1], u[0], ..., u[NU-1] ]
+      hs_.block(0,           0, mhe_->NXD(), 1) = in;
+      hs_.block(mhe_->NXD(), 0, mhe_->NU(),  1) = Eigen::VectorXd::Zero(mhe_->NU());
+
+      // 1) Inject measurements
+      mhe_->inject_measurement(hs_, ss_, initial_qc_);
+    }
     // 2) Feedback
-    std::cout << "FEEDBACK" << std::endl;
     mhe_->feedback();
     // 3) Transition
-    std::cout << "TRANSITION" << std::endl;
+    // NOTE: states and parameters are only updated after transition phase
     mhe_->transition();
-    // 4) Shifting?
-    std::cout << "SHIFTING" << std::endl;
-    mhe_->shifting(1);
-    // 5) Preparation
-    std::cout << "PREPARATION" << std::endl;
+
+    // 4) Get parameters and state of last shooting node
+    if (nmhe > 0 && imhe == nmhe-1) {
+      mhe_->get_initial_sd_and_pf(&initial_sd_, &initial_pf_);
+
+      // 5) Shifting?
+      // NOTE do that only once at last iteration
+      mhe_->shifting(1);
+    }
+    // 6) Preparation
     mhe_->preparation();
   }
 
