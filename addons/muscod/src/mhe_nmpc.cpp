@@ -2,7 +2,6 @@
 // Includes
 // *****************************************************************************
 
-#include <unistd.h>
 #include <iostream>
 #include <dlfcn.h>
 #include <sys/stat.h>
@@ -151,6 +150,7 @@ void MHE_NMPCPolicy::reconfigure(const Configuration &config)
 
 void MHE_NMPCPolicy::muscod_reset(Vector &initial_obs, double time)
 {
+
   // FIXME
   // load solution state
   // data_.restore_muscod_state(muscod_);

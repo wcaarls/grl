@@ -148,7 +148,7 @@ inline Vector VectorConstructor(double a, double b, double c, double d, double e
 inline Vector VectorConstructor(std::vector<double> a)
 {
   Vector v(a.size());
-  memcpy(a.data(), v.data(), a.size()*sizeof(double));
+  memcpy(v.data(), a.data(), a.size()*sizeof(double));
   return v;
 }
 template<typename T>
