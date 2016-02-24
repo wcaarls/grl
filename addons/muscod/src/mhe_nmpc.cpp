@@ -274,6 +274,9 @@ void MHE_NMPCPolicy::act(double time, const Vector &in, Vector *out)
     nmpc_->preparation();
   }
 
+  Vector real_pf;
+  real_pf = VectorConstructorFill(nmpc_->NP(), 0);
+
   // Simulate
   nmpc_->simulate(
       initial_sd_,
