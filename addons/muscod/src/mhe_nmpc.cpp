@@ -216,6 +216,8 @@ void MHE_NMPCPolicy::act(double time, const Vector &in, Vector *out)
     initial_sd_ << obs;
     initial_pf_ << 0.0;
   }
+  Vector real_pf;
+  real_pf = VectorConstructorFill(nmpc_->NP(), 0);
 
   // Run multiple NMPC iterations
   const unsigned int nnmpc = 3;
@@ -242,8 +244,6 @@ void MHE_NMPCPolicy::act(double time, const Vector &in, Vector *out)
   // Simulate
   // TODO collect runtime of algorithms and add to simulation time
   // 1) Get new initial value applying real parameters and NMPC control
-  std::cout << "SIMULATION" << std::endl;
-  std::cout << "sampling time:\t" << nmpc.getSamplingRate() << std::endl;
   nmpc_->simulate(
     initial_sd_,
     real_pf,
