@@ -150,7 +150,6 @@ void MHE_NMPCPolicy::reconfigure(const Configuration &config)
 
 void MHE_NMPCPolicy::muscod_reset(Vector &initial_obs, double time)
 {
-
   // FIXME
   // load solution state
   // data_.restore_muscod_state(muscod_);
@@ -158,17 +157,11 @@ void MHE_NMPCPolicy::muscod_reset(Vector &initial_obs, double time)
   // // Reinitialize state and time
   // for (int IP = 0; IP < data_.NP; ++IP)
   //   data_.pf[IP] = time;
-  // std::cout << "initial_obs = " << initial_obs << std::endl;
-  // std::cout << "initial_sd_ = " << initial_sd_ << std::endl;
-  // std::cout << "initial_pf_ = " << initial_pf_ << std::endl;
-
-  // initial_sd_ << 0.0, 3.14, 0.0, 0.0;
-  initial_pf_ << 0.0;
 
   // initialize NMPC
   for (int inmpc = 0; inmpc < 10; ++inmpc) {
     // 1) Feedback: Embed parameters and initial value from MHE
-    nmpc_->feedback(initial_obs, initial_pf_, &initial_qc_);
+    nmpc_->feedback();
     // 2) Transition
     nmpc_->transition();
     // 3) Preparation
@@ -194,8 +187,6 @@ MHE_NMPCPolicy *MHE_NMPCPolicy::clone() const
   return NULL;
 }
 
-// in: observable
-// out: feedback control
 void MHE_NMPCPolicy::act(double time, const Vector &in, Vector *out)
 {
   if (verbose_)
