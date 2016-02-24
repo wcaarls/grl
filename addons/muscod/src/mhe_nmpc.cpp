@@ -252,8 +252,8 @@ void MHE_NMPCPolicy::act(double time, const Vector &in, Vector *out)
       // 0) Compose new measurement
       // NOTE measurement consists of simulation result + feedback control
       // m_hs = [ xd[0], ..., xd[NXD-1], u[0], ..., u[NU-1] ]
-      hs_.block(0,           0, mhe_->NXD(), 1) = in;
-      hs_.block(mhe_->NXD(), 0, mhe_->NU(),  1) = Eigen::VectorXd::Zero(mhe_->NU());
+      hs_ << in, VectorConstructorFill(mhe_->NU(), 0);
+      std::cout << hs_ << std::endl;
 
       // 1) Inject measurements
       mhe_->inject_measurement(hs_, ss_, initial_qc_);
