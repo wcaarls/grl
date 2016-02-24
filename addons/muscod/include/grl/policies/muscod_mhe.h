@@ -48,10 +48,8 @@ struct MHEProblem : public MUSCODProblem {
     so_print_horizon();
   }
 
-  void initialize_horizon(Eigen::VectorXd& hs, Eigen::VectorXd& ss, Eigen::VectorXd qs){
+  void initialize_horizon(grl::Vector& hs, grl::Vector& ss, grl::Vector qs){
     for (int imsn = 0; imsn < m_NMSN-1; ++imsn) {
-      std::cout << hs << std::endl;
-      std::cout << (*m_meas_hs) << std::endl;
       (*m_meas_hs).col(imsn) = hs;
       (*m_meas_ss).col(imsn) = ss;
         m_muscod->setNodeQC(imsn, qs.data());

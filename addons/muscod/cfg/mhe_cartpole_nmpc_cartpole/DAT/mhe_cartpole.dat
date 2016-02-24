@@ -748,7 +748,7 @@ nhist
 * Choosing libraries *
 **********************
 libmodel
-libnmpc_cartpole
+libmhe_cartpole
 
 libhessian
 hess_gaussnewton

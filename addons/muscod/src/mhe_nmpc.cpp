@@ -102,14 +102,10 @@ void MHE_NMPCPolicy::configure(Configuration &config)
   muscod_mhe_ = new MUSCOD();
   mhe_ = new MHEProblem(problem_path.c_str(), mhe_model_name_.c_str(), muscod_mhe_);
 
-  Eigen::VectorXd hs(mhe_->NXD() + mhe_->NU()), ss(mhe_->NXD() + mhe_->NU()), qs(mhe_->NU());
+  Vector hs(mhe_->NXD() + mhe_->NU()), ss(mhe_->NXD() + mhe_->NU()), qs(mhe_->NU());
   hs << 0.00, 3.14, 0.00, 0.00, 0.00; // hanging down
   ss << 1.00, 1.00, 1.00, 1.00, 1.00; // no error
   qs << 0.00; // no control
-
-  std::cout << hs << std::endl;
-  std::cout << ss << std::endl;
-  std::cout << qs << std::endl;
 
   // initialize measurement horizon with data
   mhe_->initialize_horizon(hs, ss, qs);
