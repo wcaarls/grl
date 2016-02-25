@@ -271,15 +271,6 @@ void MHE_NMPCPolicy::act(double time, const Vector &in, Vector *out)
     nmpc_->preparation();
   }
 
-  // Simulate
-  nmpc_->simulate(
-      initial_sd_,
-      real_pf,
-      initial_qc_,
-      nmpc_->getSamplingRate(),
-      &final_sd_
-  );
-
   // Here we can return the feedback control
   (*out) = initial_qc_;
 
