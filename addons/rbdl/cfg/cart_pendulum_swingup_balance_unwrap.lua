@@ -20,8 +20,6 @@ end
 reward_shaping = true
 shaping_gamma = 1.00
 cart_pos_max = 2.4
-pend_ang_max = 3*math.pi
-pend_ang_min = -math.pi
 
 -- Set the following value to enable termination on swingup
 terminate_on_swingup = false
@@ -41,8 +39,7 @@ function getPotentialAbsolute(state)
 end
 
 function failed(state)
-  if state[0] < -cart_pos_max or state[0] > cart_pos_max or 
-     state[1] <  pend_ang_min or state[1] > pend_ang_max then
+  if state[0] < -cart_pos_max or state[0] > cart_pos_max then
     return true
   else
     return false
@@ -73,8 +70,8 @@ end
 function configure(argstr)
   T = 5
   return {observation_dims = 4,
-          observation_min = {-cart_pos_max, pend_ang_min,         -5, -10*math.pi},
-          observation_max = { cart_pos_max, pend_ang_max,  5,  10*math.pi},
+          observation_min = {-cart_pos_max, -5*math.pi, -5, -10*math.pi},
+          observation_max = { cart_pos_max,  5*math.pi,  5,  10*math.pi},
           action_dims = 1,
           action_min = {-150},
           action_max = { 150},
