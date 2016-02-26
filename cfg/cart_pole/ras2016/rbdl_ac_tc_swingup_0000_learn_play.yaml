@@ -18,7 +18,7 @@ experiment:
         options: friction=0
     task:
       type: task/lua
-      file: cart_pendulum_swingup_balance.lua
+      file: cart_pendulum_swingup_balance_unwrap.lua
       options: shaping_weight=35
     exporter: 
       type: exporter/csv
@@ -41,7 +41,7 @@ experiment:
           tilings: 16
           memory: 67108864
           resolution: [2.5, 0.157075, 2.5, 1.57075]
-          wrapping: [0, 6.283, 0, 0]
+          wrapping: [0, 0, 0, 0]
       representation:
         type: representation/parameterized/linear
         init_min: [0]
