@@ -19,7 +19,7 @@ experiment:
     task:
       type: task/lua
       file: cart_pendulum_swingup_balance_unwrap.lua
-      options: shaping_weight=35
+      options: shaping_weight=20
   agent: 
     type: agent/td
     policy:
