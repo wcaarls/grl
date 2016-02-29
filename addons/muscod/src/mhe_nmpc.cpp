@@ -219,7 +219,7 @@ void MHE_NMPCPolicy::act(double time, const Vector &in, Vector *out)
   }
 
   // Run mutiple MHE iterations
-  const unsigned int nmhe = 4;
+  const unsigned int nmhe = 10;
   for (int imhe = 0; imhe < nmhe; ++imhe) {
     // NOTE compose and inject measurement only at the first iteration of MHE
     if (nmhe > 0 && imhe == 0) {
@@ -251,7 +251,7 @@ void MHE_NMPCPolicy::act(double time, const Vector &in, Vector *out)
   }
 
   // Run multiple NMPC iterations
-  const unsigned int nnmpc = 4;
+  const unsigned int nnmpc = 10;
   for (int inmpc = 0; inmpc < nnmpc; ++inmpc) {
     // 1) Feedback: Embed parameters and initial value from MHE
     // NOTE the same initial values (sd, pf) are embedded several time,
