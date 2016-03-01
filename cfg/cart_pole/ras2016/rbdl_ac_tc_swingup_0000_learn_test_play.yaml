@@ -1,0 +1,97 @@
+experiment:
+  type: experiment/online_learning
+  runs: 1
+  trials: 1
+  steps: 0
+  rate: 20
+  test_interval: 0
+  output: cartpole_ac_tc_swingup_0000-test
+  environment:
+    type: environment/modeled
+    model:
+      type: model/dynamical
+      control_step: 0.05
+      integration_steps: 10
+      dynamics:
+        type: dynamics/rbdl
+        file: cart_pendulum.lua
+        options: friction=0
+    task:
+      type: task/lua
+      file: cart_pendulum_swingup_balance.lua
+      options: shaping_weight=35
+    exporter: 
+      type: exporter/csv
+      file: cartpole_ac_tc_swingup_0000-test
+      style: meshup
+  agent: 
+    type: agent/td
+    policy:
+      type: policy/action
+      sigma: [30]
+      output_min: experiment/environment/task/action_min
+      output_max: experiment/environment/task/action_max
+      projector:
+        type: projector/pre/peaked
+        peaking: [5, 5, 5, 5]
+        input_min: experiment/environment/task/observation_min
+        input_max: experiment/environment/task/observation_max
+        projector:
+          type: projector/tile_coding
+          tilings: 16
+          memory: 67108864
+          resolution: [2.5, 0.157075, 2.5, 1.57075]
+          wrapping: [0, 0, 0, 0]
+      representation:
+        type: representation/parameterized/linear
+        init_min: [0]
+        init_max: [1]
+        memory: experiment/agent/policy/projector/projector/memory
+        outputs: experiment/environment/task/action_dims
+        output_min: experiment/environment/task/action_min
+        output_max: experiment/environment/task/action_max
+    predictor:
+      type: predictor/ac/action
+      alpha: 0.1
+      beta: 0.01
+      gamma: 0.99
+      lambda: 0.65
+      critic_projector:
+        type: projector/pre/peaked
+        peaking: experiment/agent/policy/projector/peaking
+        input_min: experiment/environment/task/observation_min
+        input_max: experiment/environment/task/observation_max
+        projector:
+          type: projector/tile_coding
+          tilings: experiment/agent/policy/projector/projector/tilings
+          memory: experiment/agent/policy/projector/projector/memory
+          resolution: experiment/agent/policy/projector/projector/resolution
+          wrapping: experiment/agent/policy/projector/projector/wrapping
+      critic_representation:
+        type: representation/parameterized/linear
+        init_min: [0]
+        init_max: [1]
+        memory: experiment/agent/policy/projector/projector/memory
+        outputs: 1
+        output_min: []
+        output_max: []
+      critic_trace:
+        type: trace/enumerated/replacing
+      actor_projector: experiment/agent/policy/projector
+      actor_representation: experiment/agent/policy/representation
+  test_agent:
+    type: agent/fixed
+    policy:
+      type: policy/action
+      sigma: []
+      output_min: experiment/environment/task/action_min
+      output_max: experiment/environment/task/action_max
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+  load_file: cartpole_ac_tc_swingup_0000-test-run0
+  save_every: never
+visualizer: 
+  type: visualizer/glut
+visualization:
+  type: visualization/cart_pole
+  state: experiment/environment/state
