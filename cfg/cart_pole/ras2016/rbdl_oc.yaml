@@ -18,7 +18,7 @@ experiment:
         options: friction=0
     task: 
       type: task/lua
-      file: cart_pendulum_swingup_balance.lua
+      file: cart_pendulum_swingup_balance_unwrap.lua
       options: shaping_weight=0
     exporter: 
       type: exporter/csv

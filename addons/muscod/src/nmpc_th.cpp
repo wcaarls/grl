@@ -93,14 +93,14 @@ void NMPCPolicyTh::configure(Configuration &config)
   so_set_path(problem_path, lua_model_);
 
   //----------------- Observation converter ----------------- //
-  so_convert_obs_for_muscod = (void (*)(const double *from, double *to)) dlsym(so_handle_, "convert_obs_for_muscod");
+/*  so_convert_obs_for_muscod = (void (*)(const double *from, double *to)) dlsym(so_handle_, "convert_obs_for_muscod");
   if (so_convert_obs_for_muscod==NULL)
   {
     std::cout << "ERROR: Could not symbol in shared library: 'convert_obs_for_muscod'" << std::endl;
     std::cout << "bailing out ..." << std::endl;
     std::exit(-1);
   }
-
+*/
   //------------------- Initialize MUSCOD ------------------- //
   muscod_ = new MUSCOD();
   muscod_->setModelPathAndName(problem_path.c_str(), model_name_.c_str());
@@ -153,7 +153,7 @@ void NMPCPolicyTh::configure(Configuration &config)
   pthread_mutex_unlock(&mutex_);
 }
 
-void NMPCPolicyTh::muscod_reset(Vector &initial_obs, double time)
+void NMPCPolicyTh::muscod_reset(const Vector &initial_obs, double time)
 {
   // Wait for thread to stop at the condition variable
   pthread_mutex_lock(&mutex_);
@@ -294,21 +294,21 @@ void NMPCPolicyTh::act(double time, const Vector &in, Vector *out)
 {
   if (time == 0.0)
   {
-    so_convert_obs_for_muscod(NULL, NULL);                    // Reset internal counters
-    so_convert_obs_for_muscod(in.data(), muscod_obs_.data()); // Convert
-    muscod_reset(muscod_obs_, time);
+//    so_convert_obs_for_muscod(NULL, NULL);                    // Reset internal counters
+//    so_convert_obs_for_muscod(in.data(), muscod_obs_.data()); // Convert
+    muscod_reset(in, time);
   }
 
   out->resize(outputs_);
 
-  if (verbose_)
-    std::cout << "observation state: [ " << in << "]" << std::endl;
+//  if (verbose_)
+//    std::cout << "observation state: [ " << in << "]" << std::endl;
 
   // Convert MPRL states into MUSCOD states
-  so_convert_obs_for_muscod(in.data(), muscod_obs_.data());
+//  so_convert_obs_for_muscod(in.data(), muscod_obs_.data());
 
   if (verbose_)
-    std::cout << "time: [ " << time << " ]; state: [ " << muscod_obs_ << "]" << std::endl;
+    std::cout << "time: [ " << time << " ]; state: [ " << in << "]" << std::endl;
 
   // Obtain feedback, provide new state and unblock thread
   pthread_mutex_lock(&mutex_);
@@ -323,7 +323,7 @@ void NMPCPolicyTh::act(double time, const Vector &in, Vector *out)
 
     // Provide state and time
     for (int IXD = 0; IXD < data_.NXD; ++IXD)
-      data_.sd[IXD] = muscod_obs_[IXD];
+      data_.sd[IXD] = in.data()[IXD];
     for (int IP = 0; IP < data_.NP; ++IP)
       data_.pf[IP] = time;
 

@@ -32,8 +32,8 @@ const double sw1 = sqrt(w1);
 extern "C" {
   void set_path(std::string new_problem_path, std::string new_lua_model){
   }
-  void convert_obs_for_muscod(const double *from, double *to){
-  }
+//  void convert_obs_for_muscod(const double *from, double *to){
+//  }
 }
 
 static void lfcn(double *t, double *xd, double *xa, double *u,

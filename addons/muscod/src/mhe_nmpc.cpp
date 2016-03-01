@@ -90,14 +90,14 @@ void MHE_NMPCPolicy::configure(Configuration &config)
   void * so_handle_nmpc = setup_model_path(problem_path, nmpc_model_name_, lua_model_);
 
   //----------------- Observation converter ----------------- //
-  so_convert_obs_for_muscod_ = (t_obs_converter) dlsym(so_handle_nmpc, "convert_obs_for_muscod");
+/*  so_convert_obs_for_muscod_ = (t_obs_converter) dlsym(so_handle_nmpc, "convert_obs_for_muscod");
   if (so_convert_obs_for_muscod_ == NULL)
   {
     std::cout << "ERROR: Could not symbol in shared library: 'convert_obs_for_muscod'" << std::endl;
     std::cout << "bailing out ..." << std::endl;
     std::exit(-1);
   }
-
+*/
   //------------------- Initialize MHE ------------------- //
   muscod_mhe_ = new MUSCOD();
   mhe_ = new MHEProblem(problem_path.c_str(), mhe_model_name_.c_str(), muscod_mhe_);
@@ -149,7 +149,7 @@ void MHE_NMPCPolicy::reconfigure(const Configuration &config)
 }
 
 
-void MHE_NMPCPolicy::muscod_reset(Vector &initial_obs, double time)
+void MHE_NMPCPolicy::muscod_reset(const Vector &initial_obs, double time)
 {
   // FIXME
   // load solution state
@@ -190,30 +190,30 @@ MHE_NMPCPolicy *MHE_NMPCPolicy::clone() const
 
 void MHE_NMPCPolicy::act(double time, const Vector &in, Vector *out)
 {
-  if (verbose_)
-    std::cout << "observation state: [ " << in << "]" << std::endl;
+//  if (verbose_)
+//    std::cout << "observation state: [ " << in << "]" << std::endl;
 
-  Vector obs;
-  obs.resize(in.size());
+//  Vector obs;
+//  obs.resize(in.size());
   if (time == 0.0)
   {
-    so_convert_obs_for_muscod_(NULL, NULL);            // Reset internal counters
-    so_convert_obs_for_muscod_(in.data(), obs.data()); // Convert
-    muscod_reset(obs, time);
+//    so_convert_obs_for_muscod_(NULL, NULL);            // Reset internal counters
+//    so_convert_obs_for_muscod_(in.data(), obs.data()); // Convert
+    muscod_reset(in, time);
   }
 
   // Convert MPRL states into MUSCOD states
-  so_convert_obs_for_muscod_(in.data(), obs.data());
+//  so_convert_obs_for_muscod_(in.data(), obs.data());
 
   if (verbose_)
-    std::cout << "time: [ " << time << " ]; state: [ " << obs << "]" << std::endl;
+    std::cout << "time: [ " << time << " ]; state: [ " << in << "]" << std::endl;
 
   out->resize(outputs_);
   //  for (int IP = 0; IP < data_.NP; ++IP)
   //    data_.pf[IP] = time;
 
   if (time <= 0.0) {
-    initial_sd_ << obs;
+    initial_sd_ << in;
     initial_pf_ << 0.0;
     initial_qc_ << 0.0;
   }
@@ -226,7 +226,7 @@ void MHE_NMPCPolicy::act(double time, const Vector &in, Vector *out)
       // 0) Compose new measurement
       // NOTE measurement consists of simulation result + feedback control
       // m_hs = [ xd[0], ..., xd[NXD-1], u[0], ..., u[NU-1] ]
-      hs_ << obs, VectorConstructorFill(mhe_->NU(), 0);
+      hs_ << in, VectorConstructorFill(mhe_->NU(), 0);
       // std::cout << "new_measurement = " << hs_ << std::endl;
       // 1) Inject measurements
       mhe_->inject_measurement(hs_, ss_, initial_qc_);

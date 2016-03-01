@@ -27,14 +27,14 @@ class NMPCPolicyTh: public Policy
 
     // MUSCOD-II interface
     void *so_handle_; // hangle to a shared library with problem definitions
-    void (*so_convert_obs_for_muscod)(const double *from, double *to);
+//    void (*so_convert_obs_for_muscod)(const double *from, double *to);
     static MUSCOD *muscod_;
     Vector muscod_obs_;
     Matrix muscod_action_;
 
     // pthread thread, conditions and mutexes
     void   print_array(const double* arr, const unsigned int len);
-    void   muscod_reset(Vector &initial_obs, double time);
+    void   muscod_reset(const Vector &initial_obs, double time);
     void   muscod_quit(void* data);
     static void*  muscod_run(void *indata);
     static bool   iv_ready_;

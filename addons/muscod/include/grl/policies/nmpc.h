@@ -48,7 +48,7 @@ class NMPCPolicy : public Policy
     int verbose_;
 
     // MUSCOD-II interface
-    t_obs_converter so_convert_obs_for_muscod_;
+//    t_obs_converter so_convert_obs_for_muscod_;
     MUSCOD *muscod_nmpc_;
     NMPCProblem *nmpc_;
     std::string nmpc_model_name_, lua_model_;
@@ -63,7 +63,7 @@ class NMPCPolicy : public Policy
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
-    virtual void muscod_reset(Vector &initial_obs, double time);
+    virtual void muscod_reset(const Vector &initial_obs, double time);
 
     // From Policy
     virtual NMPCPolicy *clone() const;

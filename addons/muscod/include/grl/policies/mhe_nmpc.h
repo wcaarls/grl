@@ -49,7 +49,7 @@ class MHE_NMPCPolicy : public Policy
     int verbose_;
 
     // MUSCOD-II interface
-    t_obs_converter so_convert_obs_for_muscod_;
+//    t_obs_converter so_convert_obs_for_muscod_;
     MUSCOD *muscod_mhe_, *muscod_nmpc_;
     MHEProblem *mhe_;
     NMPCProblem *nmpc_;
@@ -65,7 +65,7 @@ class MHE_NMPCPolicy : public Policy
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
-    virtual void muscod_reset(Vector &initial_obs, double time);
+    virtual void muscod_reset(const Vector &initial_obs, double time);
 
     // From Policy
     virtual MHE_NMPCPolicy *clone() const;

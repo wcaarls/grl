@@ -137,6 +137,7 @@ extern "C" {
    * @param from: wrapped MPRL state
    * @param to: continuous MUSCOD state
    */
+/*
   void convert_obs_for_muscod(const double *from, double *to){
     if (from == NULL || to == NULL)
     {
@@ -151,6 +152,7 @@ extern "C" {
     *(to + 2) = *(from + 2);
     *(to + 3) = *(from + 3);
   }
+*/
 } // END of extern "C"
 
   // Convenience function to check consistency of variable dimensions

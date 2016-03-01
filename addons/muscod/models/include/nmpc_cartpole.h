@@ -72,7 +72,7 @@ namespace CommonNMPC { // BEGIN NAMESPACE CommonNMPC
 
     extern void set_plot_counter(bool counter);
 
-    extern void convert_obs_for_muscod(const double *from, double *to);
+//    extern void convert_obs_for_muscod(const double *from, double *to);
   }
 
   // Convenience function to check consistency of variable dimensions

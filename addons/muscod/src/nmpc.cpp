@@ -86,14 +86,14 @@ void NMPCPolicy::configure(Configuration &config)
   void * so_handle_nmpc = setup_model_path(problem_path, nmpc_model_name_, lua_model_);
 
   //----------------- Observation converter ----------------- //
-  so_convert_obs_for_muscod_ = (t_obs_converter) dlsym(so_handle_nmpc, "convert_obs_for_muscod");
+/*  so_convert_obs_for_muscod_ = (t_obs_converter) dlsym(so_handle_nmpc, "convert_obs_for_muscod");
   if (so_convert_obs_for_muscod_ == NULL)
   {
     std::cout << "ERROR: Could not symbol in shared library: 'convert_obs_for_muscod'" << std::endl;
     std::cout << "bailing out ..." << std::endl;
     std::exit(-1);
   }
-
+*/
   //------------------- Initialize NMPC ------------------- //
   muscod_nmpc_ = new MUSCOD();
   nmpc_ = new NMPCProblem(problem_path.c_str(), nmpc_model_name_.c_str(), muscod_nmpc_);
@@ -129,7 +129,7 @@ void NMPCPolicy::reconfigure(const Configuration &config)
 }
 
 
-void NMPCPolicy::muscod_reset(Vector &initial_obs, double time)
+void NMPCPolicy::muscod_reset(const Vector &initial_obs, double time)
 {
   // FIXME
   // load solution state
@@ -160,36 +160,36 @@ NMPCPolicy *NMPCPolicy::clone() const
 
 void NMPCPolicy::act(double time, const Vector &in, Vector *out)
 {
-  if (verbose_)
-    std::cout << "observation state: [ " << in << "]" << std::endl;
+//  if (verbose_)
+//    std::cout << "observation state: [ " << in << "]" << std::endl;
 
-  Vector obs;
-  obs.resize(in.size());
+//  Vector obs;
+//  obs.resize(in.size());
   if (time == 0.0)
   {
-    so_convert_obs_for_muscod_(NULL, NULL);            // Reset internal counters
-    so_convert_obs_for_muscod_(in.data(), obs.data()); // Convert
-    muscod_reset(obs, time);
+//    so_convert_obs_for_muscod_(NULL, NULL);            // Reset internal counters
+//    so_convert_obs_for_muscod_(in.data(), obs.data()); // Convert
+    muscod_reset(in, time);
   }
   // Convert MPRL states into MUSCOD states
-  so_convert_obs_for_muscod_(in.data(), obs.data());
+//  so_convert_obs_for_muscod_(in.data(), obs.data());
 
   if (verbose_)
-    std::cout << "time: [ " << time << " ]; state: [ " << obs << "]" << std::endl;
+    std::cout << "time: [ " << time << " ]; state: [ " << in << "]" << std::endl;
 
   out->resize(outputs_);
   //  for (int IP = 0; IP < data_.NP; ++IP)
   //    data_.pf[IP] = time;
 
   if (time <= 0.0) {
-    initial_sd_ << obs;
+    initial_sd_ << in;
     initial_pf_ << 0.0;
     initial_qc_ << 0.0;
   } else {
     std::cout << "time: [ " << time << " ]" << std::endl;
-    std::cout << "observer  = " << obs << std::endl;
+    std::cout << "observer  = " << in << std::endl;
     std::cout << "final_sd_ = " << final_sd_ << std::endl;
-    std::cout << "ERROR     = " << final_sd_ - obs << std::endl;
+    std::cout << "ERROR     = " << final_sd_ - in << std::endl;
   }
 
   // Run multiple NMPC iterations
@@ -199,7 +199,7 @@ void NMPCPolicy::act(double time, const Vector &in, Vector *out)
     // NOTE the same initial values (sd, pf) are embedded several time,
     //      but this will result in the same solution as running a MUSCOD
     //      instance for several iterations
-    nmpc_->feedback(obs, initial_pf_, &initial_qc_);
+    nmpc_->feedback(in, initial_pf_, &initial_qc_);
     // 2) Transition
     nmpc_->transition();
     // 3) Shifting
@@ -216,7 +216,7 @@ void NMPCPolicy::act(double time, const Vector &in, Vector *out)
 
   // Simulate
   nmpc_->simulate(
-      obs,
+      in,
       real_pf,
       initial_qc_,
       0.05,

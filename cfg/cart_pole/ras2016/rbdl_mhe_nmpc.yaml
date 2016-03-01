@@ -14,10 +14,10 @@ experiment:
       dynamics: 
         type: dynamics/rbdl
         file: cart_pendulum.lua
-        options: friction=0.20
+        options: friction=0.0
     task: 
       type: task/lua
-      file: cart_pendulum_swingup_balance.lua
+      file: cart_pendulum_swingup_balance_unwrap.lua
     exporter: 
       type: exporter/csv
       file: ras_results/cart-pendulum/xxxx_mhe_nmpc/cart_pole_ras2016_rbdl_nmpc_0000-test
