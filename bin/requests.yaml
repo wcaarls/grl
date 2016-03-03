@@ -813,6 +813,12 @@ policy/mhe_nmpc:
     mutability: configuration
     default: ""
     optional: 1
+  model_name:
+    type: string
+    description: Name of the model in grl
+    mutability: configuration
+    default: ""
+    optional: 1
   mhe_model_name:
     type: string
     description: Name of MUSCOD MHE model library
@@ -846,6 +852,12 @@ policy/nmpc:
   lua_model:
     type: string
     description: Lua model used by MUSCOD
+    mutability: configuration
+    default: ""
+    optional: 1
+  model_name:
+    type: string
+    description: Name of the model in grl
     mutability: configuration
     default: ""
     optional: 1

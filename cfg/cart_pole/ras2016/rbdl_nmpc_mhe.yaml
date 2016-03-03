@@ -20,14 +20,15 @@ experiment:
       file: cart_pendulum_swingup_balance_unwrap.lua
     exporter: 
       type: exporter/csv
-      file: ras_results/cart-pendulum/xxxx_nmpc/cart_pole_ras2016_rbdl_nmpc_0000-test
+      file: ras_results/cart-pendulum/xxxx_mhe_nmpc/cart_pole_ras2016_rbdl_nmpc_0000-test
       style: meshup
   agent: 
     type: agent/fixed
     policy: 
-      type: policy/nmpc
+      type: policy/mhe_nmpc
       lua_model: experiment/environment/model/dynamics/file
-      model_name: nmpc_cartpole
+      model_name: nmpc_mhe_cartpole
+      mhe_model_name: mhe_cartpole
       nmpc_model_name: nmpc_cartpole
       outputs: experiment/environment/task/action_dims
       verbose: 0

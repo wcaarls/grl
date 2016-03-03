@@ -51,7 +51,7 @@ class NMPCPolicy : public Policy
 //    t_obs_converter so_convert_obs_for_muscod_;
     MUSCOD *muscod_nmpc_;
     NMPCProblem *nmpc_;
-    std::string nmpc_model_name_, lua_model_;
+    std::string nmpc_model_name_, lua_model_, model_name_;
     size_t outputs_;
     Vector initial_sd_, initial_pf_, initial_qc_, final_sd_;
 

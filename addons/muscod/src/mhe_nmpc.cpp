@@ -25,6 +25,7 @@ MHE_NMPCPolicy::~MHE_NMPCPolicy()
 void MHE_NMPCPolicy::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("lua_model", "Lua model used by MUSCOD", lua_model_));
+  config->push_back(CRP("model_name", "Name of the model in grl", model_name_));
   config->push_back(CRP("mhe_model_name", "Name of MUSCOD MHE model library", mhe_model_name_));
   config->push_back(CRP("nmpc_model_name", "Name of MUSCOD MHE model library", nmpc_model_name_));
   config->push_back(CRP("outputs", "int.action_dims", "Number of outputs", (int)outputs_, CRP::System, 1));
@@ -70,13 +71,14 @@ void MHE_NMPCPolicy::configure(Configuration &config)
 {
   std::string model_path;
   model_path        = std::string(MUSCOD_CONFIG_DIR);
+  model_name_       = config["model_name"].str();
   mhe_model_name_   = config["mhe_model_name"].str();
   nmpc_model_name_  = config["nmpc_model_name"].str();
   outputs_          = config["outputs"];
   verbose_          = config["verbose"];
 
   // Setup path for the problem description library and lua, csv, dat files used by it
-  std::string problem_path  = model_path + "/" + mhe_model_name_ + "_" + nmpc_model_name_;
+  std::string problem_path  = model_path + "/" + model_name_;
 
   //-------------------- Load Lua model which is used by muscod ------------------- //
   lua_model_ = problem_path + "/" + config["lua_model"].str();
