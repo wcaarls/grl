@@ -341,7 +341,8 @@ void CompassWalkerVrefTask::evaluate(const Vector &state, const Vector &action, 
   if (state.size() != CompassWalker::ssStateSize || action.size() != 1 || next.size() != CompassWalker::ssStateSize)
     throw Exception("task/compass_walker/vref requires model/compass_walker");
 
-  *reward = 0.1*fmax(0, 4 - 100.0*pow(next[CompassWalker::siHipVelocity] - vref_, 2));
+  //*reward = 0.1*fmax(0, 4 - 100.0*pow(next[CompassWalker::siHipVelocity] - vref_, 2));
+  *reward = 0.1*(4 - 100.0*pow(next[CompassWalker::siHipVelocity] - vref_, 2));
 
   if (fabs(next[CompassWalker::siStanceLegAngle]) > M_PI/8 || fabs(next[CompassWalker::siHipAngle] - 2 * next[CompassWalker::siStanceLegAngle]) > M_PI/4)
     if (neg_reward_)
