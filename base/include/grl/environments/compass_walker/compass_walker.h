@@ -114,7 +114,7 @@ class CompassWalkerWalkTask : public Task
     Vector observe_;          // Indicator vector with 1s for states, which are observed by an agent
 
   public:
-    CompassWalkerWalkTask() : T_(100), initial_state_variation_(0.2), slope_angle_(0.004), neg_reward_(-100.0), verbose_(true){ }
+    CompassWalkerWalkTask() : T_(100), initial_state_variation_(0.2), slope_angle_(0.004), neg_reward_(-100.0), verbose_(false){ }
     
     // From Configurable
     virtual void request(ConfigurationRequest *config);
