@@ -214,8 +214,8 @@ void CompassWalkerWalkTask::configure(Configuration &config)
   config.set("observation_min", observation_min);
   config.set("observation_max", observation_max);
   config.set("action_dims", 1);
-  config.set("action_min", VectorConstructor(-10));
-  config.set("action_max", VectorConstructor( 10));
+  config.set("action_min", VectorConstructor(-1.2));
+  config.set("action_max", VectorConstructor( 1.2));
   config.set("reward_min", -101);
   config.set("reward_max",  50);
 }
