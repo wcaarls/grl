@@ -77,7 +77,7 @@ double CompassWalkerModel::step(const Vector &state, const Vector &action, Vecto
                state[CompassWalker::siHipAngle],
                state[CompassWalker::siHipAngleRate]);
 
-  model_.singleStep(swstate, -action[0]);
+  model_.singleStep(swstate, action[0]);
 
   next->resize(state.size());
   (*next)[CompassWalker::siStanceLegAngle] = swstate.mStanceLegAngle;
@@ -143,7 +143,7 @@ double CompassWalkerSandbox::step(const Vector &action, Vector *next)
                state_[CompassWalker::siHipAngle],
                state_[CompassWalker::siHipAngleRate]);
 
-  model_.singleStep(swstate, -action[0]);
+  model_.singleStep(swstate, action[0]);
 
   // Calculate average velocity
   double velocity = - swstate.mStanceLegAngleRate * cos(swstate.mStanceLegAngle);
@@ -237,12 +237,13 @@ void CompassWalkerWalkTask::start(int test, Vector *state) const
 
   swstate.mStanceFootX = 0;
 
+  double variation = (!test)?initial_state_variation_:0;
   do
   {
-    swstate.mStanceLegAngle     = initial_state.mStanceLegAngle     * (1.0-(initial_state_variation_) + 2.0*initial_state_variation_*drand48());
-    swstate.mHipAngle           = initial_state.mHipAngle           * (1.0-(initial_state_variation_) + 2.0*initial_state_variation_*drand48());
-    swstate.mStanceLegAngleRate = initial_state.mStanceLegAngleRate * (1.0-(initial_state_variation_) + 2.0*initial_state_variation_*drand48());
-    swstate.mHipAngleRate       = initial_state.mHipAngleRate       * (1.0-(initial_state_variation_) + 2.0*initial_state_variation_*drand48());
+    swstate.mStanceLegAngle     = initial_state.mStanceLegAngle     * (1.0 - variation + 2.0*variation*drand48());
+    swstate.mHipAngle           = initial_state.mHipAngle           * (1.0 - variation + 2.0*variation*drand48());
+    swstate.mStanceLegAngleRate = initial_state.mStanceLegAngleRate * (1.0 - variation + 2.0*variation*drand48());
+    swstate.mHipAngleRate       = initial_state.mHipAngleRate       * (1.0 - variation + 2.0*variation*drand48());
   }
   while (swstate.getKinEnergy() + swstate.getHipY()*cos(slope_angle_) < cos(slope_angle_));
 
