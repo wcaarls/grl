@@ -187,43 +187,27 @@ void NMPCPolicy::act(double time, const Vector &in, Vector *out)
     initial_sd_ << in;
     initial_pf_ << 0.0;
     initial_qc_ << 0.0;
-  } else {
-    std::cout << "time: [ " << time << " ]" << std::endl;
-    std::cout << "observer  = " << in << std::endl;
-    std::cout << "final_sd_ = " << final_sd_ << std::endl;
-    std::cout << "ERROR     = " << final_sd_ - in << std::endl;
   }
 
   // Run multiple NMPC iterations
-  const unsigned int nnmpc = 10;
+  const unsigned int nnmpc = 3;
   for (int inmpc = 0; inmpc < nnmpc; ++inmpc) {
     // 1) Feedback: Embed parameters and initial value from MHE
     // NOTE the same initial values (sd, pf) are embedded several time,
     //      but this will result in the same solution as running a MUSCOD
     //      instance for several iterations
     nmpc_->feedback(in, initial_pf_, &initial_qc_);
-    // 2) Transition
-    nmpc_->transition();
-    // 3) Shifting
+    // 2) Shifting
     // NOTE do that only once at last iteration
+    // NOTE this has to be done before the transition phase
     if (nnmpc > 0 && inmpc == nnmpc-1) {
       nmpc_->shifting(1);
     }
+    // 3) Transition
+    nmpc_->transition();
     // 4) Preparation
     nmpc_->preparation();
   }
-
-  Vector real_pf;
-  real_pf = VectorConstructorFill(nmpc_->NP(), 0);
-
-  // Simulate
-  nmpc_->simulate(
-      in,
-      real_pf,
-      initial_qc_,
-      0.05,
-      &final_sd_
-  );
 
   // Here we can return the feedback control
   (*out) = initial_qc_;

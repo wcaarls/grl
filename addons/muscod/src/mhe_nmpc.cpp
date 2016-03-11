@@ -236,18 +236,24 @@ void MHE_NMPCPolicy::act(double time, const Vector &in, Vector *out)
     }
     // 2) Feedback
     mhe_->feedback();
+
+    // 4) Shifting?
+    // NOTE do that only once at last iteration
+    // NOTE this has to be done before the transition phase
+    if (nmhe > 0 && imhe == nmhe-1) {
+      mhe_->shifting(1);
+    }
+
     // 3) Transition
     // NOTE: states and parameters are only updated after transition phase
     mhe_->transition();
 
-    // 4) Get parameters and state of last shooting node
+    // 3) Get parameters and state of last shooting node
+    // NOTE do that only once at last iteration
     if (nmhe > 0 && imhe == nmhe-1) {
       mhe_->get_initial_sd_and_pf(&initial_sd_, &initial_pf_);
-
-      // 5) Shifting?
-      // NOTE do that only once at last iteration
-      mhe_->shifting(1);
     }
+
     // 6) Preparation
     mhe_->preparation();
   }
@@ -262,13 +268,14 @@ void MHE_NMPCPolicy::act(double time, const Vector &in, Vector *out)
     // initial_sd_ << obs;
     // initial_pf_ << 0.0;
     nmpc_->feedback(initial_sd_, initial_pf_, &initial_qc_);
-    // 2) Transition
-    nmpc_->transition();
-    // 3) Shifting
+    // 2) Shifting
     // NOTE do that only once at last iteration
+    // NOTE this has to be done before the transition phase
     if (nnmpc > 0 && inmpc == nnmpc-1) {
       nmpc_->shifting(1);
     }
+    // 3) Transition
+    nmpc_->transition();
     // 4) Preparation
     nmpc_->preparation();
   }
