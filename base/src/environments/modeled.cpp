@@ -80,6 +80,7 @@ void ModeledEnvironment::start(int test, Vector *obs)
 
   task_->start(test, &state_);
   task_->observe(state_, obs, &terminal);
+  model_->start(ConstantVector(1, test), &state_);
 
   obs_ = *obs;
   state_obj_->set(state_);

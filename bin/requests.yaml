@@ -455,6 +455,12 @@ model/compass_walker:
     optional: 1
     min: -1.797693134862316e+308
     max: 1.797693134862316e+308
+  fname:
+    type: string
+    description: string.fname_
+    mutability: configuration
+    default: Output file name
+    optional: 1
 model/dynamical:
   description: State transition model that integrates equations of motion
   control_step:

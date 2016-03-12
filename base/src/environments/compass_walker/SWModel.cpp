@@ -52,7 +52,7 @@ CSWModel::CSWModel():
 
 CSWModel::~CSWModel()
 {
-
+  closeFile();
 }
 
 double CSWModel::detectHeelstrikeMoment(const CSWModelState& stateT0, const CSWModelState& stateT1, CSWModelState& heelstrikeState, double hipTorque, double heightPrecision, double dt) const
@@ -170,7 +170,8 @@ void CSWModel::openFile(const std::string fname) const
 
 void CSWModel::closeFile() const
 {
-  stream_.close();
+  if (stream_.is_open())
+    stream_.close();
 }
 
 bool CSWModel::writeFile(double timeOffset, double sla, double ha, double slar, double har, double contact, double torque) const

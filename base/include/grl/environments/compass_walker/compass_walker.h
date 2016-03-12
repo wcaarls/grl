@@ -56,6 +56,7 @@ class CompassWalkerModel : public Model
     double slope_angle_;
     size_t steps_;
     CSWModel model_;
+    std::string fname_;
 
   public:
     CompassWalkerModel() : tau_(0.2), steps_(20), slope_angle_(0.004) { }
@@ -68,6 +69,7 @@ class CompassWalkerModel : public Model
     
     // From Model
     virtual CompassWalkerModel *clone() const;
+    virtual void start(const Vector &hint, Vector *state);
     virtual double step(const Vector &state, const Vector &action, Vector *next) const;
 };
 
@@ -88,7 +90,6 @@ class CompassWalkerSandbox : public Sandbox
 
   public:
     CompassWalkerSandbox() : tau_(0.2), steps_(20), slope_angle_(0.004) { }
-    ~CompassWalkerSandbox() { model_.closeFile(); }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
