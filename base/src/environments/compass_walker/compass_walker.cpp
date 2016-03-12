@@ -103,6 +103,7 @@ void CompassWalkerSandbox::request(ConfigurationRequest *config)
   config->push_back(CRP("control_step", "double.control_step", "Control step time", tau_, CRP::Configuration, 0.001, DBL_MAX));
   config->push_back(CRP("integration_steps", "Number of integration steps per control step", (int)steps_, CRP::Configuration, 1));
   config->push_back(CRP("slope_angle", "double.slope_angle", "Inclination of the slope", slope_angle_, CRP::Configuration, -DBL_MAX, DBL_MAX));
+  config->push_back(CRP("fname", "string.fname_", "Output file name"));
 }
 
 void CompassWalkerSandbox::configure(Configuration &config)
@@ -110,6 +111,7 @@ void CompassWalkerSandbox::configure(Configuration &config)
   tau_ = config["control_step"];
   steps_ = config["integration_steps"];
   slope_angle_ = config["slope_angle"];
+  fname_ = config["fname"].str();
 
   model_.setSlopeAngle(slope_angle_);
   model_.setTiming(tau_, steps_);
@@ -128,6 +130,8 @@ void CompassWalkerSandbox::start(const Vector &hint, Vector *state)
 {
   hip_instant_velocity_.clear();
   state_ = *state;
+  if (hint[0] != 0) // test
+    model_.openFile(fname_);
 }
 
 double CompassWalkerSandbox::step(const Vector &action, Vector *next)

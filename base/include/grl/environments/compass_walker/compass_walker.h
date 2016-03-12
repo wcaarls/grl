@@ -59,6 +59,7 @@ class CompassWalkerModel : public Model
 
   public:
     CompassWalkerModel() : tau_(0.2), steps_(20), slope_angle_(0.004) { }
+    ~CompassWalkerModel() {}
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -83,9 +84,11 @@ class CompassWalkerSandbox : public Sandbox
     CSWModel model_;
     std::deque<double> hip_instant_velocity_;
     Vector state_;
+    std::string fname_;
 
   public:
     CompassWalkerSandbox() : tau_(0.2), steps_(20), slope_angle_(0.004) { }
+    ~CompassWalkerSandbox() { model_.closeFile(); }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);

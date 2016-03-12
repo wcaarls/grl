@@ -6,7 +6,8 @@
  */
 
 #include <grl/environments/compass_walker/SWModel.h>
-
+#include <iomanip>
+#include <iostream>
 // **************************************************************** //
 // ************************ CSWModelState ************************* //
 // **************************************************************** //
@@ -47,6 +48,11 @@ CSWModel::CSWModel():
   mNumIntegrationSteps(8),
   mHeelStrikeHeightPrecision(1.0E-11)  // 0.01 mm by default
 {
+}
+
+CSWModel::~CSWModel()
+{
+
 }
 
 double CSWModel::detectHeelstrikeMoment(const CSWModelState& stateT0, const CSWModelState& stateT1, CSWModelState& heelstrikeState, double hipTorque, double heightPrecision, double dt) const
@@ -117,6 +123,13 @@ double CSWModel::processStanceLegChange(const CSWModelState& stateT0, CSWModelSt
   stateT1.mStanceLegAngle = -heelstrikeState.mStanceLegAngle;
   stateT1.mHipAngle       = -2.0*heelstrikeState.mStanceLegAngle;  // Force hip angle to twice the stanceleg angle
 
+  // save state right before heelstrike
+  writeFile(dt - timeleft, heelstrikeState.mStanceLegAngle, heelstrikeState.mHipAngle, heelstrikeState.mStanceLegAngleRate,
+            heelstrikeState.mHipAngleRate, 0, hipTorque);
+  // save state right after heelstrike
+  writeFile(dt - timeleft, stateT1.mStanceLegAngle, stateT1.mHipAngle, stateT1.mStanceLegAngleRate,
+            stateT1.mHipAngleRate, 1, hipTorque);
+
   // We made a step!
   //mNumFootsteps++;
   return timeleft;
@@ -138,6 +151,46 @@ double CSWModel::getSlopeAngle() const
   return mSlopeAngle;
 }
 
+std::ofstream stream_;
+
+void CSWModel::openFile(const std::string fname) const
+{
+  stream_.open (fname, std::ofstream::out);
+  stream_ << "COLUMNS:" << std::endl;
+  stream_ << "time[0], " << std::endl;
+  stream_ << "state[0], " << std::endl;
+  stream_ << "state[1], " << std::endl;
+  stream_ << "state[2], " << std::endl;
+  stream_ << "state[3], " << std::endl;
+  stream_ << "state[4], " << std::endl;
+  stream_ << "action[0], " << std::endl;
+  stream_ << "DATA:" << std::endl;
+  time_ = 0;
+}
+
+void CSWModel::closeFile() const
+{
+  stream_.close();
+}
+
+bool CSWModel::writeFile(double timeOffset, double sla, double ha, double slar, double har, double contact, double torque) const
+{
+
+  if (stream_.is_open())
+  {
+    double time = time_ + timeOffset;
+    stream_ << std::fixed << std::setw(11) << std::setprecision(6) << time     << ", "
+            << std::fixed << std::setw(11) << std::setprecision(6) << sla      << ", "
+            << std::fixed << std::setw(11) << std::setprecision(6) << ha       << ", "
+            << std::fixed << std::setw(11) << std::setprecision(6) << slar     << ", "
+            << std::fixed << std::setw(11) << std::setprecision(6) << har      << ", "
+            << std::fixed << std::setw(11) << std::setprecision(6) << contact  << ", "
+            << std::fixed << std::setw(11) << std::setprecision(6) << torque   << std::endl;
+    return true;
+  }
+  return false;
+}
+
 void CSWModel::singleStep(CSWModelState& state, double hipTorque) const
 {
   // Keep previous state
@@ -149,6 +202,11 @@ void CSWModel::singleStep(CSWModelState& state, double hipTorque) const
   double partialStepTime = 1.0E-6*mStepTime/mNumIntegrationSteps;
   for (int i=0; i<mNumIntegrationSteps; i++)
   {
+    // Save to file the beginning of every subintegration interval
+    time_ += partialStepTime;
+    writeFile(0, state.mStanceLegAngle, state.mHipAngle, state.mStanceLegAngleRate,
+              state.mHipAngleRate, 0, hipTorque);
+
     // Runge-Kutta!
     integrateRK4(state, hipTorque, partialStepTime);
 

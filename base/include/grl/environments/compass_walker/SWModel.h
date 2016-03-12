@@ -12,6 +12,7 @@
 
 #include <math.h>
 #include <stdint.h>
+#include <fstream>
 
 #ifndef SQR
 	#define SQR(X) ((X)*(X))
@@ -90,12 +91,16 @@ class CSWModel
 		void			integrateRK4(CSWModelState &state, double hipTorque, const double dt) const;
 		// The three functions below return the integration time left after a possible heel strike event
 		// dt is the time difference between stateT0 and stateT1.
-		double			detectEvents(const CSWModelState& stateT0, CSWModelState& stateT1, double hipTorque, double dt) const;
-		double			processStanceLegChange(const CSWModelState& stateT0, CSWModelState& stateT1, double hipTorque, double dt) const;
+    double			detectEvents(const CSWModelState& stateT0, CSWModelState& stateT1, double hipTorque, double dt) const;
+    double			processStanceLegChange(const CSWModelState& stateT0, CSWModelState& stateT1, double hipTorque, double dt) const;
 		double			detectHeelstrikeMoment(const CSWModelState& stateT0, const CSWModelState& stateT1, CSWModelState& heelstrikeState, double hipTorque, double heightPrecision, double dt) const;
+
+    mutable double time_;
 
 	public:
 		CSWModel();
+    ~CSWModel();
+
 		int			getNumIntegrationSteps() const	{return mNumIntegrationSteps;}
 		uint64_t		getStepTimeUs() const				{return mStepTime;}	// Time in microseconds
 		uint64_t		getTimeUs() const					{return mTime;}		// Time in microseconds
@@ -104,7 +109,12 @@ class CSWModel
 		void			setSlopeAngle(double angle);
 		double			getSlopeAngle() const;
 
-		void			singleStep(CSWModelState& state, double hipTorque) const;
+    void			singleStep(CSWModelState& state, double hipTorque) const;
+
+
+    void openFile(const std::string fname) const;
+    bool writeFile(double timeOffset, double sla, double ha, double slar, double har, double contact, double torque) const;
+    void closeFile() const;
 };
 
 #endif /* SWMODEL_H_ */

@@ -78,7 +78,7 @@ void SandboxEnvironment::start(int test, Vector *obs)
 
   task_->start(test, &state_);
   task_->observe(state_, obs, &terminal);
-  sandbox_->start(Vector(), &state_);
+  sandbox_->start(ConstantVector(1, test), &state_);
 
   obs_ = *obs;
   state_obj_->set(state_);

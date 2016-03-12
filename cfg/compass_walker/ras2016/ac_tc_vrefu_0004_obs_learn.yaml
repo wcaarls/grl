@@ -13,6 +13,7 @@ experiment:
       control_step: 0.2
       integration_steps: 20
       slope_angle: 0.004
+      fname: ???
     task: 
       type: task/compass_walker/vrefu
       timeout: 100
