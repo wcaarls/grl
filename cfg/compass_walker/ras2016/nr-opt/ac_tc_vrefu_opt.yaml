@@ -4,7 +4,7 @@ experiment:
   trials: 0
   steps: 87000000
   rate: 0
-  test_interval: 1000
+  test_interval: 100
   output: ???
   environment: 
     type: environment/sandbox
