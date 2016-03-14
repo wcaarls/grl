@@ -36,13 +36,11 @@ class MUSCOD;
 namespace grl
 {
 
-typedef void (* t_obs_converter)(const double *from, double *to);
-
 /// NMPC policy
 class NMPC_SWPolicy : public Policy
 {
   public:
-    TYPEINFO("policy/nmpc", "Nonlinear model predictive control policy using the MUSCOD library")
+    TYPEINFO("policy/nmpc_sw", "Nonlinear model predictive control policy for the simplest walker using the MUSCOD library")
 
   protected:
     int verbose_;
@@ -50,7 +48,7 @@ class NMPC_SWPolicy : public Policy
     // MUSCOD-II interface
     MUSCOD *muscod_nmpc_;
     NMPCProblem *nmpc_;
-    std::string nmpc_model_name_, lua_model_, model_name_;
+    std::string nmpc_model_name_, model_name_;
     size_t outputs_;
     Vector initial_sd_, initial_pf_, initial_qc_, final_sd_;
 

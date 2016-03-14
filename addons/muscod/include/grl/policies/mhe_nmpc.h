@@ -37,8 +37,6 @@ class MUSCOD;
 namespace grl
 {
 
-typedef void (* t_obs_converter)(const double *from, double *to);
-
 /// NMPC policy with moving horizon estimator (MHE)
 class MHE_NMPCPolicy : public Policy
 {
@@ -49,7 +47,6 @@ class MHE_NMPCPolicy : public Policy
     int verbose_;
 
     // MUSCOD-II interface
-//    t_obs_converter so_convert_obs_for_muscod_;
     MUSCOD *muscod_mhe_, *muscod_nmpc_;
     MHEProblem *mhe_;
     NMPCProblem *nmpc_;

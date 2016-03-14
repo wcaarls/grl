@@ -36,8 +36,6 @@ class MUSCOD;
 namespace grl
 {
 
-typedef void (* t_obs_converter)(const double *from, double *to);
-
 /// NMPC policy
 class NMPCPolicy : public Policy
 {
@@ -48,7 +46,6 @@ class NMPCPolicy : public Policy
     int verbose_;
 
     // MUSCOD-II interface
-//    t_obs_converter so_convert_obs_for_muscod_;
     MUSCOD *muscod_nmpc_;
     NMPCProblem *nmpc_;
     std::string nmpc_model_name_, lua_model_, model_name_;

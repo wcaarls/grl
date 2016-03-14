@@ -12,7 +12,6 @@ experiment:
       control_step: 0.2
       integration_steps: 20
       slope_angle: 0.004
-      fname: ???
     task: 
       type: task/compass_walker/vrefu
       timeout: 100
@@ -23,14 +22,13 @@ experiment:
       reference_velocity: 0.12
     exporter: 
       type: exporter/csv
-      file: simplest_walker_ras2016_inmpc_0004-test
+      file: simplest_walker_ras2016_nmpc_0004-test
       style: meshup
   agent: 
     type: agent/fixed
     policy: 
       type: policy/nmpc_sw
-      lua_model: 
-      model_name: inmpc_simplest_walker
+      model_name: nmpc_simplest_walker
       nmpc_model_name: nmpc_simplest_walker
       outputs: experiment/environment/task/action_dims
       verbose: 0

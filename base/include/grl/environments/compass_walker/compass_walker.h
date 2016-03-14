@@ -56,7 +56,7 @@ class CompassWalkerModel : public Model
     double slope_angle_;
     size_t steps_;
     CSWModel model_;
-    std::string fname_;
+    std::string integrator_out_;
 
   public:
     CompassWalkerModel() : tau_(0.2), steps_(20), slope_angle_(0.004) { }
@@ -86,7 +86,7 @@ class CompassWalkerSandbox : public Sandbox
     CSWModel model_;
     std::deque<double> hip_instant_velocity_;
     Vector state_;
-    std::string fname_;
+    std::string integrator_out_;
 
   public:
     CompassWalkerSandbox() : tau_(0.2), steps_(20), slope_angle_(0.004) { }

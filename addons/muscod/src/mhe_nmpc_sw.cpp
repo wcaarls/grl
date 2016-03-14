@@ -24,7 +24,6 @@ MHE_NMPC_SWPolicy::~MHE_NMPC_SWPolicy()
 
 void MHE_NMPC_SWPolicy::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("lua_model", "Lua model used by MUSCOD", lua_model_));
   config->push_back(CRP("model_name", "Name of the model in grl", model_name_));
   config->push_back(CRP("mhe_model_name", "Name of MUSCOD MHE model library", mhe_model_name_));
   config->push_back(CRP("nmpc_model_name", "Name of MUSCOD MHE model library", nmpc_model_name_));
@@ -80,26 +79,10 @@ void MHE_NMPC_SWPolicy::configure(Configuration &config)
   // Setup path for the problem description library and lua, csv, dat files used by it
   std::string problem_path  = model_path + "/" + model_name_;
 
-  //-------------------- Load Lua model which is used by muscod ------------------- //
-  lua_model_ = problem_path + "/" + config["lua_model"].str();
-
-  struct stat buffer;
-  if (stat(lua_model_.c_str(), &buffer) != 0) // check if lua file exists in the problem description folder
-    lua_model_ = std::string(RBDL_LUA_CONFIG_DIR) + "/" + config["lua_model"].str(); // if not, then use it as a reference from dynamics
-
   //----------------- Set path in the problem description library ----------------- //
-  setup_model_path(problem_path, mhe_model_name_, lua_model_);
-  void * so_handle_nmpc = setup_model_path(problem_path, nmpc_model_name_, lua_model_);
+  setup_model_path(problem_path, mhe_model_name_, "");
+  void * so_handle_nmpc = setup_model_path(problem_path, nmpc_model_name_, "");
 
-  //----------------- Observation converter ----------------- //
-/*  so_convert_obs_for_muscod_ = (t_obs_converter) dlsym(so_handle_nmpc, "convert_obs_for_muscod");
-  if (so_convert_obs_for_muscod_ == NULL)
-  {
-    std::cout << "ERROR: Could not symbol in shared library: 'convert_obs_for_muscod'" << std::endl;
-    std::cout << "bailing out ..." << std::endl;
-    std::exit(-1);
-  }
-*/
   //------------------- Initialize MHE ------------------- //
   muscod_mhe_ = new MUSCOD();
   mhe_ = new MHEProblem(problem_path.c_str(), mhe_model_name_.c_str(), muscod_mhe_);
@@ -192,33 +175,18 @@ MHE_NMPC_SWPolicy *MHE_NMPC_SWPolicy::clone() const
 
 void MHE_NMPC_SWPolicy::act(double time, const Vector &in, Vector *out)
 {
-//  if (verbose_)
-//    std::cout << "observation state: [ " << in << "]" << std::endl;
-
-//  Vector obs;
-//  obs.resize(in.size());
   if (time == 0.0)
   {
-//    so_convert_obs_for_muscod_(NULL, NULL);            // Reset internal counters
-//    so_convert_obs_for_muscod_(in.data(), obs.data()); // Convert
     muscod_reset(in, time);
+    initial_sd_ << in;
+    initial_pf_ << 0.0;
+    initial_qc_ << 0.0;
   }
-
-  // Convert MPRL states into MUSCOD states
-//  so_convert_obs_for_muscod_(in.data(), obs.data());
 
   if (verbose_)
     std::cout << "time: [ " << time << " ]; state: [ " << in << "]" << std::endl;
 
   out->resize(outputs_);
-  //  for (int IP = 0; IP < data_.NP; ++IP)
-  //    data_.pf[IP] = time;
-
-  if (time <= 0.0) {
-    initial_sd_ << in;
-    initial_pf_ << 0.0;
-    initial_qc_ << 0.0;
-  }
 
   // Run mutiple MHE iterations
   const unsigned int nmhe = 10;

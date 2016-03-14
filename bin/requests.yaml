@@ -455,11 +455,11 @@ model/compass_walker:
     optional: 1
     min: -1.797693134862316e+308
     max: 1.797693134862316e+308
-  fname:
+  integrator_out:
     type: string
-    description: string.fname_
+    description: string.integrator_out_
     mutability: configuration
-    default: Output file name
+    default: ""
     optional: 1
 model/dynamical:
   description: State transition model that integrates equations of motion
@@ -853,6 +853,42 @@ policy/mhe_nmpc:
     optional: 1
     min: 0
     max: 1
+policy/mhe_nmpc_sw:
+  description: Nonlinear model predictive control policy for the simplest walker with moving horizon estimator using the MUSCOD library
+  model_name:
+    type: string
+    description: Name of the model in grl
+    mutability: configuration
+    default: ""
+    optional: 1
+  mhe_model_name:
+    type: string
+    description: Name of MUSCOD MHE model library
+    mutability: configuration
+    default: ""
+    optional: 1
+  nmpc_model_name:
+    type: string
+    description: Name of MUSCOD MHE model library
+    mutability: configuration
+    default: ""
+    optional: 1
+  outputs:
+    type: int.action_dims
+    description: Number of outputs
+    mutability: system
+    default: 1
+    optional: 1
+    min: 1
+    max: 2147483647
+  verbose:
+    type: int
+    description: Verbose mode
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
 policy/nmpc:
   description: Nonlinear model predictive control policy using the MUSCOD library
   lua_model:
@@ -861,6 +897,36 @@ policy/nmpc:
     mutability: configuration
     default: ""
     optional: 1
+  model_name:
+    type: string
+    description: Name of the model in grl
+    mutability: configuration
+    default: ""
+    optional: 1
+  nmpc_model_name:
+    type: string
+    description: Name of MUSCOD MHE model library
+    mutability: configuration
+    default: ""
+    optional: 1
+  outputs:
+    type: int.action_dims
+    description: Number of outputs
+    mutability: system
+    default: 1
+    optional: 1
+    min: 1
+    max: 2147483647
+  verbose:
+    type: int
+    description: Verbose mode
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
+policy/nmpc_sw:
+  description: Nonlinear model predictive control policy for the simplest walker using the MUSCOD library
   model_name:
     type: string
     description: Name of the model in grl
@@ -2161,11 +2227,11 @@ sandbox_model/compass_walker:
     optional: 1
     min: -1.797693134862316e+308
     max: 1.797693134862316e+308
-  fname:
+  integrator_out:
     type: string
-    description: string.fname_
+    description: string.integrator_out_
     mutability: configuration
-    default: Output file name
+    default: ""
     optional: 1
 solver/agent:
   description: Solver that uses a simulated agent

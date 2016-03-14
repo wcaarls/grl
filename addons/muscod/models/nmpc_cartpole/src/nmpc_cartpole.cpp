@@ -12,7 +12,7 @@
 
 #include <def_usrmod.hpp>
 #include <model.hpp>
-#include <nmpc_simplest_walker.h>
+#include <nmpc_cartpole.h>
 
 // *****************************************************************************
 // Pre-Processor Macros

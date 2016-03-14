@@ -37,23 +37,20 @@ class MUSCOD;
 namespace grl
 {
 
-typedef void (* t_obs_converter)(const double *from, double *to);
-
 /// NMPC policy with moving horizon estimator (MHE)
 class MHE_NMPC_SWPolicy : public Policy
 {
   public:
-    TYPEINFO("policy/mhe_nmpc", "Nonlinear model predictive control policy with moving horizon estimator using the MUSCOD library")
+    TYPEINFO("policy/mhe_nmpc_sw", "Nonlinear model predictive control policy for the simplest walker with moving horizon estimator using the MUSCOD library")
 
   protected:
     int verbose_;
 
     // MUSCOD-II interface
-//    t_obs_converter so_convert_obs_for_muscod_;
     MUSCOD *muscod_mhe_, *muscod_nmpc_;
     MHEProblem *mhe_;
     NMPCProblem *nmpc_;
-    std::string mhe_model_name_, nmpc_model_name_, lua_model_, model_name_;
+    std::string mhe_model_name_, nmpc_model_name_, model_name_;
     size_t outputs_;
     Vector initial_sd_, initial_pf_, initial_qc_, final_sd_, hs_, ss_;
 

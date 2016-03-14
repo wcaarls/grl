@@ -155,17 +155,20 @@ std::ofstream stream_;
 
 void CSWModel::openFile(const std::string fname) const
 {
-  stream_.open (fname, std::ofstream::out);
-  stream_ << "COLUMNS:" << std::endl;
-  stream_ << "time[0], " << std::endl;
-  stream_ << "state[0], " << std::endl;
-  stream_ << "state[1], " << std::endl;
-  stream_ << "state[2], " << std::endl;
-  stream_ << "state[3], " << std::endl;
-  stream_ << "state[4], " << std::endl;
-  stream_ << "action[0], " << std::endl;
-  stream_ << "DATA:" << std::endl;
-  time_ = 0;
+  if (!fname.empty())
+  {
+    stream_.open (fname, std::ofstream::out);
+    stream_ << "COLUMNS:" << std::endl;
+    stream_ << "time[0], " << std::endl;
+    stream_ << "state[0], " << std::endl;
+    stream_ << "state[1], " << std::endl;
+    stream_ << "state[2], " << std::endl;
+    stream_ << "state[3], " << std::endl;
+    stream_ << "state[4], " << std::endl;
+    stream_ << "action[0], " << std::endl;
+    stream_ << "DATA:" << std::endl;
+    time_ = 0;
+  }
 }
 
 void CSWModel::closeFile() const

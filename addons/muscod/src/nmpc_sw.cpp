@@ -23,7 +23,6 @@ NMPC_SWPolicy::~NMPC_SWPolicy()
 
 void NMPC_SWPolicy::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("lua_model", "Lua model used by MUSCOD", lua_model_));
   config->push_back(CRP("model_name", "Name of the model in grl", model_name_));
   config->push_back(CRP("nmpc_model_name", "Name of MUSCOD MHE model library", nmpc_model_name_));
   config->push_back(CRP("outputs", "int.action_dims", "Number of outputs", (int)outputs_, CRP::System, 1));
@@ -77,25 +76,9 @@ void NMPC_SWPolicy::configure(Configuration &config)
   // Setup path for the problem description library and lua, csv, dat files used by it
   std::string problem_path  = model_path + "/" + model_name_;
 
-  //-------------------- Load Lua model which is used by muscod ------------------- //
-  lua_model_ = problem_path + "/" + config["lua_model"].str();
-
-  struct stat buffer;
-  if (stat(lua_model_.c_str(), &buffer) != 0) // check if lua file exists in the problem description folder
-    lua_model_ = std::string(RBDL_LUA_CONFIG_DIR) + "/" + config["lua_model"].str(); // if not, then use it as a reference from dynamics
-
   //----------------- Set path in the problem description library ----------------- //
-  void * so_handle_nmpc = setup_model_path(problem_path, nmpc_model_name_, lua_model_);
+  void * so_handle_nmpc = setup_model_path(problem_path, nmpc_model_name_, "");
 
-  //----------------- Observation converter ----------------- //
-/*  so_convert_obs_for_muscod_ = (t_obs_converter) dlsym(so_handle_nmpc, "convert_obs_for_muscod");
-  if (so_convert_obs_for_muscod_ == NULL)
-  {
-    std::cout << "ERROR: Could not symbol in shared library: 'convert_obs_for_muscod'" << std::endl;
-    std::cout << "bailing out ..." << std::endl;
-    std::exit(-1);
-  }
-*/
   //------------------- Initialize NMPC ------------------- //
   muscod_nmpc_ = new MUSCOD();
   nmpc_ = new NMPCProblem(problem_path.c_str(), nmpc_model_name_.c_str(), muscod_nmpc_);
@@ -105,22 +88,6 @@ void NMPC_SWPolicy::configure(Configuration &config)
   initial_pf_ = VectorConstructorFill(nmpc_->NP(), 0);
   initial_qc_ = VectorConstructorFill(nmpc_->NU(), 0);
   final_sd_   = VectorConstructorFill(nmpc_->NXD(), 0);
-
-  // FIXME This part is needed
-  // if (!verbose_) {
-    // muscod_mhe_->setLogLevelScreen(-1);
-    // muscod_mhe_->setLogLevelAndFile(-1, NULL, NULL);
-    // muscod_nmpc_->setLogLevelScreen(-1);
-    // muscod_nmpc_->setLogLevelAndFile(-1, NULL, NULL);
-  // }
-
-/*
-  // save solver state
-  // FIXME this part is needed
-  data_.backup_muscod_state(muscod_);
-  data_.sd = ConstantVector(data_.NXD, 0.0);
-  data_.pf = ConstantVector(data_.NP,  0.0);
-*/
 
   if (verbose_)
     std::cout << "MUSCOD is ready!" << std::endl;
@@ -133,14 +100,6 @@ void NMPC_SWPolicy::reconfigure(const Configuration &config)
 
 void NMPC_SWPolicy::muscod_reset(const Vector &initial_obs, double time)
 {
-  // FIXME
-  // load solution state
-  // data_.restore_muscod_state(muscod_);
-
-  // // Reinitialize state and time
-  // for (int IP = 0; IP < data_.NP; ++IP)
-  //   data_.pf[IP] = time;
-
   // initialize NMPC
   for (int inmpc = 0; inmpc < 10; ++inmpc) {
     // 1) Feedback: Embed parameters and initial value from MHE
@@ -162,32 +121,18 @@ NMPC_SWPolicy *NMPC_SWPolicy::clone() const
 
 void NMPC_SWPolicy::act(double time, const Vector &in, Vector *out)
 {
-//  if (verbose_)
-//    std::cout << "observation state: [ " << in << "]" << std::endl;
-
-//  Vector obs;
-//  obs.resize(in.size());
-  if (time == 0.0)
+  if (time <= 0.0)
   {
-//    so_convert_obs_for_muscod_(NULL, NULL);            // Reset internal counters
-//    so_convert_obs_for_muscod_(in.data(), obs.data()); // Convert
     muscod_reset(in, time);
+    initial_sd_ << in, VectorConstructorFill(initial_sd_.size() - in.size(), 0);
+//    initial_pf_ << 0.0;
+    initial_qc_ << 0.0;
   }
-  // Convert MPRL states into MUSCOD states
-//  so_convert_obs_for_muscod_(in.data(), obs.data());
 
   if (verbose_)
     std::cout << "time: [ " << time << " ]; state: [ " << in << "]" << std::endl;
 
   out->resize(outputs_);
-  //  for (int IP = 0; IP < data_.NP; ++IP)
-  //    data_.pf[IP] = time;
-
-  if (time <= 0.0) {
-    initial_sd_ << in;
-    initial_pf_ << 0.0;
-    initial_qc_ << 0.0;
-  }
 
   // Run multiple NMPC iterations
   const unsigned int nnmpc = 10;
@@ -196,7 +141,7 @@ void NMPC_SWPolicy::act(double time, const Vector &in, Vector *out)
     // NOTE the same initial values (sd, pf) are embedded several time,
     //      but this will result in the same solution as running a MUSCOD
     //      instance for several iterations
-    nmpc_->feedback(in, initial_pf_, &initial_qc_);
+    nmpc_->feedback(initial_sd_, initial_pf_, &initial_qc_);
     // 2) Shifting
     // NOTE do that only once at last iteration
     // NOTE this has to be done before the transition phase
