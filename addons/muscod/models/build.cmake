@@ -21,7 +21,7 @@ if (NOT PGPLOT_FOUND)
   return()
 endif()
 
-set(TARGETS nmpc_cartpole nmpc_simple mhe_cartpole)
+set(TARGETS nmpc_cartpole mhe_cartpole nmpc_simplest_walker mhe_simplest_walker nmpc_simple)
 
 FOREACH (TARGET ${TARGETS})
   ADD_LIBRARY ( ${TARGET} SHARED 
@@ -40,3 +40,12 @@ FOREACH (TARGET ${TARGETS})
   install(TARGETS ${TARGET} DESTINATION ${GRL_LIB_DESTINATION})
   install(DIRECTORY ${SRC}/../include/grl DESTINATION ${GRL_INCLUDE_DESTINATION} FILES_MATCHING PATTERN "*.h")
 ENDFOREACH(TARGET)
+
+
+#message("-------------- From ${CMAKE_BINARY_DIR} to ${SRC}")
+add_custom_command(
+    TARGET ${TARGET} POST_BUILD
+#    OUTPUT ${SRC}/../../cfg/inmpc_simplest_walker/libnmpc_simplest_walker.so
+    COMMAND ln -sf ${CMAKE_CURRENT_BINARY_DIR}/libnmpc_simplest_walker.so ${SRC}/../../cfg/inmpc_simplest_walker/libnmpc_simplest_walker.so
+)
+
