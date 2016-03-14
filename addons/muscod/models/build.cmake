@@ -41,11 +41,21 @@ FOREACH (TARGET ${TARGETS})
   install(DIRECTORY ${SRC}/../include/grl DESTINATION ${GRL_INCLUDE_DESTINATION} FILES_MATCHING PATTERN "*.h")
 ENDFOREACH(TARGET)
 
+# Cartpole library links
+execute_process(COMMAND ln -s -f ${CMAKE_CURRENT_BINARY_DIR}/libnmpc_cartpole.so ${SRC}/../../cfg/inmpc_cartpole/libnmpc_cartpole.so)
+execute_process(COMMAND ln -s -f ${CMAKE_CURRENT_BINARY_DIR}/libnmpc_cartpole.so ${SRC}/../../cfg/inmpc_mhe_cartpole/libnmpc_cartpole.so)
+execute_process(COMMAND ln -s -f ${CMAKE_CURRENT_BINARY_DIR}/libnmpc_cartpole.so ${SRC}/../../cfg/nmpc_cartpole/libnmpc_cartpole.so)
+execute_process(COMMAND ln -s -f ${CMAKE_CURRENT_BINARY_DIR}/libnmpc_cartpole.so ${SRC}/../../cfg/nmpc_mhe_cartpole/libnmpc_cartpole.so)
 
-#message("-------------- From ${CMAKE_BINARY_DIR} to ${SRC}")
-add_custom_command(
-    TARGET ${TARGET} POST_BUILD
-#    OUTPUT ${SRC}/../../cfg/inmpc_simplest_walker/libnmpc_simplest_walker.so
-    COMMAND ln -sf ${CMAKE_CURRENT_BINARY_DIR}/libnmpc_simplest_walker.so ${SRC}/../../cfg/inmpc_simplest_walker/libnmpc_simplest_walker.so
-)
+execute_process(COMMAND ln -s -f ${CMAKE_CURRENT_BINARY_DIR}/libmhe_cartpole.so ${SRC}/../../cfg/inmpc_mhe_cartpole/libmhe_cartpole.so)
+execute_process(COMMAND ln -s -f ${CMAKE_CURRENT_BINARY_DIR}/libmhe_cartpole.so ${SRC}/../../cfg/nmpc_mhe_cartpole/libmhe_cartpole.so)
+
+# Simplest walker library links
+execute_process(COMMAND ln -s -f ${CMAKE_CURRENT_BINARY_DIR}/libnmpc_simplest_walker.so ${SRC}/../../cfg/inmpc_simplest_walker/libnmpc_simplest_walker.so)
+execute_process(COMMAND ln -s -f ${CMAKE_CURRENT_BINARY_DIR}/libnmpc_simplest_walker.so ${SRC}/../../cfg/inmpc_mhe_simplest_walker/libnmpc_simplest_walker.so)
+execute_process(COMMAND ln -s -f ${CMAKE_CURRENT_BINARY_DIR}/libnmpc_simplest_walker.so ${SRC}/../../cfg/nmpc_simplest_walker/libnmpc_simplest_walker.so)
+execute_process(COMMAND ln -s -f ${CMAKE_CURRENT_BINARY_DIR}/libnmpc_simplest_walker.so ${SRC}/../../cfg/nmpc_mhe_simplest_walker/libnmpc_simplest_walker.so)
+
+execute_process(COMMAND ln -s -f ${CMAKE_CURRENT_BINARY_DIR}/libmhe_simplest_walker.so ${SRC}/../../cfg/inmpc_mhe_simplest_walker/libmhe_simplest_walker.so)
+execute_process(COMMAND ln -s -f ${CMAKE_CURRENT_BINARY_DIR}/libmhe_simplest_walker.so ${SRC}/../../cfg/nmpc_mhe_simplest_walker/libmhe_simplest_walker.so)
 
