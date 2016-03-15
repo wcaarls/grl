@@ -2,10 +2,10 @@
 #define GRL_LEOSIM_ENVIRONMENT_H_
 
 #include <grl/environments/odesim/environment.h>
-#include <LeoBhWalkSym.h>
-#include <STGLeo.h>
-#include <STGLeoSim.h>
-#include <ThirdOrderButterworth.h>
+#include "LeoBhWalkSym.h"
+#include "STGLeo.h"
+#include "STGLeoSim.h"
+#include "ThirdOrderButterworth.h"
 
 namespace grl
 {
@@ -17,8 +17,8 @@ class CGrlLeoBhWalkSym : public CLeoBhWalkSym
     {
       svTorsoAngle,
       svTorsoAngleRate,
-      svLeftArmAngle,
-      svLeftArmAngleRate,
+      svShoulderAngle,
+      svShoulderAngleRate,
       svRightHipAngle,
       svRightHipAngleRate,
       svLeftHipAngle,
@@ -46,8 +46,8 @@ class CGrlLeoBhWalkSym : public CLeoBhWalkSym
     };
 
   public:
-    CGrlLeoBhWalkSym(ISTGActuation *actuationInterface) : CLeoBhWalkSym(actuationInterface) {}
-    //~CGrlLeoBhWalkSym() {}
+    CGrlLeoBhWalkSym(ISTGActuation *actuationInterface) : CLeoBhWalkSym(actuationInterface) {init();}
+    ~CGrlLeoBhWalkSym() {}
 
     int getHipStance()   {return mHipStance;}
     int getHipSwing()    {return mHipSwing;}
@@ -55,34 +55,33 @@ class CGrlLeoBhWalkSym : public CLeoBhWalkSym
     int getKneeSwing()   {return mKneeSwing;}
     int getAnkleStance() {return mAnkleStance;}
     int getAnkleSwing()  {return mAnkleSwing;}
-    bool stanceLegLeft() {return mLastStancelegWasLeft;}
+    bool getStanceFootContact() {return mStanceFootContact;}
+    bool getSwingFootContact()  {return mSwingFootContact;}
 
   public:
     void resetState();
-    void fillLeoState(const Vector &obs, const Vector &action, CLeoState &leoState);
+    void parseOdeObs(const Vector &obs, CLeoState &leoState);
     void parseLeoState(const CLeoState &leoState, Vector &obs);
     void updateDerivedStateVars(CLeoState *currentSTGState);
     void setCurrentSTGState(CLeoState *leoState);
     void setPreviousSTGState(CLeoState *leoState);
     void grlAutoActuateAnkles(Vector &out)
     {
-      CSTGLeoSim *leoSim = dynamic_cast<CSTGLeoSim*>(mActuationInterface);
-      CLeoBhWalkSym::autoActuateAnkles_FixedPos(leoSim);
+      CSTGLeoSim* aI = dynamic_cast<CSTGLeoSim*>(mActuationInterface);
+      CLeoBhWalkSym::autoActuateAnkles_FixedPos(aI);
       out.resize(2);
-      out << leoSim->getJointVoltage(ljAnkleRight), leoSim->getJointVoltage(ljAnkleLeft);
+      out << aI->getJointVoltage(mAnkleStance), aI->getJointVoltage(mAnkleSwing);
     }
-    double grlAutoActuateArm()
+    void grlAutoActuateArm(Vector &out)
     {
-      CSTGLeoSim *leoSim = dynamic_cast<CSTGLeoSim*>(mActuationInterface);
-      CLeoBhWalkSym::autoActuateArm(leoSim);
-      return leoSim->getJointVoltage(ljShoulder);
+      CSTGLeoSim* aI = dynamic_cast<CSTGLeoSim*>(mActuationInterface);
+      CLeoBhWalkSym::autoActuateArm(aI);
+      out.resize(1);
+      out << aI->getJointVoltage(ljShoulder);
     }
-    double grlAutoActuateKnee()
-    {
-      CSTGLeoSim *leoSim = dynamic_cast<CSTGLeoSim*>(mActuationInterface);
-      CLeoBhWalkSym::autoActuateKnees(leoSim);
-      return stanceLegLeft() ? leoSim->getJointVoltage(ljKneeLeft) : leoSim->getJointVoltage(ljKneeRight);
-    }
+
+  protected:
+    void init();
 
   protected:
     CButterworthFilter<1>	mJointSpeedFilter[ljNumJoints];
@@ -111,21 +110,20 @@ class LeoSimEnvironment : public ODEEnvironment
     virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal);
     
   protected:
-    CSTGLeoSim leoSim_;
     CLeoState leoState_;
     CGrlLeoBhWalkSym bhWalk_;
-    int observation_dims_, requested_action_dims_, action_dims_;
+    int observation_dims_, action_dims_;
     int ode_observation_dims_, ode_action_dims_;
     int learn_stance_knee_;
 
   private:
     void fillObserve(const std::vector<CGenericStateVar> &genericStates,
                      const std::vector<std::string> &observeList,
-                     Vector &out) const;
+                     Vector &out);
 
     void fillActuate(const std::vector<CGenericActionVar> &genericAction,
                      const std::vector<std::string> &actuateList,
-                     Vector &out, std::vector<int> &knee_idx) const;
+                     Vector &out);
   private:
     Vector ode_obs_;
     Vector observe_, actuate_;

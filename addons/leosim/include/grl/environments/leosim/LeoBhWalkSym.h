@@ -10,7 +10,7 @@
 #ifndef LEOBHWALKSYM_H_
 #define LEOBHWALKSYM_H_
 
-#include <STGAgentQLeo.h>
+#include "STGAgentQLeo.h"
 
 #define LEOBHWALKSYM_MAX_NUM_ACTIONS  3
 // Leo RL walking behavior
@@ -39,7 +39,7 @@ class CLeoBhWalkSym: public CSTGAgentQLeo
     bool          mUseEffectiveAction;  // Calculate the effectively executed action to improve convergence
     bool          mGeneralizeActions;    // Generalize between actions in the function approximator
     bool          mIsObserving;
-//    bool          mLearnSwingKnee;
+    bool          mLearnSwingKnee;
 
     // Reward variables
     double        mRwTime;        // Time penalty

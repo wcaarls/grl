@@ -35,7 +35,7 @@
 		<s>surface</s>
 	</strings>
 	<appLogLevel info="2" warn="4" err="5">0</appLogLevel>
-  <loglevel crawl="0" info="2" warn="4" err="5">info</loglevel>
+  <loglevel info="2" warn="4" err="5">info</loglevel>
 	<learner>
 		<lifeTime comment="in seconds">36000</lifeTime>
 		<autoSavePolicy>true</autoSavePolicy>
@@ -74,7 +74,7 @@
 		<rewardFootstepDist>0.0</rewardFootstepDist>
 		<rewardFootstepDistCont>300.0</rewardFootstepDistCont>
 		<rewardFootstepMaxLength>10.20</rewardFootstepMaxLength>
-    <rewardFootstepBackward>0</rewardFootstepBackward>
+    <rewardFootstepBackward>-5</rewardFootstepBackward>
 		<rewardEnergy comment="per joule!">-3.0</rewardEnergy>
 		<rewardFootClearance>0.0</rewardFootClearance>
 		<rewardFootClearanceThreshold>0.0</rewardFootClearanceThreshold>

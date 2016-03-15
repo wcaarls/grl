@@ -10,11 +10,12 @@
 
 //#include <string>
 #include "precisions.h"
-#include <randomc.h>
+//#include <randomc.h>
 #include <fstream>
 #include <cstring>
 #include <sstream>
 #include <vector>
+#include <math.h>
 
 #define AGENT_MAX_NUM_STATEVARS		20	// Maximum number of state dimensions
 #define AGENT_MAX_NUM_ACTIONVARS	10	// Maximum number of action dimensions
@@ -364,7 +365,7 @@ class CAgentAction
 		{
 			memcpy(mAction, valuesIn, mNumActionVars*sizeof(_StatePrecision));
 		}
-
+/*
 		void			randomizeUniform(TRanrotBGenerator* rg)
 		{
 			for (int i=0; i<mNumActionVars; i++)
@@ -399,7 +400,7 @@ class CAgentAction
 			restore((*avList)[avList->mBestAction].mAction);
 			return avList->mBestAction;
 		}
-
+*/
 		CAgentAction& operator=(const CAgentAction& action)
 		{
 			// Reinit if numvalues is not equal.

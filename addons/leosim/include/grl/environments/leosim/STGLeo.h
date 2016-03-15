@@ -12,7 +12,7 @@
 #include <sstream>
 #include <string>
 #include <bithacks.h>
-#include <DynamixelSpecs.h>
+#include "DynamixelSpecs.h"
 
 #define LEO_NUM_FOOTSENSORS             4    // must be <= 8; there are 8 ADC channels
 #define LEO_FOOTSENSOR_RIGHT_TOE        0x01

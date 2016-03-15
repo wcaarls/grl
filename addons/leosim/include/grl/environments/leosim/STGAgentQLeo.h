@@ -9,8 +9,8 @@
 #define STGAGENTQLEO_H_
 
 //#include <STGAgentQ.h>
-#include <STGPolicy.h>
-#include <AgentInterface.h>
+//#include <STGPolicy.h>
+#include "AgentInterface.h"
 #include "STGLeo.h"
 #include <Configuration.h>
 

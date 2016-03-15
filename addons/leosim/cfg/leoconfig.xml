@@ -44,7 +44,7 @@
 		<boomVirtualMassZ>boomMass*boomCMY/boomLength</boomVirtualMassZ>
 		<boomExtForce>(boomVirtualMassZ - boomVirtualMassX)*(-9.81)</boomExtForce>
     <!-- virtual boom characteristics -->
-    <virtualBoom_dryfriction>0.0</virtualBoom_dryfriction>
+    <virtualBoom_dryfriction>0.01</virtualBoom_dryfriction>
 		<!-- torso with boom effects -->
 		<torsoBoomMass>torsoMass + boomVirtualMassX</torsoBoomMass>
 		<torsoBoomCMX>(torsoMass*torsoCMX + boomVirtualMassX*torsoHipDistX)/(torsoMass + boomVirtualMassX)</torsoBoomCMX>
@@ -150,7 +150,7 @@
       <!-- Virtual Boom -->
       <body>
 				<name>virtualBoom</name>
-				<mass>0.001</mass>
+				<mass>0.0001</mass>
 				<IXX>inertiadontcare</IXX>
 				<IYY>inertiainf</IYY>
 				<IZZ>inertiadontcare</IZZ>
@@ -1189,7 +1189,7 @@
 				</rotation>
 			</geom>
 			<initialcondition>
-				<bodyname comment="Virtual boom has a very low mass, very high inertia, and can rotate">virtualBoom</bodyname>
+				<bodyname comment="Virtual boom has a high inertia, but still can rotate">virtualBoom</bodyname>
 				<rotation>
 					<axis>
 						<x>0</x>
