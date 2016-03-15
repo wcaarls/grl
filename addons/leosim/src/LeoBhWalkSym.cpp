@@ -59,7 +59,7 @@ CLeoBhWalkSym::CLeoBhWalkSym(ISTGActuation *actuationInterface):
   mWalkedDistance        = 0.0;
   mTrialEnergy        = 0.0;
   mObservingTime         = (uint64_t)200E6;
-  mLearnSwingKnee        = true;
+//  mLearnSwingKnee        = true;
   mGeneralizeActions      = true;
   mSwingTime          = 0;
 
@@ -118,7 +118,7 @@ bool CLeoBhWalkSym::readConfig(const CConfigSection &xmlRoot)
   mTrialTimeout = (uint64_t)(timeSeconds*1E6);
   configresult &= mLogAssert(configNode.get("observingTimeSeconds", &timeSeconds));
   mObservingTime = (uint64_t)(timeSeconds*1E6);
-  configresult &= mLogAssert(configNode.get("learnSwingKnee", &mLearnSwingKnee));
+//  configresult &= mLogAssert(configNode.get("learnSwingKnee", &mLearnSwingKnee));
 
   configNode = xmlRoot.section("ode");
   configNode.get("steptime", &mTotalStepTime);
@@ -259,6 +259,7 @@ void CLeoBhWalkSym::updateState(CLeoState* currentSTGState)
     setAlgo(mAlgo);
 }
 */
+#include <bitset>
 void CLeoBhWalkSym::updateDerivedStateVars(CLeoState* currentSTGState)
 {
   // Backup last footstep length
@@ -272,6 +273,7 @@ void CLeoBhWalkSym::updateDerivedStateVars(CLeoState* currentSTGState)
   // Determine foot contact
   bool leftFootContact      = (currentSTGState->mFootContacts & LEO_FOOTSENSOR_LEFT_HEEL) || (currentSTGState->mFootContacts & LEO_FOOTSENSOR_LEFT_TOE);
   bool rightFootContact     = (currentSTGState->mFootContacts & LEO_FOOTSENSOR_RIGHT_HEEL) || (currentSTGState->mFootContacts & LEO_FOOTSENSOR_RIGHT_TOE);
+
   // Determine foot position relative to the hip axis
   double upLegLength        = 0.116;  // length of the thigh
   double loLegLength        = 0.1045; // length of the shin
@@ -350,7 +352,7 @@ void CLeoBhWalkSym::updateDerivedStateVars(CLeoState* currentSTGState)
     mSwingFootContact   = leftFootContact;
     // Calculate clearance for left foot
     mFootClearance      = std::min(leftToeZ, leftHeelZ);
-    //mLogInfoLn("Foot clearance is " << mFootClearance);
+    mLogInfoLn("Foot clearance is " << mFootClearance);
   }
 
   // Adjust swing time, used to determine early swing against late swing
@@ -897,10 +899,10 @@ void CLeoBhWalkSym::autoActuateKnees(ISTGActuation* actuationInterface)
     mAgentAction[2] = clip(kneeSwingVoltage, -maxVoltage, maxVoltage);
   }
   // When not observing and not learning the knee, set directly to actuation interface
-  else if (!mLearnSwingKnee)
-  {
-    getActuationInterface()->setJointVoltage(mKneeSwing, kneeSwingVoltage);
-  }
+//  else if (!mLearnSwingKnee)
+//  {
+//    getActuationInterface()->setJointVoltage(mKneeSwing, kneeSwingVoltage);
+//  }
   // when not observing and actually learning the knee, do nothing
 }
 

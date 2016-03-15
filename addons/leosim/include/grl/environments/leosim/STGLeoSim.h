@@ -8,23 +8,26 @@
 #ifndef STGLEOSIM_H_
 #define STGLEOSIM_H_
 
-#include "STGLeo.h"
+#include <STGLeo.h>
+#include <STGODESim.h>
+//#include <ThirdOrderButterworth.h>
+//#include <grl/environments/odesim/simulator.h>
 
-class CSTGLeoSim: public ISTGLeoActuation
+class CSTGLeoSim: public ISTGLeoActuation //public CSTGODESim<CLeoState>, public ISTGLeoActuation, private PosixNonRealTimeThread
 {
 	protected:
-		// Actuation values
-		double				mMotorJointVoltages[ljNumDynamixels];
+//    CLog2				mLog;
+
+    double				mMotorJointVoltages[ljNumDynamixels];
 
 	public:
-    CSTGLeoSim()  {}
+    CSTGLeoSim() {}
     ~CSTGLeoSim() {}
 
     void          setJointVoltage(int jointIndex, double voltage);					// Voltage in [V]
     double        getJointVoltage(int jointIndex);
-
-		// It's wise to implement the physical limits of the motors, as well as their name
     double        getJointMaxVoltage(int jointIndex);
+
 };
 
 #endif /* STGLEOSIM_H_ */

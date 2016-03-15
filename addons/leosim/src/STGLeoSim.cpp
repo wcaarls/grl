@@ -34,6 +34,6 @@ double CSTGLeoSim::getJointMaxVoltage(int jointIndex)
 	if (jointIndex < ljNumDynamixels)
 		return LEO_MAX_DXL_VOLTAGE;
 	else
-		return 0;
+    return 0;
 }
 
