@@ -88,9 +88,11 @@ class CompassWalkerSandbox : public Sandbox
     std::deque<double> hip_instant_velocity_;
     Vector state_;
     Exporter *exporter_;
+    int use_avg_velocity_;
 
   public:
-    CompassWalkerSandbox() : tau_(0.2), steps_(20), slope_angle_(0.004), test_(0), time_(0.0) { }
+    CompassWalkerSandbox() : tau_(0.2), steps_(20), slope_angle_(0.004),
+      test_(0), time_(0.0), use_avg_velocity_(1) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);

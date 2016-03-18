@@ -2,12 +2,13 @@
 --  Cart-pole swing-up task for Manuel's RBDL cart-pole simulation
 --  using MPRL-style observations and rewards.
 --
---  Author:
+--  Authors:
 --    Wouter Caarls <wouter@caarls.org>
 --    Ivan Koryakovskiy <i.koryakovskiy@tudelft.nl>
 --]]
 
 -- Helper functions
+math.randomseed( os.time() )
 
 -- Set the following values to enable reward shaping
 reward_shaping = false
@@ -30,14 +31,6 @@ end
 -- This ensures that maximum potential is 0 (at swingup) and minimum is < 0 everywhere else
 function getPotential(state)
   angle = wrap_angle(state[1]) - math.pi
-
--- Literature (lit):
---  return -1    *  state[0]^2 
---         -10   *  angle^2
---         -0.1  *  state[2]^2 
---         -0.1  *  state[3]^2
-
---  RL (rl):
   return -2    *  state[0]^2 
          -1    *  angle^2
          -0.2  *  state[2]^2
@@ -79,8 +72,12 @@ function configure(argstr)
           }
 end
 
-function start()
-  return {0, math.pi, 0, 0, 0}
+function start(test)
+  if test == 1 then -- !!! Lua always treats 'numbers' as 'true'. For a correct boolean expression compare numbers !!! --
+    return {0, math.pi, 0, 0, 0}
+  else
+    return {0, math.pi+math.random()*0.1-0.05, 0, 0, 0}
+  end
 end
 
 function observe(state)

@@ -72,14 +72,6 @@ function succeeded(state)
   end
 end
 
-function int(v)
-  if v then
-    return 1
-  else
-    return 0
-  end
-end
-
 -- Exported functions
 
 function configure(argstr)

@@ -92,7 +92,7 @@ double CompassWalkerModel::step(const Vector &state, const Vector &action, Vecto
     (*next)[CompassWalker::siLastHipX] = swstate.getHipX();
   else
     (*next)[CompassWalker::siLastHipX] = state[CompassWalker::siLastHipX];
-  (*next)[CompassWalker::siHipVelocity] = - swstate.mStanceLegAngleRate * cos(swstate.mStanceLegAngle); // instant velocity instead
+  (*next)[CompassWalker::siHipVelocity] = - swstate.mStanceLegAngleRate * cos(swstate.mStanceLegAngle); // instant velocity
   (*next)[CompassWalker::siTime] = state[CompassWalker::siTime] + tau_;
   (*next)[CompassWalker::siTimeout] = state[CompassWalker::siTimeout];
 
@@ -106,6 +106,7 @@ void CompassWalkerSandbox::request(ConfigurationRequest *config)
   config->push_back(CRP("integration_steps", "Number of integration steps per control step", (int)steps_, CRP::Configuration, 1));
   config->push_back(CRP("slope_angle", "double.slope_angle", "Inclination of the slope", slope_angle_, CRP::Configuration, -DBL_MAX, DBL_MAX));
   config->push_back(CRP("exporter", "exporter", "Optional exporter for transition log (supports time, state, observation, action, reward, terminal)", exporter_, true));
+  config->push_back(CRP("use_avg_velocity", "Velocity type ", use_avg_velocity_, CRP::Configuration, 0, 1));
 }
 
 void CompassWalkerSandbox::configure(Configuration &config)
@@ -113,6 +114,7 @@ void CompassWalkerSandbox::configure(Configuration &config)
   tau_ = config["control_step"];
   steps_ = config["integration_steps"];
   slope_angle_ = config["slope_angle"];
+  use_avg_velocity_ = config["use_avg_velocity"];
   exporter_ = (Exporter*) config["exporter"].ptr();
   if (exporter_)
     exporter_->init({"time", "state", "action"});
@@ -156,13 +158,22 @@ double CompassWalkerSandbox::step(const Vector &action, Vector *next)
   if (test_)
     time_ += tau_;
 
-  // Calculate average velocity
-  double velocity = - swstate.mStanceLegAngleRate * cos(swstate.mStanceLegAngle);
-  hip_instant_velocity_.push_back(velocity);
-  if (hip_instant_velocity_.size() >= 100)
-    hip_instant_velocity_.pop_front();
-  double sum = std::accumulate(hip_instant_velocity_.begin(), hip_instant_velocity_.end(), 0.0);
-  double hip_avg_velocity = sum / hip_instant_velocity_.size();
+  double hip_velocity;
+  if (use_avg_velocity_)
+  {
+    // Calculate average velocity (non-Markov)
+    double velocity = - swstate.mStanceLegAngleRate * cos(swstate.mStanceLegAngle);
+    hip_instant_velocity_.push_back(velocity);
+    if (hip_instant_velocity_.size() >= 100)
+      hip_instant_velocity_.pop_front();
+    double sum = std::accumulate(hip_instant_velocity_.begin(), hip_instant_velocity_.end(), 0.0);
+    hip_velocity = sum / hip_instant_velocity_.size();
+  }
+  else
+  {
+    // Instantaneous velocity (Markov)
+    hip_velocity = -swstate.mStanceLegAngleRate * cos(swstate.mStanceLegAngle);
+  }
 
   next->resize(state_.size());
   (*next)[CompassWalker::siStanceLegAngle] = swstate.mStanceLegAngle;
@@ -175,7 +186,7 @@ double CompassWalkerSandbox::step(const Vector &action, Vector *next)
     (*next)[CompassWalker::siLastHipX] = swstate.getHipX();
   else
     (*next)[CompassWalker::siLastHipX] = state_[CompassWalker::siLastHipX];
-  (*next)[CompassWalker::siHipVelocity] = hip_avg_velocity;
+  (*next)[CompassWalker::siHipVelocity] = hip_velocity;
   (*next)[CompassWalker::siTime] = state_[CompassWalker::siTime] + tau_;
   (*next)[CompassWalker::siTimeout] = state_[CompassWalker::siTimeout];
 
@@ -225,8 +236,8 @@ void CompassWalkerWalkTask::configure(Configuration &config)
   config.set("observation_min", observation_min);
   config.set("observation_max", observation_max);
   config.set("action_dims", 1);
-  config.set("action_min", VectorConstructor(-10));
-  config.set("action_max", VectorConstructor( 10));
+  config.set("action_min", VectorConstructor(-1.2));
+  config.set("action_max", VectorConstructor( 1.2));
   config.set("reward_min", -101);
   config.set("reward_max",  50);
 }
@@ -354,8 +365,6 @@ void CompassWalkerVrefTask::evaluate(const Vector &state, const Vector &action, 
     throw Exception("task/compass_walker/vref requires model/compass_walker");
 
   *reward = 0.1*fmax(0, 4 - 100.0*pow(next[CompassWalker::siHipVelocity] - vref_, 2));
-  //*reward = 0.1*(4 - 100.0*pow(next[CompassWalker::siHipVelocity] - vref_, 2)); // nt - not truncated works same as previous for avgg
-  //*reward = -10.0*pow(next[CompassWalker::siHipVelocity] - vref_, 2); // nt nb - not truncated, not baised
 
   if (fabs(next[CompassWalker::siStanceLegAngle]) > M_PI/8 || fabs(next[CompassWalker::siHipAngle] - 2 * next[CompassWalker::siStanceLegAngle]) > M_PI/4)
     if (neg_reward_)
@@ -373,6 +382,8 @@ void CompassWalkerVrefTask::configure(Configuration &config)
 {
   CompassWalkerWalkTask::configure(config);
   vref_ = config["reference_velocity"];
+  config.set("action_min", VectorConstructor(-10));
+  config.set("action_max", VectorConstructor( 10));
 }
 
 // *** CompassWalkerVrefuTask ***
