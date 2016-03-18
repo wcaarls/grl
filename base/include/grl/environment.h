@@ -56,7 +56,6 @@ class Model : public Configurable
   public:
     virtual ~Model() { }
     virtual Model *clone() const = 0;
-    virtual void start(const Vector &hint, Vector *state) {}
     virtual double step(const Vector &state, const Vector &action, Vector *next) const = 0;
 };
 

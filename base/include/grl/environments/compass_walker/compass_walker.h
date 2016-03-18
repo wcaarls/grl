@@ -69,7 +69,6 @@ class CompassWalkerModel : public Model
     
     // From Model
     virtual CompassWalkerModel *clone() const;
-    virtual void start(const Vector &hint, Vector *state);
     virtual double step(const Vector &state, const Vector &action, Vector *next) const;
 };
 
@@ -81,15 +80,17 @@ class CompassWalkerSandbox : public Sandbox
 
   protected:
     double tau_;
+    double time_;
+    int test_;
     double slope_angle_;
     size_t steps_;
     CSWModel model_;
     std::deque<double> hip_instant_velocity_;
     Vector state_;
-    std::string integrator_out_;
+    Exporter *exporter_;
 
   public:
-    CompassWalkerSandbox() : tau_(0.2), steps_(20), slope_angle_(0.004) { }
+    CompassWalkerSandbox() : tau_(0.2), steps_(20), slope_angle_(0.004), test_(0), time_(0.0) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -118,7 +119,8 @@ class CompassWalkerWalkTask : public Task
     Vector observe_;          // Indicator vector with 1s for states, which are observed by an agent
 
   public:
-    CompassWalkerWalkTask() : T_(100), initial_state_variation_(0.2), slope_angle_(0.004), neg_reward_(-100.0), verbose_(false){ }
+    CompassWalkerWalkTask() : T_(100), initial_state_variation_(0.2), slope_angle_(0.004),
+      neg_reward_(-100.0), verbose_(false), observe_(VectorConstructor(1, 1, 1, 1, 1, 0)){ }
     
     // From Configurable
     virtual void request(ConfigurationRequest *config);

@@ -13,14 +13,13 @@ experiment:
       control_step: 0.2
       integration_steps: 20
       slope_angle: 0.004
-      fname: ???
-    task: 
+    task:
       type: task/compass_walker/vrefu
       timeout: 100
       initial_state_variation: 0.2
       slope_angle: experiment/environment/model/slope_angle
       negative_reward: -5
-      observe: [ 1, 1, 1, 1, 0, 1 ]
+      observe: [1, 1, 1, 1, 0, 1]
       reference_velocity: 0.12
     exporter: 
       type: exporter/csv

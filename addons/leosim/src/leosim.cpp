@@ -40,6 +40,11 @@ void CGrlLeoBhWalkSym::fillLeoState(const Vector &obs, const Vector &action, CLe
   leoState.mJointAngles[ljKneeLeft]   = obs[svLeftKneeAngle];
   leoState.mJointSpeeds[ljKneeLeft]   = mJointSpeedFilter[ljKneeLeft].filter(obs[svLeftKneeAngleRate]);
 
+  leoState.mFootContacts  = obs[svRightToeContact]?LEO_FOOTSENSOR_RIGHT_TOE:0;
+  leoState.mFootContacts |= obs[svRightHeelContact]?LEO_FOOTSENSOR_RIGHT_HEEL:0;
+  leoState.mFootContacts |= obs[svLeftToeContact]?LEO_FOOTSENSOR_LEFT_TOE:0;
+  leoState.mFootContacts |= obs[svLeftHeelContact]?LEO_FOOTSENSOR_LEFT_HEEL:0;
+
   // required for correct energy calculation in reward function
   if (action.size())
   {
@@ -51,9 +56,6 @@ void CGrlLeoBhWalkSym::fillLeoState(const Vector &obs, const Vector &action, CLe
     leoState.mActuationVoltages[ljAnkleRight] = action[avRightAnkleTorque];
     leoState.mActuationVoltages[ljAnkleLeft]  = action[avLeftAnkleTorque];
   }
-
-//  CSTGLeoSim *leoSim = dynamic_cast<CSTGLeoSim*>(mActuationInterface);
-//  leoSim->fillState(leoState); # use state for contact information
 }
 
 void CGrlLeoBhWalkSym::parseLeoState(const CLeoState &leoState, Vector &obs)
@@ -191,9 +193,6 @@ void LeoSimEnvironment::configure(Configuration &config)
   // reserve memory
   ode_obs_.resize(ode_observation_dims_);
   ode_action_.resize(ode_action_dims_);
-
-  // Bind robot to obtain contact information
-//  leoSim_.bindRobot(env_->getSim()->getSim()); # use state for contact information
 }
 
 void LeoSimEnvironment::reconfigure(const Configuration &config)

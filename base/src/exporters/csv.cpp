@@ -132,7 +132,7 @@ void CSVExporter::open(const std::string &variant, bool append)
     return;
 
   std::string file = file_;
-  if (data_type_ == ExportDataType::edtLearnTest)
+  if ((data_type_ == ExportDataType::edtLearnTest) && !variant.empty())
     file = file_ + "-" + variant;
 
   // account for 'run'
@@ -149,22 +149,19 @@ void CSVExporter::open(const std::string &variant, bool append)
   stream_.open((file+".csv").c_str(), std::ofstream::out | (append?std::ofstream::app:std::ofstream::trunc));
 }
 
-void CSVExporter::write(const std::initializer_list<Vector> &vars)
+void CSVExporter::writer(std::vector<Vector> var_vec)
 {
-  if (vars.size() != headers_.size())
+  if (var_vec.size() != headers_.size())
   {
     ERROR("Variable list does not match header list");
     return;
   }
 
-  std::vector<Vector> var_vec;
-  var_vec.insert(var_vec.end(), vars.begin(), vars.end());
-
   if (write_header_ && style_ != "none")
   {
     if (style_ == "meshup")
       stream_ << "COLUMNS:" << std::endl;
-      
+
     for (size_t ii=0; ii < order_.size(); ++ii)
     {
       Vector &v = var_vec[order_[ii]];
@@ -175,15 +172,15 @@ void CSVExporter::write(const std::initializer_list<Vector> &vars)
           stream_ << ", ";
         if (style_ == "meshup")
           stream_ << std::endl;
-      } 
+      }
     }
-    
+
     if (style_ == "meshup")
       stream_ << "DATA:" << std::endl;
     else
       stream_ << std::endl;
   }
-  
+
   write_header_ = false;
 
   for (size_t ii=0; ii < order_.size(); ++ii)
@@ -193,9 +190,23 @@ void CSVExporter::write(const std::initializer_list<Vector> &vars)
     {
       stream_ << std::fixed << std::setw(11) << std::setprecision(6) << v[jj];
       if (ii < order_.size()-1 || jj < v.size() -1)
-        stream_ << ", "; 
+        stream_ << ", ";
     }
   }
-  
+
   stream_ << std::endl;
+}
+
+void CSVExporter::write(const std::initializer_list<Vector> &vars)
+{
+  std::vector<Vector> var_vec;
+  var_vec.insert(var_vec.end(), vars.begin(), vars.end());
+  writer(var_vec);
+}
+
+void CSVExporter::append(const std::initializer_list<Vector> &vars)
+{
+  append_vec_.insert(append_vec_.end(), vars.begin(), vars.end());
+  if (append_vec_.size() >= headers_.size())
+    writer(append_vec_);
 }

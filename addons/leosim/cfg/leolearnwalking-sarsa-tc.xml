@@ -200,6 +200,26 @@
 			<min>-10*pi</min>
 			<max>10*pi</max>
 		</statevar>
+		<statevar comment="Right toes contact">
+			<expression>robot.toeright.contact</expression>
+			<min>0</min>
+			<max>1</max>
+		</statevar>
+		<statevar comment="Right heel contact">
+			<expression>robot.heelright.contact</expression>
+			<min>0</min>
+			<max>1</max>
+		</statevar>
+		<statevar comment="Left toes contact">
+			<expression>robot.toeleft.contact</expression>
+			<min>0</min>
+			<max>1</max>
+		</statevar>
+		<statevar comment="Left heel contact">
+			<expression>robot.heelleft.contact</expression>
+			<min>0</min>
+			<max>1</max>
+		</statevar>
 
 		<actionvar comment="Shoulder torque">
 		    <variable>robot.shoulder.torque</variable>

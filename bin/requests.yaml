@@ -2227,11 +2227,11 @@ sandbox_model/compass_walker:
     optional: 1
     min: -1.797693134862316e+308
     max: 1.797693134862316e+308
-  integrator_out:
-    type: string
-    description: string.integrator_out_
+  exporter:
+    type: exporter
+    description: Optional exporter for transition log (supports time, state, observation, action, reward, terminal)
     mutability: configuration
-    default: ""
+    default: 0
     optional: 1
 solver/agent:
   description: Solver that uses a simulated agent
@@ -2561,7 +2561,7 @@ task/compass_walker/vref:
     type: vector
     description: State elements observed by an agent
     mutability: configuration
-    default: "[  ]"
+    default: "[ 1, 1, 1, 1, 1, 0 ]"
     optional: 1
   reference_velocity:
     type: double
@@ -2641,7 +2641,7 @@ task/compass_walker/vrefu:
     type: vector
     description: State elements observed by an agent
     mutability: configuration
-    default: "[  ]"
+    default: "[ 1, 1, 1, 1, 1, 0 ]"
     optional: 1
   reference_velocity:
     type: double
@@ -2721,7 +2721,7 @@ task/compass_walker/walk:
     type: vector
     description: State elements observed by an agent
     mutability: configuration
-    default: "[  ]"
+    default: "[ 1, 1, 1, 1, 1, 0 ]"
     optional: 1
 task/lua:
   description: User-provided task specification in LUA

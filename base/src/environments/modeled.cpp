@@ -47,11 +47,9 @@ void ModeledEnvironment::configure(Configuration &config)
   task_ = (Task*)config["task"].ptr();
   exporter_ = (Exporter*)config["exporter"].ptr();
   
+  // Register fields to be exported
   if (exporter_)
-  {
-    // Register headers
     exporter_->init({"time", "state", "observation", "action", "reward", "terminal"});
-  }
   
   state_obj_ = new State();
   
@@ -80,7 +78,6 @@ void ModeledEnvironment::start(int test, Vector *obs)
 
   task_->start(test, &state_);
   task_->observe(state_, obs, &terminal);
-  model_->start(ConstantVector(1, test), &state_);
 
   obs_ = *obs;
   state_obj_->set(state_);

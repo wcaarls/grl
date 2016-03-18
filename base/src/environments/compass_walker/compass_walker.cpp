@@ -66,12 +66,6 @@ CompassWalkerModel *CompassWalkerModel::clone() const
   return new CompassWalkerModel(*this);
 }
 
-void CompassWalkerModel::start(const Vector &hint, Vector *state)
-{
-  if (hint[0] != 0) // test
-    model_.openFile(integrator_out_);
-}
-
 double CompassWalkerModel::step(const Vector &state, const Vector &action, Vector *next) const
 {
   if (state.size() != CompassWalker::ssStateSize || action.size() != 1)
@@ -111,7 +105,7 @@ void CompassWalkerSandbox::request(ConfigurationRequest *config)
   config->push_back(CRP("control_step", "double.control_step", "Control step time", tau_, CRP::Configuration, 0.001, DBL_MAX));
   config->push_back(CRP("integration_steps", "Number of integration steps per control step", (int)steps_, CRP::Configuration, 1));
   config->push_back(CRP("slope_angle", "double.slope_angle", "Inclination of the slope", slope_angle_, CRP::Configuration, -DBL_MAX, DBL_MAX));
-  config->push_back(CRP("integrator_out", "string.integrator_out_", ""));
+  config->push_back(CRP("exporter", "exporter", "Optional exporter for transition log (supports time, state, observation, action, reward, terminal)", exporter_, true));
 }
 
 void CompassWalkerSandbox::configure(Configuration &config)
@@ -119,7 +113,9 @@ void CompassWalkerSandbox::configure(Configuration &config)
   tau_ = config["control_step"];
   steps_ = config["integration_steps"];
   slope_angle_ = config["slope_angle"];
-  integrator_out_ = config["integrator_out"].str();
+  exporter_ = (Exporter*) config["exporter"].ptr();
+  if (exporter_)
+    exporter_->init({"time", "state", "action"});
 
   model_.setSlopeAngle(slope_angle_);
   model_.setTiming(tau_, steps_);
@@ -127,6 +123,7 @@ void CompassWalkerSandbox::configure(Configuration &config)
 
 void CompassWalkerSandbox::reconfigure(const Configuration &config)
 {
+  time_ = 0.0;
 }
 
 CompassWalkerSandbox *CompassWalkerSandbox::clone() const
@@ -138,8 +135,8 @@ void CompassWalkerSandbox::start(const Vector &hint, Vector *state)
 {
   hip_instant_velocity_.clear();
   state_ = *state;
-  if (hint[0] != 0) // test
-    model_.openFile(integrator_out_);
+  test_ = (hint[0] != 0)?1:0;
+  exporter_->open((test_?"test":"learn"), time_ != 0.0);
 }
 
 double CompassWalkerSandbox::step(const Vector &action, Vector *next)
@@ -155,7 +152,9 @@ double CompassWalkerSandbox::step(const Vector &action, Vector *next)
                state_[CompassWalker::siHipAngle],
                state_[CompassWalker::siHipAngleRate]);
 
-  model_.singleStep(swstate, action[0]);
+  model_.singleStep(swstate, action[0], test_?exporter_:NULL, time_);
+  if (test_)
+    time_ += tau_;
 
   // Calculate average velocity
   double velocity = - swstate.mStanceLegAngleRate * cos(swstate.mStanceLegAngle);

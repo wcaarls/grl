@@ -67,8 +67,11 @@ class CSVExporter : public Exporter
     std::ofstream stream_;
     std::vector<size_t> order_;
     std::vector<std::string> headers_;
+    std::vector<Vector> append_vec_;
     bool write_header_;
     static int run_cnt_;
+
+    void writer(std::vector<Vector> var_vec);
 
   public:
     CSVExporter() : style_("line"), write_header_(true) { }
@@ -82,6 +85,7 @@ class CSVExporter : public Exporter
     void init(const std::initializer_list<std::string> &headers);
     void open(const std::string &variant="", bool append=true);
     void write(const std::initializer_list<Vector> &vars);
+    void append(const std::initializer_list<Vector> &vars);
 };
 
 }

@@ -26,7 +26,7 @@ void CSWModelState::init(double xOffset, double stanceLegAngle, double stanceLeg
 // *************************** CSWModel *************************** //
 // **************************************************************** //
 
-double CSWModel::detectEvents(const CSWModelState& stateT0, CSWModelState& stateT1, double hipTorque, double dt) const
+double CSWModel::detectEvents(const CSWModelState& stateT0, CSWModelState& stateHS, CSWModelState& stateT1, double hipTorque, double dt) const
 {
   if ((stateT0.getSwingFootY() >= 0) && (stateT1.getSwingFootY() < 0))  // Swing foot passed through the floor
     if ( ((stateT0.mHipAngle < 0) && (stateT1.mHipAngle < 0))  ||
@@ -34,7 +34,7 @@ double CSWModel::detectEvents(const CSWModelState& stateT0, CSWModelState& state
        if ( ((stateT1.mStanceLegAngleRate < 0) && (stateT1.mHipAngle < 0)))// || // forward step in direction of movement
          // ((mState.mStanceLegAngleVel > 0) && (mState.mHipAngle > 0)) )  // backward step in the direction of movement
       {
-        double timeleft = processStanceLegChange(stateT0, stateT1, hipTorque, dt);
+        double timeleft = processStanceLegChange(stateT0, stateHS, stateT1, hipTorque, dt);
         stateT1.mStanceLegChanged = true;
         return timeleft;
       }
@@ -48,11 +48,6 @@ CSWModel::CSWModel():
   mNumIntegrationSteps(8),
   mHeelStrikeHeightPrecision(1.0E-11)  // 0.01 mm by default
 {
-}
-
-CSWModel::~CSWModel()
-{
-  closeFile();
 }
 
 double CSWModel::detectHeelstrikeMoment(const CSWModelState& stateT0, const CSWModelState& stateT1, CSWModelState& heelstrikeState, double hipTorque, double heightPrecision, double dt) const
@@ -108,27 +103,20 @@ double CSWModel::detectHeelstrikeMoment(const CSWModelState& stateT0, const CSWM
   return timeLeft;
 }
 
-double CSWModel::processStanceLegChange(const CSWModelState& stateT0, CSWModelState& stateT1, double hipTorque, double dt) const
+double CSWModel::processStanceLegChange(const CSWModelState& stateT0, CSWModelState& stateHS, CSWModelState& stateT1, double hipTorque, double dt) const
 {
-  CSWModelState heelstrikeState;  // This state will receive the state at which heel strike took place
-  double timeleft = detectHeelstrikeMoment(stateT0, stateT1, heelstrikeState, hipTorque, mHeelStrikeHeightPrecision, dt);
+  // stateHS ---> the state at which heel strike took place
+  double timeleft = detectHeelstrikeMoment(stateT0, stateT1, stateHS, hipTorque, mHeelStrikeHeightPrecision, dt);
 
   // Fill the new state (stateT1) with the state after the impact
   // Adjust velocities
-  stateT1.mHipAngleRate       = heelstrikeState.mStanceLegAngleRate*(cos(2.0*heelstrikeState.mStanceLegAngle)*(1.0 - cos(2.0*heelstrikeState.mStanceLegAngle)));
-  stateT1.mStanceLegAngleRate = heelstrikeState.mStanceLegAngleRate*(cos(2.0*heelstrikeState.mStanceLegAngle));
+  stateT1.mHipAngleRate       = stateHS.mStanceLegAngleRate*(cos(2.0*stateHS.mStanceLegAngle)*(1.0 - cos(2.0*stateHS.mStanceLegAngle)));
+  stateT1.mStanceLegAngleRate = stateHS.mStanceLegAngleRate*(cos(2.0*stateHS.mStanceLegAngle));
 
   // Switch leg angles and set new stance foot position
-  stateT1.mStanceFootX    =  heelstrikeState.getSwingFootX();
-  stateT1.mStanceLegAngle = -heelstrikeState.mStanceLegAngle;
-  stateT1.mHipAngle       = -2.0*heelstrikeState.mStanceLegAngle;  // Force hip angle to twice the stanceleg angle
-
-  // save state right before heelstrike
-  writeFile(dt - timeleft, heelstrikeState.mStanceLegAngle, heelstrikeState.mHipAngle, heelstrikeState.mStanceLegAngleRate,
-            heelstrikeState.mHipAngleRate, 0, hipTorque);
-  // save state right after heelstrike
-  writeFile(dt - timeleft, stateT1.mStanceLegAngle, stateT1.mHipAngle, stateT1.mStanceLegAngleRate,
-            stateT1.mHipAngleRate, 1, hipTorque);
+  stateT1.mStanceFootX    =  stateHS.getSwingFootX();
+  stateT1.mStanceLegAngle = -stateHS.mStanceLegAngle;
+  stateT1.mHipAngle       = -2.0*stateHS.mStanceLegAngle;  // Force hip angle to twice the stanceleg angle
 
   // We made a step!
   //mNumFootsteps++;
@@ -151,51 +139,7 @@ double CSWModel::getSlopeAngle() const
   return mSlopeAngle;
 }
 
-std::ofstream stream_;
-
-void CSWModel::openFile(const std::string fname) const
-{
-  if (!fname.empty())
-  {
-    stream_.open (fname, std::ofstream::out);
-    stream_ << "COLUMNS:" << std::endl;
-    stream_ << "time[0], " << std::endl;
-    stream_ << "state[0], " << std::endl;
-    stream_ << "state[1], " << std::endl;
-    stream_ << "state[2], " << std::endl;
-    stream_ << "state[3], " << std::endl;
-    stream_ << "state[4], " << std::endl;
-    stream_ << "action[0], " << std::endl;
-    stream_ << "DATA:" << std::endl;
-    time_ = 0;
-  }
-}
-
-void CSWModel::closeFile() const
-{
-  if (stream_.is_open())
-    stream_.close();
-}
-
-bool CSWModel::writeFile(double timeOffset, double sla, double ha, double slar, double har, double contact, double torque) const
-{
-
-  if (stream_.is_open())
-  {
-    double time = time_ + timeOffset;
-    stream_ << std::fixed << std::setw(11) << std::setprecision(6) << time     << ", "
-            << std::fixed << std::setw(11) << std::setprecision(6) << sla      << ", "
-            << std::fixed << std::setw(11) << std::setprecision(6) << ha       << ", "
-            << std::fixed << std::setw(11) << std::setprecision(6) << slar     << ", "
-            << std::fixed << std::setw(11) << std::setprecision(6) << har      << ", "
-            << std::fixed << std::setw(11) << std::setprecision(6) << contact  << ", "
-            << std::fixed << std::setw(11) << std::setprecision(6) << torque   << std::endl;
-    return true;
-  }
-  return false;
-}
-
-void CSWModel::singleStep(CSWModelState& state, double hipTorque) const
+void CSWModel::singleStep(CSWModelState& state, double hipTorque, grl::Exporter * const exporter, double time) const
 {
   // Keep previous state
   CSWModelState prevState = state;
@@ -206,10 +150,14 @@ void CSWModel::singleStep(CSWModelState& state, double hipTorque) const
   double partialStepTime = 1.0E-6*mStepTime/mNumIntegrationSteps;
   for (int i=0; i<mNumIntegrationSteps; i++)
   {
-    // Save to file the beginning of every subintegration interval
-    time_ += partialStepTime;
-    writeFile(0, state.mStanceLegAngle, state.mHipAngle, state.mStanceLegAngleRate,
-              state.mHipAngleRate, 0, hipTorque);
+    if (exporter)
+    {
+      // Export every subintegration interval
+      exporter->write({grl::VectorConstructor(time),
+                       grl::VectorConstructor(state.mStanceLegAngle, state.mHipAngle, state.mStanceLegAngleRate, state.mHipAngleRate, 0),
+                       grl::VectorConstructor(hipTorque)
+                      });
+    }
 
     // Runge-Kutta!
     integrateRK4(state, hipTorque, partialStepTime);
@@ -218,17 +166,34 @@ void CSWModel::singleStep(CSWModelState& state, double hipTorque) const
     state.wrapAngles();
 
     // Detect footstrikes and undertake actions to alter our state
-    double timeleft = detectEvents(prevState, state, hipTorque, partialStepTime);
+    CSWModelState stateHS;
+    double timeleft = detectEvents(prevState, stateHS, state, hipTorque, partialStepTime);
     stancelegChanged |= (timeleft > 0);
 
     if (timeleft > 0)
     {
+      if (exporter)
+      {
+        // Export before
+        exporter->write({grl::VectorConstructor(time + partialStepTime - timeleft),
+                         grl::VectorConstructor(stateHS.mStanceLegAngle, stateHS.mHipAngle, stateHS.mStanceLegAngleRate, stateHS.mHipAngleRate, 0),
+                         grl::VectorConstructor(hipTorque)
+                        });
+        // ... and after contact
+        exporter->write({grl::VectorConstructor(time + partialStepTime - timeleft),
+                         grl::VectorConstructor(state.mStanceLegAngle, state.mHipAngle, state.mStanceLegAngleRate, state.mHipAngleRate, 1),
+                         grl::VectorConstructor(hipTorque)
+                        });
+      }
+
       integrateRK4(state, hipTorque, timeleft);  // --> after this function, mState contains the new state
       // Wrap angles to the domain of -Pi to Pi
       state.wrapAngles();
     }
     // Backup prevState
     prevState = state;
+    // Increment time for exporting
+    time += partialStepTime;
   }
   // Copy hiptorque and stance leg change into the state
   state.mActionTorque    = hipTorque;

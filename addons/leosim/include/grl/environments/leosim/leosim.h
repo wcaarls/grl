@@ -31,6 +31,10 @@ class CGrlLeoBhWalkSym : public CLeoBhWalkSym
       svRightAnkleAngleRate,
       svLeftAnkleAngle,
       svLeftAnkleAngleRate,
+      svRightToeContact,
+      svRightHeelContact,
+      svLeftToeContact,
+      svLeftHeelContact,
       svNumStates
     };
     enum LeoActionVar
