@@ -6,8 +6,8 @@
  */
 
 #include "LeoBhWalkSym.h"
-//#include <QSpaceTileCoding.h>
 #include <cmath>
+#include <bitset>
 
 #ifndef clip
 #define clip(x, minval, maxval) (std::max(std::min(x, maxval), minval))
@@ -35,7 +35,6 @@ CLeoBhWalkSym::CLeoBhWalkSym(ISTGActuation *actuationInterface):
   mDesiredFrequency      = 30.0;
   mDesiredMemorySize      = 1024*1024*4;
   mDesiredNumTilings      = 16;
-//  mAlgo            = laSARSA;
   mUseEffectiveAction      = false;
   mRwTime            = -1.0;
   mRwFootstepDist        = 500;
@@ -59,7 +58,6 @@ CLeoBhWalkSym::CLeoBhWalkSym(ISTGActuation *actuationInterface):
   mWalkedDistance        = 0.0;
   mTrialEnergy        = 0.0;
   mObservingTime         = (uint64_t)200E6;
-//  mLearnSwingKnee        = true;
   mGeneralizeActions      = true;
   mSwingTime          = 0;
 
@@ -82,14 +80,6 @@ CLeoBhWalkSym::CLeoBhWalkSym(ISTGActuation *actuationInterface):
   // Set mPreviousAction to 0.0 - this is the initialization value of the torques in the simulator, and probably close to the real robot's situation (although it doesn't matter much)
   for (int iAction=0; iAction<LEOBHWALKSYM_MAX_NUM_ACTIONS; iAction++)
     mPreviousAction[iAction] = 0.0;
-
-//  setAlgo(mAlgo);
-  // Settings for 1.0/50.0 step time:
-  //setLearnParameters(0.25, 0.05, 0.9908, 0.9250);
-  // Settings for 1.0/75.0 step time:
-  //setLearnParameters(0.25, 0.05, 0.9939, 0.9494);
-
-  // setLearnParameters(0.20, 0.05, 0.9990, 0.9787); NOW DONE IN XML!
 }
 
 
@@ -118,7 +108,6 @@ bool CLeoBhWalkSym::readConfig(const CConfigSection &xmlRoot)
   mTrialTimeout = (uint64_t)(timeSeconds*1E6);
   configresult &= mLogAssert(configNode.get("observingTimeSeconds", &timeSeconds));
   mObservingTime = (uint64_t)(timeSeconds*1E6);
-//  configresult &= mLogAssert(configNode.get("learnSwingKnee", &mLearnSwingKnee));
 
   configNode = xmlRoot.section("ode");
   configNode.get("steptime", &mTotalStepTime);
@@ -126,140 +115,6 @@ bool CLeoBhWalkSym::readConfig(const CConfigSection &xmlRoot)
   return configresult;
 }
 
-/*
-bool CLeoBhWalkSym::init()
-{
-  enableProgressReporting(true);
-
-  // Create Q-space
-  CQSpaceTileCoding *qspace = new CQSpaceTileCoding;  // Will be destroyed in ~CAgentQ()
-  setQSpace(qspace);
-  qspace->setNumTilings(mDesiredNumTilings);
-  qspace->setMemorySize(mDesiredMemorySize);
-  qspace->generalizeActions(mGeneralizeActions);
-
-  mAgentState.setNumStateVars(siNumStateDims);
-  mAgentState.enableWrapping(false);
-  if (mLearnSwingKnee)
-    mAgentAction.setNumActionVars(3);
-  else
-    mAgentAction.setNumActionVars(2);
-  double maxVoltage = getActuationInterface()->getJointMaxVoltage(ljHipLeft);
-  mLogInfoLn("Max. allowed voltage calculated from temperature compensation model: " << maxVoltage);
-  // Action 0 is hipStance, action 1 is hipSwing, action 2 is kneeSwing
-  // Gaat prima op 75Hz:
-  //mAgentAction.mDescriptors[0].set(-maxVoltage, maxVoltage, 5, 0.2);
-  //mAgentAction.mDescriptors[1].set(-maxVoltage, maxVoltage, 5, 0.2);
-  //mAgentAction.mDescriptors[0].set(-maxVoltage, maxVoltage, 21, 0.75);
-  //mAgentAction.mDescriptors[1].set(-maxVoltage, maxVoltage, 21, 0.75);
-  // Probeersel:
-  mAgentAction.mDescriptors[0].set(-maxVoltage, maxVoltage, mNumActionsPerJoint, mScaleFactVoltage);
-  mAgentAction.mDescriptors[1].set(-maxVoltage, maxVoltage, mNumActionsPerJoint, mScaleFactVoltage);
-  if (mLearnSwingKnee)
-    mAgentAction.mDescriptors[2].set(-maxVoltage, maxVoltage, mNumActionsPerJoint, mScaleFactVoltage);
-
-  mShowQValues = false;
-
-  if (mUseEffectiveAction)
-  {
-    // We are going to make use of the effective action mechanism,
-    mLogNoticeLn("Using effective action updating, taking delay into account");
-    // so copy the descriptors from mAgentAction to mAgentEffectiveAction
-    mAgentEffectiveAction = mAgentAction;
-  }
-
-  bool result = CSTGAgentQLeo::init();
-  displayVariables();
-  return result;
-}
-*/
-/*
-bool CLeoBhWalkSym::init(std::ifstream &fileInStream)
-{
-  enableProgressReporting(true);
-
-  // Create Q-space
-  CQSpaceTileCoding *qspace = new CQSpaceTileCoding;  // Will be destroyed in ~CAgentQ()
-  setQSpace(qspace);
-
-  // mAgentState and mAgentAction are being read by CAgentQ::init(..)
-  bool result = true;
-  result &= CSTGAgentQLeo::init(fileInStream);
-
-  // Copy effective action settings
-  if (mUseEffectiveAction)
-  {
-    // We are going to make use of the effective action mechanism,
-    mLogNoticeLn("Using effective action updating, taking delay into account");
-    // so copy the descriptors from mAgentAction to mAgentEffectiveAction
-    mAgentEffectiveAction = mAgentAction;
-  }
-
-  // Display agent variables again after loading
-  mLogInfoLn("Agent variables after loading policy:");
-  displayVariables();
-  return result;
-
-}
-*/
-
-/*
-bool CLeoBhWalkSym::save(std::ofstream& fileOutStream)
-{
-  bool result = true;
-  result &= CSTGAgentQLeo::save(fileOutStream);
-  return result;
-}
-*/
-/*
-void CLeoBhWalkSym::updateState(CLeoState* currentSTGState)
-{
-  // Update derived state variables that make calculations easier
-  updateDerivedStateVars(currentSTGState);
-
-  // Fill mAgentState
-*/
-  /*
-  // For 30 Hz, works well
-  mAgentState.setStateVar(siTorsoAngle,      7.5*currentSTGState->mJointAngles[ljTorso]);
-  mAgentState.setStateVar(siTorsoAngleRate,    0.125*currentSTGState->mJointSpeeds[ljTorso]);
-  mAgentState.setStateVar(siHipStanceAngle,    4.0*currentSTGState->mJointAngles[mHipStance]);
-  mAgentState.setStateVar(siHipStanceAngleRate,  0.125*currentSTGState->mJointSpeeds[mHipStance]);
-  mAgentState.setStateVar(siHipSwingAngle,    3.5*currentSTGState->mJointAngles[mHipSwing]);
-  mAgentState.setStateVar(siHipSwingAngleRate,  0.055*currentSTGState->mJointSpeeds[mHipSwing]);
-  mAgentState.setStateVar(siKneeStanceAngle,    1.0*currentSTGState->mJointAngles[mKneeStance]);
-  mAgentState.setStateVar(siKneeStanceAngleRate,  0.075*currentSTGState->mJointSpeeds[mKneeStance]);
-  mAgentState.setStateVar(siKneeSwingAngle,    2.0*currentSTGState->mJointAngles[mKneeSwing]);
-  if (mLearnSwingKnee)
-    mAgentState.setStateVar(siKneeSwingAngleRate,  0.075*currentSTGState->mJointSpeeds[mKneeSwing]);
-  else
-    mAgentState.setStateVar(siKneeSwingAngleRate, 0);
-    */
-/*
-  mAgentState.setStateVar(siTorsoAngle,      mScaleFactTorsoAngle      *currentSTGState->mJointAngles[ljTorso]);
-  mAgentState.setStateVar(siTorsoAngleRate,    mScaleFactTorsoAngleRate    *currentSTGState->mJointSpeeds[ljTorso]);
-  mAgentState.setStateVar(siHipStanceAngle,    mScaleFactHipStanceAngle    *currentSTGState->mJointAngles[mHipStance]);
-  mAgentState.setStateVar(siHipStanceAngleRate,  mScaleFactHipStanceAngleRate  *currentSTGState->mJointSpeeds[mHipStance]);
-  mAgentState.setStateVar(siHipSwingAngle,    mScaleFactHipSwingAngle      *currentSTGState->mJointAngles[mHipSwing]);
-  mAgentState.setStateVar(siHipSwingAngleRate,  mScaleFactHipSwingAngleRate    *currentSTGState->mJointSpeeds[mHipSwing]);
-  mAgentState.setStateVar(siKneeStanceAngle,    mScaleFactKneeStanceAngle    *currentSTGState->mJointAngles[mKneeStance]);
-  mAgentState.setStateVar(siKneeStanceAngleRate,  mScaleFactKneeStanceAngleRate  *currentSTGState->mJointSpeeds[mKneeStance]);
-  mAgentState.setStateVar(siKneeSwingAngle,    mScaleFactKneeSwingAngle    *currentSTGState->mJointAngles[mKneeSwing]);
-  if (mLearnSwingKnee)
-    mAgentState.setStateVar(siKneeSwingAngleRate,  mScaleFactKneeSwingAngleRate*currentSTGState->mJointSpeeds[mKneeSwing]);
-  else
-    mAgentState.setStateVar(siKneeSwingAngleRate, 0);
-
-  if (mPrintState)
-    mLogInfoLn("S: " << mAgentState.toStr() << ", StCont:" << (mStanceFootContact?"Y":"N") << ", SwCont:" << (mSwingFootContact?"Y":"N"));
-
-  if (mIsObserving)
-    setAlgo(laQObserve);
-  else
-    setAlgo(mAlgo);
-}
-*/
-#include <bitset>
 void CLeoBhWalkSym::updateDerivedStateVars(CLeoState* currentSTGState)
 {
   // Backup last footstep length
@@ -423,198 +278,6 @@ void CLeoBhWalkSym::updateDerivedStateVars(CLeoState* currentSTGState)
   mLastStancelegWasLeft = (leftIsStance?1:0);
 }
 
-/*
-double CLeoBhWalkSym::learn(char agentInTerminalState)
-{
-  double result = CSTGAgentQLeo::learn(agentInTerminalState);
-  return result;
-}*/
-
-/*
-void CLeoBhWalkSym::updateAction(ISTGActuation* actuationInterface)
-{
-  //printf("Before actuation: A[0]=%.3f, A[1]=%.3f, A[2]=%.3f\n", getCurrentSTGState()->mActuationVoltages[mHipStance], getCurrentSTGState()->mActuationVoltages[mHipSwing], getCurrentSTGState()->mActuationVoltages[mKneeSwing]);
-
-  // Calculated actions
-  autoActuateAnkles_FixedPos(actuationInterface);    // Fixed ankles
-  autoActuateArm(actuationInterface);          // Fixed arm
-  autoActuateKnees(actuationInterface);
-  //autoActuateKnees_StanceLegFunc(actuationInterface);  // Fixed stance knee, but swing knee function
-  if (mIsObserving)
-    autoActuateHips2(NULL);                // Hips. Runs only during observing mode
-  // Disturb the standard controller sometimes during observing mode -- only if learning is enabled (not for test runs)
-  if (mIsObserving && mLearningEnabled)
-    if (gRanrotB.Random() < mPreProgExploreRate)
-      mAgentAction.randomizeUniform(&gRanrotB);
-
-  // Put the agent's actions into effect
-  actuationInterface->setJointVoltage(mHipStance,  mAgentAction[0]);
-  actuationInterface->setJointVoltage(mHipSwing,  mAgentAction[1]);
-  if (mLearnSwingKnee)
-    actuationInterface->setJointVoltage(mKneeSwing,  mAgentAction[2]);
-
-  if (true)
-  {
-    std::stringstream agentActionSs;
-    agentActionSs << "Agent action: ";
-    for (int i=0; i<mAgentAction.getNumActionVars(); i++)
-      agentActionSs << i << ": " << mAgentAction.getActionVar(i) << ",\t";
-    mLogDebugLn(agentActionSs.str());
-  }
-
-  //printf("Actual actions  : A[0]=%.3f, A[1]=%.3f, A[2]=%.3f\n", mAgentAction[0], mAgentAction[1], mAgentAction[2]);
-  //printf("After actuation : A[0]=%.3f, A[1]=%.3f, A[2]=%.3f\n\n", getCurrentSTGState()->mActuationVoltages[mHipStance], getCurrentSTGState()->mActuationVoltages[mHipSwing], getCurrentSTGState()->mActuationVoltages[mKneeSwing]);
-
-  // Calculate effective action if desired
-  if (mUseEffectiveAction)
-  {
-    // Set effective action - ONLY valid for delay ratios of <= 1.0
-    double delayRatio = actuationInterface->getComputationalDelayRatio();
-    for (int i=0; i<LEOBHWALKSYM_MAX_NUM_ACTIONS; i++)
-      mAgentEffectiveAction[i] = delayRatio*mPreviousAction[i] + (1.0-delayRatio)*mAgentAction[i];
-    setExecutedActionType(atEffective);
-    mLogInfoLn("Action (delay " << delayRatio << "):");
-    mLogInfoLn("prev:" << mPreviousAction.toStr());
-    mLogInfoLn("eff :" << mAgentEffectiveAction.toStr());
-    mLogInfoLn("curr:" << mAgentAction.toStr());
-  }
-
-  // Use error leds to indicate stance leg
-  actuationInterface->setLed(0, !mLastStancelegWasLeft);
-  actuationInterface->setLed(1, false);
-  actuationInterface->setLed(2, mLastStancelegWasLeft);
-
-  //mLogInfoLn("Action: " << mAgentAction.toStr());
-}
-*/
-
-/*
-std::string CLeoBhWalkSym::getProgressReport(uint64_t absoluteTimeMicroseconds)
-{
-  std::stringstream progressString;
-  // Life time
-  //progressString << (double)(absoluteTimeMicroseconds - getResetMemoryTime())/(double)1.0E6 << "\t";
-  // Use agent life duration, otherwise the time for standing up is included in the timeline
-  progressString << (double)getAgentLifeDuration()/(double)1.0E6 << "\t";
-
-  // Trial time
-  double trialTime = (double)(absoluteTimeMicroseconds - getResetTime())/(double)1.0E6;
-  progressString << trialTime << "\t";
-
-  // Number of footsteps
-  progressString << mNumFootsteps << "\t";
-
-  // Number of cumulative falls since the birth of the agent
-  progressString << mNumFalls << "\t";
-
-  // Walked distance (estimate)
-  progressString << mWalkedDistance << "\t";
-
-  // Speed
-  progressString << mWalkedDistance/trialTime << "\t";
-
-  // Energy usage
-  progressString << mTrialEnergy << "\t";
-
-  // Energy per traveled meter
-  if (mWalkedDistance != 0.0)
-    progressString << mTrialEnergy/mWalkedDistance << "\t";
-  else
-    progressString << 0.0 << "\t";
-
-  // Total reward - single agent
-  progressString << getTotalReward() << "\t";
-
-  // Total reward - multi-agent
-  for (int iAgent=0; iAgent<getNumSubAgents(); iAgent++)
-    progressString << getSubAgent(iAgent)->getTotalReward() << "\t";
-
-  // Total memory usage
-  _IndexPrecision totalMem = 0;
-  if (getQSpace() != NULL)
-    totalMem += getQSpace()->getMemoryUsage();
-  for (int iSA=0; iSA<getNumSubAgents(); iSA++)
-    totalMem += getSubAgent(iSA)->getQSpace()->getMemoryUsage();
-  progressString << totalMem << "\t";
-
-  // Memory usage of the main Q-space. Omit this value if there are no sub-agents, because then totalMem == QSpaceMem.
-  if (getNumSubAgents() > 0)
-  {
-    if (getQSpace() != NULL)
-      progressString << getQSpace()->getMemoryUsage() << "\t";
-    else
-      progressString << 0 << "\t";
-  }
-
-  // Memory usage per agent
-  for (int iSA=0; iSA<getNumSubAgents(); iSA++)
-    progressString << getSubAgent(iSA)->getQSpace()->getMemoryUsage() << "\t";
-
-  // EOL
-  progressString << "\n";
-
-  return progressString.str();
-}
-*/
-
-/*
-void CLeoBhWalkSym::reset(uint64_t absoluteTimeMicroseconds)
-{
-  // Print memory usage and progress
-  if (getQSpace() != NULL)
-    mLogInfoLn("Memory usage: " << 100.0*(double)getQSpace()->getMemoryUsage()/(double)getQSpace()->getMemorySize() << "%");
-  for (int iSA=0; iSA<getNumSubAgents(); iSA++)
-    mLogInfoLn("Memory usage sub-agent " << iSA << ": " << 100.0*(double)getSubAgent(iSA)->getQSpace()->getMemoryUsage()/(double)getSubAgent(iSA)->getQSpace()->getMemorySize() << "%");
-  if (mLearnRateDecayRate < 1.0)
-    mLogInfoLn("Current learning rate: " << mLearnRate);
-
-
-  mLogInfoLn("Learning: " << (mLearningEnabled?"enabled":"disabled") << ", Observing: " << (mIsObserving?"enabled":"disabled"));
-  mLogInfo("Progress: " << getProgressReport(absoluteTimeMicroseconds) << flush);
-
-  // Reset
-  getActuationInterface()->setActuationMode(amVoltage);
-  CSTGAgentQLeo::reset(absoluteTimeMicroseconds);
-  mLastRewardedFoot     = lpFootLeft;
-  mLastStancelegWasLeft = -1;
-  mFootstepLength       = 0.0;
-  mLastFootstepLength   = 0.0;
-  // Are we observing?
-  if (getAgentLifeDuration() < mObservingTime)
-    mIsObserving = true;
-  else
-    mIsObserving = false;
-
-  // Set mPreviousAction to 0.0 - this is probably close to the real robot's situation (although it doesn't matter much)
-  for (int iAction=0; iAction<LEOBHWALKSYM_MAX_NUM_ACTIONS; iAction++)
-    mPreviousAction[iAction] = 0.0;
-
-  // Reset performance variables
-  mNumFootsteps  = 0;
-  mWalkedDistance  = 0.0;
-  mTrialEnergy  = 0.0;
-
-  // Init swing time so that robot starts to walk
-  mSwingTime    = 0;
-}
-*/
-/*
-void CLeoBhWalkSym::resetMemory(uint64_t absoluteTimeMicroseconds)
-{
-  // Print memory usage as a warning to always come through
-  if (getQSpace() != NULL)
-    mLogWarningLn("[INFO] Memory usage: " << 100.0*(double)getQSpace()->getMemoryUsage()/(double)getQSpace()->getMemorySize() << "%");
-  for (int iSA=0; iSA<getNumSubAgents(); iSA++)
-    mLogWarningLn("[INFO] Memory usage sub-agent " << iSA << ": " << 100.0*(double)getSubAgent(iSA)->getQSpace()->getMemoryUsage()/(double)getSubAgent(iSA)->getQSpace()->getMemorySize() << "%");
-
-  // Print final learn rate as well
-  mLogWarningLn("[INFO] Final learn rate: " << mLearnRate);
-
-  CSTGAgentQLeo::resetMemory(absoluteTimeMicroseconds);
-  mNumFalls = 0;
-}
-*/
-
 double CLeoBhWalkSym::getJointMotorWork(int jointIndex)
 {
   if (getPreviousSTGState()->isValid())  // We don't have a previous state at the beginning of a trial
@@ -760,24 +423,6 @@ double CLeoBhWalkSym::calculateReward()
   return reward;
 }
 
-/*
-char CLeoBhWalkSym::isTerminalState(uint64_t trialTimeMs)
-{
-  if (isDoomedToFall(getCurrentSTGState(), true))
-  {
-    //mLogNoticeLn("[TERMINATION] Robot doomed to fall!");
-    return CONST_STATE_TERMINAL | CONST_STATE_ABSORBING;
-  }
-  else
-  if (trialTimeMs > mTrialTimeout)
-  {
-    mLogNoticeLn("[TERMINATION] Timeout of " << mTrialTimeout << "ms reached.");
-    return CONST_STATE_TERMINAL;
-  }
-  else
-    return CONST_STATE_NORMAL;
-}
-*/
 bool CLeoBhWalkSym::isDoomedToFall(CLeoState* state, bool report)
 {
   // Torso angle out of 'range'
@@ -812,65 +457,6 @@ bool CLeoBhWalkSym::isDoomedToFall(CLeoState* state, bool report)
   return false;
 }
 
-/*
-void CLeoBhWalkSym::autoActuateHips(ISTGActuation* actuationInterface)
-{
-  // The "torque" here is not actually torque, but a leftover from the "endless turn mode" control from dynamixels, which is actually voltage control
-  const double torqueToVoltage  = 14.0/3.3;
-  // Hip: control the inter hip angle to a fixed angle
-  double interHipAngleTorque  = 6.0*(0.62 - (getCurrentSTGState()->mJointAngles[mHipSwing] - getCurrentSTGState()->mJointAngles[mHipStance]));
-
-  double hipStanceTorque    = (-0.40)*interHipAngleTorque;
-  double hipSwingTorque    = interHipAngleTorque;
-
-  if (mStanceFootContact)
-  {
-    // Torque to keep the upper body up right
-     double stanceTorque = -14.0*(-0.17 - getCurrentSTGState()->mJointAngles[ljTorso]);
-    hipStanceTorque      += stanceTorque;
-  }
-  if (mIsObserving)
-  {
-    mAgentAction[0] = torqueToVoltage*hipStanceTorque;
-    mAgentAction[1] = torqueToVoltage*hipSwingTorque;
-  }
-  else
-  {
-    actuationInterface->setJointVoltage(mHipStance,  torqueToVoltage*hipStanceTorque);
-    actuationInterface->setJointVoltage(mHipSwing,  torqueToVoltage*hipSwingTorque);
-  }
-}
-*/
-/*
-void CLeoBhWalkSym::autoActuateHips2(ISTGActuation* actuationInterface)
-{
-  // The "torque" here is not actually torque, but a leftover from the "endless turn mode" control from dynamixels, which is actually voltage control
-  const double torqueToVoltage  = 14.0/3.3;
-  // Hip: control the inter hip angle to a fixed angle
-  double interHipAngleTorque  = 4.0*(mPreProgHipAngle - (getCurrentSTGState()->mJointAngles[mHipSwing] - getCurrentSTGState()->mJointAngles[mHipStance]));
-
-  double hipStanceTorque    = (-0.20)*interHipAngleTorque;
-  double hipSwingTorque    = interHipAngleTorque;
-
-  if (mStanceFootContact)
-  {
-    // Torque to keep the upper body up right
-     double stanceTorque = -14.0*(mPreProgTorsoAngle - getCurrentSTGState()->mJointAngles[ljTorso]);
-    hipStanceTorque      += stanceTorque;
-  }
-  if (mIsObserving)
-  {
-    double maxVoltage = getActuationInterface()->getJointMaxVoltage(ljHipLeft);
-    mAgentAction[0] = clip(torqueToVoltage*hipStanceTorque, -maxVoltage, maxVoltage);
-    mAgentAction[1] = clip(torqueToVoltage*hipSwingTorque, -maxVoltage, maxVoltage);
-  }
-  else
-  {
-    actuationInterface->setJointVoltage(mHipStance,  torqueToVoltage*hipStanceTorque);
-    actuationInterface->setJointVoltage(mHipSwing,  torqueToVoltage*hipSwingTorque);
-  }
-}
-*/
 void CLeoBhWalkSym::autoActuateKnees(ISTGActuation* actuationInterface)
 {
   // The stance knee contains a weak controller to remain stretched
@@ -906,101 +492,6 @@ void CLeoBhWalkSym::autoActuateKnees(ISTGActuation* actuationInterface)
   // when not observing and actually learning the knee, do nothing
 }
 
-/*
-void CLeoBhWalkSym::autoActuateKnees2(ISTGActuation* actuationInterface)
-{
-  // The "torque" here is not actually torque, but a leftover from the "endless turn mode" control from dynamixels, which is actually voltage control
-  const double torqueToVoltage  = 14.0/3.3;
-  // height of the swingleg ankle - relative to the leg length
-  double relSwingKneeHeight    = cos(getCurrentSTGState()->mJointAngles[ljTorso] + getCurrentSTGState()->mJointAngles[mHipStance])
-                  - 0.5*cos(getCurrentSTGState()->mJointAngles[ljTorso] + getCurrentSTGState()->mJointAngles[mHipSwing]);
-
-  // The stance knee contains a weak controller to remain stretched
-  double kneeStanceTorque    = 4.0*(0.0 - getCurrentSTGState()->mJointAngles[mKneeStance]);
-  double kneeSwingTorque    = 0;
-  // Calculate mid-stance
-  double stanceLegAngle    = getCurrentSTGState()->mJointAngles[ljTorso] + getCurrentSTGState()->mJointAngles[mHipStance];
-
-  double relClearance = 0.45;
-  double upperSwingLegAngle    = getCurrentSTGState()->mJointAngles[ljTorso] + getCurrentSTGState()->mJointAngles[mHipSwing];
-  double swingKneeClearanceAngle;
-  if (stanceLegAngle > -0.08)  // Accomplish swing foot clearance
-  {
-    swingKneeClearanceAngle = upperSwingLegAngle - acos(clip(2*(relSwingKneeHeight - relClearance), -1.0, 1.0));
-  }
-  else  // Stretch swing leg
-  {
-    swingKneeClearanceAngle = 0;
-  }
-  kneeSwingTorque = 14*(swingKneeClearanceAngle - getCurrentSTGState()->mJointAngles[mKneeSwing]);
-
-  // Set joint voltages
-  getActuationInterface()->setJointVoltage(mKneeStance,  torqueToVoltage*kneeStanceTorque);
-  getActuationInterface()->setJointVoltage(mKneeSwing,  torqueToVoltage*kneeSwingTorque);
-}
-*/
-/*
-void CLeoBhWalkSym::autoActuateKnees_StanceLegFunc(ISTGActuation* actuationInterface)
-{
-  // The "torque" here is not actually torque, but a leftover from the "endless turn mode" control from dynamixels, which is actually voltage control
-  const double torqueToVoltage  = 14.0/3.3;
-
-  double upperStanceLegAngle    = getCurrentSTGState()->mJointAngles[ljTorso] + getCurrentSTGState()->mJointAngles[mHipStance];
-  double theta1          = 0.25;
-  double theta2          = 0.5;
-  double thetaShift        = 0.1;
-  double maxKneeFlection      = -0.50*M_PI;
-  double desiredSwingKneeAngle;
-  if (upperStanceLegAngle < thetaShift)
-    desiredSwingKneeAngle = maxKneeFlection*cos(0.5*M_PI*clip((upperStanceLegAngle - thetaShift)/theta1, -1.0, 1.0));
-  else
-    desiredSwingKneeAngle = maxKneeFlection*cos(0.5*M_PI*clip((upperStanceLegAngle - thetaShift)/theta2, -1.0, 1.0));
-
-
-  // The stance knee contains a weak controller to remain stretched
-  double kneeStanceTorque    = 5.0*(0.0 - getCurrentSTGState()->mJointAngles[mKneeStance]);
-  double kneeSwingTorque    = 10.0*(desiredSwingKneeAngle - getCurrentSTGState()->mJointAngles[mKneeSwing]);
-  //mAgentQLogger << "[INFO] KneeSwingTorque: " << kneeSwingTorque << endl;
-  // Set joint voltages
-  // Always set stance knee voltage
-  getActuationInterface()->setJointVoltage(mKneeStance,  torqueToVoltage*kneeStanceTorque);
-
-  // When observing, set action to mAgentAction
-  if (mIsObserving)
-  {
-    double maxVoltage = getActuationInterface()->getJointMaxVoltage(ljKneeLeft);
-    mAgentAction[2] = clip(torqueToVoltage*kneeSwingTorque, -maxVoltage, maxVoltage);
-  }
-  // When not observing and not learning the knee, set directly to actuation interface
-  else if (!mLearnSwingKnee)
-  {
-    getActuationInterface()->setJointVoltage(mKneeSwing,  torqueToVoltage*kneeSwingTorque);
-  }
-  // when not observing and learning the knee, do nothing
-}
-*/
-/*
-void CLeoBhWalkSym::autoActuateAnkles(ISTGActuation* actuationInterface)
-{
-  // The "torque" here is not actually torque, but a leftover from the "endless turn mode" control from dynamixels, which is actually voltage control
-  const double torqueToVoltage  = 14.0/3.3;
-
-  // Determine appropriate torques
-  double swingFootFloorAngle  = getCurrentSTGState()->mJointAngles[ljTorso] + getCurrentSTGState()->mJointAngles[mHipSwing] + getCurrentSTGState()->mJointAngles[mKneeSwing] + getCurrentSTGState()->mJointAngles[mAnkleSwing];
-  double stanceFootFloorAngle  = getCurrentSTGState()->mJointAngles[ljTorso] + getCurrentSTGState()->mJointAngles[mHipStance] + getCurrentSTGState()->mJointAngles[mKneeStance] + getCurrentSTGState()->mJointAngles[mAnkleStance];
-  //double interHipAngle    = getCurrentSTGState()->mJointAngles[mHipSwing] - getCurrentSTGState()->mJointAngles[mHipStance];
-
-  // The ankles use a P-controller to bring the angle between foot and floor to a fixed angle
-  //double ankleSwingTorque    = 14.0*(clip(interHipAngle/0.35, -1.0, 1.0)*0.10 - swingFootFloorAngle);
-  double ankleSwingTorque    = 8.0*(mPreProgAnkleAngle - swingFootFloorAngle);
-  //double ankleStanceTorque  = 5.0*(0.065 - stanceFootFloorAngle);
-  double ankleStanceTorque  = 8.0*(mPreProgAnkleAngle - stanceFootFloorAngle);
-
-  // Set joint voltages
-  getActuationInterface()->setJointVoltage(mAnkleStance,  torqueToVoltage*ankleStanceTorque);
-  getActuationInterface()->setJointVoltage(mAnkleSwing,  torqueToVoltage*ankleSwingTorque);
-}
-*/
 void CLeoBhWalkSym::autoActuateAnkles_FixedPos(ISTGActuation* actuationInterface)
 {
   // The "torque" here is not actually torque, but a leftover from the "endless turn mode" control from dynamixels, which is actually voltage control
@@ -1024,13 +515,3 @@ void CLeoBhWalkSym::autoActuateArm(ISTGActuation* actuationInterface)
   double armTorque = 5.0*(mPreProgShoulderAngle - getCurrentSTGState()->mJointAngles[ljShoulder]);
   getActuationInterface()->setJointVoltage(ljShoulder, torqueToVoltage*armTorque);
 }
-
-// ********************************************************************* //
-// ************************* gCreateLeoBhWalkSym *********************** //
-// ********************************************************************* //
-/*
-CLeoBhWalkSym* gCreateLeoBhWalkSym(ISTGActuation *actuationInterface, const CConfigSection &policyConfigNode)
-{
-  return new CLeoBhWalkSym(actuationInterface);
-}
-*/

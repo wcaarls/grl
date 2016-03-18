@@ -8,9 +8,7 @@
 #ifndef AGENTINTERFACE_H_
 #define AGENTINTERFACE_H_
 
-//#include <string>
 #include "precisions.h"
-//#include <randomc.h>
 #include <fstream>
 #include <cstring>
 #include <sstream>

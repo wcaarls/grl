@@ -34,12 +34,11 @@ class CLeoBhWalkSym: public CSTGAgentQLeo
     };
 
     double        mTotalStepTime;
+
     // Learning algorithm options
-//    ELearningAlgo mAlgo;
     bool          mUseEffectiveAction;  // Calculate the effectively executed action to improve convergence
     bool          mGeneralizeActions;    // Generalize between actions in the function approximator
     bool          mIsObserving;
-//    bool          mLearnSwingKnee;
 
     // Reward variables
     double        mRwTime;        // Time penalty
@@ -109,12 +108,7 @@ class CLeoBhWalkSym: public CSTGAgentQLeo
     double        mTrialEnergy;         // The accumulation of all energy used since last reset
 
     void          updateDerivedStateVars(CLeoState* currentSTGState);
-//    void          autoActuateHips(ISTGActuation* actuationInterface);
-//    void          autoActuateHips2(ISTGActuation* actuationInterface);
     void          autoActuateKnees(ISTGActuation* actuationInterface);
-    //void        autoActuateKnees2(ISTGActuation* actuationInterface);
-//    void          autoActuateKnees_StanceLegFunc(ISTGActuation* actuationInterface);
-//    void          autoActuateAnkles(ISTGActuation* actuationInterface);
     void          autoActuateAnkles_FixedPos(ISTGActuation* actuationInterface);
     void          autoActuateArm(ISTGActuation* actuationInterface);
     inline double clip(double value, double min, double max)
@@ -134,31 +128,8 @@ class CLeoBhWalkSym: public CSTGAgentQLeo
     CLeoBhWalkSym(ISTGActuation *actuationInterface);
 
     virtual bool    readConfig(const CConfigSection &xmlRoot);
-    // Use either init() or load(), but not both.
- //   virtual bool    init();
- //   virtual bool    init(std::ifstream &fileInStream);
- //   virtual bool    save(std::ofstream& fileOutStream);
-
-//    virtual std::string getProgressReport(uint64_t absoluteTimeMicroseconds);
-//    double          getDesiredFrequency()    {return mDesiredFrequency;}
-
-//    virtual void    reset(uint64_t absoluteTimeMicroseconds);
-//    virtual void    resetMemory(uint64_t absoluteTimeMicroseconds);
-
-//    virtual void    updateState(CLeoState* currentSTGState);
-    // updateAction(..) converts mAgentAction to actuationInterface commands (must be implemented)
-//    virtual void    updateAction(ISTGActuation* actuationInterface);
-
     virtual double  calculateReward();
-//    virtual char    isTerminalState(uint64_t trialTimeMs);
-    //          isDone(STGStateType* currentState, uint64_t absoluteTimeMicroseconds) // Corresponds with isTerminalState() through CSTGAgentQ
     bool            isDoomedToFall(CLeoState* state, bool report);
-
-//    int             getNumStateDims()  {return siNumStateDims;}
-//    virtual double  learn(char agentInTerminalState);
 };
-
-// Global policy constructor
-//CLeoBhWalkSym* gCreateLeoBhWalkSym(ISTGActuation *actuationInterface, const CConfigSection &policyConfigNode);
 
 #endif /* LEOBHWALKSYM_H_ */

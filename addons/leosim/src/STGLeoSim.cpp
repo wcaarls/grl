@@ -36,4 +36,3 @@ double CSTGLeoSim::getJointMaxVoltage(int jointIndex)
 	else
     return 0;
 }
-

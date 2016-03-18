@@ -10,24 +10,17 @@
 
 #include <STGLeo.h>
 #include <STGODESim.h>
-//#include <ThirdOrderButterworth.h>
-//#include <grl/environments/odesim/simulator.h>
 
-class CSTGLeoSim: public ISTGLeoActuation //public CSTGODESim<CLeoState>, public ISTGLeoActuation, private PosixNonRealTimeThread
+class CSTGLeoSim: public ISTGLeoActuation
 {
 	protected:
-//    CLog2				mLog;
-
     double				mMotorJointVoltages[ljNumDynamixels];
 
 	public:
     CSTGLeoSim() {}
-    ~CSTGLeoSim() {}
-
     void          setJointVoltage(int jointIndex, double voltage);					// Voltage in [V]
     double        getJointVoltage(int jointIndex);
     double        getJointMaxVoltage(int jointIndex);
-
 };
 
 #endif /* STGLEOSIM_H_ */

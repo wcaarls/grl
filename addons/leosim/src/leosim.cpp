@@ -9,7 +9,6 @@ REGISTER_CONFIGURABLE(LeoSimEnvironment)
 
 void CGrlLeoBhWalkSym::resetState()
 {
-//  mLearnSwingKnee       = true;
   mIsObserving          = false;
   mLastRewardedFoot     = lpFootLeft;
   mLastStancelegWasLeft = -1;
@@ -211,15 +210,15 @@ void LeoSimEnvironment::start(int test, Vector *obs)
 
   bhWalk_.resetState();
 
-  // TODO: Parse obs into CLeoState (Start with left leg being the stance leg)
+  // Parse obs into CLeoState (Start with left leg being the stance leg)
   bhWalk_.fillLeoState(ode_obs_, Vector(), leoState_);
   bhWalk_.setCurrentSTGState(&leoState_);
   bhWalk_.setPreviousSTGState(&leoState_);
 
-  // TODO: update derived state variables (LeoBhWalkSym.cpp:281)
+  // update derived state variables
   bhWalk_.updateDerivedStateVars(&leoState_); // swing-stance switching happens here
 
-  // TODO: construct new obs from CLeoState (policy.cpp:162)
+  // construct new obs from CLeoState
   obs->resize(observation_dims_);
   bhWalk_.parseLeoState(leoState_, *obs);
 
@@ -230,7 +229,7 @@ double LeoSimEnvironment::step(const Vector &action, Vector *obs, double *reward
 {
   bhWalk_.setCurrentSTGState(&leoState_);
 
-  // TODO: auto actuate unlearned joints to find complete action vector (LeoBhWalkSym.cpp:880)
+  // auto actuate unlearned joints to find complete action vector
   double actionArm, actionStanceKnee, actionSwingKnee, actionStanceHip, actionSwingHip;
   actionStanceHip = action[0];
   actionSwingHip  = action[1];
@@ -262,18 +261,18 @@ double LeoSimEnvironment::step(const Vector &action, Vector *obs, double *reward
   ODEEnvironment::step(ode_action_, &ode_obs_, reward, terminal);
   TRACE("ode observation = " << ode_obs_);
 
-  // TODO: Filter joint speeds (STGLeoSim.cpp:275)
-  // TODO: Parse obs into CLeoState
+  // Filter joint speeds
+  // Parse obs into CLeoState
   bhWalk_.fillLeoState(ode_obs_, ode_action_, leoState_);
   bhWalk_.setCurrentSTGState(&leoState_);
 
-  // TODO: update derived state variables (LeoBhWalkSym.cpp:281)
+  // update derived state variables
   bhWalk_.updateDerivedStateVars(&leoState_);
 
-  // TODO: construct new obs from CLeoState (policy.cpp:162)
+  // construct new obs from CLeoState
   bhWalk_.parseLeoState(leoState_, *obs);
 
-  // TODO: Determine reward and termination (LeoBhWalkSym.cpp:693)
+  // Determine reward and termination
   *reward = bhWalk_.calculateReward();
 
   if (*terminal == 1) // timeout

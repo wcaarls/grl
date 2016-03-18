@@ -51,7 +51,6 @@ class CGrlLeoBhWalkSym : public CLeoBhWalkSym
 
   public:
     CGrlLeoBhWalkSym(ISTGActuation *actuationInterface) : CLeoBhWalkSym(actuationInterface) {}
-    //~CGrlLeoBhWalkSym() {}
 
     int getHipStance()   {return mHipStance;}
     int getHipSwing()    {return mHipSwing;}
@@ -100,7 +99,6 @@ class LeoSimEnvironment : public ODEEnvironment
 
   public:
     LeoSimEnvironment();
-    ~LeoSimEnvironment() {}
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
