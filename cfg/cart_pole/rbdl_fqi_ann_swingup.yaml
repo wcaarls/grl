@@ -1,23 +1,23 @@
 experiment: 
   type: experiment/online_learning
   runs: 5
-  trials: 20000
+  trials: 500
   steps: 0
   rate: 0
   test_interval: 10
-  output: cartpole_qlearning_swingup_u
+  output: fqi_ann
   environment: 
     type: environment/modeled
     model: 
       type: model/dynamical
       control_step: 0.05
-      integration_steps: 10
+      integration_steps: 5
       dynamics: 
         type: dynamics/rbdl
         file: cart_pendulum.lua
     task: 
       type: task/lua
-      file: cart_pendulum_swingup_u.lua
+      file: cart_pendulum_swingup.lua
   agent: 
     type: agent/td
     policy: 
@@ -26,35 +26,37 @@ experiment:
         type: discretizer/uniform
         min: experiment/environment/task/action_min
         max: experiment/environment/task/action_max
-        steps: [5]
+        steps: [3]
       projector: 
-        type: projector/tile_coding
-        tilings: 16
-        memory: 67108864
-        resolution: [2.5, 0.157075, 2.5, 1.57075, 15]
-        wrapping: [0, 6.283, 0, 0, 0]
+        type: projector/sample/ann
+        samples: 200000
+        neighbors: 20
+        locality: 1
+        bucket_size: 10
+        error_bound: 0.01
+        scaling: []
+        inputs: experiment/environment/task/observation_dims+experiment/environment/task/action_dims
       representation: 
-        type: representation/parameterized/linear
-        init_min: [0]
-        init_max: [1]
-        memory: experiment/agent/policy/projector/memory
+        type: representation/llr
+        ridge: 1e-05
+        order: 0
+        input_nominals: []
+        output_nominals: []
         outputs: 1
         output_min: []
-        output_max: []
+        output_max: experiment/agent/policy/representation/input_nominals
+        projector: experiment/agent/policy/projector
       sampler: 
         type: sampler/epsilon_greedy
         epsilon: 0.05
     predictor: 
-      type: predictor/advantage
-      alpha: 0.2
+      type: predictor/fqi
       gamma: 0.97
-      lambda: 0.65
-      kappa: 1
-      discretizer: experiment/agent/policy/discretizer
+      transitions: 200000
+      iterations: 20
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
-      trace: 
-        type: trace/enumerated/replacing
+      policy: experiment/agent/policy
   test_agent: 
     type: agent/fixed
     policy: 
@@ -64,20 +66,8 @@ experiment:
       representation: experiment/agent/policy/representation
       sampler: 
         type: sampler/greedy
-  save_every: run
 visualizer: 
   type: visualizer/glut
-visualization: 
+visualization2: 
   type: visualization/cart_pole
   state: experiment/environment/state
-visualization2: 
-  type: visualization/field/policy/value
-  field_dims: [0, 2]
-  input_min: experiment/environment/task/observation_min
-  input_max: experiment/environment/task/observation_max
-  points: 65536
-  savepoints: 1048576
-  projection: mean
-  projector: experiment/agent/policy/projector
-  representation: experiment/agent/policy/representation
-  policy: experiment/test_agent/policy
