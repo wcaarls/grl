@@ -34,7 +34,7 @@ using namespace grl;
 
 REGISTER_CONFIGURABLE(CSVExporter)
 
-int CSVExporter::run_cnt_ = 0;
+std::map<std::string, int> CSVExporter::run_cnt_;
 
 void CSVExporter::request(ConfigurationRequest *config)
 {
@@ -137,8 +137,8 @@ void CSVExporter::open(const std::string &variant, bool append)
 
   // account for 'run'
   if (!append)
-    run_cnt_++;
-  file = file + "-" + std::to_string(run_cnt_-1);
+    run_cnt_[file]++;
+  file = file + "-" + std::to_string(run_cnt_[file] - 1);
 
   struct stat buffer;   
   if (stat((file+".csv").c_str(), &buffer) != 0 || !buffer.st_size || !append)
