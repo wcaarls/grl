@@ -43,8 +43,6 @@
 		<boomVirtualMassX>(boomCMY^2*boomMass + boomIZZ)/(boomLength^2)</boomVirtualMassX>
 		<boomVirtualMassZ>boomMass*boomCMY/boomLength</boomVirtualMassZ>
 		<boomExtForce>(boomVirtualMassZ - boomVirtualMassX)*(-9.81)</boomExtForce>
-    <!-- virtual boom characteristics -->
-    <virtualBoom_dryfriction>0.01</virtualBoom_dryfriction>
 		<!-- torso with boom effects -->
 		<torsoBoomMass>torsoMass + boomVirtualMassX</torsoBoomMass>
 		<torsoBoomCMX>(torsoMass*torsoCMX + boomVirtualMassX*torsoHipDistX)/(torsoMass + boomVirtualMassX)</torsoBoomCMX>
@@ -150,7 +148,7 @@
       <!-- Virtual Boom -->
       <body>
 				<name>virtualBoom</name>
-				<mass>0.0001</mass>
+				<mass>0.000001</mass>
 				<IXX>inertiadontcare</IXX>
 				<IYY>inertiainf</IYY>
 				<IZZ>inertiadontcare</IZZ>
@@ -164,17 +162,19 @@
 					<z>0.0</z>
 				</anchor>
 				<drawinfo>
-					<sphere comment="tip of the virtual boom">
+					<box comment="virtual boom">
 						<color>
-							<r>0.1</r>
-							<g>0.1</g>
-							<b>0.1</b>
+							<r>0.0</r>
+							<g>0.8</g>
+							<b>0.0</b>
 						</color>
-						<x>0</x>
-						<y>0</y>
-						<z>0</z>
-						<radius>10</radius>
-					</sphere>
+						<x>0.0</x>
+						<y>-torsowidth</y>
+						<z>0.0</z>
+						<dx>0.001</dx>
+						<dy>torsowidth</dy>
+						<dz>torsoheight</dz>
+					</box>
 				</drawinfo>
 			</body>
       <!-- Torso -->
@@ -193,6 +193,12 @@
 					<x>torsoHipDistX</x>
 					<y>0.0</y>
 					<z>torsoHipDistZ</z>
+				</anchor>
+				<anchor>
+					<name>boom</name>
+					<x>0.0</x>
+					<y>0.0</y>
+					<z>0.0</z>
 				</anchor>
 				<anchor>
 					<name>shoulder</name>
@@ -751,7 +757,7 @@
 				<type>hinge</type>
 				<anchor1>
 					<bodyname>torso</bodyname>
-					<anchorname>hip</anchorname>
+					<anchorname>boom</anchorname>
 				</anchor1>
 				<anchor2>
 					<bodyname>virtualBoom</bodyname>
@@ -760,7 +766,7 @@
 				<axisX>0</axisX>
 				<axisY>1</axisY>
 				<axisZ>0</axisZ>
-				<dryfriction>virtualBoom_dryfriction</dryfriction>
+				<dryfriction>0.0</dryfriction>
 				<!--motor>
 					<type>dynamixel</type>
 					<torqueconstant>dxl_torqueconstant</torqueconstant>

@@ -2233,6 +2233,14 @@ sandbox_model/compass_walker:
     mutability: configuration
     default: 0
     optional: 1
+  use_avg_velocity:
+    type: int
+    description: "Velocity type "
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 0
+    max: 1
 solver/agent:
   description: Solver that uses a simulated agent
   steps:
@@ -2563,6 +2571,14 @@ task/compass_walker/vref:
     mutability: configuration
     default: "[ 1, 1, 1, 1, 1, 0 ]"
     optional: 1
+  steps:
+    type: int
+    description: number of steps after wiich task is terminated
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 2147483647
   reference_velocity:
     type: double
     description: Reference velocity
@@ -2643,6 +2659,14 @@ task/compass_walker/vrefu:
     mutability: configuration
     default: "[ 1, 1, 1, 1, 1, 0 ]"
     optional: 1
+  steps:
+    type: int
+    description: number of steps after wiich task is terminated
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 2147483647
   reference_velocity:
     type: double
     description: Reference velocity
@@ -2723,6 +2747,14 @@ task/compass_walker/walk:
     mutability: configuration
     default: "[ 1, 1, 1, 1, 1, 0 ]"
     optional: 1
+  steps:
+    type: int
+    description: number of steps after wiich task is terminated
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 2147483647
 task/lua:
   description: User-provided task specification in LUA
   observation_dims:

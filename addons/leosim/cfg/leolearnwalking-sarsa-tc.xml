@@ -74,7 +74,6 @@
 		<rewardFootstepDist>0.0</rewardFootstepDist>
 		<rewardFootstepDistCont>300.0</rewardFootstepDistCont>
 		<rewardFootstepMaxLength>10.20</rewardFootstepMaxLength>
-    <rewardFootstepBackward>-5</rewardFootstepBackward>
 		<rewardEnergy comment="per joule!">-3.0</rewardEnergy>
 		<rewardFootClearance>0.0</rewardFootClearance>
 		<rewardFootClearanceThreshold>0.0</rewardFootClearanceThreshold>
@@ -108,7 +107,7 @@
 		<preprogrammedHipAngle>0.680</preprogrammedHipAngle>
 		<preprogrammedShoulderAngle>-15.0*pi/180.0</preprogrammedShoulderAngle>
 		<preprogrammedAnkleAngle>3.72*pi/180.0</preprogrammedAnkleAngle>
-		<observingTimeSeconds>300</observingTimeSeconds>
+		<observingTimeSeconds>0</observingTimeSeconds>
 
     <!-- support GRL -->
     <termination>
@@ -222,43 +221,43 @@
 		</statevar>
 
 		<actionvar comment="Shoulder torque">
-		    <variable>robot.shoulder.torque</variable>
+		    <variable>robot.shoulder.voltage</variable>
 		    <expression>x</expression>
 		    <min>-maxtorque</min>
 		    <max>maxtorque</max>
 		</actionvar>
 		<actionvar comment="Right hip torque">
-		    <variable>robot.hipright.torque</variable>
+		    <variable>robot.hipright.voltage</variable>
 		    <expression>x</expression>
 		    <min>-maxtorque</min>
 		    <max>maxtorque</max>
 		</actionvar>
 		<actionvar comment="Left hip torque">
-		    <variable>robot.hipleft.torque</variable>
+		    <variable>robot.hipleft.voltage</variable>
 		    <expression>x</expression>
 		    <min>-maxtorque</min>
 		    <max>maxtorque</max>
 		</actionvar>
 		<actionvar comment="Right knee torque">
-		    <variable>robot.kneeright.torque</variable>
+		    <variable>robot.kneeright.voltage</variable>
 		    <expression>x</expression>
 		    <min>-maxtorque</min>
 		    <max>maxtorque</max>
 		</actionvar>
 		<actionvar comment="Left knee torque">
-		    <variable>robot.kneeleft.torque</variable>
+		    <variable>robot.kneeleft.voltage</variable>
 		    <expression>x</expression>
 		    <min>-maxtorque</min>
 		    <max>maxtorque</max>
 		</actionvar>
 		<actionvar comment="Right ankle torque">
-		    <variable>robot.ankleright.torque</variable>
+		    <variable>robot.ankleright.voltage</variable>
 		    <expression>x</expression>
 		    <min>-maxtorque</min>
 		    <max>maxtorque</max>
 		</actionvar>
 		<actionvar comment="Left ankle torque">
-		    <variable>robot.ankleleft.torque</variable>
+		    <variable>robot.ankleleft.voltage</variable>
 		    <expression>x</expression>
 		    <min>-maxtorque</min>
 		    <max>maxtorque</max>

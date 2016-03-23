@@ -38,6 +38,10 @@ void CGrlLeoBhWalkSym::fillLeoState(const Vector &obs, const Vector &action, CLe
   leoState.mJointSpeeds[ljKneeRight]	= mJointSpeedFilter[ljKneeRight].filter(obs[svRightKneeAngleRate]);
   leoState.mJointAngles[ljKneeLeft]   = obs[svLeftKneeAngle];
   leoState.mJointSpeeds[ljKneeLeft]   = mJointSpeedFilter[ljKneeLeft].filter(obs[svLeftKneeAngleRate]);
+  leoState.mJointAngles[ljAnkleRight] = obs[svRightAnkleAngle];
+  leoState.mJointSpeeds[ljAnkleRight] = mJointSpeedFilter[ljAnkleRight].filter(obs[svRightAnkleAngleRate]);
+  leoState.mJointAngles[ljAnkleLeft]  = obs[svLeftAnkleAngle];
+  leoState.mJointSpeeds[ljAnkleLeft]	= mJointSpeedFilter[ljAnkleLeft].filter(obs[svLeftAnkleAngleRate]);
 
   leoState.mFootContacts  = obs[svRightToeContact]?LEO_FOOTSENSOR_RIGHT_TOE:0;
   leoState.mFootContacts |= obs[svRightHeelContact]?LEO_FOOTSENSOR_RIGHT_HEEL:0;
@@ -128,7 +132,7 @@ void LeoSimEnvironment::configure(Configuration &config)
   // Resolve expressions
   xmlConfig.resolveExpressions();
   
-  // TODO: Read rewards and preprogrammed angles (LeoBhWalkSym.cpp:102)
+  // Read rewards and preprogrammed angles
   bhWalk_.readConfig(xmlConfig.root());
 
   // Parse observations
@@ -256,6 +260,8 @@ double LeoSimEnvironment::step(const Vector &action, Vector *obs, double *reward
   else
     ode_action_ << actionArm, actionStanceHip, actionSwingHip, actionStanceKnee, actionSwingKnee, actionAnkles;
 
+  ode_action_ << ConstantVector(7, 5);
+
   bhWalk_.setPreviousSTGState(&leoState_);
   TRACE("ode action = " << ode_action_);
   ODEEnvironment::step(ode_action_, &ode_obs_, reward, terminal);
@@ -272,8 +278,19 @@ double LeoSimEnvironment::step(const Vector &action, Vector *obs, double *reward
   // construct new obs from CLeoState
   bhWalk_.parseLeoState(leoState_, *obs);
 
+  std::vector<double> s(leoState_.mJointAngles, leoState_.mJointAngles + ljNumJoints);
+  std::vector<double> v(leoState_.mJointSpeeds, leoState_.mJointSpeeds + ljNumJoints);
+  std::vector<double> a(leoState_.mActuationVoltages, leoState_.mActuationVoltages + ljNumDynamixels);
+
+  std::cout << s << std::endl;
+  std::cout << v << std::endl;
+  std::cout << (int)leoState_.mFootContacts << std::endl;
+  std::cout << a << std::endl;
+
   // Determine reward and termination
   *reward = bhWalk_.calculateReward();
+  std::cout << *reward << std::endl;
+
 
   if (*terminal == 1) // timeout
     *terminal = 1;

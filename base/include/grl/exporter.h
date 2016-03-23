@@ -69,7 +69,7 @@ class CSVExporter : public Exporter
     std::vector<std::string> headers_;
     std::vector<Vector> append_vec_;
     bool write_header_;
-    static int run_cnt_;
+    static std::map<std::string, int> run_cnt_;
 
     void writer(std::vector<Vector> var_vec);
 

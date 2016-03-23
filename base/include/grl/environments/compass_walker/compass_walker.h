@@ -119,10 +119,11 @@ class CompassWalkerWalkTask : public Task
     double neg_reward_;
     int observation_dims_;
     Vector observe_;          // Indicator vector with 1s for states, which are observed by an agent
+    int steps_;               // Require ceritain number of steps, after which the task is terminated
 
   public:
     CompassWalkerWalkTask() : T_(100), initial_state_variation_(0.2), slope_angle_(0.004),
-      neg_reward_(-100.0), verbose_(false), observe_(VectorConstructor(1, 1, 1, 1, 1, 0)){ }
+      neg_reward_(-100.0), verbose_(false), observe_(VectorConstructor(1, 1, 1, 1, 1, 0)), steps_(0){ }
     
     // From Configurable
     virtual void request(ConfigurationRequest *config);

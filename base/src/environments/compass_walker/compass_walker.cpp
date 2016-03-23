@@ -204,6 +204,7 @@ void CompassWalkerWalkTask::request(ConfigurationRequest *config)
   config->push_back(CRP("slope_angle", "double.slope_angle", "Inclination of the slope", slope_angle_, CRP::System, -DBL_MAX, DBL_MAX));
   config->push_back(CRP("negative_reward", "Negative reward", neg_reward_, CRP::Configuration, -DBL_MAX, 0.));
   config->push_back(CRP("observe", "State elements observed by an agent", observe_, CRP::Configuration));
+  config->push_back(CRP("steps", "number of steps after wiich task is terminated", steps_, CRP::Configuration, 0, INT_MAX));
 }
 
 void CompassWalkerWalkTask::configure(Configuration &config)
@@ -212,8 +213,8 @@ void CompassWalkerWalkTask::configure(Configuration &config)
   initial_state_variation_ = config["initial_state_variation"];
   slope_angle_ = config["slope_angle"];
   neg_reward_ = config["negative_reward"];
-
   observe_ = config["observe"];
+  steps_ = config["steps"];
 
   if (observe_.size() != CompassWalker::osMaxObservationSize)
     throw bad_param("task/walk:observe");
@@ -255,7 +256,8 @@ void CompassWalkerWalkTask::start(int test, Vector *state) const
 {
   CSWModelState swstate, initial_state;
 
-  initial_state.init(0, 0.1534, -0.1561, 2.0*0.1534, -0.0073);
+  //initial_state.init(0, 0.1534, -0.1561, 2.0*0.1534, -0.0073);
+  initial_state.init(0, 0.136189, -0.166861, 0.272379, -0.00615157); // OC initial state
 
   swstate.mStanceFootX = 0;
 
@@ -310,6 +312,8 @@ void CompassWalkerWalkTask::observe(const Vector &state, Vector *obs, int *termi
   if (fabs(state[CompassWalker::siStanceLegAngle]) > M_PI/8 || fabs(state[CompassWalker::siHipAngle] - 2 * state[CompassWalker::siStanceLegAngle]) > M_PI/4)
     *terminal = 2;
   else if (state[CompassWalker::siTime] > state[CompassWalker::siTimeout])
+    *terminal = 1;
+  else if (steps_ > 0 && obs_[CompassWalker::oiStanceLegChanged])
     *terminal = 1;
   else
     *terminal = 0;

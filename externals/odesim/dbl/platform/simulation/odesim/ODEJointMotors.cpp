@@ -121,7 +121,7 @@ void CODEServoMotor::setTorque(double torque)
 {
 	// Assumption: the servo applies current-control
 	// Calculate voltage from desired torque. This does not take the gear box efficiency into account!
-	mVoltage	= (torque*mTerminalResistance/(mGearboxRatio*mTorqueConstant)) + mGearboxRatio*mTorqueConstant*mpJoint->getAngleRate(mAxisIndex);
+  mVoltage	= (torque*mTerminalResistance/(mGearboxRatio*mTorqueConstant)) + mGearboxRatio*mTorqueConstant*mpJoint->getAngleRate(mAxisIndex);
 	// Clipping of the voltage is done inside update()
 }
 
