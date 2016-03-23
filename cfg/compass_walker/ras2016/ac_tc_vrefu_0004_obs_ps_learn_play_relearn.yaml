@@ -12,7 +12,11 @@ experiment:
       control_step: 0.2
       integration_steps: 20
       slope_angle: 0.004
-      fname: walker_ac_tc_vrefu_integrator.csv
+      exporter: 
+        type: exporter/csv
+        file: walker_ac_tc_vrefu_single_step-test-integrator
+        style: meshup
+      use_avg_velocity: 1
     task: 
       type: task/compass_walker/vrefu
       timeout: 100
