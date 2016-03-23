@@ -34,7 +34,9 @@ void def_model(void) {
 
   // define problem dimensions
   // NOTE: enforce periodicity on motion
-  def_mdims(CommonCode::NMOS, CommonCode::NP, 0, 0);
+  def_mdims(
+    CommonCode::NMOS, CommonCode::NP, CommonCode::RCFCN_N, CommonCode::RCFCN_NE
+  );
 
   // ***************************************************************************
   // Model Stage
@@ -55,14 +57,43 @@ void def_model(void) {
        NULL, NULL
   );
 
-// define LSQ objective
+  // define LSQ objective
+  def_lsq(imos, "s", CommonCode::NPR,
+    CommonCode::LSQFCN_MIN_TAU, CommonCode::lsqfcn_min_tau
+  );
+  def_lsq(imos, "i", CommonCode::NPR,
+    CommonCode::LSQFCN_MIN_TAU, CommonCode::lsqfcn_min_tau
+  );
   def_lsq(imos, "e", CommonCode::NPR,
-    CommonCode::MSQFCN_TRACK_AVG_NREG_NE, CommonCode::msqfcn_track_avg_nreg
+    CommonCode::MSQFCN_TRACK_AVG_WREG_NE, CommonCode::msqfcn_track_avg_wreg
   );
 
   // define switching behavior for single stage formulation
   def_swt(imos, CommonCode::NSWT,
     &CommonCode::detect_switch_fcn, &CommonCode::execute_switch_fcn_avg
+  );
+
+  // define constraints
+  // NOTE: enforce periodicity on motion
+  def_mpc(
+    imos, "s", CommonCode::NPR,
+    CommonCode::RDFCN_FEASIBILITY_N, CommonCode::RDFCN_FEASIBILITY_NE,
+    CommonCode::rdfcn_feasibility,
+    CommonCode::rcfcn_s
+  );
+
+  def_mpc(imos, "i", CommonCode::NPR,
+    CommonCode::RDFCN_FEASIBILITY_N, CommonCode::RDFCN_FEASIBILITY_NE,
+    CommonCode::rdfcn_feasibility,
+    NULL
+  );
+
+   // NOTE: enforce periodicity on motion at end of motion
+  def_mpc(
+    imos, "e", CommonCode::NPR,
+    CommonCode::RDFCN_FEASIBILITY_N, CommonCode::RDFCN_FEASIBILITY_NE,
+    CommonCode::rdfcn_feasibility,
+    CommonCode::rcfcn_e
   );
 
   // increment model stage

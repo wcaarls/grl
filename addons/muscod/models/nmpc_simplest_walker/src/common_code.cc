@@ -376,6 +376,105 @@ void rdfcn_feasibility(
 // Coupled Constraints
 // *****************************************************************************
 
+const unsigned int RCFCN_N = 4, RCFCN_NE = 4;
+void rcfcn_s (
+	double *ts, double *sd, double *sa, double *u, double *p, double *pr, double *res,
+	long *dpnd, InfoPtr *info
+) {
+	// define dependencies
+	// NOTE: Dependency pattern determines the derivatives to be computed!
+	if (*dpnd) {
+		// choose dependency pattern
+		bool ts_dpnd = false;
+		bool sd_dpnd = true;
+		bool sa_dpnd = false;
+		bool  u_dpnd = false;
+		bool  p_dpnd = false;
+		bool pr_dpnd = false;
+		// automatically resolve dependencies
+		*dpnd = RFCN_DPND(
+			double(ts_dpnd?*ts:0), double(sd_dpnd?*sd:0),
+			double(sa_dpnd?*sa:0), double(u_dpnd?*u:0),
+			double(p_dpnd? *p:0), double(pr_dpnd?*pr:0)
+		);
+		return;
+	}
+	// define constraint counters
+	unsigned int res_n_cnt  = 0;
+	unsigned int res_ne_cnt = 0;
+
+	// rename for convenience
+	double phi_st  = sd[0];
+	double phi_h   = sd[1];
+	double dphi_st = sd[2];
+	double dphi_h  = sd[3];
+
+	// define constraint residuals here, i.e. res[:_ne] = 0 and res[_ne:] >= 0!
+	// NOTE: In C++ the '++' operator as postfix first evaluates the variable
+	//       and then increments it, i.e.
+	//       n = 0;    -> n  = 0
+	//       n2 = n++; -> n2 = 0, n = 1
+
+	res[res_n_cnt++] = 1.0 * phi_st;  res_ne_cnt++;
+	res[res_n_cnt++] = 1.0 * phi_h;   res_ne_cnt++;
+	res[res_n_cnt++] = 1.0 * dphi_st; res_ne_cnt++;
+	res[res_n_cnt++] = 1.0 * dphi_h;  res_ne_cnt++;
+
+	// check dimensions of constraints
+	check_dimensions(
+		res_n_cnt, RCFCN_N, res_ne_cnt, RCFCN_NE, __func__
+	);
+}
+
+void rcfcn_e (
+	double *ts, double *sd, double *sa, double *u, double *p, double *pr, double *res,
+	long *dpnd, InfoPtr *info
+) {
+	// define dependencies
+	// NOTE: Dependency pattern determines the derivatives to be computed!
+	if (*dpnd) {
+		// choose dependency pattern
+		bool ts_dpnd = false;
+		bool sd_dpnd = true;
+		bool sa_dpnd = false;
+		bool  u_dpnd = false;
+		bool  p_dpnd = false;
+		bool pr_dpnd = false;
+		// automatically resolve dependencies
+		*dpnd = RFCN_DPND(
+			double(ts_dpnd?*ts:0), double(sd_dpnd?*sd:0),
+			double(sa_dpnd?*sa:0), double(u_dpnd?*u:0),
+			double(p_dpnd? *p:0), double(pr_dpnd?*pr:0)
+		);
+		return;
+	}
+	// define constraint counters
+	unsigned int res_n_cnt  = 0;
+	unsigned int res_ne_cnt = 0;
+
+	// rename for convenience
+	double phi_st  = sd[0];
+	double phi_h   = sd[1];
+	double dphi_st = sd[2];
+	double dphi_h  = sd[3];
+
+	// define constraint residuals here, i.e. res[:_ne] = 0 and res[_ne:] >= 0!
+	// NOTE: In C++ the '++' operator as postfix first evaluates the variable
+	//       and then increments it, i.e.
+	//       n = 0;    -> n  = 0
+	//       n2 = n++; -> n2 = 0, n = 1
+
+	res[res_n_cnt++] = -1.0 * phi_st;  res_ne_cnt++;
+	res[res_n_cnt++] = -1.0 * phi_h;   res_ne_cnt++;
+	res[res_n_cnt++] = -1.0 * dphi_st; res_ne_cnt++;
+	res[res_n_cnt++] = -1.0 * dphi_h;  res_ne_cnt++;
+
+	// check dimensions of constraints
+	check_dimensions(
+		res_n_cnt, RCFCN_N, res_ne_cnt, RCFCN_NE, __func__
+	);
+}
+
 // *****************************************************************************
 // Data Input
 // *****************************************************************************

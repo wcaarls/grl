@@ -44,6 +44,7 @@ namespace CommonCode { // BEGIN NAMESPACE CommonCode
 	extern const unsigned int NSWT_DUMMY;
 
 	// dimension constants
+	extern const unsigned int RCFCN_N, RCFCN_NE;
 	extern const unsigned int RDFCN_FEASIBILITY_N, RDFCN_FEASIBILITY_NE;
 
 	// define square roots of weights for LSQ objective
@@ -181,6 +182,16 @@ namespace CommonCode { // BEGIN NAMESPACE CommonCode
 // *****************************************************************************
 // Coupled Constraints
 // *****************************************************************************
+
+	void rcfcn_s (
+		double *ts, double *sd, double *sa, double *u, double *p, double *pr,
+		double *res, long *dpnd, InfoPtr *info
+	);
+
+	void rcfcn_e (
+		double *ts, double *sd, double *sa, double *u, double *p, double *pr,
+		double *res, long *dpnd, InfoPtr *info
+	);
 
 // *****************************************************************************
 // Data Output

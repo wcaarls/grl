@@ -51,7 +51,12 @@ namespace CommonCode { // BEGIN NAMESPACE CommonCode
   // Number of switching functions
   extern const unsigned int NSWT;
 
+  extern const unsigned int LSQFCN_MIN_TAU;
+
+  extern const unsigned int LSQFCN_TRACK_VREF_WREG_NE;
   extern const unsigned int LSQFCN_TRACK_VREF_NREG_NE;
+
+  extern const unsigned int MSQFCN_TRACK_AVG_WREG_NE;
   extern const unsigned int MSQFCN_TRACK_AVG_NREG_NE;
 
 // *****************************************************************************
@@ -74,7 +79,19 @@ namespace CommonCode { // BEGIN NAMESPACE CommonCode
 // Objective Functions (Least-Squares Type)
 // *****************************************************************************
 
+  void lsqfcn_min_tau (
+    double *ts, double *sd, double *sa, double *u, double *p, double *pr,
+    double *res, long *dpnd, InfoPtr *info);
+
+  void lsqfcn_track_vref_wreg(
+    double *ts, double *sd, double *sa, double *u, double *p, double *pr,
+    double *res, long *dpnd, InfoPtr *info);
+
   void lsqfcn_track_vref_nreg(
+    double *ts, double *sd, double *sa, double *u, double *p, double *pr,
+    double *res, long *dpnd, InfoPtr *info);
+
+  void msqfcn_track_avg_wreg(
     double *ts, double *sd, double *sa, double *u, double *p, double *pr,
     double *res, long *dpnd, InfoPtr *info);
 
