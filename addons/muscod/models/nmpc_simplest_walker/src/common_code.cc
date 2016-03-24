@@ -34,17 +34,6 @@ namespace CommonCode { // BEGIN NAMESPACE CommonCode
 // Constants
 // *****************************************************************************
 
-// define square roots of weights for LSQ objective
-// weights
-const double w_vref = 10.00;
-const double w_tau  = 00.01;
-const double w_fp   = 01.00;
-
-// define square roots of weights for LSQ objective
-const double sw_vref = sqrt(w_vref);
-const double sw_tau  = sqrt(w_tau);
-const double sw_fp   = sqrt(w_fp);
-
 // tolerance of parallelism
 const double parallel_TOL = 0.2;
 
@@ -75,14 +64,14 @@ std::vector<std::vector<double> > _plotting_u_values;
 // *****************************************************************************
 
 extern "C" {
-  void set_path(std::string new_problem_path, std::string new_lua_model){
-    rel_data_path = new_problem_path + "/";
-    std::cout << "NMPC: setting new problem path to: '" << rel_data_path << "'" << std::endl;
-    std::cout << "NMPC: Lua model is not required" << std::endl;
-  }
+	void set_path(std::string new_problem_path, std::string new_lua_model){
+		rel_data_path = new_problem_path + "/";
+		std::cout << "NMPC: setting new problem path to: '" << rel_data_path << "'" << std::endl;
+		std::cout << "NMPC: Lua model is not required" << std::endl;
+	}
 
 	bool get_plot_counter(){
-    return add_counter;
+	return add_counter;
 	}
 
 	void set_plot_counter(bool counter){
@@ -149,7 +138,7 @@ void ffcn (
 	rhs[rhs_cnt++] = dphi_h;
 	rhs[rhs_cnt++] = sin(phi_st - sigma);
 	rhs[rhs_cnt++] = sin(phi_h)*(dphi_st*dphi_st - cos(phi_st - sigma))
-	               + sin(phi_st - sigma) + act;
+				   + sin(phi_st - sigma) + act;
 
 	// check dimensions of functions
 	check_dimensions(0, 0, rhs_cnt, NXD, __func__);
@@ -178,7 +167,7 @@ void ffcn_avg (
 	rhs[rhs_cnt++] = dphi_h;
 	rhs[rhs_cnt++] = sin(phi_st - sigma);
 	rhs[rhs_cnt++] = sin(phi_h)*(dphi_st*dphi_st - cos(phi_st - sigma))
-	               + sin(phi_st - sigma) + act;
+				   + sin(phi_st - sigma) + act;
 	rhs[rhs_cnt++] = -cos(phi_st) * dphi_st;
 
 	// check dimensions of functions

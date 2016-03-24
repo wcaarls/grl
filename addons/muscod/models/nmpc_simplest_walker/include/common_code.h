@@ -47,17 +47,6 @@ namespace CommonCode { // BEGIN NAMESPACE CommonCode
 	extern const unsigned int RCFCN_N, RCFCN_NE;
 	extern const unsigned int RDFCN_FEASIBILITY_N, RDFCN_FEASIBILITY_NE;
 
-	// define square roots of weights for LSQ objective
-	// weights
-	extern const double w_vref;
-	extern const double w_tau;
-
-// define square roots of weights for LSQ objective
-
-	extern const double sw_vref;
-	extern const double sw_tau;
-	extern const double sw_fp;
-
 	// tolerance of parallelism
 	extern const double parallel_TOL;
 
