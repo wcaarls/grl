@@ -138,7 +138,8 @@ void CompassWalkerSandbox::start(const Vector &hint, Vector *state)
   hip_instant_velocity_.clear();
   state_ = *state;
   test_ = (hint[0] != 0)?1:0;
-  exporter_->open((test_?"test":"learn"), time_ != 0.0);
+  if (exporter_)
+    exporter_->open((test_?"test":"learn"), time_ != 0.0);
 }
 
 double CompassWalkerSandbox::step(const Vector &action, Vector *next)
@@ -256,8 +257,10 @@ void CompassWalkerWalkTask::start(int test, Vector *state) const
 {
   CSWModelState swstate, initial_state;
 
-  //initial_state.init(0, 0.1534, -0.1561, 2.0*0.1534, -0.0073);
-  initial_state.init(0, 0.136189, -0.166861, 0.272379, -0.00615157); // OC initial state
+  initial_state.init(0, 0.1534, -0.1561, 2.0*0.1534, -0.0073);
+//  initial_state.init(0, 0.136189, -0.166861, 0.272379, -0.00615157); // OC initial state
+
+//  initial_state.init(0, 1.2653492928954811E-02, -4.5938714478526529E-02, -9.8968503267651428E-02, -4.0849665255999262E-01); // NMPC initial state
 
   swstate.mStanceFootX = 0;
 
@@ -358,6 +361,23 @@ bool CompassWalkerWalkTask::invert(const Vector &obs, Vector *state) const
 }
 
 // *** CompassWalkerVrefTask ***
+void CompassWalkerVrefTask::request(ConfigurationRequest *config)
+{
+  Task::request(config);
+  CompassWalkerWalkTask::request(config);
+  config->push_back(CRP("reference_velocity", "Reference velocity", vref_, CRP::Configuration, 0., DBL_MAX));
+  config->push_back(CRP("per_step_reward", "If set, give reward per every step", per_step_reward_, CRP::Configuration, 0, 1));
+}
+
+void CompassWalkerVrefTask::configure(Configuration &config)
+{
+  CompassWalkerWalkTask::configure(config);
+  vref_ = config["reference_velocity"];
+  per_step_reward_= config["per_step_reward"];
+  config.set("action_min", VectorConstructor(-10));
+  config.set("action_max", VectorConstructor( 10));
+}
+
 void CompassWalkerVrefTask::start(int test, Vector *state) const
 {
   CompassWalkerWalkTask::start(test, state);
@@ -368,26 +388,14 @@ void CompassWalkerVrefTask::evaluate(const Vector &state, const Vector &action, 
   if (state.size() != CompassWalker::ssStateSize || action.size() != 1 || next.size() != CompassWalker::ssStateSize)
     throw Exception("task/compass_walker/vref requires model/compass_walker");
 
-  *reward = 0.1*fmax(0, 4 - 100.0*pow(next[CompassWalker::siHipVelocity] - vref_, 2));
+  *reward = 0;
+
+  if (!per_step_reward_ || (per_step_reward_ && next[CompassWalker::siStanceLegChanged] > 0.5))
+    *reward = 0.1*fmax(0, 4 - 100.0*pow(next[CompassWalker::siHipVelocity] - vref_, 2));
 
   if (fabs(next[CompassWalker::siStanceLegAngle]) > M_PI/8 || fabs(next[CompassWalker::siHipAngle] - 2 * next[CompassWalker::siStanceLegAngle]) > M_PI/4)
     if (neg_reward_)
       *reward = neg_reward_;
-}
-
-void CompassWalkerVrefTask::request(ConfigurationRequest *config)
-{
-  Task::request(config);
-  CompassWalkerWalkTask::request(config);
-  config->push_back(CRP("reference_velocity", "Reference velocity", vref_, CRP::Configuration, 0., DBL_MAX));
-}
-
-void CompassWalkerVrefTask::configure(Configuration &config)
-{
-  CompassWalkerWalkTask::configure(config);
-  vref_ = config["reference_velocity"];
-  config.set("action_min", VectorConstructor(-10));
-  config.set("action_max", VectorConstructor( 10));
 }
 
 // *** CompassWalkerVrefuTask ***

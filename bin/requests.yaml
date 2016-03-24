@@ -2587,6 +2587,14 @@ task/compass_walker/vref:
     optional: 1
     min: 0
     max: 1.797693134862316e+308
+  per_step_reward:
+    type: int
+    description: If set, give reward per every step
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
 task/compass_walker/vrefu:
   description: Compass walker tracking velocity task with controls minimization
   observation_dims:
@@ -2675,6 +2683,14 @@ task/compass_walker/vrefu:
     optional: 1
     min: 0
     max: 1.797693134862316e+308
+  per_step_reward:
+    type: int
+    description: If set, give reward per every step
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
 task/compass_walker/walk:
   description: Compass walker walking task
   observation_dims:

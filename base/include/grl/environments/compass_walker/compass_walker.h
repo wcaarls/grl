@@ -146,9 +146,10 @@ class CompassWalkerVrefTask : public CompassWalkerWalkTask
 
   protected:
     double vref_;
+    int per_step_reward_;
 
   public:
-    CompassWalkerVrefTask() : vref_(0.12) { }
+    CompassWalkerVrefTask() : vref_(0.12), per_step_reward_(0) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
