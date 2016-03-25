@@ -295,7 +295,7 @@ nhist
 * Choosing libraries *
 
 libmodel
-libwalker_nmpc
+libnmpc_simplest_walker
 
 libhessian
 hess_gaussnewton

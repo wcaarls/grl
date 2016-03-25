@@ -13,7 +13,8 @@ experiment:
       control_step: 0.2
       integration_steps: 20
       slope_angle: 0.004
-    task:
+      use_avg_velocity: 1
+    task: 
       type: task/compass_walker/vrefu
       timeout: 100
       initial_state_variation: 0.2
@@ -21,6 +22,7 @@ experiment:
       negative_reward: -5
       observe: [1, 1, 1, 1, 0, 1]
       reference_velocity: 0.12
+      per_step_reward: 0
     exporter: 
       type: exporter/csv
       file: walker_ac_tc_vref_gen-test
