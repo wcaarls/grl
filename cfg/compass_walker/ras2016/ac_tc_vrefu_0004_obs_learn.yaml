@@ -15,7 +15,7 @@ experiment:
       slope_angle: 0.004
       use_avg_velocity: 1
     task: 
-      type: task/compass_walker/vrefu
+      type: task/compass_walker/vref
       timeout: 100
       initial_state_variation: 0.2
       slope_angle: experiment/environment/model/slope_angle
