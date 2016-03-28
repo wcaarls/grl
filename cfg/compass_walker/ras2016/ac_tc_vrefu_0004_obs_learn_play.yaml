@@ -18,7 +18,7 @@ experiment:
         style: meshup
       use_avg_velocity: 1
     task: 
-      type: task/compass_walker/vref
+      type: task/compass_walker/vrefu
       timeout: 100
       initial_state_variation: 0.0
       slope_angle: experiment/environment/model/slope_angle
