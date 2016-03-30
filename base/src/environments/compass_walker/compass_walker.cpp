@@ -406,7 +406,7 @@ void CompassWalkerVrefuTask::evaluate(const Vector &state, const Vector &action,
 
   CompassWalkerVrefTask::evaluate(state, action, next, reward);
 
-  *reward -= 0.001*action[0]*action[0]; // add action penalty to the reward
+  *reward -= 0.01*action[0]*action[0]; // add action penalty to the reward
 
   if (fabs(next[CompassWalker::siStanceLegAngle]) > M_PI/8 || fabs(next[CompassWalker::siHipAngle] - 2 * next[CompassWalker::siStanceLegAngle]) > M_PI/4)
     if (neg_reward_)
