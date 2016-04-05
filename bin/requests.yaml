@@ -811,6 +811,12 @@ policy/feed_forward:
     mutability: configuration
     default: "[  ]"
     optional: 1
+  input:
+    type: string
+    description: string.input_
+    mutability: configuration
+    default: CSV file with timestep and controls
+    optional: 1
 policy/mhe_nmpc:
   description: Nonlinear model predictive control policy with moving horizon estimator using the MUSCOD library
   lua_model:

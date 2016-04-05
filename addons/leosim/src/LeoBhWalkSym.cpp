@@ -87,6 +87,7 @@ bool CLeoBhWalkSym::readConfig(const CConfigSection &xmlRoot)
 {
   CConfigSection configNode = xmlRoot.section("policy");
 
+/*
   bool configresult = true;
   configresult &= mLogAssert(configNode.get("rewardTime", &mRwTime));
   configresult &= mLogAssert(configNode.get("rewardFootstepDist", &mRwFootstepDist));
@@ -108,7 +109,65 @@ bool CLeoBhWalkSym::readConfig(const CConfigSection &xmlRoot)
   mTrialTimeout = (uint64_t)(timeSeconds*1E6);
   configresult &= mLogAssert(configNode.get("observingTimeSeconds", &timeSeconds));
   mObservingTime = (uint64_t)(timeSeconds*1E6);
+*/
+  bool configresult = true;
+  configresult &= mLogAssert(configNode.get("frequency", &mDesiredFrequency));
+  configresult &= mLogAssert(configNode.get("memorySize", &mDesiredMemorySize));
+  configresult &= mLogAssert(configNode.get("numTilings", &mDesiredNumTilings));
 
+  configresult &= mLogAssert(configNode.get("rewardTime", &mRwTime));
+  configresult &= mLogAssert(configNode.get("rewardFootstepDist", &mRwFootstepDist));
+  configresult &= mLogAssert(configNode.get("rewardFootstepDistCont", &mRwFootstepDistCont));
+  configresult &= mLogAssert(configNode.get("rewardFootstepMaxLength", &mRwFootstepMaxLength));
+
+  configNode.get("rewardFootstepBackward", &mRwFootstepBackward);
+
+  configresult &= mLogAssert(configNode.get("rewardEnergy", &mRwEnergy));
+  configresult &= mLogAssert(configNode.get("rewardFootClearance", &mRwFootClearance));
+  configresult &= mLogAssert(configNode.get("rewardFootClearanceThreshold", &mRwFootClearanceThreshold));
+  configresult &= mLogAssert(configNode.get("rewardDoomedToFall", &mRwDoomedToFall));
+  configresult &= mLogAssert(configNode.get("rewardHipAngleChange", &mRwHipAngleChange));
+  configresult &= mLogAssert(configNode.get("rewardDoubleStance", &mRwDoubleStance));
+  configresult &= mLogAssert(configNode.get("rewardTorsoUpright", &mRwTorsoUpright));
+  configresult &= mLogAssert(configNode.get("rewardTorsoUprightAngle", &mRwTorsoUprightAngle));
+  configresult &= mLogAssert(configNode.get("rewardTorsoUprightAngleMargin", &mRwTorsoUprightAngleMargin));
+  configresult &= mLogAssert(configNode.get("preprogrammedTorsoAngle", &mPreProgTorsoAngle));
+  configresult &= mLogAssert(configNode.get("preprogrammedHipAngle", &mPreProgHipAngle));
+  configresult &= mLogAssert(configNode.get("preprogrammedShoulderAngle", &mPreProgShoulderAngle));
+  configresult &= mLogAssert(configNode.get("preprogrammedAnkleAngle", &mPreProgAnkleAngle));
+
+  // ivan: The following values are not found in XML, but are set to defaults
+  mLogAssert(configNode.get("preprogrammedStanceKneeAngle", &mPreProgStanceKneeAngle));
+  mLogAssert(configNode.get("preprogrammedEarlySwingTime", &mPreProgEarlySwingTime));
+  mLogAssert(configNode.get("preprogrammedExploreRate", &mPreProgExploreRate));
+
+
+  double timeSeconds=0;
+  configresult &= mLogAssert(configNode.get("trialTimeoutSeconds", &timeSeconds));
+  mTrialTimeout = (uint64_t)(timeSeconds*1E6);
+  configresult &= mLogAssert(configNode.get("observingTimeSeconds", &timeSeconds));
+  mObservingTime = (uint64_t)(timeSeconds*1E6);
+//  configresult &= mLogAssert(configNode.get("learnSwingKnee", &mLearnSwingKnee));
+  configresult &= mLogAssert(configNode.get("useEffectiveAction",&mUseEffectiveAction));
+  configresult &= mLogAssert(configNode.get("generalizeActions", &mGeneralizeActions));
+
+  configresult &= mLogAssert(configNode.get("scaleFactTorsoAngle",			&mScaleFactTorsoAngle));
+  configresult &= mLogAssert(configNode.get("scaleFactTorsoAngleRate",		&mScaleFactTorsoAngleRate));
+  configresult &= mLogAssert(configNode.get("scaleFactHipStanceAngle",		&mScaleFactHipStanceAngle));
+  configresult &= mLogAssert(configNode.get("scaleFactHipStanceAngleRate",	&mScaleFactHipStanceAngleRate));
+  configresult &= mLogAssert(configNode.get("scaleFactHipSwingAngle",			&mScaleFactHipSwingAngle));
+  configresult &= mLogAssert(configNode.get("scaleFactHipSwingAngleRate",		&mScaleFactHipSwingAngleRate));
+  configresult &= mLogAssert(configNode.get("scaleFactKneeStanceAngle",		&mScaleFactKneeStanceAngle));
+  configresult &= mLogAssert(configNode.get("scaleFactKneeStanceAngleRate",	&mScaleFactKneeStanceAngleRate));
+  configresult &= mLogAssert(configNode.get("scaleFactKneeSwingAngle", 		&mScaleFactKneeSwingAngle));
+  configresult &= mLogAssert(configNode.get("scaleFactKneeSwingAngleRate",	&mScaleFactKneeSwingAngleRate));
+
+  configNode.get("multiResScaleFact", &mMultiResScaleFact);
+
+  configresult &= mLogAssert(configNode.get("numActionsPerJoint", &mNumActionsPerJoint));
+  configresult &= mLogAssert(configNode.get("scaleFactVoltage",	&mScaleFactVoltage));
+
+  /////////////
   configNode = xmlRoot.section("ode");
   configNode.get("steptime", &mTotalStepTime);
 

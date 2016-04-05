@@ -5,7 +5,7 @@ experiment:
   steps: 0
   rate: 0
   test_interval: 10
-  output: leo_sarsa_walk
+  output: leo_qlearning_walk
   environment: 
     type: environment/leosim
     xml: /home/ivan/work/Project/Software/grl/src/grl/addons/leosim/cfg/leolearnwalking-sarsa-tc.xml
@@ -40,14 +40,16 @@ experiment:
         type: sampler/epsilon_greedy
         epsilon: 0.05
     predictor: 
-      type: predictor/sarsa
+      type: predictor/advantage
       alpha: 0.2
       gamma: 0.9962
       lambda: 0.8582
+      kappa: 1
+      discretizer: experiment/agent/policy/discretizer
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
       trace: 
-        type: trace/enumerated/accumulating
+        type: trace/enumerated/replacing
   test_agent: 
     type: agent/fixed
     policy: 

@@ -231,23 +231,32 @@ void LeoSimEnvironment::start(int test, Vector *obs)
 
 double LeoSimEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)
 {
+  Vector action1 = action;
+/*
+  std::string str;
+  std::vector<std::string> vs = grl::cutLongStr(str);
+  std::vector<double> vec;
+  for (int i = 0; i < vs.size(); i++)
+    vec.push_back(::atof(vs[i].c_str()));
+  Vector action1 = VectorConstructor(vec);
+*/
   bhWalk_.setCurrentSTGState(&leoState_);
 
   // auto actuate unlearned joints to find complete action vector
   double actionArm, actionStanceKnee, actionSwingKnee, actionStanceHip, actionSwingHip;
-  actionStanceHip = action[0];
-  actionSwingHip  = action[1];
+  actionStanceHip = action1[0];
+  actionSwingHip  = action1[1];
   if (!learn_stance_knee_)
   {
     // Auto actuation of the stance knee
     actionStanceKnee = bhWalk_.grlAutoActuateKnee();
-    actionSwingKnee  = action[2];
+    actionSwingKnee  = action1[2];
   }
   else
   {
     // Learn both actions
-    actionStanceKnee = action[2];
-    actionSwingKnee  = action[3];
+    actionStanceKnee = action1[2];
+    actionSwingKnee  = action1[3];
   }
   Vector actionAnkles;
   bhWalk_.grlAutoActuateAnkles(actionAnkles);
@@ -260,11 +269,12 @@ double LeoSimEnvironment::step(const Vector &action, Vector *obs, double *reward
   else
     ode_action_ << actionArm, actionStanceHip, actionSwingHip, actionStanceKnee, actionSwingKnee, actionAnkles;
 
-  ode_action_ << ConstantVector(7, 5);
+//  ode_action_ << ConstantVector(7, -5);
+  std::cout << "Full action: " << ode_action_ << std::endl;
 
   bhWalk_.setPreviousSTGState(&leoState_);
   TRACE("ode action = " << ode_action_);
-  ODEEnvironment::step(ode_action_, &ode_obs_, reward, terminal);
+  double tau = ODEEnvironment::step(ode_action_, &ode_obs_, reward, terminal);
   TRACE("ode observation = " << ode_obs_);
 
   // Filter joint speeds
@@ -282,15 +292,16 @@ double LeoSimEnvironment::step(const Vector &action, Vector *obs, double *reward
   std::vector<double> v(leoState_.mJointSpeeds, leoState_.mJointSpeeds + ljNumJoints);
   std::vector<double> a(leoState_.mActuationVoltages, leoState_.mActuationVoltages + ljNumDynamixels);
 
-  std::cout << s << std::endl;
-  std::cout << v << std::endl;
-  std::cout << (int)leoState_.mFootContacts << std::endl;
-  std::cout << a << std::endl;
+  std::cout << "State angles: " << s << std::endl;
+  std::cout << "State velocities: " << v << std::endl;
+  std::cout << "Contacts: " << (int)leoState_.mFootContacts << std::endl;
+
+  std::cout << "Action1: " << action1 << std::endl;
+  std::cout << "Action: " << a << std::endl;
 
   // Determine reward and termination
   *reward = bhWalk_.calculateReward();
-  std::cout << *reward << std::endl;
-
+  std::cout << "Reward: " << *reward << std::endl;
 
   if (*terminal == 1) // timeout
     *terminal = 1;
@@ -298,6 +309,8 @@ double LeoSimEnvironment::step(const Vector &action, Vector *obs, double *reward
     *terminal = 2;
   else
     *terminal = 0;
+
+  return tau;
 }
 
 void LeoSimEnvironment::fillObserve( const std::vector<CGenericStateVar> &genericStates,

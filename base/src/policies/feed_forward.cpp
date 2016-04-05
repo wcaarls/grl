@@ -35,13 +35,33 @@ void FeedForwardPolicy::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("action_dims", "Number of action dimensions", action_dims_, CRP::Configuration, 1));
   config->push_back(CRP("time_control", "Sequence of control vectors with a timestamp", time_control_));
+  config->push_back(CRP("input", "string.input_", "CSV file with timestep and controls"));
 }
 
 void FeedForwardPolicy::configure(Configuration &config)
 {
   action_dims_ = config["action_dims"];
-  time_control_ = config["time_control"];
+  input_ = config["input"].str();
   shift_ = 1 + action_dims_; // time + action
+  if (input_.empty())
+  {
+    time_control_ = config["time_control"];
+  }
+  else
+  {
+    std::ifstream file(input_);
+    std::string line;
+    std::vector<double> v;
+    while( std::getline( file, line ) )
+    {
+      std::istringstream iss( line );
+      std::string result;
+      while( std::getline( iss, result, ',' ) )
+         v.push_back(::atof(result.c_str()));
+    }
+    file.close();
+    time_control_ = VectorConstructor(v);
+  }
 
   if (time_control_.size() % shift_ != 0)
     throw bad_param("policy/feed_forward:time_control");
