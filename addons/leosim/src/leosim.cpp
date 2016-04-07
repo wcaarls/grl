@@ -115,6 +115,11 @@ void LeoSimEnvironment::request(ConfigurationRequest *config)
 
 void LeoSimEnvironment::configure(Configuration &config)
 {
+  // Setup path to a configuration file
+  std::string xml = std::string(LEOSIM_CONFIG_DIR) + "/" + config["xml"].str();
+  //config["xml"].str() = xml; // update for the correct ODESIM initialization
+  config.set("xml", xml);
+
   // Read yaml first. Settings will be overwritten by ODEEnvironment::configure,
   // which are different because they belong to ODE simulator.
   ODEEnvironment::configure(config);
@@ -126,10 +131,8 @@ void LeoSimEnvironment::configure(Configuration &config)
   if (exporter_)
     exporter_->init({"time", "state0", "state1", "action", "reward", "terminal"});
 
-  std::string xml = config["xml"].str();
-
+  // Process configuration for leosim
   CXMLConfiguration xmlConfig;
-
   if (!xmlConfig.loadFile(xml))
   {
     ERROR("Couldn't load XML configuration file \"" << xml << "\"!\nPlease check that the file exists and that it is sound (error: " << xmlConfig.errorStr() << ").");
@@ -297,7 +300,7 @@ double LeoSimEnvironment::step(const Vector &action, Vector *obs, double *reward
   std::vector<double> s1(leoState_.mJointAngles, leoState_.mJointAngles + ljNumJoints);
   std::vector<double> v1(leoState_.mJointSpeeds, leoState_.mJointSpeeds + ljNumJoints);
   std::vector<double> a(leoState_.mActuationVoltages, leoState_.mActuationVoltages + ljNumDynamixels);
-
+/*
   std::cout << "State angles: " << s1 << std::endl;
   std::cout << "State velocities: " << v1 << std::endl;
   std::cout << "Contacts: " << (int)leoState_.mFootContacts << std::endl;
@@ -306,7 +309,7 @@ double LeoSimEnvironment::step(const Vector &action, Vector *obs, double *reward
   std::cout << "Full action: " << a << std::endl;
 
   std::cout << "Reward: " << *reward << std::endl;
-
+*/
   // ... and termination
   if (*terminal == 1) // timeout
     *terminal = 1;
