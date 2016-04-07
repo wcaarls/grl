@@ -96,7 +96,10 @@ LeoSimEnvironment::LeoSimEnvironment() :
   bhWalk_(&leoSim_),
   observation_dims_(CGrlLeoBhWalkSym::svNumStates),
   requested_action_dims_(CGrlLeoBhWalkSym::svNumActions),
-  learn_stance_knee_(0)
+  learn_stance_knee_(0),
+  time_test_(0),
+  time_learn_(0),
+  test_(0)
 {
 }
 
@@ -107,17 +110,21 @@ void LeoSimEnvironment::request(ConfigurationRequest *config)
   config->push_back(CRP("observe", "string.observe_", "Comma-separated list of state elements observed by an agent"));
   config->push_back(CRP("actuate", "string.actuate_", "Comma-separated list of action elements provided by an agent"));
   config->push_back(CRP("learn_stance_knee", "Learn stance knee", learn_stance_knee_, CRP::Configuration, 0, 1));
+  config->push_back(CRP("exporter", "exporter", "Optional exporter for transition log (supports time, state, observation, action, reward, terminal)", exporter_, true));
 }
 
 void LeoSimEnvironment::configure(Configuration &config)
 {
   // Read yaml first. Settings will be overwritten by ODEEnvironment::configure,
   // which are different because they belong to ODE simulator.
-
   ODEEnvironment::configure(config);
   ode_observation_dims_ = config["observation_dims"];
   ode_action_dims_ = config["action_dims"];
   learn_stance_knee_ = config["learn_stance_knee"];
+
+  exporter_ = (Exporter*) config["exporter"].ptr();
+  if (exporter_)
+    exporter_->init({"time", "state0", "state1", "action", "reward", "terminal"});
 
   std::string xml = config["xml"].str();
 
@@ -201,6 +208,7 @@ void LeoSimEnvironment::configure(Configuration &config)
 void LeoSimEnvironment::reconfigure(const Configuration &config)
 {
   ODEEnvironment::reconfigure(config);
+  time_test_ = time_learn_ = 0;
 }
 
 LeoSimEnvironment *LeoSimEnvironment::clone()
@@ -210,6 +218,8 @@ LeoSimEnvironment *LeoSimEnvironment::clone()
 
 void LeoSimEnvironment::start(int test, Vector *obs)
 {
+  test_ = test;
+
   ODEEnvironment::start(test, &ode_obs_);
 
   bhWalk_.resetState();
@@ -227,36 +237,31 @@ void LeoSimEnvironment::start(int test, Vector *obs)
   bhWalk_.parseLeoState(leoState_, *obs);
 
   bhWalk_.setCurrentSTGState(NULL);
+
+  if (exporter_)
+    exporter_->open((test_?"test":"learn"), (test_?time_test_:time_learn_) != 0.0);
 }
 
 double LeoSimEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)
 {
-  Vector action1 = action;
-/*
-  std::string str;
-  std::vector<std::string> vs = grl::cutLongStr(str);
-  std::vector<double> vec;
-  for (int i = 0; i < vs.size(); i++)
-    vec.push_back(::atof(vs[i].c_str()));
-  Vector action1 = VectorConstructor(vec);
-*/
+  double &time = test_?time_test_:time_learn_;
   bhWalk_.setCurrentSTGState(&leoState_);
 
   // auto actuate unlearned joints to find complete action vector
   double actionArm, actionStanceKnee, actionSwingKnee, actionStanceHip, actionSwingHip;
-  actionStanceHip = action1[0];
-  actionSwingHip  = action1[1];
+  actionStanceHip = action[0];
+  actionSwingHip  = action[1];
   if (!learn_stance_knee_)
   {
     // Auto actuation of the stance knee
     actionStanceKnee = bhWalk_.grlAutoActuateKnee();
-    actionSwingKnee  = action1[2];
+    actionSwingKnee  = action[2];
   }
   else
   {
     // Learn both actions
-    actionStanceKnee = action1[2];
-    actionSwingKnee  = action1[3];
+    actionStanceKnee = action[2];
+    actionSwingKnee  = action[3];
   }
   Vector actionAnkles;
   bhWalk_.grlAutoActuateAnkles(actionAnkles);
@@ -268,9 +273,6 @@ double LeoSimEnvironment::step(const Vector &action, Vector *obs, double *reward
     ode_action_ << actionArm, actionSwingHip, actionStanceHip, actionSwingKnee, actionStanceKnee, actionAnkles;
   else
     ode_action_ << actionArm, actionStanceHip, actionSwingHip, actionStanceKnee, actionSwingKnee, actionAnkles;
-
-//  ode_action_ << ConstantVector(7, -5);
-  std::cout << "Full action: " << ode_action_ << std::endl;
 
   bhWalk_.setPreviousSTGState(&leoState_);
   TRACE("ode action = " << ode_action_);
@@ -288,27 +290,42 @@ double LeoSimEnvironment::step(const Vector &action, Vector *obs, double *reward
   // construct new obs from CLeoState
   bhWalk_.parseLeoState(leoState_, *obs);
 
-  std::vector<double> s(leoState_.mJointAngles, leoState_.mJointAngles + ljNumJoints);
-  std::vector<double> v(leoState_.mJointSpeeds, leoState_.mJointSpeeds + ljNumJoints);
+  // Determine reward
+  *reward = bhWalk_.calculateReward();
+
+  // Debug info
+  std::vector<double> s1(leoState_.mJointAngles, leoState_.mJointAngles + ljNumJoints);
+  std::vector<double> v1(leoState_.mJointSpeeds, leoState_.mJointSpeeds + ljNumJoints);
   std::vector<double> a(leoState_.mActuationVoltages, leoState_.mActuationVoltages + ljNumDynamixels);
 
-  std::cout << "State angles: " << s << std::endl;
-  std::cout << "State velocities: " << v << std::endl;
+  std::cout << "State angles: " << s1 << std::endl;
+  std::cout << "State velocities: " << v1 << std::endl;
   std::cout << "Contacts: " << (int)leoState_.mFootContacts << std::endl;
 
-  std::cout << "Action1: " << action1 << std::endl;
-  std::cout << "Action: " << a << std::endl;
+  std::cout << "RL action: " << action << std::endl;
+  std::cout << "Full action: " << a << std::endl;
 
-  // Determine reward and termination
-  *reward = bhWalk_.calculateReward();
   std::cout << "Reward: " << *reward << std::endl;
 
+  // ... and termination
   if (*terminal == 1) // timeout
     *terminal = 1;
   else if (bhWalk_.isDoomedToFall(&leoState_, false))
     *terminal = 2;
   else
     *terminal = 0;
+
+  // export
+  std::vector<double> s0(bhWalk_.getPreviousSTGState()->mJointAngles, bhWalk_.getPreviousSTGState()->mJointAngles + ljNumJoints);
+  std::vector<double> v0(bhWalk_.getPreviousSTGState()->mJointSpeeds, bhWalk_.getPreviousSTGState()->mJointSpeeds + ljNumJoints);
+  s0.insert(s0.end(), v0.begin(), v0.end());
+  s1.insert(s1.end(), v1.begin(), v1.end());
+  if (exporter_)
+    exporter_->write({grl::VectorConstructor(time), grl::VectorConstructor(s0),  grl::VectorConstructor(s1),
+                      grl::VectorConstructor(a), grl::VectorConstructor(*reward), grl::VectorConstructor(*terminal)
+                     });
+
+  time += tau;
 
   return tau;
 }

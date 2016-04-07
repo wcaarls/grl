@@ -194,6 +194,12 @@ environment/leosim:
     optional: 1
     min: 0
     max: 1
+  exporter:
+    type: exporter
+    description: Optional exporter for transition log (supports time, state, observation, action, reward, terminal)
+    mutability: configuration
+    default: 0
+    optional: 1
 environment/modeled:
   description: Environment that uses a state transition model internally
   model:

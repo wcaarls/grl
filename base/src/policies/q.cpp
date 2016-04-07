@@ -71,7 +71,7 @@ QPolicy *QPolicy::clone() const
  */
 void QPolicy::values(const Vector &in, Vector *out) const
 {
-  // projections contains list of neighbours around state 'in' and any possible action. Number of projections is equal to number of possible actions.
+  // 'projections' contains list of neighbours around state 'in' and any possible action. Number of projections is equal to number of possible actions.
   std::vector<ProjectionPtr> projections;
   projector_->project(in, variants_, &projections);
 

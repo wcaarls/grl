@@ -53,8 +53,8 @@
 		<exploreRate>0.05</exploreRate>
 		<softmaxTemperature>1.0</softmaxTemperature>
 		<explorationType>e-greedy</explorationType>
-		<discountRate>(1-1/euler_e)^(1.0/(ctrlFrequency*4.0))</discountRate>
-		<traceFalloffRate>(1-1/euler_e)^(1.0/(ctrlFrequency*0.1))</traceFalloffRate>
+		<discountRate comment="(1-1/euler_e)^(1.0/(ctrlFrequency*4.0))">0.9962</discountRate>
+		<traceFalloffRate comment="(1-1/euler_e)^(1.0/(ctrlFrequency*0.1))">0.8582</traceFalloffRate>
 		
 		<!-- learning options -->
 		<initialLifeNumber>$ILN</initialLifeNumber>

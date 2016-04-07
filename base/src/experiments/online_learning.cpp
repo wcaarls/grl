@@ -139,7 +139,7 @@ void OnlineLearningExperiment::run()
       state_->set(obs);
 
       CRAWL(obs);
-  
+
       do
       {
         if (rate_)

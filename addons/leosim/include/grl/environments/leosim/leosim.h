@@ -120,6 +120,11 @@ class LeoSimEnvironment : public ODEEnvironment
     int ode_observation_dims_, ode_action_dims_;
     int learn_stance_knee_;
 
+    // Exporter
+    Exporter *exporter_;
+    int test_;
+    double time_test_, time_learn_;
+
   private:
     void fillObserve(const std::vector<CGenericStateVar> &genericStates,
                      const std::vector<std::string> &observeList,
