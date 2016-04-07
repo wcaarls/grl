@@ -263,11 +263,20 @@ void ODEEnvironment::reconfigure(const Configuration &config)
 
 void ODEEnvironment::run()
 {
+  /*
+  int argc=2;
+  char *argv[2];
+  argv[0] = (char*)malloc(7*sizeof(char));
+  strcpy(argv[0], "odesim");
+  argv[1] = (char*)malloc(48*sizeof(char));
+  strcpy(argv[1], "-platform offscreen");
+*/
+
   int argc=1;
   char *argv[1];
   argv[0] = (char*)malloc(7*sizeof(char));
   strcpy(argv[0], "odesim");
-  
+
   env_ = new ODESTGEnvironment();
   if (!env_->configure(*config_))
   {

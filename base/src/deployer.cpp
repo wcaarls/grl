@@ -121,6 +121,8 @@ void sighandler(int signum)
 
 int main(int argc, char **argv)
 {
+ // signal(SIGSEGV, hSIGSEGV);
+
   int seed = 0;
   bool user_config = false;
 
@@ -193,6 +195,7 @@ int main(int argc, char **argv)
   catch (Exception &e)
   {
     ERROR(e.what());
+    std::cout << "Try exeption" << std::endl;
     ERROR("Stack trace:\n" << e.trace());
   }
   

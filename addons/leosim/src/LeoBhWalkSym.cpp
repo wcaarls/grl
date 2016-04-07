@@ -30,7 +30,8 @@ CLeoBhWalkSym::CLeoBhWalkSym(ISTGActuation *actuationInterface):
   mAnkleSwing(ljAnkleRight),
   mStanceFootContact(true),
   mSwingFootContact(false),
-  mPrintState(false)
+  mPrintState(false),
+  mMadeFootstep(false)
 {
   mDesiredFrequency      = 30.0;
   mDesiredMemorySize      = 1024*1024*4;
