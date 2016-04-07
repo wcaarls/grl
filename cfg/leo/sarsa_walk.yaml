@@ -8,7 +8,7 @@ experiment:
   output: leo_sarsa_walk
   environment: 
     type: environment/leosim
-    xml: /home/ivan/work/Project/Software/grl/src/grl/addons/leosim/cfg/leolearnwalking-sarsa-tc.xml
+    xml: leolearnwalking-sarsa-tc.xml
     visualize: 1
     observe: torso_boom, hipright, hipleft, kneeright, kneeleft
     actuate: hipright, hipleft, kneeright, kneeleft

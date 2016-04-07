@@ -37,6 +37,8 @@ if (PKG_CONFIG_FOUND AND QT4_FOUND)
 
     INCLUDE(${WORKSPACE_DIR}/dbl/platform/include.cmake)
 
+    add_definitions(-DODESIM_CONFIG_DIR="${SRC}/../cfg")
+
     # Build library
     add_library(${TARGET} SHARED
                           ${SRC}/dialog.cpp ${SRC}/environment.cpp ${SRC}/simulator.cpp

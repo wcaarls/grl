@@ -20,6 +20,8 @@ INCLUDE (${WORKSPACE_DIR}/dbl/platform/io/configuration/configuration.cmake)
 INCLUDE (${WORKSPACE_DIR}/dbl/platform/io/logging/stdlogging.cmake)
 INCLUDE (${WORKSPACE_DIR}/dbl/externals/bithacks/bithacks.cmake)
 
+add_definitions(-DLEOSIM_CONFIG_DIR="${SRC}/../cfg")
+
 # Add dependencies
 grl_link_libraries(${TARGET} base addons/odesim)
 target_link_libraries(${TARGET})

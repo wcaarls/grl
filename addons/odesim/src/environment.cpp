@@ -21,16 +21,29 @@ ODESTGEnvironment::~ODESTGEnvironment()
 
 bool ODESTGEnvironment::configure(Configuration &config)
 {
+  std::vector<std::string> cfg_paths{std::string(ODESIM_CONFIG_DIR), std::string(LEOSIM_CONFIG_DIR)};
   std::string xml = config["xml"].str();
 
   CXMLConfiguration xmlConfig;
 
-  if (!xmlConfig.loadFile(xml))
+  bool success = false;
+  for (int i = 0; i < cfg_paths.size(); i++)
   {
-    ERROR("Couldn't load XML configuration file \"" << xml << "\"!\nPlease check that the file exists and that it is sound (error: " << xmlConfig.errorStr() << ").");
+    if (success = xmlConfig.loadFile(cfg_paths[i] + "/" + xml))
+    {
+      INFO("Loaded XML configuration file \"" << cfg_paths[i] + "/" + xml << "\"\n");
+      break;
+    }
+    else
+      ERROR("Couldn't load XML configuration file \"" << cfg_paths[i] + "/" + xml << "\"!\n");
+  }
+
+  if (!success)
+  {
+    ERROR("Please check that the file exists and that it is sound (error: " << xmlConfig.errorStr() << ").");
     return false;
   }
-  
+
   // Resolve expressions
   xmlConfig.resolveExpressions();
 
