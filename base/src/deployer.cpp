@@ -119,9 +119,23 @@ void sighandler(int signum)
   sigaction(SIGINT, &act, NULL);
 }
 
+void hSIGSEGV(int sig)
+{
+  void *array[10];
+  size_t size;
+
+  // get void*'s for all entries on the stack
+  size = backtrace(array, 10);
+
+  // print out all the frames to stderr
+  fprintf(stderr, "Error: signal %d:\n", sig);
+  backtrace_symbols_fd(array, size, STDERR_FILENO);
+  exit(1);
+}
+
 int main(int argc, char **argv)
 {
- // signal(SIGSEGV, hSIGSEGV);
+  signal(SIGSEGV, hSIGSEGV);
 
   int seed = 0;
   bool user_config = false;
@@ -195,7 +209,6 @@ int main(int argc, char **argv)
   catch (Exception &e)
   {
     ERROR(e.what());
-    std::cout << "Try exeption" << std::endl;
     ERROR("Stack trace:\n" << e.trace());
   }
   
