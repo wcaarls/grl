@@ -10,7 +10,8 @@ else()
 endif()
 
 # 
-SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -g -rdynamic")
+SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -g -rdynamic -fvisibility=default")
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=default")
 #    SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -Wl,--start-group")
 #    SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -Wl,--start-group")
 

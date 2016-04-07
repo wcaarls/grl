@@ -118,7 +118,7 @@ void sighandler(int signum)
   
   sigaction(SIGINT, &act, NULL);
 }
-/*
+
 void hSIGSEGV(int sig)
 {
   void *array[10];
@@ -132,7 +132,7 @@ void hSIGSEGV(int sig)
   backtrace_symbols_fd(array, size, STDERR_FILENO);
   exit(1);
 }
-*/
+
 
 char* exe = 0;
 
@@ -142,7 +142,7 @@ int initialiseExecutableName()
     exe = new char[1024];
     snprintf(link,sizeof link,"/proc/%d/exe",getpid());
     if(readlink(link,exe,sizeof link)==-1) {
-        fprintf(stderr,"ERRORRRRR\n");
+        fprintf(stderr,"ERROR\n");
         exit(1);
     }
     printf("Executable name initialised: %s\n",exe);
@@ -196,7 +196,7 @@ void bt_sighandler(int sig, siginfo_t *info,
            "from %p\n", sig, info->si_addr,
            uc->uc_mcontext.gregs[REG_EIP_RIP]);
   else
-    printf("Got signal %d#92;\n", sig);
+    printf("Got signal %d\n", sig);
 
   trace_size = backtrace(trace, 16);
   /* overwrite sigaction with caller's address */
@@ -207,7 +207,7 @@ void bt_sighandler(int sig, siginfo_t *info,
   printf("[bt] Execution path:#92;\n");
   for (i=1; i<trace_size; ++i)
   {
-    printf("[bt] %s#92;\n", messages[i]);
+    printf("[bt] %s\n", messages[i]);
 
     /* find first occurence of '(' or ' ' in message[i] and assume
      * everything before that is the file name. (Don't go beyond 0 though
@@ -228,13 +228,14 @@ void bt_sighandler(int sig, siginfo_t *info,
 
 int main(int argc, char **argv)
 {
-  // signal(SIGSEGV, hSIGSEGV);
+  signal(SIGSEGV, hSIGSEGV);
+  /*
   struct sigaction sa;
   sa.sa_sigaction = bt_sighandler;
   sigemptyset (&sa.sa_mask);
   sa.sa_flags = SA_RESTART | SA_SIGINFO;
   sigaction(SIGSEGV, &sa, NULL);
-
+*/
   int seed = 0;
   bool user_config = false;
 

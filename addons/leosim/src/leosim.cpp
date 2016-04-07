@@ -115,6 +115,9 @@ void LeoSimEnvironment::request(ConfigurationRequest *config)
 
 void LeoSimEnvironment::configure(Configuration &config)
 {
+  //char *p = (char *)0xdeadbeef;
+  //*p = 10;  /* CRASH here!! */
+
   // Setup path to a configuration file
   std::string xml = std::string(LEOSIM_CONFIG_DIR) + "/" + config["xml"].str();
   //config["xml"].str() = xml; // update for the correct ODESIM initialization
