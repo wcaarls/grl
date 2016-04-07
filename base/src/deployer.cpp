@@ -135,8 +135,6 @@ void hSIGSEGV(int sig)
 
 int main(int argc, char **argv)
 {
-  signal(SIGSEGV, hSIGSEGV);
-
   int seed = 0;
   bool user_config = false;
 
@@ -199,7 +197,9 @@ int main(int argc, char **argv)
   act.sa_handler = sighandler;
   act.sa_flags = SA_NODEFER;
   sigaction(SIGINT, &act, &oldact);
-  
+
+  signal(SIGSEGV, hSIGSEGV);
+
   NOTICE("Starting experiment");
 
   try
