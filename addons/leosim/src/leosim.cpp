@@ -99,7 +99,8 @@ LeoSimEnvironment::LeoSimEnvironment() :
   learn_stance_knee_(0),
   time_test_(0),
   time_learn_(0),
-  test_(0)
+  test_(0),
+  exporter_(NULL)
 {
 }
 
