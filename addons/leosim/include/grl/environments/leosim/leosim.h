@@ -111,6 +111,7 @@ class LeoSimEnvironment : public ODEEnvironment
     // From Environment
     virtual void start(int test, Vector *obs);
     virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal);
+    virtual void report(std::ostream &os);
     
   protected:
     CSTGLeoSim leoSim_;
@@ -123,7 +124,7 @@ class LeoSimEnvironment : public ODEEnvironment
     // Exporter
     Exporter *exporter_;
     int test_;
-    double time_test_, time_learn_;
+    double time_test_, time_learn_, time0_;
 
   private:
     void fillObserve(const std::vector<CGenericStateVar> &genericStates,

@@ -14,6 +14,9 @@ void CGrlLeoBhWalkSym::resetState()
   mLastStancelegWasLeft = -1;
   mFootstepLength       = 0.0;
   mLastFootstepLength   = 0.0;
+  mNumFootsteps         = 0;
+  mWalkedDistance       = 0.0;
+  mTrialEnergy          = 0.0;
 
   // Reset velocity filters to zero velocity (this is the result of robot->setIC)
   for (int iJoint=0; iJoint<ljNumJoints; iJoint++)
@@ -99,6 +102,7 @@ LeoSimEnvironment::LeoSimEnvironment() :
   learn_stance_knee_(0),
   time_test_(0),
   time_learn_(0),
+  time0_(0),
   test_(0),
   exporter_(NULL)
 {
@@ -212,7 +216,7 @@ void LeoSimEnvironment::configure(Configuration &config)
 void LeoSimEnvironment::reconfigure(const Configuration &config)
 {
   ODEEnvironment::reconfigure(config);
-  time_test_ = time_learn_ = 0;
+  time_test_ = time_learn_ = time0_ = 0;
 }
 
 LeoSimEnvironment *LeoSimEnvironment::clone()
@@ -244,6 +248,7 @@ void LeoSimEnvironment::start(int test, Vector *obs)
 
   if (exporter_)
     exporter_->open((test_?"test":"learn"), (test_?time_test_:time_learn_) != 0.0);
+  time0_ = test_?time_test_:time_learn_;
 }
 
 double LeoSimEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)
@@ -332,6 +337,12 @@ double LeoSimEnvironment::step(const Vector &action, Vector *obs, double *reward
   time += tau;
 
   return tau;
+}
+
+void LeoSimEnvironment::report(std::ostream &os)
+{
+  double &time  = test_?time_test_ :time_learn_;
+  os << bhWalk_.getProgressReport(time-time0_);
 }
 
 void LeoSimEnvironment::fillObserve( const std::vector<CGenericStateVar> &genericStates,

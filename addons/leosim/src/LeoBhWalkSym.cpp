@@ -575,3 +575,38 @@ void CLeoBhWalkSym::autoActuateArm(ISTGActuation* actuationInterface)
   double armTorque = 5.0*(mPreProgShoulderAngle - getCurrentSTGState()->mJointAngles[ljShoulder]);
   getActuationInterface()->setJointVoltage(ljShoulder, torqueToVoltage*armTorque);
 }
+
+std::string CLeoBhWalkSym::getProgressReport(double trialTime)
+{
+  const int pw = 15;
+
+  std::stringstream progressString;
+
+  progressString << std::fixed << std::setprecision(3) << std::right;
+
+  // Trial time
+  progressString << std::setw(pw) << trialTime;
+
+  // Number of footsteps in this trial
+  progressString << std::setw(pw) << mNumFootsteps;
+
+  // Number of cumulative falls since the birth of the agent
+  progressString << std::setw(pw) << mNumFalls;
+
+  // Walked distance (estimate)
+  progressString << std::setw(pw) << mWalkedDistance;
+
+  // Speed
+  progressString << std::setw(pw) << mWalkedDistance/trialTime;
+
+  // Energy usage
+  progressString << std::setw(pw) << mTrialEnergy;
+
+  // Energy per traveled meter
+  if (mWalkedDistance > 0.0)
+    progressString << std::setw(pw) << mTrialEnergy/mWalkedDistance;
+  else
+    progressString << std::setw(pw) << 0.0;
+
+  return progressString.str();
+}

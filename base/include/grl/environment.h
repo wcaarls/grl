@@ -48,6 +48,9 @@ class Environment : public Configurable
     
     /// Take a step, returning the next observation, reward, and whether the episode terminated.
     virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal) = 0;
+
+    /// Progress report.
+    virtual void report(std::ostream &os) { }
 };
 
 /// Random-access transition model (works on states instead of observations).

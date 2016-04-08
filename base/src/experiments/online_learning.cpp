@@ -176,6 +176,7 @@ void OnlineLearningExperiment::run()
           std::ostringstream oss;
           oss << std::setw(15) << tt+1-(tt+1)/(test_interval_+1) << std::setw(15) << ss << std::setw(15) << total_reward;
           agent_->report(oss);
+          environment_->report(oss);
           curve_->set(VectorConstructor(total_reward));
         
           INFO(oss.str());
