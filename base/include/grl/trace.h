@@ -262,13 +262,15 @@ class AccumulatingEnumeratedTrace : public EnumeratedTrace
       std::deque<ProjectionDecay> *p = projections_.instance();
       double *total_decay = total_decay_.instance();
     
-      if (decay < 0.01)
+      const double dc = 0.0001;
+
+      if (decay < dc)
         clear();
     
       p->push_back(ProjectionDecay(projection, decay));
       *total_decay *= decay;
       
-      while (*total_decay < 0.01 && p->size() > 1)
+      while (*total_decay < dc && p->size() > 1)
       {
         *total_decay /= p->front().decay;
         p->pop_front();

@@ -1,8 +1,8 @@
 experiment: 
   type: experiment/online_learning
   runs: 1
-  trials: 30000
-  steps: 0
+  trials: 0
+  steps: 1000000
   rate: 0
   test_interval: 10
   output: leo_sarsa_walk
@@ -31,19 +31,19 @@ experiment:
       representation: 
         type: representation/parameterized/linear
         init_min: [0]
-        init_max: [0]
+        init_max: [0.01]
         memory: experiment/agent/policy/projector/memory
         outputs: 1
         output_min: []
         output_max: []
       sampler: 
         type: sampler/epsilon_greedy
-        epsilon: 0.05
+        epsilon: 0.1
     predictor: 
       type: predictor/sarsa
       alpha: 0.2
       gamma: 0.9962
-      lambda: 0.9582
+      lambda: 0.8582
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
       trace: 
