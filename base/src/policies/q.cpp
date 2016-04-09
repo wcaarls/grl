@@ -88,5 +88,5 @@ void QPolicy::act(const Vector &in, Vector *out) const
   values(in, &qvalues);
   size_t action = sampler_->sample(qvalues);
   
-  *out = variants_[action];
+  *out = variants_[action]; //#ivan
 }
