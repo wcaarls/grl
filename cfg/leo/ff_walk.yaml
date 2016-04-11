@@ -1,14 +1,14 @@
 experiment: 
   type: experiment/online_learning
   runs: 1
-  trials: 1000
+  trials: 1
   steps: 0
   rate: 0
   test_interval: -1
   output: leo_ff_walk
   environment: 
     type: environment/leosim
-    xml: /home/ivan/work/Project/Software/grl/src/grl/addons/leosim/cfg/leolearnwalking-sarsa-tc.xml
+    xml: leolearnwalking-sarsa-tc.xml
     visualize: 1
     observe: torso_boom, hipright, hipleft, kneeright, kneeleft
     actuate: hipright, hipleft, kneeright, kneeleft
