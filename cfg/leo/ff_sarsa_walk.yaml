@@ -1,0 +1,61 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 0
+  steps: 1000000
+  rate: 0
+  test_interval: 10
+  output: leo_ff_sarsa_walk
+  environment: 
+    type: environment/leosim
+    xml: leolearnwalking-sarsa-tc.xml
+    visualize: 1
+    observe: torso_boom, hipright, hipleft, kneeright, kneeleft
+    actuate: hipright, hipleft, kneeright, kneeleft
+    learn_stance_knee: 0
+  agent: 
+    type: agent/master/sequential
+    agent1: 
+      type: agent/fixed
+      policy: 
+        type: policy/feed_forward
+        action_dims: 3
+        time_control: [  ]
+        input: /home/ivan/work/Project/Software/grl/src/grl/addons/leosim/cfg/actions.csv
+    agent2: 
+      type: agent/td
+      policy: 
+        type: policy/discrete/q
+        discretizer: 
+          type: discretizer/uniform
+          min: experiment/environment/action_min
+          max: experiment/environment/action_max
+          steps: [ 7,7,7 ]
+        projector: 
+          type: projector/tile_coding
+          tilings: 16
+          memory: 8388608
+          resolution: [ 0.1396648044692737, 5, 0.2793296089385475, 10, 0.2793296089385475, 10, 0.2793296089385475, 10, 0.2793296089385475, 10, 6.66666666666667, 6.66666666666667, 6.66666666666667 ]
+          wrapping: [  ]
+        representation: 
+          type: representation/parameterized/linear
+          init_min: [ 0 ]
+          init_max: [ 0.01 ]
+          memory: experiment/agent/agent2/policy/projector/memory
+          outputs: 1
+          output_min: [  ]
+          output_max: [  ]
+        sampler: 
+          type: sampler/epsilon_greedy
+          epsilon: 0.05
+      predictor: 
+        type: predictor/sarsa
+        alpha: 0.2
+        gamma: 0.9962
+        lambda: 0.8582
+        projector: experiment/agent/agent2/policy/projector
+        representation: experiment/agent/agent2/policy/representation
+        trace: 
+          type: trace/enumerated/accumulating
+  test_agent: experiment/agent
+  save_every: never
