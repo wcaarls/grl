@@ -2,7 +2,7 @@ experiment:
   type: experiment/online_learning
   runs: 1
   trials: 0
-  steps: 1000000
+  steps: 550000
   rate: 0
   test_interval: 10
   output: leo_sarsa_walk
@@ -25,8 +25,8 @@ experiment:
       projector: 
         type: projector/tile_coding
         tilings: 16
-        memory: 8388608
-        resolution: [0.1396648044692737, 5, 0.2793296089385475, 10, 0.2793296089385475, 10, 0.2793296089385475, 10, 0.2793296089385475, 10, 6.66666666666667, 6.66666666666667, 6.66666666666667]
+        memory: 268435456
+        resolution: [0.14, 5, 0.28, 10, 0.28, 10, 0.28, 10, 0.28, 10, 6.67, 6.67, 6.67]
         wrapping: []
       representation: 
         type: representation/parameterized/linear
@@ -38,7 +38,7 @@ experiment:
         output_max: []
       sampler: 
         type: sampler/epsilon_greedy
-        epsilon: 0.1
+        epsilon: 0.05
     predictor: 
       type: predictor/sarsa
       alpha: 0.2
@@ -57,4 +57,4 @@ experiment:
       representation: experiment/agent/policy/representation
       sampler: 
         type: sampler/greedy
-  save_every: run
+  save_every: never

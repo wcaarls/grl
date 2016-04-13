@@ -88,29 +88,6 @@ bool CLeoBhWalkSym::readConfig(const CConfigSection &xmlRoot)
 {
   CConfigSection configNode = xmlRoot.section("policy");
 
-/*
-  bool configresult = true;
-  configresult &= mLogAssert(configNode.get("rewardTime", &mRwTime));
-  configresult &= mLogAssert(configNode.get("rewardFootstepDist", &mRwFootstepDist));
-  configresult &= mLogAssert(configNode.get("rewardFootstepDistCont", &mRwFootstepDistCont));
-  configresult &= mLogAssert(configNode.get("rewardFootstepMaxLength", &mRwFootstepMaxLength));
-  configresult &= mLogAssert(configNode.get("rewardFootstepBackward", &mRwFootstepBackward));
-  configresult &= mLogAssert(configNode.get("rewardEnergy", &mRwEnergy));
-  configresult &= mLogAssert(configNode.get("rewardFootClearance", &mRwFootClearance));
-  configresult &= mLogAssert(configNode.get("rewardFootClearanceThreshold", &mRwFootClearanceThreshold));
-  configresult &= mLogAssert(configNode.get("rewardDoomedToFall", &mRwDoomedToFall));
-  configresult &= mLogAssert(configNode.get("rewardHipAngleChange", &mRwHipAngleChange));
-  configresult &= mLogAssert(configNode.get("rewardDoubleStance", &mRwDoubleStance));
-  configresult &= mLogAssert(configNode.get("rewardTorsoUpright", &mRwTorsoUpright));
-  configresult &= mLogAssert(configNode.get("rewardTorsoUprightAngle", &mRwTorsoUprightAngle));
-  configresult &= mLogAssert(configNode.get("rewardTorsoUprightAngleMargin", &mRwTorsoUprightAngleMargin));
-
-  double timeSeconds=0;
-  configresult &= mLogAssert(configNode.get("trialTimeoutSeconds", &timeSeconds));
-  mTrialTimeout = (uint64_t)(timeSeconds*1E6);
-  configresult &= mLogAssert(configNode.get("observingTimeSeconds", &timeSeconds));
-  mObservingTime = (uint64_t)(timeSeconds*1E6);
-*/
   bool configresult = true;
   configresult &= mLogAssert(configNode.get("frequency", &mDesiredFrequency));
   configresult &= mLogAssert(configNode.get("memorySize", &mDesiredMemorySize));
@@ -121,7 +98,7 @@ bool CLeoBhWalkSym::readConfig(const CConfigSection &xmlRoot)
   configresult &= mLogAssert(configNode.get("rewardFootstepDistCont", &mRwFootstepDistCont));
   configresult &= mLogAssert(configNode.get("rewardFootstepMaxLength", &mRwFootstepMaxLength));
 
-  configNode.get("rewardFootstepBackward", &mRwFootstepBackward);
+  configresult &= mLogAssert(configNode.get("rewardFootstepBackward", &mRwFootstepBackward));
 
   configresult &= mLogAssert(configNode.get("rewardEnergy", &mRwEnergy));
   configresult &= mLogAssert(configNode.get("rewardFootClearance", &mRwFootClearance));
@@ -148,7 +125,6 @@ bool CLeoBhWalkSym::readConfig(const CConfigSection &xmlRoot)
   mTrialTimeout = (uint64_t)(timeSeconds*1E6);
   configresult &= mLogAssert(configNode.get("observingTimeSeconds", &timeSeconds));
   mObservingTime = (uint64_t)(timeSeconds*1E6);
-//  configresult &= mLogAssert(configNode.get("learnSwingKnee", &mLearnSwingKnee));
   configresult &= mLogAssert(configNode.get("useEffectiveAction",&mUseEffectiveAction));
   configresult &= mLogAssert(configNode.get("generalizeActions", &mGeneralizeActions));
 

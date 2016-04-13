@@ -1,24 +1,19 @@
 experiment: 
   type: experiment/online_learning
   runs: 1
-  trials: 2001
-  steps: 0
+  trials: 0
+  steps: 550000
   rate: 0
-  test_interval: 2000
+  test_interval: 10
   output: leo_qlearning_walk
   environment: 
     type: environment/leosim
-    xml: /home/ivan/work/Project/Software/grl/src/grl/addons/leosim/cfg/leolearnwalking-sarsa-tc.xml
+    xml: leolearnwalking-sarsa-tc.xml
     visualize: 1
     observe: torso_boom, hipright, hipleft, kneeright, kneeleft
     actuate: hipright, hipleft, kneeright, kneeleft
     learn_stance_knee: 0
-    exporter: 
-      type: exporter/csv
-      file: leo_qlearning_walk-test
-      fields: time, state0, state1, action, reward, terminal
-      style: meshup
-  agent: 
+  agent:
     type: agent/td
     policy: 
       type: policy/discrete/q
@@ -30,7 +25,7 @@ experiment:
       projector: 
         type: projector/tile_coding
         tilings: 16
-        memory: 8388608
+        memory: 268435456
         resolution: [0.14, 5, 0.28, 10, 0.28, 10, 0.28, 10, 0.28, 10, 6.67, 6.67, 6.67]
         wrapping: []
       representation: 
@@ -54,7 +49,7 @@ experiment:
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
       trace: 
-        type: trace/enumerated/replacing
+        type: trace/enumerated/accumulating
   test_agent: 
     type: agent/fixed
     policy: 
