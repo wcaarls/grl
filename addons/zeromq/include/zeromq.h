@@ -43,17 +43,15 @@ class ZeroMQPolicy : public Policy
 
   protected:
     int action_dims_, observation_dims_;
+    Vector action_min_, action_max_;
 
     zmq::context_t* context_;
     zmq::socket_t* publisher_;
     zmq::socket_t* subscriber_;
 
     int lastAction_;
-    int messageCount_;
-    int globalTimeIndex_; // is it used??
+    int globalTimeIndex_;
     bool isConnected_;
-
-    const double SCALE[4] = {0.6, 0.3, 0.15, 0.1}; // what is it for?
 
   public:
     ZeroMQPolicy() : observation_dims_(1), action_dims_(1) { }
@@ -68,7 +66,7 @@ class ZeroMQPolicy : public Policy
     virtual void act(double time, const Vector &in, Vector *out);
 
   protected:
-    void zeromqMessages(const Vector &in, Vector *out);
+    void communicate(const Vector &in, double reward, double terminal, Vector *out);
     bool receive(DRL_MESSAGES::drl_unimessage* drlRecMessage);
     void send(DRL_MESSAGES::drl_unimessage &drlSendMessage);
 };

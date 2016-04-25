@@ -37,8 +37,16 @@ REGISTER_CONFIGURABLE(OnlineLearningExperiment)
 
 OnlineLearningExperiment::~OnlineLearningExperiment()
 {
-  delete state_;
-  delete curve_;
+  if (state_)
+  {
+    delete state_;
+    state_ = NULL;
+  }
+  if (curve_)
+  {
+    delete curve_;
+    curve_ = NULL;
+  }
 }
 
 void OnlineLearningExperiment::request(ConfigurationRequest *config)

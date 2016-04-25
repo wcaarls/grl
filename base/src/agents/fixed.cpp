@@ -34,6 +34,7 @@ REGISTER_CONFIGURABLE(FixedAgent)
 void FixedAgent::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("policy", "policy", "Control policy", policy_));
+  config->push_back(CRP("aug_rwt", "Augment state with reward and terminal", (int)aug_rwt_, CRP::System, 0, 1));
 }
 
 void FixedAgent::configure(Configuration &config)
@@ -56,15 +57,25 @@ FixedAgent *FixedAgent::clone() const
 void FixedAgent::start(const Vector &obs, Vector *action)
 {
   time_ = 0.;
-  policy_->act(time_, obs, action);
+  Vector obs_new = obs;
+  if (aug_rwt_)
+    obs_new << VectorConstructor(0), VectorConstructor(0);
+  policy_->act(time_, obs_new, action);
 }
 
 void FixedAgent::step(double tau, const Vector &obs, double reward, Vector *action)
 {
   time_ += tau;
-  policy_->act(time_, obs, action);
+  Vector obs_new = obs;
+  if (aug_rwt_)
+    obs_new << VectorConstructor(reward), VectorConstructor(0);
+  policy_->act(time_, obs_new, action);
 }
 
 void FixedAgent::end(double tau, const Vector &obs, double reward)
 {
+  Vector obs_new = obs;
+  if (aug_rwt_)
+    obs_new << VectorConstructor(reward), VectorConstructor(1);
+  policy_->act(time_, obs_new, NULL);
 }

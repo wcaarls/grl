@@ -1,7 +1,7 @@
 package DRL_MESSAGES;
 
 message drl_unimessage{
-	enum Type { STATEPART = 1; CONTROLACTION = 2; RLSTATE = 3; MESSTR = 4; DIMENSION = 5; }
+	enum Type { STATEPART = 1; CONTROLACTION = 2; RLSTATE = 3; MESSTR = 4; DIMENSION = 5; REWARDTERMINAL = 6;}
 
 	message GeneralStatePart {
 		repeated float 	state 						= 1;
@@ -29,6 +29,11 @@ message drl_unimessage{
 		}
 		repeated Component component 			= 1;		
 	}
+
+	message RewardTerminal {
+		required float 	reward 					= 1;
+    required int32  terminal        = 2;
+	}
 	
 	required Type 			type 						= 1; 
 	required int32 			time_index 			= 2;
@@ -39,6 +44,7 @@ message drl_unimessage{
 	optional RLstate 		rlstate 				= 6;
 	optional string 		msgstr					= 7;
 	optional Dimension 	dimension				= 8;
+	optional RewardTerminal 	rwt				= 9;
 }
 
 

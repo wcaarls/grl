@@ -33,8 +33,11 @@ REGISTER_CONFIGURABLE(ZeroMQPolicy)
 
 void ZeroMQPolicy::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("observation_dims", "int.observation_dims", "Number of observation dimensions", CRP::System));
-  config->push_back(CRP("action_dims", "int.action_dims", "Number of action dimensions", CRP::System));
+  Vector action_min, action_max;
+  config->push_back(CRP("observation_dims", "int.observation_dims", "Number of observation dimensions", observation_dims_, CRP::System));
+  config->push_back(CRP("action_dims", "int.action_dims", "Number of action dimensions", action_dims_, CRP::System));
+  config->push_back(CRP("action_min", "vector.action_min", "Lower limit of action", action_min_, CRP::System));
+  config->push_back(CRP("action_max", "vector.action_max", "Upper limit of action", action_max_, CRP::System));
 }
 
 void ZeroMQPolicy::configure(Configuration &config)
@@ -56,8 +59,6 @@ void ZeroMQPolicy::configure(Configuration &config)
   subscriber_->setsockopt(ZMQ_CONFLATE,&confl,sizeof(confl));// only receive last message
   subscriber_->connect("tcp://localhost:5555");
   subscriber_->setsockopt(ZMQ_SUBSCRIBE, "", 0);
-
-  messageCount_ = 0;
 }
 
 void ZeroMQPolicy::reconfigure(const Configuration &config)
@@ -71,17 +72,9 @@ ZeroMQPolicy *ZeroMQPolicy::clone() const
 
 void ZeroMQPolicy::act(double time, const Vector &in, Vector *out)
 {
-  messageCount_ += 1;
-
-  out->resize(observation_dims_);
-  zeromqMessages(in, out);
-
-  if (messageCount_ - lastAction_ > 2000) // no message for 2 seconds
-  {
-    //reset action
-    for (int i=0; i < action_dims_; i++)
-      (*out)[i] = 0;
-  }
+  if (out)
+    out->resize(action_dims_);
+  communicate(in, in[observation_dims_], in[observation_dims_+1], out);
 }
 
 // helper function to send a message using zeroMQ
@@ -107,7 +100,7 @@ bool ZeroMQPolicy::receive(DRL_MESSAGES::drl_unimessage* drlRecMessage)
 }
 
 // Helper function which deals with all communication
-void ZeroMQPolicy::zeromqMessages(const Vector &in, Vector *out)
+void ZeroMQPolicy::communicate(const Vector &in, double reward, double terminal, Vector *out)
 {
   DRL_MESSAGES::drl_unimessage drlRecMessage;
   bool received = receive(&drlRecMessage);
@@ -145,25 +138,37 @@ void ZeroMQPolicy::zeromqMessages(const Vector &in, Vector *out)
     }
     else if(isConnected_ && drlRecMessage.type() == DRL_MESSAGES::drl_unimessage::CONTROLACTION)
     {
-      lastAction_ = messageCount_;
       //Handle action message
       for (int i=0; i < std::min(action_dims_,  drlRecMessage.action().actions_size()); i++)
-        (*out)[i] = SCALE[i] * std::max((float)-1.0, std::min(drlRecMessage.action().actions(i), (float)1.0)); // ???
+      {
+        //(*out)[i] = SCALE[i] * std::max((float)-1.0, std::min(drlRecMessage.action().actions(i), (float)1.0));
+        double a = std::max(static_cast<float>(-1.0), std::min(drlRecMessage.action().actions(i), static_cast<float>(1.0)));
+        (*out)[i] = (action_max_[i] - action_min_[i])*(a+1)/2.0 + action_min_[i];
+      }
     }
   }
 
   //Send state on every physics update when in synch
   if (isConnected_ == true)
   {
+    // Send state
     DRL_MESSAGES::drl_unimessage stateMessage;
     stateMessage.set_type(DRL_MESSAGES::drl_unimessage::STATEPART);
     DRL_MESSAGES::drl_unimessage::GeneralStatePart* state = stateMessage.mutable_statepart();
-
-    for (int i=0; i < observation_dims_/2; i++)
+    for (int i = 0; i < observation_dims_; i += 2)
     {
       state->add_state(in[i]);
-      state->add_first_derivative(in[i + observation_dims_/2]);
+      state->add_first_derivative(in[i+1]);
     }
     send(stateMessage);
+
+    // Send reward and terminal
+    DRL_MESSAGES::drl_unimessage rwtMessage;
+    rwtMessage.set_type(DRL_MESSAGES::drl_unimessage::REWARDTERMINAL);
+    DRL_MESSAGES::drl_unimessage::RewardTerminal* rwt = rwtMessage.mutable_rwt();
+    rwt->set_reward(reward);
+    rwt->set_terminal(terminal);
+    send(rwtMessage);
+
   }
 }

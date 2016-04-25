@@ -29,7 +29,7 @@ void CGrlLeoBhWalkSym::resetState()
 
 void CGrlLeoBhWalkSym::fillLeoState(const Vector &obs, const Vector &action, CLeoState &leoState)
 {
-  leoState.mJointAngles[ljTorso]      = -obs[svTorsoAngle];
+  leoState.mJointAngles[ljTorso]      = -obs[svTorsoAngle]; // '-' required to match with Erik's code, but does not matter otherwice
   leoState.mJointSpeeds[ljTorso]      = -mJointSpeedFilter[ljTorso].filter(obs[svTorsoAngleRate]);
   leoState.mJointAngles[ljShoulder]   = obs[svLeftArmAngle];
   leoState.mJointSpeeds[ljShoulder]   = mJointSpeedFilter[ljShoulder].filter(obs[svLeftArmAngleRate]);
@@ -51,7 +51,7 @@ void CGrlLeoBhWalkSym::fillLeoState(const Vector &obs, const Vector &action, CLe
   leoState.mFootContacts |= obs[svLeftToeContact]?LEO_FOOTSENSOR_LEFT_TOE:0;
   leoState.mFootContacts |= obs[svLeftHeelContact]?LEO_FOOTSENSOR_LEFT_HEEL:0;
 
-  // required for correct energy calculation in reward function
+  // required for the correct energy calculation in the reward function
   if (action.size())
   {
     leoState.mActuationVoltages[ljShoulder]   = action[avLeftArmTorque];
@@ -122,7 +122,6 @@ void LeoSimEnvironment::configure(Configuration &config)
 {
   // Setup path to a configuration file
   std::string xml = std::string(LEOSIM_CONFIG_DIR) + "/" + config["xml"].str();
-  //config["xml"].str() = xml; // update for the correct ODESIM initialization
   config.set("xml", xml);
 
   // Read yaml first. Settings will be overwritten by ODEEnvironment::configure,
@@ -284,9 +283,7 @@ double LeoSimEnvironment::step(const Vector &action, Vector *obs, double *reward
     ode_action_ << actionArm, actionStanceHip, actionSwingHip, actionStanceKnee, actionSwingKnee, actionAnkles;
 
   bhWalk_.setPreviousSTGState(&leoState_);
-  TRACE("ode action = " << ode_action_);
   double tau = ODEEnvironment::step(ode_action_, &ode_obs_, reward, terminal);
-  TRACE("ode observation = " << ode_obs_);
 
   // Filter joint speeds
   // Parse obs into CLeoState
@@ -302,20 +299,6 @@ double LeoSimEnvironment::step(const Vector &action, Vector *obs, double *reward
   // Determine reward
   *reward = bhWalk_.calculateReward();
 
-  // Debug info
-  std::vector<double> s1(leoState_.mJointAngles, leoState_.mJointAngles + ljNumJoints);
-  std::vector<double> v1(leoState_.mJointSpeeds, leoState_.mJointSpeeds + ljNumJoints);
-  std::vector<double> a(leoState_.mActuationVoltages, leoState_.mActuationVoltages + ljNumDynamixels);
-/*
-  std::cout << "State angles: " << s1 << std::endl;
-  std::cout << "State velocities: " << v1 << std::endl;
-  std::cout << "Contacts: " << (int)leoState_.mFootContacts << std::endl;
-
-  std::cout << "RL action: " << action << std::endl;
-  std::cout << "Full action: " << a << std::endl;
-
-  std::cout << "Reward: " << *reward << std::endl;
-*/
   // ... and termination
   if (*terminal == 1) // timeout
     *terminal = 1;
@@ -324,18 +307,31 @@ double LeoSimEnvironment::step(const Vector &action, Vector *obs, double *reward
   else
     *terminal = 0;
 
-  // export
-  std::vector<double> s0(bhWalk_.getPreviousSTGState()->mJointAngles, bhWalk_.getPreviousSTGState()->mJointAngles + ljNumJoints);
-  std::vector<double> v0(bhWalk_.getPreviousSTGState()->mJointSpeeds, bhWalk_.getPreviousSTGState()->mJointSpeeds + ljNumJoints);
-  s0.insert(s0.end(), v0.begin(), v0.end());
-  s1.insert(s1.end(), v1.begin(), v1.end());
+  // Export & debug
+  std::vector<double> s1(leoState_.mJointAngles, leoState_.mJointAngles + ljNumJoints);
+  std::vector<double> v1(leoState_.mJointSpeeds, leoState_.mJointSpeeds + ljNumJoints);
+  std::vector<double> a(leoState_.mActuationVoltages, leoState_.mActuationVoltages + ljNumDynamixels);
+
   if (exporter_)
+  {
+    std::vector<double> s0(bhWalk_.getPreviousSTGState()->mJointAngles, bhWalk_.getPreviousSTGState()->mJointAngles + ljNumJoints);
+    std::vector<double> v0(bhWalk_.getPreviousSTGState()->mJointSpeeds, bhWalk_.getPreviousSTGState()->mJointSpeeds + ljNumJoints);
+    s0.insert(s0.end(), v0.begin(), v0.end());
+    s1.insert(s1.end(), v1.begin(), v1.end());
+
     exporter_->write({grl::VectorConstructor(time), grl::VectorConstructor(s0),  grl::VectorConstructor(s1),
                       grl::VectorConstructor(a), grl::VectorConstructor(*reward), grl::VectorConstructor(*terminal)
                      });
+  }
+
+  TRACE("State angles: " << s1);
+  TRACE("State velocities: " << v1);
+  TRACE("Contacts: " << (int)leoState_.mFootContacts);
+  TRACE("RL action: " << action);
+  TRACE("Full action: " << a);
+  TRACE("Reward: " << *reward);
 
   time += tau;
-
   return tau;
 }
 

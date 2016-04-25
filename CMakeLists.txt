@@ -19,7 +19,7 @@ set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-std=c++0x -Wno-unused-parameter -Wno-va
 
 # List of modules to build
 set(MODULES base
-#            addons/zeromq
+            addons/zeromq
             externals/yaml-cpp
             externals/ann
 #            externals/cma

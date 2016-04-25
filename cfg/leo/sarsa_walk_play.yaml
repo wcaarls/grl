@@ -25,13 +25,13 @@ experiment:
       projector: 
         type: projector/tile_coding
         tilings: 16
-        memory: 8388608
-        resolution: [0.1396648044692737, 5, 0.2793296089385475, 10, 0.2793296089385475, 10, 0.2793296089385475, 10, 0.2793296089385475, 10, 6.66666666666667, 6.66666666666667, 6.66666666666667]
+        memory: 268435456
+        resolution: [0.14, 5, 0.28, 10, 0.28, 10, 0.28, 10, 0.28, 10, 6.67, 6.67, 6.67]
         wrapping: []
       representation: 
         type: representation/parameterized/linear
         init_min: [0]
-        init_max: [0]
+        init_max: [0.01]
         memory: experiment/agent/policy/projector/memory
         outputs: 1
         output_min: []
@@ -43,7 +43,7 @@ experiment:
       type: predictor/sarsa
       alpha: 0.2
       gamma: 0.9962
-      lambda: 0.9582
+      lambda: 0.8582
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
       trace: 
@@ -57,5 +57,5 @@ experiment:
       representation: experiment/agent/policy/representation
       sampler: 
         type: sampler/greedy
-  load_file: leo_sarsa_walk-first-run0
+  load_file: leo_sarsa_walk-mp0-run0
   save_every: never
