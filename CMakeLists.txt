@@ -22,23 +22,23 @@ set(MODULES base
             addons/zeromq
             externals/yaml-cpp
             externals/ann
-#            externals/cma
+            externals/cma
             externals/ics
             externals/itc
             externals/rbdl
-#            addons/cma
+            addons/cma
             addons/llr
             addons/gl
             addons/glut
             addons/ros
-#            addons/matlab
+            addons/matlab
             addons/odesim
             addons/leosim
             addons/rbdl
             addons/muscod
-#            addons/leo2
-#            addons/tlm
-#            addons/lqr
+            addons/leo2
+            addons/tlm
+            addons/lqr
 )
 
 # Is there a better way to find out if catkin_make was run?
