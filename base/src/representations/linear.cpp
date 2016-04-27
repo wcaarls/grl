@@ -76,8 +76,9 @@ void LinearRepresentation::configure(Configuration &config)
   if (init_max_.size() != outputs_)
     throw bad_param("representation/parameterized/linear:max");
 
+  TRACE("allocating memory of size: " << memory_ * outputs_);
   params_.resize(memory_ * outputs_);
-  
+
   output_min_ = config["output_min"];
   if (!output_min_.size())
     output_min_ = ConstantVector(outputs_, -DBL_MAX);

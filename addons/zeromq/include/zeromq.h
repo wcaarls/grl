@@ -66,6 +66,7 @@ class ZeroMQPolicy : public Policy
     virtual void act(double time, const Vector &in, Vector *out);
 
   protected:
+    void init();
     void communicate(const Vector &in, double reward, double terminal, Vector *out);
     bool receive(DRL_MESSAGES::drl_unimessage* drlRecMessage);
     void send(DRL_MESSAGES::drl_unimessage &drlSendMessage);

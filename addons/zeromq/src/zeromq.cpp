@@ -72,8 +72,12 @@ ZeroMQPolicy *ZeroMQPolicy::clone() const
 
 void ZeroMQPolicy::act(double time, const Vector &in, Vector *out)
 {
+  if (time == 0.0)
+    init();
+
   if (out)
     out->resize(action_dims_);
+
   communicate(in, in[observation_dims_], in[observation_dims_+1], out);
 }
 
@@ -93,18 +97,21 @@ void ZeroMQPolicy::send(DRL_MESSAGES::drl_unimessage &drlSendMessage)
 bool ZeroMQPolicy::receive(DRL_MESSAGES::drl_unimessage* drlRecMessage)
 {
   zmq::message_t update;
-  bool received = subscriber_->recv(&update, ZMQ_DONTWAIT);
+  //bool received = subscriber_->recv(&update, ZMQ_DONTWAIT);
+  bool received = subscriber_->recv(&update);
   if(received)
     drlRecMessage->ParseFromString(std::string(static_cast<char*>(update.data()), update.size()));
   return received;
 }
 
-// Helper function which deals with all communication
-void ZeroMQPolicy::communicate(const Vector &in, double reward, double terminal, Vector *out)
+void ZeroMQPolicy::init()
 {
+  TRACE("Waiting for 'senddim'");
+
   DRL_MESSAGES::drl_unimessage drlRecMessage;
   bool received = receive(&drlRecMessage);
 
+  // wait for 'senddim' message
   if(received == true)
   {
     globalTimeIndex_ = drlRecMessage.time_index();
@@ -131,23 +138,30 @@ void ZeroMQPolicy::communicate(const Vector &in, double reward, double terminal,
         //send it
         send(dimMessage);
       }
-      else if (std::string(drlRecMessage.msgstr()).compare(std::string("synched"))==0)
-      {
-        isConnected_ = true;
-      }
-    }
-    else if(isConnected_ && drlRecMessage.type() == DRL_MESSAGES::drl_unimessage::CONTROLACTION)
-    {
-      //Handle action message
-      for (int i=0; i < std::min(action_dims_,  drlRecMessage.action().actions_size()); i++)
-      {
-        //(*out)[i] = SCALE[i] * std::max((float)-1.0, std::min(drlRecMessage.action().actions(i), (float)1.0));
-        double a = std::max(static_cast<float>(-1.0), std::min(drlRecMessage.action().actions(i), static_cast<float>(1.0)));
-        (*out)[i] = (action_max_[i] - action_min_[i])*(a+1)/2.0 + action_min_[i];
-      }
     }
   }
+  TRACE("Dimentions were sent");
 
+  received = receive(&drlRecMessage);
+
+  TRACE("'synched' received");
+
+  // Wait for synchronization complete message
+  if(received == true)
+  {
+    globalTimeIndex_ = drlRecMessage.time_index();
+    if(drlRecMessage.type() == DRL_MESSAGES::drl_unimessage::MESSTR)
+      if (std::string(drlRecMessage.msgstr()).compare(std::string("synched"))==0)
+      {
+        isConnected_ = true;
+        TRACE("Connection established");
+      }
+  }
+}
+
+// Helper function which deals with all communication
+void ZeroMQPolicy::communicate(const Vector &in, double reward, double terminal, Vector *out)
+{
   //Send state on every physics update when in synch
   if (isConnected_ == true)
   {
@@ -169,6 +183,25 @@ void ZeroMQPolicy::communicate(const Vector &in, double reward, double terminal,
     rwt->set_reward(reward);
     rwt->set_terminal(terminal);
     send(rwtMessage);
+    TRACE("State, reward and terminal were sent");
 
+    // Recieving action
+    DRL_MESSAGES::drl_unimessage drlRecMessage;
+    bool received = receive(&drlRecMessage);
+    if(received == true)
+    {
+      globalTimeIndex_ = drlRecMessage.time_index();
+      if(isConnected_ && drlRecMessage.type() == DRL_MESSAGES::drl_unimessage::CONTROLACTION)
+      {
+        //Handle action message
+        for (int i=0; i < std::min(action_dims_,  drlRecMessage.action().actions_size()); i++)
+        {
+          //(*out)[i] = SCALE[i] * std::max((float)-1.0, std::min(drlRecMessage.action().actions(i), (float)1.0));
+          double a = std::max(static_cast<float>(-1.0), std::min(drlRecMessage.action().actions(i), static_cast<float>(1.0)));
+          (*out)[i] = (action_max_[i] - action_min_[i])*(a+1)/2.0 + action_min_[i];
+        }
+        TRACE("Action is received");
+      }
+    }
   }
 }
