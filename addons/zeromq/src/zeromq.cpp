@@ -45,6 +45,8 @@ void ZeroMQPolicy::configure(Configuration &config)
   // Read configuration
   action_dims_ = config["action_dims"];
   observation_dims_ = config["observation_dims"];
+  action_min_ = config["action_min"];
+  action_max_ = config["action_max"];
 
   //  Prepare our context
   context_ = new zmq::context_t(1);
@@ -59,6 +61,9 @@ void ZeroMQPolicy::configure(Configuration &config)
   subscriber_->setsockopt(ZMQ_CONFLATE,&confl,sizeof(confl));// only receive last message
   subscriber_->connect("tcp://localhost:5555");
   subscriber_->setsockopt(ZMQ_SUBSCRIBE, "", 0);
+
+  // Establish connection
+  //init();
 }
 
 void ZeroMQPolicy::reconfigure(const Configuration &config)
@@ -84,8 +89,9 @@ void ZeroMQPolicy::act(double time, const Vector &in, Vector *out)
 // helper function to send a message using zeroMQ
 void ZeroMQPolicy::send(DRL_MESSAGES::drl_unimessage &drlSendMessage)
 {
+  TRACE("Time index: " << globalTimeIndex_);
   drlSendMessage.set_time_index(globalTimeIndex_);
-  drlSendMessage.set_name("armstate");
+  drlSendMessage.set_name("state");
   std::string msg_str;
   drlSendMessage.SerializeToString(&msg_str);
   zmq::message_t message (msg_str.size());
@@ -130,7 +136,6 @@ void ZeroMQPolicy::init()
         compstate->set_component_name("state");
         compstate->add_component_dimension(observation_dims_);
 
-        //DRL_MESSAGES::drl_unimessage::Dimension::Component* compaction;
         compstate = dimension->add_component();
         compstate->set_component_name("action");
         compstate->add_component_dimension(action_dims_);
@@ -158,6 +163,7 @@ void ZeroMQPolicy::init()
         }
     }
   }
+  globalTimeIndex_ = 0;
 }
 
 // Helper function which deals with all communication
@@ -176,6 +182,7 @@ void ZeroMQPolicy::communicate(const Vector &in, double reward, double terminal,
       state->add_first_derivative(in[i+1]);
     }
     send(stateMessage);
+    TRACE("State was sent");
 
     // Send reward and terminal
     DRL_MESSAGES::drl_unimessage rwtMessage;
@@ -184,24 +191,28 @@ void ZeroMQPolicy::communicate(const Vector &in, double reward, double terminal,
     rwt->set_reward(reward);
     rwt->set_terminal(terminal);
     send(rwtMessage);
-    TRACE("State, reward and terminal were sent");
+    TRACE("Reward and terminal were sent");
 
     // Recieving action
-    DRL_MESSAGES::drl_unimessage drlRecMessage;
-    bool received = receive(&drlRecMessage);
-    if(received == true)
+    while (1)
     {
-      globalTimeIndex_ = drlRecMessage.time_index();
-      if(isConnected_ && drlRecMessage.type() == DRL_MESSAGES::drl_unimessage::CONTROLACTION)
+      DRL_MESSAGES::drl_unimessage drlRecMessage;
+      bool received = receive(&drlRecMessage);
+      TRACE("Msg type: "<< drlRecMessage.msgstr());
+      if(received == true)
       {
-        //Handle action message
-        for (int i=0; i < std::min(action_dims_,  drlRecMessage.action().actions_size()); i++)
+        globalTimeIndex_ = drlRecMessage.time_index();
+        if(isConnected_ && drlRecMessage.type() == DRL_MESSAGES::drl_unimessage::CONTROLACTION)
         {
-          //(*out)[i] = SCALE[i] * std::max((float)-1.0, std::min(drlRecMessage.action().actions(i), (float)1.0));
-          double a = std::max(static_cast<float>(-1.0), std::min(drlRecMessage.action().actions(i), static_cast<float>(1.0)));
-          (*out)[i] = (action_max_[i] - action_min_[i])*(a+1)/2.0 + action_min_[i];
+          //Handle action message
+          for (int i=0; i < std::min(action_dims_, drlRecMessage.action().actions_size()); i++)
+          {
+            double a = std::max(static_cast<float>(-1.0), std::min(drlRecMessage.action().actions(i), static_cast<float>(1.0)));
+            (*out)[i] = (action_max_[i] - action_min_[i])*(a+1.0)/2.0 + action_min_[i];
+            TRACE("Action: " << a);
+          }
+          TRACE("Action is received: " << *out);
         }
-        TRACE("Action is received");
       }
     }
   }
