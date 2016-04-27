@@ -142,20 +142,21 @@ void ZeroMQPolicy::init()
   }
   TRACE("Dimentions were sent");
 
-  received = receive(&drlRecMessage);
-
-  TRACE("'synched' received");
-
   // Wait for synchronization complete message
-  if(received == true)
+  while (1)
   {
-    globalTimeIndex_ = drlRecMessage.time_index();
-    if(drlRecMessage.type() == DRL_MESSAGES::drl_unimessage::MESSTR)
-      if (std::string(drlRecMessage.msgstr()).compare(std::string("synched"))==0)
-      {
-        isConnected_ = true;
-        TRACE("Connection established");
-      }
+    received = receive(&drlRecMessage);
+    if(received == true)
+    {
+      globalTimeIndex_ = drlRecMessage.time_index();
+      if(drlRecMessage.type() == DRL_MESSAGES::drl_unimessage::MESSTR)
+        if (std::string(drlRecMessage.msgstr()).compare(std::string("synched"))==0)
+        {
+          isConnected_ = true;
+          TRACE("Connection established");
+          break;
+        }
+    }
   }
 }
 

@@ -21,6 +21,6 @@ experiment:
       action_dims: experiment/environment/action_dims
       action_min: experiment/environment/action_min
       action_max: experiment/environment/action_max
-    aug_rwt: 0
+    aug_rwt: 1
   test_agent: experiment/agent
   save_every: never
