@@ -350,6 +350,80 @@ environment/leo2:
     type: state
     description: Current state of the robot
     mutability: provided
+environment/leosim:
+  description: Leo simulation environment
+  xml:
+    type: string
+    description: XML configuration filename
+    mutability: configuration
+    default: ../addons/odesim/cfg/robot.xml
+    optional: 1
+  visualize:
+    type: int
+    description: Whether to display 3D visualization
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 0
+    max: 1
+  observation_dims:
+    type: int.observation_dims
+    description: Number of observation dimensions
+    mutability: provided
+  observation_min:
+    type: vector.observation_min
+    description: Lower limit on observations
+    mutability: provided
+  observation_max:
+    type: vector.observation_max
+    description: Upper limit on observations
+    mutability: provided
+  action_dims:
+    type: int.action_dims
+    description: Number of action dimensions
+    mutability: provided
+  action_min:
+    type: vector.action_min
+    description: Lower limit on actions
+    mutability: provided
+  action_max:
+    type: vector.action_max
+    description: Upper limit on actions
+    mutability: provided
+  reward_min:
+    type: double.reward_min
+    description: Lower limit on immediate reward
+    mutability: provided
+  reward_max:
+    type: double.reward_max
+    description: Upper limit on immediate reward
+    mutability: provided
+  observe:
+    type: string
+    description: string.observe_
+    mutability: configuration
+    default: Comma-separated list of state elements observed by an agent
+    optional: 1
+  actuate:
+    type: string
+    description: string.actuate_
+    mutability: configuration
+    default: Comma-separated list of action elements provided by an agent
+    optional: 1
+  learn_stance_knee:
+    type: int
+    description: Learn stance knee
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
+  exporter:
+    type: exporter
+    description: Optional exporter for transition log (supports time, state, observation, action, reward, terminal)
+    mutability: configuration
+    default: 0
+    optional: 1
 environment/modeled:
   description: Environment that uses a state transition model internally
   model:
@@ -442,6 +516,30 @@ environment/pre/noise:
     mutability: configuration
     default: "[ 0 ]"
     optional: 1
+environment/sandbox:
+  description: Non-Markov environment
+  model:
+    type: sandbox_model
+    description: Environment model
+    mutability: configuration
+    default: 0
+    optional: 0
+  task:
+    type: task
+    description: Task to perform in the environment (should match model)
+    mutability: configuration
+    default: 0
+    optional: 0
+  exporter:
+    type: exporter
+    description: Optional exporter for transition log (supports time, state, observation, action, reward, terminal)
+    mutability: configuration
+    default: 0
+    optional: 1
+  state:
+    type: state
+    description: Current state of the model
+    mutability: provided
 experiment/approx_test:
   description: Approximator test experiment (supervised learning)
   train_samples:
@@ -771,6 +869,20 @@ model/compass_walker:
     optional: 1
     min: 1
     max: 2147483647
+  slope_angle:
+    type: double.slope_angle
+    description: Inclination of the slope
+    mutability: configuration
+    default: 0.004
+    optional: 1
+    min: -1.797693134862316e+308
+    max: 1.797693134862316e+308
+  integrator_out:
+    type: string
+    description: string.integrator_out_
+    mutability: configuration
+    default: ""
+    optional: 1
 model/dynamical:
   description: State transition model that integrates equations of motion
   control_step:
@@ -1197,6 +1309,28 @@ policy/discrete/v:
     mutability: configuration
     default: 0
     optional: 0
+policy/feed_forward:
+  description: Feed-forward policy
+  action_dims:
+    type: int
+    description: Number of action dimensions
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 1
+    max: 2147483647
+  time_control:
+    type: vector
+    description: Sequence of control vectors with a timestamp
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  input:
+    type: string
+    description: string.input_
+    mutability: configuration
+    default: CSV file with timestep and controls
+    optional: 1
 policy/mcts:
   description: Monte-Carlo Tree Search policy
   model:
@@ -1243,6 +1377,84 @@ policy/mcts:
     optional: 1
     min: 0
     max: 1.797693134862316e+308
+policy/mhe_nmpc:
+  description: Nonlinear model predictive control policy with moving horizon estimator using the MUSCOD library
+  lua_model:
+    type: string
+    description: Lua model used by MUSCOD
+    mutability: configuration
+    default: ""
+    optional: 1
+  model_name:
+    type: string
+    description: Name of the model in grl
+    mutability: configuration
+    default: ""
+    optional: 1
+  mhe_model_name:
+    type: string
+    description: Name of MUSCOD MHE model library
+    mutability: configuration
+    default: ""
+    optional: 1
+  nmpc_model_name:
+    type: string
+    description: Name of MUSCOD MHE model library
+    mutability: configuration
+    default: ""
+    optional: 1
+  outputs:
+    type: int.action_dims
+    description: Number of outputs
+    mutability: system
+    default: 1
+    optional: 1
+    min: 1
+    max: 2147483647
+  verbose:
+    type: int
+    description: Verbose mode
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
+policy/mhe_nmpc_sw:
+  description: Nonlinear model predictive control policy for the simplest walker with moving horizon estimator using the MUSCOD library
+  model_name:
+    type: string
+    description: Name of the model in grl
+    mutability: configuration
+    default: ""
+    optional: 1
+  mhe_model_name:
+    type: string
+    description: Name of MUSCOD MHE model library
+    mutability: configuration
+    default: ""
+    optional: 1
+  nmpc_model_name:
+    type: string
+    description: Name of MUSCOD MHE model library
+    mutability: configuration
+    default: ""
+    optional: 1
+  outputs:
+    type: int.action_dims
+    description: Number of outputs
+    mutability: system
+    default: 1
+    optional: 1
+    min: 1
+    max: 2147483647
+  verbose:
+    type: int
+    description: Verbose mode
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
 policy/nmpc:
   description: Nonlinear model predictive control policy using the MUSCOD library
   lua_model:
@@ -1253,7 +1465,43 @@ policy/nmpc:
     optional: 1
   model_name:
     type: string
-    description: Name of MUSCOD model library
+    description: Name of the model in grl
+    mutability: configuration
+    default: ""
+    optional: 1
+  nmpc_model_name:
+    type: string
+    description: Name of MUSCOD MHE model library
+    mutability: configuration
+    default: ""
+    optional: 1
+  outputs:
+    type: int.action_dims
+    description: Number of outputs
+    mutability: system
+    default: 1
+    optional: 1
+    min: 1
+    max: 2147483647
+  verbose:
+    type: int
+    description: Verbose mode
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
+policy/nmpc_sw:
+  description: Nonlinear model predictive control policy for the simplest walker using the MUSCOD library
+  model_name:
+    type: string
+    description: Name of the model in grl
+    mutability: configuration
+    default: ""
+    optional: 1
+  nmpc_model_name:
+    type: string
+    description: Name of MUSCOD MHE model library
     mutability: configuration
     default: ""
     optional: 1
@@ -2784,6 +3032,46 @@ sampler/softmax:
     optional: 1
     min: 0.001
     max: 100
+sandbox_model/compass_walker:
+  description: Simplest walker model from Garcia et al. with a sequential evaluation
+  control_step:
+    type: double.control_step
+    description: Control step time
+    mutability: configuration
+    default: 0.2
+    optional: 1
+    min: 0.001
+    max: 1.797693134862316e+308
+  integration_steps:
+    type: int
+    description: Number of integration steps per control step
+    mutability: configuration
+    default: 20
+    optional: 1
+    min: 1
+    max: 2147483647
+  slope_angle:
+    type: double.slope_angle
+    description: Inclination of the slope
+    mutability: configuration
+    default: 0.004
+    optional: 1
+    min: -1.797693134862316e+308
+    max: 1.797693134862316e+308
+  exporter:
+    type: exporter
+    description: Optional exporter for transition log (supports time, state, observation, action, reward, terminal)
+    mutability: configuration
+    default: 0
+    optional: 1
+  use_avg_velocity:
+    type: int
+    description: "Velocity type "
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 0
+    max: 1
 solver/agent:
   description: Solver that uses a simulated agent
   steps:
@@ -3216,64 +3504,6 @@ task/cart_pole/swingup:
     optional: 1
     min: 0
     max: 1
-task/compass_walker/lc:
-  description: Compass walker limit cycle task task
-  observation_dims:
-    type: int.observation_dims
-    description: Number of observation dimensions
-    mutability: provided
-  observation_min:
-    type: vector.observation_min
-    description: Lower limit on observations
-    mutability: provided
-  observation_max:
-    type: vector.observation_max
-    description: Upper limit on observations
-    mutability: provided
-  action_dims:
-    type: int.action_dims
-    description: Number of action dimensions
-    mutability: provided
-  action_min:
-    type: vector.action_min
-    description: Lower limit on actions
-    mutability: provided
-  action_max:
-    type: vector.action_max
-    description: Upper limit on actions
-    mutability: provided
-  reward_min:
-    type: double.reward_min
-    description: Lower limit on immediate reward
-    mutability: provided
-  reward_max:
-    type: double.reward_max
-    description: Upper limit on immediate reward
-    mutability: provided
-  timeout:
-    type: double
-    description: Episode timeout
-    mutability: configuration
-    default: 100
-    optional: 1
-    min: 0
-    max: 1.797693134862316e+308
-  initial_state_variation:
-    type: double
-    description: Variation of initial state
-    mutability: configuration
-    default: 0.2
-    optional: 1
-    min: 0
-    max: 1.797693134862316e+308
-  reference_velocity:
-    type: double
-    description: Reference velocity
-    mutability: configuration
-    default: 0.1
-    optional: 1
-    min: 0
-    max: 1.797693134862316e+308
 task/compass_walker/vref:
   description: Compass walker tracking velocity task
   observation_dims:
@@ -3310,7 +3540,7 @@ task/compass_walker/vref:
     mutability: provided
   timeout:
     type: double
-    description: Episode timeout
+    description: Learning episode timeout
     mutability: configuration
     default: 100
     optional: 1
@@ -3324,14 +3554,148 @@ task/compass_walker/vref:
     optional: 1
     min: 0
     max: 1.797693134862316e+308
+  slope_angle:
+    type: double.slope_angle
+    description: Inclination of the slope
+    mutability: system
+    default: 0.004
+    optional: 1
+    min: -1.797693134862316e+308
+    max: 1.797693134862316e+308
+  negative_reward:
+    type: double
+    description: Negative reward
+    mutability: configuration
+    default: -100
+    optional: 1
+    min: -1.797693134862316e+308
+    max: 0
+  observe:
+    type: vector
+    description: State elements observed by an agent
+    mutability: configuration
+    default: "[ 1, 1, 1, 1, 1, 0 ]"
+    optional: 1
+  steps:
+    type: int
+    description: number of steps after wiich task is terminated
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 2147483647
   reference_velocity:
     type: double
     description: Reference velocity
     mutability: configuration
-    default: 0.1
+    default: 0.12
     optional: 1
     min: 0
     max: 1.797693134862316e+308
+  per_step_reward:
+    type: int
+    description: If set, give reward per every step
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
+task/compass_walker/vrefu:
+  description: Compass walker tracking velocity task with controls minimization
+  observation_dims:
+    type: int.observation_dims
+    description: Number of observation dimensions
+    mutability: provided
+  observation_min:
+    type: vector.observation_min
+    description: Lower limit on observations
+    mutability: provided
+  observation_max:
+    type: vector.observation_max
+    description: Upper limit on observations
+    mutability: provided
+  action_dims:
+    type: int.action_dims
+    description: Number of action dimensions
+    mutability: provided
+  action_min:
+    type: vector.action_min
+    description: Lower limit on actions
+    mutability: provided
+  action_max:
+    type: vector.action_max
+    description: Upper limit on actions
+    mutability: provided
+  reward_min:
+    type: double.reward_min
+    description: Lower limit on immediate reward
+    mutability: provided
+  reward_max:
+    type: double.reward_max
+    description: Upper limit on immediate reward
+    mutability: provided
+  timeout:
+    type: double
+    description: Learning episode timeout
+    mutability: configuration
+    default: 100
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
+  initial_state_variation:
+    type: double
+    description: Variation of initial state
+    mutability: configuration
+    default: 0.2
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
+  slope_angle:
+    type: double.slope_angle
+    description: Inclination of the slope
+    mutability: system
+    default: 0.004
+    optional: 1
+    min: -1.797693134862316e+308
+    max: 1.797693134862316e+308
+  negative_reward:
+    type: double
+    description: Negative reward
+    mutability: configuration
+    default: -100
+    optional: 1
+    min: -1.797693134862316e+308
+    max: 0
+  observe:
+    type: vector
+    description: State elements observed by an agent
+    mutability: configuration
+    default: "[ 1, 1, 1, 1, 1, 0 ]"
+    optional: 1
+  steps:
+    type: int
+    description: number of steps after wiich task is terminated
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 2147483647
+  reference_velocity:
+    type: double
+    description: Reference velocity
+    mutability: configuration
+    default: 0.12
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
+  per_step_reward:
+    type: int
+    description: If set, give reward per every step
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
 task/compass_walker/walk:
   description: Compass walker walking task
   observation_dims:
@@ -3368,7 +3732,7 @@ task/compass_walker/walk:
     mutability: provided
   timeout:
     type: double
-    description: Episode timeout
+    description: Learning episode timeout
     mutability: configuration
     default: 100
     optional: 1
@@ -3382,6 +3746,36 @@ task/compass_walker/walk:
     optional: 1
     min: 0
     max: 1.797693134862316e+308
+  slope_angle:
+    type: double.slope_angle
+    description: Inclination of the slope
+    mutability: system
+    default: 0.004
+    optional: 1
+    min: -1.797693134862316e+308
+    max: 1.797693134862316e+308
+  negative_reward:
+    type: double
+    description: Negative reward
+    mutability: configuration
+    default: -100
+    optional: 1
+    min: -1.797693134862316e+308
+    max: 0
+  observe:
+    type: vector
+    description: State elements observed by an agent
+    mutability: configuration
+    default: "[ 1, 1, 1, 1, 1, 0 ]"
+    optional: 1
+  steps:
+    type: int
+    description: number of steps after wiich task is terminated
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 2147483647
 task/lua:
   description: User-provided task specification in LUA
   observation_dims:

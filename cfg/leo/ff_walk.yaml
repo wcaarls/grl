@@ -1,0 +1,29 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 100
+  steps: 0
+  rate: 30
+  test_interval: -1
+  output: leo_ff_walk
+  environment: 
+    type: environment/leosim
+    xml: leolearnwalking-sarsa-tc.xml
+    visualize: 1
+    observe: torso_boom, hipright, hipleft, kneeright, kneeleft
+    actuate: hipright, hipleft, kneeright, kneeleft
+    learn_stance_knee: 0
+    exporter: 
+      type: exporter/csv
+      file: leo_ff_walk-test
+      fields: time, state0, state1, action, reward, terminal
+      style: meshup
+  agent: 
+    type: agent/fixed
+    policy: 
+      type: policy/feed_forward
+      action_dims: 3
+      time_control: []
+      input: /home/ivan/work/Project/Software/grl/src/grl/addons/leosim/cfg/actions.csv
+  test_agent: experiment/agent
+  save_every: never

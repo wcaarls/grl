@@ -48,6 +48,9 @@ class Environment : public Configurable
     
     /// Take a step, returning the next observation, reward, and whether the episode terminated.
     virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal) = 0;
+
+    /// Progress report.
+    virtual void report(std::ostream &os) { }
 };
 
 /// Random-access transition model (works on states instead of observations).
@@ -56,7 +59,6 @@ class Model : public Configurable
   public:
     virtual ~Model() { }
     virtual Model *clone() const = 0;
-
     virtual double step(const Vector &state, const Vector &action, Vector *next) const = 0;
 };
 
@@ -193,7 +195,7 @@ class ModeledEnvironment : public Environment
     State *state_obj_;
     Exporter *exporter_;
     
-    bool test_;
+    int test_;
     double time_test_, time_learn_;
 
   public:
@@ -269,6 +271,47 @@ class NoiseEnvironment : public Environment
     
     // From Environment
     virtual NoiseEnvironment *clone() const;
+    virtual void start(int test, Vector *obs);
+    virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal);
+};
+
+/// Sequential-access transition model.
+class Sandbox : public Configurable
+{
+  public:
+    virtual ~Sandbox() { }
+    virtual Sandbox *clone() const = 0;
+
+    virtual void start(const Vector &hint, Vector *state) = 0;
+    virtual double step(const Vector &action, Vector *next) = 0;
+};
+
+/// Sequential-access transition environment.
+class SandboxEnvironment : public Environment
+{
+  public:
+    TYPEINFO("environment/sandbox", "Non-Markov environment")
+
+  public:
+    Sandbox *sandbox_;
+    Task *task_;
+    Vector state_, obs_;
+    State *state_obj_;
+    Exporter *exporter_;
+
+    int test_;
+    double time_test_, time_learn_;
+
+  public:
+    SandboxEnvironment() : sandbox_(NULL), task_(NULL), state_obj_(NULL), exporter_(NULL), test_(false), time_test_(0.), time_learn_(0.) { }
+
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+
+    // From Environment
+    virtual SandboxEnvironment *clone() const;
     virtual void start(int test, Vector *obs);
     virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal);
 };

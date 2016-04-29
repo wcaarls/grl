@@ -530,7 +530,10 @@ class SharedVariable : public SharedVariableInterface<T>
       pthread_key_create(&key_, NULL);
       
       if (!data_)
+      {
         data_ = new T();
+        owner_ = true; // #ivan Otherwise it is not deleted in destructor
+      }
     }
 
     /**

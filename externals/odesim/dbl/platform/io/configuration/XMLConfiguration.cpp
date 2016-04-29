@@ -35,7 +35,7 @@
 
 // The global logger for XML Configuration.
 // This avoids a CLog2 in every IConfig, and avoids logging in const functions like toFloat() const;
-CLog2	gXmlLog("xml");
+//CLog2	gXmlLog("xml"); // #ivan Leads to a memory error comming from CLog2 destructor
 
 
 // ************************************************************************ //

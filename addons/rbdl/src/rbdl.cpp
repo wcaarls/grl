@@ -241,7 +241,7 @@ void LuaTask::start(int test, Vector *state) const
   *state = lua_tovector(lua->L, -1);
   lua_pop(lua->L, 1);
 }
- 
+
 void LuaTask::observe(const Vector &state, Vector *obs, int *terminal) const
 {
   LuaState *lua = lua_state_.instance();

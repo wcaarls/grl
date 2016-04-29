@@ -4,7 +4,14 @@ set(TARGET addon_muscod)
 FIND_PACKAGE(MUSCOD)
 
 if (MUSCOD_FOUND)
-  add_definitions(-DMUSCOD_CONFIG_DIR="${SRC}/../cfg")
+
+	FIND_PACKAGE ( PGPLOT )
+	if (NOT PGPLOT_FOUND)
+		message(WARNING "Cannot build MUSCOD-II addon without PG Plot")
+		return()
+	endif()
+
+	add_definitions(-DMUSCOD_CONFIG_DIR="${SRC}/../cfg")
 
   # Find preferred Muscod build type
   if (${CMAKE_BUILD_TYPE} MATCHES "Debug")
@@ -22,8 +29,9 @@ if (MUSCOD_FOUND)
       endif()
     endforeach()
   endif()
-    
-  set(MUSCOD_BUILD_TYPE ${MBT} CACHE STRING "Muscod build output subdirectory")
+
+  #set(MUSCOD_BUILD_TYPE ${MBT} CACHE STRING "Muscod build output subdirectory")
+  set(MUSCOD_BUILD_TYPE ${MBT})
 
   # Using some kind of weird build type, bail
   if (NOT EXISTS ${MUSCOD_DIR}/../../Packages/COMMON_CODE/${MUSCOD_BUILD_TYPE})
@@ -44,6 +52,9 @@ if (MUSCOD_FOUND)
   # Build library
   add_library(${TARGET} SHARED
               ${SRC}/nmpc.cpp
+              ${SRC}/mhe_nmpc.cpp
+              ${SRC}/nmpc_sw.cpp
+              ${SRC}/mhe_nmpc_sw.cpp
               ${SRC}/nmpc_th.cpp
              )
 

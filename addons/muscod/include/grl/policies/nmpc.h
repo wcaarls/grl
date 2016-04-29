@@ -29,7 +29,7 @@
 #define GRL_NMPC_POLICY_H_
 
 #include <grl/policy.h>
-#include <grl/policies/muscod_data.h> // MUSCOD-II thread-safe data structure
+#include <grl/policies/muscod_nmpc.h>
 
 class MUSCOD;
 
@@ -46,26 +46,28 @@ class NMPCPolicy : public Policy
     int verbose_;
 
     // MUSCOD-II interface
-    void *so_handle_; // hangle to a shared library with problem definitions
-    void (*so_convert_obs_for_muscod)(const double *from, double *to);
-    MuscodData data_;
-    MUSCOD *muscod_;
-    std::string model_name_, lua_model_;
+    MUSCOD *muscod_nmpc_;
+    NMPCProblem *nmpc_;
+    std::string nmpc_model_name_, lua_model_, model_name_;
     size_t outputs_;
+    Vector initial_sd_, initial_pf_, initial_qc_, final_sd_;
 
   public:
-    NMPCPolicy() : muscod_(NULL), outputs_(1), verbose_(false) { }
+    NMPCPolicy() : muscod_nmpc_(NULL), outputs_(1), verbose_(false) { }
     ~NMPCPolicy();
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
-    virtual void muscod_reset(Vector &initial_obs, double time);
+    virtual void muscod_reset(const Vector &initial_obs, double time);
 
     // From Policy
     virtual NMPCPolicy *clone() const;
     virtual void act(double time, const Vector &in, Vector *out);
+
+    // Own
+    void *setup_model_path(const std::string path, const std::string model, const std::string lua_model);
 };
 
 }

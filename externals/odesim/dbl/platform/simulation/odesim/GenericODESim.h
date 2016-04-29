@@ -362,7 +362,7 @@ class CGenericODESim: public CSTGODESim<GenericState>, public ISTGGenericSensing
     CGenericODESim(const std::string &name, int stateStartIndex=0, int actionStartIndex=0) :
       CSTGODESim<GenericState>(name),
       mStateStartIndex(stateStartIndex), mActionStartIndex(actionStartIndex) { }
-    virtual ~CGenericODESim() { }
+    virtual ~CGenericODESim();
 
     // CSTGODESim
     virtual bool init();

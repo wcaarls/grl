@@ -35,6 +35,20 @@ using namespace grl;
 
 REGISTER_CONFIGURABLE(OnlineLearningExperiment)
 
+OnlineLearningExperiment::~OnlineLearningExperiment()
+{
+  if (state_)
+  {
+    delete state_;
+    state_ = NULL;
+  }
+  if (curve_)
+  {
+    delete curve_;
+    curve_ = NULL;
+  }
+}
+
 void OnlineLearningExperiment::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("runs", "Number of separate learning runs to perform", runs_, CRP::Configuration, 1));
@@ -104,20 +118,23 @@ void OnlineLearningExperiment::run()
 
   for (size_t rr=0; rr < runs_; ++rr)
   {
-    // Load policy/store
-    if (!load_file_.empty())
-    {
-      Configuration loadconfig;
-      loadconfig.set("action", "load");
-      loadconfig.set("file", load_file_ + "-" + std::to_string((int)rr) + "-");
-       agent_->walk(loadconfig);
-    }
-
     if (!output_.empty())
     {
       std::ostringstream oss;
       oss << output_ << "-" << rr << ".txt";
       ofs.open(oss.str().c_str());
+    }
+
+    // Load policy every run
+    if (!load_file_.empty())
+    {
+      std::string load_file = load_file_ + "-";
+      str_replace(load_file, "$run", std::to_string((int)rr)); // increment run if needed
+      std::cout << "Loading policy: " << load_file << std::endl;
+      Configuration loadconfig;
+      loadconfig.set("action", "load");
+      loadconfig.set("file", load_file );
+      agent_->walk(loadconfig);
     }
     
     for (size_t ss=0, tt=0; (!trials_ || tt < trials_) && (!steps_ || ss < steps_); ++tt)
@@ -125,7 +142,7 @@ void OnlineLearningExperiment::run()
       Vector obs, action;
       double reward, total_reward=0;
       int terminal;
-      bool test = (test_interval_ >= 0 && tt%(test_interval_+1) == test_interval_);
+      int test = (test_interval_ >= 0 && tt%(test_interval_+1) == test_interval_) * (rr+1);
       timer step_timer;
 
       Agent *agent = agent_;      
@@ -136,7 +153,7 @@ void OnlineLearningExperiment::run()
       state_->set(obs);
 
       CRAWL(obs);
-  
+
       do
       {
         if (rate_)
@@ -173,6 +190,7 @@ void OnlineLearningExperiment::run()
           std::ostringstream oss;
           oss << std::setw(15) << tt+1-(tt+1)/(test_interval_+1) << std::setw(15) << ss << std::setw(15) << total_reward;
           agent_->report(oss);
+          environment_->report(oss);
           curve_->set(VectorConstructor(total_reward));
         
           INFO(oss.str());
@@ -192,11 +210,11 @@ void OnlineLearningExperiment::run()
           ofs << oss.str() << std::endl;
       }
 
-      // Save policy/store every trial or every test trial
+      // Save policy every trial or every test trial
       if (((save_every_ == "trial") || (test && save_every_ == "test")) && !output_.empty() )
       {
         std::ostringstream oss;
-        oss << output_ << "-" << rr << "-" << ss << "-";
+        oss << output_ << "-run" << rr << "-trial" << tt << "-";
         Configuration saveconfig;
         saveconfig.set("action", "save");
         saveconfig.set("file", oss.str().c_str());
@@ -204,11 +222,11 @@ void OnlineLearningExperiment::run()
       }
     }
     
-    // Save policy/store every run
+    // Save policy every run
     if (save_every_ == "run" && !output_.empty())
     {
       std::ostringstream oss;
-      oss << output_ << "-" << rr << "-";
+      oss << output_ << "-run" << rr << "-";
       Configuration saveconfig;
       saveconfig.set("action", "save");
       saveconfig.set("file", oss.str().c_str());

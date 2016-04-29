@@ -30,7 +30,7 @@ bool ODESTGEnvironment::configure(Configuration &config)
     ERROR("Couldn't load XML configuration file \"" << xml << "\"!\nPlease check that the file exists and that it is sound (error: " << xmlConfig.errorStr() << ").");
     return false;
   }
-  
+
   // Resolve expressions
   xmlConfig.resolveExpressions();
 
@@ -80,7 +80,7 @@ bool ODESTGEnvironment::configure(Configuration &config)
   {
     CGenericStateVar statevar;
     configresult &= statevar.readConfig(stateNode);
-    configresult &= statevar.resolve(&simulator_);
+    configresult &= statevar.resolve(&simulator_); // bind sensor values to specific indecies of a state vector
     sensors_.push_back(statevar);
     
     configresult &= stateNode.get("min", &val); observation_min = extend(observation_min, VectorConstructor(val));
@@ -161,7 +161,8 @@ void ODESTGEnvironment::start(int test, Vector *obs)
   simulator_.activateActions(listener_.getState()->mStateID);
   
   CRAWL("Waiting for start STG state");
-  
+
+// #ivan: no need to step in the start
   if (!listener_.waitForNewState())
     throw Exception("Error getting start state from simulator");
     
@@ -262,11 +263,20 @@ void ODEEnvironment::reconfigure(const Configuration &config)
 
 void ODEEnvironment::run()
 {
+  /*
+  int argc=2;
+  char *argv[2];
+  argv[0] = (char*)malloc(7*sizeof(char));
+  strcpy(argv[0], "odesim");
+  argv[1] = (char*)malloc(48*sizeof(char));
+  strcpy(argv[1], "-platform offscreen");
+*/
+
   int argc=1;
   char *argv[1];
   argv[0] = (char*)malloc(7*sizeof(char));
   strcpy(argv[0], "odesim");
-  
+
   env_ = new ODESTGEnvironment();
   if (!env_->configure(*config_))
   {

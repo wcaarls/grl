@@ -209,6 +209,6 @@ ProjectionPtr ANNProjector::project(const Vector &in) const
 
 void ANNProjector::finalize()
 {
-  if (store_->size() >= indexed_samples_ + interval_)
+  if (store_->size() >= indexed_samples_ + interval_) // Rebuild every "interval_" samples
     reindex();
 }

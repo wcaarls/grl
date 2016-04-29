@@ -47,11 +47,9 @@ void ModeledEnvironment::configure(Configuration &config)
   task_ = (Task*)config["task"].ptr();
   exporter_ = (Exporter*)config["exporter"].ptr();
   
+  // Register fields to be exported
   if (exporter_)
-  {
-    // Register headers
     exporter_->init({"time", "state", "observation", "action", "reward", "terminal"});
-  }
   
   state_obj_ = new State();
   
@@ -85,9 +83,9 @@ void ModeledEnvironment::start(int test, Vector *obs)
   state_obj_->set(state_);
   
   test_ = test;
-  
+
   if (exporter_)
-    exporter_->open(std::string("-")+(test_?"test":"learn"), (test_?time_test_:time_learn_) != 0.0);
+    exporter_->open((test_?"test":"learn"), (test_?time_test_:time_learn_) != 0.0);
 }
 
 double ModeledEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)
@@ -101,7 +99,7 @@ double ModeledEnvironment::step(const Vector &action, Vector *obs, double *rewar
   double &time = test_?time_test_:time_learn_;
   
   if (exporter_)
-    exporter_->write({VectorConstructor(time), state_, obs_, action, VectorConstructor(*reward), VectorConstructor((double)*terminal)});
+    exporter_->write({VectorConstructor(time), state_, *obs, action, VectorConstructor(*reward), VectorConstructor((double)*terminal)});
 
   time += tau;
 

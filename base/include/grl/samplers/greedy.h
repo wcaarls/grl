@@ -40,6 +40,9 @@ class GreedySampler : public Sampler
   public:
     TYPEINFO("sampler/greedy", "Maximum search")
 
+  protected:
+    Rand *rand_;
+
   public:
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -60,7 +63,6 @@ class EpsilonGreedySampler : public GreedySampler
 
   protected:
     double epsilon_;
-    Rand *rand_;
 
   public:
     EpsilonGreedySampler() : epsilon_(0.05) { }

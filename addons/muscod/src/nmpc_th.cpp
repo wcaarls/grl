@@ -93,14 +93,14 @@ void NMPCPolicyTh::configure(Configuration &config)
   so_set_path(problem_path, lua_model_);
 
   //----------------- Observation converter ----------------- //
-  so_convert_obs_for_muscod = (void (*)(const double *from, double *to)) dlsym(so_handle_, "convert_obs_for_muscod");
+/*  so_convert_obs_for_muscod = (void (*)(const double *from, double *to)) dlsym(so_handle_, "convert_obs_for_muscod");
   if (so_convert_obs_for_muscod==NULL)
   {
     std::cout << "ERROR: Could not symbol in shared library: 'convert_obs_for_muscod'" << std::endl;
     std::cout << "bailing out ..." << std::endl;
     std::exit(-1);
   }
-
+*/
   //------------------- Initialize MUSCOD ------------------- //
   muscod_ = new MUSCOD();
   muscod_->setModelPathAndName(problem_path.c_str(), model_name_.c_str());
@@ -111,7 +111,7 @@ void NMPCPolicyTh::configure(Configuration &config)
   // get proper dimensions
   muscod_->nmpcInitialize(muscod_->getSSpec(), NULL, NULL);
   // solve until convergence to prepare solver
-  for (int ii=0; ii < 20; ++ii)  // TODO: check error instead
+  for (int ii=0; ii < 50; ++ii)  // TODO: check error instead
   {
     muscod_->nmpcFeedback(NULL, NULL, NULL);
     muscod_->nmpcTransition();
@@ -153,7 +153,7 @@ void NMPCPolicyTh::configure(Configuration &config)
   pthread_mutex_unlock(&mutex_);
 }
 
-void NMPCPolicyTh::muscod_reset(Vector &initial_obs, double time)
+void NMPCPolicyTh::muscod_reset(const Vector &initial_obs, double time)
 {
   // Wait for thread to stop at the condition variable
   pthread_mutex_lock(&mutex_);
@@ -175,7 +175,7 @@ void NMPCPolicyTh::muscod_reset(Vector &initial_obs, double time)
     data_.pf[IP] = time;
 
   // Solve until convergence to prepare solver
-  for (int ii=0; ii < 20; ++ii) // TODO: check error instead
+  for (int ii=0; ii < 50; ++ii) // TODO: check error instead
   {
     muscod_->nmpcFeedback(data_.sd.data(), data_.pf.data(), NULL);
     muscod_->nmpcTransition();
@@ -185,7 +185,6 @@ void NMPCPolicyTh::muscod_reset(Vector &initial_obs, double time)
   // Copy initial controls to provide immediate feedback
   for (int IMSN = 0; IMSN < data_.NMSN; ++IMSN)
     muscod_->getNodeQC (IMSN, data_.qc.row(IMSN).data());
-  data_.qc = data_.backup_qc;
 
   // Reset counters
   qc_cnt_ = 0;
@@ -220,7 +219,7 @@ void *NMPCPolicyTh::muscod_run(void *indata)
   // define initial value and placeholder for feedback
   Vector sd = ConstantVector(NXD, 0.0);
   Vector pf = ConstantVector(NP,  0.0);
-  Vector first_qc   = ConstantVector(NU,  0.0);
+  Vector qc = ConstantVector(NU,  0.0);
 
   // same for exchange TODO: move this to backup_muscod_state
   data.sd = ConstantVector(NXD, 0.0);
@@ -237,7 +236,7 @@ void *NMPCPolicyTh::muscod_run(void *indata)
   // EXECUTION LOOP
   while (true)
   {
-    pthread_mutex_lock(&mutex_);
+    pthread_mutex_lock(&mutex_); // --> Lock the mutex
     if (data.quit)
     {
       pthread_mutex_unlock(&mutex_);
@@ -249,7 +248,7 @@ void *NMPCPolicyTh::muscod_run(void *indata)
       muscod_->getNodeQC (IMSN, data.qc.row(IMSN).data());
     iv_ready_ = true; // Let know main thread that controls are ready and thread requires new state
 
-    pthread_cond_wait(&cond_iv_ready_, &mutex_);
+    pthread_cond_wait(&cond_iv_ready_, &mutex_); // --> Unlock the mutex, wait for cond_iv_ready_ signal and then lock the mutex again
     if (data.quit)
     {
       pthread_mutex_unlock(&mutex_);
@@ -265,14 +264,14 @@ void *NMPCPolicyTh::muscod_run(void *indata)
       for (int IP = 0; IP < NP; ++IP)
         pf[IP] = data.pf[IP];
     }
-    pthread_mutex_unlock(&mutex_);
+    pthread_mutex_unlock(&mutex_); // --> Unlock the mutex
 
     // NMPC loop, assume that it converges after 3 iterations
-    for (int ii=0; ii < 4; ++ii)
+    for (int ii=0; ii < 3; ++ii)
     {
-      muscod_->nmpcFeedback(sd.data(), pf.data(), first_qc.data());
+      muscod_->nmpcFeedback(sd.data(), pf.data(), qc.data());
       muscod_->nmpcTransition();
-//      muscod_->nmpcShift(3); TODO: Second iteration does not work
+      //muscod_->nmpcShift(3); //TODO: Second iteration does not work
       muscod_->nmpcPrepare();
     }
   } // END OF EXECUTION LOOP
@@ -295,21 +294,21 @@ void NMPCPolicyTh::act(double time, const Vector &in, Vector *out)
 {
   if (time == 0.0)
   {
-    so_convert_obs_for_muscod(NULL, NULL);                    // Reset internal counters
-    so_convert_obs_for_muscod(in.data(), muscod_obs_.data()); // Convert
-    muscod_reset(muscod_obs_, time);
+//    so_convert_obs_for_muscod(NULL, NULL);                    // Reset internal counters
+//    so_convert_obs_for_muscod(in.data(), muscod_obs_.data()); // Convert
+    muscod_reset(in, time);
   }
 
   out->resize(outputs_);
 
-  if (verbose_)
-    std::cout << "observation state: [ " << in << "]" << std::endl;
+//  if (verbose_)
+//    std::cout << "observation state: [ " << in << "]" << std::endl;
 
   // Convert MPRL states into MUSCOD states
-  so_convert_obs_for_muscod(in.data(), muscod_obs_.data());
+//  so_convert_obs_for_muscod(in.data(), muscod_obs_.data());
 
   if (verbose_)
-    std::cout << "time: [ " << time << " ]; state: [ " << muscod_obs_ << "]" << std::endl;
+    std::cout << "time: [ " << time << " ]; state: [ " << in << "]" << std::endl;
 
   // Obtain feedback, provide new state and unblock thread
   pthread_mutex_lock(&mutex_);
@@ -324,7 +323,7 @@ void NMPCPolicyTh::act(double time, const Vector &in, Vector *out)
 
     // Provide state and time
     for (int IXD = 0; IXD < data_.NXD; ++IXD)
-      data_.sd[IXD] = muscod_obs_[IXD];
+      data_.sd[IXD] = in.data()[IXD];
     for (int IP = 0; IP < data_.NP; ++IP)
       data_.pf[IP] = time;
 

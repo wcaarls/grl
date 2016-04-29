@@ -57,6 +57,7 @@ void TileCodingProjector::configure(Configuration &config)
   scaling_ = Vector(resolution_.size());
   for (size_t ii=0; ii < resolution_.size(); ++ii)
   {
+    // multiplying state by scaling_ we can find a bin number in a joint tiles space
     scaling_[ii] = tilings_/resolution_[ii];
     wrapping_[ii] *= scaling_[ii];
     if (fabs(wrapping_[ii]-round(wrapping_[ii])) > 0.001)

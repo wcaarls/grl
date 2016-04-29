@@ -1,34 +1,16 @@
-/** \file nmpc.cpp
- * \brief NMPC policy source file.
- *
- * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-05-08
- *
- * \copyright \verbatim
- * Copyright (c) 2015, Wouter Caarls
- * All rights reserved.
- *
- * This file is part of GRL, the Generic Reinforcement Learning library.
- *
- * GRL is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * \endverbatim
- */
+// *****************************************************************************
+// Includes
+// *****************************************************************************
 
-#include <grl/policies/nmpc.h>
-#include <wrapper.hpp>
+#include <iostream>
 #include <dlfcn.h>
 #include <sys/stat.h>
+
+// GRL
+#include <grl/policies/nmpc.h>
+
+// MUSCOD-II interface
+#include <wrapper.hpp>
 
 using namespace grl;
 
@@ -36,24 +18,61 @@ REGISTER_CONFIGURABLE(NMPCPolicy)
 
 NMPCPolicy::~NMPCPolicy()
 {
-  safe_delete(&muscod_);
+  safe_delete(&muscod_nmpc_);
 }
 
 void NMPCPolicy::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("lua_model", "Lua model used by MUSCOD", lua_model_));
-  config->push_back(CRP("model_name", "Name of MUSCOD model library", model_name_));
+  config->push_back(CRP("model_name", "Name of the model in grl", model_name_));
+  config->push_back(CRP("nmpc_model_name", "Name of MUSCOD MHE model library", nmpc_model_name_));
   config->push_back(CRP("outputs", "int.action_dims", "Number of outputs", (int)outputs_, CRP::System, 1));
   config->push_back(CRP("verbose", "Verbose mode", (int)verbose_, CRP::System, 0, 1));
+}
+
+void *NMPCPolicy::setup_model_path(const std::string path, const std::string model, const std::string lua_model)
+{
+  // get the library handle,
+  std::string so_path  = path + "/" + "lib" + model + ".so";
+  void *so_handle = dlopen(so_path.c_str(), RTLD_NOW|RTLD_GLOBAL);
+  if (so_handle==NULL)
+  {
+    std::cout << "ERROR: Could not load MUSCOD-II shared model library: '" << so_path << "'" << std::endl;
+    std::cout << "dlerror responce: " << dlerror() << std::endl;
+    std::cout << "bailing out ..." << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
+  // get the function handle
+  void (*so_set_path)(std::string, std::string);
+  std::string so_set_path_fn = "set_path"; // name of a function which sets the path
+  so_set_path = (void (*)(std::string, std::string)) dlsym(so_handle, so_set_path_fn.c_str());
+  if (so_set_path==NULL)
+  {
+    std::cout << "ERROR: Could not symbol in shared library: '" << so_set_path_fn << "'" << std::endl;
+    std::cout << "bailing out ..." << std::endl;
+    std::exit(-1);
+  }
+
+  // ... and finally set the paths
+  if (verbose_)
+  {
+    std::cout << "MUSCOD: setting new problem path to: '" << path << "'" <<std::endl;
+    std::cout << "MUSCOD: setting new Lua model file to: '" << lua_model << "'" <<std::endl;
+  }
+  so_set_path(path, lua_model);
+
+  return so_handle;
 }
 
 void NMPCPolicy::configure(Configuration &config)
 {
   std::string model_path;
-  model_path    = std::string(MUSCOD_CONFIG_DIR);
-  model_name_   = config["model_name"].str();
-  outputs_      = config["outputs"];
-  verbose_      = config["verbose"];
+  model_path        = std::string(MUSCOD_CONFIG_DIR);
+  nmpc_model_name_  = config["nmpc_model_name"].str();
+  model_name_       = config["model_name"].str();
+  outputs_          = config["outputs"];
+  verbose_          = config["verbose"];
 
   // Setup path for the problem description library and lua, csv, dat files used by it
   std::string problem_path  = model_path + "/" + model_name_;
@@ -66,67 +85,33 @@ void NMPCPolicy::configure(Configuration &config)
     lua_model_ = std::string(RBDL_LUA_CONFIG_DIR) + "/" + config["lua_model"].str(); // if not, then use it as a reference from dynamics
 
   //----------------- Set path in the problem description library ----------------- //
-  // get the library handle,
-  std::string so_path  = problem_path + "/" + "lib" + model_name_ + ".so";
-  so_handle_ = dlopen(so_path.c_str(), RTLD_NOW|RTLD_GLOBAL);
-  if (so_handle_==NULL)
-  {
-    std::cout << "ERROR: Could not load MUSCOD-II shared model library: '" << so_path << "'" << std::endl;
-    std::cout << "dlerror responce: " << dlerror() << std::endl;
-    std::cout << "bailing out ..." << std::endl;
-    exit(EXIT_FAILURE);
-  }
+  setup_model_path(problem_path, nmpc_model_name_, lua_model_);
 
-  // get the function handle
-  void (*so_set_path)(std::string, std::string);
-  std::string so_set_path_fn = "set_path"; // name of a function which sets the path
-  so_set_path = (void (*)(std::string, std::string)) dlsym(so_handle_, so_set_path_fn.c_str());
-  if (so_set_path==NULL)
-  {
-    std::cout << "ERROR: Could not symbol in shared library: '" << so_set_path_fn << "'" << std::endl;
-    std::cout << "bailing out ..." << std::endl;
-    std::exit(-1);
-  }
+  //------------------- Initialize NMPC ------------------- //
+  muscod_nmpc_ = new MUSCOD();
+  nmpc_ = new NMPCProblem(problem_path.c_str(), nmpc_model_name_.c_str(), muscod_nmpc_);
 
-  // ... and finally set the paths
-  if (verbose_)
-  {
-    std::cout << "MUSCOD: setting new problem path to: '" << problem_path << "'" <<std::endl;
-    std::cout << "MUSCOD: setting new Lua model file to: '" << lua_model_ << "'" <<std::endl;
-  }
-  so_set_path(problem_path, lua_model_);
+  // Allocate memory
+  initial_sd_ = ConstantVector(nmpc_->NXD(), 0);
+  initial_pf_ = ConstantVector(nmpc_->NP(), 0);
+  initial_qc_ = ConstantVector(nmpc_->NU(), 0);
+  final_sd_   = ConstantVector(nmpc_->NXD(), 0);
 
-  //----------------- Observation converter ----------------- //
-  so_convert_obs_for_muscod = (void (*)(const double *from, double *to)) dlsym(so_handle_, "convert_obs_for_muscod");
-  if (so_convert_obs_for_muscod==NULL)
-  {
-    std::cout << "ERROR: Could not symbol in shared library: 'convert_obs_for_muscod'" << std::endl;
-    std::cout << "bailing out ..." << std::endl;
-    std::exit(-1);
-  }
+  // FIXME This part is needed
+  // if (!verbose_) {
+    // muscod_mhe_->setLogLevelScreen(-1);
+    // muscod_mhe_->setLogLevelAndFile(-1, NULL, NULL);
+    // muscod_nmpc_->setLogLevelScreen(-1);
+    // muscod_nmpc_->setLogLevelAndFile(-1, NULL, NULL);
+  // }
 
-  //------------------- Initialize MUSCOD ------------------- //
-  muscod_ = new MUSCOD();
-  muscod_->setModelPathAndName(problem_path.c_str(), model_name_.c_str());
-  muscod_->loadFromDatFile(".", model_name_.c_str());
-  muscod_->setLogLevelScreen(-1);
-  muscod_->setLogLevelAndFile(-1, NULL, NULL);
-
-  // get proper dimensions
-  muscod_->nmpcInitialize(muscod_->getSSpec(), NULL, NULL);
-
-  // solve until convergence to prepare solver
-  for (int ii=0; ii < 20; ++ii)
-  {
-    muscod_->nmpcFeedback(NULL, NULL, NULL);
-    muscod_->nmpcTransition();
-    muscod_->nmpcPrepare();
-  }
-
+/*
   // save solver state
+  // FIXME this part is needed
   data_.backup_muscod_state(muscod_);
   data_.sd = ConstantVector(data_.NXD, 0.0);
   data_.pf = ConstantVector(data_.NP,  0.0);
+*/
 
   if (verbose_)
     std::cout << "MUSCOD is ready!" << std::endl;
@@ -137,21 +122,24 @@ void NMPCPolicy::reconfigure(const Configuration &config)
 }
 
 
-void NMPCPolicy::muscod_reset(Vector &initial_obs, double time)
+void NMPCPolicy::muscod_reset(const Vector &initial_obs, double time)
 {
+  // FIXME
   // load solution state
-  data_.restore_muscod_state(muscod_);
+  // data_.restore_muscod_state(muscod_);
 
-  // Reinitialize state and time
-  for (int IP = 0; IP < data_.NP; ++IP)
-    data_.pf[IP] = time;
+  // // Reinitialize state and time
+  // for (int IP = 0; IP < data_.NP; ++IP)
+  //   data_.pf[IP] = time;
 
-  // solve until convergence to prepare solver
-  for (int ii=0; ii < 20; ++ii)
-  {
-    muscod_->nmpcFeedback(initial_obs.data(), data_.pf.data(), NULL);
-    muscod_->nmpcTransition();
-    muscod_->nmpcPrepare();
+  // initialize NMPC
+  for (int inmpc = 0; inmpc < 10; ++inmpc) {
+    // 1) Feedback: Embed parameters and initial value from MHE
+    nmpc_->feedback();
+    // 2) Transition
+    nmpc_->transition();
+    // 3) Preparation
+    nmpc_->preparation();
   }
 
   if (verbose_)
@@ -165,35 +153,43 @@ NMPCPolicy *NMPCPolicy::clone() const
 
 void NMPCPolicy::act(double time, const Vector &in, Vector *out)
 {
-  if (verbose_)
-    std::cout << "observation state: [ " << in << "]" << std::endl;
-
-  Vector obs;
-  obs.resize(in.size());
   if (time == 0.0)
   {
-    so_convert_obs_for_muscod(NULL, NULL);            // Reset internal counters
-    so_convert_obs_for_muscod(in.data(), obs.data()); // Convert
-    muscod_reset(obs, time);
+    muscod_reset(in, time);
+    initial_sd_ << in;
+    initial_pf_ << 0.0;
+    initial_qc_ << 0.0;
   }
-
-  // Convert MPRL states into MUSCOD states
-  so_convert_obs_for_muscod(in.data(), obs.data());
 
   if (verbose_)
-    std::cout << "time: [ " << time << " ]; state: [ " << obs << "]" << std::endl;
+    std::cout << "time: [ " << time << " ]; state: [ " << in << "]" << std::endl;
 
   out->resize(outputs_);
-  for (int IP = 0; IP < data_.NP; ++IP)
-    data_.pf[IP] = time;
-  for (int ii=0; ii < 10; ++ii)
-  {
-    muscod_->nmpcFeedback(obs.data(),  data_.pf.data(), out->data());
-    muscod_->nmpcTransition();
-//    muscod_->nmpcShift(3); TODO: Doesn't work for cart-pole
-    muscod_->nmpcPrepare();
+
+  // Run multiple NMPC iterations
+  const unsigned int nnmpc = 10;
+  for (int inmpc = 0; inmpc < nnmpc; ++inmpc) {
+    // 1) Feedback: Embed parameters and initial value from MHE
+    // NOTE the same initial values (sd, pf) are embedded several time,
+    //      but this will result in the same solution as running a MUSCOD
+    //      instance for several iterations
+    nmpc_->feedback(in, initial_pf_, &initial_qc_);
+    // 2) Shifting
+    // NOTE do that only once at last iteration
+    // NOTE this has to be done before the transition phase
+    if (nnmpc > 0 && inmpc == nnmpc-1) {
+      nmpc_->shifting(1);
+    }
+    // 3) Transition
+    nmpc_->transition();
+    // 4) Preparation
+    nmpc_->preparation();
   }
+
+  // Here we can return the feedback control
+  (*out) = initial_qc_;
 
   if (verbose_)
     std::cout << "Feedback Control: [" << *out << "]" << std::endl;
 }
+

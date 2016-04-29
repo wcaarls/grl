@@ -119,8 +119,17 @@ void sighandler(int signum)
   sigaction(SIGINT, &act, NULL);
 }
 
+void hSIGSEGV(int sig)
+{
+  ERROR("Caught SIGSEGV");
+  ERROR("Stack trace:\n" << stacktrace());
+  exit(1);
+}
+
 int main(int argc, char **argv)
 {
+  signal(SIGSEGV, hSIGSEGV);
+
   int seed = 0;
   bool user_config = false;
 
@@ -183,7 +192,7 @@ int main(int argc, char **argv)
   act.sa_handler = sighandler;
   act.sa_flags = SA_NODEFER;
   sigaction(SIGINT, &act, &oldact);
-  
+
   NOTICE("Starting experiment");
 
   try

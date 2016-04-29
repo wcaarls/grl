@@ -65,7 +65,7 @@ PeakedProjector *PeakedProjector::clone() const
 
 ProjectionPtr PeakedProjector::project(const Vector &in) const
 {
-  // Scale input to [-1, 1], apply squashing, and rescale to range
+  // Scale input to [-1, 1], apply squashing, and rescale back
   if (in.size() != peaking_.size())
     throw bad_param("projector/pre/peaked:{min,max,scaling,peaking}"); 
 

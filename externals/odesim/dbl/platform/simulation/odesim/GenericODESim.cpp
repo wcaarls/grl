@@ -34,6 +34,14 @@ void ODEMessageFunction(int errnum, const char *msg, va_list ap)
   throw CODEException(buf);
 }
 
+CGenericODESim::~CGenericODESim()
+{
+  for (unsigned int ii=0; ii != mSensors.size(); ++ii)
+    delete mSensors[ii];
+  for (unsigned int ii=0; ii != mActuators.size(); ++ii)
+    delete mActuators[ii];
+}
+
 bool CGenericODESim::init()
 {
   dSetErrorHandler(ODEMessageFunction);
