@@ -54,7 +54,7 @@ class ZeroMQPolicy : public Policy
     bool isConnected_;
 
   public:
-    ZeroMQPolicy() : observation_dims_(1), action_dims_(1) { }
+    ZeroMQPolicy() : observation_dims_(1), action_dims_(1), isConnected_(false) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -70,6 +70,8 @@ class ZeroMQPolicy : public Policy
     void communicate(const Vector &in, double reward, double terminal, Vector *out);
     bool receive(DRL_MESSAGES::drl_unimessage* drlRecMessage);
     void send(DRL_MESSAGES::drl_unimessage &drlSendMessage);
+
+    void receive(const DRL_MESSAGES::drl_unimessage_Type type, const char *msgstr, DRL_MESSAGES::drl_unimessage &msg);
 };
 
 }
