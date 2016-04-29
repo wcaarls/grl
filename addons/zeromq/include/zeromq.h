@@ -54,7 +54,7 @@ class ZeroMQPolicy : public Policy
     bool isConnected_;
 
   public:
-    ZeroMQPolicy() : observation_dims_(1), action_dims_(1), isConnected_(false) { }
+    ZeroMQPolicy() : observation_dims_(1), action_dims_(1), isConnected_(false), globalTimeIndex_(-1) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);

@@ -129,36 +129,35 @@ void ZeroMQPolicy::receive(const DRL_MESSAGES::drl_unimessage_Type type,
         case DRL_MESSAGES::drl_unimessage::MESSTR:
           if (std::string(msg.msgstr()).compare(std::string("senddim"))==0)
           {
-            // Prepare and send a dimension message
-            DRL_MESSAGES::drl_unimessage dimMessage;
-            dimMessage.set_type(DRL_MESSAGES::drl_unimessage::DIMENSION);
-            DRL_MESSAGES::drl_unimessage::Dimension* dimension = dimMessage.mutable_dimension();
+            if (globalTimeIndex_ < 1)
+            {
+              // Prepare and send a dimension message
+              DRL_MESSAGES::drl_unimessage dimMessage;
+              dimMessage.set_type(DRL_MESSAGES::drl_unimessage::DIMENSION);
+              DRL_MESSAGES::drl_unimessage::Dimension* dimension = dimMessage.mutable_dimension();
 
-            DRL_MESSAGES::drl_unimessage::Dimension::Component* compstate;
-            compstate = dimension->add_component();
-            compstate->set_component_name("state");
-            compstate->add_component_dimension(observation_dims_);
+              DRL_MESSAGES::drl_unimessage::Dimension::Component* compstate;
+              compstate = dimension->add_component();
+              compstate->set_component_name("state");
+              compstate->add_component_dimension(observation_dims_);
 
-            compstate = dimension->add_component();
-            compstate->set_component_name("action");
-            compstate->add_component_dimension(action_dims_);
+              compstate = dimension->add_component();
+              compstate->set_component_name("action");
+              compstate->add_component_dimension(action_dims_);
 
-            send(dimMessage);
-            TRACE("Dimentions were sent");
+              send(dimMessage);
+              TRACE("Dimentions were sent");
+            }
           }
           else if (std::string(msg.msgstr()).compare(std::string("synched"))==0)
           {
-            globalTimeIndex_ = 1;
-            isConnected_ = true;
-            TRACE("synched received");
-          }
-          /*else if (std::string(msg.msgstr()).compare(std::string("time_index"))==0)
-          {
-            if (globalTimeIndex_ > 0)
+            if (globalTimeIndex_ < 1)
+            {
+              globalTimeIndex_ = 1;
               isConnected_ = true;
-            TRACE("Connection established");
-          }*/
-
+              TRACE("synched received");
+            }
+          }
           break;
 
         case DRL_MESSAGES::drl_unimessage::CONTROLACTION:
