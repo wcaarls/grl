@@ -80,7 +80,7 @@ void ZeroMQPolicy::act(double time, const Vector &in, Vector *out)
   if (time == 0.0)
   {
     init();
-    //sleep(2);
+    sleep(5);
   }
 
   if (out)
@@ -106,8 +106,8 @@ void ZeroMQPolicy::send(DRL_MESSAGES::drl_unimessage &drlSendMessage)
 bool ZeroMQPolicy::receive(DRL_MESSAGES::drl_unimessage* drlRecMessage)
 {
   zmq::message_t update;
-  //bool received = subscriber_->recv(&update, ZMQ_DONTWAIT);
-  bool received = subscriber_->recv(&update);
+  bool received = subscriber_->recv(&update, ZMQ_DONTWAIT);
+  //bool received = subscriber_->recv(&update);
   if(received)
     drlRecMessage->ParseFromString(std::string(static_cast<char*>(update.data()), update.size()));
   return received;
@@ -161,6 +161,7 @@ void ZeroMQPolicy::receive(const DRL_MESSAGES::drl_unimessage_Type type,
           break;
 
         case DRL_MESSAGES::drl_unimessage::CONTROLACTION:
+          TRACE("action received");
           break;
       }
 
