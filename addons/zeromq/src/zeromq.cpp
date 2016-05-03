@@ -63,7 +63,8 @@ void ZeroMQPolicy::configure(Configuration &config)
   subscriber_->setsockopt(ZMQ_SUBSCRIBE, "", 0);
 
   // Establish connection
-  //init();
+  init();
+  sleep(5);
 }
 
 void ZeroMQPolicy::reconfigure(const Configuration &config)
@@ -77,12 +78,6 @@ ZeroMQPolicy *ZeroMQPolicy::clone() const
 
 void ZeroMQPolicy::act(double time, const Vector &in, Vector *out)
 {
-  if (time == 0.0)
-  {
-    init();
-    sleep(5);
-  }
-
   if (out)
     out->resize(action_dims_);
 
@@ -210,15 +205,18 @@ void ZeroMQPolicy::communicate(const Vector &in, double reward, double terminal,
   send(rwtMessage);
   TRACE("Reward and terminal were sent");
 
-  // Receive action back
-  DRL_MESSAGES::drl_unimessage msg;
-  receive(DRL_MESSAGES::drl_unimessage::CONTROLACTION, NULL, msg);
-  //Handle action message
-  for (int i = 0; i < std::min(action_dims_, msg.action().actions_size()); i++)
+  if (out)
   {
-    double a = std::max(static_cast<float>(-1.0), std::min(msg.action().actions(i), static_cast<float>(1.0)));
-    (*out)[i] = (action_max_[i] - action_min_[i])*(a+1.0)/2.0 + action_min_[i];
-    TRACE("Action: " << a);
+    // Receive action back
+    DRL_MESSAGES::drl_unimessage msg;
+    receive(DRL_MESSAGES::drl_unimessage::CONTROLACTION, NULL, msg);
+    //Handle action message
+    for (int i = 0; i < std::min(action_dims_, msg.action().actions_size()); i++)
+    {
+      double a = std::max(static_cast<float>(-1.0), std::min(msg.action().actions(i), static_cast<float>(1.0)));
+      (*out)[i] = (action_max_[i] - action_min_[i])*(a+1.0)/2.0 + action_min_[i];
+      TRACE("Action: " << a);
+    }
+    TRACE("Action is received: " << *out);
   }
-  TRACE("Action is received: " << *out);
 }
