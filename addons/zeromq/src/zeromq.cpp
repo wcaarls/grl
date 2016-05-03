@@ -58,13 +58,13 @@ void ZeroMQPolicy::configure(Configuration &config)
   //prepare subscriber
   int confl = 1;
   subscriber_ = new zmq::socket_t(*this->context_, ZMQ_SUB);
-  subscriber_->setsockopt(ZMQ_CONFLATE,&confl,sizeof(confl));// only receive last message
+  //subscriber_->setsockopt(ZMQ_CONFLATE,&confl,sizeof(confl));// only receive last message
   subscriber_->connect("tcp://localhost:5555");
   subscriber_->setsockopt(ZMQ_SUBSCRIBE, "", 0);
 
   // Establish connection
   init();
-  sleep(5);
+  sleep(1);
 }
 
 void ZeroMQPolicy::reconfigure(const Configuration &config)
