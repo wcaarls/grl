@@ -125,7 +125,7 @@ void RandomSampleVisualization::idle()
     double v2 = 4*v;
     
     // Jet colormap
-    if (!isnan(value[ii]))
+    if (!std::isnan(value[ii]))
     {
       data_[ii*3+0] = fmax(fmin(255*fmin(v2 - 1.5, -v2 + 4.5), 255), 0);
       data_[ii*3+1] = fmax(fmin(255*fmin(v2 - 0.5, -v2 + 3.5), 255), 0);
