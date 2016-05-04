@@ -158,8 +158,9 @@ void LeoSimEnvironment::configure(Configuration &config)
   observation_dims_ = (observe_.array() != 0).count();
 
   // mask observation min/max vectors
-  Vector ode_observation_min = config["observation_min"], observation_min;
-  Vector ode_observation_max = config["observation_max"], observation_max;
+  Vector ode_observation_min, ode_observation_max, observation_min, observation_max;
+  config.get("observation_min", ode_observation_min);
+  config.get("observation_max", ode_observation_max);
   observation_min.resize(observation_dims_);
   observation_max.resize(observation_dims_);
   for (int i = 0, j = 0; i < observe_.size(); i++)
@@ -192,8 +193,9 @@ void LeoSimEnvironment::configure(Configuration &config)
   }
 
   // mask observation min/max vectors
-  Vector ode_action_min = config["action_min"], action_min;
-  Vector ode_action_max = config["action_max"], action_max;
+  Vector ode_action_min, ode_action_max, action_min, action_max;
+  config.get("action_min", ode_action_min);
+  config.get("action_max", ode_action_max);
   action_min.resize(action_dims_);
   action_max.resize(action_dims_);
   for (int i = 0, j = 0; i < actuate_.size(); i++)
