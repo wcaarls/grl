@@ -245,12 +245,6 @@ class CSTGOutQueue: public CSTGLoggable
 			mDescriptor	= (mqd_t)-1;
 		}
 
-    ~CSTGOutQueue()
-    {
-      std::cout << "Close queue" << std::endl;
-      close();
-    }
-
 		const std::string&	getName()
 		{
 			return mName;

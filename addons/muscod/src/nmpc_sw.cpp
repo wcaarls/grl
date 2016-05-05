@@ -84,10 +84,10 @@ void NMPC_SWPolicy::configure(Configuration &config)
   nmpc_ = new NMPCProblem(problem_path.c_str(), nmpc_model_name_.c_str(), muscod_nmpc_);
 
   // Allocate memory
-  initial_sd_ = VectorConstructorFill(nmpc_->NXD(), 0);
-  initial_pf_ = VectorConstructorFill(nmpc_->NP(), 0);
-  initial_qc_ = VectorConstructorFill(nmpc_->NU(), 0);
-  final_sd_   = VectorConstructorFill(nmpc_->NXD(), 0);
+  initial_sd_ = ConstantVector(nmpc_->NXD(), 0);
+  initial_pf_ = ConstantVector(nmpc_->NP(), 0);
+  initial_qc_ = ConstantVector(nmpc_->NU(), 0);
+  final_sd_   = ConstantVector(nmpc_->NXD(), 0);
 
   if (verbose_)
     std::cout << "MUSCOD is ready!" << std::endl;
@@ -124,8 +124,7 @@ void NMPC_SWPolicy::act(double time, const Vector &in, Vector *out)
   if (time <= 0.0)
   {
     muscod_reset(in, time);
-    initial_sd_ << in, VectorConstructorFill(initial_sd_.size() - in.size(), 0);
-//    initial_pf_ << 0.0;
+    initial_sd_ << in, ConstantVector(initial_sd_.size() - in.size(), 0);
     initial_qc_ << 0.0;
   }
 

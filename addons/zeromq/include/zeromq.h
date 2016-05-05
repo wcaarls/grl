@@ -25,10 +25,11 @@
  * \endverbatim
  */
 
-#ifndef GRL_ZEROMQ_POLICY_H_
-#define GRL_ZEROMQ_POLICY_H_
+#ifndef GRL_ZEROMQ_AGENT_H_
+#define GRL_ZEROMQ_AGENT_H_
 
-#include <grl/policy.h>
+
+#include <grl/agent.h>
 #include <zmq.hpp>
 #include <drl_messages.pb.h>
 
@@ -36,10 +37,10 @@ namespace grl
 {
 
 /// ZeroMQ policy
-class ZeroMQPolicy : public Policy
+class ZeroMQAgent : public Agent
 {
   public:
-    TYPEINFO("policy/zeromq", "Fixed policy which sends and receives messages using ZeroMQ and protobuffers")
+    TYPEINFO("agent/zeromq", "Agent which sends and receives messages using ZeroMQ and protobuffers")
 
   protected:
     int action_dims_, observation_dims_;
@@ -54,7 +55,7 @@ class ZeroMQPolicy : public Policy
     bool isConnected_;
 
   public:
-    ZeroMQPolicy() : observation_dims_(1), action_dims_(1), isConnected_(false), globalTimeIndex_(-1) { }
+    ZeroMQAgent() : observation_dims_(1), action_dims_(1), isConnected_(false), globalTimeIndex_(-1) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -62,8 +63,12 @@ class ZeroMQPolicy : public Policy
     virtual void reconfigure(const Configuration &config);
 
     // From Policy
-    virtual ZeroMQPolicy *clone() const;
-    virtual void act(double time, const Vector &in, Vector *out);
+    virtual ZeroMQAgent *clone() const;
+    virtual void start(const Vector &obs, Vector *action);
+    virtual void step(double tau, const Vector &obs, double reward, Vector *action);
+    virtual void end(double tau, const Vector &obs, double reward);
+
+    //virtual void act(double time, const Vector &in, Vector *out);
 
   protected:
     void init();
@@ -76,4 +81,4 @@ class ZeroMQPolicy : public Policy
 
 }
 
-#endif /* GRL_ZEROMQ_POLICY_H_ */
+#endif /* GRL_ZEROMQ_AGENT_H_ */

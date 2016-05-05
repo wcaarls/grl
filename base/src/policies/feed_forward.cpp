@@ -60,7 +60,7 @@ void FeedForwardPolicy::configure(Configuration &config)
          v.push_back(::atof(result.c_str()));
     }
     file.close();
-    time_control_ = VectorConstructor(v);
+    toVector(v, time_control_);
   }
 
   if (time_control_.size() % shift_ != 0)

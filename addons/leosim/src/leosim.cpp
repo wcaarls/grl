@@ -321,9 +321,11 @@ double LeoSimEnvironment::step(const Vector &action, Vector *obs, double *reward
     s0.insert(s0.end(), v0.begin(), v0.end());
     s1.insert(s1.end(), v1.begin(), v1.end());
 
-    exporter_->write({grl::VectorConstructor(time), grl::VectorConstructor(s0),  grl::VectorConstructor(s1),
-                      grl::VectorConstructor(a), grl::VectorConstructor(*reward), grl::VectorConstructor(*terminal)
-                     });
+    Vector vs0, vs1, va;
+    toVector(s0, vs0);
+    toVector(s1, vs1);
+    toVector( a, va);
+    exporter_->write({grl::VectorConstructor(time), vs0, vs1, va, grl::VectorConstructor(*reward), grl::VectorConstructor(*terminal)});
   }
 
   TRACE("State angles: " << s1);

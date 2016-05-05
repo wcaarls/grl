@@ -34,13 +34,11 @@ REGISTER_CONFIGURABLE(FixedAgent)
 void FixedAgent::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("policy", "policy", "Control policy", policy_));
-  config->push_back(CRP("aug_rwt", "Augment state with reward and terminal", (int)aug_rwt_, CRP::System, 0, 1));
 }
 
 void FixedAgent::configure(Configuration &config)
 {
   policy_ = (Policy*)config["policy"].ptr();
-  aug_rwt_ = config["aug_rwt"];
 }
 
 void FixedAgent::reconfigure(const Configuration &config)
@@ -58,37 +56,16 @@ FixedAgent *FixedAgent::clone() const
 void FixedAgent::start(const Vector &obs, Vector *action)
 {
   time_ = 0.;
-  if (!aug_rwt_)
-    policy_->act(time_, obs, action);
-  else
-  {
-    Vector obs_new = VectorConstructorFill(obs.size()+2, 0);
-    obs_new << obs, VectorConstructor(0), VectorConstructor(0);
-    policy_->act(time_, obs_new, action);
-  }
+  policy_->act(time_, obs, action);
 }
 
 void FixedAgent::step(double tau, const Vector &obs, double reward, Vector *action)
 {
   time_ += tau;
-  if (!aug_rwt_)
-    policy_->act(time_, obs, action);
-  else
-  {
-    Vector obs_new = VectorConstructorFill(obs.size()+2, 0);
-    obs_new << obs, VectorConstructor(reward), VectorConstructor(0);
-    policy_->act(time_, obs_new, action);
-  }
+  policy_->act(time_, obs, action);
 }
 
 void FixedAgent::end(double tau, const Vector &obs, double reward)
 {
-  if (!aug_rwt_)
-    policy_->act(time_, obs, NULL);
-  else
-  {
-    Vector obs_new = VectorConstructorFill(obs.size()+2, 0);
-    obs_new << obs, VectorConstructor(reward), VectorConstructor(1);
-    policy_->act(time_, obs_new, NULL);
-  }
+  policy_->act(time_, obs, NULL);
 }

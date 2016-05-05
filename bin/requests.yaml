@@ -6,14 +6,6 @@ agent/fixed:
     mutability: configuration
     default: 0
     optional: 0
-  aug_rwt:
-    type: int
-    description: Augment state with reward and terminal
-    mutability: system
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
 agent/master/exclusive:
   description: Master agent that selects one sub-agent to execute
   gamma:
@@ -70,6 +62,36 @@ agent/td:
     mutability: configuration
     default: 0
     optional: 0
+agent/zeromq:
+  description: Agent which sends and receives messages using ZeroMQ and protobuffers
+  observation_dims:
+    type: int.observation_dims
+    description: Number of observation dimensions
+    mutability: system
+    default: 1
+    optional: 1
+    min: 0
+    max: 2147483647
+  action_dims:
+    type: int.action_dims
+    description: Number of action dimensions
+    mutability: system
+    default: 1
+    optional: 1
+    min: 0
+    max: 2147483647
+  action_min:
+    type: vector.action_min
+    description: Lower limit of action
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  action_max:
+    type: vector.action_max
+    description: Upper limit of action
+    mutability: system
+    default: "[  ]"
+    optional: 1
 discretizer/peaked:
   description: Peaked discretizer, with more resolution around center
   min:
@@ -1110,36 +1132,6 @@ policy/sample_feedback:
   output_max:
     type: vector.action_max
     description: Upper action limit
-    mutability: system
-    default: "[  ]"
-    optional: 1
-policy/zeromq:
-  description: Fixed policy which sends and receives messages using ZeroMQ and protobuffers
-  observation_dims:
-    type: int.observation_dims
-    description: Number of observation dimensions
-    mutability: system
-    default: 1
-    optional: 1
-    min: 0
-    max: 2147483647
-  action_dims:
-    type: int.action_dims
-    description: Number of action dimensions
-    mutability: system
-    default: 1
-    optional: 1
-    min: 0
-    max: 2147483647
-  action_min:
-    type: vector.action_min
-    description: Lower limit of action
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  action_max:
-    type: vector.action_max
-    description: Upper limit of action
     mutability: system
     default: "[  ]"
     optional: 1

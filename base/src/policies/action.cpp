@@ -79,13 +79,10 @@ void ActionPolicy::act(const Vector &in, Vector *out) const
   // Some representations may not always return a value.
   if (!out->size())
     *out = (min_+max_)/2;
-  
-  action_perturbation_policy_++;
 
   for (size_t ii=0; ii < out->size(); ++ii)
   {
     if (sigma_[ii])
- //     if (action_perturbation_policy_%3 == 0)
         (*out)[ii] += RandGen::getNormal(0., sigma_[ii]);
       
     (*out)[ii] = fmin(fmax((*out)[ii], min_[ii]), max_[ii]);

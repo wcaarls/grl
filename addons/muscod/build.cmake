@@ -5,22 +5,24 @@ FIND_PACKAGE(MUSCOD)
 
 if (MUSCOD_FOUND)
 
-	pkg_check_modules(RBDL rbdl>=2.4.0)
-	if (NOT RBDL_FOUND)
-		message(SEND_ERROR "Trying to building MUSCOD-II addon without RBDL")
-	endif()
+  if(0)
+    pkg_check_modules(RBDL rbdl>=2.4.0)
+    if (NOT RBDL_FOUND)
+      message(SEND_ERROR "Trying to building MUSCOD-II addon without RBDL")
+    endif()
 
-	pkg_check_modules(RBDL_LUAMODEL rbdl_luamodel>=2.4.0)
-	if (NOT RBDL_LUAMODEL_FOUND)
-		message(SEND_ERROR "RBDL Lua Model library is not found. Perhaps, you have to create rbdl_luamodel.pc manually.")
-	endif()
+    pkg_check_modules(RBDL_LUAMODEL rbdl_luamodel>=2.4.0)
+    if (NOT RBDL_LUAMODEL_FOUND)
+      message(SEND_ERROR "RBDL Lua Model library is not found. Perhaps, you have to create rbdl_luamodel.pc manually.")
+    endif()
+  endif(0)
 
-	FIND_PACKAGE ( PGPLOT REQUIRED )
-	if (NOT PGPLOT_FOUND)
-		message(WARRING "PG Plot is not found.")
-	endif()
+  FIND_PACKAGE ( PGPLOT REQUIRED )
+  if (NOT PGPLOT_FOUND)
+    message(WARRING "PG Plot is not found.")
+  endif()
 
-	add_definitions(-DMUSCOD_CONFIG_DIR="${SRC}/../cfg")
+  add_definitions(-DMUSCOD_CONFIG_DIR="${SRC}/../cfg")
 
   # Find preferred Muscod build type
   if (${CMAKE_BUILD_TYPE} MATCHES "Debug")

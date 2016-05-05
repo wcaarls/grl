@@ -162,7 +162,6 @@ void ODESTGEnvironment::start(int test, Vector *obs)
   
   CRAWL("Waiting for start STG state");
 
-// #ivan: no need to step in the start
   if (!listener_.waitForNewState())
     throw Exception("Error getting start state from simulator");
     

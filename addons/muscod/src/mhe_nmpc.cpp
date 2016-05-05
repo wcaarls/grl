@@ -108,13 +108,13 @@ void MHE_NMPCPolicy::configure(Configuration &config)
   nmpc_ = new NMPCProblem(problem_path.c_str(), nmpc_model_name_.c_str(), muscod_nmpc_);
 
   // Allocate memory
-  initial_sd_ = VectorConstructorFill(nmpc_->NXD(), 0);
-  initial_pf_ = VectorConstructorFill(nmpc_->NP(), 0);
-  initial_qc_ = VectorConstructorFill(nmpc_->NU(), 0);
-  final_sd_   = VectorConstructorFill(nmpc_->NXD(), 0);
+  initial_sd_ = ConstantVector(nmpc_->NXD(), 0);
+  initial_pf_ = ConstantVector(nmpc_->NP(),  0);
+  initial_qc_ = ConstantVector(nmpc_->NU(),  0);
+  final_sd_   = ConstantVector(nmpc_->NXD(), 0);
 
-  hs_ = VectorConstructorFill(mhe_->NXD() + mhe_->NU(), 0);
-  ss_ = VectorConstructorFill(mhe_->NXD() + mhe_->NU(), 1);
+  hs_ = ConstantVector(mhe_->NXD() + mhe_->NU(), 0);
+  ss_ = ConstantVector(mhe_->NXD() + mhe_->NU(), 1);
   ss_ << 1.00, 1.00, 1.00, 1.00, 0.10; // no error
 
   // FIXME This part is needed
@@ -204,7 +204,7 @@ void MHE_NMPCPolicy::act(double time, const Vector &in, Vector *out)
       // 0) Compose new measurement
       // NOTE measurement consists of simulation result + feedback control
       // m_hs = [ xd[0], ..., xd[NXD-1], u[0], ..., u[NU-1] ]
-      hs_ << in, VectorConstructorFill(mhe_->NU(), 0);
+      hs_ << in, ConstantVector(mhe_->NU(), 0);
       // std::cout << "new_measurement = " << hs_ << std::endl;
       // 1) Inject measurements
       mhe_->inject_measurement(hs_, ss_, initial_qc_);

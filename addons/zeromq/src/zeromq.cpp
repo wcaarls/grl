@@ -29,9 +29,9 @@
 
 using namespace grl;
 
-REGISTER_CONFIGURABLE(ZeroMQPolicy)
+REGISTER_CONFIGURABLE(ZeroMQAgent)
 
-void ZeroMQPolicy::request(ConfigurationRequest *config)
+void ZeroMQAgent::request(ConfigurationRequest *config)
 {
   Vector action_min, action_max;
   config->push_back(CRP("observation_dims", "int.observation_dims", "Number of observation dimensions", observation_dims_, CRP::System));
@@ -40,7 +40,7 @@ void ZeroMQPolicy::request(ConfigurationRequest *config)
   config->push_back(CRP("action_max", "vector.action_max", "Upper limit of action", action_max_, CRP::System));
 }
 
-void ZeroMQPolicy::configure(Configuration &config)
+void ZeroMQAgent::configure(Configuration &config)
 {
   // Read configuration
   action_dims_ = config["action_dims"];
@@ -67,25 +67,34 @@ void ZeroMQPolicy::configure(Configuration &config)
   sleep(1);
 }
 
-void ZeroMQPolicy::reconfigure(const Configuration &config)
+void ZeroMQAgent::reconfigure(const Configuration &config)
 {
 }
 
-ZeroMQPolicy *ZeroMQPolicy::clone() const
+ZeroMQAgent *ZeroMQAgent::clone() const
 {
-  return new ZeroMQPolicy(*this);
+  return new ZeroMQAgent(*this);
 }
 
-void ZeroMQPolicy::act(double time, const Vector &in, Vector *out)
+void ZeroMQAgent::start(const Vector &obs, Vector *action)
 {
-  if (out)
-    out->resize(action_dims_);
+  action->resize(action_dims_);
+  communicate(obs, 0, 0, action);
+}
 
-  communicate(in, in[observation_dims_], in[observation_dims_+1], out);
+void ZeroMQAgent::step(double tau, const Vector &obs, double reward, Vector *action)
+{
+  action->resize(action_dims_);
+  communicate(obs, reward, 0, action);
+}
+
+void ZeroMQAgent::end(double tau, const Vector &obs, double reward)
+{
+  communicate(obs, reward, 1, NULL);
 }
 
 // helper function to send a message using zeroMQ
-void ZeroMQPolicy::send(DRL_MESSAGES::drl_unimessage &drlSendMessage)
+void ZeroMQAgent::send(DRL_MESSAGES::drl_unimessage &drlSendMessage)
 {
   TRACE("Send time index: " << globalTimeIndex_);
   drlSendMessage.set_time_index(globalTimeIndex_);
@@ -98,7 +107,7 @@ void ZeroMQPolicy::send(DRL_MESSAGES::drl_unimessage &drlSendMessage)
 }
 
 // helper function to receive a message using zeroMQ
-bool ZeroMQPolicy::receive(DRL_MESSAGES::drl_unimessage* drlRecMessage)
+bool ZeroMQAgent::receive(DRL_MESSAGES::drl_unimessage* drlRecMessage)
 {
   zmq::message_t update;
   bool received = subscriber_->recv(&update, ZMQ_DONTWAIT);
@@ -108,7 +117,7 @@ bool ZeroMQPolicy::receive(DRL_MESSAGES::drl_unimessage* drlRecMessage)
   return received;
 }
 
-void ZeroMQPolicy::receive(const DRL_MESSAGES::drl_unimessage_Type type,
+void ZeroMQAgent::receive(const DRL_MESSAGES::drl_unimessage_Type type,
                            const char *msgstr,
                            DRL_MESSAGES::drl_unimessage &msg)
 {
@@ -170,7 +179,7 @@ void ZeroMQPolicy::receive(const DRL_MESSAGES::drl_unimessage_Type type,
   }
 }
 
-void ZeroMQPolicy::init()
+void ZeroMQAgent::init()
 {
   isConnected_ = false;
   DRL_MESSAGES::drl_unimessage msg;
@@ -179,7 +188,7 @@ void ZeroMQPolicy::init()
 }
 
 // Helper function which deals with all communication
-void ZeroMQPolicy::communicate(const Vector &in, double reward, double terminal, Vector *out)
+void ZeroMQAgent::communicate(const Vector &in, double reward, double terminal, Vector *out)
 {
   if (!isConnected_)
     return;

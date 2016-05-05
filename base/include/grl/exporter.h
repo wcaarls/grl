@@ -34,8 +34,6 @@
 
 namespace grl {
 
-enum ExportDataType {edtLearn, edtTest, edtLearnTest};
-
 class Exporter : public Configurable
 {
   public:
@@ -62,19 +60,20 @@ class CSVExporter : public Exporter
     std::string file_;
     std::string fields_;
     std::string style_;
-    ExportDataType data_type_;
+    std::string variant_;
+    int split_runs_;
     
     std::ofstream stream_;
     std::vector<size_t> order_;
     std::vector<std::string> headers_;
     std::vector<Vector> append_vec_;
     bool write_header_;
-    static std::map<std::string, int> run_cnt_;
+    static std::map<std::string, int> run_counter_;
 
     void writer(std::vector<Vector> var_vec);
 
   public:
-    CSVExporter() : style_("line"), write_header_(true) { }
+    CSVExporter() : style_("line"), write_header_(true), variant_("test"), split_runs_(1) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);

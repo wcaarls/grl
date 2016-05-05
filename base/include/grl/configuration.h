@@ -145,7 +145,7 @@ class ConfigurationParameter
     operator double() const { return convert<double>(); }
     operator int() const { return convert<int>(); }
     operator size_t() const { return convert<size_t>(); }
-    explicit operator Vector() const { return convert<Vector>(); }
+    operator Vector() const { return convert<Vector>(); }
     operator std::string() const { return str(); }
 
     template<class T>

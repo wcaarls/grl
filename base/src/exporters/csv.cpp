@@ -34,27 +34,23 @@ using namespace grl;
 
 REGISTER_CONFIGURABLE(CSVExporter)
 
-std::map<std::string, int> CSVExporter::run_cnt_;
+std::map<std::string, int> CSVExporter::run_counter_;
 
 void CSVExporter::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("file", "Output base filename", file_));
   config->push_back(CRP("fields", "Comma-separated list of fields to write", fields_));
   config->push_back(CRP("style", "Header style", style_, CRP::Configuration, {"none", "line", "meshup"}));
+  config->push_back(CRP("variant", "Variant of exporter", variant_, CRP::Configuration, {"test", "learn", "all"}));
+  config->push_back(CRP("split_runs", "Write each run output to a separate file", split_runs_));
 }
 
 void CSVExporter::configure(Configuration &config)
 {
-  file_ = config["file"].str();
-  fields_ = config["fields"].str();
-  style_ = config["style"].str();
-
-  if (file_.find("-learn") != std::string::npos)
-    data_type_ =  ExportDataType::edtLearn;
-  else if (file_.find("-test") != std::string::npos)
-    data_type_ =  ExportDataType::edtTest;
-  else
-    data_type_ =  ExportDataType::edtLearnTest;
+  file_    = config["file"].str();
+  fields_  = config["fields"].str();
+  style_   = config["style"].str();
+  variant_ = config["variant"].str();
   
   if (file_.empty())
     throw bad_param("exporter/csv:file");
@@ -122,25 +118,31 @@ void CSVExporter::init(const std::initializer_list<std::string> &headers)
 
 void CSVExporter::open(const std::string &variant, bool append)
 {
-  // close stream from previous iteration
-  if (stream_.is_open())
+  // if stream is opened and run is saved to the same file
+  if (stream_.is_open() && !split_runs_)
+    append = true;
+
+  // close stream only if it is already opened and each run is saved to a separate file
+  if (stream_.is_open() && split_runs_)
     stream_.close();
 
   // check if our export objective does not coinside with exporter variant
-  if ((variant == "learn" && data_type_ == ExportDataType::edtTest)  ||
-      (variant == "test"  && data_type_ == ExportDataType::edtLearn))
+  if ((variant == "learn" && variant_ == "test") || (variant == "test"  && variant_ == "learn"))
     return;
 
   std::string file = file_;
-  if ((data_type_ == ExportDataType::edtLearnTest) && !variant.empty())
+  if ((variant_ == "all") && !variant.empty())
     file = file_ + "-" + variant;
 
   // account for 'run'
-  if (!append)
-    run_cnt_[file]++;
-  file = file + "-" + std::to_string(run_cnt_[file] - 1);
+  if (split_runs_)
+  {
+    if (!append)
+      run_counter_[file]++;
+    file = file + "-" + std::to_string(run_counter_[file] - 1);
+  }
 
-  struct stat buffer;   
+  struct stat buffer;
   if (stat((file+".csv").c_str(), &buffer) != 0 || !buffer.st_size || !append)
     write_header_ = true;
   else
