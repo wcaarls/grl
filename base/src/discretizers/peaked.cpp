@@ -42,7 +42,7 @@ void PeakedDiscretizer::configure(Configuration &config)
 {
   UniformDiscretizer::configure(config);
 
-  peaking_ = config["peaking"];
+  peaking_ = config["peaking"].v();
   
   if (peaking_.size() != min_.size())
     throw bad_param("discretizer/peaked:peaking");

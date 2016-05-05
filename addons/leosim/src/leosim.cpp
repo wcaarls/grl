@@ -156,7 +156,7 @@ void LeoSimEnvironment::configure(Configuration &config)
   if (observe_.size() != ode_observation_dims_)
     throw bad_param("leosim/walk:observe");
   observation_dims_ = (observe_.array() != 0).count();
-
+  
   // mask observation min/max vectors
   Vector ode_observation_min = config["observation_min"], observation_min;
   Vector ode_observation_max = config["observation_max"], observation_max;

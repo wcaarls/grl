@@ -40,8 +40,8 @@ void RandomPolicy::request(ConfigurationRequest *config)
 
 void RandomPolicy::configure(Configuration &config)
 {
-  min_ = config["output_min"];
-  max_ = config["output_max"];
+  min_ = config["output_min"].v();
+  max_ = config["output_max"].v();
   
   if (min_.size() != max_.size())
     throw bad_param("policy/random:{min,max}");

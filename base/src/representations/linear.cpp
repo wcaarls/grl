@@ -64,13 +64,13 @@ void LinearRepresentation::configure(Configuration &config)
   memory_ = config["memory"];
   outputs_ = config["outputs"];
   
-  init_min_ = config["init_min"];
+  init_min_ = config["init_min"].v();
   if (init_min_.size() && init_min_.size() < outputs_)
     init_min_ = ConstantVector(outputs_, init_min_[0]);
   if (init_min_.size() != outputs_)
     throw bad_param("representation/parameterized/linear:init_min");
   
-  init_max_ = config["init_max"];
+  init_max_ = config["init_max"].v();
   if (init_max_.size() && init_max_.size() < outputs_)
     init_max_ = ConstantVector(outputs_, init_max_[0]);
   if (init_max_.size() != outputs_)
@@ -78,13 +78,13 @@ void LinearRepresentation::configure(Configuration &config)
 
   params_.resize(memory_ * outputs_);
   
-  output_min_ = config["output_min"];
+  output_min_ = config["output_min"].v();
   if (!output_min_.size())
     output_min_ = ConstantVector(outputs_, -DBL_MAX);
   if (output_min_.size() != outputs_)
     throw bad_param("representation/parameterized/linear:output_min");
     
-  output_max_ = config["output_max"];
+  output_max_ = config["output_max"].v();
   if (!output_max_.size())
     output_max_ = ConstantVector(outputs_, DBL_MAX);
   if (output_max_.size() != outputs_)

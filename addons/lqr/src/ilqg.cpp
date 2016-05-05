@@ -65,7 +65,7 @@ void ILQGSolver::configure(Configuration &config)
   policy_ = (SampleFeedbackPolicy*)config["policy"].ptr();
   
   horizon_ = config["horizon"];
-  stddev_ = config["stddev"];
+  stddev_ = config["stddev"].v();
   maxiter_ = config["iterations"];
   regularization_ = config["regularization"].str();
   

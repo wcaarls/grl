@@ -1,11 +1,10 @@
 # Setup build environment
 set(TARGET addon_muscod_models)
 
-find_library(LUA_ADDON_LIB NAMES rbdl_luamodel HINTS ${RBDL_LIBRARY_DIRS})
-find_path(LUA_ADDON_INC rbdl/addons/luamodel/luamodel.h ${RBDL_INCLUDE_DIRS})
+FIND_PACKAGE (Lua51)
 
-if (NOT LUA_ADDON_LIB OR NOT LUA_ADDON_INC)
-  message(WARNING "Cannot build MUSCOD-II models without RBDL lua model library")
+if (NOT LUA51_FOUND)
+  message(WARNING "Cannot build MUSCOD-II models without Lua")
   return()
 endif()
 

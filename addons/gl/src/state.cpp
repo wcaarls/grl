@@ -53,9 +53,9 @@ void StateVisualization::configure(Configuration &config)
 
   state_ = (State*)config["state"].ptr();
 
-  dims_ = config["input_dims"];
-  min_ = config["input_min"];
-  max_ = config["input_max"];
+  dims_ = config["input_dims"].v();
+  min_ = config["input_min"].v();
+  max_ = config["input_max"].v();
   if (min_.size() != max_.size())
     throw bad_param("visualization/state:{input_min,input_max}");
     

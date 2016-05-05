@@ -55,8 +55,8 @@ void ApproxTestExperiment::configure(Configuration &config)
   test_samples_ = config["test_samples"];
   file_ = config["file"].str();
   
-  min_ = config["input_min"];
-  max_ = config["input_max"];
+  min_ = config["input_min"].v();
+  max_ = config["input_max"].v();
   
   if (min_.size() != max_.size())
     throw bad_param("experiment/approx_test:{min,max}");

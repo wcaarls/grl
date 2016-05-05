@@ -43,7 +43,7 @@ void PeakedProjector::configure(Configuration &config)
 {
   NormalizingProjector::configure(config);
   
-  peaking_ = config["peaking"];
+  peaking_ = config["peaking"].v();
   
   if (peaking_.size() != min_.size())
     throw bad_param("projector/pre/peaked:peaking");

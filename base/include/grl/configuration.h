@@ -142,14 +142,16 @@ class ConfigurationParameter
       }
     }
 
-    operator double() const { return convert<double>(); }
-    operator int() const { return convert<int>(); }
-    operator size_t() const { return convert<size_t>(); }
-    operator Vector() const { return convert<Vector>(); }
-    operator std::string() const { return str(); }
+    template<class T>
+    operator T() const { return as<T>(); }
+    
+    double d() const { return as<double>(); }
+    int i()    const { return as<int>(); }
+    size_t u() const { return as<size_t>(); }
+    Vector v() const { return as<Vector>(); }
 
     template<class T>
-    T convert() const
+    T as() const
     {
       T value;
       if (!get(value))

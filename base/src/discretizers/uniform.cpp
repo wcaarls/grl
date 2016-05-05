@@ -54,9 +54,9 @@ void UniformDiscretizer::request(const std::string &role, ConfigurationRequest *
 
 void UniformDiscretizer::configure(Configuration &config)
 {
-  min_ = config["min"];
-  max_ = config["max"];
-  steps_ = config["steps"];
+  min_ = config["min"].v();
+  max_ = config["max"].v();
+  steps_ = config["steps"].v();
   
   if (min_.size() != max_.size() || min_.size() != steps_.size())
     throw bad_param("discretizer/uniform:{min,max,steps}");
