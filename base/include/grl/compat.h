@@ -43,7 +43,7 @@ inline int round( double r ) {
 }
 #endif
 
-template<typename T> inline T sign(T x) {return (((x)>0) - ((x)<0));}
+template<typename T> inline int sign(const T x) { return (x>0) - (x<0); }
 
 #define grl_assert(x) do { if (!(x)) { std::cerr << __FILE__ << ":" << __LINE__ << ": Assertion '" << #x << "' failed" << std::endl; abort(); } } while (0)
 

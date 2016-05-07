@@ -145,18 +145,6 @@ inline Vector VectorConstructor(double a, double b, double c, double d, double e
 {
   Vector v(6); v << a, b, c, d ,e, f; return v;
 }
-inline Vector VectorConstructor(std::vector<double> a)
-{
-  Vector v(a.size());
-  memcpy(v.data(), a.data(), a.size()*sizeof(double));
-  return v;
-}
-template<typename T>
-inline Vector VectorConstructorFill(int size, T initVal)
-{
-  std::vector<double> a(size, static_cast<double>(initVal));
-  return VectorConstructor(a);
-}
 
 using ::pow;
 using ::log;

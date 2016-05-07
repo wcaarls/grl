@@ -5,19 +5,10 @@ FIND_PACKAGE(MUSCOD)
 
 if (MUSCOD_FOUND)
 
-	pkg_check_modules(RBDL rbdl>=2.4.0)
-	if (NOT RBDL_FOUND)
-		message(SEND_ERROR "Trying to building MUSCOD-II addon without RBDL")
-	endif()
-
-	pkg_check_modules(RBDL_LUAMODEL rbdl_luamodel>=2.4.0)
-	if (NOT RBDL_LUAMODEL_FOUND)
-		message(SEND_ERROR "RBDL Lua Model library is not found. Perhaps, you have to create rbdl_luamodel.pc manually.")
-	endif()
-
-	FIND_PACKAGE ( PGPLOT REQUIRED )
+	FIND_PACKAGE ( PGPLOT )
 	if (NOT PGPLOT_FOUND)
-		message(WARRING "PG Plot is not found.")
+		message(WARNING "Cannot build MUSCOD-II addon without PG Plot")
+		return()
 	endif()
 
 	add_definitions(-DMUSCOD_CONFIG_DIR="${SRC}/../cfg")

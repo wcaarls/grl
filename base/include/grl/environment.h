@@ -125,11 +125,11 @@ class RegulatorTask : public Task
 
     void configure(Configuration &config)
     {
-      start_ = config["start"];
-      goal_ = config["goal"];
-      stddev_ = config["stddev"];
-      q_ = config["q"];
-      r_ = config["r"];
+      start_ = config["start"].v();
+      goal_ = config["goal"].v();
+      stddev_ = config["stddev"].v();
+      q_ = config["q"].v();
+      r_ = config["r"].v();
 
       if (!start_.size())
         throw bad_param("task/regulator:start");

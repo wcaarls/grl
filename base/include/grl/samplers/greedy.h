@@ -45,7 +45,7 @@ class GreedySampler : public Sampler
 
   public:
     GreedySampler()  : rand_(NULL) { }
-    ~GreedySampler() { if (rand_) delete rand_; }
+    ~GreedySampler() { if (rand_) { delete rand_; rand_ = NULL;} }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -66,11 +66,9 @@ class EpsilonGreedySampler : public GreedySampler
 
   protected:
     double epsilon_;
-    Rand *rand_;
 
   public:
-    EpsilonGreedySampler()  : epsilon_(0.05), rand_(NULL) { }
-    ~EpsilonGreedySampler() { if (rand_) delete rand_; }
+    EpsilonGreedySampler()  : epsilon_(0.05) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);

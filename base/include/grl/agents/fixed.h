@@ -43,10 +43,9 @@ class FixedAgent : public Agent
   protected:
     Policy *policy_;
     double time_;
-    int aug_rwt_;
     
   public:
-    FixedAgent() : policy_(NULL), time_(0.), aug_rwt_(0) { }
+    FixedAgent() : policy_(NULL), time_(0.) { }
   
     // From Configurable    
     virtual void request(ConfigurationRequest *config);

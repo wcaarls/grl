@@ -50,9 +50,9 @@ void TrajectoryVisualization::configure(Configuration &config)
 
   trajectory_ = (Trajectory*)config["trajectory"].ptr();
 
-  dims_ = config["input_dims"];
-  min_ = config["input_min"];
-  max_ = config["input_max"];
+  dims_ = config["input_dims"].v();
+  min_ = config["input_min"].v();
+  max_ = config["input_max"].v();
   if (min_.size() != max_.size())
     throw bad_param("visualization/trajectory:{input_min,input_max}");
     

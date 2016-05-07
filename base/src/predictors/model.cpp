@@ -48,11 +48,11 @@ void ModelPredictor::configure(Configuration &config)
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (Representation*)config["representation"].ptr();
   
-  differential_ = config["differential"];
+  differential_ = config["differential"].v();
   if (!differential_.size())
     throw bad_param("predictor/model:differential");
   
-  wrapping_ = config["wrapping"];
+  wrapping_ = config["wrapping"].v();
 }
 
 void ModelPredictor::reconfigure(const Configuration &config)

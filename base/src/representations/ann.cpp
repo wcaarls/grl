@@ -65,8 +65,8 @@ void ANNRepresentation::request(const std::string &role, ConfigurationRequest *c
 void ANNRepresentation::configure(Configuration &config)
 {
   inputs_ = config["inputs"];
-  output_min_ = config["output_min"];
-  output_max_ = config["output_max"];
+  output_min_ = config["output_min"].v();
+  output_max_ = config["output_max"].v();
   
   outputs_ = output_min_.size();
   hiddens_ = config["hiddens"];

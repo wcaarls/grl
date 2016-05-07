@@ -92,10 +92,10 @@ void NMPCPolicy::configure(Configuration &config)
   nmpc_ = new NMPCProblem(problem_path.c_str(), nmpc_model_name_.c_str(), muscod_nmpc_);
 
   // Allocate memory
-  initial_sd_ = VectorConstructorFill(nmpc_->NXD(), 0);
-  initial_pf_ = VectorConstructorFill(nmpc_->NP(), 0);
-  initial_qc_ = VectorConstructorFill(nmpc_->NU(), 0);
-  final_sd_   = VectorConstructorFill(nmpc_->NXD(), 0);
+  initial_sd_ = ConstantVector(nmpc_->NXD(), 0);
+  initial_pf_ = ConstantVector(nmpc_->NP(), 0);
+  initial_qc_ = ConstantVector(nmpc_->NU(), 0);
+  final_sd_   = ConstantVector(nmpc_->NXD(), 0);
 
   // FIXME This part is needed
   // if (!verbose_) {

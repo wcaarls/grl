@@ -60,7 +60,6 @@
 #define AT __FILE__ ":" TOSTRING(__LINE__)
 
 #define LOG2(obj, str, level) do {if ((level) >= (obj).getLevel()) { CCriticalSection logsection((obj).getStream()); (obj)(level) << str;}} while (0)
-//#define LOG2(obj, str, level) do {if ((level) >= (obj).getLevel()) { std::cout << str;}} while (0)
 
 #ifdef DEBUG
   #define logCrawl(obj, str)    LOG2(obj, str, llCrawl)

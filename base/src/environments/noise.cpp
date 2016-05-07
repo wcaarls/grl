@@ -42,8 +42,8 @@ void NoiseEnvironment::request(ConfigurationRequest *config)
 void NoiseEnvironment::configure(Configuration &config)
 {
   environment_ = (Environment*)config["environment"].ptr();
-  sensor_noise_ = config["sensor_noise"];
-  actuator_noise_ = config["actuator_noise"];
+  sensor_noise_ = config["sensor_noise"].v();
+  actuator_noise_ = config["actuator_noise"].v();
 }
 
 void NoiseEnvironment::reconfigure(const Configuration &config)

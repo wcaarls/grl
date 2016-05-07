@@ -49,31 +49,31 @@ void PIDPolicy::request(ConfigurationRequest *config)
 
 void PIDPolicy::configure(Configuration &config)
 {
-  setpoint_ = config["setpoint"];
+  setpoint_ = config["setpoint"].v();
   if (!setpoint_.size())
     throw bad_param("policy/pid:setpoint");
     
   outputs_ = config["outputs"];
 
-  p_ = config["p"];
+  p_ = config["p"].v();
   if (!p_.size())
     p_ = ConstantVector(setpoint_.size()*outputs_, 0.);
   if (p_.size() != setpoint_.size()*outputs_)
     throw bad_param("policy/pid:p");
     
-  i_ = config["i"];
+  i_ = config["i"].v();
   if (!i_.size())
     i_ = ConstantVector(setpoint_.size()*outputs_, 0.);
   if (i_.size() != setpoint_.size()*outputs_)
     throw bad_param("policy/pid:i");
     
-  d_ = config["d"];
+  d_ = config["d"].v();
   if (!d_.size())
     d_ = ConstantVector(setpoint_.size()*outputs_, 0.);
   if (d_.size() != setpoint_.size()*outputs_)
     throw bad_param("policy/pid:d");
     
-  il_ = config["il"];
+  il_ = config["il"].v();
   if (!il_.size())
     il_ = ConstantVector(setpoint_.size()*outputs_, 0.);
   if (il_.size() != setpoint_.size()*outputs_)

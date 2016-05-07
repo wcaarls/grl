@@ -66,13 +66,13 @@ void FieldVisualization::configure(Configuration &config)
   else if (projection_str_ == "max") projection_ = vpMax;
   else throw bad_param("visualization/field:projection");
   
-  state_min_ = config["input_min"];
-  state_max_ = config["input_max"];
+  state_min_ = config["input_min"].v();
+  state_max_ = config["input_max"].v();
   state_dims_ = state_min_.size();
   points_ = config["points"];
   savepoints_ = pow((int)pow(config["savepoints"], 1./state_dims_), state_dims_);
 
-  dims_ = config["field_dims"];
+  dims_ = config["field_dims"].v();
   if (dims_.size() != 2)
     throw bad_param("visualization/field:field_dims");
   

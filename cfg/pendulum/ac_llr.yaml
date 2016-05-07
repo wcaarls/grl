@@ -1,11 +1,10 @@
 experiment: 
   type: experiment/online_learning
-  runs: 5
-  trials: 450
+  runs: 1
+  trials: 0
   steps: 0
   rate: 0
   test_interval: 10
-  output: pendulum_ac_llr
   environment: 
     type: environment/modeled
     model: 
@@ -48,8 +47,8 @@ experiment:
         projector: experiment/agent/policy/projector/projector
     predictor: 
       type: predictor/ac/action
-      alpha: 0.2
-      beta: 0.01
+      alpha: 0.3
+      beta: 0.05
       gamma: 0.97
       lambda: 0.65
       critic_projector: 
@@ -58,7 +57,7 @@ experiment:
         projector: 
           type: projector/sample/ann
           samples: 2000
-          neighbors: 20
+          neighbors: 10
           locality: 1
           bucket_size: 10
           error_bound: 0.1

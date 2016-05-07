@@ -45,7 +45,7 @@ void FeedForwardPolicy::configure(Configuration &config)
   shift_ = 1 + action_dims_; // time + action
   if (input_.empty())
   {
-    time_control_ = config["time_control"];
+    time_control_ = config["time_control"].v();
   }
   else
   {
@@ -60,7 +60,7 @@ void FeedForwardPolicy::configure(Configuration &config)
          v.push_back(::atof(result.c_str()));
     }
     file.close();
-    time_control_ = VectorConstructor(v);
+    toVector(v, time_control_);
   }
 
   if (time_control_.size() % shift_ != 0)

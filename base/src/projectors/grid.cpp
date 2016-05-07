@@ -60,15 +60,15 @@ void GridProjector::request(const std::string &role, ConfigurationRequest *confi
 
 void GridProjector::configure(Configuration &config)
 {
-  min_ = config["input_min"];
+  min_ = config["input_min"].v();
   if (!min_.size())
     throw bad_param("projector/grid:min");
 
-  max_ = config["input_max"];
+  max_ = config["input_max"].v();
   if (!max_.size())
     throw bad_param("projector/grid:max");
 
-  steps_ = config["steps"];
+  steps_ = config["steps"].v();
   if (!steps_.size())
     throw bad_param("projector/grid:steps");
 

@@ -5,34 +5,34 @@ set(TARGET grl)
 add_library(${TARGET} SHARED
             ${SRC}/grl.cpp
             ${SRC}/agents/fixed.cpp
-#            ${SRC}/agents/black_box.cpp
+            ${SRC}/agents/black_box.cpp
             ${SRC}/agents/td.cpp
-#            ${SRC}/agents/dyna.cpp
+            ${SRC}/agents/dyna.cpp
             ${SRC}/agents/exclusive.cpp
             ${SRC}/agents/sequential.cpp
-#            ${SRC}/agents/predicated.cpp
-#            ${SRC}/agents/compartmentalized.cpp
-#            ${SRC}/agents/voluntary.cpp
-#            ${SRC}/agents/solver.cpp
+            ${SRC}/agents/predicated.cpp
+            ${SRC}/agents/compartmentalized.cpp
+            ${SRC}/agents/voluntary.cpp
+            ${SRC}/agents/solver.cpp
             ${SRC}/configurable.cpp
             ${SRC}/discretizers/uniform.cpp
             ${SRC}/discretizers/peaked.cpp
-#            ${SRC}/discretizers/split.cpp
-#            ${SRC}/environments/acrobot.cpp
+            ${SRC}/discretizers/split.cpp
+            ${SRC}/environments/acrobot.cpp
             ${SRC}/environments/observation.cpp
             ${SRC}/environments/modeled.cpp
             ${SRC}/environments/sandbox.cpp
             ${SRC}/environments/pendulum.cpp
             ${SRC}/environments/cart_pole.cpp
-#            ${SRC}/environments/pinball.cpp
-#            ${SRC}/environments/windy.cpp
+            ${SRC}/environments/pinball.cpp
+            ${SRC}/environments/windy.cpp
             ${SRC}/environments/compass_walker/SWModel.cpp
             ${SRC}/environments/compass_walker/compass_walker.cpp
-#            ${SRC}/environments/noise.cpp
-#            ${SRC}/environments/swimmer.cpp
-#            ${SRC}/experiments/approx_test.cpp
+            ${SRC}/environments/noise.cpp
+            ${SRC}/environments/swimmer.cpp
+            ${SRC}/experiments/approx_test.cpp
             ${SRC}/experiments/online_learning.cpp
-#            ${SRC}/experiments/batch_learning.cpp
+            ${SRC}/experiments/batch_learning.cpp
             ${SRC}/experiments/rpc_env.cpp
             ${SRC}/exporters/csv.cpp
             ${SRC}/importers/csv.cpp
@@ -43,17 +43,17 @@ add_library(${TARGET} SHARED
             ${SRC}/policies/bounded_q.cpp
             ${SRC}/policies/parameterized.cpp
             ${SRC}/policies/feed_forward.cpp
-#            ${SRC}/policies/pid.cpp
-#            ${SRC}/policies/mcts.cpp
-#            ${SRC}/policies/ucb.cpp
+            ${SRC}/policies/pid.cpp
+            ${SRC}/policies/mcts.cpp
+            ${SRC}/policies/ucb.cpp
             ${SRC}/policies/state_feedback.cpp
-#            ${SRC}/policies/noise.cpp
+            ${SRC}/policies/noise.cpp
             ${SRC}/predictor.cpp
             ${SRC}/predictors/model.cpp
             ${SRC}/predictors/sarsa.cpp
-#            ${SRC}/predictors/ggq.cpp
+            ${SRC}/predictors/ggq.cpp
             ${SRC}/predictors/ac.cpp
-#            ${SRC}/predictors/fqi.cpp
+            ${SRC}/predictors/fqi.cpp
             ${SRC}/predictors/qv.cpp
             ${SRC}/predictors/td.cpp
             ${SRC}/predictors/vi.cpp
@@ -63,10 +63,10 @@ add_library(${TARGET} SHARED
             ${SRC}/projectors/peaked.cpp
             ${SRC}/projectors/scaling.cpp
             ${SRC}/projectors/tile_coding.cpp
-#            ${SRC}/projectors/fourier.cpp
+            ${SRC}/projectors/fourier.cpp
             ${SRC}/projectors/grid.cpp
             ${SRC}/representations/linear.cpp
-#            ${SRC}/representations/multisine.cpp
+            ${SRC}/representations/multisine.cpp
             ${SRC}/representations/ann.cpp
 #            ${SRC}/representations/dmp.cpp
             ${SRC}/representations/additive.cpp
@@ -75,13 +75,13 @@ add_library(${TARGET} SHARED
             ${SRC}/solvers/agent.cpp
             ${SRC}/solvers/vi.cpp
             ${SRC}/traces/enumerated.cpp
-#            ${SRC}/visualizations/acrobot.cpp
+            ${SRC}/visualizations/acrobot.cpp
             ${SRC}/visualizations/pendulum.cpp
             ${SRC}/visualizations/cart_pole.cpp
             ${SRC}/visualizations/compass_walker.cpp
-#            ${SRC}/visualizations/pinball.cpp
-#            ${SRC}/visualizations/windy.cpp
-#            ${SRC}/visualizations/swimmer.cpp
+            ${SRC}/visualizations/pinball.cpp
+            ${SRC}/visualizations/windy.cpp
+            ${SRC}/visualizations/swimmer.cpp
            )
 
 # Dependencies

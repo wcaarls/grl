@@ -42,8 +42,8 @@ void CompartmentalizedSubAgent::configure(Configuration &config)
 {
   agent_ = (Agent*)config["agent"].ptr();
 
-  min_ = config["min"];
-  max_ = config["max"];
+  min_ = config["min"].v();
+  max_ = config["max"].v();
   
   if (min_.size() != max_.size())
     throw bad_param("agent/sub/compartmentalized:{min,max}");

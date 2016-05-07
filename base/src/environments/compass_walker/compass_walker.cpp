@@ -214,7 +214,7 @@ void CompassWalkerWalkTask::configure(Configuration &config)
   initial_state_variation_ = config["initial_state_variation"];
   slope_angle_ = config["slope_angle"];
   neg_reward_ = config["negative_reward"];
-  observe_ = config["observe"];
+  observe_ = config["observe"].v();
   steps_ = config["steps"];
 
   if (observe_.size() != CompassWalker::osMaxObservationSize)

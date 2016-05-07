@@ -56,11 +56,11 @@ void RandomSampleVisualization::configure(Configuration &config)
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (Representation*)config["representation"].ptr();
 
-  dims_ = config["field_dims"];
+  dims_ = config["field_dims"].v();
   if (dims_.size() != 2)
     throw bad_param("visualization/sample/random:field_dims");
-  min_ = config["input_min"];
-  max_ = config["input_max"];
+  min_ = config["input_min"].v();
+  max_ = config["input_max"].v();
   if (!min_.size() || min_.size() != max_.size())
     throw bad_param("visualization/sample/random:{min,max}");
   dim_ = config["output_dim"];  

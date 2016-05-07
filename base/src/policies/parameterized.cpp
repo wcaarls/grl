@@ -47,9 +47,9 @@ void ParameterizedActionPolicy::configure(Configuration &config)
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (ParameterizedRepresentation*)config["representation"].ptr();
   
-  sigma_ = config["sigma"];
-  min_ = config["output_min"];
-  max_ = config["output_max"];
+  sigma_ = config["sigma"].v();
+  min_ = config["output_min"].v();
+  max_ = config["output_max"].v();
   
   if (min_.size() != max_.size() || !min_.size())
     throw bad_param("policy/action:{output_min,output_max}");
