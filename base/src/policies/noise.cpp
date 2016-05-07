@@ -42,7 +42,7 @@ void NoisePolicy::configure(Configuration &config)
 {
   policy_ = (Policy*)config["policy"].ptr();
   
-  sigma_ = config["sigma"];
+  sigma_ = config["sigma"].v();
 }
 
 void NoisePolicy::reconfigure(const Configuration &config)

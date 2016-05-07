@@ -156,7 +156,7 @@ void LeoSimEnvironment::configure(Configuration &config)
   if (observe_.size() != ode_observation_dims_)
     throw bad_param("leosim/walk:observe");
   observation_dims_ = (observe_.array() != 0).count();
-
+  
   // mask observation min/max vectors
   Vector ode_observation_min, ode_observation_max, observation_min, observation_max;
   config.get("observation_min", ode_observation_min);
@@ -320,12 +320,15 @@ double LeoSimEnvironment::step(const Vector &action, Vector *obs, double *reward
     std::vector<double> v0(bhWalk_.getPreviousSTGState()->mJointSpeeds, bhWalk_.getPreviousSTGState()->mJointSpeeds + ljNumJoints);
     s0.insert(s0.end(), v0.begin(), v0.end());
     s1.insert(s1.end(), v1.begin(), v1.end());
+    
+    Vector s0v, s1v, av;
+    toVector(s0, s0v);
+    toVector(s1, s1v);
+    toVector(a, av);
 
-    Vector vs0, vs1, va;
-    toVector(s0, vs0);
-    toVector(s1, vs1);
-    toVector( a, va);
-    exporter_->write({grl::VectorConstructor(time), vs0, vs1, va, grl::VectorConstructor(*reward), grl::VectorConstructor(*terminal)});
+    exporter_->write({grl::VectorConstructor(time), s0v,  s1v,
+                      av, grl::VectorConstructor(*reward), grl::VectorConstructor(*terminal)
+                     });
   }
 
   TRACE("State angles: " << s1);

@@ -45,8 +45,8 @@ void TileCodingProjector::configure(Configuration &config)
   tilings_ = config["tilings"];
   memory_ = config["memory"];
   
-  resolution_ = config["resolution"];
-  wrapping_ = config["wrapping"];
+  resolution_ = config["resolution"].v();
+  wrapping_ = config["wrapping"].v();
 
   if (!wrapping_.size())
     wrapping_ = ConstantVector(resolution_.size(), 0.);

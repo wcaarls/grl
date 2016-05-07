@@ -48,7 +48,7 @@ void CMAOptimizer::configure(Configuration &config)
   params_ = prototype_->size();
   
   population_ = config["population"];
-  sigma_ = config["sigma"];
+  sigma_ = config["sigma"].v();
   
   if (sigma_.size() == 1)
     sigma_ = ConstantVector(params_, sigma_[0]);

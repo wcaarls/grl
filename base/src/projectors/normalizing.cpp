@@ -61,8 +61,8 @@ void NormalizingProjector::request(const std::string &role, ConfigurationRequest
 void NormalizingProjector::configure(Configuration &config)
 {
   projector_ = (Projector*) config["projector"].ptr();
-  min_ = config["input_min"];
-  max_ = config["input_max"];
+  min_ = config["input_min"].v();
+  max_ = config["input_max"].v();
   
   if (min_.size() != max_.size())
     throw bad_param("projector/normalizing:{input_min,input_max}");

@@ -46,8 +46,8 @@ void LQRSolver::configure(Configuration &config)
 {
   model_ = (ObservationModel*)config["model"].ptr();
   policy_ = (StateFeedbackPolicy*)config["policy"].ptr();
-  operating_state_ = config["operating_state"];
-  operating_action_ = config["operating_action"];
+  operating_state_ = config["operating_state"].v();
+  operating_action_ = config["operating_action"].v();
   
   if (!operating_state_.size())
     throw bad_param("solver/lqr:operating_state");

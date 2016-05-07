@@ -83,19 +83,22 @@ is
   \item GCC (including g++)
   \item Eigen
   \item GLUT
+  \item ZLIB
   \item QT4 (including the OpenGL bindings)
   \item TinyXML
   \item MuParser
   \item ODE, the Open Dynamics Engine
   \item Python (including Tkinter and the yaml reader)
+  \item Lua
 \end{itemize}
 
-On Ubuntu 14.04, these may be installed with the following command:
+On Ubuntu 16.04, these may be installed with the following command:
 
 \begin{code}
 \prompt \inp{git cmake g++ libeigen3-dev \textbackslash}
-\inp{libgl1-mesa-dev freeglut3-dev libqt4-opengl-dev \textbackslash}
+\inp{libgl1-mesa-dev freeglut3-dev libz-dev libqt4-opengl-dev \textbackslash}
 \inp{libtinyxml-dev libmuparser-dev libode-dev python-yaml python-tk \textbackslash}
+\inp{liblua5.1-dev}
 \end{code}
 
 \section{Building}

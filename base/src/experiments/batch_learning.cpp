@@ -69,10 +69,10 @@ void BatchLearningExperiment::configure(Configuration &config)
   rate_ = config["rate"];
   output_ = config["output"].str();
 
-  observation_min_ = config["observation_min"]; 
-  observation_max_ = config["observation_max"]; 
-  action_min_ = config["action_min"]; 
-  action_max_ = config["action_max"]; 
+  observation_min_ = config["observation_min"].v();
+  observation_max_ = config["observation_max"].v();
+  action_min_ = config["action_min"].v();
+  action_max_ = config["action_max"].v();
   
   state_ = new State();
   

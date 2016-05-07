@@ -45,7 +45,7 @@ void FeedForwardPolicy::configure(Configuration &config)
   shift_ = 1 + action_dims_; // time + action
   if (input_.empty())
   {
-    time_control_ = config["time_control"];
+    time_control_ = config["time_control"].v();
   }
   else
   {

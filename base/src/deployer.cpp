@@ -121,11 +121,8 @@ void sighandler(int signum)
 
 void hSIGSEGV(int sig)
 {
-  void *array[10];
-  size_t size;
-  size = backtrace(array, 10);
-  fprintf(stderr, "Error: signal %d:\n", sig);
-  backtrace_symbols_fd(array, size, STDERR_FILENO);
+  ERROR("Caught SIGSEGV");
+  ERROR("Stack trace:\n" << stacktrace());
   exit(1);
 }
 

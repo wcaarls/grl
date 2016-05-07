@@ -205,8 +205,8 @@ void ApproximatedObservationModel::configure(Configuration &config)
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (Representation*)config["representation"].ptr();
 
-  observation_min_ = config["observation_min"];
-  observation_max_ = config["observation_max"];
+  observation_min_ = config["observation_min"].v();
+  observation_max_ = config["observation_max"].v();
   
   if (!observation_min_.size() || observation_min_.size() != observation_max_.size())
     throw bad_param("observation_model/approximated:{observation_min,observation_max}");
@@ -221,14 +221,14 @@ void ApproximatedObservationModel::configure(Configuration &config)
     throw bad_param("observation_model/approximated:control_step");
   }
     
-  differential_ = config["differential"];
+  differential_ = config["differential"].v();
   if (differential_.size() == 1)
     differential_ = ConstantVector(observation_min_.size(), differential_[0]);
     
   if (differential_.size() != observation_min_.size())
     throw bad_param("observation_model/approximated:differential");
   
-  wrapping_ = config["wrapping"];
+  wrapping_ = config["wrapping"].v();
   if (!wrapping_.size())
     wrapping_ = ConstantVector(observation_min_.size(), 0.);
     

@@ -54,13 +54,13 @@ void SampleVisualization::configure(Configuration &config)
 
   projector_ = (SampleProjector*)config["projector"].ptr();
 
-  dims_ = config["field_dims"];
+  dims_ = config["field_dims"].v();
   if (dims_.size() != 2)
     throw bad_param("visualization/sample:field_dims");
-  min_ = config["field_min"];
+  min_ = config["field_min"].v();
   if (min_.size() != 2)
     throw bad_param("visualization/sample:field_min");
-  max_ = config["field_max"];
+  max_ = config["field_max"].v();
   if (max_.size() != 2)
     throw bad_param("visualization/sample:field_max");
   dim_ = config["output_dim"];  

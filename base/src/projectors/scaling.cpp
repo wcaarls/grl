@@ -41,7 +41,7 @@ void ScalingProjector::request(const std::string &role, ConfigurationRequest *co
 void ScalingProjector::configure(Configuration &config)
 {
   projector_ = (Projector*) config["projector"].ptr();
-  scaling_ = config["scaling"];
+  scaling_ = config["scaling"].v();
 }
 
 void ScalingProjector::reconfigure(const Configuration &config)

@@ -49,7 +49,7 @@ void AgentSolver::configure(Configuration &config)
 {
   steps_ = config["steps"];
   horizon_ = config["horizon"];
-  start_ = config["start"];
+  start_ = config["start"].v();
   
   model_ = (ObservationModel*)config["model"].ptr();
   agent_ = (Agent*)config["agent"].ptr();

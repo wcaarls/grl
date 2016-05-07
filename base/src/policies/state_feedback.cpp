@@ -49,22 +49,22 @@ void StateFeedbackPolicy::request(ConfigurationRequest *config)
 
 void StateFeedbackPolicy::configure(Configuration &config)
 {
-  operating_state_ = config["operating_state"];
+  operating_state_ = config["operating_state"].v();
   if (!operating_state_.size())
     throw bad_param("policy/parameterized/state_feedback:operating_state");
 
-  operating_action_ = config["operating_action"];
+  operating_action_ = config["operating_action"].v();
   if (!operating_action_.size())
     throw bad_param("policy/parameterized/state_feedback:operating_action");
     
-  gains_ = config["gains"];
+  gains_ = config["gains"].v();
   if (!gains_.size())
     gains_ = ConstantVector(operating_state_.size()*operating_action_.size(), 0.);
   if (gains_.size() != operating_state_.size()*operating_action_.size())
     throw bad_param("policy/parameterized/state_feedback:{gains,operating_state,operating_action}");
     
-  min_ = config["output_min"];
-  max_ = config["output_max"];
+  min_ = config["output_min"].v();
+  max_ = config["output_max"].v();
   
   if (min_.size() != operating_action_.size())
     throw bad_param("policy/parameterized/state_feedback:min");
@@ -121,8 +121,8 @@ void SampleFeedbackPolicy::request(ConfigurationRequest *config)
 
 void SampleFeedbackPolicy::configure(Configuration &config)
 {
-  min_ = config["output_min"];
-  max_ = config["output_max"];
+  min_ = config["output_min"].v();
+  max_ = config["output_max"].v();
   
   if (min_.size() != max_.size())
     throw bad_param("policy/sample_feedback:{min,max}");

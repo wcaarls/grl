@@ -77,14 +77,14 @@ void LLRRepresentation::configure(Configuration &config)
   ridge_regression_factor_ = config["ridge"];
   outputs_ = config["outputs"];
   order_ = config["order"];
-  input_nominals_ = config["input_nominals"];
-  output_nominals_ = config["output_nominals"];
+  input_nominals_ = config["input_nominals"].v();
+  output_nominals_ = config["output_nominals"].v();
 
   if (output_nominals_.size() && output_nominals_.size() != outputs_)
     throw bad_param("representation/lrr:output_nominals");
 
-  min_ = config["output_min"];
-  max_ = config["output_max"];
+  min_ = config["output_min"].v();
+  max_ = config["output_max"].v();
 
   if (!min_.size())
     min_ = ConstantVector(outputs_, -DBL_MAX);

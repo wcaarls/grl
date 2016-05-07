@@ -24,7 +24,7 @@ interface.
 
 ![Configurator](/doc/grl.png)
 
-# Installation (Ubuntu 14.04)
+# Installation (Ubuntu 16.04)
 ```
 sudo apt-get install git cmake g++ libeigen3-dev
 git clone https://github.com/wcaarls/grl.git
@@ -32,12 +32,17 @@ git clone https://github.com/wcaarls/grl.git
 
 For the visualization, additionally install
 ```
-sudo apt-get install libgl1-mesa-dev freeglut3-dev
+sudo apt-get install libgl1-mesa-dev freeglut3-dev libz-dev
 ```
 
 For the odesim environment, additionally install
 ```
 sudo apt-get install libqt4-opengl-dev libtinyxml-dev libmuparser-dev libode-dev
+```
+
+For the RBDL environment and MUSCOD integration, additionally install
+```
+sudo apt-get install liblua5.1-dev
 ```
 
 For the configurator, additionally install

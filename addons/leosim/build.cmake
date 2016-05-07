@@ -3,28 +3,41 @@ set(TARGET addon_leosim)
 
 set(WORKSPACE_DIR ${SRC}/../../../externals/odesim)
 
-message("-- Building leosim addon")
+find_package(PkgConfig)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+SET(QT_USE_QTOPENGL TRUE)
+find_package(Qt4 COMPONENTS QtCore QtGui QtOpenGL)
 
-# Build library
-add_library(${TARGET} SHARED
-                      ${SRC}/leosim.cpp
-                      ${SRC}/LeoBhWalkSym.cpp
-                      ${SRC}/STGLeoSim.cpp
-                      ${SRC}/ThirdOrderButterworth.cpp)
+if (PKG_CONFIG_FOUND AND QT4_FOUND)
+  pkg_check_modules(TINYXML tinyxml)
+  pkg_check_modules(MUPARSER muparser)
+  pkg_check_modules(ODE ode)
 
-include_directories(${SRC}/../include/grl/environments/leosim)
+  if (TINYXML_FOUND AND MUPARSER_FOUND AND ODE_FOUND)
+    message("-- Building leosim addon")
 
-INCLUDE (${WORKSPACE_DIR}/dbl/platform/io/configuration/configuration.cmake)
-INCLUDE (${WORKSPACE_DIR}/dbl/platform/io/logging/stdlogging.cmake)
-INCLUDE (${WORKSPACE_DIR}/dbl/externals/bithacks/bithacks.cmake)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 
-add_definitions(-DLEOSIM_CONFIG_DIR="${SRC}/../cfg")
+    # Build library
+    add_library(${TARGET} SHARED
+                          ${SRC}/leosim.cpp
+                          ${SRC}/LeoBhWalkSym.cpp
+                          ${SRC}/STGLeoSim.cpp
+                          ${SRC}/ThirdOrderButterworth.cpp)
 
-# Add dependencies
-grl_link_libraries(${TARGET} base addons/odesim)
-target_link_libraries(${TARGET})
+    include_directories(${SRC}/../include/grl/environments/leosim)
 
-install(TARGETS ${TARGET} DESTINATION ${GRL_LIB_DESTINATION})
-install(DIRECTORY ${SRC}/../include/grl DESTINATION ${GRL_INCLUDE_DESTINATION} FILES_MATCHING PATTERN "*.h")
+    INCLUDE (${WORKSPACE_DIR}/dbl/platform/io/configuration/configuration.cmake)
+    INCLUDE (${WORKSPACE_DIR}/dbl/platform/io/logging/stdlogging.cmake)
+    INCLUDE (${WORKSPACE_DIR}/dbl/externals/bithacks/bithacks.cmake)
+
+    add_definitions(-DLEOSIM_CONFIG_DIR="${SRC}/../cfg")
+
+    # Add dependencies
+    grl_link_libraries(${TARGET} base addons/odesim)
+    target_link_libraries(${TARGET})
+
+    install(TARGETS ${TARGET} DESTINATION ${GRL_LIB_DESTINATION})
+    install(DIRECTORY ${SRC}/../include/grl DESTINATION ${GRL_INCLUDE_DESTINATION} FILES_MATCHING PATTERN "*.h")
+  endif()
+endif()

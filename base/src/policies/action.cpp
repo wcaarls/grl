@@ -48,9 +48,9 @@ void ActionPolicy::configure(Configuration &config)
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (Representation*)config["representation"].ptr();
   
-  sigma_ = config["sigma"];
-  min_ = config["output_min"];
-  max_ = config["output_max"];
+  sigma_ = config["sigma"].v();
+  min_ = config["output_min"].v();
+  max_ = config["output_max"].v();
   
   if (min_.size() != max_.size() || !min_.size())
     throw bad_param("policy/action:{output_min,output_max}");
@@ -79,11 +79,11 @@ void ActionPolicy::act(const Vector &in, Vector *out) const
   // Some representations may not always return a value.
   if (!out->size())
     *out = (min_+max_)/2;
-
+  
   for (size_t ii=0; ii < out->size(); ++ii)
   {
     if (sigma_[ii])
-        (*out)[ii] += RandGen::getNormal(0., sigma_[ii]);
+      (*out)[ii] += RandGen::getNormal(0., sigma_[ii]);
       
     (*out)[ii] = fmin(fmax((*out)[ii], min_[ii]), max_[ii]);
   }    

@@ -41,7 +41,7 @@ void BoundedQPolicy::configure(Configuration &config)
 {
   QPolicy::configure(config);
   
-  bound_ = config["bound"];
+  bound_ = config["bound"].v();
   
   if (bound_.size() != variants_[0].size())
     throw bad_param("policy/discrete/q/bounded:bound");

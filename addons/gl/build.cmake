@@ -2,7 +2,9 @@
 set(TARGET addon_gl)
 
 find_package(OpenGL)
-if (OPENGL_FOUND)
+find_package(ZLIB)
+
+if (OPENGL_FOUND AND ZLIB_FOUND)
   message("-- Building OpenGL addon")
 
   # Build library

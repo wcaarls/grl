@@ -125,6 +125,7 @@ void NMPC_SWPolicy::act(double time, const Vector &in, Vector *out)
   {
     muscod_reset(in, time);
     initial_sd_ << in, ConstantVector(initial_sd_.size() - in.size(), 0);
+//    initial_pf_ << 0.0;
     initial_qc_ << 0.0;
   }
 

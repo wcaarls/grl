@@ -105,7 +105,7 @@ class CLogStream: public std::ostream, public CLockable
     ELogLevel mLevel;
 
 	public:
-    CLogStream(std::stringbuf* buffer): std::ostream(buffer) {}
+		CLogStream(std::stringbuf* buffer): std::ostream(buffer)			{}
 		void setLevel(ELogLevel level)										{ mLevel = level; }
 		inline ELogLevel getLevel() const									{ return mLevel; }
 		virtual void setSystemHeader(const std::string &text)				{ }

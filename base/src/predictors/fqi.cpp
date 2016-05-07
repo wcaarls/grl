@@ -251,7 +251,6 @@ void FQIPredictor::rebuild()
        
           target += gamma_*v;
         }
-        t.actions.clear(); // ivan: reset immediately
 
         threadmax = fmax(threadmax, fabs(targets[jj]-target));
         targets[jj] = target;
@@ -273,7 +272,6 @@ void FQIPredictor::rebuild()
         t.state = projector_->project(t.transition.prev_obs, t.transition.prev_action);
       
       representation_->write(t.state, VectorConstructor(targets[jj]));
-      t.state.reset(); // ivan: reset immediately
     }
     
     // second is actual learning

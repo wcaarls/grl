@@ -109,8 +109,8 @@ void MHE_NMPCPolicy::configure(Configuration &config)
 
   // Allocate memory
   initial_sd_ = ConstantVector(nmpc_->NXD(), 0);
-  initial_pf_ = ConstantVector(nmpc_->NP(),  0);
-  initial_qc_ = ConstantVector(nmpc_->NU(),  0);
+  initial_pf_ = ConstantVector(nmpc_->NP(), 0);
+  initial_qc_ = ConstantVector(nmpc_->NU(), 0);
   final_sd_   = ConstantVector(nmpc_->NXD(), 0);
 
   hs_ = ConstantVector(mhe_->NXD() + mhe_->NU(), 0);

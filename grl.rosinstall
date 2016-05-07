@@ -1,6 +1,6 @@
 - git:
         local-name: grl
-        uri: https://github.com/ikoryakovskiy/grl
+        uri: https://github.com/wcaarls/grl
 - svn:
         local-name: mprl_msgs
         uri: https://svn.3me.tudelft.nl/dbl-ros-pkg/catkin/mprl_msgs
