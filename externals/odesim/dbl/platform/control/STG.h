@@ -245,12 +245,6 @@ class CSTGOutQueue: public CSTGLoggable
 			mDescriptor	= (mqd_t)-1;
 		}
 
-    ~CSTGOutQueue()
-    {
-      std::cout << "Close queue" << std::endl;
-      close();
-    }
-
 		const std::string&	getName()
 		{
 			return mName;
@@ -493,7 +487,7 @@ class CStateTransitionGenerator: public CSTGLoggable
 	public:
 		CStateTransitionGenerator(const std::string& name):
       //mName(name + getPIDStr())
-      mName(name) // do not use unique names based on PID because this leads to "error 24: too many open files" from mq_open
+      mName(name) // #ivan: do not use unique names based on PID because this leads to "error 24: too many open files" from mq_open
 		{
 			// If the following code generates a compiler error,
 			// you didn't derive STGStateType from CSTGState!
