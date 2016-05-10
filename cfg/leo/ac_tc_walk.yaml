@@ -1,15 +1,15 @@
 experiment: 
   type: experiment/online_learning
   runs: 1
-  trials: 1000
-  steps: 0
+  trials: 0
+  steps: 550000
   rate: 0
-  test_interval: -1
+  test_interval: 10
   output: leo_ac_tc_walk
   environment: 
     type: environment/leosim
     xml: leolearnwalking-sarsa-tc.xml
-    visualize: 0
+    visualize: 1
     observe: torso_boom, hipright, hipleft, kneeright, kneeleft
     actuate: hipright, hipleft, kneeright, kneeleft
     learn_stance_knee: 0
