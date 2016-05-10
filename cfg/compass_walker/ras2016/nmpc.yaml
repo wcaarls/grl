@@ -1,0 +1,41 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 1
+  steps: 0
+  rate: 0
+  test_interval: 0
+  environment: 
+    type: environment/modeled
+    model: 
+      type: model/compass_walker
+      control_step: 0.2
+      integration_steps: 20
+      slope_angle: 0.004
+    task: 
+      type: task/compass_walker/vrefu
+      timeout: 100
+      initial_state_variation: 0.2
+      slope_angle: experiment/environment/model/slope_angle
+      negative_reward: -5
+      observe: [ 1, 1, 1, 1, 0, 0 ]
+      reference_velocity: 0.12
+    exporter: 
+      type: exporter/csv
+      file: simplest_walker_ras2016_nmpc_0004-test
+      style: meshup
+  agent: 
+    type: agent/fixed
+    policy: 
+      type: policy/nmpc_sw
+      model_name: nmpc_simplest_walker
+      nmpc_model_name: nmpc_simplest_walker
+      outputs: experiment/environment/task/action_dims
+      verbose: 0
+  test_agent: experiment/agent
+  save_every: never
+visualizer: 
+  type: visualizer/glut
+visualization: 
+  type: visualization/compass_walker
+  state: experiment/environment/state

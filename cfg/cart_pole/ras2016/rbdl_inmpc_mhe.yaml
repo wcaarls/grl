@@ -1,0 +1,41 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 1
+  steps: 0
+  rate: 0
+  test_interval: 0
+  environment: 
+    type: environment/modeled
+    model: 
+      type: model/dynamical
+      control_step: 0.05
+      integration_steps: 10
+      dynamics: 
+        type: dynamics/rbdl
+        file: cart_pendulum.lua
+        options: friction=0.0
+    task: 
+      type: task/lua
+      file: cart_pendulum_swingup_balance_unwrap.lua
+    exporter: 
+      type: exporter/csv
+      file: ras_results/cart-pendulum/xxxx_mhe_nmpc/cart_pole_ras2016_rbdl_nmpc_0000-test
+      style: meshup
+  agent: 
+    type: agent/fixed
+    policy: 
+      type: policy/mhe_nmpc
+      lua_model: experiment/environment/model/dynamics/file
+      model_name: inmpc_mhe_cartpole
+      mhe_model_name: mhe_cartpole
+      nmpc_model_name: nmpc_cartpole
+      outputs: experiment/environment/task/action_dims
+      verbose: 0
+  test_agent: experiment/agent
+  save_every: never
+visualizer: 
+  type: visualizer/glut
+visualization: 
+  type: visualization/cart_pole
+  state: experiment/environment/state
