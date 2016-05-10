@@ -53,7 +53,7 @@ class SoftmaxSampler : public Sampler
   
     // From Sampler
     virtual SoftmaxSampler *clone();
-    virtual size_t sample(const Vector &values) const;
+    virtual size_t sample(const Vector &values, TransitionType &tt) const;
     virtual void distribution(const Vector &values, Vector *distribution) const;
 };
 

@@ -56,7 +56,7 @@ class NMPCPolicyTh: public Policy
 
     // From Policy
     virtual NMPCPolicyTh *clone() const;
-    virtual void act(double time, const Vector &in, Vector *out);
+    virtual TransitionType act(double time, const Vector &in, Vector *out);
 };
 
 } /* namespace grl */

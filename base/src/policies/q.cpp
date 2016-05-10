@@ -81,12 +81,14 @@ void QPolicy::values(const Vector &in, Vector *out) const
     (*out)[ii] = representation_->read(projections[ii], &value); // reading approximated values
 }
 
-void QPolicy::act(const Vector &in, Vector *out) const
+TransitionType QPolicy::act(const Vector &in, Vector *out) const
 {
   Vector qvalues;
+  TransitionType tt;
   
   values(in, &qvalues);
-  size_t action = sampler_->sample(qvalues);
+  size_t action = sampler_->sample(qvalues, tt);
   
   *out = variants_[action];
+  return tt;
 }

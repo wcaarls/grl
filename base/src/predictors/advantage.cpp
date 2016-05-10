@@ -116,8 +116,13 @@ void AdvantagePredictor::update(const Transition &transition)
   representation_->write(p, VectorConstructor(target), alpha_);
   
   // Should clear trace on exploration
-  representation_->update(*trace_, VectorConstructor(alpha_*delta), gamma_*lambda_);
-  trace_->add(p, gamma_*lambda_);
+  if (transition.tt == ttExploratory)
+    trace_->clear();
+  else
+  {
+    representation_->update(*trace_, VectorConstructor(alpha_*delta), gamma_*lambda_);
+    trace_->add(p, gamma_*lambda_);
+  }
   
   representation_->finalize();
 }

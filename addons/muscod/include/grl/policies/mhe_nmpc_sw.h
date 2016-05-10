@@ -66,7 +66,7 @@ class MHE_NMPC_SWPolicy : public Policy
 
     // From Policy
     virtual MHE_NMPC_SWPolicy *clone() const;
-    virtual void act(double time, const Vector &in, Vector *out);
+    virtual TransitionType act(double time, const Vector &in, Vector *out);
 
     // Own
     void *setup_model_path(const std::string path, const std::string model, const std::string lua_model);

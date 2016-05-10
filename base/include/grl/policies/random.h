@@ -51,7 +51,7 @@ class RandomPolicy : public Policy
 
     // From Policy
     virtual RandomPolicy *clone() const;
-    virtual void act(const Vector &in, Vector *out) const;
+    virtual TransitionType act(const Vector &in, Vector *out) const;
 };
 
 /// Discrete random policy
@@ -74,7 +74,7 @@ class RandomDiscretePolicy : public Policy
 
     // From Policy
     virtual RandomDiscretePolicy *clone() const;
-    virtual void act(const Vector &in, Vector *out) const;
+    virtual TransitionType act(const Vector &in, Vector *out) const;
 };
 
 }

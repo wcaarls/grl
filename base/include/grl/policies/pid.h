@@ -58,8 +58,8 @@ class PIDPolicy : public ParameterizedPolicy
 
     // From Policy
     virtual PIDPolicy *clone() const;
-    virtual void act(const Vector &in, Vector *out) const;
-    virtual void act(double time, const Vector &in, Vector *out);
+    virtual TransitionType act(const Vector &in, Vector *out) const;
+    virtual TransitionType act(double time, const Vector &in, Vector *out);
     
     // From ParameterizedPolicy
     virtual size_t size() const { return params_.size(); }

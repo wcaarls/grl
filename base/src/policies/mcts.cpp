@@ -67,7 +67,7 @@ MCTSPolicy *MCTSPolicy::clone() const
   return NULL;
 }
 
-void MCTSPolicy::act(double time, const Vector &in, Vector *out)
+TransitionType MCTSPolicy::act(double time, const Vector &in, Vector *out)
 {
   // Clear tree at start of episode
   if (time == 0.)
@@ -156,4 +156,5 @@ void MCTSPolicy::act(double time, const Vector &in, Vector *out)
 
     TRACE("Selected random action " << *out);
   }
+  return ttGreedy;
 }

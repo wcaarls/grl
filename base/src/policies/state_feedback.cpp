@@ -82,7 +82,7 @@ StateFeedbackPolicy *StateFeedbackPolicy::clone() const
   return new StateFeedbackPolicy(*this);
 }
 
-void StateFeedbackPolicy::act(const Vector &in, Vector *out) const
+TransitionType StateFeedbackPolicy::act(const Vector &in, Vector *out) const
 {
   if (in.size() != operating_state_.size())
     throw bad_param("policy/parameterized/state_feedback:operating_state");
@@ -93,7 +93,7 @@ void StateFeedbackPolicy::act(const Vector &in, Vector *out) const
   if (gains_.minCoeff() == 0 && gains_.maxCoeff() == 0)
   {
     *out = min_ + RandGen::getVector(min_.size())*(max_-min_);
-    return;
+    return ttExploratory;
   }
 
   for (size_t oo=0; oo < out->size(); ++oo)
@@ -109,6 +109,7 @@ void StateFeedbackPolicy::act(const Vector &in, Vector *out) const
     
     (*out)[oo] = fmin(fmax(operating_action_[oo]+u, min_[oo]), max_[oo]);
   }
+  return ttGreedy;
 }
 
 // SampleFeedbackPolicy
@@ -137,13 +138,13 @@ SampleFeedbackPolicy *SampleFeedbackPolicy::clone() const
   return new SampleFeedbackPolicy(*this);
 }
 
-void SampleFeedbackPolicy::act(const Vector &in, Vector *out) const
+TransitionType SampleFeedbackPolicy::act(const Vector &in, Vector *out) const
 {
   if (!samples_.size())
   {
     WARNING("Applying default action");
     *out = (max_-min_)/2;
-    return;
+    return ttGreedy;
   }
 
   if (in.size() != samples_.front().x.size())
@@ -190,6 +191,7 @@ void SampleFeedbackPolicy::act(const Vector &in, Vector *out) const
 
   for (size_t oo=0; oo < out->size(); ++oo)
     (*out)[oo] = fmin(fmax((*out)[oo]+control[oo], min_[oo]), max_[oo]);
+  return ttGreedy;
 }
 
 void SampleFeedbackPolicy::clear()
@@ -201,4 +203,3 @@ void SampleFeedbackPolicy::push(const Sample &sample)
 {
   samples_.push_back(sample);
 }
-        

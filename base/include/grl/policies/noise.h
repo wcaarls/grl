@@ -54,7 +54,7 @@ class NoisePolicy : public Policy
 
     // From Policy
     virtual NoisePolicy *clone() const;
-    virtual void act(const Vector &in, Vector *out) const;
+    virtual TransitionType act(const Vector &in, Vector *out) const;
 };
 
 }

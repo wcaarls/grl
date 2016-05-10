@@ -25,6 +25,7 @@
  * \endverbatim
  */
 #include <grl/samplers/greedy.h>
+#include <grl/grl.h>
 
 using namespace grl;
 
@@ -52,7 +53,7 @@ GreedySampler *GreedySampler::clone()
   return gs;
 }
 
-size_t GreedySampler::sample(const Vector &values) const
+size_t GreedySampler::sample(const Vector &values, TransitionType &tt) const
 {
   size_t mai = 0;
 
@@ -71,12 +72,14 @@ size_t GreedySampler::sample(const Vector &values) const
   if (jj != 0)
     mai = same_values[rand_->getInteger(jj)];
 */
+  tt = ttGreedy;
   return mai;
 }
 
 void GreedySampler::distribution(const Vector &values, Vector *distribution) const
 {
-  size_t mai = GreedySampler::sample(values);
+  TransitionType tt;
+  size_t mai = GreedySampler::sample(values, tt);
   distribution->resize(values.size());
 
   for (size_t ii=0; ii < values.size(); ++ii)
@@ -113,12 +116,15 @@ EpsilonGreedySampler *EpsilonGreedySampler::clone()
   return egs;
 }
 
-size_t EpsilonGreedySampler::sample(const Vector &values) const
+size_t EpsilonGreedySampler::sample(const Vector &values, TransitionType &tt) const
 {
   if (rand_->get() < epsilon_)
+  {
+    tt = ttExploratory;
     return rand_->getInteger(values.size());
+  }
 
-  return GreedySampler::sample(values);
+  return GreedySampler::sample(values, tt);
 }
 
 void EpsilonGreedySampler::distribution(const Vector &values, Vector *distribution) const

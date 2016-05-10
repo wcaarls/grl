@@ -30,6 +30,7 @@
 
 #include <grl/sampler.h>
 #include <grl/utils.h>
+#include <grl/grl.h>
 
 namespace grl
 {
@@ -54,7 +55,7 @@ class GreedySampler : public Sampler
   
     // From Sampler
     virtual GreedySampler *clone();
-    virtual size_t sample(const Vector &values) const;
+    virtual size_t sample(const Vector &values, TransitionType &tt) const;
     virtual void distribution(const Vector &values, Vector *distribution) const;
 };
 
@@ -77,7 +78,7 @@ class EpsilonGreedySampler : public GreedySampler
   
     // From Sampler
     virtual EpsilonGreedySampler *clone();
-    virtual size_t sample(const Vector &values) const;
+    virtual size_t sample(const Vector &values, TransitionType &tt) const;
     virtual void distribution(const Vector &values, Vector *distribution) const;
 };
 

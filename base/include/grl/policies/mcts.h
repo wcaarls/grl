@@ -171,7 +171,7 @@ class MCTSPolicy : public Policy
 
     // From Policy
     virtual MCTSPolicy *clone() const;
-    virtual void act(double time, const Vector &in, Vector *out);
+    virtual TransitionType act(double time, const Vector &in, Vector *out);
     
   protected:
     virtual void allocate() const

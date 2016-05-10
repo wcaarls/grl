@@ -61,7 +61,7 @@ class QPolicy : public Policy
 
     // From DiscretePolicy
     virtual QPolicy *clone() const;
-    virtual void act(const Vector &in, Vector *out) const;
+    virtual TransitionType act(const Vector &in, Vector *out) const;
     
     virtual void values(const Vector &in, Vector *out) const;
 };

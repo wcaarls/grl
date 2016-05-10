@@ -71,22 +71,27 @@ ActionPolicy *ActionPolicy::clone() const
   return cpp;
 }
 
-void ActionPolicy::act(const Vector &in, Vector *out) const
+TransitionType ActionPolicy::act(const Vector &in, Vector *out) const
 {
   ProjectionPtr p = projector_->project(in);
   representation_->read(p, out);
-  
-  // Some representations may not always return a value.
-  if (!out->size())
-    *out = (min_+max_)/2;
-  
+
   for (size_t ii=0; ii < out->size(); ++ii)
   {
     if (sigma_[ii])
       (*out)[ii] += RandGen::getNormal(0., sigma_[ii]);
       
     (*out)[ii] = fmin(fmax((*out)[ii], min_[ii]), max_[ii]);
-  }    
+  }
+
+  // Some representations may not always return a value.
+  if (!out->size())
+  {
+    *out = (min_+max_)/2;
+    return ttGreedy;
+  }
+  else
+    return ttExploratory;
 }
 
 void ActionProbabilityPolicy::request(ConfigurationRequest *config)
@@ -118,7 +123,7 @@ ActionProbabilityPolicy *ActionProbabilityPolicy::clone() const
   return dpp;
 }
 
-void ActionProbabilityPolicy::act(const Vector &in, Vector *out) const
+TransitionType ActionProbabilityPolicy::act(const Vector &in, Vector *out) const
 {
   std::vector<ProjectionPtr> projections;
   projector_->project(in, variants_, &projections);
@@ -129,4 +134,5 @@ void ActionProbabilityPolicy::act(const Vector &in, Vector *out) const
     dist[ii] = representation_->read(projections[ii], &v);
     
   *out = variants_[sample(dist)];
+  return ttExploratory;
 }

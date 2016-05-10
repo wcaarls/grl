@@ -29,6 +29,7 @@
 #define GRL_POLICY_H_
 
 #include <grl/configurable.h>
+#include <grl/grl.h>
 
 namespace grl
 {
@@ -45,9 +46,10 @@ class Policy : public Configurable
      *
      * Called by visualizations.
      */
-    virtual void act(const Vector &in, Vector *out) const
+    virtual TransitionType act(const Vector &in, Vector *out) const
     {
       throw Exception("Policy does not support visualization");
+      return ttUndefined;
     }
     
     /**
@@ -56,9 +58,9 @@ class Policy : public Configurable
      * Called by agents, once per timestep. time is 0. at the start of a new episode.
      * \note out is an inout parameter, the input being a previous or suggested action.
      */
-    virtual void act(double time, const Vector &in, Vector *out)
+    virtual TransitionType act(double time, const Vector &in, Vector *out)
     {
-      act(in, out);
+      return act(in, out);
     }
 };
 

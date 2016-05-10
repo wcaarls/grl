@@ -56,7 +56,7 @@ NoisePolicy *NoisePolicy::clone() const
   return np;
 }
 
-void NoisePolicy::act(const Vector &in, Vector *out) const
+TransitionType NoisePolicy::act(const Vector &in, Vector *out) const
 {
   policy_->act(in, out);
   
@@ -72,4 +72,5 @@ void NoisePolicy::act(const Vector &in, Vector *out) const
   for (size_t ii=0; ii < out->size(); ++ii)
     if (sigma_[ii])
       (*out)[ii] += RandGen::getNormal(0., sigma_[ii]);
+  return ttExploratory;
 }
