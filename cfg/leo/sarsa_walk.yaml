@@ -1,8 +1,8 @@
 experiment: 
   type: experiment/online_learning
   runs: 1
-  trials: 5
-  steps: 0
+  trials: 0
+  steps: 550000
   rate: 0
   test_interval: 10
   output: leo_sarsa_walk
