@@ -39,6 +39,8 @@
 namespace grl
 {
 
+enum TransitionType { ttUndefined, ttExploratory, ttGreedy };
+
 /// Basic (s, a, r, s', a') state transition.
 struct Transition
 {
@@ -47,9 +49,10 @@ struct Transition
   double reward;
   Vector obs;    ///< Empty observation signifies a terminal absorbing state with discontinued dynamics.
   Vector action; ///< Empty action signifies a terminal absorbing state with continued dynamics.
+  TransitionType tt;
   
-  Transition(Vector _prev_obs=Vector(), Vector _prev_action=Vector(), double _reward=0., Vector _obs=Vector(), Vector _action=Vector()) :
-    prev_obs(_prev_obs), prev_action(_prev_action), reward(_reward), obs(_obs), action(_action)
+  Transition(Vector _prev_obs=Vector(), Vector _prev_action=Vector(), double _reward=0., Vector _obs=Vector(), Vector _action=Vector(), TransitionType _tt = ttUndefined) :
+    prev_obs(_prev_obs), prev_action(_prev_action), reward(_reward), obs(_obs), action(_action), tt(_tt)
     {
     }
 };

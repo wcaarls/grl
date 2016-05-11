@@ -181,7 +181,7 @@ MHE_NMPCPolicy *MHE_NMPCPolicy::clone() const
   return NULL;
 }
 
-void MHE_NMPCPolicy::act(double time, const Vector &in, Vector *out)
+TransitionType MHE_NMPCPolicy::act(double time, const Vector &in, Vector *out)
 {
   if (time == 0.0)
   {
@@ -261,5 +261,7 @@ void MHE_NMPCPolicy::act(double time, const Vector &in, Vector *out)
 
   if (verbose_)
     std::cout << "Feedback Control: [" << *out << "]" << std::endl;
+
+  return ttGreedy;
 }
 

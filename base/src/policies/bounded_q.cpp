@@ -62,21 +62,23 @@ BoundedQPolicy *BoundedQPolicy::clone() const
   return qp;
 }
 
-void BoundedQPolicy::act(double time, const Vector &in, Vector *out)
+TransitionType BoundedQPolicy::act(double time, const Vector &in, Vector *out)
 {
   if (out->size())
   {
     Vector qvalues, filtered;
+    TransitionType tt;
     std::vector<size_t> idx;
     
     values(in, &qvalues);
     filter(*out, qvalues, &filtered, &idx);
     
-    size_t action = sampler_->sample(filtered);
+    size_t action = sampler_->sample(filtered, tt);
     *out = variants_[idx[action]];
+    return tt;
   }
   else
-    QPolicy::act(in, out); 
+    return QPolicy::act(in, out);
 }
 
 /**
@@ -111,4 +113,3 @@ void BoundedQPolicy::filter(const Vector &prev_out, const Vector &qvalues, Vecto
   for (size_t ii=0; ii < idx->size(); ++ii)
     (*filtered)[ii] = qvalues[(*idx)[ii]];
 }
-            

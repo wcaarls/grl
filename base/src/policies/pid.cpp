@@ -97,7 +97,7 @@ PIDPolicy *PIDPolicy::clone() const
   return new PIDPolicy(*this);
 }
 
-void PIDPolicy::act(const Vector &in, Vector *out) const
+TransitionType PIDPolicy::act(const Vector &in, Vector *out) const
 {
   out->resize(outputs_); 
 
@@ -116,9 +116,10 @@ void PIDPolicy::act(const Vector &in, Vector *out) const
     
     (*out)[oo] = u;
   }
+  return ttGreedy;
 }
 
-void PIDPolicy::act(double time, const Vector &in, Vector *out)
+TransitionType PIDPolicy::act(double time, const Vector &in, Vector *out)
 {
   if (time == 0.)
   {
@@ -148,4 +149,5 @@ void PIDPolicy::act(double time, const Vector &in, Vector *out)
   }
   
   prev_in_ = in;
+  return ttGreedy;
 }

@@ -1,0 +1,93 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 10
+  trials: 5001
+  steps: 0
+  rate: 0
+  test_interval: 5000
+  environment:
+    type: environment/sandbox
+    model: 
+      type: sandbox_model/compass_walker
+      control_step: 0.2
+      integration_steps: 20
+      slope_angle: 0.004
+      exporter: 
+        type: exporter/csv
+        file: walker_ac_tc_vrefu_single_step-test-integrator
+        style: meshup
+      use_avg_velocity: 1
+    task: 
+      type: task/compass_walker/vrefu
+      timeout: 100
+      initial_state_variation: 0.2
+      slope_angle: experiment/environment/model/slope_angle
+      negative_reward: -5
+      observe: [ 1, 1, 1, 1, 0, 1 ]
+      reference_velocity: 0.12
+      per_step_reward: 0
+    exporter: 
+      type: exporter/csv
+      file: ???
+      style: meshup
+  agent: 
+    type: agent/td
+    policy: 
+      type: policy/action
+      sigma: [0.5]
+      output_min: experiment/environment/task/action_min
+      output_max: experiment/environment/task/action_max
+      projector: 
+        type: projector/tile_coding
+        tilings: 16
+        memory: 67108864
+        resolution: [0.0419, 0.0524, 0.05555, 0.1111, 0.1]
+        wrapping: []
+      representation: 
+        type: representation/parameterized/linear
+        init_min: [0]
+        init_max: [1]
+        memory: experiment/agent/policy/projector/memory
+        outputs: experiment/environment/task/action_dims
+        output_min: experiment/environment/task/action_min
+        output_max: experiment/environment/task/action_max
+    predictor: 
+      type: predictor/ac/action
+      alpha: 0.2
+      beta: 0.01
+      gamma: 0.97
+      lambda: 0.65
+      critic_projector: 
+        type: projector/tile_coding
+        tilings: experiment/agent/policy/projector/tilings
+        memory: experiment/agent/policy/projector/memory
+        resolution: experiment/agent/policy/projector/resolution
+        wrapping: experiment/agent/policy/projector/wrapping
+      critic_representation: 
+        type: representation/parameterized/linear
+        init_min: [0]
+        init_max: [1]
+        memory: experiment/agent/predictor/critic_projector/memory
+        outputs: 1
+        output_min: []
+        output_max: []
+      critic_trace: 
+        type: trace/enumerated/replacing
+      actor_projector: experiment/agent/policy/projector
+      actor_representation: experiment/agent/policy/representation
+  test_agent: 
+    type: agent/fixed
+    policy: 
+      type: policy/action
+      sigma: []
+      output_min: experiment/environment/task/action_min
+      output_max: experiment/environment/task/action_max
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+  load_file: ???
+  save_every: never
+visualizer: 
+  type: visualizer/glut
+visualization: 
+  type: visualization/compass_walker
+  state: experiment/environment/state

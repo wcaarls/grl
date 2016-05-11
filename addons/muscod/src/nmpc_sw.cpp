@@ -119,7 +119,7 @@ NMPC_SWPolicy *NMPC_SWPolicy::clone() const
   return NULL;
 }
 
-void NMPC_SWPolicy::act(double time, const Vector &in, Vector *out)
+TransitionType NMPC_SWPolicy::act(double time, const Vector &in, Vector *out)
 {
   if (time <= 0.0)
   {
@@ -159,5 +159,7 @@ void NMPC_SWPolicy::act(double time, const Vector &in, Vector *out)
 
   if (verbose_)
     std::cout << "Feedback Control: [" << *out << "]" << std::endl;
+
+  return ttGreedy;
 }
 

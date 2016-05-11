@@ -56,7 +56,7 @@ class FeedForwardPolicy : public Policy
 
     // From Policy
     virtual FeedForwardPolicy *clone() const;
-    virtual void act(double time, const Vector &in, Vector *out);
+    virtual TransitionType act(double time, const Vector &in, Vector *out);
 };
 
 }

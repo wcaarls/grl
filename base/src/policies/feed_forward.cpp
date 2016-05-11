@@ -77,7 +77,7 @@ FeedForwardPolicy *FeedForwardPolicy::clone() const
   return new FeedForwardPolicy(*this);
 }
 
-void FeedForwardPolicy::act(double time, const Vector &in, Vector *out)
+TransitionType FeedForwardPolicy::act(double time, const Vector &in, Vector *out)
 {
   if (time == 0)
     prev_time_idx_ = 0;
@@ -102,4 +102,5 @@ void FeedForwardPolicy::act(double time, const Vector &in, Vector *out)
                      k * time_control_[tis2+1+ii];
 
   prev_time_idx_ = ti-1;
+  return ttGreedy;
 }

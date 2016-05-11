@@ -50,12 +50,13 @@ SoftmaxSampler *SoftmaxSampler::clone()
   return new SoftmaxSampler(*this);
 }
 
-size_t SoftmaxSampler::sample(const Vector &values) const
+size_t SoftmaxSampler::sample(const Vector &values, TransitionType &tt) const
 {
   Vector dist;
   
   distribution(values, &dist);
   
+  tt = ttExploratory;
   return ::sample(dist, 1.);
 }
 

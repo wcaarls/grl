@@ -74,9 +74,9 @@ void TDAgent::step(double tau, const Vector &obs, double reward, Vector *action)
   TDAgentState *state = agent_state_.instance();
 
   state->time += tau;
-  policy_->act(state->time, obs, action);
+  TransitionType tt = policy_->act(state->time, obs, action);
   
-  predictor_->update(Transition(state->prev_obs, state->prev_action, reward, obs, *action));
+  predictor_->update(Transition(state->prev_obs, state->prev_action, reward, obs, *action, tt));
 
   state->prev_obs = obs;
   state->prev_action = *action;

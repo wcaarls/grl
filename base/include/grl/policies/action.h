@@ -58,7 +58,7 @@ class ActionPolicy : public Policy
 
     // From Policy
     virtual ActionPolicy *clone() const;
-    virtual void act(const Vector &in, Vector *out) const;
+    virtual TransitionType act(const Vector &in, Vector *out) const;
 };
 
 /// Policy based on an action-probability representation.
@@ -84,7 +84,7 @@ class ActionProbabilityPolicy : public Policy
   
     // From Policy
     virtual ActionProbabilityPolicy *clone() const;
-    virtual void act(const Vector &in, Vector *out) const;
+    virtual TransitionType act(const Vector &in, Vector *out) const;
 };
 
 }

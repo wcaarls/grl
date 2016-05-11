@@ -79,7 +79,7 @@ void UCBPolicy::values(const Vector &in, Vector *out) const
     (*out)[ii] = representation_->read(projections[ii], &value);
 }
 
-void UCBPolicy::act(const Vector &in, Vector *out) const
+TransitionType UCBPolicy::act(const Vector &in, Vector *out) const
 {
   Vector qvalues(variants_.size()), visits(variants_.size());
   double state_visits = 0;
@@ -108,11 +108,12 @@ void UCBPolicy::act(const Vector &in, Vector *out) const
   }
   
   *out = variants_[action];
+  return ttGreedy;
 }
 
-void UCBPolicy::act(double time, const Vector &in, Vector *out)
+TransitionType UCBPolicy::act(double time, const Vector &in, Vector *out)
 {
-  act(in, out);
+  TransitionType tt = act(in, out);
   
   ProjectionPtr projection = projector_->project(in, *out);
   
@@ -120,5 +121,5 @@ void UCBPolicy::act(double time, const Vector &in, Vector *out)
   double visits = visit_representation_->read(projection, &v);
   visit_representation_->write(projection, VectorConstructor(visits+1));
   visit_representation_->finalize();
+  return tt;
 }
-                              

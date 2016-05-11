@@ -50,7 +50,7 @@ class BoundedQPolicy : public QPolicy
 
     // From QPolicy
     virtual BoundedQPolicy *clone() const;
-    virtual void act(double time, const Vector &in, Vector *out);
+    virtual TransitionType act(double time, const Vector &in, Vector *out);
     
   protected:
     /// Filter out actions that lie outside bounds.

@@ -96,13 +96,14 @@ void VPolicy::values(const Vector &in, Vector *out) const
   }
 }
 
-void VPolicy::act(const Vector &in, Vector *out) const
+TransitionType VPolicy::act(const Vector &in, Vector *out) const
 {
   Vector v;
-  
+  TransitionType tt;
+
   values(in, &v);
-  size_t action = sampler_->sample(v);
+  size_t action = sampler_->sample(v, tt);
   
   *out = variants_[action];
+  return tt;
 }
-            
