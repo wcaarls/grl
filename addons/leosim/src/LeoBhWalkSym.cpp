@@ -229,7 +229,6 @@ void CLeoBhWalkSym::updateDerivedStateVars(CLeoState* currentSTGState)
     mSwingFootContact   = rightFootContact;
     // Calculate clearance for right foot
     mFootClearance      = std::min(rightToeZ, rightHeelZ);
-    //mLogInfoLn("Foot clearance is " << mFootClearance);
   }
   else
   {
@@ -243,9 +242,8 @@ void CLeoBhWalkSym::updateDerivedStateVars(CLeoState* currentSTGState)
     mSwingFootContact   = leftFootContact;
     // Calculate clearance for left foot
     mFootClearance      = std::min(leftToeZ, leftHeelZ);
-    mLogInfoLn("Foot clearance is " << mFootClearance);
   }
-
+  mLogInfoLn("Foot clearance is " << mFootClearance);
   // Adjust swing time, used to determine early swing against late swing
   mSwingTime += (uint64_t)(1.0E6/mDesiredFrequency);
 

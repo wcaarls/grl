@@ -65,7 +65,7 @@ bool ODESTGEnvironment::configure(Configuration &config)
   }
   
   CConfigSection configNode = xmlConfig.root().section("policy");
-  
+
   bool configresult = true;
   
   double trialTimeoutSeconds=20;

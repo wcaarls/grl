@@ -149,10 +149,9 @@ void OnlineLearningExperiment::run()
       if (test) agent = test_agent_;
       
       environment_->start(test, &obs);
+      CRAWL(obs);
       agent->start(obs, &action);
       state_->set(obs);
-
-      CRAWL(obs);
 
       do
       {

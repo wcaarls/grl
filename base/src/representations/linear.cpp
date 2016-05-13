@@ -123,7 +123,7 @@ void LinearRepresentation::reconfigure(const Configuration &config)
       }
       
       fseek(f, 0, SEEK_END);
-      if (ftell(f) != (int)(params_.size() * sizeof(double)))
+      if (ftell(f) != (long int)(params_.size() * sizeof(double)))
       {
         WARNING("Configuration mismatch for '" << file << "'");
         fclose(f);

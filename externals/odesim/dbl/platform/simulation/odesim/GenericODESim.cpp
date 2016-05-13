@@ -57,7 +57,7 @@ void CGenericODESim::fillState()
 {
   for (unsigned int ii=0; ii != mSensors.size(); ++ii)
   {
-    mLogCrawlLn("state[" << mStateStartIndex+ii << "] = " << mSensors[ii]->getValue());
+    mLogCrawlLn("mSensors[" << ii << "] = " << mSensors[ii]->getValue());
     mState.var[mStateStartIndex+ii] = mSensors[ii]->getValue();
   }
   for (unsigned int ii=0; ii != mActuators.size(); ++ii)

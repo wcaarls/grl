@@ -29,7 +29,10 @@ void CGrlLeoBhWalkSym::resetState()
 
 void CGrlLeoBhWalkSym::fillLeoState(const Vector &obs, const Vector &action, CLeoState &leoState)
 {
-  leoState.mJointAngles[ljTorso]      = -obs[svTorsoAngle]; // '-' required to match with Erik's code, but does not matter otherwice
+  // '-' required to match with Erik's code, but does not matter for learning.
+  // Erik used a rotation matrix which was rotating a unit vector. For torso it seems
+  // the positive direction was not same as for other joints, internally defined in ODE.
+  leoState.mJointAngles[ljTorso]      = -obs[svTorsoAngle];
   leoState.mJointSpeeds[ljTorso]      = -mJointSpeedFilter[ljTorso].filter(obs[svTorsoAngleRate]);
   leoState.mJointAngles[ljShoulder]   = obs[svLeftArmAngle];
   leoState.mJointSpeeds[ljShoulder]   = mJointSpeedFilter[ljShoulder].filter(obs[svLeftArmAngleRate]);

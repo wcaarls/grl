@@ -13,7 +13,7 @@ experiment:
     observe: torso_boom, hipright, hipleft, kneeright, kneeleft
     actuate: hipright, hipleft, kneeright, kneeleft
     learn_stance_knee: 0
-  agent:
+  agent: 
     type: agent/td
     policy: 
       type: policy/discrete/q
@@ -59,4 +59,5 @@ experiment:
       representation: experiment/agent/policy/representation
       sampler: 
         type: sampler/greedy
-  save_every: never
+    aug_rwt: 0
+  save_every: run
