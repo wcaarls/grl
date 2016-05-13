@@ -45,8 +45,8 @@ void ZeroMQAgent::configure(Configuration &config)
   // Read configuration
   action_dims_ = config["action_dims"];
   observation_dims_ = config["observation_dims"];
-  action_min_ = config["action_min"];
-  action_max_ = config["action_max"];
+  action_min_ = config["action_min"].v();
+  action_max_ = config["action_max"].v();
 
   //  Prepare our context
   context_ = new zmq::context_t(1);
