@@ -29,15 +29,15 @@ set(MODULES base
             addons/llr
             addons/gl
             addons/glut
-            addons/ros
-            addons/matlab
+#            addons/ros
+#            addons/matlab
             addons/odesim
             addons/leosim
             addons/rbdl
             addons/muscod
-            addons/leo2
-            addons/tlm
-            addons/lqr
+#            addons/leo2
+#            addons/tlm
+#            addons/lqr
             addons/zeromq
 )
 
