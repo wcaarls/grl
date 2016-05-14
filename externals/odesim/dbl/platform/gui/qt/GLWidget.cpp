@@ -1184,6 +1184,11 @@ void GLWidget::init()
       "\n"
     );
 
+    // Side view of Leo by default
+    float xyz[3] = {0.0f, 0.8f, 0.25f}, hpr[3] = {-90.0f, 0.0f, 0.0f};
+    dsSetViewpoint(xyz, hpr);
+    updateGL();
+
     // Perform user initialization
     onInit();
 }

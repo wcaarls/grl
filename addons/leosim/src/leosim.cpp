@@ -287,6 +287,8 @@ double LeoSimEnvironment::step(const Vector &action, Vector *obs, double *reward
   else
     ode_action_ << actionArm, actionStanceHip, actionSwingHip, actionStanceKnee, actionSwingKnee, actionAnkles;
 
+  //ode_action_ << ConstantVector(7, 5.0); // #ivan
+
   bhWalk_.setPreviousSTGState(&leoState_);
   double tau = ODEEnvironment::step(ode_action_, &ode_obs_, reward, terminal);
 
