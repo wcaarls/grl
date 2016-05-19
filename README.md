@@ -50,6 +50,12 @@ For the configurator, additionally install
 sudo apt-get install python-yaml python-tk
 ```
 
+For the zeromq addon, additionally install
+```
+sudo apt-get install protoc-dev protobuf-compiler libsodium-dev
+Then dounload a recent (> 4.0.0) version of zeromq and run './configure, make, make install'
+```
+
 # Setup
 ```
 mkdir build
