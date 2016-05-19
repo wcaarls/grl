@@ -1,20 +1,20 @@
 # Setup build environment
 set(TARGET addon_zeromq)
 
-FIND_LIBRARY(ZMQ_LIB zmq)
+FIND_LIBRARY(ZMQ_LIB zmq PATHS /usr/local/lib)
 if (NOT ZMQ_LIB)
   message(WARNING "-- ZeroMQ library not found")
+else()
+  message("-- zmq: ${ZMQ_LIB}")
 endif()
-
-message("--> ${ZMQ_LIB}")
 
 set(PROTOBUF_FOUND FALSE)
 find_package(Protobuf)
 if (NOT ${PROTOBUF_FOUND})
   message(WARNING "-- Google Protocol Buffers library not found")
+else()
+  message ("-- protobuf: ${PROTOBUF_LIBRARY}")
 endif()
-
-message ("--> ${PROTOBUF_LIBRARY}")
 
 if (ZMQ_LIB AND ${PROTOBUF_FOUND})
   message("-- Building ZeroMQ addon")
