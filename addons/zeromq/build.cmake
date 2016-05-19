@@ -6,11 +6,15 @@ if (NOT ZMQ_LIB)
   message(WARNING "-- ZeroMQ library not found")
 endif()
 
+message("--> ${ZMQ_LIB}")
+
 set(PROTOBUF_FOUND FALSE)
 find_package(Protobuf)
 if (NOT ${PROTOBUF_FOUND})
   message(WARNING "-- Google Protocol Buffers library not found")
 endif()
+
+message ("--> ${PROTOBUF_LIBRARY}")
 
 if (ZMQ_LIB AND ${PROTOBUF_FOUND})
   message("-- Building ZeroMQ addon")
