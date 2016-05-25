@@ -162,7 +162,6 @@ void ODESTGEnvironment::start(int test, Vector *obs)
   
   CRAWL("Waiting for start STG state");
 
-// #ivan: no need to step in the start
   if (!listener_.waitForNewState())
     throw Exception("Error getting start state from simulator");
     
@@ -291,6 +290,8 @@ void ODEEnvironment::run()
   
     app_ = new QApplication(argc, argv);
     ODEDialog *dialog = new ODEDialog(env_);
+    
+    setlocale(LC_ALL, "C");
 
     init_state_ = isInitialized;
     

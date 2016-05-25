@@ -14,12 +14,10 @@ experiment:
     actuate: hipright, hipleft, kneeright, kneeleft
     learn_stance_knee: 0
   agent: 
-    type: agent/fixed
-    policy: 
-      type: policy/zeromq
-      observation_dims: experiment/environment/observation_dims
-      action_dims: experiment/environment/action_dims
-      action_min: experiment/environment/action_min
-      action_max: experiment/environment/action_max
+    type: agent/zeromq
+    observation_dims: experiment/environment/observation_dims
+    action_dims: experiment/environment/action_dims
+    action_min: experiment/environment/action_min
+    action_max: experiment/environment/action_max
   test_agent: experiment/agent
   save_every: never

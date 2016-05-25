@@ -79,7 +79,7 @@ void TDAgent::step(double tau, const Vector &obs, double reward, Vector *action)
   predictor_->update(Transition(state->prev_obs, state->prev_action, reward, obs, *action));
 
   state->prev_obs = obs;
-  state->prev_action = *action;  
+  state->prev_action = *action;
 }
 
 void TDAgent::end(double tau, const Vector &obs, double reward)

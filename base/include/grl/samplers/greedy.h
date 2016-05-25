@@ -44,6 +44,9 @@ class GreedySampler : public Sampler
     Rand *rand_;
 
   public:
+    GreedySampler() : rand_(NULL) { }
+    ~GreedySampler() { if (rand_) { delete rand_; rand_ = NULL;} }
+
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);

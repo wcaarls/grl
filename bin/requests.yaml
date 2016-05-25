@@ -330,26 +330,6 @@ dynamics/swimmer:
     max: 2147483647
 dynamics/tlm:
   description: Two-link manipulator dynamics
-environment/leo2:
-  description: LEO/2 environment
-  port:
-    type: string
-    description: Device ID of FTDI usb-to-serial converter
-    mutability: configuration
-    default: i:0x0403:0x6001
-    optional: 1
-  bps:
-    type: int
-    description: Bit rate
-    mutability: configuration
-    default: 57600
-    optional: 1
-    min: 0
-    max: 2147483647
-  state:
-    type: state
-    description: Current state of the robot
-    mutability: provided
 environment/leosim:
   description: Leo simulation environment
   xml:
@@ -817,6 +797,16 @@ exporter/csv:
       - none
       - line
       - meshup
+  variant:
+    type: string
+    description: Variant to export
+    mutability: configuration
+    default: all
+    optional: 1
+    options:
+      - test
+      - learn
+      - all
 importer/csv:
   description: Comma-separated values importer
   file:
@@ -1377,196 +1367,6 @@ policy/mcts:
     optional: 1
     min: 0
     max: 1.797693134862316e+308
-policy/mhe_nmpc:
-  description: Nonlinear model predictive control policy with moving horizon estimator using the MUSCOD library
-  lua_model:
-    type: string
-    description: Lua model used by MUSCOD
-    mutability: configuration
-    default: ""
-    optional: 1
-  model_name:
-    type: string
-    description: Name of the model in grl
-    mutability: configuration
-    default: ""
-    optional: 1
-  mhe_model_name:
-    type: string
-    description: Name of MUSCOD MHE model library
-    mutability: configuration
-    default: ""
-    optional: 1
-  nmpc_model_name:
-    type: string
-    description: Name of MUSCOD MHE model library
-    mutability: configuration
-    default: ""
-    optional: 1
-  outputs:
-    type: int.action_dims
-    description: Number of outputs
-    mutability: system
-    default: 1
-    optional: 1
-    min: 1
-    max: 2147483647
-  verbose:
-    type: int
-    description: Verbose mode
-    mutability: system
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
-policy/mhe_nmpc_sw:
-  description: Nonlinear model predictive control policy for the simplest walker with moving horizon estimator using the MUSCOD library
-  model_name:
-    type: string
-    description: Name of the model in grl
-    mutability: configuration
-    default: ""
-    optional: 1
-  mhe_model_name:
-    type: string
-    description: Name of MUSCOD MHE model library
-    mutability: configuration
-    default: ""
-    optional: 1
-  nmpc_model_name:
-    type: string
-    description: Name of MUSCOD MHE model library
-    mutability: configuration
-    default: ""
-    optional: 1
-  outputs:
-    type: int.action_dims
-    description: Number of outputs
-    mutability: system
-    default: 1
-    optional: 1
-    min: 1
-    max: 2147483647
-  verbose:
-    type: int
-    description: Verbose mode
-    mutability: system
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
-policy/nmpc:
-  description: Nonlinear model predictive control policy using the MUSCOD library
-  lua_model:
-    type: string
-    description: Lua model used by MUSCOD
-    mutability: configuration
-    default: ""
-    optional: 1
-  model_name:
-    type: string
-    description: Name of the model in grl
-    mutability: configuration
-    default: ""
-    optional: 1
-  nmpc_model_name:
-    type: string
-    description: Name of MUSCOD MHE model library
-    mutability: configuration
-    default: ""
-    optional: 1
-  outputs:
-    type: int.action_dims
-    description: Number of outputs
-    mutability: system
-    default: 1
-    optional: 1
-    min: 1
-    max: 2147483647
-  verbose:
-    type: int
-    description: Verbose mode
-    mutability: system
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
-policy/nmpc_sw:
-  description: Nonlinear model predictive control policy for the simplest walker using the MUSCOD library
-  model_name:
-    type: string
-    description: Name of the model in grl
-    mutability: configuration
-    default: ""
-    optional: 1
-  nmpc_model_name:
-    type: string
-    description: Name of MUSCOD MHE model library
-    mutability: configuration
-    default: ""
-    optional: 1
-  outputs:
-    type: int.action_dims
-    description: Number of outputs
-    mutability: system
-    default: 1
-    optional: 1
-    min: 1
-    max: 2147483647
-  verbose:
-    type: int
-    description: Verbose mode
-    mutability: system
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
-policy/nmpc_th:
-  description: Nonlinear multistep (thread-based) model predictive control policy using the MUSCOD library
-  model_name:
-    type: string
-    description: Name of MUSCOD model library
-    mutability: configuration
-    default: ""
-    optional: 1
-  lua_model:
-    type: string
-    description: Lua model used by MUSCOD
-    mutability: configuration
-    default: ""
-    optional: 1
-  inputs:
-    type: int.observation_dims
-    description: Number of inputs
-    mutability: system
-    default: 0
-    optional: 1
-    min: 1
-    max: 2147483647
-  outputs:
-    type: int.action_dims
-    description: Number of outputs
-    mutability: system
-    default: 0
-    optional: 1
-    min: 1
-    max: 2147483647
-  single_step:
-    type: int
-    description: Run NMPC in single-step mode
-    mutability: system
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
-  verbose:
-    type: int
-    description: Verbose mode
-    mutability: system
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
 policy/parameterized/action:
   description: Parameterized policy based on a direct action representation
   sigma:

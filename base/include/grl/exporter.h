@@ -60,14 +60,19 @@ class CSVExporter : public Exporter
     std::string file_;
     std::string fields_;
     std::string style_;
+    std::string variant_;
     
     std::ofstream stream_;
     std::vector<size_t> order_;
     std::vector<std::string> headers_;
+    std::vector<Vector> append_vec_;
     bool write_header_;
+    std::map<std::string, int> run_counter_;
+
+    void write(std::vector<Vector> vars);
 
   public:
-    CSVExporter() : style_("line"), write_header_(true) { }
+    CSVExporter() : style_("line"), variant_("all"), write_header_(true) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -78,6 +83,7 @@ class CSVExporter : public Exporter
     void init(const std::initializer_list<std::string> &headers);
     void open(const std::string &variant="", bool append=true);
     void write(const std::initializer_list<Vector> &vars);
+    void append(const std::initializer_list<Vector> &vars);
 };
 
 }

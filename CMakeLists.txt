@@ -38,6 +38,7 @@ set(MODULES base
             addons/leo2
             addons/tlm
             addons/lqr
+#            addons/zeromq
 )
 
 # Is there a better way to find out if catkin_make was run?
