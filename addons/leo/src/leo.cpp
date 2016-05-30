@@ -306,10 +306,13 @@ double LeoEnvironment::step(const Vector &action, Vector *obs, double *reward, i
   // Obtain state of the Leo
   int size = 4;
   char data[size];
-  zmq_.recv(reinterpret_cast<void*>(data), sizeof(data), ZMQ_DONTWAIT);
-  std::cout << data << std::endl;
-
-  sleep(1);
+  bool rc = zmq_.recv(reinterpret_cast<void*>(data), sizeof(data), ZMQ_DONTWAIT);
+  if (rc)
+  {
+    std::cout << data << std::endl;
+    char state[] = "123";
+    zmq_.send(state, sizeof(state));
+  }
 
   double &time = test_?time_test_:time_learn_;
   bhWalk_.setCurrentSTGState(&leoState_);
