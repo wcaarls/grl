@@ -210,5 +210,8 @@ void CSVExporter::append(const std::initializer_list<Vector> &vars)
 {
   append_vec_.insert(append_vec_.end(), vars.begin(), vars.end());
   if (append_vec_.size() >= headers_.size())
+  {
     writer(append_vec_);
+    append_vec_.clear();
+  }
 }

@@ -25,6 +25,7 @@ set(MODULES base
             externals/ics
             externals/itc
             externals/rbdl
+            externals/cppzmq
             addons/cma
             addons/llr
             addons/gl
@@ -35,6 +36,7 @@ set(MODULES base
             addons/leosim
             addons/rbdl
             addons/muscod
+            addons/leo
 #            addons/leo2
 #            addons/tlm
 #            addons/lqr
