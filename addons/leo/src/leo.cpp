@@ -227,7 +227,8 @@ void LeoEnvironment::configure(Configuration &config)
   ode_action_.resize(ode_action_dims_);
 
   // Zeromq
-  zmq_.init("tcp://*:5556", "tcp://localhost:5555");
+  zmq_.init("tcp://*:5561", "tcp://192.168.2.210:5562"); // wifi
+  //zmq_.init("tcp://*:5561", "tcp://192.168.1.10:5562"); // ethernet
 }
 
 void LeoEnvironment::reconfigure(const Configuration &config)
@@ -247,38 +248,6 @@ void LeoEnvironment::start(int test, Vector *obs)
 
   // TODO: obtain current state of Leo
   //ODEEnvironment::start(test, &ode_obs_);
-
-  // Experiment
-  ///////////////////////////////////////
-//  const int size = 20;
-//  double data_tr[size];
-//  double data_rc[size];
-//  std::cout << sizeof(data_tr) << std::endl;
-/*
-  char ch[] = "ABC";
-  std::cout << ch << " size is: " << sizeof(ch) << std::endl;
-
-  while (1)
-  {
-    auto begin = std::chrono::high_resolution_clock::now();
-
-//    for (int i = 0; i < size; i++)
-//      data_tr[i] = rand();
-
-    zmq_.send(reinterpret_cast<void*>(ch), sizeof(ch));
-    //
-    //zmq_.recv(reinterpret_cast<void*>(data_rc), sizeof(data_rc));
-
-    //for (int i = 0; i < size; i++)
-    //  if (data_tr[i] != data_rc[i])
-    //    std::cout << "Data is incorrect" << std::endl;
-
-    auto end = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count();
-    std::cout << duration << "ns delay" << std::endl;
-  }
-*/
-  ///////////////////////////////////////
 
   bhWalk_.resetState();
 
@@ -306,7 +275,7 @@ double LeoEnvironment::step(const Vector &action, Vector *obs, double *reward, i
   // Obtain state of the Leo
   int size = 4;
   char data[size];
-  bool rc = zmq_.recv(reinterpret_cast<void*>(data), sizeof(data), ZMQ_DONTWAIT);
+  bool rc = zmq_.recv(reinterpret_cast<void*>(data), sizeof(data));
   if (rc)
   {
     std::cout << data << std::endl;
