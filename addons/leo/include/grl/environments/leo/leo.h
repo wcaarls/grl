@@ -122,13 +122,19 @@ class LeoEnvironment : public ODEEnvironment
     int ode_observation_dims_, ode_action_dims_;
     int learn_stance_knee_;
     ZeromqMessanger zmq_;
+    Vector ode_obs_;
+    Vector observe_, actuate_;
+    Vector ode_action_;
 
     // Exporter
     Exporter *exporter_;
     int test_;
     double time_test_, time_learn_, time0_, tau_;
 
-  private:
+  protected:
+    void zmq_send(const Vector v);
+    bool zmq_recv(Vector &v);
+
     void fillObserve(const std::vector<CGenericStateVar> &genericStates,
                      const std::vector<std::string> &observeList,
                      Vector &out) const;
@@ -136,10 +142,7 @@ class LeoEnvironment : public ODEEnvironment
     void fillActuate(const std::vector<CGenericActionVar> &genericAction,
                      const std::vector<std::string> &actuateList,
                      Vector &out, std::vector<int> &knee_idx) const;
-  private:
-    Vector ode_obs_;
-    Vector observe_, actuate_;
-    Vector ode_action_;
+
 };
 
 }

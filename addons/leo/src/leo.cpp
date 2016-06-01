@@ -227,7 +227,8 @@ void LeoEnvironment::configure(Configuration &config)
   ode_action_.resize(ode_action_dims_);
 
   // Zeromq
-  zmq_.init("tcp://*:5561", "tcp://192.168.2.210:5562"); // wifi
+//  zmq_.init("tcp://*:5561", "tcp://192.168.2.210:5562"); // wifi
+  zmq_.init("tcp://*:5561", "tcp://192.168.2.210:5562", "tcp://192.168.2.210:5560", ZMQ_SYNC_SUB); // wifi
   //zmq_.init("tcp://*:5561", "tcp://192.168.1.10:5562"); // ethernet
 }
 
@@ -248,6 +249,7 @@ void LeoEnvironment::start(int test, Vector *obs)
 
   // TODO: obtain current state of Leo
   //ODEEnvironment::start(test, &ode_obs_);
+  zmq_recv(ode_obs_);
 
   bhWalk_.resetState();
 
@@ -272,6 +274,7 @@ void LeoEnvironment::start(int test, Vector *obs)
 
 double LeoEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)
 {
+/*
   // Obtain state of the Leo
   int size = 4;
   char data[size];
@@ -282,7 +285,7 @@ double LeoEnvironment::step(const Vector &action, Vector *obs, double *reward, i
     char state[] = "123";
     zmq_.send(state, sizeof(state));
   }
-
+*/
   double &time = test_?time_test_:time_learn_;
   bhWalk_.setCurrentSTGState(&leoState_);
 
@@ -318,7 +321,9 @@ double LeoEnvironment::step(const Vector &action, Vector *obs, double *reward, i
   bhWalk_.setPreviousSTGState(&leoState_);
 
   // TODO: apply control to Leo
-  //double tau = ODEEnvironment::step(ode_action_, &ode_obs_, reward, terminal);
+  // double tau = ODEEnvironment::step(ode_action_, &ode_obs_, reward, terminal);
+  zmq_send(ode_action_);
+  zmq_recv(ode_obs_);
 
   // Filter joint speeds
   // Parse obs into CLeoState
@@ -379,6 +384,18 @@ void LeoEnvironment::report(std::ostream &os)
 {
   double &time  = test_?time_test_ :time_learn_;
   os << bhWalk_.getProgressReport(time-time0_);
+}
+
+void LeoEnvironment::zmq_send(const Vector v)
+{
+  zmq_.send(reinterpret_cast<const void*>(v.data()), v.cols()*sizeof(double));
+}
+
+bool LeoEnvironment::zmq_recv(Vector &v)
+{
+  bool rc = zmq_.recv(reinterpret_cast<void*>(v.data()), v.cols()*sizeof(double)); // ZMQ_NOBLOCK
+  std::cout << v << std::endl;
+  return rc;
 }
 
 void LeoEnvironment::fillObserve( const std::vector<CGenericStateVar> &genericStates,
