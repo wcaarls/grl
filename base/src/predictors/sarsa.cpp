@@ -114,8 +114,7 @@ void ExpectedSARSAPredictor::request(ConfigurationRequest *config)
 
   config->push_back(CRP("projector", "projector.pair", "Projects observation-action pairs onto representation space", projector_));
   config->push_back(CRP("representation", "representation.value/action", "Q-value representation", representation_));
-  config->push_back(CRP("policy", "policy/discrete/q", "Q-value based policy", policy_));
-  config->push_back(CRP("sampler", "sampler", "Target distribution", sampler_));
+  config->push_back(CRP("policy", "policy/discrete/q", "Q-value based target policy", policy_));
   config->push_back(CRP("trace", "trace", "Trace of projections", trace_));
 }
 
@@ -126,7 +125,6 @@ void ExpectedSARSAPredictor::configure(Configuration &config)
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (Representation*)config["representation"].ptr();
   policy_ = (QPolicy*)config["policy"].ptr();
-  sampler_ = (Sampler*)config["sampler"].ptr();
   trace_ = (Trace*)config["trace"].ptr();
   
   alpha_ = config["alpha"];
@@ -146,7 +144,6 @@ ExpectedSARSAPredictor *ExpectedSARSAPredictor::clone() const
   sp->projector_ = projector_->clone();
   sp->representation_= representation_->clone();
   sp->policy_ = policy_->clone();
-  sp->sampler_ = sampler_->clone();
   sp->trace_ = trace_->clone();
   return sp;
 }
@@ -160,18 +157,8 @@ void ExpectedSARSAPredictor::update(const Transition &transition)
   double target = transition.reward;
   
   if (transition.action.size())
-  {
-    Vector values, distribution;
-    policy_->values(transition.obs, &values);
-    sampler_->distribution(values, &distribution);
-
-    double v = 0.;
-    for (size_t ii=0; ii < values.size(); ++ii)
-      v += values[ii]*distribution[ii];
-
-    target += gamma_*v;
-  }
-  
+    target += gamma_*policy_->value(transition.obs);  
+    
   Vector q;
   double delta = target - representation_->read(p, &q);
 
@@ -193,14 +180,14 @@ void ShapedSARSAPredictor::request(ConfigurationRequest *config)
 {
   SARSAPredictor::request(config);
   
-  config->push_back(CRP("shaping_representation", "representation.value/action", "Q-value representation for shaping rewards", shaping_representation_));
+  config->push_back(CRP("shaping_function", "mapping", "Potential function over states", shaping_function_));
 }
 
 void ShapedSARSAPredictor::configure(Configuration &config)
 {
   SARSAPredictor::configure(config);
   
-  shaping_representation_ = (Representation*)config["shaping_representation"].ptr();
+  shaping_function_ = (Mapping*)config["shaping_function"].ptr();
 }
 
 void ShapedSARSAPredictor::reconfigure(const Configuration &config)
@@ -227,7 +214,8 @@ void ShapedSARSAPredictor::update(const Transition &transition)
     ProjectionPtr pp = projector_->project(transition.obs, transition.action);
   
     // Shaping
-    target += gamma_*shaping_representation_->read(pp, &q) - shaping_representation_->read(p, &q);
+    Vector v;
+    target += gamma_*shaping_function_->read(transition.obs, &v) - shaping_function_->read(transition.prev_obs, &v);
     
     // Recursion
     target += gamma_*representation_->read(pp, &q);

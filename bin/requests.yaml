@@ -841,6 +841,14 @@ mapping/multisine:
     optional: 1
     min: 0
     max: 2147483647
+mapping/q_policy:
+  description: Mapping that returns the value of a q-policy
+  policy:
+    type: policy/discrete/q
+    description: Q-value based policy
+    mutability: configuration
+    default: 0
+    optional: 0
 model/compass_walker:
   description: Simplest walker model from Garcia et al.
   control_step:
@@ -1851,13 +1859,7 @@ predictor/expected_sarsa:
     optional: 0
   policy:
     type: policy/discrete/q
-    description: Q-value based policy
-    mutability: configuration
-    default: 0
-    optional: 0
-  sampler:
-    type: sampler
-    description: Target distribution
+    description: Q-value based target policy
     mutability: configuration
     default: 0
     optional: 0
@@ -2315,9 +2317,9 @@ predictor/shaped_sarsa:
     mutability: configuration
     default: 0
     optional: 0
-  shaping_representation:
-    type: representation.value/action
-    description: Q-value representation for shaping rewards
+  shaping_function:
+    type: mapping
+    description: Potential function over states
     mutability: configuration
     default: 0
     optional: 0
@@ -4050,18 +4052,6 @@ visualization/field/policy/value:
       - mean
       - min
       - max
-  projector:
-    type: projector.pair
-    description: Projects observation-action pairs onto representation space
-    mutability: configuration
-    default: 0
-    optional: 0
-  representation:
-    type: representation.value/action
-    description: Q-value representation
-    mutability: configuration
-    default: 0
-    optional: 0
   policy:
     type: policy/discrete/q
     description: Q-value based control policy

@@ -25,7 +25,7 @@
  * \endverbatim
  */
 
-#include <grl/representations/multisine.h>
+#include <grl/mappings/multisine.h>
 
 using namespace grl;
 
@@ -62,13 +62,9 @@ MultisineMapping *MultisineMapping::clone() const
   return new MultisineMapping(*this);
 }
 
-double MultisineMapping::read(const ProjectionPtr &projection, Vector *result) const
+double MultisineMapping::read(const Vector &in, Vector *result) const
 {
-  VectorProjection *vp = dynamic_cast<VectorProjection*>(projection.get());
-  if (!vp)
-    throw bad_param("mapping/multisine requires a projector returning a VectorProjection");
-    
-  if (vp->vector.size() != inputs_)
+  if (in.size() != inputs_)
     throw bad_param("mapping/multisine:inputs (or matching projector)");
 
   result->resize(outputs_);
@@ -84,7 +80,7 @@ double MultisineMapping::read(const ProjectionPtr &projection, Vector *result) c
       
       // Multiple by activation over each input
       for (size_t ii=0; ii < inputs_; ++ii)
-        rs *= sin(params_[p(oo, ss, ii, 0)] + params_[p(oo, ss, ii, 1)]*vp->vector[ii]);
+        rs *= sin(params_[p(oo, ss, ii, 0)] + params_[p(oo, ss, ii, 1)]*in[ii]);
 
       // Add all sines together
       r += rs;

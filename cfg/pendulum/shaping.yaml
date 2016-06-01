@@ -21,7 +21,7 @@ experiment:
     type: agent/dyna
     planning_steps: 200
     planning_horizon: 100
-    asynchronous: 0
+    threads: 0
     policy: 
       type: policy/discrete/q
       discretizer: 
@@ -65,7 +65,15 @@ experiment:
       representation: experiment/agent/policy/representation/representation2
       trace: 
         type: trace/enumerated/replacing
-      shaping_representation: experiment/agent/policy/representation/representation1
+      shaping_function: 
+        type: mapping/q_policy
+        policy: 
+          type: policy/discrete/q
+          discretizer: experiment/agent/policy/discretizer
+          projector: experiment/agent/policy/projector
+          representation: experiment/agent/policy/representation/representation1
+          sampler: 
+            type: sampler/greedy
     model: 
       type: observation_model/approximated
       jacobian_step: 0.001
@@ -81,6 +89,7 @@ experiment:
         neighbors: 12
         locality: 1
         interval: 10
+        incremental: 1
         bucket_size: 10
         error_bound: 0.1
         inputs: experiment/environment/task/observation_dims+experiment/environment/task/action_dims
@@ -137,8 +146,6 @@ visualization:
   points: 65536
   savepoints: 1048576
   projection: mean
-  projector: experiment/agent/policy/projector
-  representation: experiment/agent/policy/representation
   policy: experiment/test_agent/policy
 visualization2: 
   type: visualization/field/policy/value
@@ -148,8 +155,6 @@ visualization2:
   points: 65536
   savepoints: 1048576
   projection: mean
-  projector: experiment/agent/policy/projector
-  representation: experiment/agent/policy/representation/representation1
   policy: 
     type: policy/discrete/q
     discretizer: experiment/agent/policy/discretizer
@@ -165,8 +170,6 @@ visualization3:
   points: 65536
   savepoints: 1048576
   projection: mean
-  projector: experiment/agent/policy/projector
-  representation: experiment/agent/policy/representation/representation2
   policy: 
     type: policy/discrete/q
     discretizer: experiment/agent/policy/discretizer

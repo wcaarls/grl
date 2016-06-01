@@ -76,16 +76,8 @@ size_t GreedySampler::sample(const Vector &values) const
 
 void GreedySampler::distribution(const Vector &values, Vector *distribution) const
 {
-  size_t mai = GreedySampler::sample(values);
-  distribution->resize(values.size());
-
-  for (size_t ii=0; ii < values.size(); ++ii)
-  {
-    if (ii == mai)
-      (*distribution)[ii] = 1;
-    else
-      (*distribution)[ii] = 0;
-  }
+  *distribution = ConstantVector(values.size(), 0.);
+  (*distribution)[GreedySampler::sample(values)] = 1;
 }
 
 void EpsilonGreedySampler::request(ConfigurationRequest *config)

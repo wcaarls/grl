@@ -83,8 +83,6 @@ void PolicyValueVisualization::request(ConfigurationRequest *config)
 {
   FieldVisualization::request(config);
 
-  config->push_back(CRP("projector", "projector.pair", "Projects observation-action pairs onto representation space", projector_));
-  config->push_back(CRP("representation", "representation.value/action", "Q-value representation", representation_));
   config->push_back(CRP("policy", "policy/discrete/q", "Q-value based control policy", policy_));
 }
 
@@ -92,8 +90,6 @@ void PolicyValueVisualization::configure(Configuration &config)
 {
   FieldVisualization::configure(config);
   
-  projector_ = (Projector*)config["projector"].ptr();
-  representation_ = (Representation*)config["representation"].ptr();
   policy_ = (QPolicy*)config["policy"].ptr();
   
   // Create window  
@@ -110,7 +106,5 @@ void PolicyValueVisualization::reconfigure(const Configuration &config)
 
 double PolicyValueVisualization::value(const Vector &in) const
 {
-  Vector action, q;
-  policy_->act(in, &action);
-  return representation_->read(projector_->project(in, action), &q);
+  return policy_->value(in);
 }

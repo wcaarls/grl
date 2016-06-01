@@ -36,6 +36,8 @@ add_library(${TARGET} SHARED
             ${SRC}/experiments/rpc_env.cpp
             ${SRC}/exporters/csv.cpp
             ${SRC}/importers/csv.cpp
+            ${SRC}/mappings/multisine.cpp
+            ${SRC}/mappings/q_policy.cpp
             ${SRC}/policies/random.cpp
             ${SRC}/policies/action.cpp
             ${SRC}/policies/v.cpp
@@ -66,7 +68,6 @@ add_library(${TARGET} SHARED
             ${SRC}/projectors/fourier.cpp
             ${SRC}/projectors/grid.cpp
             ${SRC}/representations/linear.cpp
-            ${SRC}/representations/multisine.cpp
             ${SRC}/representations/ann.cpp
 #            ${SRC}/representations/dmp.cpp
             ${SRC}/representations/additive.cpp

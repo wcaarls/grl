@@ -35,7 +35,7 @@
 #include <grl/trace.h>
 #include <grl/policy.h>
 #include <grl/policies/q.h>
-#include <grl/sampler.h>
+#include <grl/mapping.h>
 
 namespace grl
 {
@@ -77,12 +77,11 @@ class ExpectedSARSAPredictor : public Predictor
     Projector *projector_;
     Representation *representation_;
     QPolicy *policy_;
-    Sampler *sampler_;
     Trace *trace_;
 
   public:
     // From Configurable
-    ExpectedSARSAPredictor() : alpha_(0.2), gamma_(0.97), lambda_(0.65), projector_(NULL), representation_(NULL), policy_(NULL), sampler_(NULL), trace_(NULL) { }
+    ExpectedSARSAPredictor() : alpha_(0.2), gamma_(0.97), lambda_(0.65), projector_(NULL), representation_(NULL), policy_(NULL), trace_(NULL) { }
      
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
@@ -101,10 +100,10 @@ class ShapedSARSAPredictor : public SARSAPredictor
     TYPEINFO("predictor/shaped_sarsa", "SARSA predictor with shaping rewards")
 
   protected:
-    Representation *shaping_representation_;
+    Mapping *shaping_function_;
 
   public:
-    ShapedSARSAPredictor() : SARSAPredictor(), shaping_representation_(NULL) { }
+    ShapedSARSAPredictor() : SARSAPredictor(), shaping_function_(NULL) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);

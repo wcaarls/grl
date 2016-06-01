@@ -1,5 +1,5 @@
-/** \file approx_test.h
- * \brief Approximation test header file.
+/** \file multisine.h
+ * \brief Multisine mapping header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
  * \date      2015-01-22
@@ -25,45 +25,44 @@
  * \endverbatim
  */
 
-#ifndef GRL_APPROX_TEST_EXPERIMENT_H_
-#define GRL_APPROX_TEST_EXPERIMENT_H_
+#ifndef GRL_MULTISINE_MAPPING_H_
+#define GRL_MULTISINE_MAPPING_H_
 
-#include <grl/projector.h>
-#include <grl/representation.h>
 #include <grl/mapping.h>
-#include <grl/experiment.h>
 
 namespace grl
 {
 
-/// Approximation test experiment (supervised learning).
-class ApproxTestExperiment : public Experiment
+/// Sum of sines, used for testing.
+class MultisineMapping : public Mapping
 {
   public:
-    TYPEINFO("experiment/approx_test", "Approximator test experiment (supervised learning)")
-
-  protected:
-    Projector *projector_;
-    Representation *representation_;
-    Mapping *mapping_;
+    TYPEINFO("mapping/multisine", "Sum of sines mapping")
     
-    Vector min_, max_;
-    size_t outputs_, train_samples_, test_samples_;
-    std::string file_;
+  protected:
+    size_t outputs_, sines_, inputs_;
+    
+    Vector params_;
 
   public:
-    ApproxTestExperiment() : projector_(NULL), representation_(NULL), mapping_(NULL), outputs_(1), train_samples_(1000), test_samples_(1000) { }
+    MultisineMapping() : outputs_(1), sines_(1), inputs_(1) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
-
-    // From Experiment
-    virtual ApproxTestExperiment *clone() const;
-    virtual void run();
+  
+    // From Mapping
+    virtual MultisineMapping *clone() const;
+    virtual double read(const Vector &in, Vector *result) const ;
+    
+  protected:
+    inline size_t p(size_t oo, size_t ss, size_t ii, size_t pp) const
+    {
+      return oo*(sines_*(1 + 2*inputs_)) + ss*(1 + 2*inputs_) + ii*2 + pp;
+    }
 };
 
 }
 
-#endif /* GRL_APPROX_TEST_EXPERIMENT_H_ */
+#endif /* GRL_MULTISINE_MAPPING_H_ */

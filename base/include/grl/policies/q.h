@@ -63,6 +63,10 @@ class QPolicy : public Policy
     virtual QPolicy *clone() const;
     virtual void act(const Vector &in, Vector *out) const;
     
+    /// Returns the expected value of the action taken in state 'in'
+    virtual double value(const Vector &in) const;
+    
+  protected:
     virtual void values(const Vector &in, Vector *out) const;
 };
 

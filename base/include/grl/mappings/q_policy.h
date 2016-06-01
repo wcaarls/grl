@@ -1,11 +1,11 @@
-/** \file multisine.h
- * \brief Multisine mapping header file.
+/** \file mapping.h
+ * \brief Q-policy mapping definition.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-01-22
+ * \date      2016-06-01
  *
  * \copyright \verbatim
- * Copyright (c) 2015, Wouter Caarls
+ * Copyright (c) 2016, Wouter Caarls
  * All rights reserved.
  *
  * This file is part of GRL, the Generic Reinforcement Learning library.
@@ -25,44 +25,38 @@
  * \endverbatim
  */
 
-#ifndef GRL_MULTISINE_MAPPING_H_
-#define GRL_MULTISINE_MAPPING_H_
+#ifndef GRL_Q_POLICY_MAPPING_H_
+#define GRL_Q_POLICY_MAPPING_H_
 
-#include <grl/representation.h>
+#include <grl/mapping.h>
+#include <grl/policies/q.h>
 
 namespace grl
 {
 
-/// Sum of sines, used for testing.
-class MultisineMapping : public Mapping
+class QPolicyMapping : public Mapping
 {
   public:
-    TYPEINFO("mapping/multisine", "Sum of sines mapping")
-    
-  protected:
-    size_t outputs_, sines_, inputs_;
-    
-    Vector params_;
+    TYPEINFO("mapping/q_policy", "Mapping that returns the value of a q-policy")
 
+  protected:
+    QPolicy *policy_;
+  
   public:
-    MultisineMapping() : outputs_(1), sines_(1), inputs_(1) { }
+    QPolicyMapping() : policy_(NULL)
+    {
+    }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
-  
+
     // From Mapping
-    virtual MultisineMapping *clone() const;
-    virtual double read(const ProjectionPtr &projection, Vector *result) const ;
-    
-  protected:
-    inline size_t p(size_t oo, size_t ss, size_t ii, size_t pp) const
-    {
-      return oo*(sines_*(1 + 2*inputs_)) + ss*(1 + 2*inputs_) + ii*2 + pp;
-    }
+    virtual QPolicyMapping *clone() const;
+    virtual double read(const Vector &in, Vector *result) const;
 };
 
 }
 
-#endif /* GRL_MULTISINE_MAPPING_H_ */
+#endif /* GRL_Q_POLICY_MAPPING_H_ */
