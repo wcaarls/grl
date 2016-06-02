@@ -41,9 +41,10 @@ class AdditiveRepresentation : public Representation
 
   protected:
     Representation* representation1_, *representation2_;
+    int learning_;
     
   public:
-    AdditiveRepresentation() : representation1_(NULL), representation2_(NULL)
+    AdditiveRepresentation() : representation1_(NULL), representation2_(NULL), learning_(0)
     {
     }
     

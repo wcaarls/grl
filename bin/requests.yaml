@@ -496,6 +496,28 @@ environment/pre/noise:
     mutability: configuration
     default: "[ 0 ]"
     optional: 1
+environment/pre/shaping:
+  description: Adds reward shaping to an environment
+  environment:
+    type: environment
+    description: Environment to inject noise into
+    mutability: configuration
+    default: 0
+    optional: 0
+  shaping_function:
+    type: mapping
+    description: Potential function over states
+    mutability: configuration
+    default: 0
+    optional: 0
+  gamma:
+    type: double
+    description: Discount factor
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 0
+    max: 1
 environment/sandbox:
   description: Non-Markov environment
   model:
@@ -2261,68 +2283,6 @@ predictor/sarsa:
     mutability: configuration
     default: 0
     optional: 0
-predictor/shaped_sarsa:
-  description: SARSA predictor with shaping rewards
-  importer:
-    type: importer
-    description: Optional importer for pre-training
-    mutability: configuration
-    default: 0
-    optional: 1
-  exporter:
-    type: exporter
-    description: Optional exporter for transition log (supports observation, action, reward, next_observation, next_action)
-    mutability: configuration
-    default: 0
-    optional: 1
-  alpha:
-    type: double
-    description: Learning rate
-    mutability: configuration
-    default: 0.2
-    optional: 1
-    min: 0
-    max: 1
-  gamma:
-    type: double
-    description: Discount rate
-    mutability: configuration
-    default: 0.97
-    optional: 1
-    min: 0
-    max: 1
-  lambda:
-    type: double
-    description: Trace decay rate
-    mutability: configuration
-    default: 0.65
-    optional: 1
-    min: 0
-    max: 1
-  projector:
-    type: projector.pair
-    description: Projects observation-action pairs onto representation space
-    mutability: configuration
-    default: 0
-    optional: 0
-  representation:
-    type: representation.value/action
-    description: Q-value representation
-    mutability: configuration
-    default: 0
-    optional: 0
-  trace:
-    type: trace
-    description: Trace of projections
-    mutability: configuration
-    default: 0
-    optional: 0
-  shaping_function:
-    type: mapping
-    description: Potential function over states
-    mutability: configuration
-    default: 0
-    optional: 0
 predictor/td:
   description: TD value function predictor
   importer:
@@ -2660,6 +2620,14 @@ representation/additive:
     mutability: configuration
     default: 0
     optional: 0
+  learning:
+    type: int
+    description: Which representation to learn (0=both)
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 2
 representation/llr:
   description: Performs locally linear regression through samples
   ridge:
@@ -4603,6 +4571,14 @@ representation/additive.transition:
     mutability: configuration
     default: 0
     optional: 0
+  learning:
+    type: int
+    description: Which representation to learn (0=both)
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 2
 representation/llr.transition:
   description: Performs locally linear regression through samples
   ridge:
@@ -5036,6 +5012,14 @@ representation/additive.action:
     mutability: configuration
     default: 0
     optional: 0
+  learning:
+    type: int
+    description: Which representation to learn (0=both)
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 2
 representation/llr.action:
   description: Performs locally linear regression through samples
   ridge:
@@ -5262,6 +5246,14 @@ representation/additive.value/action:
     mutability: configuration
     default: 0
     optional: 0
+  learning:
+    type: int
+    description: Which representation to learn (0=both)
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 2
 representation/llr.value/action:
   description: Performs locally linear regression through samples
   ridge:
@@ -5428,6 +5420,14 @@ representation/additive.value/state:
     mutability: configuration
     default: 0
     optional: 0
+  learning:
+    type: int
+    description: Which representation to learn (0=both)
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 2
 representation/llr.value/state:
   description: Performs locally linear regression through samples
   ridge:

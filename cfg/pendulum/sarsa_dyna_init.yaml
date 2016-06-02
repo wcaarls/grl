@@ -53,27 +53,19 @@ experiment:
           outputs: 1
           output_min: []
           output_max: []
+        learning: 2
       sampler: 
         type: sampler/epsilon_greedy
         epsilon: 0.05
     predictor: 
-      type: predictor/shaped_sarsa
+      type: predictor/sarsa
       alpha: 0.2
       gamma: 0.97
       lambda: 0.65
       projector: experiment/agent/policy/projector
-      representation: experiment/agent/policy/representation/representation2
+      representation: experiment/agent/policy/representation
       trace: 
         type: trace/enumerated/replacing
-      shaping_function: 
-        type: mapping/q_policy
-        policy: 
-          type: policy/discrete/q
-          discretizer: experiment/agent/policy/discretizer
-          projector: experiment/agent/policy/projector
-          representation: experiment/agent/policy/representation/representation1
-          sampler: 
-            type: sampler/greedy
     model: 
       type: observation_model/approximated
       jacobian_step: 0.001

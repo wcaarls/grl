@@ -31,7 +31,6 @@ using namespace grl;
 
 REGISTER_CONFIGURABLE(SARSAPredictor)
 REGISTER_CONFIGURABLE(ExpectedSARSAPredictor)
-REGISTER_CONFIGURABLE(ShapedSARSAPredictor)
 
 void SARSAPredictor::request(ConfigurationRequest *config)
 {
@@ -174,64 +173,4 @@ void ExpectedSARSAPredictor::finalize()
   Predictor::finalize();
   
   trace_->clear();
-}
-
-void ShapedSARSAPredictor::request(ConfigurationRequest *config)
-{
-  SARSAPredictor::request(config);
-  
-  config->push_back(CRP("shaping_function", "mapping", "Potential function over states", shaping_function_));
-}
-
-void ShapedSARSAPredictor::configure(Configuration &config)
-{
-  SARSAPredictor::configure(config);
-  
-  shaping_function_ = (Mapping*)config["shaping_function"].ptr();
-}
-
-void ShapedSARSAPredictor::reconfigure(const Configuration &config)
-{
-  SARSAPredictor::reconfigure(config);
-}
-
-ShapedSARSAPredictor *ShapedSARSAPredictor::clone() const
-{
-  return NULL;
-}
-
-void ShapedSARSAPredictor::update(const Transition &transition)
-{
-  Predictor::update(transition);
-
-  ProjectionPtr p = projector_->project(transition.prev_obs, transition.prev_action);
-  
-  Vector q;
-
-  double target = transition.reward;
-  if (transition.action.size())
-  {
-    ProjectionPtr pp = projector_->project(transition.obs, transition.action);
-  
-    // Shaping
-    Vector v;
-    target += gamma_*shaping_function_->read(transition.obs, &v) - shaping_function_->read(transition.prev_obs, &v);
-    
-    // Recursion
-    target += gamma_*representation_->read(pp, &q);
-  }
-  double delta = target - representation_->read(p, &q);
-
-  representation_->write(p, VectorConstructor(target), alpha_);
-
-  // TODO: recently added point is not in trace
-  representation_->update(*trace_, VectorConstructor(alpha_*delta), gamma_*lambda_);
-  trace_->add(p, gamma_*lambda_);
-  
-  representation_->finalize();
-}
-
-void ShapedSARSAPredictor::finalize()
-{
-  SARSAPredictor::finalize();
 }

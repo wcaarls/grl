@@ -93,29 +93,6 @@ class ExpectedSARSAPredictor : public Predictor
     virtual void finalize();
 };
 
-/// SARSA value function predictor with shaping rewards.
-class ShapedSARSAPredictor : public SARSAPredictor
-{
-  public:
-    TYPEINFO("predictor/shaped_sarsa", "SARSA predictor with shaping rewards")
-
-  protected:
-    Mapping *shaping_function_;
-
-  public:
-    ShapedSARSAPredictor() : SARSAPredictor(), shaping_function_(NULL) { }
-  
-    // From Configurable
-    virtual void request(ConfigurationRequest *config);
-    virtual void configure(Configuration &config);
-    virtual void reconfigure(const Configuration &config);
-    
-    // From Predictor
-    virtual ShapedSARSAPredictor *clone() const;
-    virtual void update(const Transition &transition);
-    virtual void finalize();
-};
-
 }
 
 #endif /* GRL_SARSA_PREDICTOR_H_ */

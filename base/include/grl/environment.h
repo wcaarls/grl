@@ -32,6 +32,7 @@
 #include <grl/state.h>
 #include <grl/policy.h>
 #include <grl/exporter.h>
+#include <grl/mapping.h>
 
 namespace grl
 {
@@ -273,6 +274,37 @@ class NoiseEnvironment : public Environment
     virtual NoiseEnvironment *clone() const;
     virtual void start(int test, Vector *obs);
     virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal);
+};
+
+/// Environment modifier that adds reward shaping.
+class ShapingEnvironment : public Environment
+{
+  public:
+    TYPEINFO("environment/pre/shaping", "Adds reward shaping to an environment")
+
+  public:
+    Environment *environment_;
+    Mapping *shaping_function_;
+    double gamma_;
+    
+    Vector prev_obs_;
+    double total_reward_;
+
+  public:
+    ShapingEnvironment() : environment_(NULL), shaping_function_(NULL), gamma_(1.), total_reward_(0.)
+    {
+    }
+  
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+    
+    // From Environment
+    virtual ShapingEnvironment *clone() const;
+    virtual void start(int test, Vector *obs);
+    virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal);
+    virtual void report(std::ostream &os);
 };
 
 /// Sequential-access transition model.
