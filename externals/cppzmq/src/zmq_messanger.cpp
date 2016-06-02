@@ -1,6 +1,5 @@
 #include <zmq_messanger.h>
 #include <iostream>
-#include <unistd.h>
 
 void ZeromqMessanger::init(const char* pub, const char* sub, const char* sync, int flags)
 {
@@ -14,6 +13,8 @@ void ZeromqMessanger::init(const char* pub, const char* sub, const char* sync, i
   // Prepare ZMQ subscriber
   subscriber_ = new zmq::socket_t(*this->context_, ZMQ_SUB);
   subscriber_->connect(sub);
+  int confl = 1;
+  subscriber_->setsockopt(ZMQ_CONFLATE, &confl, sizeof(confl)); // Keep only last message
   subscriber_->setsockopt(ZMQ_SUBSCRIBE, "", 0);
 
   if (flags & ZMQ_SYNC_PUB)

@@ -227,9 +227,8 @@ void LeoEnvironment::configure(Configuration &config)
   ode_action_.resize(ode_action_dims_);
 
   // Zeromq
-//  zmq_.init("tcp://*:5561", "tcp://192.168.2.210:5562"); // wifi
-  zmq_.init("tcp://*:5561", "tcp://192.168.2.210:5562", "tcp://192.168.2.210:5560", ZMQ_SYNC_SUB); // wifi
-  //zmq_.init("tcp://*:5561", "tcp://192.168.1.10:5562"); // ethernet
+//  zmq_.init("tcp://*:5561", "tcp://192.168.2.210:5562", "tcp://192.168.2.210:5560", ZMQ_SYNC_SUB); // wifi
+  zmq_.init("tcp://*:5561",  "tcp://192.168.1.10:5562",  "tcp://192.168.1.10:5560", ZMQ_SYNC_SUB); // ethernet
 }
 
 void LeoEnvironment::reconfigure(const Configuration &config)
