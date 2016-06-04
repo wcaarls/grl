@@ -13,8 +13,7 @@ double CLeoBhSquat::calculateReward()
 /////////////////////////////////
 
 LeoSquatEnvironment::LeoSquatEnvironment() :
-  requested_action_dims_(CLeoBhBase::svNumActions),
-  learn_stance_knee_(0)
+  requested_action_dims_(CLeoBhBase::svNumActions)
 {
   bh_ = new CLeoBhSquat(&leoSim_);
 }
@@ -22,7 +21,6 @@ LeoSquatEnvironment::LeoSquatEnvironment() :
 void LeoSquatEnvironment::request(ConfigurationRequest *config)
 {
   LeoBaseEnvironment::request(config);
-  config->push_back(CRP("learn_stance_knee", "Learn stance knee", learn_stance_knee_, CRP::Configuration, 0, 1));
 }
 
 void LeoSquatEnvironment::configure(Configuration &config)
@@ -66,34 +64,8 @@ double LeoSquatEnvironment::step(const Vector &action, Vector *obs, double *rewa
 
   bh_->setCurrentSTGState(&leoState_);
 
-  // auto actuate unlearned joints to find complete action vector
-  double actionArm, actionStanceKnee, actionSwingKnee, actionStanceHip, actionSwingHip;
-  actionStanceHip = action[0];
-  actionSwingHip  = action[1];
-  if (!learn_stance_knee_)
-  {
-    // Auto actuation of the stance knee
-    actionStanceKnee = bh_->grlAutoActuateKnee();
-    actionSwingKnee  = action[2];
-  }
-  else
-  {
-    // Learn both actions
-    actionStanceKnee = action[2];
-    actionSwingKnee  = action[3];
-  }
-  Vector actionAnkles;
-  bh_->grlAutoActuateAnkles(actionAnkles);
-  actionArm = bh_->grlAutoActuateArm();
-
-  // concatenation happens in the order of <actionvar> definitions in an xml file
-  // shoulder, right hip, left hip, right knee, left knee, right ankle, left ankle
-  if (bh_->stanceLegLeft())
-    target_action_ << actionArm, actionSwingHip, actionStanceHip, actionSwingKnee, actionStanceKnee, actionAnkles;
-  else
-    target_action_ << actionArm, actionStanceHip, actionSwingHip, actionStanceKnee, actionSwingKnee, actionAnkles;
-
-  //ode_action_ << ConstantVector(7, 5.0); // #ivan
+  double actionArm = bh_->grlAutoActuateArm();
+  target_action_ << actionArm, action[0], action[0], action[1], action[1], action[2], action[2];
 
   bh_->setPreviousSTGState(&leoState_);
   double tau = target_env_->step(target_action_, &target_obs_, reward, terminal);
@@ -126,38 +98,28 @@ double LeoSquatEnvironment::step(const Vector &action, Vector *obs, double *rewa
 
 void LeoSquatEnvironment::config_parse_actions(Configuration &config)
 {
-  std::vector<int> knee_idx;
-  std::string knee = std::string("knee");
-  int omit_knee_idx = -1;
   std::string actuate = config["actuate"].str();
   std::vector<std::string> actuateList = cutLongStr(actuate);
-  fillActuate(ode_->getActuators(), actuateList, actuate_, &knee, &knee_idx);
+  fillActuate(ode_->getActuators(), actuateList, actuate_);
+  action_dims_ = (actuate_.array() != 0).count();
   if (actuate_.size() != target_action_dims_)
-    throw bad_param("leosim/walk:actuate");
-  if (knee_idx.size() == 0)
-    throw bad_param("leosim/walk:knee");
-  requested_action_dims_ = (actuate_.array() != 0).count();
-  if (learn_stance_knee_)
-    action_dims_ = requested_action_dims_;
-  else
-  {
-    if (knee_idx.size() != 2)
-      throw bad_param("leosim/walk:actuate (if any of knees is learnt, then always include both knees)");
-    action_dims_ = requested_action_dims_ - 1;
-    omit_knee_idx = knee_idx[1];
-  }
+    throw bad_param("leo/squat:actuate");
+  if (action_dims_ % 2 != 0)
+    throw bad_param("leo/squat:odd number of actions");
+
+  action_dims_ /= 2; // exploit symmetry of Leo legs
 
   // mask observation min/max vectors
-  Vector ode_action_min, ode_action_max, action_min, action_max;
-  config.get("action_min", ode_action_min);
-  config.get("action_max", ode_action_max);
+  Vector target_action_min, target_action_max, action_min, action_max;
+  config.get("action_min", target_action_min);
+  config.get("action_max", target_action_max);
   action_min.resize(action_dims_);
   action_max.resize(action_dims_);
   for (int i = 0, j = 0; i < actuate_.size(); i++)
-    if (actuate_[i] && i != omit_knee_idx)
+    if (actuate_[i])
     {
-      action_min[j]   = ode_action_min[i];
-      action_max[j++] = ode_action_max[i];
+      action_min[j]   = target_action_min[i];
+      action_max[j++] = target_action_max[i];
     }
 
   config.set("action_dims", action_dims_);

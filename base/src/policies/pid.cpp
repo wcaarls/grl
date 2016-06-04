@@ -157,7 +157,7 @@ TransitionType PIDPolicy::act(double time, const Vector &in, Vector *out)
 void PIDTrajectoryPolicy::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("policy", "policy", "Control policy", trajectory_));
-  config->push_back(CRP("inputs", "int.state_dims", "Number of inputs", (int)inputs_, CRP::System, 1));
+  config->push_back(CRP("inputs", "int.observation_dims", "Number of inputs", (int)inputs_, CRP::System, 1));
   config->push_back(CRP("outputs", "int.action_dims", "Number of outputs", (int)outputs_, CRP::System, 1));
 
   config->push_back(CRP("p", "P gains ([in1_out1, ..., in1_outN, ..., inN_out1, ..., inN_outN])", p_, CRP::Online));

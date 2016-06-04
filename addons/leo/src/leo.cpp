@@ -259,16 +259,16 @@ void LeoBaseEnvironment::config_parse_actions(Configuration &config)
   action_dims_ = (actuate_.array() != 0).count();
 
   // mask observation min/max vectors
-  Vector ode_action_min, ode_action_max, action_min, action_max;
-  config.get("action_min", ode_action_min);
-  config.get("action_max", ode_action_max);
+  Vector target_action_min, target_action_max, action_min, action_max;
+  config.get("action_min", target_action_min);
+  config.get("action_max", target_action_max);
   action_min.resize(action_dims_);
   action_max.resize(action_dims_);
   for (int i = 0, j = 0; i < actuate_.size(); i++)
     if (actuate_[i])
     {
-      action_min[j]   = ode_action_min[i];
-      action_max[j++] = ode_action_max[i];
+      action_min[j]   = target_action_min[i];
+      action_max[j++] = target_action_max[i];
     }
 
   config.set("action_dims", action_dims_);

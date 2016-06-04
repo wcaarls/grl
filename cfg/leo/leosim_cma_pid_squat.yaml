@@ -7,12 +7,35 @@ experiment:
   test_interval: 10
   environment: 
     type: environment/leo_squat
-    observe: Comma-separated list of state elements observed by an agent
-    actuate: Comma-separated list of action elements provided by an agent
-    observation_dims: 0
-    action_dims: 0
-    learn_stance_knee: 0
-  agent: agent/black_box
+    xml: /home/ivan/work/Project/Software/grl/src/grl/addons/leo/cfg/leolearnwalking-sarsa-tc.xml
+    target_env: 
+      type: environment/ode
+      xml: experiment/environment/xml
+      visualize: 1
+    observe: torso_boom, hipright, hipleft, kneeright, kneeleft
+    actuate: hipright, hipleft, kneeright, kneeleft, ankleright, ankleleft
+    observation_dims: experiment/environment/target_env/observation_dims
+    action_dims: experiment/environment/target_env/action_dims
+  agent: 
+    type: agent/black_box
+    episodes: 10
+    optimizer: 
+      type: optimizer/cma
+      population: 0
+      sigma: [1]
+      policy: 
+        type: policy/parameterized/pidt
+        policy: 
+          type: policy/feed_forward
+          action_dims: 1
+          time_control: []
+          input: /home/ivan/work/Project/Software/grl/src/grl/addons/leo/csv/squating.csv
+        inputs: experiment/environment/observation_dims
+        outputs: experiment/environment/action_dims
+        p: []
+        i: []
+        d: []
+        il: []
   test_agent: 
     type: agent/fixed
     policy: experiment/agent/optimizer/policy

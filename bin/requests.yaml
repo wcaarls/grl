@@ -1,3 +1,19 @@
+agent/black_box:
+  description: Agent that learns from the cumulative reward of complete rollouts
+  episodes:
+    type: int
+    description: Number of episodes to evaluate policy
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 1
+    max: 2147483647
+  optimizer:
+    type: optimizer
+    description: Policy optimizer
+    mutability: configuration
+    default: 0
+    optional: 0
 agent/fixed:
   description: Fixed-policy agent
   policy:
@@ -45,6 +61,34 @@ agent/master/sequential:
   agent2:
     type: agent
     description: Second subagent, providing the final action
+    mutability: configuration
+    default: 0
+    optional: 0
+agent/solver:
+  description: Agent that successively solves learned models of the environment
+  interval:
+    type: int
+    description: Episodes between successive solutions (0=asynchronous)
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 1
+    max: 2147483647
+  policy:
+    type: policy
+    description: Control policy
+    mutability: configuration
+    default: 0
+    optional: 0
+  predictor:
+    type: predictor
+    description: Optional (model) predictor
+    mutability: configuration
+    default: 0
+    optional: 1
+  solver:
+    type: solver
+    description: Model-based solver
     mutability: configuration
     default: 0
     optional: 0
@@ -230,14 +274,6 @@ environment/leo_squat:
     optional: 1
     min: 0
     max: 2147483647
-  learn_stance_knee:
-    type: int
-    description: Learn stance knee
-    mutability: configuration
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
 environment/leo_walk:
   description: Leo walking environment
   xml:
@@ -1304,10 +1340,10 @@ policy/parameterized/pidt:
     default: 0x70203a656c626172
     optional: 0
   inputs:
-    type: int.state_dims
+    type: int.observation_dims
     description: Number of inputs
     mutability: system
-    default: 795108730
+    default: 1
     optional: 1
     min: 1
     max: 2147483647
