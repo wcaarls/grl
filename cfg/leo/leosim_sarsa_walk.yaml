@@ -5,13 +5,18 @@ experiment:
   steps: 1000000
   rate: 0
   test_interval: 10
-  output: leo_sarsa_walk
+  output: leosim_sarsa_walk
   environment: 
-    type: environment/leosim
-    xml: leolearnwalking-sarsa-tc.xml
-    visualize: 1
+    type: environment/leo_walk
+    xml: /home/ivan/work/Project/Software/grl/src/grl/addons/leo/cfg/leolearnwalking-sarsa-tc.xml
+    target_env: 
+      type: environment/ode
+      xml: experiment/environment/xml
+      visualize: 1
     observe: torso_boom, hipright, hipleft, kneeright, kneeleft
     actuate: hipright, hipleft, kneeright, kneeleft
+    observation_dims: experiment/environment/target_env/observation_dims
+    action_dims: experiment/environment/target_env/action_dims
     learn_stance_knee: 0
   agent:
     type: agent/td
@@ -25,7 +30,7 @@ experiment:
       projector: 
         type: projector/tile_coding
         tilings: 16
-        memory: 8388608
+        memory: 25165824
         resolution: [0.14, 5, 0.28, 10, 0.28, 10, 0.28, 10, 0.28, 10, 6.67, 6.67, 6.67]
         wrapping: []
       representation: 

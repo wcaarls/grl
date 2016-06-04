@@ -8,18 +8,15 @@ experiment:
   output: leosim_ff_walk
   environment: 
     type: environment/leo_walk
-    xml: leolearnwalking-sarsa-tc.xml
-    visualize: 0
+    xml: /home/ivan/work/Project/Software/grl/src/grl/addons/leo/cfg/leolearnwalking-sarsa-tc.xml
     target_env: 
-      type: environment/communicator
-      communicator: 
-        type: communicator/zeromq
-        pub: tcp://*:5561
-        sub: tcp://192.168.1.10:5562
-        event: tcp://192.168.1.10:5560
-        event_mode: ZMQ_SYNC_SUB
+      type: environment/ode
+      xml: experiment/environment/xml
+      visualize: 1
     observe: torso_boom, hipright, hipleft, kneeright, kneeleft
     actuate: hipright, hipleft, kneeright, kneeleft
+    observation_dims: experiment/environment/target_env/observation_dims
+    action_dims: experiment/environment/target_env/action_dims
     learn_stance_knee: 0
   agent: 
     type: agent/fixed

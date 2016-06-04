@@ -13,7 +13,7 @@ if (ZMQ_LIB)
 
   # Make library
   add_library(${TARGET} SHARED
-              ${SRC}/zmq_messanger.cpp
+              ${SRC}/zmq_messenger.cpp
              )
 
   target_link_libraries(${TARGET} ${ZMQ_LIB})

@@ -1,15 +1,9 @@
 #include <XMLConfiguration.h>
-
 #include <grl/environments/leo/leo.h>
-#include <ctime>
-#include <ratio>
-#include <chrono>
 
 using namespace grl;
 
-REGISTER_CONFIGURABLE(LeoEnvironment)
-
-void CGrlLeoBhWalkSym::resetState()
+void CLeoBhBase::resetState()
 {
   mIsObserving          = false;
   mLastRewardedFoot     = lpFootLeft;
@@ -29,7 +23,7 @@ void CGrlLeoBhWalkSym::resetState()
   mJointSpeedFilter[ljTorso].init(mTotalStepTime, 25.0);	// 25Hz because? : 1) this encoder has 8x the resolution of a dynamixel 2) torso angles/velocities are more important
 }
 
-void CGrlLeoBhWalkSym::fillLeoState(const Vector &obs, const Vector &action, CLeoState &leoState)
+void CLeoBhBase::fillLeoState(const Vector &obs, const Vector &action, CLeoState &leoState)
 {
   // '-' required to match with Erik's code, but does not matter for learning.
   // Erik used a rotation matrix which was rotating a unit vector. For torso it seems
@@ -69,7 +63,7 @@ void CGrlLeoBhWalkSym::fillLeoState(const Vector &obs, const Vector &action, CLe
   }
 }
 
-void CGrlLeoBhWalkSym::parseLeoState(const CLeoState &leoState, Vector &obs)
+void CLeoBhBase::parseLeoState(const CLeoState &leoState, Vector &obs)
 {
   obs[siTorsoAngle]           = leoState.mJointAngles[ljTorso];
   obs[siTorsoAngleRate]       = leoState.mJointSpeeds[ljTorso];
@@ -83,69 +77,67 @@ void CGrlLeoBhWalkSym::parseLeoState(const CLeoState &leoState, Vector &obs)
   obs[siKneeSwingAngleRate]   = leoState.mJointSpeeds[mKneeSwing];
 }
 
-void CGrlLeoBhWalkSym::setCurrentSTGState(CLeoState *leoState)
+void CLeoBhBase::setCurrentSTGState(CLeoState *leoState)
 {
   mCurrentSTGState = leoState;
 }
 
-void CGrlLeoBhWalkSym::setPreviousSTGState(CLeoState *leoState)
+void CLeoBhBase::setPreviousSTGState(CLeoState *leoState)
 {
   mPreviousSTGState = *leoState;
 }
 
-void CGrlLeoBhWalkSym::updateDerivedStateVars(CLeoState* currentSTGState)
+void CLeoBhBase::updateDerivedStateVars(CLeoState* currentSTGState)
 {
   CLeoBhWalkSym::updateDerivedStateVars(currentSTGState);
 }
 
 /////////////////////////////////
 
-LeoEnvironment::LeoEnvironment() :
-  bhWalk_(&leoSim_),
-  observation_dims_(CGrlLeoBhWalkSym::svNumStates),
-  requested_action_dims_(CGrlLeoBhWalkSym::svNumActions),
-  learn_stance_knee_(0),
+LeoBaseEnvironment::LeoBaseEnvironment() :
+  target_env_(NULL),
+  observation_dims_(CLeoBhBase::svNumStates),
   time_test_(0),
   time_learn_(0),
   time0_(0),
   test_(0),
-  tau_(1.0/30),
   exporter_(NULL)
 {
 }
 
-void LeoEnvironment::request(ConfigurationRequest *config)
+void LeoBaseEnvironment::request(ConfigurationRequest *config)
 {
-  ODEEnvironment::request(config);
-
-  config->push_back(CRP("observe", "string.observe_", "Comma-separated list of state elements observed by an agent"));
-  config->push_back(CRP("actuate", "string.actuate_", "Comma-separated list of action elements provided by an agent"));
-  config->push_back(CRP("learn_stance_knee", "Learn stance knee", learn_stance_knee_, CRP::Configuration, 0, 1));
+  config->push_back(CRP("xml", "XML configuration filename", xml_));
+  config->push_back(CRP("target_env", "environment", "Interaction environment", target_env_));
+  config->push_back(CRP("observe", "string.observe", "Comma-separated list of state elements observed by an agent"));
+  config->push_back(CRP("actuate", "string.actuate", "Comma-separated list of action elements provided by an agent"));
   config->push_back(CRP("exporter", "exporter", "Optional exporter for transition log (supports time, state, observation, action, reward, terminal)", exporter_, true));
+
+  config->push_back(CRP("observation_dims", "int.observation_dims", "Number of observation dimensions", target_observation_dims_));
+  config->push_back(CRP("action_dims", "int.action_dims", "Number of action dimensions", target_action_dims_));
 }
 
-void LeoEnvironment::configure(Configuration &config)
+void LeoBaseEnvironment::configure(Configuration &config)
 {
   // Setup path to a configuration file
-  std::string xml = std::string(LEO_CONFIG_DIR) + "/" + config["xml"].str();
-  config.set("xml", xml);
+  //xml_ = std::string(LEO_CONFIG_DIR) + "/" + config["xml"].str();
+  xml_ = config["xml"].str();
+  std::cout << xml_ << std::endl;
 
-  // Read yaml first. Settings will be overwritten by ODEEnvironment::configure,
-  // which are different because they belong to ODE simulator.
-  ODEEnvironment::configure(config);
-  ode_observation_dims_ = config["observation_dims"];
-  ode_action_dims_ = config["action_dims"];
-  learn_stance_knee_ = config["learn_stance_knee"];
+  target_env_ = (Environment*)config["target_env"].ptr(); // here we can select an actual Leo enviromnent (simulation/real)
+
+  target_observation_dims_ = config["observation_dims"];
+  target_action_dims_ = config["action_dims"];
 
   exporter_ = (Exporter*) config["exporter"].ptr();
   if (exporter_)
     exporter_->init({"time", "state0", "state1", "action", "reward", "terminal"});
 
-  // Process configuration for leosim
+  // Process configuration of Leo
   CXMLConfiguration xmlConfig;
-  if (!xmlConfig.loadFile(xml))
+  if (!xmlConfig.loadFile(xml_))
   {
-    ERROR("Couldn't load XML configuration file \"" << xml << "\"!\nPlease check that the file exists and that it is sound (error: " << xmlConfig.errorStr() << ").");
+    ERROR("Couldn't load XML configuration file \"" << xml_ << "\"!\nPlease check that the file exists and that it is sound (error: " << xmlConfig.errorStr() << ").");
     return;
   }
 
@@ -153,23 +145,93 @@ void LeoEnvironment::configure(Configuration &config)
   xmlConfig.resolveExpressions();
   
   // Read rewards and preprogrammed angles
-  bhWalk_.readConfig(xmlConfig.root());
+  bh_->readConfig(xmlConfig.root());
 
-  // Read desired control frequency
-  double desiredFrequency;
-  CConfigSection configNode = xmlConfig.root().section("policy");
-  configNode.get("frequency", &desiredFrequency);
-  tau_ = 1/desiredFrequency;
-  INFO("Time step: " << tau_);
+  // Creat ode object which resolves states and actions
+  ode_ = new ODESTGEnvironment();
+  if (!ode_->configure(config))
+  {
+    ERROR("Could not initialize STG ODE environment");
+    return;
+  }
 
-  // Parse observations
+  // reserve memory
+  target_obs_.resize(target_observation_dims_);
+  target_action_.resize(target_action_dims_);
+}
+
+void LeoBaseEnvironment::reconfigure(const Configuration &config)
+{
+  time_test_ = time_learn_ = time0_ = 0;
+}
+
+LeoBaseEnvironment *LeoBaseEnvironment::clone() const
+{
+  return NULL;
+}
+
+void LeoBaseEnvironment::start(int test)
+{
+  test_ = test;
+
+  if (exporter_)
+    exporter_->open((test_?"test":"learn"), (test_?time_test_:time_learn_) != 0.0);
+  time0_ = test_?time_test_:time_learn_;
+}
+
+void LeoBaseEnvironment::step(double tau, double reward, int terminal)
+{
+  double &time = test_?time_test_:time_learn_;
+
+  // Export & debug
+  std::vector<double> s1(leoState_.mJointAngles, leoState_.mJointAngles + ljNumJoints);
+  std::vector<double> v1(leoState_.mJointSpeeds, leoState_.mJointSpeeds + ljNumJoints);
+  std::vector<double> a(leoState_.mActuationVoltages, leoState_.mActuationVoltages + ljNumDynamixels);
+
+  if (exporter_)
+  {
+    std::vector<double> s0(bh_->getPreviousSTGState()->mJointAngles, bh_->getPreviousSTGState()->mJointAngles + ljNumJoints);
+    std::vector<double> v0(bh_->getPreviousSTGState()->mJointSpeeds, bh_->getPreviousSTGState()->mJointSpeeds + ljNumJoints);
+    s0.insert(s0.end(), v0.begin(), v0.end());
+    s1.insert(s1.end(), v1.begin(), v1.end());
+
+    Vector s0v, s1v, av;
+    toVector(s0, s0v);
+    toVector(s1, s1v);
+    toVector(a, av);
+
+    exporter_->write({grl::VectorConstructor(time), s0v,  s1v,
+                      av, grl::VectorConstructor(reward), grl::VectorConstructor(terminal)
+                     });
+  }
+
+  TRACE("State angles: " << s1);
+  TRACE("State velocities: " << v1);
+  TRACE("Contacts: " << (int)leoState_.mFootContacts);
+  TRACE("Full action: " << a);
+  TRACE("Reward: " << reward);
+
+  time += tau;
+}
+
+void LeoBaseEnvironment::report(std::ostream &os)
+{
+  double &time  = test_?time_test_ :time_learn_;
+  os << bh_->getProgressReport(time-time0_);
+}
+
+///////////////////////////////////////////
+/// Helper functions
+///
+void LeoBaseEnvironment::config_parse_observations(Configuration &config)
+{
   std::string observe = config["observe"].str();
   const std::vector<std::string> observeList = cutLongStr(observe);
-  fillObserve(env_->getSensors(), observeList, observe_);
-  if (observe_.size() != ode_observation_dims_)
-    throw bad_param("leo/walk:observe");
+  fillObserve(ode_->getSensors(), observeList, observe_);
+  if (observe_.size() != target_observation_dims_)
+    throw bad_param("leobase:observe");
   observation_dims_ = (observe_.array() != 0).count();
-  
+
   // mask observation min/max vectors
   Vector ode_observation_min, ode_observation_max, observation_min, observation_max;
   config.get("observation_min", ode_observation_min);
@@ -185,25 +247,16 @@ void LeoEnvironment::configure(Configuration &config)
   config.set("observation_dims", observation_dims_);
   config.set("observation_min", observation_min);
   config.set("observation_max", observation_max);
+}
 
-  // Parse actions
-  std::vector<int> knee_idx;
-  int omit_knee_idx = -1;
+void LeoBaseEnvironment::config_parse_actions(Configuration &config)
+{
   std::string actuate = config["actuate"].str();
   std::vector<std::string> actuateList = cutLongStr(actuate);
-  fillActuate(env_->getActuators(), actuateList, actuate_, knee_idx);
-  if (actuate_.size() != ode_action_dims_)
-    throw bad_param("leo/walk:actuate_");
-  requested_action_dims_ = (actuate_.array() != 0).count();
-  if (learn_stance_knee_)
-    action_dims_ = requested_action_dims_;
-  else
-  {
-    if (knee_idx.size() != 2)
-      throw bad_param("leo/walk:actuate_ (if any of knees is learnt, then always include both knees)");
-    action_dims_ = requested_action_dims_ - 1;
-    omit_knee_idx = knee_idx[1];
-  }
+  fillActuate(ode_->getActuators(), actuateList, actuate_);
+  if (actuate_.size() != target_action_dims_)
+    throw bad_param("leobase:actuate");
+  action_dims_ = (actuate_.array() != 0).count();
 
   // mask observation min/max vectors
   Vector ode_action_min, ode_action_max, action_min, action_max;
@@ -212,7 +265,7 @@ void LeoEnvironment::configure(Configuration &config)
   action_min.resize(action_dims_);
   action_max.resize(action_dims_);
   for (int i = 0, j = 0; i < actuate_.size(); i++)
-    if (actuate_[i] && i != omit_knee_idx)
+    if (actuate_[i])
     {
       action_min[j]   = ode_action_min[i];
       action_max[j++] = ode_action_max[i];
@@ -221,183 +274,9 @@ void LeoEnvironment::configure(Configuration &config)
   config.set("action_dims", action_dims_);
   config.set("action_min", action_min);
   config.set("action_max", action_max);
-
-  // reserve memory
-  ode_obs_.resize(ode_observation_dims_);
-  ode_action_.resize(ode_action_dims_);
-
-  // Zeromq
-//  zmq_.init("tcp://*:5561", "tcp://192.168.2.210:5562", "tcp://192.168.2.210:5560", ZMQ_SYNC_SUB); // wifi
-  zmq_.init("tcp://*:5561",  "tcp://192.168.1.10:5562",  "tcp://192.168.1.10:5560", ZMQ_SYNC_SUB); // ethernet
 }
 
-void LeoEnvironment::reconfigure(const Configuration &config)
-{
-  ODEEnvironment::reconfigure(config);
-  time_test_ = time_learn_ = time0_ = 0;
-}
-
-LeoEnvironment *LeoEnvironment::clone()
-{
-  return new LeoEnvironment(*this);
-}
-
-void LeoEnvironment::start(int test, Vector *obs)
-{
-  test_ = test;
-
-  // TODO: obtain current state of Leo
-  //ODEEnvironment::start(test, &ode_obs_);
-  zmq_recv(ode_obs_);
-
-  bhWalk_.resetState();
-
-  // Parse obs into CLeoState (Start with left leg being the stance leg)
-  bhWalk_.fillLeoState(ode_obs_, Vector(), leoState_);
-  bhWalk_.setCurrentSTGState(&leoState_);
-  bhWalk_.setPreviousSTGState(&leoState_);
-
-  // update derived state variables
-  bhWalk_.updateDerivedStateVars(&leoState_); // swing-stance switching happens here
-
-  // construct new obs from CLeoState
-  obs->resize(observation_dims_);
-  bhWalk_.parseLeoState(leoState_, *obs);
-
-  bhWalk_.setCurrentSTGState(NULL);
-
-  if (exporter_)
-    exporter_->open((test_?"test":"learn"), (test_?time_test_:time_learn_) != 0.0);
-  time0_ = test_?time_test_:time_learn_;
-}
-
-double LeoEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)
-{
-/*
-  // Obtain state of the Leo
-  int size = 4;
-  char data[size];
-  bool rc = zmq_.recv(reinterpret_cast<void*>(data), sizeof(data));
-  if (rc)
-  {
-    std::cout << data << std::endl;
-    char state[] = "123";
-    zmq_.send(state, sizeof(state));
-  }
-*/
-  double &time = test_?time_test_:time_learn_;
-  bhWalk_.setCurrentSTGState(&leoState_);
-
-  // auto actuate unlearned joints to find complete action vector
-  double actionArm, actionStanceKnee, actionSwingKnee, actionStanceHip, actionSwingHip;
-  actionStanceHip = action[0];
-  actionSwingHip  = action[1];
-  if (!learn_stance_knee_)
-  {
-    // Auto actuation of the stance knee
-    actionStanceKnee = bhWalk_.grlAutoActuateKnee();
-    actionSwingKnee  = action[2];
-  }
-  else
-  {
-    // Learn both actions
-    actionStanceKnee = action[2];
-    actionSwingKnee  = action[3];
-  }
-  Vector actionAnkles;
-  bhWalk_.grlAutoActuateAnkles(actionAnkles);
-  actionArm = bhWalk_.grlAutoActuateArm();
-
-  // concatenation happens in the order of <actionvar> definitions in an xml file
-  // shoulder, right hip, left hip, right knee, left knee, right ankle, left ankle
-  if (bhWalk_.stanceLegLeft())
-    ode_action_ << actionArm, actionSwingHip, actionStanceHip, actionSwingKnee, actionStanceKnee, actionAnkles;
-  else
-    ode_action_ << actionArm, actionStanceHip, actionSwingHip, actionStanceKnee, actionSwingKnee, actionAnkles;
-
-  //ode_action_ << ConstantVector(7, 5.0); // #ivan
-
-  bhWalk_.setPreviousSTGState(&leoState_);
-
-  // TODO: apply control to Leo
-  // double tau = ODEEnvironment::step(ode_action_, &ode_obs_, reward, terminal);
-  zmq_send(ode_action_);
-  zmq_recv(ode_obs_);
-
-  // Filter joint speeds
-  // Parse obs into CLeoState
-  bhWalk_.fillLeoState(ode_obs_, ode_action_, leoState_);
-  bhWalk_.setCurrentSTGState(&leoState_);
-
-  // update derived state variables
-  bhWalk_.updateDerivedStateVars(&leoState_);
-
-  // construct new obs from CLeoState
-  bhWalk_.parseLeoState(leoState_, *obs);
-
-  // Determine reward
-  *reward = bhWalk_.calculateReward();
-
-  // ... and termination
-  if (*terminal == 1) // timeout
-    *terminal = 1;
-  else if (bhWalk_.isDoomedToFall(&leoState_, false))
-    *terminal = 2;
-  else
-    *terminal = 0;
-
-  // Export & debug
-  std::vector<double> s1(leoState_.mJointAngles, leoState_.mJointAngles + ljNumJoints);
-  std::vector<double> v1(leoState_.mJointSpeeds, leoState_.mJointSpeeds + ljNumJoints);
-  std::vector<double> a(leoState_.mActuationVoltages, leoState_.mActuationVoltages + ljNumDynamixels);
-
-  if (exporter_)
-  {
-    std::vector<double> s0(bhWalk_.getPreviousSTGState()->mJointAngles, bhWalk_.getPreviousSTGState()->mJointAngles + ljNumJoints);
-    std::vector<double> v0(bhWalk_.getPreviousSTGState()->mJointSpeeds, bhWalk_.getPreviousSTGState()->mJointSpeeds + ljNumJoints);
-    s0.insert(s0.end(), v0.begin(), v0.end());
-    s1.insert(s1.end(), v1.begin(), v1.end());
-    
-    Vector s0v, s1v, av;
-    toVector(s0, s0v);
-    toVector(s1, s1v);
-    toVector(a, av);
-
-    exporter_->write({grl::VectorConstructor(time), s0v,  s1v,
-                      av, grl::VectorConstructor(*reward), grl::VectorConstructor(*terminal)
-                     });
-  }
-
-  TRACE("State angles: " << s1);
-  TRACE("State velocities: " << v1);
-  TRACE("Contacts: " << (int)leoState_.mFootContacts);
-  TRACE("RL action: " << action);
-  TRACE("Full action: " << a);
-  TRACE("Reward: " << *reward);
-
-  time += tau_;
-  return tau_;
-}
-
-void LeoEnvironment::report(std::ostream &os)
-{
-  double &time  = test_?time_test_ :time_learn_;
-  os << bhWalk_.getProgressReport(time-time0_);
-}
-
-void LeoEnvironment::zmq_send(const Vector v)
-{
-  zmq_.send(reinterpret_cast<const void*>(v.data()), v.cols()*sizeof(double));
-}
-
-bool LeoEnvironment::zmq_recv(Vector &v)
-{
-  bool rc = zmq_.recv(reinterpret_cast<void*>(v.data()), v.cols()*sizeof(double)); // ZMQ_NOBLOCK
-  std::cout << v << std::endl;
-  return rc;
-}
-
-void LeoEnvironment::fillObserve( const std::vector<CGenericStateVar> &genericStates,
+void LeoBaseEnvironment::fillObserve( const std::vector<CGenericStateVar> &genericStates,
                                      const std::vector<std::string> &observeList,
                                      Vector &out) const
 {
@@ -431,21 +310,22 @@ void LeoEnvironment::fillObserve( const std::vector<CGenericStateVar> &genericSt
     if (!found)
     {
       ERROR("Requested unregistered field '" << *listMember << "'");
-      throw bad_param("leo:observe");
+      throw bad_param("leobase:observe");
     }
   }
 }
 
-void LeoEnvironment::fillActuate(const std::vector<CGenericActionVar> &genericAction,
+void LeoBaseEnvironment::fillActuate(const std::vector<CGenericActionVar> &genericAction,
                                      const std::vector<std::string> &actuateList,
-                                     Vector &out, std::vector<int> &knee_idx) const
+                                     Vector &out,
+                                     const std::string *req,
+                                     std::vector<int>  *reqIdx) const
 {
   out.resize(genericAction.size());
   for (int i = 0; i < out.size(); i++) out[i] = 0;
   std::vector<std::string>::const_iterator listMember = actuateList.begin();
   std::vector<CGenericActionVar>::const_iterator gAction;
   std::string::const_iterator it;
-  std::string knee_str = "knee";
 
   for (; listMember < actuateList.end(); listMember++)
   {
@@ -463,8 +343,9 @@ void LeoEnvironment::fillActuate(const std::vector<CGenericActionVar> &genericAc
         {
           INFO("Adding to the actuation vector: " << name);
           out[i] = 1;
-          if (std::search(listMember->begin(), listMember->end(), knee_str.begin(), knee_str.end()) != listMember->end())
-            knee_idx.push_back(i);
+          if (req != NULL && reqIdx != NULL)
+            if (std::search(listMember->begin(), listMember->end(), req->begin(), req->end()) != listMember->end())
+              reqIdx->push_back(i);
           found = true;
         }
       }
@@ -473,7 +354,7 @@ void LeoEnvironment::fillActuate(const std::vector<CGenericActionVar> &genericAc
     if (!found)
     {
       ERROR("Requested unregistered field '" << *listMember << "'");
-      throw bad_param("leo:actuate");
+      throw bad_param("leosim:actuate");
     }
   }
 }

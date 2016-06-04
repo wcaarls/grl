@@ -9,11 +9,12 @@ using namespace grl;
 ODEDialog::ODEDialog(ODESTGEnvironment *env)
 {
   setupUi(this); // this sets up GUI
-  mGLWidget->init();  // Do not forget to initialize the GLWidget
-  setWindowFlags(Qt::WindowMaximizeButtonHint);
 
   // Set sim
   mGLWidget->setSim(env->getSim()->getSim());
+  mGLWidget->init();  // Do not forget to initialize the GLWidget
+  setWindowFlags(Qt::WindowMaximizeButtonHint);
+
   mGLWidget->dsSetShadows(0);
 
   // signals/slots mechanism

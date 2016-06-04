@@ -6,12 +6,12 @@
 #include <STGLeo.h>
 #include <STGLeoSim.h>
 #include <ThirdOrderButterworth.h>
-#include <zmq_messanger.h>
 
 namespace grl
 {
 
-class CGrlLeoBhWalkSym : public CLeoBhWalkSym
+// Base classes for Leo
+class CLeoBhBase: public CLeoBhWalkSym
 {
   public:
     enum LeoStateVar
@@ -51,7 +51,7 @@ class CGrlLeoBhWalkSym : public CLeoBhWalkSym
     };
 
   public:
-    CGrlLeoBhWalkSym(ISTGActuation *actuationInterface) : CLeoBhWalkSym(actuationInterface) {}
+    CLeoBhBase(ISTGActuation *actuationInterface) : CLeoBhWalkSym(actuationInterface) {}
 
     int getHipStance()   {return mHipStance;}
     int getHipSwing()    {return mHipSwing;}
@@ -92,48 +92,46 @@ class CGrlLeoBhWalkSym : public CLeoBhWalkSym
     CButterworthFilter<1>	mJointSpeedFilter[ljNumJoints];
 };
 
-/// Real Leo
-class LeoEnvironment : public ODEEnvironment
+/// Base class for simulated and real Leo
+class LeoBaseEnvironment: public Environment
 {
   public:
-    TYPEINFO("environment/leo", "Leo real environment")
+    LeoBaseEnvironment();
+    ~LeoBaseEnvironment() {}
 
-  public:
-    LeoEnvironment();
-
+  protected:
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
-    
-    // From ODEEnvironment
-    virtual LeoEnvironment *clone();
-    
+
     // From Environment
-    virtual void start(int test, Vector *obs);
-    virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal);
+    virtual LeoBaseEnvironment *clone() const;
+    virtual void start(int test);
+    virtual void step(double tau, double reward, int terminal);
     virtual void report(std::ostream &os);
     
   protected:
     CSTGLeoSim leoSim_;
     CLeoState leoState_;
-    CGrlLeoBhWalkSym bhWalk_;
-    int observation_dims_, requested_action_dims_, action_dims_;
-    int ode_observation_dims_, ode_action_dims_;
-    int learn_stance_knee_;
-    ZeromqMessanger zmq_;
-    Vector ode_obs_;
+    Environment *target_env_;
+    std::string xml_;
+    ODESTGEnvironment *ode_;
+
+    CLeoBhBase *bh_;
+    int observation_dims_, action_dims_;
+    int target_observation_dims_, target_action_dims_;
+    Vector target_obs_, target_action_;
     Vector observe_, actuate_;
-    Vector ode_action_;
 
     // Exporter
     Exporter *exporter_;
     int test_;
-    double time_test_, time_learn_, time0_, tau_;
+    double time_test_, time_learn_, time0_;
 
   protected:
-    void zmq_send(const Vector v);
-    bool zmq_recv(Vector &v);
+    void config_parse_observations(Configuration &config);
+    void config_parse_actions(Configuration &config);
 
     void fillObserve(const std::vector<CGenericStateVar> &genericStates,
                      const std::vector<std::string> &observeList,
@@ -141,8 +139,9 @@ class LeoEnvironment : public ODEEnvironment
 
     void fillActuate(const std::vector<CGenericActionVar> &genericAction,
                      const std::vector<std::string> &actuateList,
-                     Vector &out, std::vector<int> &knee_idx) const;
-
+                     Vector &out,
+                     const std::string *req = NULL,
+                     std::vector<int>  *reqIdx = NULL) const;
 };
 
 }

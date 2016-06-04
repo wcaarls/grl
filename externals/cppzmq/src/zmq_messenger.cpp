@@ -1,7 +1,7 @@
-#include <zmq_messanger.h>
+#include <zmq_messenger.h>
 #include <iostream>
 
-void ZeromqMessanger::init(const char* pub, const char* sub, const char* sync, int flags)
+void ZeromqMessenger::init(const char* pub, const char* sub, const char* sync, int flags)
 {
   // Prepare our context
   context_ = new zmq::context_t(1);
@@ -61,14 +61,14 @@ void ZeromqMessanger::init(const char* pub, const char* sub, const char* sync, i
   }
 }
 
-void ZeromqMessanger::send(const void* data, int size)
+void ZeromqMessenger::send(const void* data, int size) const
 {
   zmq::message_t message(size);
   memcpy(message.data(), data, size);
   publisher_->send(message);
 }
 
-bool ZeromqMessanger::recv(void *data, int size, int flags)
+bool ZeromqMessenger::recv(void *data, int size, int flags) const
 {
   zmq::message_t update;
   bool received = subscriber_->recv(&update, flags);

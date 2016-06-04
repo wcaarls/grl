@@ -14,19 +14,20 @@ if (PKG_CONFIG_FOUND AND QT4_FOUND)
   pkg_check_modules(ODE ode)
 
   if (TINYXML_FOUND AND MUPARSER_FOUND AND ODE_FOUND)
-    message("-- Building leosim addon")
+    message("-- Building leo addon")
 
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 
     # Build library
     add_library(${TARGET} SHARED
                           ${SRC}/leo.cpp
+                          ${SRC}/leo_walk.cpp
+                          ${SRC}/leo_squat.cpp
                           ${SRC}/LeoBhWalkSym.cpp
                           ${SRC}/STGLeoSim.cpp
-                          ${SRC}/ThirdOrderButterworth.cpp
-                          )
+                          ${SRC}/ThirdOrderButterworth.cpp)
 
-    include_directories(${SRC}/../include/grl/environments/leosim)
+    include_directories(${SRC}/../include/grl/environments/leo)
 
     INCLUDE (${WORKSPACE_DIR}/dbl/platform/io/configuration/configuration.cmake)
     INCLUDE (${WORKSPACE_DIR}/dbl/platform/io/logging/stdlogging.cmake)
@@ -35,11 +36,10 @@ if (PKG_CONFIG_FOUND AND QT4_FOUND)
     add_definitions(-DLEO_CONFIG_DIR="${SRC}/../cfg")
 
     # Add dependencies
-    grl_link_libraries(${TARGET} base addons/odesim externals/cppzmq)
+    grl_link_libraries(${TARGET} base addons/odesim)
     target_link_libraries(${TARGET})
 
     install(TARGETS ${TARGET} DESTINATION ${GRL_LIB_DESTINATION})
     install(DIRECTORY ${SRC}/../include/grl DESTINATION ${GRL_INCLUDE_DESTINATION} FILES_MATCHING PATTERN "*.h")
   endif()
 endif()
-

@@ -5,7 +5,7 @@ set(TARGET grl)
 add_library(${TARGET} SHARED
             ${SRC}/grl.cpp
             ${SRC}/agents/fixed.cpp
-#            ${SRC}/agents/black_box.cpp
+            ${SRC}/agents/black_box.cpp
             ${SRC}/agents/td.cpp
 #            ${SRC}/agents/dyna.cpp
             ${SRC}/agents/exclusive.cpp
@@ -13,7 +13,7 @@ add_library(${TARGET} SHARED
 #            ${SRC}/agents/predicated.cpp
 #            ${SRC}/agents/compartmentalized.cpp
 #            ${SRC}/agents/voluntary.cpp
-#            ${SRC}/agents/solver.cpp
+            ${SRC}/agents/solver.cpp
             ${SRC}/configurable.cpp
             ${SRC}/discretizers/uniform.cpp
             ${SRC}/discretizers/peaked.cpp

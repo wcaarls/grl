@@ -35,6 +35,7 @@
 using namespace grl;
 
 REGISTER_CONFIGURABLE(PIDPolicy)
+REGISTER_CONFIGURABLE(PIDTrajectoryPolicy)
 
 void PIDPolicy::request(ConfigurationRequest *config)
 {
@@ -151,3 +152,124 @@ TransitionType PIDPolicy::act(double time, const Vector &in, Vector *out)
   prev_in_ = in;
   return ttGreedy;
 }
+
+////////////////////////////////////////////////
+void PIDTrajectoryPolicy::request(ConfigurationRequest *config)
+{
+  config->push_back(CRP("policy", "policy", "Control policy", trajectory_));
+  config->push_back(CRP("inputs", "int.state_dims", "Number of inputs", (int)inputs_, CRP::System, 1));
+  config->push_back(CRP("outputs", "int.action_dims", "Number of outputs", (int)outputs_, CRP::System, 1));
+
+  config->push_back(CRP("p", "P gains ([in1_out1, ..., in1_outN, ..., inN_out1, ..., inN_outN])", p_, CRP::Online));
+  config->push_back(CRP("i", "I gains", i_, CRP::Online));
+  config->push_back(CRP("d", "D gains (use P gain on velocity instead, if available)", d_, CRP::Online));
+  config->push_back(CRP("il", "Integration limits", il_, CRP::Online));
+}
+
+void PIDTrajectoryPolicy::configure(Configuration &config)
+{
+  trajectory_ = (Policy*)config["policy"].ptr();
+  inputs_ = config["inputs"];
+  outputs_ = config["outputs"];
+
+  p_ = config["p"].v();
+  if (!p_.size())
+    p_ = ConstantVector(inputs_*outputs_, 0.);
+  if (p_.size() != inputs_*outputs_)
+    throw bad_param("policy/pid:p");
+
+  i_ = config["i"].v();
+  if (!i_.size())
+    i_ = ConstantVector(inputs_*outputs_, 0.);
+  if (i_.size() != inputs_*outputs_)
+    throw bad_param("policy/pid:i");
+
+  d_ = config["d"].v();
+  if (!d_.size())
+    d_ = ConstantVector(inputs_*outputs_, 0.);
+  if (d_.size() != inputs_*outputs_)
+    throw bad_param("policy/pid:d");
+
+  il_ = config["il"].v();
+  if (!il_.size())
+    il_ = ConstantVector(inputs_*outputs_, 0.);
+  if (il_.size() != inputs_*outputs_)
+    throw bad_param("policy/pid:il");
+
+  params_ = extend(extend(extend(p_, i_), d_), il_);
+
+  reset();
+}
+
+void PIDTrajectoryPolicy::reconfigure(const Configuration &config)
+{
+  if (config.has("action") && config["action"].str() == "reset")
+  {
+    ival_ = ConstantVector(inputs_*outputs_, 0.);
+  }
+}
+
+PIDTrajectoryPolicy *PIDTrajectoryPolicy::clone() const
+{
+  return new PIDTrajectoryPolicy(*this);
+}
+
+TransitionType PIDTrajectoryPolicy::act(const Vector &in, Vector *out) const
+{
+  out->resize(outputs_);
+
+  for (size_t oo=0; oo < outputs_; ++oo)
+  {
+    double u = 0;
+
+    for (size_t ii=0; ii < inputs_; ++ii)
+    {
+      double err = setpoint_[ii] - in[ii];
+
+      // Autonomous policy assumes no accumulated errors or differences, but
+      // integration happens before applying the gains.
+      u += (params_[P(ii, oo)]+params_[I(ii, oo)])*err;
+    }
+
+    (*out)[oo] = u;
+  }
+  return ttGreedy;
+}
+
+TransitionType PIDTrajectoryPolicy::act(double time, const Vector &in, Vector *out)
+{
+  // Read a new setpoint from a trajectory
+  trajectory_->act(time, in, &setpoint_);
+
+  if (time == 0.)
+  {
+    // First action in episode, clear integrator
+    ival_ = ConstantVector(inputs_*outputs_, 0.);
+    prev_in_ = in;
+  }
+
+  out->resize(outputs_);
+
+  for (size_t oo=0; oo < outputs_; ++oo)
+  {
+    double u = 0;
+
+    for (size_t ii=0; ii < inputs_; ++ii)
+    {
+      double err = setpoint_[ii] - in[ii];
+      double acc = fmin(ival_[ii*outputs_+oo] + err, params_[IL(ii, oo)]);
+      double diff = in[ii] - prev_in_[ii];
+
+      u += params_[P(ii, oo)]*err + params_[I(ii, oo)]*acc + params_[D(ii, oo)]*diff;
+
+      ival_[ii*outputs_+oo] = acc;
+    }
+
+    (*out)[oo] = u;
+  }
+
+  prev_in_ = in;
+  return ttGreedy;
+}
+
+

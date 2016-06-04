@@ -1,0 +1,19 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 0
+  steps: 0
+  rate: 0
+  test_interval: 10
+  environment: 
+    type: environment/leo_squat
+    observe: Comma-separated list of state elements observed by an agent
+    actuate: Comma-separated list of action elements provided by an agent
+    observation_dims: 0
+    action_dims: 0
+    learn_stance_knee: 0
+  agent: agent/black_box
+  test_agent: 
+    type: agent/fixed
+    policy: experiment/agent/optimizer/policy
+  save_every: never

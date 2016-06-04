@@ -29,18 +29,102 @@
 
 using namespace grl;
 
-REGISTER_CONFIGURABLE(ZeroMQAgent)
+REGISTER_CONFIGURABLE(ZeromqCommunicator)
+REGISTER_CONFIGURABLE(CommunicatorEnvironment)
 
-void ZeroMQAgent::request(ConfigurationRequest *config)
+void ZeromqCommunicator::request(ConfigurationRequest *config)
 {
-  Vector action_min, action_max;
+  config->push_back(CRP("pub", "Publisher address", pub_));
+  config->push_back(CRP("sub", "subscriber address", sub_));
+  config->push_back(CRP("event", "Event address", event_));
+  config->push_back(CRP("event_mode", "Event mode", event_mode_));
+}
+
+void ZeromqCommunicator::configure(Configuration &config)
+{
+  //  zmq_.init("tcp://*:5561", "tcp://192.168.2.210:5562", "tcp://192.168.2.210:5560", ZMQ_SYNC_SUB); // wifi
+  //zmq_.init("tcp://*:5561",  "tcp://192.168.1.10:5562",  "tcp://192.168.1.10:5560", ZMQ_SYNC_SUB); // ethernet
+
+  pub_ = config["pub"].str();
+  sub_ = config["sub"].str();
+  event_ = config["event"].str();
+  event_mode_ = config["event_mode"].str();
+
+  // find event mode
+  int mode = 0;
+  if (event_mode_.find("ZMQ_SYNC_SUB") != std::string::npos)
+    mode |= ZMQ_SYNC_SUB;
+  if (event_mode_.find("ZMQ_SYNC_SUB") != std::string::npos)
+    mode |= ZMQ_SYNC_PUB;
+
+  // initialize zmq
+  zmq_messenger_.init(pub_.c_str(), sub_.c_str(), event_.c_str(), mode);
+}
+
+void ZeromqCommunicator::reconfigure(const Configuration &config)
+{
+}
+
+ZeromqCommunicator *ZeromqCommunicator::clone() const
+{
+  ZeromqCommunicator* me = new ZeromqCommunicator();
+  return me;
+}
+
+void ZeromqCommunicator::send(const Vector v) const
+{
+  zmq_messenger_.send(reinterpret_cast<const void*>(v.data()), v.cols()*sizeof(double));
+}
+
+bool ZeromqCommunicator::recv(Vector &v) const
+{
+  bool rc = zmq_messenger_.recv(reinterpret_cast<void*>(v.data()), v.cols()*sizeof(double)); // ZMQ_NOBLOCK
+  std::cout << v << std::endl;
+  return rc;
+}
+
+//////////////////////////////////////////////////////////
+void CommunicatorEnvironment::request(ConfigurationRequest *config)
+{
+  config->push_back(CRP("communicator", "communicator", "Comunicator which exchanges messages with an actual environment", communicator_));
+}
+
+void CommunicatorEnvironment::configure(Configuration &config)
+{
+  communicator_ = (Communicator*)config["communicator"].ptr();
+}
+
+void CommunicatorEnvironment::reconfigure(const Configuration &config)
+{
+}
+
+CommunicatorEnvironment *CommunicatorEnvironment::clone() const
+{
+  CommunicatorEnvironment *me = new CommunicatorEnvironment();
+  return me;
+}
+
+void CommunicatorEnvironment::start(int test, Vector *obs)
+{
+  communicator_->recv(*obs);
+}
+
+double CommunicatorEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)
+{
+  communicator_->send(action);
+  communicator_->recv(*obs);
+}
+
+//////////////////////////////////////////////////////////
+void ZeromqAgent::request(ConfigurationRequest *config)
+{
   config->push_back(CRP("observation_dims", "int.observation_dims", "Number of observation dimensions", observation_dims_, CRP::System));
   config->push_back(CRP("action_dims", "int.action_dims", "Number of action dimensions", action_dims_, CRP::System));
   config->push_back(CRP("action_min", "vector.action_min", "Lower limit of action", action_min_, CRP::System));
   config->push_back(CRP("action_max", "vector.action_max", "Upper limit of action", action_max_, CRP::System));
 }
 
-void ZeroMQAgent::configure(Configuration &config)
+void ZeromqAgent::configure(Configuration &config)
 {
   // Read configuration
   action_dims_ = config["action_dims"];
@@ -67,34 +151,34 @@ void ZeroMQAgent::configure(Configuration &config)
   sleep(1);
 }
 
-void ZeroMQAgent::reconfigure(const Configuration &config)
+void ZeromqAgent::reconfigure(const Configuration &config)
 {
 }
 
-ZeroMQAgent *ZeroMQAgent::clone() const
+ZeromqAgent *ZeromqAgent::clone() const
 {
-  return new ZeroMQAgent(*this);
+  return new ZeromqAgent(*this);
 }
 
-void ZeroMQAgent::start(const Vector &obs, Vector *action)
+void ZeromqAgent::start(const Vector &obs, Vector *action)
 {
   action->resize(action_dims_);
   communicate(obs, 0, 0, action);
 }
 
-void ZeroMQAgent::step(double tau, const Vector &obs, double reward, Vector *action)
+void ZeromqAgent::step(double tau, const Vector &obs, double reward, Vector *action)
 {
   action->resize(action_dims_);
   communicate(obs, reward, 0, action);
 }
 
-void ZeroMQAgent::end(double tau, const Vector &obs, double reward)
+void ZeromqAgent::end(double tau, const Vector &obs, double reward)
 {
   communicate(obs, reward, 1, NULL);
 }
 
 // helper function to send a message using zeroMQ
-void ZeroMQAgent::send(DRL_MESSAGES::drl_unimessage &drlSendMessage)
+void ZeromqAgent::send(DRL_MESSAGES::drl_unimessage &drlSendMessage)
 {
   TRACE("Send time index: " << globalTimeIndex_);
   drlSendMessage.set_time_index(globalTimeIndex_);
@@ -107,7 +191,7 @@ void ZeroMQAgent::send(DRL_MESSAGES::drl_unimessage &drlSendMessage)
 }
 
 // helper function to receive a message using zeroMQ
-bool ZeroMQAgent::receive(DRL_MESSAGES::drl_unimessage* drlRecMessage)
+bool ZeromqAgent::receive(DRL_MESSAGES::drl_unimessage* drlRecMessage)
 {
   zmq::message_t update;
   bool received = subscriber_->recv(&update, ZMQ_DONTWAIT);
@@ -117,7 +201,7 @@ bool ZeroMQAgent::receive(DRL_MESSAGES::drl_unimessage* drlRecMessage)
   return received;
 }
 
-void ZeroMQAgent::receive(const DRL_MESSAGES::drl_unimessage_Type type,
+void ZeromqAgent::receive(const DRL_MESSAGES::drl_unimessage_Type type,
                            const char *msgstr,
                            DRL_MESSAGES::drl_unimessage &msg)
 {
@@ -179,7 +263,7 @@ void ZeroMQAgent::receive(const DRL_MESSAGES::drl_unimessage_Type type,
   }
 }
 
-void ZeroMQAgent::init()
+void ZeromqAgent::init()
 {
   isConnected_ = false;
   DRL_MESSAGES::drl_unimessage msg;
@@ -188,7 +272,7 @@ void ZeroMQAgent::init()
 }
 
 // Helper function which deals with all communication
-void ZeroMQAgent::communicate(const Vector &in, double reward, double terminal, Vector *out)
+void ZeromqAgent::communicate(const Vector &in, double reward, double terminal, Vector *out)
 {
   if (!isConnected_)
     return;

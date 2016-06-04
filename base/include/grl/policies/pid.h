@@ -29,6 +29,7 @@
 #define GRL_PID_POLICY_H_
 
 #include <grl/policies/parameterized.h>
+#include <grl/policies/feed_forward.h>
 
 namespace grl
 {
@@ -61,6 +62,41 @@ class PIDPolicy : public ParameterizedPolicy
     virtual TransitionType act(const Vector &in, Vector *out) const;
     virtual TransitionType act(double time, const Vector &in, Vector *out);
     
+    // From ParameterizedPolicy
+    virtual size_t size() const { return params_.size(); }
+    virtual const Vector &params() const { return params_; }
+    virtual Vector &params() { return params_; }
+};
+
+/// PID trajectory policy
+class PIDTrajectoryPolicy : public ParameterizedPolicy
+{
+  public:
+    TYPEINFO("policy/parameterized/pidt", "Parameterized policy based on a proportional-integral-derivative controller for tranjectory tracking")
+
+  protected:
+    Policy *trajectory_; // TODO: should be a "Timeline" importer
+    Vector setpoint_; // the dynamic setpoint is taken from trajectory at the current time
+    size_t inputs_, outputs_;
+
+    Vector p_, i_, d_, il_;
+    Vector params_;
+
+    Vector ival_, prev_in_;
+
+  public:
+    PIDTrajectoryPolicy() : inputs_(1), outputs_(1) { }
+
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+
+    // From Policy
+    virtual PIDTrajectoryPolicy *clone() const;
+    virtual TransitionType act(const Vector &in, Vector *out) const;
+    virtual TransitionType act(double time, const Vector &in, Vector *out);
+
     // From ParameterizedPolicy
     virtual size_t size() const { return params_.size(); }
     virtual const Vector &params() const { return params_; }

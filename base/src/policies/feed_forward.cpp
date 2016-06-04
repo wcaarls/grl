@@ -104,3 +104,4 @@ TransitionType FeedForwardPolicy::act(double time, const Vector &in, Vector *out
   prev_time_idx_ = ti-1;
   return ttGreedy;
 }
+

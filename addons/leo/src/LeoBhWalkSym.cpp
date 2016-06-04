@@ -114,10 +114,10 @@ bool CLeoBhWalkSym::readConfig(const CConfigSection &xmlRoot)
   configresult &= mLogAssert(configNode.get("preprogrammedShoulderAngle", &mPreProgShoulderAngle));
   configresult &= mLogAssert(configNode.get("preprogrammedAnkleAngle", &mPreProgAnkleAngle));
 
-  // ivan: The following values are not found in XML, but are set to defaults
-  mLogAssert(configNode.get("preprogrammedStanceKneeAngle", &mPreProgStanceKneeAngle));
-  mLogAssert(configNode.get("preprogrammedEarlySwingTime", &mPreProgEarlySwingTime));
-  mLogAssert(configNode.get("preprogrammedExploreRate", &mPreProgExploreRate));
+  // ivan: The following values are not found in XML
+  //mLogAssert(configNode.get("preprogrammedStanceKneeAngle", &mPreProgStanceKneeAngle));
+  //mLogAssert(configNode.get("preprogrammedEarlySwingTime", &mPreProgEarlySwingTime));
+  //mLogAssert(configNode.get("preprogrammedExploreRate", &mPreProgExploreRate));
 
 
   double timeSeconds=0;

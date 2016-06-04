@@ -37,7 +37,7 @@ if (ZMQ_LIB AND ${PROTOBUF_FOUND})
   add_dependencies(${TARGET} protobuffer)
 
   target_link_libraries(${TARGET} ${ZMQ_LIB} ${PROTOBUF_LIBRARY})
-  grl_link_libraries(${TARGET} base)
+  grl_link_libraries(${TARGET} base externals/cppzmq)
   install(TARGETS ${TARGET} DESTINATION ${GRL_LIB_DESTINATION})
   install(DIRECTORY ${SRC}/../include/grl DESTINATION ${GRL_INCLUDE_DESTINATION} FILES_MATCHING PATTERN "*.h")
 

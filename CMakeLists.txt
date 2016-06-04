@@ -33,7 +33,6 @@ set(MODULES base
 #            addons/ros
 #            addons/matlab
             addons/odesim
-            addons/leosim
             addons/rbdl
             addons/muscod
             addons/leo
