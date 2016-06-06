@@ -74,21 +74,17 @@ bool CLeoBhSquat::isStanding(const double *x) const
 
 void CLeoBhSquat::parseLeoState(const CLeoState &leoState, Vector &obs)
 {
-  obs[siTorsoAngle]           = leoState.mJointAngles[ljTorso];
-  obs[siTorsoAngleRate]       = leoState.mJointSpeeds[ljTorso];
-  obs[siHipStanceAngle]       = leoState.mJointAngles[mHipStance];
-  obs[siHipStanceAngleRate]   = leoState.mJointSpeeds[mHipStance];
-  obs[siHipSwingAngle]        = leoState.mJointAngles[mHipSwing];
-  obs[siHipSwingAngleRate]    = leoState.mJointSpeeds[mHipSwing];
-  obs[siKneeStanceAngle]      = leoState.mJointAngles[mKneeStance];
-  obs[siKneeStanceAngleRate]  = leoState.mJointSpeeds[mKneeStance];
-  obs[siKneeSwingAngle]       = leoState.mJointAngles[mKneeSwing];
-  obs[siKneeSwingAngleRate]   = leoState.mJointSpeeds[mKneeSwing];
+  obs[osTorsoAngle]           = leoState.mJointAngles[ljTorso];
+  obs[osTorsoAngleRate]       = leoState.mJointSpeeds[ljTorso];
+  obs[osHipStanceAngle]       = leoState.mJointAngles[mHipStance];
+  obs[osHipStanceAngleRate]   = leoState.mJointSpeeds[mHipStance];
+  obs[osKneeStanceAngle]      = leoState.mJointAngles[mKneeStance];
+  obs[osKneeStanceAngleRate]  = leoState.mJointSpeeds[mKneeStance];
   prev_direction_ = direction_;
   if (direction_ == -1 && isSitting(obs.data()))
-    obs[siDirection] = direction_ =  1;
+    obs[osDirection] = direction_ =  1;
   else if (direction_ == 1 && isStanding(obs.data()))
-    obs[siDirection] = direction_ = -1;
+    obs[osDirection] = direction_ = -1;
 }
 /////////////////////////////////
 

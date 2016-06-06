@@ -49,6 +49,20 @@ class CLeoBhBase: public CLeoBhWalkSym
       avLeftAnkleTorque,
       svNumActions
     };
+    enum LeaObservationWalk
+    {
+      owTorsoAngle,
+      owTorsoAngleRate,
+      owHipStanceAngle,
+      owHipStanceAngleRate,
+      owHipSwingAngle,
+      owHipSwingAngleRate,
+      owKneeStanceAngle,
+      owKneeStanceAngleRate,
+      owKneeSwingAngle,
+      owKneeSwingAngleRate,
+      owNumDims
+    };
 
   public:
     CLeoBhBase(ISTGActuation *actuationInterface) : CLeoBhWalkSym(actuationInterface) {}

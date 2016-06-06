@@ -65,16 +65,16 @@ void CLeoBhBase::fillLeoState(const Vector &obs, const Vector &action, CLeoState
 
 void CLeoBhBase::parseLeoState(const CLeoState &leoState, Vector &obs)
 {
-  obs[siTorsoAngle]           = leoState.mJointAngles[ljTorso];
-  obs[siTorsoAngleRate]       = leoState.mJointSpeeds[ljTorso];
-  obs[siHipStanceAngle]       = leoState.mJointAngles[mHipStance];
-  obs[siHipStanceAngleRate]   = leoState.mJointSpeeds[mHipStance];
-  obs[siHipSwingAngle]        = leoState.mJointAngles[mHipSwing];
-  obs[siHipSwingAngleRate]    = leoState.mJointSpeeds[mHipSwing];
-  obs[siKneeStanceAngle]      = leoState.mJointAngles[mKneeStance];
-  obs[siKneeStanceAngleRate]  = leoState.mJointSpeeds[mKneeStance];
-  obs[siKneeSwingAngle]       = leoState.mJointAngles[mKneeSwing];
-  obs[siKneeSwingAngleRate]   = leoState.mJointSpeeds[mKneeSwing];
+  obs[owTorsoAngle]           = leoState.mJointAngles[ljTorso];
+  obs[owTorsoAngleRate]       = leoState.mJointSpeeds[ljTorso];
+  obs[owHipStanceAngle]       = leoState.mJointAngles[mHipStance];
+  obs[owHipStanceAngleRate]   = leoState.mJointSpeeds[mHipStance];
+  obs[owHipSwingAngle]        = leoState.mJointAngles[mHipSwing];
+  obs[owHipSwingAngleRate]    = leoState.mJointSpeeds[mHipSwing];
+  obs[owKneeStanceAngle]      = leoState.mJointAngles[mKneeStance];
+  obs[owKneeStanceAngleRate]  = leoState.mJointSpeeds[mKneeStance];
+  obs[owKneeSwingAngle]       = leoState.mJointAngles[mKneeSwing];
+  obs[owKneeSwingAngleRate]   = leoState.mJointSpeeds[mKneeSwing];
 }
 
 void CLeoBhBase::setCurrentSTGState(CLeoState *leoState)

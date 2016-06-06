@@ -3,8 +3,8 @@ experiment:
   runs: 1
   trials: 0
   steps: 1000000
-  rate: 0
-  test_interval: 10
+  rate: 30
+  test_interval: 0
   output: leosim_sarsa_squat
   environment: 
     type: environment/leo_squat
@@ -61,4 +61,5 @@ experiment:
       representation: experiment/agent/policy/representation
       sampler: 
         type: sampler/greedy
-  save_every: run
+  load_file: leosim_sarsa_squat-run0
+  save_every: never

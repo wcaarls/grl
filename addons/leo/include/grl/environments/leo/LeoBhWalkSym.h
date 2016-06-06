@@ -17,22 +17,6 @@
 class CLeoBhWalkSym: public CSTGAgentQLeo
 {
   protected:
-    // State dim index enumeration
-    enum ELeoStateDimIndex
-    {
-      siTorsoAngle,
-      siTorsoAngleRate,
-      siHipStanceAngle,
-      siHipStanceAngleRate,
-      siHipSwingAngle,
-      siHipSwingAngleRate,
-      siKneeStanceAngle,
-      siKneeStanceAngleRate,
-      siKneeSwingAngle,
-      siKneeSwingAngleRate,
-      siNumStateDims
-    };
-
     double        mTotalStepTime;
 
     // Learning algorithm options
