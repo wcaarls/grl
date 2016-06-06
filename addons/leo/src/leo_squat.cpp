@@ -5,30 +5,97 @@ using namespace grl;
 
 REGISTER_CONFIGURABLE(LeoSquatEnvironment)
 
+const double T[] = { 0.0,  0.0,  0.0,  0.0,  0.0};
+const double B[] = { 1.4,  1.4, -1.9, -1.9, -0.3}; // hips, knees, torso
+
 double CLeoBhSquat::calculateReward()
 {
   double reward = 0;
+  CLeoState *s = getCurrentSTGState();
 
   // Negative reward for 'falling' (doomed to fall)
-  if (isDoomedToFall(getCurrentSTGState(), false))
+  if (isDoomedToFall(s, false))
   {
     reward += mRwDoomedToFall;
     mLogDebugLn("[REWARD] Doomed to fall! Reward: " << mRwDoomedToFall << " (total reward: " << getTotalReward() << ")" << endl);
   }
+  else
+  {
+    double rw;
+    if (direction_ == -1)
+      rw = r(s->mJointAngles, B);
+    else if (direction_ == 1)
+      rw = r(s->mJointAngles, T);
+    reward += -0.1*rw;
 
-  // Reward for keeping torso upright
-  double torsoReward = mRwTorsoUpright * 1.0/(1.0 + (getCurrentSTGState()->mJointAngles[ljTorso] - mRwTorsoUprightAngle)*(getCurrentSTGState()->mJointAngles[ljTorso] - mRwTorsoUprightAngle)/(mRwTorsoUprightAngleMargin*mRwTorsoUprightAngleMargin));
-  reward += torsoReward;
+    if (direction_ != prev_direction_)
+      reward += 50;
+
+    // Reward for keeping torso upright
+    //double torsoReward = mRwTorsoUpright * 1.0/(1.0 + (s->mJointAngles[ljTorso] - mRwTorsoUprightAngle)*(s->mJointAngles[ljTorso] - mRwTorsoUprightAngle)/(mRwTorsoUprightAngleMargin*mRwTorsoUprightAngleMargin));
+    //reward += torsoReward;
+  }
 
   return reward;
 }
 
+double CLeoBhSquat::r(const double *x, const double* y) const
+{
+  return  pow(fabs(x[ljHipLeft]   - y[0]), 2) +
+          pow(fabs(x[ljHipRight]  - y[1]), 2) +
+          pow(fabs(x[ljKneeLeft]  - y[2]), 2) +
+          pow(fabs(x[ljKneeRight] - y[3]), 2) +
+          pow(fabs(x[ljTorso]     - y[4]), 2);
+}
+
+bool CLeoBhSquat::isSitting(const double *x) const
+{
+  double eps = 0.1;
+  if ( (fabs(x[ljHipLeft]   - B[0]) < eps) &&
+       (fabs(x[ljHipRight]  - B[1]) < eps) &&
+       (fabs(x[ljKneeLeft]  - B[2]) < eps) &&
+       (fabs(x[ljKneeRight] - B[3]) < eps) &&
+       (fabs(x[ljTorso]     - B[4]) < eps) )
+    return true;
+  return false;
+}
+
+bool CLeoBhSquat::isStanding(const double *x) const
+{
+  double eps = 0.1;
+  if ( (fabs(x[ljHipLeft]   - T[0]) < eps) &&
+       (fabs(x[ljHipRight]  - T[1]) < eps) &&
+       (fabs(x[ljKneeLeft]  - T[2]) < eps) &&
+       (fabs(x[ljKneeRight] - T[3]) < eps) &&
+       (fabs(x[ljTorso]     - T[4]) < eps) )
+    return true;
+  return false;
+}
+
+void CLeoBhSquat::parseLeoState(const CLeoState &leoState, Vector &obs)
+{
+  obs[siTorsoAngle]           = leoState.mJointAngles[ljTorso];
+  obs[siTorsoAngleRate]       = leoState.mJointSpeeds[ljTorso];
+  obs[siHipStanceAngle]       = leoState.mJointAngles[mHipStance];
+  obs[siHipStanceAngleRate]   = leoState.mJointSpeeds[mHipStance];
+  obs[siHipSwingAngle]        = leoState.mJointAngles[mHipSwing];
+  obs[siHipSwingAngleRate]    = leoState.mJointSpeeds[mHipSwing];
+  obs[siKneeStanceAngle]      = leoState.mJointAngles[mKneeStance];
+  obs[siKneeStanceAngleRate]  = leoState.mJointSpeeds[mKneeStance];
+  obs[siKneeSwingAngle]       = leoState.mJointAngles[mKneeSwing];
+  obs[siKneeSwingAngleRate]   = leoState.mJointSpeeds[mKneeSwing];
+  prev_direction_ = direction_;
+  if (direction_ == -1 && isSitting(obs.data()))
+    obs[siDirection] = direction_ =  1;
+  else if (direction_ == 1 && isStanding(obs.data()))
+    obs[siDirection] = direction_ = -1;
+}
 /////////////////////////////////
 
-LeoSquatEnvironment::LeoSquatEnvironment() :
-  requested_action_dims_(CLeoBhBase::svNumActions)
+LeoSquatEnvironment::LeoSquatEnvironment()
 {
   bh_ = new CLeoBhSquat(&leoSim_);
+  set_bh(bh_);
 }
 
 void LeoSquatEnvironment::request(ConfigurationRequest *config)
@@ -39,6 +106,17 @@ void LeoSquatEnvironment::request(ConfigurationRequest *config)
 void LeoSquatEnvironment::configure(Configuration &config)
 {
   LeoBaseEnvironment::configure(config);
+
+  // Augmenting state with a direction indicator variable: sit down or stand up
+  observation_dims_++;
+  config.set("observation_dims", observation_dims_);
+  Vector new_obs_min, new_obs_max;
+  new_obs_min.resize(observation_dims_);
+  new_obs_max.resize(observation_dims_);
+  new_obs_min << config["observation_min"].v(), VectorConstructor(-1);
+  new_obs_max << config["observation_max"].v(), VectorConstructor(+1);
+  config.set("observation_min", new_obs_min);
+  config.set("observation_max", new_obs_max);
 }
 
 LeoSquatEnvironment *LeoSquatEnvironment::clone() const
@@ -88,9 +166,6 @@ double LeoSquatEnvironment::step(const Vector &action, Vector *obs, double *rewa
   // update derived state variables
   bh_->updateDerivedStateVars(&leoState_);
 
-  // construct new obs from CLeoState
-  bh_->parseLeoState(leoState_, *obs);
-
   // Determine reward
   *reward = bh_->calculateReward();
 
@@ -102,6 +177,10 @@ double LeoSquatEnvironment::step(const Vector &action, Vector *obs, double *rewa
   else
     *terminal = 0;
 
+  // construct new obs from CLeoState
+  bh_->parseLeoState(leoState_, *obs);
+
   LeoBaseEnvironment::step(tau, *reward, *terminal);
   return tau;
 }
+

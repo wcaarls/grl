@@ -40,6 +40,7 @@ class LeoWalkEnvironment: public LeoBaseEnvironment
   protected:
     int requested_action_dims_;
     int learn_stance_knee_;
+    CLeoBhWalk *bh_;
 };
 
 }

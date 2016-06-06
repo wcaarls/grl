@@ -110,6 +110,9 @@ class LeoBaseEnvironment: public Environment
     virtual void start(int test);
     virtual void step(double tau, double reward, int terminal);
     virtual void report(std::ostream &os);
+
+    // Own
+    void set_bh(CLeoBhBase *bh) { bh_ = bh; }
     
   protected:
     CSTGLeoSim leoSim_;
@@ -118,7 +121,6 @@ class LeoBaseEnvironment: public Environment
     std::string xml_;
     ODESTGEnvironment *ode_;
 
-    CLeoBhBase *bh_;
     int observation_dims_, action_dims_;
     int target_observation_dims_, target_action_dims_;
     Vector target_obs_, target_action_;
@@ -142,6 +144,9 @@ class LeoBaseEnvironment: public Environment
                      Vector &out,
                      const std::string *req = NULL,
                      std::vector<int>  *reqIdx = NULL) const;
+
+  private:
+    CLeoBhBase *bh_; // makes it invisible in derived classes
 };
 
 }

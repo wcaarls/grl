@@ -101,7 +101,8 @@ LeoBaseEnvironment::LeoBaseEnvironment() :
   time_learn_(0),
   time0_(0),
   test_(0),
-  exporter_(NULL)
+  exporter_(NULL),
+  bh_(NULL)
 {
 }
 
@@ -248,6 +249,8 @@ void LeoBaseEnvironment::config_parse_observations(Configuration &config)
       observation_min[j]   = ode_observation_min[i];
       observation_max[j++] = ode_observation_max[i];
     }
+
+  // Set parameters exported to an agent
   config.set("observation_dims", observation_dims_);
   config.set("observation_min", observation_min);
   config.set("observation_max", observation_max);
@@ -275,57 +278,12 @@ void LeoBaseEnvironment::config_parse_actions(Configuration &config)
       action_max[j++] = target_action_max[i];
     }
 
+  // Set parameters exported to an agent
   config.set("action_dims", action_dims_);
   config.set("action_min", action_min);
   config.set("action_max", action_max);
 }
 
-/*
-void LeoBaseEnvironment::config_parse_actions(Configuration &config)
-{
-  std::vector<int> knee_idx;
-  std::string knee = std::string("knee");
-  int omit_knee_idx = -1;
-  std::string actuate = config["actuate"].str();
-  std::vector<std::string> actuateList = cutLongStr(actuate);
-  fillActuate(ode_->getActuators(), actuateList, actuate_, &knee, &knee_idx);
-  if (actuate_.size() != target_action_dims_)
-    throw bad_param("leosim/walk:actuate");
-  if (knee_idx.size() == 0)
-    throw bad_param("leosim/walk:knee");
-  requested_action_dims_ = (actuate_.array() != 0).count();
-  if (learn_stance_knee_)
-    action_dims_ = requested_action_dims_;
-  else
-  {
-    if (knee_idx.size() != 2)
-      throw bad_param("leosim/walk:actuate (if any of knees is learnt, then always include both knees)");
-    action_dims_ = requested_action_dims_ - 1;
-    omit_knee_idx = knee_idx[1];
-  }
-
-  // mask observation min/max vectors
-  Vector target_action_min, target_action_max, action_min, action_max;
-  config.get("action_min", target_action_min);
-  config.get("action_max", target_action_max);
-  action_min.resize(action_dims_);
-  action_max.resize(action_dims_);
-  for (int i = 0, j = 0; i < actuate_.size(); i++)
-    if (actuate_[i] && i != omit_knee_idx)
-    {
-      action_min[j]   = target_action_min[i];
-      action_max[j++] = target_action_max[i];
-    }
-
-  config.set("action_dims", action_dims_);
-  config.set("action_min", action_min);
-  config.set("action_max", action_max);
-
-  // reserve memory
-  target_obs_.resize(target_observation_dims_);
-  target_action_.resize(target_action_dims_);
-}
-*/
 void LeoBaseEnvironment::fillObserve( const std::vector<CGenericStateVar> &genericStates,
                                      const std::vector<std::string> &observeList,
                                      Vector &out) const

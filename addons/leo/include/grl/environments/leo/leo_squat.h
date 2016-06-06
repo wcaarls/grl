@@ -13,9 +13,19 @@ namespace grl
 
 class CLeoBhSquat: public CLeoBhBase
 {
+  #define siDirection (siKneeSwingAngleRate+1)
+
   public:
-    CLeoBhSquat(ISTGActuation *actuationInterface) : CLeoBhBase(actuationInterface) {}
+    CLeoBhSquat(ISTGActuation *actuationInterface) : CLeoBhBase(actuationInterface), direction_(-1), prev_direction_(-1) {}
     double calculateReward();
+    void parseLeoState(const CLeoState &leoState, Vector &obs);
+    void setDirection(int direction) { direction = direction_; }
+
+  protected:
+    int direction_, prev_direction_;
+    bool isSitting(const double *x) const;
+    bool isStanding(const double *x) const;
+    double r(const double *x, const double* a) const;
 };
 
 /// Squatting Leo robot
@@ -38,7 +48,7 @@ class LeoSquatEnvironment: public LeoBaseEnvironment
     virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal);
 
   protected:
-    int requested_action_dims_;
+    CLeoBhSquat *bh_;
 };
 
 }

@@ -577,7 +577,7 @@ std::string CLeoBhWalkSym::getProgressReport(double trialTime)
   progressString << std::setw(pw) << mTrialEnergy;
 
   // Energy per traveled meter
-  if (mWalkedDistance > 0.0)
+  if (mWalkedDistance > 0.001)
     progressString << std::setw(pw) << mTrialEnergy/mWalkedDistance;
   else
     progressString << std::setw(pw) << 0.0;

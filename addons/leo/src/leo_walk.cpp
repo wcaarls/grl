@@ -17,6 +17,7 @@ LeoWalkEnvironment::LeoWalkEnvironment() :
   learn_stance_knee_(0)
 {
   bh_ = new CLeoBhWalk(&leoSim_);
+  set_bh(bh_);
 }
 
 void LeoWalkEnvironment::request(ConfigurationRequest *config)
@@ -106,9 +107,6 @@ double LeoWalkEnvironment::step(const Vector &action, Vector *obs, double *rewar
   // update derived state variables
   bh_->updateDerivedStateVars(&leoState_);
 
-  // construct new obs from CLeoState
-  bh_->parseLeoState(leoState_, *obs);
-
   // Determine reward
   *reward = bh_->calculateReward();
 
@@ -119,6 +117,9 @@ double LeoWalkEnvironment::step(const Vector &action, Vector *obs, double *rewar
     *terminal = 2;
   else
     *terminal = 0;
+
+  // construct new obs from CLeoState
+  bh_->parseLeoState(leoState_, *obs);
 
   LeoBaseEnvironment::step(tau, *reward, *terminal);
   return tau;
