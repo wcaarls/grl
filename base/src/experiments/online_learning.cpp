@@ -163,7 +163,6 @@ void OnlineLearningExperiment::run()
           step_timer.restart();
         }
 
-        //action << ConstantVector(3, 5.0); //#ivan
         double tau = environment_->step(action, &obs, &reward, &terminal);
         
         CRAWL(action << " - " << reward << " -> " << obs);

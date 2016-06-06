@@ -41,13 +41,12 @@ class FeedForwardPolicy : public Policy
 
   protected:
     Vector time_control_;
-    int action_dims_;
     int prev_time_idx_; // used for an acelerated search
     int shift_;
     std::string input_;
 
   public:
-    FeedForwardPolicy() : action_dims_(1), prev_time_idx_(0), shift_(2) { }
+    FeedForwardPolicy() : prev_time_idx_(0), shift_(2) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);

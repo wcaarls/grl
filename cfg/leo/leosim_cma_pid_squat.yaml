@@ -4,21 +4,21 @@ experiment:
   trials: 0
   steps: 0
   rate: 0
-  test_interval: 10
+  test_interval: -1
   environment: 
     type: environment/leo_squat
-    xml: /home/ivan/work/Project/Software/grl/src/grl/addons/leo/cfg/leolearnwalking-sarsa-tc.xml
+    xml: /home/ivan/work/Project/Software/grl/src/grl/addons/leo/cfg/leo_learn_squatting.xml
     target_env: 
       type: environment/ode
       xml: experiment/environment/xml
       visualize: 1
     observe: torso_boom, hipright, hipleft, kneeright, kneeleft
-    actuate: hipright, hipleft, kneeright, kneeleft, ankleright, ankleleft
+    actuate: hipright, kneeright, ankleright
     observation_dims: experiment/environment/target_env/observation_dims
     action_dims: experiment/environment/target_env/action_dims
   agent: 
     type: agent/black_box
-    episodes: 10
+    episodes: 1
     optimizer: 
       type: optimizer/cma
       population: 0
@@ -27,9 +27,7 @@ experiment:
         type: policy/parameterized/pidt
         policy: 
           type: policy/feed_forward
-          action_dims: 1
-          time_control: []
-          input: /home/ivan/work/Project/Software/grl/src/grl/addons/leo/csv/squating.csv
+          input: /home/ivan/work/Project/Software/grl/src/grl/addons/leo/csv/squatting.csv
         inputs: experiment/environment/observation_dims
         outputs: experiment/environment/action_dims
         p: []

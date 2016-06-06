@@ -254,7 +254,8 @@ TransitionType PIDTrajectoryPolicy::act(double time, const Vector &in, Vector *o
   {
     double u = 0;
 
-    for (size_t ii=0; ii < inputs_; ++ii)
+//    for (size_t ii=0; ii < inputs_; ++ii)
+    for (size_t ii=0; ii < inputs_; ii+=2)
     {
       double err = setpoint_[ii] - in[ii];
       double acc = fmin(ival_[ii*outputs_+oo] + err, params_[IL(ii, oo)]);

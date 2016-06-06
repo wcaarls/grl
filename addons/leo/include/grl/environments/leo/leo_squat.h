@@ -39,9 +39,6 @@ class LeoSquatEnvironment: public LeoBaseEnvironment
 
   protected:
     int requested_action_dims_;
-
-  protected:
-    void config_parse_actions(Configuration &config);
 };
 
 }

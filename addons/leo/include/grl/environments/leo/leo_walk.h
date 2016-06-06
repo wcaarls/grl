@@ -40,9 +40,6 @@ class LeoWalkEnvironment: public LeoBaseEnvironment
   protected:
     int requested_action_dims_;
     int learn_stance_knee_;
-
-  protected:
-    void config_parse_actions(Configuration &config);
 };
 
 }

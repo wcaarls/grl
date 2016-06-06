@@ -1213,7 +1213,7 @@
 						<y>1</y>
 						<z>0</z>
 					</axis>
-					<angle>leftlegICangle</angle>
+					<angle>leftupperlegICangle</angle>
 				</rotation>
 			</initialcondition>
 			<initialcondition>
@@ -1224,7 +1224,7 @@
 						<y>1</y>
 						<z>0</z>
 					</axis>
-					<angle>leftlegICangle</angle>
+					<angle>leftlowerlegICangle</angle>
 				</rotation>
 			</initialcondition>
 			<initialcondition>

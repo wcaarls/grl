@@ -34,7 +34,6 @@ REGISTER_CONFIGURABLE(BlackBoxAgent)
 void BlackBoxAgent::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("episodes", "Number of episodes to evaluate policy", episodes_, CRP::Configuration, 1));
-  
   config->push_back(CRP("optimizer", "optimizer", "Policy optimizer", optimizer_));
 }
 
