@@ -202,12 +202,16 @@ void LeoSquatEnvironment::start(int test, Vector *obs)
 
 double LeoSquatEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)
 {
-  TRACE("RL action: " << action);
+  Vector v = action;
+  //v << -3.7, 7.13333, -2; // with this action robot can stand up from the sitting position
+  //v = v + action;
+
+  TRACE("RL action: " << v);
 
   bh_->setCurrentSTGState(&leoState_);
 
   double actionArm = bh_->grlAutoActuateArm();
-  target_action_ << actionArm, action[0], action[0], action[1], action[1], action[2], action[2];
+  target_action_ << actionArm, v[0], v[0], v[1], v[1], v[2], v[2];
 
   bh_->setPreviousSTGState(&leoState_);
   double tau = target_env_->step(target_action_, &target_obs_, reward, terminal);

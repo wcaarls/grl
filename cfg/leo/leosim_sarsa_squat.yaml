@@ -29,7 +29,7 @@ experiment:
       projector: 
         type: projector/tile_coding
         tilings: 16
-        memory: 268435456
+        memory: 25165824
         resolution: [0.14, 5, 0.28, 10, 0.28, 10, 1, 6.67, 6.67, 6.67]
         wrapping: []
       representation: 
