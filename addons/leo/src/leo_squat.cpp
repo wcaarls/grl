@@ -103,13 +103,25 @@ bool CLeoBhSquat::isStanding() const
 
 void CLeoBhSquat::parseLeoState(const CLeoState &leoState, Vector &obs)
 {
+    obs[owTorsoAngle]           = leoState.mJointAngles[ljTorso];
+    obs[owTorsoAngleRate]       = leoState.mJointSpeeds[ljTorso];
+    obs[owHipStanceAngle]       = leoState.mJointAngles[mHipStance];
+    obs[owHipStanceAngleRate]   = leoState.mJointSpeeds[mHipStance];
+    obs[owHipSwingAngle]        = leoState.mJointAngles[mHipSwing];
+    obs[owHipSwingAngleRate]    = leoState.mJointSpeeds[mHipSwing];
+    obs[owKneeStanceAngle]      = leoState.mJointAngles[mKneeStance];
+    obs[owKneeStanceAngleRate]  = leoState.mJointSpeeds[mKneeStance];
+    obs[owKneeSwingAngle]       = leoState.mJointAngles[mKneeSwing];
+    obs[owKneeSwingAngleRate]   = leoState.mJointSpeeds[mKneeSwing];
+
+/*
   obs[osTorsoAngle]           = leoState.mJointAngles[ljTorso];
   obs[osTorsoAngleRate]       = leoState.mJointSpeeds[ljTorso];
   obs[osHipStanceAngle]       = leoState.mJointAngles[mHipStance];
   obs[osHipStanceAngleRate]   = leoState.mJointSpeeds[mHipStance];
   obs[osKneeStanceAngle]      = leoState.mJointAngles[mKneeStance];
   obs[osKneeStanceAngleRate]  = leoState.mJointSpeeds[mKneeStance];
-
+*/
   // calculate hip locations
   pHipHeight_ = cHipHeight_;
   pHipPos_ = cHipPos_;
@@ -122,9 +134,11 @@ void CLeoBhSquat::parseLeoState(const CLeoState &leoState, Vector &obs)
     std::cout << "Is sitting" << std::endl;
 
   if (direction_ == -1 && isSitting())
-    obs[osDirection] = direction_ =  1;
+    //obs[osDirection] =
+        direction_ =  1;
   else if (direction_ == 1 && isStanding())
-    obs[osDirection] = direction_ = -1;
+    //obs[osDirection] =
+        direction_ = -1;
 }
 
 bool CLeoBhSquat::isDoomedToFall(CLeoState* state, bool report)
@@ -154,7 +168,7 @@ void LeoSquatEnvironment::request(ConfigurationRequest *config)
 void LeoSquatEnvironment::configure(Configuration &config)
 {
   LeoBaseEnvironment::configure(config);
-
+/*
   // Augmenting state with a direction indicator variable: sit down or stand up
   observation_dims_++;
   config.set("observation_dims", observation_dims_);
@@ -165,6 +179,7 @@ void LeoSquatEnvironment::configure(Configuration &config)
   new_obs_max << config["observation_max"].v(), VectorConstructor(+1);
   config.set("observation_min", new_obs_min);
   config.set("observation_max", new_obs_max);
+  */
 }
 
 LeoSquatEnvironment *LeoSquatEnvironment::clone() const

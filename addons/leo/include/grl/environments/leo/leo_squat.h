@@ -21,7 +21,7 @@ class CLeoBhSquat: public CLeoBhBase
     osHipStanceAngleRate,
     osKneeStanceAngle,
     osKneeStanceAngleRate,
-    osDirection,
+//    osDirection,
     osNumDims
   };
 
