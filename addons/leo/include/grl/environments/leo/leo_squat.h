@@ -27,15 +27,18 @@ class CLeoBhSquat: public CLeoBhBase
 
   public:
     CLeoBhSquat(ISTGActuation *actuationInterface) : CLeoBhBase(actuationInterface), direction_(-1), prev_direction_(-1) {}
+    void resetState();
     double calculateReward();
     void parseLeoState(const CLeoState &leoState, Vector &obs);
     void setDirection(int direction) { direction = direction_; }
+    bool isDoomedToFall(CLeoState* state, bool report);
 
   protected:
     int direction_, prev_direction_;
-    bool isSitting(const double *x) const;
-    bool isStanding(const double *x) const;
-    double r(const double *x, const double* a) const;
+    double pHipHeight_, pHipPos_, cHipHeight_, cHipPos_;
+    bool isSitting() const;
+    bool isStanding() const;
+    void getHipHeight(const double *x, double &hipHeight, double &hipPos) const;
 };
 
 /// Squatting Leo robot

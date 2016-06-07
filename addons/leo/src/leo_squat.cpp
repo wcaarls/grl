@@ -5,16 +5,26 @@ using namespace grl;
 
 REGISTER_CONFIGURABLE(LeoSquatEnvironment)
 
-const double T[] = { 0.0,  0.0,  0.0,  0.0,  0.0};
-const double B[] = { 1.4,  1.4, -1.9, -1.9, -0.3}; // hips, knees, torso
+//const double T[] = { 0.0,  0.0,  0.0,  0.0,  0.0};
+//const double B[] = { 1.4,  1.4, -1.9, -1.9, -0.3}; // hips, knees, torso
+
+#define MAX(x, y) (((x) > (y)) ? (x) : (y))
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
+
+const double T = 0.26;
+const double B = 0.18;
+
+void CLeoBhSquat::resetState()
+{
+  CLeoBhBase::resetState();
+  prev_direction_ = direction_ = -1;
+}
 
 double CLeoBhSquat::calculateReward()
 {
   double reward = 0;
-  CLeoState *s = getCurrentSTGState();
-
   // Negative reward for 'falling' (doomed to fall)
-  if (isDoomedToFall(s, false))
+  if (isDoomedToFall(getCurrentSTGState(), false))
   {
     reward += mRwDoomedToFall;
     mLogDebugLn("[REWARD] Doomed to fall! Reward: " << mRwDoomedToFall << " (total reward: " << getTotalReward() << ")" << endl);
@@ -23,13 +33,15 @@ double CLeoBhSquat::calculateReward()
   {
     double rw;
     if (direction_ == -1)
-      rw = r(s->mJointAngles, B);
+      rw = pow(cHipHeight_ - B, 2) - pow(pHipHeight_ - B, 2);
     else if (direction_ == 1)
-      rw = r(s->mJointAngles, T);
-    reward += -0.1*rw;
+      rw = pow(cHipHeight_ - T, 2) - pow(pHipHeight_ - T, 2);
+    reward += -100*rw;
+
+    std::cout << pHipHeight_ << " -> " << cHipHeight_ << " = " << reward << std::endl;
 
     if (direction_ != prev_direction_)
-      reward += 50;
+      reward += 10;
 
     // Reward for keeping torso upright
     //double torsoReward = mRwTorsoUpright * 1.0/(1.0 + (s->mJointAngles[ljTorso] - mRwTorsoUprightAngle)*(s->mJointAngles[ljTorso] - mRwTorsoUprightAngle)/(mRwTorsoUprightAngleMargin*mRwTorsoUprightAngleMargin));
@@ -39,35 +51,52 @@ double CLeoBhSquat::calculateReward()
   return reward;
 }
 
-double CLeoBhSquat::r(const double *x, const double* y) const
+void CLeoBhSquat::getHipHeight(const double *x, double &hipHeight, double &hipPos) const
 {
-  return  pow(fabs(x[ljHipLeft]   - y[0]), 2) +
-          pow(fabs(x[ljHipRight]  - y[1]), 2) +
-          pow(fabs(x[ljKneeLeft]  - y[2]), 2) +
-          pow(fabs(x[ljKneeRight] - y[3]), 2) +
-          pow(fabs(x[ljTorso]     - y[4]), 2);
+  // Determine foot position relative to the hip axis
+  double upLegLength        = 0.116;  // length of the thigh
+  double loLegLength        = 0.1045; // length of the shin
+  double leftHipAbsAngle    = x[ljTorso] + x[ljHipLeft];
+  double leftKneeAbsAngle   = leftHipAbsAngle + x[ljKneeLeft];
+  double leftAnkleAbsAngle  = leftKneeAbsAngle + x[ljAnkleLeft];
+  double rightHipAbsAngle   = x[ljTorso] + x[ljHipRight];
+  double rightKneeAbsAngle  = rightHipAbsAngle + x[ljKneeRight];
+  double rightAnkleAbsAngle = rightKneeAbsAngle + x[ljAnkleRight];
+  double leftAnklePos       = upLegLength*sin(leftHipAbsAngle) + loLegLength*sin(leftKneeAbsAngle);   // in X direction (horizontal)
+  double rightAnklePos      = upLegLength*sin(rightHipAbsAngle) + loLegLength*sin(rightKneeAbsAngle); // in X direction (horizontal)
+
+  // Calculate the absolute positions of the toes and heels; assume that the lowest point touches the floor.
+  // Start calculations from the hip. For convenience, take Z upwards as positive (some minus-signs are flipped).
+  const double ankleHeelDX  = 0.0315;  //X = 0.009 - footlength/2 = −0.0315
+  const double ankleHeelDZ  = 0.04859; //Z = -0.03559 - footwheelradius = -0.04859
+  const double ankleToeDX   = -0.0495; //X = 0.009 + footlength/2 = 0.009 + 0.081/2 = 0.0495
+  const double ankleToeDZ   = 0.04859; //Z = -0.03559 - footwheelradius = -0.03559 - 0.013 = -0.04859
+
+  double leftAnkleZ         = upLegLength*cos(leftHipAbsAngle) + loLegLength*cos(leftKneeAbsAngle);
+  double leftHeelZ          = leftAnkleZ + ankleHeelDZ*cos(leftAnkleAbsAngle) + ankleHeelDX*sin(leftAnkleAbsAngle);
+  double leftToeZ           = leftAnkleZ + ankleToeDZ*cos(leftAnkleAbsAngle) + ankleToeDX*sin(leftAnkleAbsAngle);
+  double rightAnkleZ        = upLegLength*cos(rightHipAbsAngle) + loLegLength*cos(rightKneeAbsAngle);
+  double rightHeelZ         = rightAnkleZ + ankleHeelDZ*cos(rightAnkleAbsAngle) + ankleHeelDX*sin(rightAnkleAbsAngle);
+  double rightToeZ          = rightAnkleZ + ankleToeDZ*cos(rightAnkleAbsAngle) + ankleToeDX*sin(rightAnkleAbsAngle);
+
+  hipHeight = std::max(std::max(leftHeelZ, leftToeZ), std::max(rightHeelZ, rightToeZ));
+  hipPos = rightAnklePos;
+
+  //TRACE("Hip height: " << hh);
+  //std::cout << "Hip height: " << hipHeight << std::endl;
+  //std::cout << "Ankle pos: " << hipPos << std::endl;
 }
 
-bool CLeoBhSquat::isSitting(const double *x) const
+bool CLeoBhSquat::isSitting() const
 {
-  double eps = 0.1;
-  if ( (fabs(x[ljHipLeft]   - B[0]) < eps) &&
-       (fabs(x[ljHipRight]  - B[1]) < eps) &&
-       (fabs(x[ljKneeLeft]  - B[2]) < eps) &&
-       (fabs(x[ljKneeRight] - B[3]) < eps) &&
-       (fabs(x[ljTorso]     - B[4]) < eps) )
+  if (cHipHeight_ < B)
     return true;
   return false;
 }
 
-bool CLeoBhSquat::isStanding(const double *x) const
+bool CLeoBhSquat::isStanding() const
 {
-  double eps = 0.1;
-  if ( (fabs(x[ljHipLeft]   - T[0]) < eps) &&
-       (fabs(x[ljHipRight]  - T[1]) < eps) &&
-       (fabs(x[ljKneeLeft]  - T[2]) < eps) &&
-       (fabs(x[ljKneeRight] - T[3]) < eps) &&
-       (fabs(x[ljTorso]     - T[4]) < eps) )
+  if (cHipHeight_ > T)
     return true;
   return false;
 }
@@ -80,11 +109,34 @@ void CLeoBhSquat::parseLeoState(const CLeoState &leoState, Vector &obs)
   obs[osHipStanceAngleRate]   = leoState.mJointSpeeds[mHipStance];
   obs[osKneeStanceAngle]      = leoState.mJointAngles[mKneeStance];
   obs[osKneeStanceAngleRate]  = leoState.mJointSpeeds[mKneeStance];
+
+  // calculate hip locations
+  pHipHeight_ = cHipHeight_;
+  pHipPos_ = cHipPos_;
+  getHipHeight(getCurrentSTGState()->mJointAngles, cHipHeight_, cHipPos_);
+
   prev_direction_ = direction_;
-  if (direction_ == -1 && isSitting(obs.data()))
+  if (isStanding())
+    std::cout << "Is standing" << std::endl;
+  if (isSitting())
+    std::cout << "Is sitting" << std::endl;
+
+  if (direction_ == -1 && isSitting())
     obs[osDirection] = direction_ =  1;
-  else if (direction_ == 1 && isStanding(obs.data()))
+  else if (direction_ == 1 && isStanding())
     obs[osDirection] = direction_ = -1;
+}
+
+bool CLeoBhSquat::isDoomedToFall(CLeoState* state, bool report)
+{
+  // Torso angle out of 'range'
+  if ((state->mJointAngles[ljTorso] < -1.0) || (state->mJointAngles[ljTorso] > 1.0)  || fabs(cHipPos_) > 0.14) // state->mFootContacts == 0
+  {
+    if (report)
+      mLogNoticeLn("[TERMINATION] Torso angle too large");
+    return true;
+  }
+  return false;
 }
 /////////////////////////////////
 
@@ -162,6 +214,9 @@ double LeoSquatEnvironment::step(const Vector &action, Vector *obs, double *rewa
   // update derived state variables
   bh_->updateDerivedStateVars(&leoState_);
 
+  // construct new obs from CLeoState
+  bh_->parseLeoState(leoState_, *obs);
+
   // Determine reward
   *reward = bh_->calculateReward();
 
@@ -172,9 +227,6 @@ double LeoSquatEnvironment::step(const Vector &action, Vector *obs, double *rewa
     *terminal = 2;
   else
     *terminal = 0;
-
-  // construct new obs from CLeoState
-  bh_->parseLeoState(leoState_, *obs);
 
   LeoBaseEnvironment::step(tau, *reward, *terminal);
   return tau;
