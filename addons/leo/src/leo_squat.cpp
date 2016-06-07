@@ -17,7 +17,7 @@ const double B = 0.18;
 void CLeoBhSquat::resetState()
 {
   CLeoBhBase::resetState();
-  prev_direction_ = direction_ = -1;
+  prev_direction_ = direction_ = 1;
 }
 
 double CLeoBhSquat::calculateReward()
