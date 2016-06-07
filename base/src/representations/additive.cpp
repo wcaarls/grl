@@ -97,14 +97,14 @@ void AdditiveRepresentation::update(const ProjectionPtr projection, const Vector
   switch (learning_)
   {
     case 0:
-      representation1_->write(projection, delta/2);
-      representation2_->write(projection, delta/2);
+      representation1_->update(projection, delta/2);
+      representation2_->update(projection, delta/2);
       break;
     case 1:
-      representation1_->write(projection, delta);
+      representation1_->update(projection, delta);
       break;
     case 2:
-      representation2_->write(projection, delta);
+      representation2_->update(projection, delta);
       break;
   }
 }
