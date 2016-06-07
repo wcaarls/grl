@@ -308,5 +308,6 @@ void ODEEnvironment::run()
  
   while (ok()) usleep(1000);
 
+  free(argv[0]);
   safe_delete(&env_);
 }

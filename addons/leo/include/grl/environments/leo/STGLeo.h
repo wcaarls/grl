@@ -33,7 +33,7 @@ static const char* LEO_FOOTSENSOR_NAME[] = {"RightToe", "RightHeel", "LeftToe", 
 
 // Define the maximum allowable Dynamixel voltage that can be guaranteed
 // under all temperature compensation situations.
-#define LEO_MAX_DXL_VOLTAGE             (LEO_SUPPLY_VOLTAGE/LEO_DXL_VOLTAGE_TEMP_FACT_FULL)
+#define LEO_MAX_DXL_VOLTAGE             (LEO_SUPPLY_VOLTAGE/LEO_DXL_VOLTAGE_TEMP_FACT_FULL) // =10.69V
 
 enum ELeoFootContact
 {
