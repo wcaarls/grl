@@ -17,7 +17,8 @@ const double B = 0.18;
 void CLeoBhSquat::resetState()
 {
   CLeoBhBase::resetState();
-  prev_direction_ = direction_ = 1;
+  prev_direction_ = direction_ = -1;
+  squat_counter_ = 0;
 }
 
 double CLeoBhSquat::calculateReward()
@@ -26,7 +27,7 @@ double CLeoBhSquat::calculateReward()
   // Negative reward for 'falling' (doomed to fall)
   if (isDoomedToFall(getCurrentSTGState(), false))
   {
-    reward += -100;
+    reward += -400;
     mLogDebugLn("[REWARD] Doomed to fall! Reward: " << mRwDoomedToFall << " (total reward: " << getTotalReward() << ")" << endl);
   }
   else
@@ -134,6 +135,9 @@ void CLeoBhSquat::updateDirection()
     direction_ =  1;
   else if (direction_ == 1 && isStanding())
     direction_ = -1;
+
+  if (prev_direction_ != direction_)
+    squat_counter_++;
 }
 
 bool CLeoBhSquat::isDoomedToFall(CLeoState* state, bool report)
@@ -147,6 +151,16 @@ bool CLeoBhSquat::isDoomedToFall(CLeoState* state, bool report)
   }
   return false;
 }
+
+std::string CLeoBhSquat::getProgressReport()
+{
+  const int pw = 15;
+  std::stringstream progressString;
+  progressString << std::fixed << std::setprecision(3) << std::right;
+  progressString << std::setw(pw) << squat_counter_;
+  return progressString.str();
+}
+
 /////////////////////////////////
 
 LeoSquatEnvironment::LeoSquatEnvironment()
@@ -249,4 +263,11 @@ double LeoSquatEnvironment::step(const Vector &action, Vector *obs, double *rewa
 
   return tau;
 }
+
+void LeoSquatEnvironment::report(std::ostream &os)
+{
+  LeoBaseEnvironment::report(os);
+  os << bh_->getProgressReport();
+}
+
 

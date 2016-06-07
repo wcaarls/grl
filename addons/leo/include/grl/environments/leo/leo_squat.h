@@ -26,16 +26,18 @@ class CLeoBhSquat: public CLeoBhBase
   };
 
   public:
-    CLeoBhSquat(ISTGActuation *actuationInterface) : CLeoBhBase(actuationInterface), direction_(-1), prev_direction_(-1) {}
+    CLeoBhSquat(ISTGActuation *actuationInterface) : CLeoBhBase(actuationInterface), direction_(-1), prev_direction_(-1), squat_counter_(0) {}
     void resetState();
     double calculateReward();
     void parseLeoState(const CLeoState &leoState, Vector &obs);
     void setDirection(int direction) { direction = direction_; }
     bool isDoomedToFall(CLeoState* state, bool report);
     void updateDirection();
+    std::string getProgressReport();
 
   protected:
     int direction_, prev_direction_;
+    int squat_counter_;
     double pHipHeight_, pHipPos_, cHipHeight_, cHipPos_;
     bool isSitting() const;
     bool isStanding() const;
@@ -60,6 +62,7 @@ class LeoSquatEnvironment: public LeoBaseEnvironment
     virtual LeoSquatEnvironment *clone() const;
     virtual void start(int test, Vector *obs);
     virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal);
+    virtual void report(std::ostream &os);
 
   protected:
     CLeoBhSquat *bh_;
