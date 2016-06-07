@@ -33,14 +33,14 @@ double CLeoBhSquat::calculateReward()
   {
     double rw;
     if (direction_ == -1)
-      rw = pow(cHipHeight_ - B, 2) - pow(pHipHeight_ - B, 2);
+      rw = pow(MAX(0, cHipHeight_ - B), 2);
     else if (direction_ == 1)
-      rw = pow(cHipHeight_ - T, 2) - pow(pHipHeight_ - T, 2);
-    reward += -100*rw;
+      rw = pow(MAX(0, T - cHipHeight_), 2);
+    reward += -rw;
 
     std::cout << pHipHeight_ << " -> " << cHipHeight_ << " = " << reward << std::endl;
 
-    if (direction_ != prev_direction_)
+    if ( (direction_ == -1 && isSitting()) || (direction_ == 1 && isStanding()) )
       reward += 10;
 
     // Reward for keeping torso upright
@@ -109,28 +109,33 @@ void CLeoBhSquat::parseLeoState(const CLeoState &leoState, Vector &obs)
   obs[osHipStanceAngleRate]   = leoState.mJointSpeeds[mHipStance];
   obs[osKneeStanceAngle]      = leoState.mJointAngles[mKneeStance];
   obs[osKneeStanceAngleRate]  = leoState.mJointSpeeds[mKneeStance];
+  obs[osDirection]            = direction_;
 
-  // calculate hip locations
+  // update hip locations
   pHipHeight_ = cHipHeight_;
   pHipPos_ = cHipPos_;
   getHipHeight(getCurrentSTGState()->mJointAngles, cHipHeight_, cHipPos_);
+}
 
+void CLeoBhSquat::updateDirection()
+{
   prev_direction_ = direction_;
+
   if (isStanding())
     std::cout << "Is standing" << std::endl;
   if (isSitting())
     std::cout << "Is sitting" << std::endl;
 
   if (direction_ == -1 && isSitting())
-    obs[osDirection] = direction_ =  1;
+    direction_ =  1;
   else if (direction_ == 1 && isStanding())
-    obs[osDirection] = direction_ = -1;
+    direction_ = -1;
 }
 
 bool CLeoBhSquat::isDoomedToFall(CLeoState* state, bool report)
 {
   // Torso angle out of 'range'
-  if ((state->mJointAngles[ljTorso] < -1.0) || (state->mJointAngles[ljTorso] > 1.0)  || fabs(cHipPos_) > 0.14) // state->mFootContacts == 0
+  if ((state->mJointAngles[ljTorso] < -1.0) || (state->mJointAngles[ljTorso] > 1.0)  || fabs(cHipPos_) > 0.13) // state->mFootContacts == 0
   {
     if (report)
       mLogNoticeLn("[TERMINATION] Torso angle too large");
@@ -188,6 +193,7 @@ void LeoSquatEnvironment::start(int test, Vector *obs)
   // construct new obs from CLeoState
   obs->resize(observation_dims_);
   bh_->parseLeoState(leoState_, *obs);
+  bh_->updateDirection();
 
   bh_->setCurrentSTGState(NULL);
 
@@ -229,6 +235,10 @@ double LeoSquatEnvironment::step(const Vector &action, Vector *obs, double *rewa
     *terminal = 0;
 
   LeoBaseEnvironment::step(tau, *reward, *terminal);
+
+  // Update hip observations and squatting direction before the next timestep
+  bh_->updateDirection();
+
   return tau;
 }
 

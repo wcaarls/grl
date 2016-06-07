@@ -32,6 +32,7 @@ class CLeoBhSquat: public CLeoBhBase
     void parseLeoState(const CLeoState &leoState, Vector &obs);
     void setDirection(int direction) { direction = direction_; }
     bool isDoomedToFall(CLeoState* state, bool report);
+    void updateDirection();
 
   protected:
     int direction_, prev_direction_;
