@@ -41,7 +41,7 @@ double CLeoBhSquat::calculateReward()
     reward += -rw;
 */
 
-    double taskReward = 0, energyReward = 0;
+    double taskReward = 0, energyReward = 0, feetReward = 0;
     if ( (direction_ == -1 && isSitting()) || (direction_ == 1 && isStanding()) )
       reward = 30;
     else
@@ -54,10 +54,13 @@ double CLeoBhSquat::calculateReward()
 
       energyReward = -0.01*getEnergyUsage();
 
-      reward = energyReward + taskReward;
+      if (getCurrentSTGState()->mFootContacts != 15)
+        feetReward = -0.1;
+
+      reward = energyReward + taskReward + feetReward;
     }
 
-    std::cout << pHipHeight_ << " -> " << cHipHeight_ << " = " << taskReward << ", " << energyReward << ", " << reward << std::endl;
+    std::cout << pHipHeight_ << " -> " << cHipHeight_ << " = " << taskReward << ", " << energyReward << " , " << feetReward << " = " << reward << std::endl;
 
     // Reward for keeping torso upright
     //double torsoReward = mRwTorsoUpright * 1.0/(1.0 + (s->mJointAngles[ljTorso] - mRwTorsoUprightAngle)*(s->mJointAngles[ljTorso] - mRwTorsoUprightAngle)/(mRwTorsoUprightAngleMargin*mRwTorsoUprightAngleMargin));
@@ -160,7 +163,7 @@ void CLeoBhSquat::updateDirection()
 bool CLeoBhSquat::isDoomedToFall(CLeoState* state, bool report)
 {
   // Torso angle out of 'range'
-  if ((state->mJointAngles[ljTorso] < -1.4) || (state->mJointAngles[ljTorso] > 1.4)  || fabs(cHipPos_) > 0.13 || fabs(cHipHeight_) < 0.10 || state->mFootContacts != 15) // state->mFootContacts == 0
+  if ((state->mJointAngles[ljTorso] < -1.4) || (state->mJointAngles[ljTorso] > 1.4)  || fabs(cHipPos_) > 0.13 || fabs(cHipHeight_) < 0.10) // state->mFootContacts == 0
   {
     if (report)
       mLogNoticeLn("[TERMINATION] Torso angle too large");
