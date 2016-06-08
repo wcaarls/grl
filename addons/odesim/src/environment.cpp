@@ -156,7 +156,7 @@ bool ODESTGEnvironment::configure(Configuration &config)
 
 void ODESTGEnvironment::start(int test, Vector *obs)
 {
-  simulator_.setInitialCondition();
+  simulator_.setInitialCondition(time(NULL));
   simulator_.resetActuationValues();
   simulator_.activateActions(listener_.getState()->mStateID);
   
