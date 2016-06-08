@@ -185,7 +185,7 @@ class CODEObject: public CODELoggable
 		void						clearJoints();
 		void						clearExternalForces();
 		void						clearAll();
-    void            genRandState(double *rv);
+    void            genRandState(std::map<std::string, double> &jointMap);
 
 	protected:
 		std::string					mName;

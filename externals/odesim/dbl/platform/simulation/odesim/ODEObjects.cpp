@@ -282,29 +282,28 @@ bool CODEObject::init(dWorld& world)
 	return true;	// Do we want to return something else? Can we ever fail?
 }
 
-void CODEObject::genRandState(double *rv)
+void CODEObject::genRandState(std::map<std::string, double> &jointMap)
 {
-  const double C = 0.087263889;
+  const double C = 3*0.087263889; // 0.087263889 = +/- 5 deg
   double r1 = mRand.getUniform(-C, C);
   double r2 = mRand.getUniform(-C, C);
   double r3 = mRand.getUniform(-C, C);
-  double r4 = mRand.getUniform(-C, C);
-  double r5 = mRand.getUniform(-C, C);
-  rv[0] = 0;
-  rv[1] = r1;
-  rv[2] = r2;
-  rv[3] = r1;
-  rv[4] = r2;
-  rv[5] = r3;
-  rv[6] = r3;
-  rv[7] = r4;
-  rv[8] = r5;
+
+  jointMap[std::string("virtualBoom")] = 0;
+  jointMap[std::string("torso")] = r3;
+  jointMap[std::string("upperlegleft")] = r1;
+  jointMap[std::string("upperlegright")] = r1;
+  jointMap[std::string("lowerlegleft")] = r2;
+  jointMap[std::string("lowerlegright")] = r2;
+  jointMap[std::string("footleft")] = 0;
+  jointMap[std::string("footright")] = 0;
+  jointMap[std::string("arm")] = r3;
 }
 
 void CODEObject::setInitialCondition(bool randomize)
 {
-  double rv[9];
-  genRandState(rv);
+  std::map<std::string, double> jointMap;
+  genRandState(jointMap);
 
 	// Process body ICs
 	for (unsigned int iBodyIC=0; iBodyIC<mBodyICs.size(); iBodyIC++)
@@ -318,7 +317,7 @@ void CODEObject::setInitialCondition(bool randomize)
 		else
 		{
 			if (randomize)
-        mBodyICs[iBodyIC]->randomize(rv[iBodyIC]);
+        mBodyICs[iBodyIC]->randomize(jointMap[mBodyICs[iBodyIC]->getBodyName()]);
 			body->setRotation(mBodyICs[iBodyIC]->getRotation());
 		}
 	}
