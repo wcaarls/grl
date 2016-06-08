@@ -334,10 +334,10 @@ double CLeoBhWalkSym::getJointMotorWork(int jointIndex)
 
 double CLeoBhWalkSym::getEnergyUsage()
 {
-  double leftHipWork   = getJointMotorWork(ljHipLeft);  //fabs(std::pow(mCurrentSTGState.mActuationTorques[ljHipLeft] - (0.00992*193)*mCurrentSTGState.mJointSpeeds[ljHipLeft], 2)/8.6);
-  double rightHipWork  = getJointMotorWork(ljHipRight); //fabs(std::pow(mCurrentSTGState.mActuationTorques[ljHipRight] - (0.00992*193)*mCurrentSTGState.mJointSpeeds[ljHipRight], 2)/8.6);
-  double leftKneeWork  = getJointMotorWork(ljKneeLeft); //fabs(std::pow(mCurrentSTGState.mActuationTorques[ljKneeLeft] - (0.00992*193)*mCurrentSTGState.mJointSpeeds[ljKneeLeft], 2)/8.6);
-  double rightKneeWork = getJointMotorWork(ljKneeRight);//fabs(std::pow(mCurrentSTGState.mActuationTorques[ljKneeRight] - (0.00992*193)*mCurrentSTGState.mJointSpeeds[ljKneeRight], 2)/8.6);
+  double leftHipWork   = getJointMotorWork(ljHipLeft);
+  double rightHipWork  = getJointMotorWork(ljHipRight);
+  double leftKneeWork  = getJointMotorWork(ljKneeLeft);
+  double rightKneeWork = getJointMotorWork(ljKneeRight);
   return leftHipWork + rightHipWork + leftKneeWork + rightKneeWork;
 }
 

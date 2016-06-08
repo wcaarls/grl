@@ -5,7 +5,7 @@ experiment:
   steps: 1000000
   rate: 0
   test_interval: 10
-  output: leosim_sarsa_squat
+  output: leosim_sarsa_squat2
   environment: 
     type: environment/leo_squat
     xml: /home/ivan/work/Project/Software/grl/src/grl/addons/leo/cfg/leo_learn_squatting.xml
@@ -61,4 +61,5 @@ experiment:
       representation: experiment/agent/policy/representation
       sampler: 
         type: sampler/greedy
+  load_file: leosim_sarsa_squat-run0
   save_every: run
