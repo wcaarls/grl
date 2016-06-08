@@ -117,10 +117,10 @@ bool CODEBodyIC::readConfig(const CConfigSection &configSection)
 	return configresult;
 }
 
-void CODEBodyIC::randomize()
+void CODEBodyIC::randomize(double r)
 {
   if (mOrientationAsRotation)
-    mRotation.setRotation(mAxisX.evaluate(), mAxisY.evaluate(), mAxisZ.evaluate(), mAngle.evaluate());
+    mRotation.setRotation(mAxisX.evaluate(), mAxisY.evaluate(), mAxisZ.evaluate(), mAngle.evaluate() + r);
   else
     mRotation.setOrientation(mXaxisX.evaluate(), mXaxisY.evaluate(), mXaxisZ.evaluate(),
                              mYaxisX.evaluate(), mYaxisY.evaluate(), mYaxisZ.evaluate());
@@ -183,6 +183,7 @@ CODEObject::CODEObject(CODESim* pSim):
 	mShouldDrawGeoms	= false;
 	// Disable cleanup mode of the hash space - we will delete the geoms one by one in the destructors.
 	mSpace.setCleanup(0);
+  mRand.init(time(NULL));
 }
 
 CODEObject::~CODEObject()
@@ -281,8 +282,30 @@ bool CODEObject::init(dWorld& world)
 	return true;	// Do we want to return something else? Can we ever fail?
 }
 
+void CODEObject::genRandState(double *rv)
+{
+  const double C = 0.087263889;
+  double r1 = mRand.getUniform(-C, C);
+  double r2 = mRand.getUniform(-C, C);
+  double r3 = mRand.getUniform(-C, C);
+  double r4 = mRand.getUniform(-C, C);
+  double r5 = mRand.getUniform(-C, C);
+  rv[0] = 0;
+  rv[1] = r1;
+  rv[2] = r2;
+  rv[3] = r1;
+  rv[4] = r2;
+  rv[5] = r3;
+  rv[6] = r3;
+  rv[7] = r4;
+  rv[8] = r5;
+}
+
 void CODEObject::setInitialCondition(bool randomize)
 {
+  double rv[9];
+  genRandState(rv);
+
 	// Process body ICs
 	for (unsigned int iBodyIC=0; iBodyIC<mBodyICs.size(); iBodyIC++)
 	{
@@ -295,7 +318,7 @@ void CODEObject::setInitialCondition(bool randomize)
 		else
 		{
 			if (randomize)
-				mBodyICs[iBodyIC]->randomize();
+        mBodyICs[iBodyIC]->randomize(rv[iBodyIC]);
 			body->setRotation(mBodyICs[iBodyIC]->getRotation());
 		}
 	}

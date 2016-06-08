@@ -17,7 +17,7 @@ const double B = 0.18;
 void CLeoBhSquat::resetState()
 {
   CLeoBhBase::resetState();
-  prev_direction_ = direction_ = -1;
+  prev_direction_ = direction_ = 1;
   squat_counter_ = 0;
 }
 
@@ -143,7 +143,7 @@ void CLeoBhSquat::updateDirection()
 bool CLeoBhSquat::isDoomedToFall(CLeoState* state, bool report)
 {
   // Torso angle out of 'range'
-  if ((state->mJointAngles[ljTorso] < -1.0) || (state->mJointAngles[ljTorso] > 1.0)  || fabs(cHipPos_) > 0.13 || fabs(cHipHeight_) < 0.10) // state->mFootContacts == 0
+  if ((state->mJointAngles[ljTorso] < -1.4) || (state->mJointAngles[ljTorso] > 1.4)  || fabs(cHipPos_) > 0.13 || fabs(cHipHeight_) < 0.10) // state->mFootContacts == 0
   {
     if (report)
       mLogNoticeLn("[TERMINATION] Torso angle too large");

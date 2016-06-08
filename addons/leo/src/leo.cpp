@@ -148,7 +148,7 @@ void LeoBaseEnvironment::configure(Configuration &config)
   // Read rewards and preprogrammed angles
   bh_->readConfig(xmlConfig.root());
 
-  // Creat ode object which resolves states and actions
+  // Create ode object which resolves states and actions
   ode_ = new ODESTGEnvironment();
   if (!ode_->configure(config))
   {
