@@ -13,14 +13,18 @@ namespace grl
 
 class CLeoBhSquat: public CLeoBhBase
 {
-  enum LeaObservationSquat
+  enum LeoObservationSquat
   {
     osTorsoAngle,
     osTorsoAngleRate,
+    osLeftArmAngle,
+    osLeftArmAngleRate,
     osHipStanceAngle,
     osHipStanceAngleRate,
     osKneeStanceAngle,
     osKneeStanceAngleRate,
+    osAnkleStanceAngle,
+    osAnkleStanceAngleRate,
     osDirection,
     osNumDims
   };

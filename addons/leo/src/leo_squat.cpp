@@ -27,7 +27,7 @@ double CLeoBhSquat::calculateReward()
   // Negative reward for 'falling' (doomed to fall)
   if (isDoomedToFall(getCurrentSTGState(), false))
   {
-    reward += -400;
+    reward += -100;
     mLogDebugLn("[REWARD] Doomed to fall! Reward: " << mRwDoomedToFall << " (total reward: " << getTotalReward() << ")" << endl);
   }
   else
@@ -41,10 +41,15 @@ double CLeoBhSquat::calculateReward()
     reward += -rw;
 */
 
+    double rw;
+    if (direction_ == -1)
+      rw = pow(cHipHeight_ - B, 2) - pow(pHipHeight_ - B, 2);
+     else if (direction_ == 1)
+      rw = pow(cHipHeight_ - T, 2) - pow(pHipHeight_ - T, 2);
+    reward += -1000*rw;
+
     if ( (direction_ == -1 && isSitting()) || (direction_ == 1 && isStanding()) )
       reward = 30;
-    else
-      reward = -1;
 
     std::cout << pHipHeight_ << " -> " << cHipHeight_ << " = " << reward << std::endl;
 
@@ -110,11 +115,17 @@ void CLeoBhSquat::parseLeoState(const CLeoState &leoState, Vector &obs)
 {
   obs[osTorsoAngle]           = leoState.mJointAngles[ljTorso];
   obs[osTorsoAngleRate]       = leoState.mJointSpeeds[ljTorso];
+  obs[osLeftArmAngle]         = leoState.mJointAngles[ljShoulder];
+  obs[osLeftArmAngleRate]     = leoState.mJointSpeeds[ljShoulder];
   obs[osHipStanceAngle]       = leoState.mJointAngles[mHipStance];
   obs[osHipStanceAngleRate]   = leoState.mJointSpeeds[mHipStance];
   obs[osKneeStanceAngle]      = leoState.mJointAngles[mKneeStance];
   obs[osKneeStanceAngleRate]  = leoState.mJointSpeeds[mKneeStance];
+  obs[osAnkleStanceAngle]     = leoState.mJointAngles[mAnkleStance];
+  obs[osAnkleStanceAngleRate] = leoState.mJointSpeeds[mAnkleStance];
   obs[osDirection]            = direction_;
+
+  //std::cout << "Data: " << obs[osTorsoAngle] + obs[osHipStanceAngle] + obs[osKneeStanceAngle] + obs[osAnkleStanceAngle] << std::endl;
 
   // update hip locations
   pHipHeight_ = cHipHeight_;
