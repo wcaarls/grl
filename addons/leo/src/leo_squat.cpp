@@ -32,30 +32,26 @@ double CLeoBhSquat::calculateReward()
   }
   else
   {
-    /*
-    double rw;
-    if (direction_ == -1)
-      rw = pow(MAX(0, cHipHeight_ - B), 2);
-    else if (direction_ == 1)
-      rw = pow(MAX(0, T - cHipHeight_), 2);
-    reward += -rw;
-*/
-
     double taskReward = 0, energyReward = 0, feetReward = 0;
     if ( (direction_ == -1 && isSitting()) || (direction_ == 1 && isStanding()) )
       reward = 30;
     else
     {
+      // Task
       if (direction_ == -1)
         taskReward = pow(cHipHeight_ - B, 2) - pow(pHipHeight_ - B, 2);
        else if (direction_ == 1)
         taskReward = pow(cHipHeight_ - T, 2) - pow(pHipHeight_ - T, 2);
       taskReward = -1000*taskReward;
 
-      energyReward = -0.01*getEnergyUsage();
+      // Energy
+      double ankleLeftWork  = getJointMotorWork(ljAnkleLeft);
+      double ankleRightWork = getJointMotorWork(ljAnkleRight);
+      energyReward = -0.5 * (getEnergyUsage() + ankleLeftWork + ankleRightWork);
 
+      // Feet lifting
       if (getCurrentSTGState()->mFootContacts != 15)
-        feetReward = -0.1;
+        feetReward = -1;
 
       reward = energyReward + taskReward + feetReward;
     }
