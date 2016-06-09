@@ -284,7 +284,7 @@ bool CODEObject::init(dWorld& world)
 
 void CODEObject::genRandState(std::map<std::string, double> &jointMap)
 {
-  const double C = 3*0.087263889; // 0.087263889 = +/- 5 deg
+  const double C = 1*0.087263889; // 0.087263889 = +/- 5 deg
   double r1 = mRand.getUniform(-C, C);
   double r2 = mRand.getUniform(-C, C);
   double r3 = mRand.getUniform(-C, C);
