@@ -14,11 +14,14 @@ REGISTER_CONFIGURABLE(LeoSquatEnvironment)
 const double T = 0.26;
 const double B = 0.18;
 
-void CLeoBhSquat::resetState()
+void CLeoBhSquat::resetState(double time0)
 {
   CLeoBhBase::resetState();
   prev_direction_ = direction_ = 1;
   squat_counter_ = 0;
+  time_of_dir_change_ = time0;
+  up_time_.clear();
+  down_time_.clear();
 }
 
 double CLeoBhSquat::calculateReward()
@@ -47,11 +50,11 @@ double CLeoBhSquat::calculateReward()
       // Energy
       double ankleLeftWork  = getJointMotorWork(ljAnkleLeft);
       double ankleRightWork = getJointMotorWork(ljAnkleRight);
-      energyReward = -0.5 * (getEnergyUsage() + ankleLeftWork + ankleRightWork);
+      energyReward = -0.05 * (getEnergyUsage() + ankleLeftWork + ankleRightWork);
 
       // Feet lifting
       if (getCurrentSTGState()->mFootContacts != 15)
-        feetReward = -1;
+        feetReward = -10;
 
       reward = energyReward + taskReward + feetReward;
     }
@@ -138,7 +141,7 @@ void CLeoBhSquat::parseLeoState(const CLeoState &leoState, Vector &obs)
   getHipHeight(getCurrentSTGState()->mJointAngles, cHipHeight_, cHipPos_);
 }
 
-void CLeoBhSquat::updateDirection()
+void CLeoBhSquat::updateDirection(double time)
 {
   prev_direction_ = direction_;
 
@@ -153,13 +156,20 @@ void CLeoBhSquat::updateDirection()
     direction_ = -1;
 
   if (prev_direction_ != direction_)
+  {
     squat_counter_++;
+    if (prev_direction_ == 1)
+      up_time_.push_back(time-time_of_dir_change_);
+    else
+      down_time_.push_back(time-time_of_dir_change_);
+    time_of_dir_change_ = time;
+  }
 }
 
 bool CLeoBhSquat::isDoomedToFall(CLeoState* state, bool report)
 {
   // Torso angle out of 'range'
-  if ((state->mJointAngles[ljTorso] < -1.4) || (state->mJointAngles[ljTorso] > 1.4)  || fabs(cHipPos_) > 0.13 || fabs(cHipHeight_) < 0.10) // state->mFootContacts == 0
+  if ((state->mJointAngles[ljTorso] < -1.4) || (state->mJointAngles[ljTorso] > 1.4)  || fabs(cHipPos_) > 0.13 || fabs(cHipHeight_) < 0.10 || state->mFootContacts == 0) // state->mFootContacts == 0
   {
     if (report)
       mLogNoticeLn("[TERMINATION] Torso angle too large");
@@ -168,12 +178,39 @@ bool CLeoBhSquat::isDoomedToFall(CLeoState* state, bool report)
   return false;
 }
 
-std::string CLeoBhSquat::getProgressReport()
+std::string CLeoBhSquat::getProgressReport(double trialTime)
 {
   const int pw = 15;
   std::stringstream progressString;
   progressString << std::fixed << std::setprecision(3) << std::right;
+
+  // Squat counter
   progressString << std::setw(pw) << squat_counter_;
+
+  Vector v;
+  double m, s;
+  // Robot rising time mean and variance
+  if (up_time_.size())
+  {
+    toVector(up_time_, v);
+    m = v.mean();
+    s = dot(v-m, v-m) / v.size();
+    progressString << std::setw(pw) << m << std::setw(pw) << s;
+  }
+  else
+    progressString << std::setw(pw) << 0 << std::setw(pw) << 0;
+
+  // Robot squatting time mean and variance
+  if (down_time_.size())
+  {
+    toVector(down_time_, v);
+    m = v.mean();
+    s = dot(v-m, v-m) / v.size();
+    progressString << std::setw(pw) << m << std::setw(pw) << s;
+  }
+  else
+    progressString << std::setw(pw) << 0 << std::setw(pw) << 0;
+
   return progressString.str();
 }
 
@@ -213,10 +250,12 @@ LeoSquatEnvironment *LeoSquatEnvironment::clone() const
 
 void LeoSquatEnvironment::start(int test, Vector *obs)
 {
-  target_env_->start(test, &target_obs_);
+  LeoBaseEnvironment::start(test);
+
+  target_env_->start(test_, &target_obs_);
 
   // Parse obs into CLeoState (Start with left leg being the stance leg)
-  bh_->resetState();
+  bh_->resetState(test_?time_test_:time_learn_);
   bh_->fillLeoState(target_obs_, Vector(), leoState_);
   bh_->setCurrentSTGState(&leoState_);
   bh_->setPreviousSTGState(&leoState_);
@@ -227,11 +266,9 @@ void LeoSquatEnvironment::start(int test, Vector *obs)
   // construct new obs from CLeoState
   obs->resize(observation_dims_);
   bh_->parseLeoState(leoState_, *obs);
-  bh_->updateDirection();
+  bh_->updateDirection(test_?time_test_:time_learn_);
 
   bh_->setCurrentSTGState(NULL);
-
-  LeoBaseEnvironment::start(test);
 }
 
 double LeoSquatEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)
@@ -275,15 +312,16 @@ double LeoSquatEnvironment::step(const Vector &action, Vector *obs, double *rewa
   LeoBaseEnvironment::step(tau, *reward, *terminal);
 
   // Update hip observations and squatting direction before the next timestep
-  bh_->updateDirection();
+  bh_->updateDirection(test_?time_test_:time_learn_);
 
   return tau;
 }
 
 void LeoSquatEnvironment::report(std::ostream &os)
 {
+  double trialTime  = test_?time_test_:time_learn_ - time0_;
   LeoBaseEnvironment::report(os);
-  os << bh_->getProgressReport();
+  os << bh_->getProgressReport(trialTime);
 }
 
 

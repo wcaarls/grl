@@ -11,6 +11,33 @@ double CLeoBhWalk::calculateReward()
   return CLeoBhWalkSym::calculateReward();
 }
 
+std::string CLeoBhWalk::getProgressReport(double trialTime)
+{
+  const int pw = 15;
+  std::stringstream progressString;
+  progressString << std::fixed << std::setprecision(3) << std::right;
+
+  // Number of footsteps in this trial
+  progressString << std::setw(pw) << mNumFootsteps;
+
+  // Walked distance (estimate)
+  progressString << std::setw(pw) << mWalkedDistance;
+
+  // Speed
+  progressString << std::setw(pw) << mWalkedDistance/trialTime;
+
+  // Energy usage
+  progressString << std::setw(pw) << mTrialEnergy;
+
+  // Energy per traveled meter
+  if (mWalkedDistance > 0.001)
+    progressString << std::setw(pw) << mTrialEnergy/mWalkedDistance;
+  else
+    progressString << std::setw(pw) << 0.0;
+
+  return progressString.str();
+}
+
 /////////////////////////////////
 
 LeoWalkEnvironment::LeoWalkEnvironment() :
@@ -124,3 +151,11 @@ double LeoWalkEnvironment::step(const Vector &action, Vector *obs, double *rewar
   LeoBaseEnvironment::step(tau, *reward, *terminal);
   return tau;
 }
+
+void LeoWalkEnvironment::report(std::ostream &os)
+{
+  double trialTime  = test_?time_test_:time_learn_ - time0_;
+  LeoBaseEnvironment::report(os);
+  os << bh_->getProgressReport(trialTime);
+}
+

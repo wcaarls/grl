@@ -2,13 +2,13 @@ experiment:
   type: experiment/online_learning
   runs: 1
   trials: 0
-  steps: 1000000
+  steps: 500000
   rate: 0
   test_interval: 10
-  output: new_leosim_sarsa_squat
+  output: leosim_sarsa_squat
   environment: 
     type: environment/leo_squat
-    xml: /home/ivan/work/Project/Software/grl/src/grl/addons/leo/cfg/leo_learn_squatting.xml
+    xml: /home/ikoryakovskiy/grl/src/grl/addons/leo/cfg/leo_learn_squatting.xml
     target_env: 
       type: environment/ode
       xml: experiment/environment/xml

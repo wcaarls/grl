@@ -221,8 +221,8 @@ void LeoBaseEnvironment::step(double tau, double reward, int terminal)
 
 void LeoBaseEnvironment::report(std::ostream &os)
 {
-  double &time  = test_?time_test_ :time_learn_;
-  os << bh_->getProgressReport(time-time0_);
+  double trialTime  = test_?time_test_:time_learn_ - time0_;
+  os << bh_->getProgressReport(trialTime);
 }
 
 ///////////////////////////////////////////

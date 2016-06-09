@@ -1,9 +1,9 @@
 experiment: 
   type: experiment/online_learning
   runs: 1
-  trials: 0
-  steps: 1000000
-  rate: 30
+  trials: 5
+  steps: 0
+  rate: 5
   test_interval: 0
   output: leosim_sarsa_squat_play
   environment: 
@@ -61,5 +61,5 @@ experiment:
       representation: experiment/agent/policy/representation
       sampler: 
         type: sampler/greedy
-  load_file: leosim_sarsa_squat2-run0
+  load_file: leo_leosim_sarsa_squat-mp0-run0
   save_every: never

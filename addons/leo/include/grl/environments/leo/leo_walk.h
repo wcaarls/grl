@@ -16,6 +16,7 @@ class CLeoBhWalk: public CLeoBhBase
   public:
     CLeoBhWalk(ISTGActuation *actuationInterface) : CLeoBhBase(actuationInterface) {}
     double calculateReward();
+    std::string getProgressReport(double trialTime);
 };
 
 /// Simulation of original Leo robot by Erik Schuitema.
@@ -36,6 +37,8 @@ class LeoWalkEnvironment: public LeoBaseEnvironment
     virtual LeoWalkEnvironment *clone() const;
     virtual void start(int test, Vector *obs);
     virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal);
+
+    virtual void report(std::ostream &os);
     
   protected:
     int requested_action_dims_;
