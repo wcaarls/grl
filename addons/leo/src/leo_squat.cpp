@@ -6,7 +6,7 @@ using namespace grl;
 REGISTER_CONFIGURABLE(LeoSquatEnvironment)
 
 //const double T[] = { 0.0,  0.0,  0.0,  0.0,  0.0};
-//const double B[] = { 1.4,  1.4, -1.9, -1.9, -0.3}; // hips, knees, torso
+//const double B[] = { 1.4,  1.4, -1.9, -1.9, -0.3}; // hips, knees, torso, ankles = 0.8
 
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
