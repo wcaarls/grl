@@ -78,7 +78,7 @@ void ODESimulator::run()
   // Broadcast the initial state of the robot so that the policy
   // can calculate the initial actuation signals.
   // shouldStep() will wait for the initial actuation signals from the policy (it is reset in start())
-  setInitialCondition(time(NULL));
+  setInitialCondition(mRandomize?time(NULL):0);
 
   mLogNoticeLn("Simulator settings:\n      step time: " << mSim.getStepTime() << ", subsamplingfactor: " << mSim.getSubsamplingFactor());
 

@@ -141,8 +141,6 @@ void CLeoBhSquat::parseLeoState(const CLeoState &leoState, Vector &obs)
     }
   }
 
-  TRACE("Converted observation: " << obs);
-
   //std::cout << "Data: " << obs[osTorsoAngle] + obs[osHipStanceAngle] + obs[osKneeStanceAngle] + obs[osAnkleStanceAngle] << std::endl;
 
   // update hip locations
@@ -182,7 +180,7 @@ bool CLeoBhSquat::isDoomedToFall(CLeoState* state, bool report)
 {
   // Torso angle out of 'range'
   //if ((state->mJointAngles[ljTorso] < -1.4) || (state->mJointAngles[ljTorso] > 1.4) || fabs(cHipPos_) > 0.13 || fabs(cHipHeight_) < 0.10 || state->mFootContacts == 0) // state->mFootContacts == 0
-  if ((state->mJointAngles[ljTorso] < -1.4) || (state->mJointAngles[ljTorso] > 1.4) || (state->mFootContacts != 15))
+  if ((state->mJointAngles[ljTorso] < -1.4) || (state->mJointAngles[ljTorso] > 1.4) )//|| (state->mFootContacts != 15))
   {
     if (report)
       mLogNoticeLn("[TERMINATION] Torso angle too large");

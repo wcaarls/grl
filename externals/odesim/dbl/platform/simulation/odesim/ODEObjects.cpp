@@ -303,7 +303,8 @@ void CODEObject::genRandState(std::map<std::string, double> &jointMap)
 void CODEObject::setInitialCondition(bool randomize)
 {
   std::map<std::string, double> jointMap;
-  genRandState(jointMap);
+  if (randomize)
+    genRandState(jointMap);
 
 	// Process body ICs
 	for (unsigned int iBodyIC=0; iBodyIC<mBodyICs.size(); iBodyIC++)

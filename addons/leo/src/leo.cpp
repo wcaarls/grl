@@ -152,20 +152,22 @@ void LeoBaseEnvironment::configure(Configuration &config)
   bh_->readConfig(xmlConfig.root());
 
   // Create ode object which resolves states and actions
-  ode_ = new ODESTGEnvironment();
-  if (!ode_->configure(config))
+  ODESTGEnvironment *ode = new ODESTGEnvironment();
+  if (!ode->configure(config))
   {
     ERROR("Could not initialize STG ODE environment");
     return;
   }
 
+  // Select states and actions that are delivered to an agent
+  configParseObservations(config, ode->getSensors());
+  configParseActions(config, ode->getActuators());
+
+  delete ode;
+
   // reserve memory
   target_obs_.resize(target_observation_dims_);
   target_action_.resize(target_action_dims_);
-
-  // Select states and actions that are delivered to an agent
-  configParseObservations(config);
-  configParseActions(config);
 }
 
 void LeoBaseEnvironment::reconfigure(const Configuration &config)
@@ -231,12 +233,12 @@ void LeoBaseEnvironment::report(std::ostream &os)
 ///////////////////////////////////////////
 /// Helper functions
 ///
-void LeoBaseEnvironment::configParseObservations(Configuration &config)
+void LeoBaseEnvironment::configParseObservations(Configuration &config, const std::vector<CGenericStateVar> &sensors)
 {
   const std::vector<std::string> observeList = cutLongStr( config["observe"].str() );
   std::vector<std::string> observe;
   ObserverStruct observer_struct;
-  fillObserve(ode_->getSensors(), observeList, observe);
+  fillObserve(sensors, observeList, observe);
   fillObserverStruct(observe, observer_struct);
   observation_dims_ = observe.size();
 
@@ -251,14 +253,14 @@ void LeoBaseEnvironment::configParseObservations(Configuration &config)
   for (i = 0; i < observer_struct.angles.size(); i++)
   {
     std::string name = "robot." + jointIndexToName(observer_struct.angles[i]) + ".angle";
-    int sensor_idx = findVarIdx(ode_->getSensors(), name);
+    int sensor_idx = findVarIdx(sensors, name);
     observation_min[i] = ode_observation_min[sensor_idx];
     observation_max[i] = ode_observation_max[sensor_idx];
   }
   for (j = 0; j < observer_struct.angle_rates.size(); j++)
   {
     std::string name = "robot." + jointIndexToName(observer_struct.angle_rates[j]) + ".anglerate";
-    int sensor_idx = findVarIdx(ode_->getSensors(), name);
+    int sensor_idx = findVarIdx(sensors, name);
     observation_min[i+j] = ode_observation_min[sensor_idx];
     observation_max[i+j] = ode_observation_max[sensor_idx];
   }
@@ -342,11 +344,11 @@ std::string LeoBaseEnvironment::jointIndexToName(int jointIndex) const
   }
 }
 
-void LeoBaseEnvironment::configParseActions(Configuration &config)
+void LeoBaseEnvironment::configParseActions(Configuration &config, const std::vector<CGenericActionVar> &actuators)
 {
   Vector actuate;
   std::vector<std::string> actuateList = cutLongStr(config["actuate"].str());
-  fillActuate(ode_->getActuators(), actuateList, actuate);
+  fillActuate(actuators, actuateList, actuate);
   if (actuate.size() != target_action_dims_)
     throw bad_param("leobase:actuate");
   action_dims_ = (actuate.array() != 0).count();

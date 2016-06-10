@@ -12,6 +12,7 @@ experiment:
     target_env: 
       type: environment/ode
       xml: experiment/environment/xml
+      randomize: 0
       visualize: 1
     observe: hipright, kneeright, ankleright
     actuate: hipright, kneeright, ankleright
@@ -22,8 +23,8 @@ experiment:
     policy: 
       type: policy/parameterized/pid
       setpoint: [0, 0, 0, 0, 0, 0]
-      outputs: experiment/environment/target_env/action_dims
-      p: [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0]
+      outputs: 3
+      p: [9, 0, 0, 0, 14, 0, 0, 0, 7.2, 0.001, 0, 0, 0, 0.001, 0, 0, 0, 0.001]
       i: []
       d: []
       il: []

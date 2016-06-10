@@ -27,9 +27,9 @@ class ODESTGEnvironment: public QObject
     CGenericStateVar               termination_, reward_;
     
     uint64_t                       start_time_, timeout_;
-    
+    int                            randomize_;
   public:
-    ODESTGEnvironment() : listener_(&simulator_), timeout_(0) { }
+    ODESTGEnvironment() : listener_(&simulator_), timeout_(0), randomize_(0) { }
     ~ODESTGEnvironment();
   
     bool configure(Configuration &config);

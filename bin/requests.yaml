@@ -362,11 +362,19 @@ environment/ode:
     mutability: configuration
     default: ../addons/odesim/cfg/robot.xml
     optional: 1
+  randomize:
+    type: int
+    description: Randomize initial state
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 2147483647
   visualize:
     type: int
     description: Whether to display 3D visualization
     mutability: configuration
-    default: 1
+    default: 20578368
     optional: 1
     min: 0
     max: 1

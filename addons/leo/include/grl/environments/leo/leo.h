@@ -158,8 +158,8 @@ class LeoBaseEnvironment: public Environment
     int findVarIdx(const std::vector<CGenericStateVar> &genericStates, std::string query) const;
     std::string jointIndexToName(int jointIndex) const;
     int jointNameToIndex(const std::string jointName) const;
-    void configParseObservations(Configuration &config);
-    void configParseActions(Configuration &config);
+    void configParseObservations(Configuration &config, const std::vector<CGenericStateVar> &sensors);
+    void configParseActions(Configuration &config, const std::vector<CGenericActionVar> &actuators);
 
     void fillObserve(const std::vector<CGenericStateVar> &genericStates,
                      const std::vector<std::string> &observeList,
@@ -173,7 +173,7 @@ class LeoBaseEnvironment: public Environment
 
   private:
     CLeoBhBase *bh_; // makes it invisible in derived classes
-    ODESTGEnvironment *ode_;
+    //ODESTGEnvironment *ode_;
 };
 
 }

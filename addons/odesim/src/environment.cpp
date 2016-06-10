@@ -27,6 +27,12 @@ bool ODESTGEnvironment::configure(Configuration &config)
   if (stat (xml.c_str(), &buffer) != 0)
     xml = std::string(CONFIG_DIR) + "/" + config["xml"].str();
 
+  if (config.has("randomize"))
+  {
+    randomize_ = config["randomize"];
+    simulator_.setRandomize(randomize_);
+  }
+
   CXMLConfiguration xmlConfig;
 
   if (!xmlConfig.loadFile(xml))
@@ -61,6 +67,8 @@ bool ODESTGEnvironment::configure(Configuration &config)
     ERROR("Loading XML configuration failed!");
     return false;
   }
+
+  //simulator_.setRandomize(randomize_);
 
   if (!simulator_.init())
   {
@@ -160,7 +168,7 @@ bool ODESTGEnvironment::configure(Configuration &config)
 
 void ODESTGEnvironment::start(int test, Vector *obs)
 {
-  simulator_.setInitialCondition(time(NULL));
+  simulator_.setInitialCondition(randomize_?time(NULL):0);
   simulator_.resetActuationValues();
   simulator_.activateActions(listener_.getState()->mStateID);
   
@@ -231,6 +239,7 @@ ODEEnvironment::~ODEEnvironment()
 void ODEEnvironment::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("xml", "XML configuration filename", xml_));
+  config->push_back(CRP("randomize", "Randomize initial state", 0));
   config->push_back(CRP("visualize", "Whether to display 3D visualization", visualize_, CRP::Configuration, 0, 1));
   
   config->push_back(CRP("observation_dims", "int.observation_dims", "Number of observation dimensions", CRP::Provided));
@@ -287,7 +296,7 @@ void ODEEnvironment::run()
     init_state_ = isError;
     return;
   }
-  
+
   if (visualize_)
   {
     NOTICE("Initializing Qt");
