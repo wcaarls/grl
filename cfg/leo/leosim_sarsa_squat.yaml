@@ -2,7 +2,7 @@ experiment:
   type: experiment/online_learning
   runs: 1
   trials: 0
-  steps: 500000
+  steps: 1000000
   rate: 0
   test_interval: 10
   output: leosim_sarsa_squat
@@ -61,5 +61,4 @@ experiment:
       representation: experiment/agent/policy/representation
       sampler: 
         type: sampler/greedy
-  load_file: init-leo_leosim_sarsa_squat-mp7-run0
   save_every: run
