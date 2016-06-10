@@ -8,7 +8,7 @@ experiment:
   output: leosim_sarsa_squat_play
   environment: 
     type: environment/leo_squat
-    xml: /home/ivan/work/Project/Software/grl/src/grl/addons/leo/cfg/leo_learn_squatting.xml
+    xml: ../../leo/cfg/leo_learn_squatting.xml
     target_env: 
       type: environment/ode
       xml: experiment/environment/xml

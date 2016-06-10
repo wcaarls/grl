@@ -8,12 +8,12 @@ experiment:
   output: leosim_sarsa_squat
   environment: 
     type: environment/leo_squat
-    xml: /home/ikoryakovskiy/grl/src/grl/addons/leo/cfg/leo_learn_squatting.xml
+    xml: ../../leo/cfg/leo_learn_squatting.xml
     target_env: 
       type: environment/ode
       xml: experiment/environment/xml
       visualize: 1
-    observe: torso_boom, hipright, kneeright, ankleright, shoulder
+    observe: torso_boom, hipright, kneeright, ankleright, shoulder, direction
     actuate: hipright, kneeright, ankleright
     observation_dims: experiment/environment/target_env/observation_dims
     action_dims: experiment/environment/target_env/action_dims

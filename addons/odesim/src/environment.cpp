@@ -1,3 +1,4 @@
+#include <sys/stat.h>
 #include <XMLConfiguration.h>
 
 #include <grl/environments/odesim/environment.h>
@@ -22,6 +23,9 @@ ODESTGEnvironment::~ODESTGEnvironment()
 bool ODESTGEnvironment::configure(Configuration &config)
 {
   std::string xml = config["xml"].str();
+  struct stat buffer;
+  if (stat (xml.c_str(), &buffer) != 0)
+    xml = std::string(CONFIG_DIR) + "/" + config["xml"].str();
 
   CXMLConfiguration xmlConfig;
 

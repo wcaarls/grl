@@ -121,17 +121,23 @@ bool CLeoBhSquat::isStanding() const
 
 void CLeoBhSquat::parseLeoState(const CLeoState &leoState, Vector &obs)
 {
-  obs[osTorsoAngle]           = leoState.mJointAngles[ljTorso];
-  obs[osTorsoAngleRate]       = leoState.mJointSpeeds[ljTorso];
-  obs[osLeftArmAngle]         = leoState.mJointAngles[ljShoulder];
-  obs[osLeftArmAngleRate]     = leoState.mJointSpeeds[ljShoulder];
-  obs[osHipStanceAngle]       = leoState.mJointAngles[mHipStance];
-  obs[osHipStanceAngleRate]   = leoState.mJointSpeeds[mHipStance];
-  obs[osKneeStanceAngle]      = leoState.mJointAngles[mKneeStance];
-  obs[osKneeStanceAngleRate]  = leoState.mJointSpeeds[mKneeStance];
-  obs[osAnkleStanceAngle]     = leoState.mJointAngles[mAnkleStance];
-  obs[osAnkleStanceAngleRate] = leoState.mJointSpeeds[mAnkleStance];
-  obs[osDirection]            = direction_;
+  int i, j;
+  for (i = 0; i < observer_struct_.angles.size(); i++)
+    obs[i] = leoState.mJointAngles[ observer_struct_.angles[i] ];
+  for (j = 0; j < observer_struct_.angle_rates.size(); j++)
+    obs[i+j] = leoState.mJointAngles[ observer_struct_.angle_rates[j] ];
+  for (int k = 0; k < observer_struct_.augmented.size(); k++)
+  {
+    if (observer_struct_.augmented[k] == "direction")
+      obs[i+j+k] = direction_;
+    else
+    {
+      ERROR("Unknown augmented field '" << observer_struct_.augmented[i] << "'");
+      throw bad_param("leo_squat:observer_idx_.augmented[i]");
+    }
+  }
+
+  TRACE("Converted observation: " << obs);
 
   //std::cout << "Data: " << obs[osTorsoAngle] + obs[osHipStanceAngle] + obs[osKneeStanceAngle] + obs[osAnkleStanceAngle] << std::endl;
 
@@ -232,15 +238,16 @@ void LeoSquatEnvironment::configure(Configuration &config)
   LeoBaseEnvironment::configure(config);
 
   // Augmenting state with a direction indicator variable: sit down or stand up
-  observation_dims_++;
-  config.set("observation_dims", observation_dims_);
-  Vector new_obs_min, new_obs_max;
-  new_obs_min.resize(observation_dims_);
-  new_obs_max.resize(observation_dims_);
-  new_obs_min << config["observation_min"].v(), VectorConstructor(-1);
-  new_obs_max << config["observation_max"].v(), VectorConstructor(+1);
-  config.set("observation_min", new_obs_min);
-  config.set("observation_max", new_obs_max);
+  const ObserverStruct &os = bh_->getObserverStruct();
+  Vector obs_min = config["observation_min"].v();
+  Vector obs_max = config["observation_max"].v();
+  obs_min[os.angles.size()+os.angle_rates.size() + 0] = -1;
+  obs_max[os.angles.size()+os.angle_rates.size() + 0] = +1;
+  config.set("observation_min", obs_min);
+  config.set("observation_max", obs_max);
+
+  TRACE("Observation min: " << obs_min);
+  TRACE("Observation max: " << obs_max);
 }
 
 LeoSquatEnvironment *LeoSquatEnvironment::clone() const

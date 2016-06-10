@@ -176,25 +176,25 @@ void PIDTrajectoryPolicy::configure(Configuration &config)
   if (!p_.size())
     p_ = ConstantVector(inputs_*outputs_, 0.);
   if (p_.size() != inputs_*outputs_)
-    throw bad_param("policy/pid:p");
+    throw bad_param("policy/pidt:p");
 
   i_ = config["i"].v();
   if (!i_.size())
     i_ = ConstantVector(inputs_*outputs_, 0.);
   if (i_.size() != inputs_*outputs_)
-    throw bad_param("policy/pid:i");
+    throw bad_param("policy/pidt:i");
 
   d_ = config["d"].v();
   if (!d_.size())
     d_ = ConstantVector(inputs_*outputs_, 0.);
   if (d_.size() != inputs_*outputs_)
-    throw bad_param("policy/pid:d");
+    throw bad_param("policy/pidt:d");
 
   il_ = config["il"].v();
   if (!il_.size())
     il_ = ConstantVector(inputs_*outputs_, 0.);
   if (il_.size() != inputs_*outputs_)
-    throw bad_param("policy/pid:il");
+    throw bad_param("policy/pidt:il");
 
   params_ = extend(extend(extend(p_, i_), d_), il_);
 

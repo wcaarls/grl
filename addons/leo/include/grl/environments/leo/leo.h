@@ -10,6 +10,13 @@
 namespace grl
 {
 
+struct ObserverStruct
+{
+  std::vector<int> angles;
+  std::vector<int> angle_rates;
+  std::vector<std::string> augmented;
+};
+
 // Base classes for Leo
 class CLeoBhBase: public CLeoBhWalkSym
 {
@@ -77,6 +84,8 @@ class CLeoBhBase: public CLeoBhWalkSym
 
   public:
     void resetState();
+    void setObserverStruct(ObserverStruct observer_struct) { observer_struct_ = observer_struct; }
+    const ObserverStruct &getObserverStruct() { return observer_struct_; }
     void fillLeoState(const Vector &obs, const Vector &action, CLeoState &leoState);
     void parseLeoState(const CLeoState &leoState, Vector &obs);
     void updateDerivedStateVars(CLeoState *currentSTGState);
@@ -104,6 +113,7 @@ class CLeoBhBase: public CLeoBhWalkSym
 
   protected:
     CButterworthFilter<1>	mJointSpeedFilter[ljNumJoints];
+    ObserverStruct observer_struct_;
 };
 
 /// Base class for simulated and real Leo
@@ -138,7 +148,6 @@ class LeoBaseEnvironment: public Environment
     int observation_dims_, action_dims_;
     int target_observation_dims_, target_action_dims_;
     Vector target_obs_, target_action_;
-    Vector observe_, actuate_;
 
     // Exporter
     Exporter *exporter_;
@@ -146,12 +155,16 @@ class LeoBaseEnvironment: public Environment
     double time_test_, time_learn_, time0_;
 
   protected:
-    void config_parse_observations(Configuration &config);
-    void config_parse_actions(Configuration &config);
+    void fillObserverStruct(const std::vector<std::string> &observed_names, ObserverStruct &observer_idx) const;
+    int findVarIdx(const std::vector<CGenericStateVar> &genericStates, std::string query) const;
+    std::string jointIndexToName(int jointIndex) const;
+    int jointNameToIndex(const std::string jointName) const;
+    void configParseObservations(Configuration &config);
+    void configParseActions(Configuration &config);
 
     void fillObserve(const std::vector<CGenericStateVar> &genericStates,
                      const std::vector<std::string> &observeList,
-                     Vector &out) const;
+                     std::vector<std::string> &observe) const;
 
     void fillActuate(const std::vector<CGenericActionVar> &genericAction,
                      const std::vector<std::string> &actuateList,

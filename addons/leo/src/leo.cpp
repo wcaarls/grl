@@ -1,3 +1,4 @@
+#include <sys/stat.h>
 #include <XMLConfiguration.h>
 #include <grl/environments/leo/leo.h>
 
@@ -121,8 +122,10 @@ void LeoBaseEnvironment::request(ConfigurationRequest *config)
 void LeoBaseEnvironment::configure(Configuration &config)
 {
   // Setup path to a configuration file
-  //xml_ = std::string(LEO_CONFIG_DIR) + "/" + config["xml"].str();
   xml_ = config["xml"].str();
+  struct stat buffer;
+  if (stat (xml_.c_str(), &buffer) != 0)
+    xml_ = std::string(LEO_CONFIG_DIR) + "/" + config["xml"].str();
   std::cout << xml_ << std::endl;
 
   target_env_ = (Environment*)config["target_env"].ptr(); // here we can select an actual Leo enviromnent (simulation/real)
@@ -161,8 +164,8 @@ void LeoBaseEnvironment::configure(Configuration &config)
   target_action_.resize(target_action_dims_);
 
   // Define what we actuate and what we don't
-  config_parse_observations(config);
-  config_parse_actions(config);
+  configParseObservations(config);
+  configParseActions(config);
 }
 
 void LeoBaseEnvironment::reconfigure(const Configuration &config)
@@ -228,14 +231,14 @@ void LeoBaseEnvironment::report(std::ostream &os)
 ///////////////////////////////////////////
 /// Helper functions
 ///
-void LeoBaseEnvironment::config_parse_observations(Configuration &config)
+void LeoBaseEnvironment::configParseObservations(Configuration &config)
 {
-  std::string observe = config["observe"].str();
-  const std::vector<std::string> observeList = cutLongStr(observe);
-  fillObserve(ode_->getSensors(), observeList, observe_);
-  if (observe_.size() != target_observation_dims_)
-    throw bad_param("leobase:observe");
-  observation_dims_ = (observe_.array() != 0).count();
+  const std::vector<std::string> observeList = cutLongStr( config["observe"].str() );
+  std::vector<std::string> observe;
+  ObserverStruct observer_struct;
+  fillObserve(ode_->getSensors(), observeList, observe);
+  fillObserverStruct(observe, observer_struct);
+  observation_dims_ = observe.size();
 
   // mask observation min/max vectors
   Vector ode_observation_min, ode_observation_max, observation_min, observation_max;
@@ -243,27 +246,110 @@ void LeoBaseEnvironment::config_parse_observations(Configuration &config)
   config.get("observation_max", ode_observation_max);
   observation_min.resize(observation_dims_);
   observation_max.resize(observation_dims_);
-  for (int i = 0, j = 0; i < observe_.size(); i++)
-    if (observe_[i])
-    {
-      observation_min[j]   = ode_observation_min[i];
-      observation_max[j++] = ode_observation_max[i];
-    }
+
+  int i, j;
+  for (i = 0; i < observer_struct.angles.size(); i++)
+  {
+    std::string name = "robot." + jointIndexToName(observer_struct.angles[i]) + ".angle";
+    int sensor_idx = findVarIdx(ode_->getSensors(), name);
+    observation_min[i] = ode_observation_min[sensor_idx];
+    observation_max[i] = ode_observation_max[sensor_idx];
+  }
+  for (j = 0; j < observer_struct.angle_rates.size(); j++)
+  {
+    std::string name = "robot." + jointIndexToName(observer_struct.angle_rates[j]) + ".anglerate";
+    int sensor_idx = findVarIdx(ode_->getSensors(), name);
+    observation_min[i+j] = ode_observation_min[sensor_idx];
+    observation_max[i+j] = ode_observation_max[sensor_idx];
+  }
 
   // Set parameters exported to an agent
   config.set("observation_dims", observation_dims_);
   config.set("observation_min", observation_min);
   config.set("observation_max", observation_max);
+
+  // Prepare observer indexes for easy connection between states of the target environment and agent observations
+  bh_->setObserverStruct(observer_struct);
 }
 
-void LeoBaseEnvironment::config_parse_actions(Configuration &config)
+int LeoBaseEnvironment::findVarIdx(const std::vector<CGenericStateVar> &genericStates, std::string query) const
 {
-  std::string actuate = config["actuate"].str();
-  std::vector<std::string> actuateList = cutLongStr(actuate);
-  fillActuate(ode_->getActuators(), actuateList, actuate_);
-  if (actuate_.size() != target_action_dims_)
+  std::vector<CGenericStateVar>::const_iterator gState = genericStates.begin();
+  for (int i = 0; gState < genericStates.end(); gState++, i++)
+    if (query == gState->name())
+      return i;
+  return -1;
+}
+
+void LeoBaseEnvironment::fillObserverStruct(const std::vector<std::string> &observer_names, ObserverStruct &observer_idx) const
+{
+  for (int i = 0; i < observer_names.size(); i++)
+  {
+    std::string name = observer_names[i];
+    std::replace( name.begin(), name.end(), '.', ' ');
+    std::vector<std::string> cuttedName = cutLongStr(name);
+    if (cuttedName.size() == 1)
+      observer_idx.augmented.push_back(name);
+    else if (cuttedName[2] == "angle")
+      observer_idx.angles.push_back(jointNameToIndex(cuttedName[1]));
+    else if (cuttedName[2] == "anglerate")
+      observer_idx.angle_rates.push_back(jointNameToIndex(cuttedName[1]));
+    else
+    {
+      ERROR("Unknown joint '" << cuttedName[2] << "'");
+      throw bad_param("leobase:cuttedName[2]");
+    }
+  }
+}
+
+int LeoBaseEnvironment::jointNameToIndex(const std::string jointName) const
+{
+  if (jointName == "torso_boom")
+    return ljTorso;
+  else if (jointName == "shoulder")
+    return ljShoulder;
+  else if (jointName == "hipright")
+    return ljHipRight;
+  else if (jointName == "hipleft")
+    return ljHipLeft;
+  else if (jointName == "kneeright")
+    return ljKneeRight;
+  else if (jointName == "kneeleft")
+    return ljKneeLeft;
+  else if (jointName == "ankleright")
+    return ljAnkleRight;
+  else if (jointName == "ankleleft")
+    return ljAnkleLeft;
+  else
+    return -1; // augmented state
+}
+
+std::string LeoBaseEnvironment::jointIndexToName(int jointIndex) const
+{
+  switch(jointIndex)
+  {
+    case ljTorso      : return std::string("torso_boom"); break;
+    case ljShoulder   : return std::string("shoulder");   break;
+    case ljHipRight   : return std::string("hipright");   break;
+    case ljHipLeft    : return std::string("hipleft");    break;
+    case ljKneeRight  : return std::string("kneeright");  break;
+    case ljKneeLeft   : return std::string("kneeleft");   break;
+    case ljAnkleRight : return std::string("ankleright"); break;
+    case ljAnkleLeft  : return std::string("ankleleft");  break;
+    default:
+      ERROR("Joint index out of bounds '" << jointIndex << "'");
+      throw bad_param("leobase:jointIndex");
+  }
+}
+
+void LeoBaseEnvironment::configParseActions(Configuration &config)
+{
+  Vector actuate;
+  std::vector<std::string> actuateList = cutLongStr(config["actuate"].str());
+  fillActuate(ode_->getActuators(), actuateList, actuate);
+  if (actuate.size() != target_action_dims_)
     throw bad_param("leobase:actuate");
-  action_dims_ = (actuate_.array() != 0).count();
+  action_dims_ = (actuate.array() != 0).count();
 
   // mask observation min/max vectors
   Vector target_action_min, target_action_max, action_min, action_max;
@@ -271,8 +357,8 @@ void LeoBaseEnvironment::config_parse_actions(Configuration &config)
   config.get("action_max", target_action_max);
   action_min.resize(action_dims_);
   action_max.resize(action_dims_);
-  for (int i = 0, j = 0; i < actuate_.size(); i++)
-    if (actuate_[i])
+  for (int i = 0, j = 0; i < actuate.size(); i++)
+    if (actuate[i])
     {
       action_min[j]   = target_action_min[i];
       action_max[j++] = target_action_max[i];
@@ -284,16 +370,13 @@ void LeoBaseEnvironment::config_parse_actions(Configuration &config)
   config.set("action_max", action_max);
 }
 
-void LeoBaseEnvironment::fillObserve( const std::vector<CGenericStateVar> &genericStates,
-                                     const std::vector<std::string> &observeList,
-                                     Vector &out) const
+void LeoBaseEnvironment::fillObserve(const std::vector<CGenericStateVar> &genericStates,
+                                      const std::vector<std::string> &observeList,
+                                      std::vector<std::string> &observe) const
 {
-  out.resize(genericStates.size());
-  for (int i = 0; i < out.size(); i++) out[i] = 0;
   std::vector<std::string>::const_iterator listMember = observeList.begin();
   std::vector<CGenericStateVar>::const_iterator gState;
   std::string::const_iterator it;
-
   for (; listMember < observeList.end(); listMember++)
   {
     bool found = false;
@@ -308,8 +391,8 @@ void LeoBaseEnvironment::fillObserve( const std::vector<CGenericStateVar> &gener
         it += listMember->size(); // point at the end of substring
         if (it == name.end() || *it == '.')
         {
-          INFO("Adding to the observation vector: " << name);
-          out[i] = 1;
+          INFO("Adding to the observation vector (physical state): " << name);
+          observe.push_back(name);
           found = true;
         }
       }
@@ -317,8 +400,8 @@ void LeoBaseEnvironment::fillObserve( const std::vector<CGenericStateVar> &gener
 
     if (!found)
     {
-      ERROR("Requested unregistered field '" << *listMember << "'");
-      throw bad_param("leobase:observe");
+      INFO("Adding to the observation vector (augmented state): " << *listMember);
+      observe.push_back(*listMember);
     }
   }
 }
@@ -362,7 +445,7 @@ void LeoBaseEnvironment::fillActuate(const std::vector<CGenericActionVar> &gener
     if (!found)
     {
       ERROR("Requested unregistered field '" << *listMember << "'");
-      throw bad_param("leosim:actuate");
+      throw bad_param("leobase:listMember");
     }
   }
 }
