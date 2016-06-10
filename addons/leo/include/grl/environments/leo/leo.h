@@ -143,7 +143,6 @@ class LeoBaseEnvironment: public Environment
     CLeoState leoState_;
     Environment *target_env_;
     std::string xml_;
-    ODESTGEnvironment *ode_;
 
     int observation_dims_, action_dims_;
     int target_observation_dims_, target_action_dims_;
@@ -174,6 +173,7 @@ class LeoBaseEnvironment: public Environment
 
   private:
     CLeoBhBase *bh_; // makes it invisible in derived classes
+    ODESTGEnvironment *ode_;
 };
 
 }

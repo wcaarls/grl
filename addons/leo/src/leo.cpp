@@ -163,7 +163,7 @@ void LeoBaseEnvironment::configure(Configuration &config)
   target_obs_.resize(target_observation_dims_);
   target_action_.resize(target_action_dims_);
 
-  // Define what we actuate and what we don't
+  // Select states and actions that are delivered to an agent
   configParseObservations(config);
   configParseActions(config);
 }

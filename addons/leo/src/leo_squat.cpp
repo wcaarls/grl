@@ -53,8 +53,8 @@ double CLeoBhSquat::calculateReward()
       energyReward = -0.05 * (getEnergyUsage() + ankleLeftWork + ankleRightWork);
 
       // Feet lifting
-      if (getCurrentSTGState()->mFootContacts != 15)
-        feetReward = -10;
+      //if (getCurrentSTGState()->mFootContacts != 15)
+      //  feetReward = -10;
 
       reward = energyReward + taskReward + feetReward;
     }
@@ -125,11 +125,13 @@ void CLeoBhSquat::parseLeoState(const CLeoState &leoState, Vector &obs)
   for (i = 0; i < observer_struct_.angles.size(); i++)
     obs[i] = leoState.mJointAngles[ observer_struct_.angles[i] ];
   for (j = 0; j < observer_struct_.angle_rates.size(); j++)
-    obs[i+j] = leoState.mJointAngles[ observer_struct_.angle_rates[j] ];
+    obs[i+j] = leoState.mJointSpeeds[ observer_struct_.angle_rates[j] ];
   for (int k = 0; k < observer_struct_.augmented.size(); k++)
   {
     if (observer_struct_.augmented[k] == "direction")
       obs[i+j+k] = direction_;
+    else if (observer_struct_.augmented[k] == "heeltoe")
+      obs[i+j+k] = (leoState.mFootContacts == 15?1:0);
     else
     {
       ERROR("Unknown augmented field '" << observer_struct_.augmented[i] << "'");
@@ -175,7 +177,8 @@ void CLeoBhSquat::updateDirection(double time)
 bool CLeoBhSquat::isDoomedToFall(CLeoState* state, bool report)
 {
   // Torso angle out of 'range'
-  if ((state->mJointAngles[ljTorso] < -1.4) || (state->mJointAngles[ljTorso] > 1.4)  || fabs(cHipPos_) > 0.13 || fabs(cHipHeight_) < 0.10 || state->mFootContacts == 0) // state->mFootContacts == 0
+  //if ((state->mJointAngles[ljTorso] < -1.4) || (state->mJointAngles[ljTorso] > 1.4) || fabs(cHipPos_) > 0.13 || fabs(cHipHeight_) < 0.10 || state->mFootContacts == 0) // state->mFootContacts == 0
+  if ((state->mJointAngles[ljTorso] < -1.4) || (state->mJointAngles[ljTorso] > 1.4) || (state->mFootContacts != 15))
   {
     if (report)
       mLogNoticeLn("[TERMINATION] Torso angle too large");
@@ -241,8 +244,26 @@ void LeoSquatEnvironment::configure(Configuration &config)
   const ObserverStruct &os = bh_->getObserverStruct();
   Vector obs_min = config["observation_min"].v();
   Vector obs_max = config["observation_max"].v();
-  obs_min[os.angles.size()+os.angle_rates.size() + 0] = -1;
-  obs_max[os.angles.size()+os.angle_rates.size() + 0] = +1;
+
+  for (int i = 0; i < os.augmented.size(); i++)
+  {
+    if (os.augmented[i] == "direction")
+    {
+      obs_min[os.angles.size()+os.angle_rates.size() + i] = -1;
+      obs_max[os.angles.size()+os.angle_rates.size() + i] = +1;
+    }
+    else if (os.augmented[i] == "heeltoe")
+    {
+      obs_min[os.angles.size()+os.angle_rates.size() + i] =  0;
+      obs_max[os.angles.size()+os.angle_rates.size() + i] =  1;
+    }
+    else
+    {
+      ERROR("Unknown augmented field '" << os.augmented[i] << "'");
+      throw bad_param("leo_squat:os.augmented[i]");
+    }
+  }
+
   config.set("observation_min", obs_min);
   config.set("observation_max", obs_max);
 
