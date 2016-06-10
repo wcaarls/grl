@@ -12,7 +12,7 @@ namespace grl
 {
 
 class CLeoBhSquat: public CLeoBhBase
-{
+{/*
   enum LeoObservationSquat
   {
     osTorsoAngle,
@@ -27,10 +27,12 @@ class CLeoBhSquat: public CLeoBhBase
     osAnkleStanceAngleRate,
     osDirection,
     osNumDims
-  };
+  };*/
 
   public:
-    CLeoBhSquat(ISTGActuation *actuationInterface) : CLeoBhBase(actuationInterface), direction_(-1), prev_direction_(-1), squat_counter_(0), time_of_dir_change_(0) {}
+    CLeoBhSquat(ISTGActuation *actuationInterface) :
+      CLeoBhBase(actuationInterface), direction_(-1), prev_direction_(-1), squat_counter_(0), time_of_dir_change_(0),
+      min_hip_height_(0), max_hip_height_(0) {}
     void resetState(double time0);
     double calculateReward();
     void parseLeoState(const CLeoState &leoState, Vector &obs);
@@ -49,7 +51,7 @@ class CLeoBhSquat: public CLeoBhBase
     int squat_counter_;
     double time_of_dir_change_;
     std::vector<double> up_time_, down_time_;
-    double pHipHeight_, pHipPos_, cHipHeight_, cHipPos_;
+    double prev_hip_height_, prev_hip_pos_, hip_height_, hip_pos_, min_hip_height_, max_hip_height_;
 };
 
 /// Squatting Leo robot

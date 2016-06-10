@@ -22,6 +22,8 @@ void CLeoBhSquat::resetState(double time0)
   time_of_dir_change_ = time0;
   up_time_.clear();
   down_time_.clear();
+  min_hip_height_ = 1000;
+  max_hip_height_ = 0;
 }
 
 double CLeoBhSquat::calculateReward()
@@ -42,9 +44,9 @@ double CLeoBhSquat::calculateReward()
     {
       // Task
       if (direction_ == -1)
-        taskReward = pow(cHipHeight_ - B, 2) - pow(pHipHeight_ - B, 2);
+        taskReward = pow(hip_height_ - B, 2) - pow(prev_hip_height_ - B, 2);
        else if (direction_ == 1)
-        taskReward = pow(cHipHeight_ - T, 2) - pow(pHipHeight_ - T, 2);
+        taskReward = pow(hip_height_ - T, 2) - pow(prev_hip_height_ - T, 2);
       taskReward = -1000*taskReward;
 
       // Energy
@@ -59,7 +61,7 @@ double CLeoBhSquat::calculateReward()
       reward = energyReward + taskReward + feetReward;
     }
 
-    std::cout << pHipHeight_ << " -> " << cHipHeight_ << " = " << taskReward << ", " << energyReward << " , " << feetReward << " = " << reward << std::endl;
+    std::cout << prev_hip_height_ << " -> " << hip_height_ << " = " << taskReward << ", " << energyReward << " , " << feetReward << " = " << reward << std::endl;
 
     // Reward for keeping torso upright
     //double torsoReward = mRwTorsoUpright * 1.0/(1.0 + (s->mJointAngles[ljTorso] - mRwTorsoUprightAngle)*(s->mJointAngles[ljTorso] - mRwTorsoUprightAngle)/(mRwTorsoUprightAngleMargin*mRwTorsoUprightAngleMargin));
@@ -107,14 +109,14 @@ void CLeoBhSquat::getHipHeight(const double *x, double &hipHeight, double &hipPo
 
 bool CLeoBhSquat::isSitting() const
 {
-  if (cHipHeight_ < B)
+  if (hip_height_ < B)
     return true;
   return false;
 }
 
 bool CLeoBhSquat::isStanding() const
 {
-  if (cHipHeight_ > T)
+  if (hip_height_ > T)
     return true;
   return false;
 }
@@ -144,9 +146,11 @@ void CLeoBhSquat::parseLeoState(const CLeoState &leoState, Vector &obs)
   //std::cout << "Data: " << obs[osTorsoAngle] + obs[osHipStanceAngle] + obs[osKneeStanceAngle] + obs[osAnkleStanceAngle] << std::endl;
 
   // update hip locations
-  pHipHeight_ = cHipHeight_;
-  pHipPos_ = cHipPos_;
-  getHipHeight(getCurrentSTGState()->mJointAngles, cHipHeight_, cHipPos_);
+  prev_hip_height_ = hip_height_;
+  prev_hip_pos_ = hip_pos_;
+  getHipHeight(getCurrentSTGState()->mJointAngles, hip_height_, hip_pos_);
+  min_hip_height_ = MIN(min_hip_height_, hip_pos_);
+  max_hip_height_ = MAX(max_hip_height_, hip_pos_);
 }
 
 void CLeoBhSquat::updateDirection(double time)
@@ -219,6 +223,9 @@ std::string CLeoBhSquat::getProgressReport(double trialTime)
   }
   else
     progressString << std::setw(pw) << 0 << std::setw(pw) << 0;
+
+  // Max and min hip heights
+  progressString << std::setw(pw) << min_hip_height_ << std::setw(pw) << max_hip_height_;
 
   return progressString.str();
 }
