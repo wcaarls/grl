@@ -14,23 +14,17 @@ experiment:
       xml: experiment/environment/xml
       randomize: 0
       visualize: 1
-    observe: hipright, hipleft, kneeright, kneeleft, ankleright, ankleleft
-    actuate: hipright, hipleft, kneeright, kneeleft, ankleright, ankleleft
-    exporter: 
-      type: exporter/csv
-      file: leosim_pid_squat_down
-      style: meshup
-      variant: test
-      split_runs: 1
+    observe: hipright, kneeright, ankleright
+    actuate: hipright, kneeright, ankleright
     observation_dims: experiment/environment/target_env/observation_dims
     action_dims: experiment/environment/target_env/action_dims
   agent: 
     type: agent/fixed
     policy: 
       type: policy/parameterized/pid
-      setpoint: [1.6, 1.6, -1.9, -1.9, 0.85, 0.85, 0, 0, 0, 0, 0, 0]
-      outputs: 6
-      p: [5.5, 0, 0, 0, 0, 0, 0, 5.5, 0, 0, 0, 0, 0, 0, 6.1, 0, 0, 0, 0, 0, 0, 6.1, 0, 0, 0, 0, 0, 0, 7.35, 0, 0, 0, 0, 0, 0, 7.35, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 2.1, 0, 0, 0, 0, 0, 0, 2.1, 0, 0, 0, 0, 0, 0, 2.06, 0, 0, 0, 0, 0, 0, 2.06]
+      setpoint: [1.6, -1.9, 0.85, 0, 0, 0]
+      outputs: 3
+      p: [5.5, 0, 0, 0,  6.1, 0, 0, 0, 7.35, 1, 0, 0, 0, 2.1, 0, 0, 0, 2.06]
       i: []
       d: []
       il: []
