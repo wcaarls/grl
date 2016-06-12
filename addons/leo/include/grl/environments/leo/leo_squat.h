@@ -12,23 +12,7 @@ namespace grl
 {
 
 class CLeoBhSquat: public CLeoBhBase
-{/*
-  enum LeoObservationSquat
-  {
-    osTorsoAngle,
-    osTorsoAngleRate,
-    osLeftArmAngle,
-    osLeftArmAngleRate,
-    osHipStanceAngle,
-    osHipStanceAngleRate,
-    osKneeStanceAngle,
-    osKneeStanceAngleRate,
-    osAnkleStanceAngle,
-    osAnkleStanceAngleRate,
-    osDirection,
-    osNumDims
-  };*/
-
+{
   public:
     CLeoBhSquat(ISTGActuation *actuationInterface) :
       CLeoBhBase(actuationInterface), direction_(-1), prev_direction_(-1), squat_counter_(0), time_of_dir_change_(0),

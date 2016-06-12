@@ -78,7 +78,7 @@ class CommunicatorEnvironment: public Environment
 {
   public:
     TYPEINFO("environment/communicator", "Communicator environment which interects with a real environment by sending and receiving messages")
-    CommunicatorEnvironment() {}
+    CommunicatorEnvironment() {} //: observation_dims_(0), action_dims_(0) {}
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -93,6 +93,7 @@ class CommunicatorEnvironment: public Environment
 
   protected:
     Communicator *communicator_;
+    //int observation_dims_, action_dims_;
 };
 
 /// ZeroMQ agent

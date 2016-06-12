@@ -14,17 +14,17 @@ experiment:
       xml: experiment/environment/xml
       randomize: 0
       visualize: 1
-    observe: hipright, hipleft, kneeright, kneeleft, ankleright, ankleleft
-    actuate: hipright, hipleft, kneeright, kneeleft, ankleright, ankleleft
+    observe: hipright, kneeright, ankleright
+    actuate: hipright, kneeright, ankleright
     observation_dims: experiment/environment/target_env/observation_dims
     action_dims: experiment/environment/target_env/action_dims
   agent: 
     type: agent/fixed
     policy: 
       type: policy/parameterized/pid
-      setpoint: [0, 0, -0.15, -0.15, 0, 0, 0, 0, 0, 0, 0, 0]
-      outputs: 6
-      p: [1.55, 0, 0, 0, 0, 0, 0, 1.55, 0, 0, 0, 0, 0, 0, 4.5, 0, 0, 0, 0, 0, 0, 4.5, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 5, 0.3, 0, 0, 0, 0, 0, 0, 0.3, 0, 0, 0, 0, 0, 0, 0.69, 0, 0, 0, 0, 0, 0, 0.69, 0, 0, 0, 0, 0, 0, 0.8, 0, 0, 0, 0, 0, 0, 0.8]
+      setpoint: [0, -0.15, 0, 0, 0, 0]
+      outputs: 3
+      p: [1.55, 0, 0, 0, 4.5, 0, 0, 0, 5, 0.3, 0, 0, 0, 0.69, 0, 0, 0, 0.8]
       i: []
       d: []
       il: []

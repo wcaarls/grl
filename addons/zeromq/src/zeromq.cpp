@@ -26,6 +26,7 @@
  */
 
 #include <zeromq.h>
+#include <iomanip>
 
 using namespace grl;
 
@@ -52,9 +53,9 @@ void ZeromqCommunicator::configure(Configuration &config)
 
   // find event mode
   int mode = 0;
-  if (event_mode_.find("ZMQ_SYNC_SUB") != std::string::npos)
+  if (event_mode_ == "ZMQ_SYNC_SUB")
     mode |= ZMQ_SYNC_SUB;
-  if (event_mode_.find("ZMQ_SYNC_SUB") != std::string::npos)
+  if (event_mode_ == "ZMQ_SYNC_PUB")
     mode |= ZMQ_SYNC_PUB;
 
   // initialize zmq
@@ -79,7 +80,7 @@ void ZeromqCommunicator::send(const Vector v) const
 bool ZeromqCommunicator::recv(Vector &v) const
 {
   bool rc = zmq_messenger_.recv(reinterpret_cast<void*>(v.data()), v.cols()*sizeof(double)); // ZMQ_NOBLOCK
-  std::cout << v << std::endl;
+  //std::cout << std::fixed << std::setprecision(2) << std::right << std::setw(7) << v << std::endl;
   return rc;
 }
 
@@ -87,11 +88,15 @@ bool ZeromqCommunicator::recv(Vector &v) const
 void CommunicatorEnvironment::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("communicator", "communicator", "Comunicator which exchanges messages with an actual environment", communicator_));
+  //config->push_back(CRP("observation_dims", "int.observation_dims", "Number of observation dimensions", observation_dims_));
+  //config->push_back(CRP("action_dims", "int.action_dims", "Number of action dimensions", action_dims_));
 }
 
 void CommunicatorEnvironment::configure(Configuration &config)
 {
   communicator_ = (Communicator*)config["communicator"].ptr();
+  //observation_dims_ = config["observation_dims"];
+  //action_dims_ = config["action_dims"];
 }
 
 void CommunicatorEnvironment::reconfigure(const Configuration &config)

@@ -61,7 +61,7 @@ double CLeoBhSquat::calculateReward()
       reward = energyReward + taskReward + feetReward;
     }
 
-    std::cout << prev_hip_height_ << " -> " << hip_height_ << " = " << taskReward << ", " << energyReward << " , " << feetReward << " = " << reward << std::endl;
+    //std::cout << prev_hip_height_ << " -> " << hip_height_ << " = " << taskReward << ", " << energyReward << " , " << feetReward << " = " << reward << std::endl;
 
     // Reward for keeping torso upright
     //double torsoReward = mRwTorsoUpright * 1.0/(1.0 + (s->mJointAngles[ljTorso] - mRwTorsoUprightAngle)*(s->mJointAngles[ljTorso] - mRwTorsoUprightAngle)/(mRwTorsoUprightAngleMargin*mRwTorsoUprightAngleMargin));
@@ -183,7 +183,7 @@ bool CLeoBhSquat::isDoomedToFall(CLeoState* state, bool report)
   if ((state->mJointAngles[ljTorso] < -1.4) || (state->mJointAngles[ljTorso] > 1.4) )//|| (state->mFootContacts != 15))
   {
     if (report)
-      mLogNoticeLn("[TERMINATION] Torso angle too large");
+      TRACE("[TERMINATION] Torso angle too large");
     return true;
   }
   return false;
@@ -306,16 +306,15 @@ void LeoSquatEnvironment::start(int test, Vector *obs)
 
 double LeoSquatEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)
 {
-  Vector v = action;
-  //v << -3.7, 7.13333, -2; // with this action robot can stand up from the sitting position
-  //v = v + action;
-
-  TRACE("RL action: " << v);
+  TRACE("RL action: " << action);
 
   bh_->setCurrentSTGState(&leoState_);
 
   double actionArm = bh_->grlAutoActuateArm();
-  target_action_ << actionArm, v[0], v[0], v[1], v[1], v[2], v[2];
+  if (action.size() == 6)
+    target_action_ << actionArm, action[0], action[1], action[2], action[3], action[4], action[5];
+  else
+    target_action_ << actionArm, action[0], action[0], action[1], action[1], action[2], action[2];
 
   bh_->setPreviousSTGState(&leoState_);
   double tau = target_env_->step(target_action_, &target_obs_, reward, terminal);
@@ -337,7 +336,7 @@ double LeoSquatEnvironment::step(const Vector &action, Vector *obs, double *rewa
   // ... and termination
   if (*terminal == 1) // timeout
     *terminal = 1;
-  else if (bh_->isDoomedToFall(&leoState_, false))
+  else if (bh_->isDoomedToFall(&leoState_, true))
     *terminal = 2;
   else
     *terminal = 0;
