@@ -22,9 +22,9 @@ experiment:
     type: agent/fixed
     policy: 
       type: policy/parameterized/pid
-      setpoint: [0, -0.15, 0, 0, 0, 0]
+      setpoint: [0.1, -0.2, 0.1, 0, 0, 0]
       outputs: 3
-      p: [6.33, 0, 0, 0, 7, 0, 0, 0, 6, 0.6, 0, 0, 0, 0.3, 0, 0, 0, 0.7]
+      p: [4.977, 0, 0, 0, 6, 0, 0, 0, 6, 0.6, 0, 0, 0, 0.3, 0, 0, 0, 0.6]
       i: []
       d: []
       il: []

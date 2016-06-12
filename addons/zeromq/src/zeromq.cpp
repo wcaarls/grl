@@ -80,7 +80,7 @@ void ZeromqCommunicator::send(const Vector v) const
 bool ZeromqCommunicator::recv(Vector &v) const
 {
   bool rc = zmq_messenger_.recv(reinterpret_cast<void*>(v.data()), v.cols()*sizeof(double)); // ZMQ_NOBLOCK
-  //std::cout << std::fixed << std::setprecision(2) << std::right << std::setw(7) << v << std::endl;
+  std::cout << std::fixed << std::setprecision(2) << std::right << std::setw(7) << v << std::endl;
   return rc;
 }
 
