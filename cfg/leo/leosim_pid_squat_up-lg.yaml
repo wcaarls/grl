@@ -3,31 +3,28 @@ experiment:
   runs: 1
   trials: 0
   steps: 0
-  rate: 0
+  rate: 30
   test_interval: 0
   output: leosim_pid_squat_up
   environment: 
     type: environment/leo_squat
     xml: ../../leo/cfg/leo_learn_squatting.xml
     target_env: 
-      type: environment/communicator
-      communicator: 
-        type: communicator/zeromq
-        pub: tcp://*:5561
-        sub: tcp://192.168.1.10:5562
-        event: tcp://192.168.1.10:5560
-        event_mode: ZMQ_SYNC_SUB
+      type: environment/ode
+      xml: experiment/environment/xml
+      randomize: 0
+      visualize: 1
     observe: hipright, hipleft, kneeright, kneeleft, ankleright, ankleleft
     actuate: hipright, hipleft, kneeright, kneeleft, ankleright, ankleleft
-    observation_dims: 20
-    action_dims: 7
+    observation_dims: experiment/environment/target_env/observation_dims
+    action_dims: experiment/environment/target_env/action_dims
   agent: 
     type: agent/fixed
     policy: 
       type: policy/parameterized/pid
       setpoint: [0, 0, -0.15, -0.15, 0, 0, 0, 0, 0, 0, 0, 0]
       outputs: 6
-      p: [6.33, 0, 0, 0, 0, 0, 0, 6.33, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 6, 0.6, 0, 0, 0, 0, 0, 0, 0.6, 0, 0, 0, 0, 0, 0, 0.3, 0, 0, 0, 0, 0, 0, 0.3, 0, 0, 0, 0, 0, 0, 0.7, 0, 0, 0, 0, 0, 0, 0.7]
+      p: [1.55, 0, 0, 0, 0, 0, 0, 1.55, 0, 0, 0, 0, 0, 0, 4.5, 0, 0, 0, 0, 0, 0, 4.5, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 5, 0.3, 0, 0, 0, 0, 0, 0, 0.3, 0, 0, 0, 0, 0, 0, 0.69, 0, 0, 0, 0, 0, 0, 0.69, 0, 0, 0, 0, 0, 0, 0.8, 0, 0, 0, 0, 0, 0, 0.8]
       i: []
       d: []
       il: []
