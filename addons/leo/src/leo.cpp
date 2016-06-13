@@ -183,6 +183,7 @@ LeoBaseEnvironment *LeoBaseEnvironment::clone() const
 void LeoBaseEnvironment::start(int test)
 {
   test_ = test;
+  bh_->resetState();
 
   if (exporter_)
     exporter_->open((test_?"test":"learn"), (test_?time_test_:time_learn_) != 0.0);

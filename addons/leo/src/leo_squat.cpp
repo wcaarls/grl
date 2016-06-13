@@ -11,7 +11,7 @@ REGISTER_CONFIGURABLE(LeoSquatEnvironment)
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
-const double T = 0.26;
+const double T = 0.25;
 const double B = 0.18;
 
 void CLeoBhSquat::resetState(double time0)
@@ -155,6 +155,8 @@ void CLeoBhSquat::parseLeoState(const CLeoState &leoState, Vector &obs)
   getHipHeight(getCurrentSTGState()->mJointAngles, hip_height_, hip_pos_);
   min_hip_height_ = MIN(min_hip_height_, hip_pos_);
   max_hip_height_ = MAX(max_hip_height_, hip_pos_);
+
+  std::cout << "Hip height: " << hip_height_ << std::endl;
 }
 
 void CLeoBhSquat::updateDirection(double time)

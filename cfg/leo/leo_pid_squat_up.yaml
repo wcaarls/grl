@@ -5,7 +5,7 @@ experiment:
   steps: 0
   rate: 0
   test_interval: 0
-  output: leosim_pid_squat_up
+  output: leo_pid_squat_up
   environment: 
     type: environment/leo_squat
     xml: ../../leo/cfg/leo_learn_squatting.xml
