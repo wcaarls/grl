@@ -8,29 +8,46 @@ experiment:
   output: leosim_pid_squat
   environment: 
     type: environment/leo_squat
-    xml: /home/ivan/work/Project/Software/grl/src/grl/addons/leo/cfg/leo_learn_squatting.xml
+    xml: ../../leo/cfg/leo_learn_squatting.xml
     target_env: 
       type: environment/ode
       xml: experiment/environment/xml
+      randomize: 0
       visualize: 1
-    observe: torso_boom, hipright, hipleft, kneeright, kneeleft
+    observe: hipright, kneeright, ankleright, direction
     actuate: hipright, kneeright, ankleright
     observation_dims: experiment/environment/target_env/observation_dims
     action_dims: experiment/environment/target_env/action_dims
   agent: 
-    type: agent/fixed
-    policy: 
-      type: policy/parameterized/pidt
-      policy: 
-        type: policy/feed_forward
-        input: /home/ivan/work/Project/Software/grl/src/grl/addons/leo/csv/squatting.csv
-      inputs: experiment/environment/observation_dims
-      outputs: experiment/environment/action_dims
-      p: [-3.39883, -4.55812, -15.0766, 5.79977, 21.1299, -3.78546, 9.68422, -0.255012, 7.2353, 0.266979, -13.2119, 4.74779, 25.9526, -29.0702, -22.4301, -1.62903, 4.86486, 7.45585, 2.66637, 13.8738, -17.022, 10.1589, -1.5198, -5.7765, -5.50015, 5.07372, -14.2316, -3.46486, 18.7871, -3.62417]
-      i: [-12.6999, -5.01602, 0.330995, 3.68335, -1.8581, -11.7844, 29.5163, -3.32059, 2.71751, 12.3594, -11.2576, 21.1498, -4.37639, 1.54225, -0.663728, -3.97991, -1.15531, -10.5055, -6.22746, 0.16541, 1.32706, -14.8309, -11.5114, 11.1528, 14.4413, 16.0184, -4.91151, 1.70915, -10.4699, 5.08621]
-      d: [7.95591, -17.8005, -12.5133, 12.5377, -4.68777, 6.2422, 2.83511, 15.6733, -0.335876, -2.06306, 9.41315, -0.666276, 1.20424, -13.7333, -3.02279, -11.5452, 22.1876, -3.90273, -7.17781, 8.15422, -4.94741, 7.18497, 13.7226, 13.3473, -3.10774, -11.1422, -4.06025, -5.39667, -0.659542, 3.44311]
-      il: [16.8188, 1.91129, 19.247, 6.63091, -9.92686, 13.5818, 2.19493, 6.70212, 23.8089, -13.2604, -11.6761, 11.4303, 0.990664, 17.6076, 5.43226, 12.6601, 3.27359, -1.6024, 21.9179, 6.85923, 18.2266, 24.5204, 24.592, -5.72071, 8.05632, 2.74196, 7.80149, 14.6066, 25.0402, 0.366334]
-  test_agent: 
-    type: agent/fixed
-    policy: experiment/agent/policy
+    type: agent/master/exclusive
+    gamma: 0.97
+    agent1: 
+      type: agent/sub/compartmentalized
+      min: [ -3.1415, -3.1415, -3.1415, -31.4159, -31.4159, -31.4159, 0 ]
+      max: [ 3.1415, 3.1415, 3.1415, 31.4159, 31.4159, 31.4159, 1 ]
+      agent: 
+        type: agent/fixed
+        policy: 
+          type: policy/parameterized/pid
+          setpoint: [ 0.2, -0.2, 0.1, 0, 0, 0 ]
+          outputs: 3
+          p: [ 5.6075, 0, 0, 0, 5.7, 0, 0, 0, 7.2, 0.6, 0, 0, 0, 0.6, 0, 0, 0, 0.65 ]
+          i: [  ]
+          d: [  ]
+          il: [  ]
+    agent2: 
+      type: agent/sub/compartmentalized
+      min: [ -3.1415, -3.1415, -3.1415, -31.4159, -31.4159, -31.4159, -1 ]
+      max: [ 3.1415, 3.1415, 3.1415, 31.4159, 31.4159, 31.4159, 0 ]
+      agent: 
+        type: agent/fixed
+        policy: 
+          type: policy/parameterized/pid
+          setpoint: [ 1.6, -1.9, 0.85, 0, 0, 0 ]
+          outputs: 3
+          p: [ 5.5, 0, 0, 0,  6.1, 0, 0, 0, 7.35, 1, 0, 0, 0, 2.1, 0, 0, 0, 2.06 ]
+          i: [  ]
+          d: [  ]
+          il: [  ]
+  test_agent: experiment/agent
   save_every: never

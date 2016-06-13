@@ -17,13 +17,19 @@ const double B = 0.18;
 void CLeoBhSquat::resetState(double time0)
 {
   CLeoBhBase::resetState();
-  prev_direction_ = direction_ = 1;
+
+  getHipHeight(getCurrentSTGState()->mJointAngles, hip_height_, hip_pos_);
+
+  if (isSitting())
+    prev_direction_ = direction_ = 1;
+  else
+    prev_direction_ = direction_ = -1;
+
   squat_counter_ = 0;
   time_of_dir_change_ = time0;
   up_time_.clear();
   down_time_.clear();
-  min_hip_height_ = 1000;
-  max_hip_height_ = 0;
+  max_hip_height_ = min_hip_height_ = hip_height_;
 }
 
 double CLeoBhSquat::calculateReward()
@@ -288,10 +294,10 @@ void LeoSquatEnvironment::start(int test, Vector *obs)
   target_env_->start(test_, &target_obs_);
 
   // Parse obs into CLeoState (Start with left leg being the stance leg)
-  bh_->resetState(test_?time_test_:time_learn_);
   bh_->fillLeoState(target_obs_, Vector(), leoState_);
   bh_->setCurrentSTGState(&leoState_);
   bh_->setPreviousSTGState(&leoState_);
+  bh_->resetState(test_?time_test_:time_learn_);
 
   // update derived state variables
   bh_->updateDerivedStateVars(&leoState_); // swing-stance switching happens here

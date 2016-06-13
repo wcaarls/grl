@@ -50,6 +50,42 @@ agent/master/exclusive:
     mutability: configuration
     default: 0
     optional: 0
+agent/master/predicated:
+  description: Master agent in which execution is predicated on preceding agent confidence
+  gamma:
+    type: double
+    description: Discount rate
+    mutability: configuration
+    default: 0.97
+    optional: 1
+    min: 0
+    max: 1
+  control_step:
+    type: double.control_step
+    description: Characteristic step time on which gamma is defined
+    mutability: system
+    default: 0.05
+    optional: 1
+    min: 0
+    max: 1
+  predictor:
+    type: predictor
+    description: Optional (model) predictor
+    mutability: configuration
+    default: 0
+    optional: 1
+  agent1:
+    type: agent/sub
+    description: First subagent
+    mutability: configuration
+    default: 0
+    optional: 0
+  agent2:
+    type: agent/sub
+    description: Second subagent
+    mutability: configuration
+    default: 0
+    optional: 0
 agent/master/sequential:
   description: Master agent that executes sub-agents sequentially
   agent1:
@@ -89,6 +125,42 @@ agent/solver:
   solver:
     type: solver
     description: Model-based solver
+    mutability: configuration
+    default: 0
+    optional: 0
+agent/sub/compartmentalized:
+  description: Sub agent that is valid in a fixed state-space region
+  min:
+    type: vector.observation_min
+    description: Minimum of compartment bounding box
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  max:
+    type: vector.observation_max
+    description: Maximum of compartment bounding box
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  agent:
+    type: agent
+    description: Sub agent
+    mutability: configuration
+    default: 0
+    optional: 0
+agent/sub/voluntary:
+  description: Sub agent that has confidence as part of the action
+  dim:
+    type: int
+    description: Action dimension that indicates confidence
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 2147483647
+  agent:
+    type: agent
+    description: Sub agent
     mutability: configuration
     default: 0
     optional: 0
@@ -374,7 +446,7 @@ environment/ode:
     type: int
     description: Whether to display 3D visualization
     mutability: configuration
-    default: 20578368
+    default: 1
     optional: 1
     min: 0
     max: 1

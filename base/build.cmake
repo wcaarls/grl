@@ -10,9 +10,9 @@ add_library(${TARGET} SHARED
 #            ${SRC}/agents/dyna.cpp
             ${SRC}/agents/exclusive.cpp
             ${SRC}/agents/sequential.cpp
-#            ${SRC}/agents/predicated.cpp
-#            ${SRC}/agents/compartmentalized.cpp
-#            ${SRC}/agents/voluntary.cpp
+            ${SRC}/agents/predicated.cpp
+            ${SRC}/agents/compartmentalized.cpp
+            ${SRC}/agents/voluntary.cpp
             ${SRC}/agents/solver.cpp
             ${SRC}/configurable.cpp
             ${SRC}/discretizers/uniform.cpp
