@@ -56,13 +56,21 @@ double CLeoBhSquat::calculateReward()
       taskReward = -1000*taskReward;
 
       // Energy
-      double ankleLeftWork  = getJointMotorWork(ljAnkleLeft);
-      double ankleRightWork = getJointMotorWork(ljAnkleRight);
-      energyReward = -0.05 * (getEnergyUsage() + ankleLeftWork + ankleRightWork);
+      //double ankleLeftWork  = getJointMotorWork(ljAnkleLeft);
+      //double ankleRightWork = getJointMotorWork(ljAnkleRight);
+      //energyReward = -0.05 * (getEnergyUsage() + ankleLeftWork + ankleRightWork);
 
       // Feet lifting
       //if (getCurrentSTGState()->mFootContacts != 15)
       //  feetReward = -10;
+
+      const double *v = getCurrentSTGState()->mActuationVoltages;
+      energyReward =  v[ljHipRight]*v[ljHipRight] +
+                      v[ljKneeRight]*v[ljKneeRight] +
+                      v[ljAnkleRight]*v[ljAnkleRight];
+      energyReward *= -0.001;
+
+      std::cout << taskReward << ", " << energyReward << " , " << feetReward << std::endl;
 
       reward = energyReward + taskReward + feetReward;
     }
@@ -147,8 +155,6 @@ void CLeoBhSquat::parseLeoState(const CLeoState &leoState, Vector &obs)
     }
   }
 
-  //std::cout << "Data: " << obs[osTorsoAngle] + obs[osHipStanceAngle] + obs[osKneeStanceAngle] + obs[osAnkleStanceAngle] << std::endl;
-
   // update hip locations
   prev_hip_height_ = hip_height_;
   prev_hip_pos_ = hip_pos_;
@@ -186,9 +192,15 @@ void CLeoBhSquat::updateDirection(double time)
 
 bool CLeoBhSquat::isDoomedToFall(CLeoState* state, bool report)
 {
+  double feet_angle = state->mJointAngles[jointNameToIndex("hipright")] +
+                      state->mJointAngles[jointNameToIndex("kneeright")] +
+                      state->mJointAngles[jointNameToIndex("ankleright")] +
+                      state->mJointAngles[jointNameToIndex("torso_boom")];
+  std::cout << "Contact angle: " << feet_angle << std::endl;
+
   // Torso angle out of 'range'
-  //if ((state->mJointAngles[ljTorso] < -1.4) || (state->mJointAngles[ljTorso] > 1.4) || fabs(cHipPos_) > 0.13 || fabs(cHipHeight_) < 0.10 || state->mFootContacts == 0) // state->mFootContacts == 0
-  if ((state->mJointAngles[ljTorso] < -1.4) || (state->mJointAngles[ljTorso] > 1.4) )//|| (state->mFootContacts != 15))
+  //if ((state->mJointAngles[ljTorso] < -1.4) || (state->mJointAngles[ljTorso] > 1.4) || fabs(hip_pos_) > 0.13 || fabs(hip_height_) < 0.10 || state->mFootContacts != 15) // state->mFootContacts == 0
+  if ((state->mJointAngles[ljTorso] < -1.4) || (state->mJointAngles[ljTorso] > 1.4) || (fabs(feet_angle) > 0.03))//|| (state->mFootContacts != 15))
   {
     if (report)
       TRACE("[TERMINATION] Torso angle too large");

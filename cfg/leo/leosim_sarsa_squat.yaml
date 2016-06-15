@@ -14,7 +14,7 @@ experiment:
       xml: experiment/environment/xml
       randomize: 1
       visualize: 1
-    observe: hipright, kneeright, ankleright, shoulder, heeltoe, direction
+    observe: hipright, kneeright, ankleright, shoulder, direction
     actuate: hipright, kneeright, ankleright
     observation_dims: experiment/environment/target_env/observation_dims
     action_dims: experiment/environment/target_env/action_dims
@@ -31,7 +31,7 @@ experiment:
         type: projector/tile_coding
         tilings: 16
         memory: 25165824
-        resolution: [0.28, 0.28, 0.28, 0.28, 10, 10, 10, 10, 1, 1, 6.67, 6.67, 6.67]
+        resolution: [0.28, 0.28, 0.28, 0.28, 10, 10, 10, 10, 1, 6.67, 6.67, 6.67]
         wrapping: []
       representation: 
         type: representation/parameterized/linear

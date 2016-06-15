@@ -111,6 +111,9 @@ class CLeoBhBase: public CLeoBhWalkSym
       return stanceLegLeft() ? leoSim->getJointVoltage(ljKneeLeft) : leoSim->getJointVoltage(ljKneeRight);
     }
 
+    std::string jointIndexToName(int jointIndex) const;
+    int jointNameToIndex(const std::string jointName) const;
+
   protected:
     CButterworthFilter<1>	mJointSpeedFilter[ljNumJoints];
     ObserverStruct observer_struct_;
@@ -156,8 +159,6 @@ class LeoBaseEnvironment: public Environment
   protected:
     void fillObserverStruct(const std::vector<std::string> &observed_names, ObserverStruct &observer_idx) const;
     int findVarIdx(const std::vector<CGenericStateVar> &genericStates, std::string query) const;
-    std::string jointIndexToName(int jointIndex) const;
-    int jointNameToIndex(const std::string jointName) const;
     void configParseObservations(Configuration &config, const std::vector<CGenericStateVar> &sensors);
     void configParseActions(Configuration &config, const std::vector<CGenericActionVar> &actuators);
 

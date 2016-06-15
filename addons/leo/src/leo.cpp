@@ -93,6 +93,46 @@ void CLeoBhBase::updateDerivedStateVars(CLeoState* currentSTGState)
   CLeoBhWalkSym::updateDerivedStateVars(currentSTGState);
 }
 
+int CLeoBhBase::jointNameToIndex(const std::string jointName) const
+{
+  if (jointName == "torso_boom")
+    return ljTorso;
+  else if (jointName == "shoulder")
+    return ljShoulder;
+  else if (jointName == "hipright")
+    return ljHipRight;
+  else if (jointName == "hipleft")
+    return ljHipLeft;
+  else if (jointName == "kneeright")
+    return ljKneeRight;
+  else if (jointName == "kneeleft")
+    return ljKneeLeft;
+  else if (jointName == "ankleright")
+    return ljAnkleRight;
+  else if (jointName == "ankleleft")
+    return ljAnkleLeft;
+  else
+    return -1; // augmented state
+}
+
+std::string CLeoBhBase::jointIndexToName(int jointIndex) const
+{
+  switch(jointIndex)
+  {
+    case ljTorso      : return std::string("torso_boom"); break;
+    case ljShoulder   : return std::string("shoulder");   break;
+    case ljHipRight   : return std::string("hipright");   break;
+    case ljHipLeft    : return std::string("hipleft");    break;
+    case ljKneeRight  : return std::string("kneeright");  break;
+    case ljKneeLeft   : return std::string("kneeleft");   break;
+    case ljAnkleRight : return std::string("ankleright"); break;
+    case ljAnkleLeft  : return std::string("ankleleft");  break;
+    default:
+      ERROR("Joint index out of bounds '" << jointIndex << "'");
+      throw bad_param("leobase:jointIndex");
+  }
+}
+
 /////////////////////////////////
 
 LeoBaseEnvironment::LeoBaseEnvironment() :
@@ -253,14 +293,14 @@ void LeoBaseEnvironment::configParseObservations(Configuration &config, const st
   int i, j;
   for (i = 0; i < observer_struct.angles.size(); i++)
   {
-    std::string name = "robot." + jointIndexToName(observer_struct.angles[i]) + ".angle";
+    std::string name = "robot." + bh_->jointIndexToName(observer_struct.angles[i]) + ".angle";
     int sensor_idx = findVarIdx(sensors, name);
     observation_min[i] = ode_observation_min[sensor_idx];
     observation_max[i] = ode_observation_max[sensor_idx];
   }
   for (j = 0; j < observer_struct.angle_rates.size(); j++)
   {
-    std::string name = "robot." + jointIndexToName(observer_struct.angle_rates[j]) + ".anglerate";
+    std::string name = "robot." + bh_->jointIndexToName(observer_struct.angle_rates[j]) + ".anglerate";
     int sensor_idx = findVarIdx(sensors, name);
     observation_min[i+j] = ode_observation_min[sensor_idx];
     observation_max[i+j] = ode_observation_max[sensor_idx];
@@ -294,54 +334,14 @@ void LeoBaseEnvironment::fillObserverStruct(const std::vector<std::string> &obse
     if (cuttedName.size() == 1)
       observer_idx.augmented.push_back(name);
     else if (cuttedName[2] == "angle")
-      observer_idx.angles.push_back(jointNameToIndex(cuttedName[1]));
+      observer_idx.angles.push_back(bh_->jointNameToIndex(cuttedName[1]));
     else if (cuttedName[2] == "anglerate")
-      observer_idx.angle_rates.push_back(jointNameToIndex(cuttedName[1]));
+      observer_idx.angle_rates.push_back(bh_->jointNameToIndex(cuttedName[1]));
     else
     {
       ERROR("Unknown joint '" << cuttedName[2] << "'");
       throw bad_param("leobase:cuttedName[2]");
     }
-  }
-}
-
-int LeoBaseEnvironment::jointNameToIndex(const std::string jointName) const
-{
-  if (jointName == "torso_boom")
-    return ljTorso;
-  else if (jointName == "shoulder")
-    return ljShoulder;
-  else if (jointName == "hipright")
-    return ljHipRight;
-  else if (jointName == "hipleft")
-    return ljHipLeft;
-  else if (jointName == "kneeright")
-    return ljKneeRight;
-  else if (jointName == "kneeleft")
-    return ljKneeLeft;
-  else if (jointName == "ankleright")
-    return ljAnkleRight;
-  else if (jointName == "ankleleft")
-    return ljAnkleLeft;
-  else
-    return -1; // augmented state
-}
-
-std::string LeoBaseEnvironment::jointIndexToName(int jointIndex) const
-{
-  switch(jointIndex)
-  {
-    case ljTorso      : return std::string("torso_boom"); break;
-    case ljShoulder   : return std::string("shoulder");   break;
-    case ljHipRight   : return std::string("hipright");   break;
-    case ljHipLeft    : return std::string("hipleft");    break;
-    case ljKneeRight  : return std::string("kneeright");  break;
-    case ljKneeLeft   : return std::string("kneeleft");   break;
-    case ljAnkleRight : return std::string("ankleright"); break;
-    case ljAnkleLeft  : return std::string("ankleleft");  break;
-    default:
-      ERROR("Joint index out of bounds '" << jointIndex << "'");
-      throw bad_param("leobase:jointIndex");
   }
 }
 
