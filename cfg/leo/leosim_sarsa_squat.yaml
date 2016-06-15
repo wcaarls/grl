@@ -12,6 +12,7 @@ experiment:
     target_env: 
       type: environment/ode
       xml: experiment/environment/xml
+      randomize: 1
       visualize: 1
     observe: hipright, kneeright, ankleright, shoulder, heeltoe, direction
     actuate: hipright, kneeright, ankleright
