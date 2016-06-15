@@ -139,7 +139,7 @@ void CLeoBhSquat::parseLeoState(const CLeoState &leoState, Vector &obs)
     if (observer_struct_.augmented[k] == "direction")
       obs[i+j+k] = direction_;
     else if (observer_struct_.augmented[k] == "heeltoe")
-      obs[i+j+k] = (leoState.mFootContacts == 15?1:0);
+      obs[i+j+k] = leoState.mFootContacts;// == 15?1:0);
     else
     {
       ERROR("Unknown augmented field '" << observer_struct_.augmented[i] << "'");
@@ -156,7 +156,7 @@ void CLeoBhSquat::parseLeoState(const CLeoState &leoState, Vector &obs)
   min_hip_height_ = MIN(min_hip_height_, hip_pos_);
   max_hip_height_ = MAX(max_hip_height_, hip_pos_);
 
-  std::cout << "Hip height: " << hip_height_ << std::endl;
+  //std::cout << "Hip height: " << hip_height_ << std::endl;
 }
 
 void CLeoBhSquat::updateDirection(double time)
@@ -315,6 +315,8 @@ void LeoSquatEnvironment::start(int test, Vector *obs)
 double LeoSquatEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)
 {
   TRACE("RL action: " << action);
+
+  std::cout << "RL action: " << action << std::endl;
 
   bh_->setCurrentSTGState(&leoState_);
 
