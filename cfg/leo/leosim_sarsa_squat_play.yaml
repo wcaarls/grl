@@ -1,7 +1,7 @@
 experiment: 
   type: experiment/online_learning
   runs: 1
-  trials: 5
+  trials: 50
   steps: 0
   rate: 5
   test_interval: 0
@@ -12,8 +12,9 @@ experiment:
     target_env: 
       type: environment/ode
       xml: experiment/environment/xml
+      randomize: 1
       visualize: 1
-    observe: hipright, kneeright, ankleright, shoulder, heeltoe, direction
+    observe: hipright, kneeright, ankleright, shoulder, direction
     actuate: hipright, kneeright, ankleright
     observation_dims: experiment/environment/target_env/observation_dims
     action_dims: experiment/environment/target_env/action_dims
@@ -30,7 +31,7 @@ experiment:
         type: projector/tile_coding
         tilings: 16
         memory: 25165824
-        resolution: [0.28, 0.28, 0.28, 0.28, 10, 10, 10, 10, 1, 1, 6.67, 6.67, 6.67]
+        resolution: [0.28, 0.28, 0.28, 0.28, 10, 10, 10, 10, 1, 6.67, 6.67, 6.67]
         wrapping: []
       representation: 
         type: representation/parameterized/linear
@@ -61,5 +62,5 @@ experiment:
       representation: experiment/agent/policy/representation
       sampler: 
         type: sampler/greedy
-  load_file: leo_leosim_sarsa_squat-mp2-run0
+  load_file: jun15_leo_leosim_sarsa_squat-mp3-run0
   save_every: never
