@@ -199,8 +199,8 @@ bool CLeoBhSquat::isDoomedToFall(CLeoState* state, bool report)
   std::cout << "Contact angle: " << feet_angle << std::endl;
 
   // Torso angle out of 'range'
-  //if ((state->mJointAngles[ljTorso] < -1.4) || (state->mJointAngles[ljTorso] > 1.4) || fabs(hip_pos_) > 0.13 || fabs(hip_height_) < 0.10 || state->mFootContacts != 15) // state->mFootContacts == 0
-  if ((state->mJointAngles[ljTorso] < -1.4) || (state->mJointAngles[ljTorso] > 1.4) || (fabs(feet_angle) > 0.03))//|| (state->mFootContacts != 15))
+  if ((state->mJointAngles[ljTorso] < -1.4) || (state->mJointAngles[ljTorso] > 1.4) || state->mFootContacts != 15) // state->mFootContacts == 0
+  //if ((state->mJointAngles[ljTorso] < -1.4) || (state->mJointAngles[ljTorso] > 1.4) || (fabs(feet_angle) > 0.03))//|| (state->mFootContacts != 15))
   {
     if (report)
       TRACE("[TERMINATION] Torso angle too large");

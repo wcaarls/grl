@@ -14,11 +14,11 @@ experiment:
       xml: experiment/environment/xml
       randomize: 1
       visualize: 1
-    observe: hipright, kneeright, ankleright, shoulder, heeltoe, direction
+    observe: hipright, kneeright, ankleright, shoulder, direction
     actuate: hipright, kneeright, ankleright
     observation_dims: experiment/environment/target_env/observation_dims
     action_dims: experiment/environment/target_env/action_dims
-  agent:
+  agent: 
     type: agent/td
     policy: 
       type: policy/action
@@ -27,15 +27,15 @@ experiment:
       output_max: experiment/environment/action_max
       projector: 
         type: projector/pre/peaked
-        peaking: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        peaking: [0, 0, 0, 0, 0, 0, 0, 0, 0]
         input_min: experiment/environment/observation_min
         input_max: experiment/environment/observation_max
         projector: 
           type: projector/tile_coding
           tilings: 16
           memory: 25165824
-          resolution: [0.28, 0.28, 0.28, 0.28, 10, 10, 10, 10, 1, 1]
-          wrapping: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+          resolution: [0.28, 0.28, 0.28, 0.28, 10, 10, 10, 10, 1]
+          wrapping: [0, 0, 0, 0, 0, 0, 0, 0, 0]
       representation: 
         type: representation/parameterized/linear
         init_min: [0]
