@@ -11,8 +11,8 @@ REGISTER_CONFIGURABLE(LeoSquatEnvironment)
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
-const double T = 0.25;
-const double B = 0.18;
+const double T = 0.36;
+const double B = 0.30;
 
 void CLeoBhSquat::resetState(double time0)
 {
@@ -105,6 +105,7 @@ void CLeoBhSquat::getHipHeight(const double *x, double &hipHeight, double &hipPo
   const double ankleHeelDZ  = 0.04859; //Z = -0.03559 - footwheelradius = -0.04859
   const double ankleToeDX   = -0.0495; //X = 0.009 + footlength/2 = 0.009 + 0.081/2 = 0.0495
   const double ankleToeDZ   = 0.04859; //Z = -0.03559 - footwheelradius = -0.03559 - 0.013 = -0.04859
+  const double torsoHeight  = 0.24155;
 
   double leftAnkleZ         = upLegLength*cos(leftHipAbsAngle) + loLegLength*cos(leftKneeAbsAngle);
   double leftHeelZ          = leftAnkleZ + ankleHeelDZ*cos(leftAnkleAbsAngle) + ankleHeelDX*sin(leftAnkleAbsAngle);
@@ -113,7 +114,7 @@ void CLeoBhSquat::getHipHeight(const double *x, double &hipHeight, double &hipPo
   double rightHeelZ         = rightAnkleZ + ankleHeelDZ*cos(rightAnkleAbsAngle) + ankleHeelDX*sin(rightAnkleAbsAngle);
   double rightToeZ          = rightAnkleZ + ankleToeDZ*cos(rightAnkleAbsAngle) + ankleToeDX*sin(rightAnkleAbsAngle);
 
-  hipHeight = std::max(std::max(leftHeelZ, leftToeZ), std::max(rightHeelZ, rightToeZ));
+  hipHeight = std::max(std::max(leftHeelZ, leftToeZ), std::max(rightHeelZ, rightToeZ)) + (torsoHeight/2)*cos(x[ljTorso]);
   hipPos = rightAnklePos;
 
   //TRACE("Hip height: " << hh);
@@ -147,7 +148,7 @@ void CLeoBhSquat::parseLeoState(const CLeoState &leoState, Vector &obs)
     if (observer_struct_.augmented[k] == "direction")
       obs[i+j+k] = direction_;
     else if (observer_struct_.augmented[k] == "heeltoe")
-      obs[i+j+k] = leoState.mFootContacts;// == 15?1:0);
+      obs[i+j+k] = (leoState.mFootContacts == 0?0:1);
     else
     {
       ERROR("Unknown augmented field '" << observer_struct_.augmented[i] << "'");
@@ -162,7 +163,7 @@ void CLeoBhSquat::parseLeoState(const CLeoState &leoState, Vector &obs)
   min_hip_height_ = MIN(min_hip_height_, hip_pos_);
   max_hip_height_ = MAX(max_hip_height_, hip_pos_);
 
-  //std::cout << "Hip height: " << hip_height_ << std::endl;
+  std::cout << "Hip height: " << hip_height_ << std::endl;
 }
 
 void CLeoBhSquat::updateDirection(double time)
@@ -192,15 +193,13 @@ void CLeoBhSquat::updateDirection(double time)
 
 bool CLeoBhSquat::isDoomedToFall(CLeoState* state, bool report)
 {
-  double feet_angle = state->mJointAngles[jointNameToIndex("hipright")] +
-                      state->mJointAngles[jointNameToIndex("kneeright")] +
-                      state->mJointAngles[jointNameToIndex("ankleright")] +
-                      state->mJointAngles[jointNameToIndex("torso_boom")];
+  double feet_angle = state->mJointAngles[ljHipRight] + state->mJointAngles[ljKneeRight] +
+                      state->mJointAngles[ljAnkleRight] + state->mJointAngles[ljTorso];
   std::cout << "Contact angle: " << feet_angle << std::endl;
 
   // Torso angle out of 'range'
   //if ((state->mJointAngles[ljTorso] < -1.4) || (state->mJointAngles[ljTorso] > 1.4) )//|| state->mFootContacts != 15) // state->mFootContacts == 0
-  if ((state->mJointAngles[ljTorso] < -1.4) || (state->mJointAngles[ljTorso] > 1.4) || (fabs(feet_angle) > 0.0087))//|| (state->mFootContacts != 15))
+  if ((state->mJointAngles[ljTorso] < -1.4) || (state->mJointAngles[ljTorso] > 1.4) || (fabs(feet_angle) > 0.03) || (state->mFootContacts == 0))//|| (state->mFootContacts != 15))
   {
     if (report)
       TRACE("[TERMINATION] Torso angle is too large");

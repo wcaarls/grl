@@ -1,11 +1,11 @@
 experiment: 
   type: experiment/online_learning
   runs: 1
-  trials: 0
-  steps: 2000000
-  rate: 0
-  test_interval: 40
-  output: leosim_sarsa_squat
+  trials: 50
+  steps: 0
+  rate: 5
+  test_interval: 0
+  output: leosim_qlearning_squat_play
   environment: 
     type: environment/leo_squat
     xml: ../../leo/cfg/leo_learn_squatting.xml
@@ -14,7 +14,7 @@ experiment:
       xml: experiment/environment/xml
       randomize: 1
       visualize: 1
-    observe: hipright, kneeright, ankleright, shoulder, heeltoe, direction
+    observe: hipright, kneeright, ankleright, shoulder, direction
     actuate: hipright, kneeright, ankleright
     observation_dims: experiment/environment/target_env/observation_dims
     action_dims: experiment/environment/target_env/action_dims
@@ -31,7 +31,7 @@ experiment:
         type: projector/tile_coding
         tilings: 16
         memory: 25165824
-        resolution: [0.28, 0.28, 0.28, 0.28, 10, 10, 10, 10, 1, 1, 6.67, 6.67, 6.67]
+        resolution: [0.28, 0.28, 0.28, 0.28, 10, 10, 10, 10, 1, 6.67, 6.67, 6.67]
         wrapping: []
       representation: 
         type: representation/parameterized/linear
@@ -45,10 +45,12 @@ experiment:
         type: sampler/epsilon_greedy
         epsilon: 0.05
     predictor: 
-      type: predictor/sarsa
+      type: predictor/advantage
       alpha: 0.2
       gamma: 0.9962
       lambda: 0.8582
+      kappa: 1
+      discretizer: experiment/agent/policy/discretizer
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
       trace: 
@@ -62,4 +64,5 @@ experiment:
       representation: experiment/agent/policy/representation
       sampler: 
         type: sampler/greedy
-  save_every: run
+  load_file: leo_leosim_qlearning_squat-mp1-run0
+  save_every: never
