@@ -12,7 +12,7 @@ REGISTER_CONFIGURABLE(LeoSquatEnvironment)
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
 const double T = 0.36;
-const double B = 0.30;
+const double B = 0.28;
 
 void CLeoBhSquat::resetState(double time0)
 {
@@ -68,7 +68,7 @@ double CLeoBhSquat::calculateReward()
       energyReward =  v[ljHipRight]*v[ljHipRight] +
                       v[ljKneeRight]*v[ljKneeRight] +
                       v[ljAnkleRight]*v[ljAnkleRight];
-      energyReward *= -0.001;
+      energyReward *= -0.01;
 
       std::cout << taskReward << ", " << energyReward << " , " << feetReward << std::endl;
 
