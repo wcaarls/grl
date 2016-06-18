@@ -17,7 +17,7 @@ void CLeoBhSquat::resetState(double time0)
 
   getHipHeight(getCurrentSTGState()->mJointAngles, hip_height_, hip_pos_);
 
-  if (isSitting())
+  if (hip_height_ < 0.5*(T+B))
     prev_direction_ = direction_ = 1;
   else
     prev_direction_ = direction_ = -1;
@@ -157,8 +157,8 @@ void CLeoBhSquat::parseLeoState(const CLeoState &leoState, Vector &obs)
   prev_hip_height_ = hip_height_;
   prev_hip_pos_ = hip_pos_;
   getHipHeight(getCurrentSTGState()->mJointAngles, hip_height_, hip_pos_);
-  min_hip_height_ = MIN(min_hip_height_, hip_pos_);
-  max_hip_height_ = MAX(max_hip_height_, hip_pos_);
+  min_hip_height_ = MIN(min_hip_height_, hip_height_);
+  max_hip_height_ = MAX(max_hip_height_, hip_height_);
 
   //std::cout << "Hip height: " << hip_height_ << std::endl;
 }
