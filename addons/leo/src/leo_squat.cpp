@@ -5,9 +5,6 @@ using namespace grl;
 
 REGISTER_CONFIGURABLE(LeoSquatEnvironment)
 
-//const double T[] = { 0.0,  0.0,  0.0,  0.0,  0.0};
-//const double B[] = { 1.4,  1.4, -1.9, -1.9, -0.3}; // hips, knees, torso, ankles = 0.8
-
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
@@ -68,7 +65,7 @@ double CLeoBhSquat::calculateReward()
       energyReward =  v[ljHipRight]*v[ljHipRight] +
                       v[ljKneeRight]*v[ljKneeRight] +
                       v[ljAnkleRight]*v[ljAnkleRight];
-      energyReward *= -0.01;
+      energyReward *= -0.001;
 
       std::cout << taskReward << ", " << energyReward << " , " << feetReward << std::endl;
 
@@ -200,7 +197,7 @@ bool CLeoBhSquat::isDoomedToFall(CLeoState* state, bool report)
   // Torso angle out of 'range'
   //if ((state->mJointAngles[ljTorso] < -1.4) || (state->mJointAngles[ljTorso] > 1.4) )//|| state->mFootContacts != 15) // state->mFootContacts == 0
   //if ((state->mJointAngles[ljTorso] < -1.4) || (state->mJointAngles[ljTorso] > 1.4) || (fabs(feet_angle) > 0.03) || (state->mFootContacts == 0))//|| (state->mFootContacts != 15))
-  if ((state->mJointAngles[ljTorso] < -1.4) || (state->mJointAngles[ljTorso] > 1.4))
+  if ((state->mJointAngles[ljTorso] < -1.4) || (state->mJointAngles[ljTorso] > 1.4) || (hip_height_ < 0.24))
   {
     if (report)
       TRACE("[TERMINATION] Torso angle is too large");
@@ -328,15 +325,17 @@ double LeoSquatEnvironment::step(const Vector &action, Vector *obs, double *rewa
 {
   TRACE("RL action: " << action);
 
+  Vector a = action;
+  //a << -4, 5, -4;
   //std::cout << "RL action: " << action << std::endl;
 
   bh_->setCurrentSTGState(&leoState_);
 
   double actionArm = bh_->grlAutoActuateArm();
-  if (action.size() == 6)
-    target_action_ << actionArm, action[0], action[1], action[2], action[3], action[4], action[5];
+  if (a.size() == 6)
+    target_action_ << actionArm, a[0], a[1], a[2], a[3], a[4], a[5];
   else
-    target_action_ << actionArm, action[0], action[0], action[1], action[1], action[2], action[2];
+    target_action_ << actionArm, a[0], a[0], a[1], a[1], a[2], a[2];
 
   bh_->setPreviousSTGState(&leoState_);
   double tau = target_env_->step(target_action_, &target_obs_, reward, terminal);
