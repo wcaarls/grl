@@ -23,7 +23,7 @@
 		<leofloorlength>2*pi*leofloorradius</leofloorlength>
 		<startheight>0.0410</startheight>
 		<ctrlFrequency>30.0</ctrlFrequency>
-		<maxtorque max="10.7">5</maxtorque>
+		<maxtorque max="10.7">7</maxtorque>
 	</constants>
 	<strings comment="These strings will not generate parser warnings; they are assumed to be spelled correctly when spelled this way.">
 		<!-- booleans -->
