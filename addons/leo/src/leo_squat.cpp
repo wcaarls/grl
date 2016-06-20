@@ -40,17 +40,11 @@ double CLeoBhSquat::calculateReward()
   }
   else
   {
-    double taskReward = 0, energyReward = 0, feetReward = 0;
+    double taskReward = 0, energyReward = 0, feetReward = 0, velocityReward = 0;
     if ( (direction_ == -1 && isSitting()) || (direction_ == 1 && isStanding()) )
       reward = 30;
     else
     {
-      // Task
-      if (direction_ == -1)
-        taskReward = pow(hip_height_ - B, 2) - pow(prev_hip_height_ - B, 2);
-       else if (direction_ == 1)
-        taskReward = pow(hip_height_ - T, 2) - pow(prev_hip_height_ - T, 2);
-      taskReward = -1000*taskReward;
 
       // Energy
       //double ankleLeftWork  = getJointMotorWork(ljAnkleLeft);
@@ -61,15 +55,44 @@ double CLeoBhSquat::calculateReward()
       //if (getCurrentSTGState()->mFootContacts != 15)
       //  feetReward = -10;
 
-      const double *v = getCurrentSTGState()->mActuationVoltages;
-      energyReward =  v[ljHipRight]*v[ljHipRight] +
-                      v[ljKneeRight]*v[ljKneeRight] +
-                      v[ljAnkleRight]*v[ljAnkleRight];
-      energyReward *= -0.001;
 
-      std::cout << taskReward << ", " << energyReward << " , " << feetReward << std::endl;
+      // Task
+      bool shaping = true;
+      if (shaping)
+      {
+        if (direction_ == -1)
+          taskReward = pow(hip_height_ - B, 2) - pow(prev_hip_height_ - B, 2);
+         else if (direction_ == 1)
+          taskReward = pow(hip_height_ - T, 2) - pow(prev_hip_height_ - T, 2);
+        taskReward = -1000*taskReward;
+      }
+      else
+      {
+        if (direction_ == -1)
+          taskReward = pow(hip_height_ - B, 2);
+         else if (direction_ == 1)
+          taskReward = pow(hip_height_ - T, 2);
+        taskReward *= -1.0;
+      }
 
-      reward = energyReward + taskReward + feetReward;
+      const double *v = getCurrentSTGState()->mJointSpeeds;
+      velocityReward =  v[ljTorso]*v[ljTorso] +
+                        v[ljShoulder]*v[ljShoulder] +
+                        2*v[ljHipRight]*v[ljHipRight] +
+                        2*v[ljKneeRight]*v[ljKneeRight] +
+                        2*v[ljAnkleRight]*v[ljAnkleRight];
+      velocityReward *= -0.02;
+
+
+      const double *u = getCurrentSTGState()->mActuationVoltages;
+      energyReward =  u[ljHipRight]*u[ljHipRight] +
+                      u[ljKneeRight]*u[ljKneeRight] +
+                      u[ljAnkleRight]*u[ljAnkleRight];
+      energyReward *= -0.0001;
+
+      std::cout << taskReward << ", " << energyReward << " , " << velocityReward << std::endl;
+
+      reward = energyReward + taskReward + feetReward + velocityReward;
     }
 
     //std::cout << prev_hip_height_ << " -> " << hip_height_ << " = " << taskReward << ", " << energyReward << " , " << feetReward << " = " << reward << std::endl;
