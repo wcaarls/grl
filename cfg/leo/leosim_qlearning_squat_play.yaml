@@ -64,5 +64,5 @@ experiment:
       representation: experiment/agent/policy/representation
       sampler: 
         type: sampler/greedy
-  load_file: leo_leosim_qlearning_squat-mp1-run0
+  load_file: leo_leosim_qlearning_squat-mp8-run0
   save_every: never
