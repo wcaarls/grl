@@ -41,10 +41,10 @@ double CLeoBhSquat::calculateReward()
   else
   {
     double taskReward = 0, energyReward = 0, feetReward = 0, velocityReward = 0;
-    if ( (direction_ == -1 && isSitting()) || (direction_ == 1 && isStanding()) )
-      reward = 30;
-    else
-    {
+    //if ( (direction_ == -1 && isSitting()) || (direction_ == 1 && isStanding()) )
+    //  reward = 6;
+    //else
+    //{
 
       // Energy
       //double ankleLeftWork  = getJointMotorWork(ljAnkleLeft);
@@ -93,7 +93,7 @@ double CLeoBhSquat::calculateReward()
       std::cout << taskReward << ", " << energyReward << " , " << velocityReward << std::endl;
 
       reward = energyReward + taskReward + feetReward + velocityReward;
-    }
+    //}
 
     //std::cout << prev_hip_height_ << " -> " << hip_height_ << " = " << taskReward << ", " << energyReward << " , " << feetReward << " = " << reward << std::endl;
 
