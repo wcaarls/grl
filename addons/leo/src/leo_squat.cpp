@@ -64,7 +64,7 @@ double CLeoBhSquat::calculateReward()
           taskReward = pow(hip_height_ - B, 2) - pow(prev_hip_height_ - B, 2);
          else if (direction_ == 1)
           taskReward = pow(hip_height_ - T, 2) - pow(prev_hip_height_ - T, 2);
-        taskReward = -1000*taskReward;
+        taskReward = -3000*taskReward;
       }
       else
       {
@@ -90,7 +90,7 @@ double CLeoBhSquat::calculateReward()
                       u[ljAnkleRight]*u[ljAnkleRight];
       energyReward *= -0.0001;
 
-      std::cout << taskReward << ", " << energyReward << " , " << velocityReward << std::endl;
+//      std::cout << taskReward << ", " << energyReward << " , " << velocityReward << std::endl;
 
       reward = energyReward + taskReward + feetReward + velocityReward;
     //}
@@ -190,10 +190,10 @@ void CLeoBhSquat::updateDirection(double time)
 {
   prev_direction_ = direction_;
 
-  if (isStanding())
-    std::cout << "Is standing" << std::endl;
-  if (isSitting())
-    std::cout << "Is sitting" << std::endl;
+  //if (isStanding())
+  //  std::cout << "Is standing" << std::endl;
+  //if (isSitting())
+  //  std::cout << "Is sitting" << std::endl;
 
   if (direction_ == -1 && isSitting())
     direction_ =  1;
