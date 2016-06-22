@@ -450,6 +450,24 @@ void CODEObject::clearAll()
 	clearExternalForces();
 }
 
+void CODEObject::getCOM(double &x, double &y, double &z) const
+{
+  x = y = z = 0;
+  double M = 0, m;
+  for (unsigned int i=0; i<mBodies.size(); i++)
+  {
+    m = mBodies[i]->getMass();
+    const dReal *pos = ((dBody*)mBodies[i])->getPosition();
+    x += pos[0]*m;
+    y += pos[1]*m;
+    z += pos[2]*m;
+    M += m;
+  }
+  x = x/M;
+  y = y/M;
+  z = z/M;
+}
+
 void CODEObject::move(double dx, double dy, double dz)
 {
 	for (unsigned int i=0; i<mBodies.size(); i++)
@@ -468,7 +486,7 @@ void CODEObject::processFixedPoint()
 
 	CODEBody *fixedBody = resolveBody(mFixedPoint->getBodyName());
 	// Fail?
-	if (fixedBody == NULL)
+  if (fixedBody == NULL)
 	{
 		mLogErrorLn("In CODEObject::processFixedPoint(): could not resolve body " << mFixedPoint->getBodyName() << "!");
 		return;

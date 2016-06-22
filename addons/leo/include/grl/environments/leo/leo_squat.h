@@ -24,11 +24,13 @@ class CLeoBhSquat: public CLeoBhBase
     bool isDoomedToFall(CLeoState* state, bool report);
     void updateDirection(double time);
     std::string getProgressReport(double trialTime);
+    void getCOM(const double *x, double &hipHeight, double &hipPos) const;
 
   protected:
     bool isSitting() const;
     bool isStanding() const;
     void getHipHeight(const double *x, double &hipHeight, double &hipPos) const;
+
 
   protected:
     int direction_, prev_direction_;
@@ -60,6 +62,7 @@ class LeoSquatEnvironment: public LeoBaseEnvironment
 
   protected:
     CLeoBhSquat *bh_;
+    double      com_[3];
 
 };
 

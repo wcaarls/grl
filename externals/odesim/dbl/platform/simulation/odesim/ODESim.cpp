@@ -323,6 +323,17 @@ bool CODESim::init()
 	return true;
 }
 
+bool CODESim::read(const std::string name, double *out) const
+{
+  for (unsigned int iObject=0; iObject<mObjects.size(); iObject++)
+    if (mObjects[iObject]->name() == "robot")
+    {
+      mObjects[iObject]->getCOM(out[0], out[1], out[2]);
+      return true;
+    }
+  return false;
+}
+
 bool CODESim::deinit()
 {
 	if (isInitialized())

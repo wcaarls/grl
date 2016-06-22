@@ -35,6 +35,7 @@ class ODESTGEnvironment: public QObject
     bool configure(Configuration &config);
     void start(int test, Vector *obs);
     double step(const Vector &action, Vector *obs, double *reward, int *terminal);
+    bool read(const std::string name, double *out) const;
     
     ODESimulator *getSim() { return &simulator_; }
     const std::vector<CGenericStateVar>  &getSensors()   const { return sensors_; }

@@ -108,8 +108,11 @@ double CLeoBhSquat::calculateReward()
 void CLeoBhSquat::getHipHeight(const double *x, double &hipHeight, double &hipPos) const
 {
   // Determine foot position relative to the hip axis
-  double upLegLength        = 0.116;  // length of the thigh
-  double loLegLength        = 0.1045; // length of the shin
+  const double torsoHeight  = 0.24155;
+  const double upLegLength  = 0.116;  // length of the thigh
+  const double loLegLength  = 0.1045; // length of the shin
+
+
   double leftHipAbsAngle    = x[ljTorso] + x[ljHipLeft];
   double leftKneeAbsAngle   = leftHipAbsAngle + x[ljKneeLeft];
   double leftAnkleAbsAngle  = leftKneeAbsAngle + x[ljAnkleLeft];
@@ -125,7 +128,6 @@ void CLeoBhSquat::getHipHeight(const double *x, double &hipHeight, double &hipPo
   const double ankleHeelDZ  = 0.04859; //Z = -0.03559 - footwheelradius = -0.04859
   const double ankleToeDX   = -0.0495; //X = 0.009 + footlength/2 = 0.009 + 0.081/2 = 0.0495
   const double ankleToeDZ   = 0.04859; //Z = -0.03559 - footwheelradius = -0.03559 - 0.013 = -0.04859
-  const double torsoHeight  = 0.24155;
 
   double leftAnkleZ         = upLegLength*cos(leftHipAbsAngle) + loLegLength*cos(leftKneeAbsAngle);
   double leftHeelZ          = leftAnkleZ + ankleHeelDZ*cos(leftAnkleAbsAngle) + ankleHeelDX*sin(leftAnkleAbsAngle);
@@ -140,6 +142,49 @@ void CLeoBhSquat::getHipHeight(const double *x, double &hipHeight, double &hipPo
   //TRACE("Hip height: " << hh);
   //std::cout << "Hip height: " << hipHeight << std::endl;
   //std::cout << "Ankle pos: " << hipPos << std::endl;
+}
+
+void CLeoBhSquat::getCOM(const double *x, double &hipHeight, double &hipPos) const
+{
+  // Determine foot position relative to the hip axis
+  const double torsoHeight  = 0.24155;
+  const double upLegLength  = 0.116;
+  const double loLegLength  = 0.1045;
+  const double footwheelradius = 0.013;
+  //const double shoulderLength = ;
+
+
+  const double torsoMass = 0.91326;
+  const double torsoCMZ  = 0.009945;
+  const double boomCMY = 0.835;
+  const double boomMass = 0.860;
+  const double boomIZZ = 0.31863;
+  const double boomLength = 1.70;
+  const double boomVirtualMassX = (boomCMY*boomCMY*boomMass + boomIZZ)/(boomLength*boomLength);
+  const double torsoHipDistZ = -torsoHeight/2;
+
+  const double torsoComZ    = (torsoMass*torsoCMZ + boomVirtualMassX*torsoHipDistZ)/(torsoMass + boomVirtualMassX);
+  const double upLegComZ    = -0.00481;
+  const double loLegComZ    = -0.00867;
+  const double footComZ     = 0.00461;
+  const double shoulderComZ   = -0.14260;
+  const double shoulderAnchorZ = 0.091275;
+
+  const double torsoBoomMass  = torsoMass + boomVirtualMassX;
+  const double upLegMass  = 0.17978;
+  const double loLegMass  = 0.12691;
+  const double footMass = 0.07319;
+  const double shoulderMass = 0.095;
+
+  double torsoZ = footwheelradius + loLegLength + upLegLength + torsoHeight/2 + torsoComZ;
+  double upLegZ = footwheelradius + loLegLength + upLegLength/2 + upLegComZ;
+  double loLegZ = footwheelradius + loLegLength/2 + loLegComZ;
+  double footZ  = footwheelradius + footComZ;
+  double shoulderZ = torsoZ + shoulderComZ + shoulderAnchorZ;
+
+  double z = (torsoZ*torsoBoomMass + 2*upLegZ*upLegMass + 2*loLegZ*loLegMass + 2*footZ*footMass + shoulderZ*shoulderMass) /
+      (torsoBoomMass + 2*upLegMass + 2*loLegMass + 2*footMass + shoulderMass);
+  std::cout << z << std::endl;
 }
 
 bool CLeoBhSquat::isSitting() const
@@ -219,8 +264,9 @@ bool CLeoBhSquat::isDoomedToFall(CLeoState* state, bool report)
 
   // Torso angle out of 'range'
   //if ((state->mJointAngles[ljTorso] < -1.4) || (state->mJointAngles[ljTorso] > 1.4) )//|| state->mFootContacts != 15) // state->mFootContacts == 0
-  if ((state->mJointAngles[ljTorso] < -1.4) || (state->mJointAngles[ljTorso] > 1.4) || (fabs(feet_angle) > 0.03) || (state->mFootContacts == 0))//|| (state->mFootContacts != 15))
-  //if ((state->mJointAngles[ljTorso] < -1.4) || (state->mJointAngles[ljTorso] > 1.4) || (hip_height_ < 0.24))
+  //if ((state->mJointAngles[ljTorso] < -1.4) || (state->mJointAngles[ljTorso] > 1.4) || (fabs(feet_angle) > 0.03) || (state->mFootContacts == 0))//|| (state->mFootContacts != 15))
+  if ((state->mJointAngles[ljTorso] < -1.4) || (state->mJointAngles[ljTorso] > 1.4) || (fabs(feet_angle) > 0.03))
+  //if ((state->mJointAngles[ljTorso] < -1.4) || (state->mJointAngles[ljTorso] > 1.4)) //|| (hip_height_ < 0.24))
   {
     if (report)
       TRACE("[TERMINATION] Torso angle is too large");
@@ -326,6 +372,9 @@ void LeoSquatEnvironment::start(int test, Vector *obs)
   LeoBaseEnvironment::start(test);
 
   target_env_->start(test_, &target_obs_);
+
+  //double com, com1;
+  //bh_->getCOM(NULL, com, com1);
 
   // Parse obs into CLeoState (Start with left leg being the stance leg)
   bh_->fillLeoState(target_obs_, Vector(), leoState_);

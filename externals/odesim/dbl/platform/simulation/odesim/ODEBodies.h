@@ -162,6 +162,7 @@ class CODEBody: protected dBody, public CPlaceableObject, public CODELoggable	//
 
 		void			setRotation(const dMatrix3 R);
 		void			addForceAtRelPos(double forceX, double forceY, double forceZ, double posX, double posY, double posZ);
+    double    getMass() const { return mMass; }
 };
 
 // Body anchors can be defined for CODEBody objects and can be used

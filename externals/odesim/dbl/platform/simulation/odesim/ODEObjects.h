@@ -232,6 +232,7 @@ class CODEObject: public CODELoggable
 
 		// dx, dy and dz are in the GLOBAL reference frame
 		void				move(double dx, double dy, double dz);
+    void        getCOM(double &x, double &y, double &z) const;
 
 		void				invalidateCollisions(bool invalid=true);
 

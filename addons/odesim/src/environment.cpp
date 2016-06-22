@@ -169,6 +169,8 @@ bool ODESTGEnvironment::configure(Configuration &config)
 void ODESTGEnvironment::start(int test, Vector *obs)
 {
   simulator_.setInitialCondition(randomize_?time(NULL):0);
+  double com[3];
+  //simulator_.read("robot.com", com);
   simulator_.resetActuationValues();
   simulator_.activateActions(listener_.getState()->mStateID);
   
@@ -182,6 +184,8 @@ void ODESTGEnvironment::start(int test, Vector *obs)
     (*obs)[ii] = sensors_[ii].evaluate(listener_.getState());
     
   start_time_ = simulator_.getAbsTime();
+
+  //simulator_.read("robot.com", com);
 
   emit drawFrame();
 }
@@ -217,6 +221,11 @@ double ODESTGEnvironment::step(const Vector &action, Vector *obs, double *reward
   emit drawFrame();
   
   return simulator_.getSim()->getStepTime();
+}
+
+bool ODESTGEnvironment::read(const std::string name, double *out) const
+{
+  simulator_.read(name, out);
 }
 
 // *** ODEEnvironment ***
