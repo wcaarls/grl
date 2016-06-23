@@ -311,6 +311,10 @@ void LeoBaseEnvironment::configParseObservations(Configuration &config, const st
   config.set("observation_min", observation_min);
   config.set("observation_max", observation_max);
 
+  INFO("Environment observation dims: " << observation_dims_);
+  INFO("Environment observation min: "  << observation_min);
+  INFO("Environment observation max: "  << observation_max);
+
   // Prepare observer indexes for easy connection between states of the target environment and agent observations
   bh_->setObserverStruct(observer_struct);
 }
@@ -371,6 +375,10 @@ void LeoBaseEnvironment::configParseActions(Configuration &config, const std::ve
   config.set("action_dims", action_dims_);
   config.set("action_min", action_min);
   config.set("action_max", action_max);
+
+  INFO("Environment action dims: " << action_dims_);
+  INFO("Environment action min: "  << action_min);
+  INFO("Environment action max: "  << action_max);
 }
 
 void LeoBaseEnvironment::fillObserve(const std::vector<CGenericStateVar> &genericStates,
