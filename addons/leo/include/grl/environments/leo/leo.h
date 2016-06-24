@@ -148,6 +148,7 @@ class LeoBaseEnvironment: public Environment
     std::string xml_;
 
     int observation_dims_, action_dims_;
+    Vector observation_min_, observation_max_, action_min_, action_max_;
     int target_observation_dims_, target_action_dims_;
     Vector target_obs_, target_action_;
 
@@ -158,15 +159,15 @@ class LeoBaseEnvironment: public Environment
 
   protected:
     void fillObserverStruct(const std::vector<std::string> &observed_names, ObserverStruct &observer_idx) const;
-    int findVarIdx(const std::vector<CGenericStateVar> &genericStates, std::string query) const;
-    void configParseObservations(Configuration &config, const std::vector<CGenericStateVar> &sensors);
-    void configParseActions(Configuration &config, const std::vector<CGenericActionVar> &actuators);
+    int findVarIdx(const std::vector<std::string> &genericStates, std::string query) const;
+    void configParseObservations(Configuration &config, const std::vector<std::string> &sensors);
+    void configParseActions(Configuration &config, const std::vector<std::string> &actuators);
 
-    void fillObserve(const std::vector<CGenericStateVar> &genericStates,
+    void fillObserve(const std::vector<std::string> &genericStates,
                      const std::vector<std::string> &observeList,
                      std::vector<std::string> &observe) const;
 
-    void fillActuate(const std::vector<CGenericActionVar> &genericAction,
+    void fillActuate(const std::vector<std::string> &genericAction,
                      const std::vector<std::string> &actuateList,
                      Vector &out,
                      const std::string *req = NULL,
@@ -174,7 +175,6 @@ class LeoBaseEnvironment: public Environment
 
   private:
     CLeoBhBase *bh_; // makes it invisible in derived classes
-    //ODESTGEnvironment *ode_;
 };
 
 }

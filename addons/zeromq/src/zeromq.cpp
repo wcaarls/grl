@@ -88,15 +88,11 @@ bool ZeromqCommunicator::recv(Vector &v) const
 void CommunicatorEnvironment::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("communicator", "communicator", "Comunicator which exchanges messages with an actual environment", communicator_));
-  //config->push_back(CRP("observation_dims", "int.observation_dims", "Number of observation dimensions", observation_dims_));
-  //config->push_back(CRP("action_dims", "int.action_dims", "Number of action dimensions", action_dims_));
 }
 
 void CommunicatorEnvironment::configure(Configuration &config)
 {
   communicator_ = (Communicator*)config["communicator"].ptr();
-  //observation_dims_ = config["observation_dims"];
-  //action_dims_ = config["action_dims"];
 }
 
 void CommunicatorEnvironment::reconfigure(const Configuration &config)

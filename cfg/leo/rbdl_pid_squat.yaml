@@ -5,29 +5,25 @@ experiment:
   steps: 0
   rate: 30
   test_interval: 0
-  output: leosim_pid_squat
+  output: rbdl_pid_squat
   environment: 
     type: environment/leo_squat
-    xml: ../../leo/cfg/leo_learn_squatting.xml
     target_env: 
-      type: environment/ode
-      xml: experiment/environment/xml
-      randomize: 0
-      visualize: 1
+      type: environment/modeled
+      model: 
+        type: model/dynamical
+        control_step: 0.0333
+        integration_steps: 5
+        dynamics: 
+          type: dynamics/rbdl
+          file: leo_free-flyer.lua
+      task: 
+        type: task/lua
+        file: leo_squat.lua
     observe: hipright, hipleft, kneeright, kneeleft, ankleright, ankleleft, direction
     actuate: hipright, hipleft, kneeright, kneeleft, ankleright, ankleleft
-    exporter: 
-      type: exporter/csv
-      file: leosim_pid_squat
-      style: meshup
-      variant: test
-      split_runs: 1
-    observation_dims: experiment/environment/target_env/observation_dims
-    action_dims: experiment/environment/target_env/action_dims
-    observation_min: experiment/environment/target_env/observation_min
-    observation_max: experiment/environment/target_env/observation_max
-    action_min: experiment/environment/target_env/action_min
-    action_max: experiment/environment/target_env/action_max
+    observation_dims: experiment/environment/target_env/task/observation_dims
+    action_dims: experiment/environment/target_env/task/action_dims
   agent: 
     type: agent/master/exclusive
     gamma: 0.97

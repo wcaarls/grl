@@ -1,11 +1,11 @@
 experiment: 
   type: experiment/online_learning
   runs: 1
-  trials: 0
+  trials: 3
   steps: 0
   rate: 30
   test_interval: 0
-  output: leosim_pid_squat
+  output: leosim_pid_squat2
   environment: 
     type: environment/leo_squat
     xml: ../../leo/cfg/leo_learn_squatting.xml
@@ -16,8 +16,18 @@ experiment:
       visualize: 1
     observe: hipright, kneeright, ankleright, direction
     actuate: hipright, kneeright, ankleright
+    exporter: 
+      type: exporter/csv
+      file: leosim_pid_squat2
+      style: meshup
+      variant: test
+      split_runs: 1
     observation_dims: experiment/environment/target_env/observation_dims
     action_dims: experiment/environment/target_env/action_dims
+    observation_min: experiment/environment/target_env/observation_min
+    observation_max: experiment/environment/target_env/observation_max
+    action_min: experiment/environment/target_env/action_min
+    action_max: experiment/environment/target_env/action_max
   agent: 
     type: agent/master/exclusive
     gamma: 0.97
