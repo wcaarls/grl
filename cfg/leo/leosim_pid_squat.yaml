@@ -24,10 +24,6 @@ experiment:
       split_runs: 1
     observation_dims: experiment/environment/target_env/observation_dims
     action_dims: experiment/environment/target_env/action_dims
-    observation_min: experiment/environment/target_env/observation_min
-    observation_max: experiment/environment/target_env/observation_max
-    action_min: experiment/environment/target_env/action_min
-    action_max: experiment/environment/target_env/action_max
   agent: 
     type: agent/master/exclusive
     gamma: 0.97
