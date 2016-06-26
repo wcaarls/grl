@@ -15,7 +15,7 @@ experiment:
       randomize: 0
       visualize: 1
     observe: hipright, kneeright, ankleright, direction
-    actuate: hipright, kneeright, ankleright
+    actuate: hip, knee, ankle
     observation_dims: experiment/environment/target_env/observation_dims
     action_dims: experiment/environment/target_env/action_dims
   agent: 

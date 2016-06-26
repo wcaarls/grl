@@ -10,11 +10,25 @@
 namespace grl
 {
 
-struct ObserverStruct
+#define MAX(x, y) (((x) > (y)) ? (x) : (y))
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
+
+struct EnvironmentAgentInterface
 {
-  std::vector<int> angles;
-  std::vector<int> angle_rates;
-  std::vector<std::string> augmented;
+  struct ObserverInterface
+  {
+    std::vector<int> angles;
+    std::vector<int> angle_rates;
+    std::vector<std::string> augmented;
+  };
+  struct ActuatorInterface
+  {
+    std::vector<int> actions;               // mapping: target_action = agent_action(actions == i)
+    std::vector<std::string> autoActuated;  // textual name of actions that should be automatically actuated, for them 'actions = -1'
+  };
+
+  ObserverInterface observer;
+  ActuatorInterface actuator;
 };
 
 // Base classes for Leo
@@ -84,8 +98,11 @@ class CLeoBhBase: public CLeoBhWalkSym
 
   public:
     void resetState();
-    void setObserverStruct(ObserverStruct observer_struct) { observer_struct_ = observer_struct; }
-    const ObserverStruct &getObserverStruct() { return observer_struct_; }
+
+    void setObserverInterface(const EnvironmentAgentInterface::ObserverInterface oi) { interface_.observer = oi; }
+    void setActuatorInterface(const EnvironmentAgentInterface::ActuatorInterface ai) { interface_.actuator = ai; }
+    const EnvironmentAgentInterface &getInterface() const { return interface_; }
+
     void fillLeoState(const Vector &obs, const Vector &action, CLeoState &leoState);
     void parseLeoState(const CLeoState &leoState, Vector &obs);
     void updateDerivedStateVars(CLeoState *currentSTGState);
@@ -116,7 +133,7 @@ class CLeoBhBase: public CLeoBhWalkSym
 
   protected:
     CButterworthFilter<1>	mJointSpeedFilter[ljNumJoints];
-    ObserverStruct observer_struct_;
+    EnvironmentAgentInterface interface_;
 };
 
 /// Base class for simulated and real Leo
@@ -157,7 +174,7 @@ class LeoBaseEnvironment: public Environment
     double time_test_, time_learn_, time0_;
 
   protected:
-    void fillObserverStruct(const std::vector<std::string> &observed_names, ObserverStruct &observer_idx) const;
+    void fillObserver(const std::vector<std::string> &observed_names, EnvironmentAgentInterface::ObserverInterface &observer_interface) const;
     int findVarIdx(const std::vector<CGenericStateVar> &genericStates, std::string query) const;
     void configParseObservations(Configuration &config, const std::vector<CGenericStateVar> &sensors);
     void configParseActions(Configuration &config, const std::vector<CGenericActionVar> &actuators);
@@ -168,7 +185,7 @@ class LeoBaseEnvironment: public Environment
 
     void fillActuate(const std::vector<CGenericActionVar> &genericAction,
                      const std::vector<std::string> &actuateList,
-                     Vector &out,
+                     EnvironmentAgentInterface::ActuatorInterface &out,
                      const std::string *req = NULL,
                      std::vector<int>  *reqIdx = NULL) const;
 

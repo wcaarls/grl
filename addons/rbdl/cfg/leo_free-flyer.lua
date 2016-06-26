@@ -14,10 +14,10 @@
 --]]
 
 -- strict checks for undefined variables
-require 'SRC.strict'
+--require 'SRC.strict'
 
 -- load module with convenience functions
-utils = require 'SRC.utils'
+--utils = require 'SRC.utils'
 
 -- for model
 inertiadontcare = 0.001
@@ -118,6 +118,20 @@ colors = {
   wheel = { 0.1, 0.1, 0.1 },
   dynamixels = { 0.5, 0.5, 0.5 }
 }
+
+-- **************************************************************************
+-- *** HELPERS **************************************************************
+-- **************************************************************************
+
+local function get_point_by_name (container, name)
+    for key, value in ipairs(container) do
+        if value["name"] == name then
+            -- value["coordinates"] = value["point"]
+            return value
+        end
+    end
+    print('container does not contain point with name: ', name)
+end
 
 -- **************************************************************************
 -- *** VISUALS **************************************************************
@@ -380,7 +394,7 @@ model = {
       joint = joints.boom,
       visuals = visuals.torso,
       points = { -- draw contact points
-        root = utils.get_point_by_name(contact_points, "root"),
+        root = get_point_by_name(contact_points, "root"),
       }
     },
     {
@@ -472,8 +486,8 @@ model = {
       },
       visuals = visuals.foot,
       points = { -- draw contact points
-        heel_left = utils.get_point_by_name(contact_points, "heel_left"),
-        tip_left = utils.get_point_by_name(contact_points, "tip_left"),
+        heel_left = get_point_by_name(contact_points, "heel_left"),
+        tip_left = get_point_by_name(contact_points, "tip_left"),
       }
     },
     {
@@ -490,8 +504,8 @@ model = {
       },
       visuals = visuals.foot,
       points = { -- draw contact points
-        heel_right = utils.get_point_by_name(contact_points, "heel_right"),
-        tip_right = utils.get_point_by_name(contact_points, "tip_right"),
+        heel_right = get_point_by_name(contact_points, "heel_right"),
+        tip_right = get_point_by_name(contact_points, "tip_right"),
       }
     }
   }

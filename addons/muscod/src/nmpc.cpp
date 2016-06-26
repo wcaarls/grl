@@ -153,12 +153,15 @@ NMPCPolicy *NMPCPolicy::clone() const
 
 TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
 {
+  assert(in.size() == initial_sd_.size());
+  assert(outputs_  == initial_qc_.size());
+
   if (time == 0.0)
   {
     muscod_reset(in, time);
     initial_sd_ << in;
     initial_pf_ << 0.0;
-    initial_qc_ << 0.0;
+    initial_qc_ << ConstantVector(outputs_, 0.0);
   }
 
   if (verbose_)

@@ -8,6 +8,7 @@ experiment:
   output: rbdl_pid_squat
   environment: 
     type: environment/leo_squat
+    xml: ../../leo/cfg/leo_learn_squatting.xml
     target_env: 
       type: environment/modeled
       model: 

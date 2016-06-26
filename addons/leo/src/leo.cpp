@@ -278,9 +278,9 @@ void LeoBaseEnvironment::configParseObservations(Configuration &config, const st
 {
   const std::vector<std::string> observeList = cutLongStr( config["observe"].str() );
   std::vector<std::string> observe;
-  ObserverStruct observer_struct;
   fillObserve(sensors, observeList, observe);
-  fillObserverStruct(observe, observer_struct);
+  EnvironmentAgentInterface::ObserverInterface observer;
+  fillObserver(observe, observer);
   observation_dims_ = observe.size();
 
   // mask observation min/max vectors
@@ -291,16 +291,16 @@ void LeoBaseEnvironment::configParseObservations(Configuration &config, const st
   observation_max.resize(observation_dims_);
 
   int i, j;
-  for (i = 0; i < observer_struct.angles.size(); i++)
+  for (i = 0; i < observer.angles.size(); i++)
   {
-    std::string name = "robot." + bh_->jointIndexToName(observer_struct.angles[i]) + ".angle";
+    std::string name = "robot." + bh_->jointIndexToName(observer.angles[i]) + ".angle";
     int sensor_idx = findVarIdx(sensors, name);
     observation_min[i] = ode_observation_min[sensor_idx];
     observation_max[i] = ode_observation_max[sensor_idx];
   }
-  for (j = 0; j < observer_struct.angle_rates.size(); j++)
+  for (j = 0; j < observer.angle_rates.size(); j++)
   {
-    std::string name = "robot." + bh_->jointIndexToName(observer_struct.angle_rates[j]) + ".anglerate";
+    std::string name = "robot." + bh_->jointIndexToName(observer.angle_rates[j]) + ".anglerate";
     int sensor_idx = findVarIdx(sensors, name);
     observation_min[i+j] = ode_observation_min[sensor_idx];
     observation_max[i+j] = ode_observation_max[sensor_idx];
@@ -312,7 +312,7 @@ void LeoBaseEnvironment::configParseObservations(Configuration &config, const st
   config.set("observation_max", observation_max);
 
   // Prepare observer indexes for easy connection between states of the target environment and agent observations
-  bh_->setObserverStruct(observer_struct);
+  bh_->setObserverInterface(observer);
 }
 
 int LeoBaseEnvironment::findVarIdx(const std::vector<CGenericStateVar> &genericStates, std::string query) const
@@ -324,7 +324,7 @@ int LeoBaseEnvironment::findVarIdx(const std::vector<CGenericStateVar> &genericS
   return -1;
 }
 
-void LeoBaseEnvironment::fillObserverStruct(const std::vector<std::string> &observer_names, ObserverStruct &observer_idx) const
+void LeoBaseEnvironment::fillObserver(const std::vector<std::string> &observer_names, EnvironmentAgentInterface::ObserverInterface &observer_interface) const
 {
   for (int i = 0; i < observer_names.size(); i++)
   {
@@ -332,11 +332,11 @@ void LeoBaseEnvironment::fillObserverStruct(const std::vector<std::string> &obse
     std::replace( name.begin(), name.end(), '.', ' ');
     std::vector<std::string> cuttedName = cutLongStr(name);
     if (cuttedName.size() == 1)
-      observer_idx.augmented.push_back(name);
+      observer_interface.augmented.push_back(name);
     else if (cuttedName[2] == "angle")
-      observer_idx.angles.push_back(bh_->jointNameToIndex(cuttedName[1]));
+      observer_interface.angles.push_back(bh_->jointNameToIndex(cuttedName[1]));
     else if (cuttedName[2] == "anglerate")
-      observer_idx.angle_rates.push_back(bh_->jointNameToIndex(cuttedName[1]));
+      observer_interface.angle_rates.push_back(bh_->jointNameToIndex(cuttedName[1]));
     else
     {
       ERROR("Unknown joint '" << cuttedName[2] << "'");
@@ -347,12 +347,13 @@ void LeoBaseEnvironment::fillObserverStruct(const std::vector<std::string> &obse
 
 void LeoBaseEnvironment::configParseActions(Configuration &config, const std::vector<CGenericActionVar> &actuators)
 {
-  Vector actuate;
+  EnvironmentAgentInterface::ActuatorInterface actuator_interface;
   std::vector<std::string> actuateList = cutLongStr(config["actuate"].str());
-  fillActuate(actuators, actuateList, actuate);
-  if (actuate.size() != target_action_dims_)
+  fillActuate(actuators, actuateList, actuator_interface);
+  TRACE("Actuate '" << actuator_interface.actions << "'"); // array which maps target_environment action vector to an agent action vector
+  if (actuator_interface.actions.size() != target_action_dims_)
     throw bad_param("leobase:actuate");
-  action_dims_ = (actuate.array() != 0).count();
+  action_dims_ = actuateList.size();
 
   // mask observation min/max vectors
   Vector target_action_min, target_action_max, action_min, action_max;
@@ -360,17 +361,36 @@ void LeoBaseEnvironment::configParseActions(Configuration &config, const std::ve
   config.get("action_max", target_action_max);
   action_min.resize(action_dims_);
   action_max.resize(action_dims_);
-  for (int i = 0, j = 0; i < actuate.size(); i++)
-    if (actuate[i])
+
+  for (int j = 0; j < action_dims_; j++)
+  {
+    // if we actuate a few joints by the same value, as "knee" from 'actuateList' will actuate both left and right knees
+    double min = -std::numeric_limits<double>::max();
+    double max = +std::numeric_limits<double>::max();
+    for (int i = 0; i < actuator_interface.actions.size(); i++)
     {
-      action_min[j]   = target_action_min[i];
-      action_max[j++] = target_action_max[i];
+      if (actuator_interface.actions[i] == j)
+      {
+        max = MIN(target_action_max[i], max);
+        min = MAX(target_action_min[i], min);
+      }
     }
+
+    // actuate required joints but narrowest bound is enforced
+    action_min[j] = min;
+    action_max[j] = max;
+  }
 
   // Set parameters exported to an agent
   config.set("action_dims", action_dims_);
   config.set("action_min", action_min);
   config.set("action_max", action_max);
+
+  TRACE("Action min: " << action_min);
+  TRACE("Action max: " << action_max);
+
+  // Prepare actuator indexes for easy connection between actions of the target environment and agent actions
+  bh_->setActuatorInterface(actuator_interface);
 }
 
 void LeoBaseEnvironment::fillObserve(const std::vector<CGenericStateVar> &genericStates,
@@ -411,32 +431,32 @@ void LeoBaseEnvironment::fillObserve(const std::vector<CGenericStateVar> &generi
 
 void LeoBaseEnvironment::fillActuate(const std::vector<CGenericActionVar> &genericAction,
                                      const std::vector<std::string> &actuateList,
-                                     Vector &out,
+                                     EnvironmentAgentInterface::ActuatorInterface &out,
                                      const std::string *req,
                                      std::vector<int>  *reqIdx) const
 {
-  out.resize(genericAction.size());
-  for (int i = 0; i < out.size(); i++) out[i] = 0;
+  out.actions.resize(genericAction.size());
+  for (int i = 0; i < out.actions.size(); i++) out.actions[i] = -1;
   std::vector<std::string>::const_iterator listMember = actuateList.begin();
   std::vector<CGenericActionVar>::const_iterator gAction;
   std::string::const_iterator it;
 
-  for (; listMember < actuateList.end(); listMember++)
+  for (int j = 0; listMember < actuateList.end(); listMember++, j++)
   {
     bool found = false;
     gAction = genericAction.begin();
     for (int i = 0; gAction < genericAction.end(); gAction++, i++)
     {
-      const std::string &name = gAction->name();
+      std::string name = gAction->name();
       it = std::search(name.begin(), name.end(), listMember->begin(), listMember->end());
 
       if (it != name.end())
       {
         it += listMember->size(); // point at the end of substring
-        if (it == name.end() || *it == '.')
+        //if (it == name.end() || *it == '.')
         {
           INFO("Adding to the actuation vector: " << name);
-          out[i] = 1;
+          out.actions[i] = j;
           if (req != NULL && reqIdx != NULL)
             if (std::search(listMember->begin(), listMember->end(), req->begin(), req->end()) != listMember->end())
               reqIdx->push_back(i);
@@ -447,8 +467,20 @@ void LeoBaseEnvironment::fillActuate(const std::vector<CGenericActionVar> &gener
 
     if (!found)
     {
-      ERROR("Requested unregistered field '" << *listMember << "'");
+      ERROR("Unknown actuaton joint '" << *listMember << "'");
       throw bad_param("leobase:listMember");
+    }
+  }
+
+  for (int i = 0; i < out.actions.size(); i++)
+  {
+    if (out.actions[i] == -1)
+    {
+      std::string name = genericAction[i].name();
+      std::replace( name.begin(), name.end(), '.', ' ');
+      std::vector<std::string> cuttedName = cutLongStr(name);
+      out.autoActuated.push_back(cuttedName[1]);
+      INFO("Adding auto-actuated joint '" << cuttedName[1] << "'");
     }
   }
 }

@@ -5,9 +5,6 @@ using namespace grl;
 
 REGISTER_CONFIGURABLE(LeoSquatEnvironment)
 
-#define MAX(x, y) (((x) > (y)) ? (x) : (y))
-#define MIN(x, y) (((x) < (y)) ? (x) : (y))
-
 const double T = 0.36;
 const double B = 0.28;
 
@@ -204,19 +201,19 @@ bool CLeoBhSquat::isStanding() const
 void CLeoBhSquat::parseLeoState(const CLeoState &leoState, Vector &obs)
 {
   int i, j;
-  for (i = 0; i < observer_struct_.angles.size(); i++)
-    obs[i] = leoState.mJointAngles[ observer_struct_.angles[i] ];
-  for (j = 0; j < observer_struct_.angle_rates.size(); j++)
-    obs[i+j] = leoState.mJointSpeeds[ observer_struct_.angle_rates[j] ];
-  for (int k = 0; k < observer_struct_.augmented.size(); k++)
+  for (i = 0; i < interface_.observer.angles.size(); i++)
+    obs[i] = leoState.mJointAngles[ interface_.observer.angles[i] ];
+  for (j = 0; j < interface_.observer.angle_rates.size(); j++)
+    obs[i+j] = leoState.mJointSpeeds[ interface_.observer.angle_rates[j] ];
+  for (int k = 0; k < interface_.observer.augmented.size(); k++)
   {
-    if (observer_struct_.augmented[k] == "direction")
+    if (interface_.observer.augmented[k] == "direction")
       obs[i+j+k] = direction_;
-    else if (observer_struct_.augmented[k] == "heeltoe")
+    else if (interface_.observer.augmented[k] == "heeltoe")
       obs[i+j+k] = (leoState.mFootContacts == 0?0:1);
     else
     {
-      ERROR("Unknown augmented field '" << observer_struct_.augmented[i] << "'");
+      ERROR("Unknown augmented field '" << interface_.observer.augmented[i] << "'");
       throw bad_param("leo_squat:observer_idx_.augmented[i]");
     }
   }
@@ -229,6 +226,26 @@ void CLeoBhSquat::parseLeoState(const CLeoState &leoState, Vector &obs)
   max_hip_height_ = MAX(max_hip_height_, hip_height_);
 
   //std::cout << "Hip height: " << hip_height_ << std::endl;
+}
+
+void CLeoBhSquat::parseLeoAction(const Vector &action, Vector &target_action)
+{
+  /*
+  if (a.size() == 6)
+    target_action_ << actionArm, a[0], a[1], a[2], a[3], a[4], a[5];
+  else
+    target_action_ << actionArm, a[0], a[0], a[1], a[1], a[2], a[2];
+  */
+
+  for (int i = 0; i < target_action.size(); i++)
+    if (interface_.actuator.actions[i] != -1)
+      target_action[i] = action( interface_.actuator.actions[i] );
+
+  for (int i = 0; i < interface_.actuator.autoActuated.size(); i++)
+  {
+    if (interface_.actuator.autoActuated[i] == "shoulder")
+      target_action[0] = grlAutoActuateArm();
+  }
 }
 
 void CLeoBhSquat::updateDirection(double time)
@@ -332,25 +349,25 @@ void LeoSquatEnvironment::configure(Configuration &config)
   LeoBaseEnvironment::configure(config);
 
   // Augmenting state with a direction indicator variable: sit down or stand up
-  const ObserverStruct &os = bh_->getObserverStruct();
+  const EnvironmentAgentInterface &interface = bh_->getInterface();
   Vector obs_min = config["observation_min"].v();
   Vector obs_max = config["observation_max"].v();
 
-  for (int i = 0; i < os.augmented.size(); i++)
+  for (int i = 0; i < interface.observer.augmented.size(); i++)
   {
-    if (os.augmented[i] == "direction")
+    if (interface.observer.augmented[i] == "direction")
     {
-      obs_min[os.angles.size()+os.angle_rates.size() + i] = -1;
-      obs_max[os.angles.size()+os.angle_rates.size() + i] = +1;
+      obs_min[interface.observer.angles.size()+interface.observer.angle_rates.size() + i] = -1;
+      obs_max[interface.observer.angles.size()+interface.observer.angle_rates.size() + i] = +1;
     }
-    else if (os.augmented[i] == "heeltoe")
+    else if (interface.observer.augmented[i] == "heeltoe")
     {
-      obs_min[os.angles.size()+os.angle_rates.size() + i] =  0;
-      obs_max[os.angles.size()+os.angle_rates.size() + i] =  1;
+      obs_min[interface.observer.angles.size()+interface.observer.angle_rates.size() + i] =  0;
+      obs_max[interface.observer.angles.size()+interface.observer.angle_rates.size() + i] =  1;
     }
     else
     {
-      ERROR("Unknown augmented field '" << os.augmented[i] << "'");
+      ERROR("Unknown augmented field '" << interface.observer.augmented[i] << "'");
       throw bad_param("leo_squat:os.augmented[i]");
     }
   }
@@ -403,12 +420,10 @@ double LeoSquatEnvironment::step(const Vector &action, Vector *obs, double *rewa
 
   bh_->setCurrentSTGState(&leoState_);
 
-  double actionArm = bh_->grlAutoActuateArm();
-  if (a.size() == 6)
-    target_action_ << actionArm, a[0], a[1], a[2], a[3], a[4], a[5];
-  else
-    target_action_ << actionArm, a[0], a[0], a[1], a[1], a[2], a[2];
+  // Reconstruct a Leo action from a possibly reduced agent action
+  bh_->parseLeoAction(action, target_action_);
 
+  // Execute action
   bh_->setPreviousSTGState(&leoState_);
   double tau = target_env_->step(target_action_, &target_obs_, reward, terminal);
 

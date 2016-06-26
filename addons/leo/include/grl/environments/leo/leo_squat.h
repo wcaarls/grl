@@ -20,6 +20,7 @@ class CLeoBhSquat: public CLeoBhBase
     void resetState(double time0);
     double calculateReward();
     void parseLeoState(const CLeoState &leoState, Vector &obs);
+    void parseLeoAction(const Vector &action, Vector &target_action);
     void setDirection(int direction) { direction = direction_; }
     bool isDoomedToFall(CLeoState* state, bool report);
     void updateDirection(double time);
