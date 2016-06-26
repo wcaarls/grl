@@ -230,13 +230,6 @@ void CLeoBhSquat::parseLeoState(const CLeoState &leoState, Vector &obs)
 
 void CLeoBhSquat::parseLeoAction(const Vector &action, Vector &target_action)
 {
-  /*
-  if (a.size() == 6)
-    target_action_ << actionArm, a[0], a[1], a[2], a[3], a[4], a[5];
-  else
-    target_action_ << actionArm, a[0], a[0], a[1], a[1], a[2], a[2];
-  */
-
   for (int i = 0; i < target_action.size(); i++)
     if (interface_.actuator.actions[i] != -1)
       target_action[i] = action( interface_.actuator.actions[i] );

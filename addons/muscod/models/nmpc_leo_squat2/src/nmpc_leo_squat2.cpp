@@ -138,139 +138,6 @@ void check_dimensions(
 }
 
 // -----------------------------------------------------------------------------
-// Objective Functions
-// -----------------------------------------------------------------------------
-
-void lfcn (
-	double *t, double *xd, double *xa, double *u, double *p,
-	double *lval, double *rwh, long *iwh, InfoPtr *info
-) {
-	int i;
-
-	// retrieve right model for current shooting node
-	// LeoModel leo = leo_models[info->cnode];
-
-	// update model state
-	leo.updateState (xd, u, p, "");
-
-	Vector3d position_tip_left = leo.getPointPosition("tip_left");
-	Vector3d position_heel_left = leo.getPointPosition("heel_left");
-
-	Vector3d suppport_center = Vector3d::Zero();
-	suppport_center += position_tip_left;
-	suppport_center += position_heel_left;
-	suppport_center /= 2.0;
-
-	// retrieve CoM from model
-	Vector3d position_CoM = leo.calcCenterOfMass();
-	Vector3d position_root = leo.getPointPosition("root");
-
-	if (false) {
-		std::cout << "In function " << __func__ << " at time t " << *t << std::endl;
-		std::cout << "position_CoM:        " << position_CoM.transpose() << std::endl;
-		std::cout << "position_root:       " << position_root.transpose() << std::endl;
-		std::cout << "suppport_center:     " << suppport_center.transpose() << std::endl;
-		// std::cout << "position_tip_left:   " << position_tip_left.transpose() << std::endl;
-		// std::cout << "position_heel_left:  " << position_tip_left.transpose() << std::endl;
-		// std::cout << "position_tip_right:  " << position_tip_right.transpose() << std::endl;
-		// std::cout << "position_heel_right: " << position_tip_right.transpose() << std::endl;
-
-		std::cout << position_heel_left[0] << " <= " << position_CoM[0] << " <= " << position_tip_left[0] << std::endl;
-
-		std::cout << std::endl;
-	}
-
-	// define the residual r(t,xd,xa,u,p) for a least-squares problem of the form
-	//    L = ||r(t,xd,xa,u,p,pr)||_2^2
-	// here, according to:
-	//    r(t,xd,xa,u,p) = [sqrt(w_0) * r_0(t,xd,xa,u,p)]
-	//                     [sqrt(w_1) * r_1(t,xd,xa,u,p)]
-	//                     [                        ... ]
-	//                     [sqrt(w_n) * r_n(t,xd,xa,u,p)]
-	// NOTE: In C++ the '++' operator as postfix first evaluates the variable
-	//       and then increments it, i.e.
-	//       n = 0;    -> n  = 0
-	//       n2 = n++; -> n2 = 0, n = 1
-
-	*lval = 0.;
-	// track: || com_z - h_ref ||_2^2
-	// *lval +=  10.0
-	// 	* (position_root[0] - suppport_center[0])
-	// 	* (position_root[0] - suppport_center[0]);
-
-	// *lval += 10.0
-	// 	* (position_root[2] - p[parameter["h_ref"]])
-	// 	* (position_root[2] - p[parameter["h_ref"]]);
-
-	*lval +=  10.0
-		* (position_CoM[0] - suppport_center[0])
-		* (position_CoM[0] - suppport_center[0]);
-
-	*lval += 100.0
-		* (position_CoM[2] - p[parameter["h_ref"]])
-		* (position_CoM[2] - p[parameter["h_ref"]]);
-
-	// regularizing commands
-	// *lval += 0.01
-	// 	* (xd[QS["arm"]] - (  0.00 ))
-	// 	* (xd[QS["arm"]] - (  0.00 )); // arm_q
-
-	// *lval += 0.01
-	// 	* (xd[QS["hip_left"]] - ( -0.10 ))
-	// 	* (xd[QS["hip_left"]] - ( -0.10 )); // hip_left_q
-	// *lval += 0.01
-	// 	* (xd[QS["knee_left"]] - (  0.10 ))
-	// 	* (xd[QS["knee_left"]] - (  0.10 )); // knee_left_q
-	// *lval += 0.01
-	// 	* (xd[QS["ankle_left"]] - ( -0.05 ))
-	// 	* (xd[QS["ankle_left"]] - ( -0.05 )); // ankle_left_q
-
-	// *lval += 0.01
-	// 	* (xd[QS["hip_right"]] - ( -0.10 ))
-	// 	* (xd[QS["hip_right"]] - ( -0.10 )); // hip_right_q
-	// *lval += 0.01
-	// 	* (xd[QS["knee_right"]] - (  0.10 ))
-	// 	* (xd[QS["knee_right"]] - (  0.10 )); // knee_right_q
-	// *lval += 0.01
-	// 	* (xd[QS["ankle_right"]] - ( -0.05 ))
-	// 	* (xd[QS["ankle_right"]] - ( -0.05 )); // ankle_right_q
-
-	// *lval += 0.01 * xd[QDOTS["arm"]]         * xd[QDOTS["arm"]]; // arm
-	// *lval += 0.01 * xd[QDOTS["hip_left"]]    * xd[QDOTS["hip_left"]]; // hip_left
-	// *lval += 0.01 * xd[QDOTS["knee_left"]]   * xd[QDOTS["knee_left"]]; // knee_left
-	// *lval += 0.01 * xd[QDOTS["ankle_left"]]  * xd[QDOTS["ankle_left"]]; // ankle_left
-	// *lval += 0.01 * xd[QDOTS["hip_right"]]   * xd[QDOTS["hip_right"]]; // hip_right
-	// *lval += 0.01 * xd[QDOTS["ankle_right"]] * xd[QDOTS["ankle_right"]]; // ankle_right
-	// *lval += 0.01 * xd[QDOTS["knee_right"]]  * xd[QDOTS["knee_right"]]; // knee_right
-
-	// // regularize: || tau ||_2^2
-	// *lval += 0.01 * u[TAUS["arm"]]         * u[TAUS["arm"]]; // arm
-	// *lval += 0.01 * u[TAUS["hip_left"]]    * u[TAUS["hip_left"]]; // hip_left
-	// *lval += 0.01 * u[TAUS["knee_left"]]   * u[TAUS["knee_left"]]; // knee_left
-	// *lval += 0.01 * u[TAUS["ankle_left"]]  * u[TAUS["ankle_left"]]; // ankle_left
-	// *lval += 0.01 * u[TAUS["hip_right"]]   * u[TAUS["hip_right"]]; // hip_right
-	// *lval += 0.01 * u[TAUS["ankle_right"]] * u[TAUS["ankle_right"]]; // ankle_right
-	// *lval += 0.01 * u[TAUS["knee_right"]]  * u[TAUS["knee_right"]]; // knee_right
-
-	// // regularize: || qdot * tau ||_2^2
-	*lval += 0.01 * leo.tau[TAUS["arm"]]         * leo.tau[TAUS["arm"]]
-		* leo.qdot[QDOTS["arm"]]         * leo.qdot[QDOTS["arm"]];
-	*lval += 0.01 * leo.tau[TAUS["hip_left"]]    * leo.tau[TAUS["hip_left"]]
-		* leo.qdot[QDOTS["hip_left"]]    * leo.qdot[QDOTS["hip_left"]];
-	*lval += 0.01 * leo.tau[TAUS["knee_left"]]   * leo.tau[TAUS["knee_left"]]
-		* leo.qdot[QDOTS["knee_left"]]   * leo.qdot[QDOTS["knee_left"]];
-	*lval += 0.01 * leo.tau[TAUS["ankle_left"]]  * leo.tau[TAUS["ankle_left"]]
-		* leo.qdot[QDOTS["ankle_left"]]  * leo.qdot[QDOTS["ankle_left"]];
-	*lval += 0.01 * leo.tau[TAUS["hip_right"]]   * leo.tau[TAUS["hip_right"]]
-		* leo.qdot[QDOTS["hip_right"]]   * leo.qdot[QDOTS["hip_right"]];
-	*lval += 0.01 * leo.tau[TAUS["ankle_right"]] * leo.tau[TAUS["ankle_right"]]
-		* leo.qdot[QDOTS["ankle_right"]] * leo.qdot[QDOTS["ankle_right"]];
-	*lval += 0.01 * leo.tau[TAUS["knee_right"]]  * leo.tau[TAUS["knee_right"]]
-		* leo.qdot[QDOTS["knee_right"]]  * leo.qdot[QDOTS["knee_right"]];
-
-}
-
-// -----------------------------------------------------------------------------
 // Least Squares Functions
 // -----------------------------------------------------------------------------
 
@@ -280,13 +147,8 @@ const unsigned int LSQFCN_HEIGHT_TRACKING_NE = 0
 	+ 1 // height tracking
 	+ 1 // height change minimization
 	+ 1 // minimize angular momentum
+	+ 1 // upright torso
 	+ 1 // regularizing arm motion
-	// + NXD/2 // finding pose
-	// + NXD/2 // regularizing joint velocities
-	// + 1 // regularizing torques
-	// + NU // regularizing torques
-	// + NU // regularizing voltage
-	// + NU // regularizing work
 	;
 void lsqfcn_height_tracking (
 	double *ts, double *sd, double *sa, double *u, double *p, double *pr,
@@ -313,44 +175,41 @@ void lsqfcn_height_tracking (
 	// define rhs counter
 	unsigned int res_cnt = 0;
 
-	// retrieve right model for current shooting node
-	// LeoModel leo = leo_models[info->cnode];
-
 	// update model with current states
+	// NOTE: for activeConstraintSet of "" ABA is used directly
 	leo.updateState (sd, u, p, "");
 
+	// retrieve
 	Vector3d position_tip_left = leo.getPointPosition("tip_left");
 	Vector3d position_heel_left = leo.getPointPosition("heel_left");
 
+	// calculate support center from feet positions
 	Vector3d suppport_center = Vector3d::Zero();
 	suppport_center += position_tip_left;
 	suppport_center += position_heel_left;
 	suppport_center /= 2.0;
 
-	// retrieve CoM from model
-	Vector3d position_CoM = leo.calcCenterOfMass();
+	// retrieve center of root body
 	Vector3d position_root = leo.getPointPosition("root");
 
+	// retrieve CoM from model
+	Vector3d position_CoM = leo.calcCenterOfMass();
 	Vector3d velocity_CoM = leo.calcCenterOfMassVelocity();
-
 	Vector3d momentum_CoM = leo.calcAngularMomentum();
 
+	// if (false) {
+	// 	std::cout << "In function " << __func__ << " at time t " << *ts << std::endl;
+	// 	std::cout << "position_CoM:        " << position_CoM.transpose() << std::endl;
+	// 	std::cout << "position_root:       " << position_root.transpose() << std::endl;
+	// 	std::cout << "momentum_CoM:        " << momentum_CoM.transpose() << std::endl;
+	// 	std::cout << "suppport_center:     " << suppport_center.transpose() << std::endl;
+	// 	// std::cout << "position_tip_left:   " << position_tip_left.transpose() << std::endl;
+	// 	// std::cout << "position_heel_left:  " << position_tip_left.transpose() << std::endl;
 
-	if (false) {
-		std::cout << "In function " << __func__ << " at time t " << *ts << std::endl;
-		std::cout << "position_CoM:        " << position_CoM.transpose() << std::endl;
-		std::cout << "position_root:       " << position_root.transpose() << std::endl;
-		std::cout << "momentum_CoM:        " << momentum_CoM.transpose() << std::endl;
-		std::cout << "suppport_center:     " << suppport_center.transpose() << std::endl;
-		// std::cout << "position_tip_left:   " << position_tip_left.transpose() << std::endl;
-		// std::cout << "position_heel_left:  " << position_tip_left.transpose() << std::endl;
-		// std::cout << "position_tip_right:  " << position_tip_right.transpose() << std::endl;
-		// std::cout << "position_heel_right: " << position_tip_right.transpose() << std::endl;
+	// 	std::cout << position_heel_left[0] << " <= " << position_CoM[0] << " <= " << position_tip_left[0] << std::endl;
 
-		std::cout << position_heel_left[0] << " <= " << position_CoM[0] << " <= " << position_tip_left[0] << std::endl;
-
-		std::cout << std::endl;
-	}
+	// 	std::cout << std::endl;
+	// }
 
 	// define the residual r(t,xd,xa,u,p) for a least-squares problem of the form
 	//    L = ||r(t,xd,xa,u,p,pr)||_2^2
@@ -364,52 +223,39 @@ void lsqfcn_height_tracking (
 	//       n = 0;    -> n  = 0
 	//       n2 = n++; -> n2 = 0, n = 1
 
-	// track: || com_z - h_ref ||_2^2
-	// res[res_cnt++] =  1.0 * (position_root[0] - suppport_center[0]);
-	// res[res_cnt++] = 10.0 * (position_root[2] - p[parameter["h_ref"]]);
+	// track: || root_z - h_ref ||_2^2
+	res[res_cnt++] =  100.0 * (position_root[2] - p[parameter["h_ref"]]);
 
-	// TODO: use CoM for real static stability
+	// track: || com_x,y - support center_x,y ||_2^2
 	res[res_cnt++] =   10.00 * (position_CoM[0] - suppport_center[0]);
-	res[res_cnt++] =  100.00 * (position_CoM[2] - p[parameter["h_ref"]]);
 
 	res[res_cnt++] =   10.00 * velocity_CoM[0];
-	res[res_cnt++] =  100.00 * velocity_CoM[2];
+	res[res_cnt++] =   10.00 * velocity_CoM[2];
 
 	res[res_cnt++] =    10.0 * momentum_CoM[1];
 	// res[res_cnt++] = 10.0 * momentum_CoM[0];
 	// res[res_cnt++] = 10.0 * momentum_CoM[0];
 
+	// NOTE: sum of lower body angles is equal to angle between ground slope
+	//       and torso. Minimizing deviation from zero keeps torso upright
+	//       during motion execution.
+	res[res_cnt++] = 1.00 * (
+		sd[QS["hip_left"]]
+		+ sd[QS["knee_left"]]
+		+ sd[QS["ankle_left"]]
+	);
+
 	// regularize: || q - q_desired ||_2^2
-	res[res_cnt++] = 1.00
-		* (sd[QS["arm"]]         - (-0.26))
-		* (sd[QS["arm"]]         - (-0.26)); // arm
-	// res[res_cnt++] = 0.01
-	// 	* (sd[QS["hip_left"]]    - (0.01))
-	// 	* (sd[QS["hip_left"]]    - (0.01)); // hip_left
-	// res[res_cnt++] = 0.01
-	// 	* (sd[QS["knee_left"]]   - (-0.01))
-	// 	* (sd[QS["knee_left"]]   - (-0.01)); // knee_left
-	// res[res_cnt++] = 0.01
-	// 	* (sd[QS["ankle_left"]]  - (0.05))
-	// 	* (sd[QS["ankle_left"]]  - (0.05)); // ankle_left
-	// res[res_cnt++] = 0.01
-	// 	* (sd[QS["hip_right"]]   - (0.00))
-	// 	* (sd[QS["hip_right"]]   - (0.00)); // hip_right
-	// res[res_cnt++] = 0.01
-	// 	* (sd[QS["ankle_right"]] - (0.00))
-	// 	* (sd[QS["ankle_right"]] - (0.00)); // ankle_right
-	// res[res_cnt++] = 0.01
-	// 	* (sd[QS["knee_right"]]  - (0.00))
-	// 	* (sd[QS["knee_right"]]  - (0.00)); // knee_right
+	res[res_cnt++] = 0.01 * (sd[QS["arm"]]         - (-0.26)); // arm
+	// res[res_cnt++] = 1.00 * (sd[QS["hip_left"]]    - (-0.01)); // hip_left
+	// res[res_cnt++] = 0.01 * (sd[QS["knee_left"]]   - (-0.01)); // knee_left
+	// res[res_cnt++] = 0.01 * (sd[QS["ankle_left"]]  - (0.05)); // ankle_left
 
 	// regularize: || qdot ||_2^2
-	// res[res_cnt++] = 0.01 * leo.qdot[QS["arm"]]         * leo.qdot[QS["arm"]]; // arm
+	// res[res_cnt++] = 0.10 * leo.qdot[QS["arm"]]         * leo.qdot[QS["arm"]]; // arm
 	// res[res_cnt++] = 0.10 * leo.qdot[QS["hip_left"]]    * leo.qdot[QS["hip_left"]]; // hip_left
 	// res[res_cnt++] = 0.10 * leo.qdot[QS["knee_left"]]   * leo.qdot[QS["knee_left"]]; // knee_left
 	// res[res_cnt++] = 0.10 * leo.qdot[QS["ankle_left"]]  * leo.qdot[QS["ankle_left"]]; // ankle_left
-	// res[res_cnt++] = 1.0 * leo.qdot[QS["hip_right"]]   * leo.qdot[QS["hip_right"]]; // hip_right
-	// res[res_cnt++] = 1.0 * leo.qdot[QS["ankle_right"]] * leo.qdot[QS["ankle_right"]]; // ankle_right
-	// res[res_cnt++] = 1.0 * leo.qdot[QS["knee_right"]]  * leo.qdot[QS["knee_right"]]; // knee_right
 
 	// regularize: || u ||_2^2
 	// res[res_cnt++] = 0.10 * u[TAUS["arm"]]         * u[TAUS["arm"]]; // arm
@@ -417,38 +263,17 @@ void lsqfcn_height_tracking (
 	// res[res_cnt++] = 0.01 * u[TAUS["knee_left"]]   * u[TAUS["knee_left"]]; // knee_left
 	// res[res_cnt++] = 0.10 * u[TAUS["ankle_left"]]  * u[TAUS["ankle_left"]]; // ankle_left
 
-	// res[res_cnt++] = 0.10 * u[TAUS["hip_right"]]   * u[TAUS["hip_right"]]; // hip_right
-	// res[res_cnt++] = 0.01 * u[TAUS["knee_right"]]  * u[TAUS["knee_right"]]; // knee_right
-	// res[res_cnt++] = 0.10 * u[TAUS["ankle_right"]] * u[TAUS["ankle_right"]]; // ankle_right
-
 	// regularize: || tau ||_2^2
 	// res[res_cnt++] = 0.010 * leo.tau[TAUS["arm"]]         * leo.tau[TAUS["arm"]]; // arm
-
 	// res[res_cnt++] = 0.001 * leo.tau[TAUS["hip_left"]]    * leo.tau[TAUS["hip_left"]]; // hip_left
 	// res[res_cnt++] = 0.001 * leo.tau[TAUS["knee_left"]]   * leo.tau[TAUS["knee_left"]]; // knee_left
 	// res[res_cnt++] = 0.001 * leo.tau[TAUS["ankle_left"]]  * leo.tau[TAUS["ankle_left"]]; // ankle_left
 
-	// res[res_cnt++] = 0.01 * leo.tau[TAUS["hip_right"]]   * leo.tau[TAUS["hip_right"]]; // hip_right
-	// res[res_cnt++] = 0.01 * leo.tau[TAUS["knee_right"]]  * leo.tau[TAUS["knee_right"]]; // knee_right
-	// res[res_cnt++] = 0.01 * leo.tau[TAUS["ankle_right"]] * leo.tau[TAUS["ankle_right"]]; // ankle_right
-
 	// // regularize: || qdot * tau ||_2^2
-	// res[res_cnt++] = 0.01 * leo.tau[TAUS["arm"]]         * leo.tau[TAUS["arm"]]
-	// 	* leo.qdot[QDOTS["arm"]]         * leo.qdot[QDOTS["arm"]];
-/*
-  res[res_cnt++] = 0.01 * leo.tau[TAUS["hip_left"]]    * leo.tau[TAUS["hip_left"]]
-		* leo.qdot[QDOTS["hip_left"]]    * leo.qdot[QDOTS["hip_left"]];
-	res[res_cnt++] = 0.01 * leo.tau[TAUS["knee_left"]]   * leo.tau[TAUS["knee_left"]]
-		* leo.qdot[QDOTS["knee_left"]]   * leo.qdot[QDOTS["knee_left"]];
-	res[res_cnt++] = 0.01 * leo.tau[TAUS["ankle_left"]]  * leo.tau[TAUS["ankle_left"]]
-		* leo.qdot[QDOTS["ankle_left"]]  * leo.qdot[QDOTS["ankle_left"]];
-*/
-	// res[res_cnt++] = 0.01 * leo.tau[TAUS["hip_right"]]   * leo.tau[TAUS["hip_right"]]
-	// 	* leo.qdot[QDOTS["hip_right"]]   * leo.qdot[QDOTS["hip_right"]];
-	// res[res_cnt++] = 0.01 * leo.tau[TAUS["knee_right"]]  * leo.tau[TAUS["knee_right"]]
-	// 	* leo.qdot[QDOTS["knee_right"]]  * leo.qdot[QDOTS["knee_right"]];
-	// res[res_cnt++] = 0.01 * leo.tau[TAUS["ankle_right"]] * leo.tau[TAUS["ankle_right"]]
-	// 	* leo.qdot[QDOTS["ankle_right"]] * leo.qdot[QDOTS["ankle_right"]];
+	// res[res_cnt++] = 0.01 * leo.tau[TAUS["arm"]]        * leo.qdot[QDOTS["arm"]];
+	// res[res_cnt++] = 0.01 * leo.tau[TAUS["hip_left"]]   * leo.qdot[QDOTS["hip_left"]];
+	// res[res_cnt++] = 0.01 * leo.tau[TAUS["knee_left"]]  * leo.qdot[QDOTS["knee_left"]];
+	// res[res_cnt++] = 0.01 * leo.tau[TAUS["ankle_left"]] * leo.qdot[QDOTS["ankle_left"]];
 
 	// check dimensions of functions
 	check_dimensions(0, 0, res_cnt, LSQFCN_HEIGHT_TRACKING_NE, __func__);
@@ -462,29 +287,11 @@ void ffcn (
 	double *t, double *xd, double *xa, double *u, double *p, double *rhs,
 	double *rwh, long *iwh, InfoPtr *info
 ) {
-	// retrieve right model for current shooting node
-	// LeoModel leo = leo_models[info->cnode];
-
 	// update state of model
-	// std::cout << "In __func__ before: leo.updateState" << std::endl;
-	// std::cout << "us:    ";
-	// for (int i = 0; i < leo.nDof; ++i) {
-	// 	std::cout << u[i] << "\t";
-	// }
-	// std::cout << std::endl;
-
-	// std::cout << "tau:   " << leo.tau.transpose() << std::endl;
-	// std::cout << "q:     " << leo.qddot.transpose() << std::endl;
-	// std::cout << "qdot:  " << leo.qddot.transpose() << std::endl;
-	// std::cout << "qddot: " << leo.qddot.transpose() << std::endl;
 	leo.updateState (xd, u, p, "");
-	// std::cout << "In __func__ after: leo.updateState()";
-	// std::cout << "tau: " << leo.tau.transpose() << std::endl;
 
 	// evaluate forward dynamics
 	leo.calcForwardDynamicsRhs (rhs);
-	// std::cout << "In __func__ after: leo.calcForwardDynamicsRhs()";
-	// std::cout << "qddot: " << leo.qddot.transpose() << std::endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -492,7 +299,7 @@ void ffcn (
 // -----------------------------------------------------------------------------
 
 /// \brief Constraints at the phase start point
-const unsigned int RDFCN_N = 0, RDFCN_NE = 0;
+const unsigned int RDFCN_N = 2, RDFCN_NE = 0;
 void rdfcn(
 	double *ts, double *sd, double *sa, double *u, double *p, double *pr,
 	double *res, long *dpnd, InfoPtr *info
@@ -519,41 +326,19 @@ void rdfcn(
 	unsigned int res_n_cnt  = 0;
 	unsigned int res_ne_cnt = 0;
 
-	// retrieve right model for current shooting node
-	// LeoModel leo = leo_models[info->cnode];
-
 	// update model with current states
-	leo.updateState(sd, u, p, "");
-
-	// define constraint residuals here, i.e. res[:_ne] = 0 and res[_ne:] >= 0!
-	// NOTE: In C++ the '++' operator as postfix first evaluates the variable
-	//       and then increments it, i.e.
-	//       n = 0;    -> n  = 0
-	//       n2 = n++; -> n2 = 0, n = 1
-
-	// NOTE: For a standing motion
-	//		 * all contact forces have to be positive
-	//		 * have to stay in a friction cone (mu = 0.8?)
-	//		 * CoM has to stay in support polygon
-	// res[res_n_cnt++] = 0.0; res_ne_cnt++; // = 0
-	// res[res_n_cnt++] = 0.0; // >= 0
-
-	// retrieve CoM from model
 	Vector3d CoM = leo.calcCenterOfMass();
 
+	// retrieve contact points
 	Vector3d position_tip_left = leo.getPointPosition("tip_left");
 	Vector3d position_heel_left = leo.getPointPosition("heel_left");
-	// Vector3d position_tip_right = leo.getPointPosition("tip_right");
-	// Vector3d position_heel_right = leo.getPointPosition("heel_right");
 
 	// retrieve contact forces
 	// TODO get contact forces of fixed leg
 	// Vector3d force_tip_left = leo.getPointForce("tip_left");
 	// Vector3d force_heel_left = leo.getPointForce("heel_left");
-	// Vector3d force_tip_right = leo.getPointForce("tip_right");
-	// Vector3d force_heel_right = leo.getPointForce("heel_right");
 
-	if (false) {
+	// if (false) {
 		// std::cout << "CoM:                 " << CoM.transpose() << std::endl;
 		// std::cout << "position_tip_left:   " << position_tip_left.transpose() << std::endl;
 		// std::cout << "position_heel_left:  " << position_heel_left.transpose() << std::endl;
@@ -568,50 +353,30 @@ void rdfcn(
 		// std::cout << "force_tip_right:  " << force_tip_right.transpose() << std::endl;
 		// std::cout << "force_heel_right: " << force_heel_right.transpose() << std::endl;
 		// std::cout << std::endl;
-	}
+	// }
+
 	// define constraint residuals here, i.e. res[:_ne] = 0 and res[_ne:] >= 0!
 	// NOTE: In C++ the '++' operator as postfix first evaluates the variable
 	//       and then increments it, i.e.
 	//       n = 0;    -> n  = 0
 	//       n2 = n++; -> n2 = 0, n = 1
 
-	// res[res_n_cnt++] = position_heel_left[0]; res_ne_cnt++; // == 0
-	// res[res_n_cnt++] = position_heel_left[2]; res_ne_cnt++; // == 0
-	// res[res_n_cnt++] = position_tip_left[2]; res_ne_cnt++; // == 0
-	// res[res_n_cnt++] = position_heel_right[0]; res_ne_cnt++; // == 0
-	// res[res_n_cnt++] = position_heel_right[2]; res_ne_cnt++; // == 0
-	// res[res_n_cnt++] = position_tip_right[2]; res_ne_cnt++; // == 0
-
 	// NOTE: For a standing motion CoM has to stay in support polygon
 	//       foot_left_x,y <= com <= right_foot_x,y
-	// res[res_n_cnt++] = position_tip_left[0] - CoM[0]; // >= 0
+	res[res_n_cnt++] = position_tip_left[0] - CoM[0]; // >= 0
 		// min(position_tip_right[0], position_heel_right[0]) - CoM[0]; // >= 0
-	// res[res_n_cnt++] = CoM[0] - position_heel_left[0]; // >= 0
+	res[res_n_cnt++] = CoM[0] - position_heel_left[0]; // >= 0
 		// CoM[0] - max(position_tip_left[0], position_heel_left[0]); // >= 0
 
-	// res[res_n_cnt++] = position_heel_left[1] - CoM[1]; // >= 0
-		// min(position_tip_right[1], position_tip_left[1]) - CoM[1]; // >= 0
-	// res[res_n_cnt++] = CoM[1] - position_heel_right[1]; // >= 0
-		// CoM[1] - max(position_heel_left[1], position_heel_right[1]); // >= 0
-
 	// NOTE: For a standing motion all contact forces have to be positive
+	// TODO: get contact forces for fixed foot
 	// res[res_n_cnt++] = force_tip_left[2]; // >= 0
 	// res[res_n_cnt++] = force_heel_left[2]; // >= 0
 	// res[res_n_cnt++] = force_tip_right[2]; // >= 0
 	// res[res_n_cnt++] = force_heel_right[2]; // >= 0
 
 	// NOTE: For a standing motion have to stay in a friction cone (mu = 0.8?)
-
-	// NOTE: Enforce initial position
-	// res[res_n_cnt++] = 10.0 * (sd[QS["arm_q"]]         - (  0.00 )); res_ne_cnt++; // dot_ankle_left_q
-
-	// res[res_n_cnt++] = 10.0 * (sd[QS["ankle_left_q"]]  - ( -0.05 )); res_ne_cnt++; // ankle_left_q
-	// res[res_n_cnt++] = 10.0 * (sd[QS["knee_left_q"]]   - (  0.10 )); res_ne_cnt++; // knee_left_q
-	// res[res_n_cnt++] = 10.0 * (sd[QS["hip_left_q"]]    - (  0.10 )); res_ne_cnt++; // arm_q
-
-	// res[res_n_cnt++] = 10.0 * (sd[QS["hip_right_q"]]   - (  0.10 )); res_ne_cnt++; // dot_knee_left_q
-	// res[res_n_cnt++] = 10.0 * (sd[QS["knee_right_q"]]  - (  0.10 )); res_ne_cnt++; // dot_hip_left_q
-	// res[res_n_cnt++] = 10.0 * (sd[QS["ankle_right_q"]] - ( -0.05 )); res_ne_cnt++; // dot_arm_q
+	// TODO: get contact forces for fixed foot
 
 	// check dimensions of constraints
 	check_dimensions(
@@ -904,33 +669,13 @@ void def_model (void)
 	);
 
 	// define LSQ objective
+	// NOTE:
 	def_lsq(imos, "c", NPR,
 		LSQFCN_HEIGHT_TRACKING_NE, lsqfcn_height_tracking
 	);
 
-	// def_lsq(imos, "s", NPR,
-	// 	LSQFCN_HEIGHT_TRACKING_NE, lsqfcn_height_tracking
-	// );
-
-	// def_lsq(imos, "i", NPR,
-	// 	LSQFCN_HEIGHT_TRACKING_NE, lsqfcn_height_tracking
-	// );
-
-	// def_lsq(imos, "e", NPR,
-	// 	LSQFCN_HEIGHT_TRACKING_NE, lsqfcn_height_tracking
-	// );
-
-	// def_lsq(imos, "e", NPR,
-	// 	MSQFCN_HEIGHT_TRACKING_NE, msqfcn_height_tracking
-	// );
-
 	// define constraints
-	// def_mpc(imos, "s", NPR, RDFCN_N, RDFCN_NE, rdfcn, NULL);
-	// def_mpc(imos, "i", NPR, RDFCN_N, RDFCN_NE, rdfcn, NULL);
-	// def_mpc(imos, "e", NPR, RDFCN_N, RDFCN_NE, rdfcn, NULL);
-	// def_mpc(imos, "s", NPR, RDFCN_S_N, RDFCN_S_NE, rdfcn_s, NULL);
-	// def_mpc(imos, "i", NPR, RDFCN_I_N, RDFCN_I_NE, rdfcn_i, NULL);
-	// def_mpc(imos, "e", NPR, RDFCN_E_N, RDFCN_E_NE, rdfcn_e, NULL);
+	def_mpc(imos, "*", NPR, RDFCN_N, RDFCN_NE, rdfcn, NULL);
 
 	// increment model stage
 	imos++;

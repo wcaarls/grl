@@ -7,16 +7,16 @@
 #include <sys/stat.h>
 
 // GRL
-#include <grl/policies/nmpc.h>
+#include <grl/policies/nmpc_leo.h>
 
 // MUSCOD-II interface
 #include <wrapper.hpp>
 
 using namespace grl;
 
-REGISTER_CONFIGURABLE(NMPCPolicy)
+REGISTER_CONFIGURABLE(NMPCLeoPolicy)
 
-NMPCPolicy::~NMPCPolicy()
+NMPCLeoPolicy::~NMPCLeoPolicy()
 {
   safe_delete(&muscod_nmpc_);
 }
@@ -27,8 +27,6 @@ void NMPCPolicy::request(ConfigurationRequest *config)
   config->push_back(CRP("model_name", "Name of the model in grl", model_name_));
   config->push_back(CRP("nmpc_model_name", "Name of MUSCOD MHE model library", nmpc_model_name_));
   config->push_back(CRP("outputs", "int.action_dims", "Number of outputs", (int)outputs_, CRP::System, 1));
-  config->push_back(CRP("pf", "vector.pf", "NMPC setpoint", initial_pf_));
-  config->push_back(CRP("initFeedback", "Initialize feedback", (int)initFeedback_, CRP::System, 0, 1));
   config->push_back(CRP("verbose", "Verbose mode", (int)verbose_, CRP::System, 0, 1));
 }
 
@@ -99,11 +97,6 @@ void NMPCPolicy::configure(Configuration &config)
   initial_qc_ = ConstantVector(nmpc_->NU(), 0);
   final_sd_   = ConstantVector(nmpc_->NXD(), 0);
 
-  // Muscod params
-  grl_assert(config["pf"].v().size() == nmpc_->NP());
-  initial_pf_ << config["pf"].v(); // setpoint
-  initFeedback_ = config["initFeedback"];
-
   if (verbose_)
     std::cout << "MUSCOD is ready!" << std::endl;
 }
@@ -115,14 +108,19 @@ void NMPCPolicy::reconfigure(const Configuration &config)
 
 void NMPCPolicy::muscod_reset(const Vector &initial_obs, double time)
 {
+  //Eigen::VectorXd initial_sd = Eigen::VectorXd::Zero(nmpc.NXD());
+  Eigen::VectorXd initial_pf = Eigen::VectorXd::Zero(nmpc.NP());
+  Eigen::VectorXd first_qc = Eigen::VectorXd::Zero(nmpc.NU());
+
+  TRACE("Initial observation: " << initial_obs);
+
+  initial_pf << 0.28;
+
   // initialize NMPC
   for (int inmpc = 0; inmpc < 10; ++inmpc)
   {
     // 1) Feedback: Embed parameters and initial value from MHE
-    if (initFeedback_)
-      nmpc_->feedback(initial_obs, initial_pf_, &initial_qc_);
-    else
-      nmpc_->feedback();
+    nmpc_->feedback(initial_obs, initial_pf, &first_qc);
     // 2) Transition
     nmpc_->transition();
     // 3) Preparation
@@ -130,7 +128,7 @@ void NMPCPolicy::muscod_reset(const Vector &initial_obs, double time)
   }
 
   if (verbose_)
-    std::cout << "MUSCOD is reseted!" << std::endl;
+    std::cout << "MUSCOD was reset!" << std::endl;
 }
 
 NMPCPolicy *NMPCPolicy::clone() const
@@ -140,8 +138,8 @@ NMPCPolicy *NMPCPolicy::clone() const
 
 TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
 {
-  grl_assert(in.size() == initial_sd_.size());
-  grl_assert(outputs_  == initial_qc_.size());
+  assert(in.size() == initial_sd_.size());
+  assert(outputs_  == initial_qc_.size());
 
   if (time == 0.0)
   {
@@ -158,7 +156,8 @@ TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
 
   // Run multiple NMPC iterations
   const unsigned int nnmpc = 10;
-  for (int inmpc = 0; inmpc < nnmpc; ++inmpc) {
+  for (int inmpc = 0; inmpc < nnmpc; ++inmpc)
+  {
     // 1) Feedback: Embed parameters and initial value from MHE
     // NOTE the same initial values (sd, pf) are embedded several time,
     //      but this will result in the same solution as running a MUSCOD

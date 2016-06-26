@@ -1241,6 +1241,20 @@ policy/nmpc:
     optional: 1
     min: 1
     max: 2147483647
+  pf:
+    type: pf
+    description: NMPC setpoint
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  initFeedback:
+    type: int
+    description: Initialize feedback
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
   verbose:
     type: int
     description: Verbose mode

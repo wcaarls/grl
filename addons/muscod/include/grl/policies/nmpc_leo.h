@@ -25,8 +25,8 @@
  * \endverbatim
  */
 
-#ifndef GRL_NMPC_POLICY_H_
-#define GRL_NMPC_POLICY_H_
+#ifndef GRL_NMPC_LEO_POLICY_H_
+#define GRL_NMPC_LEO_POLICY_H_
 
 #include <grl/policy.h>
 #include <grl/policies/muscod_nmpc.h>
@@ -44,7 +44,6 @@ class NMPCPolicy : public Policy
 
   protected:
     int verbose_;
-    int initFeedback_;
 
     // MUSCOD-II interface
     MUSCOD *muscod_nmpc_;
@@ -54,7 +53,7 @@ class NMPCPolicy : public Policy
     Vector initial_sd_, initial_pf_, initial_qc_, final_sd_;
 
   public:
-    NMPCPolicy() : muscod_nmpc_(NULL), outputs_(1), verbose_(false), initFeedback_(0) { }
+    NMPCPolicy() : muscod_nmpc_(NULL), outputs_(1), verbose_(false) { }
     ~NMPCPolicy();
 
     // From Configurable
@@ -73,4 +72,4 @@ class NMPCPolicy : public Policy
 
 }
 
-#endif /* GRL_NMPC_POLICY_H_ */
+#endif /* GRL_NMPC_LEO_POLICY_H_ */
