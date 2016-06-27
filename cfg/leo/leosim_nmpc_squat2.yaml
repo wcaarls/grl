@@ -27,6 +27,6 @@ experiment:
       outputs: 4
       pf: [ 0.28 ]
       initFeedback: 1
-      verbose: 1
+      verbose: 0
   test_agent: experiment/agent
   save_every: never

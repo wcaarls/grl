@@ -106,6 +106,11 @@ void NMPCPolicy::configure(Configuration &config)
 
   if (verbose_)
     std::cout << "MUSCOD is ready!" << std::endl;
+  else
+  {
+    muscod_nmpc_->setLogLevelScreen(-1);
+    muscod_nmpc_->setLogLevelAndFile(-1, NULL, NULL);
+  }
 }
 
 void NMPCPolicy::reconfigure(const Configuration &config)
