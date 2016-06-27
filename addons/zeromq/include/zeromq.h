@@ -32,6 +32,7 @@
 #include <grl/environment.h>
 #include <grl/agent.h>
 #include <drl_messages.pb.h>
+#include <time.h>
 
 namespace grl
 {
@@ -93,6 +94,7 @@ class CommunicatorEnvironment: public Environment
 
   protected:
     Communicator *communicator_;
+    timespec time_begin_;
     //int observation_dims_, action_dims_;
 };
 

@@ -167,10 +167,13 @@ TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
     //initial_qc_ << ConstantVector(outputs_, 0.0);
   }
 
-  if (verbose_)
-    std::cout << "time: [ " << time << " ]; state: [ " << in2 << "]" << std::endl;
+//  if (verbose_)
+//    std::cout << "time: [ " << time << " ]; state: [ " << in2 << "]" << std::endl;
 
   out->resize(outputs_);
+  *out << ConstantVector(outputs_, 0.0);
+  usleep(101000);
+  return ttGreedy;
 
   // Run multiple NMPC iterations
   const unsigned int nnmpc = 1;
