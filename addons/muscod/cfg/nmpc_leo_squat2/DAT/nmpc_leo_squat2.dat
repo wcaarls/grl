@@ -279,8 +279,8 @@ qps_qpopt
 qps_qore
 
 libplot
-plot_noplot
 plot_pgplot
+plot_noplot
 
 *******************************************************************************
 * Setting algorithmic parameters *
@@ -294,7 +294,7 @@ options_itol
 options_rfac
 0.0
 options_levmar
-0.0000000000
+0.00001000000
 options_qp_featol
 1.0e-8
 options_qp_relax

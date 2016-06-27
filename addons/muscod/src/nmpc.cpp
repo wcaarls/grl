@@ -94,14 +94,14 @@ void NMPCPolicy::configure(Configuration &config)
   nmpc_ = new NMPCProblem(problem_path.c_str(), nmpc_model_name_.c_str(), muscod_nmpc_);
 
   // Allocate memory
-  initial_sd_ = ConstantVector(nmpc_->NXD(), 0);
+  //initial_sd_ = ConstantVector(nmpc_->NXD(), 0);
   initial_pf_ = ConstantVector(nmpc_->NP(), 0);
   initial_qc_ = ConstantVector(nmpc_->NU(), 0);
   final_sd_   = ConstantVector(nmpc_->NXD(), 0);
 
   // Muscod params
   grl_assert(config["pf"].v().size() == nmpc_->NP());
-  initial_pf_ << config["pf"].v(); // setpoint
+  initial_pf_ << config["pf"].v(); // parameters
   initFeedback_ = config["initFeedback"];
 
   if (verbose_)
@@ -140,19 +140,30 @@ NMPCPolicy *NMPCPolicy::clone() const
 
 TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
 {
-  grl_assert(in.size() == initial_sd_.size());
+  //grl_assert(in.size() == initial_sd_.size());
   grl_assert(outputs_  == initial_qc_.size());
+
+  Vector in2 = in;
+  /*in2 <<
+         1.0586571916803691E+00,
+        -2.1266836153365212E+00,
+         1.0680264236561250E+00,
+        -2.5999999999984957E-01,
+        -0.0,
+        -0.0,
+        -0.0,
+        -0.0;*/
 
   if (time == 0.0)
   {
-    muscod_reset(in, time);
-    initial_sd_ << in;
-    initial_pf_ << 0.0;
-    initial_qc_ << ConstantVector(outputs_, 0.0);
+    muscod_reset(in2, time);
+    //initial_sd_ << in2;
+    //initial_pf_ << 0.0;
+    //initial_qc_ << ConstantVector(outputs_, 0.0);
   }
 
   if (verbose_)
-    std::cout << "time: [ " << time << " ]; state: [ " << in << "]" << std::endl;
+    std::cout << "time: [ " << time << " ]; state: [ " << in2 << "]" << std::endl;
 
   out->resize(outputs_);
 
@@ -163,7 +174,7 @@ TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
     // NOTE the same initial values (sd, pf) are embedded several time,
     //      but this will result in the same solution as running a MUSCOD
     //      instance for several iterations
-    nmpc_->feedback(in, initial_pf_, &initial_qc_);
+    nmpc_->feedback(in2, initial_pf_, &initial_qc_);
     // 2) Shifting
     // NOTE do that only once at last iteration
     // NOTE this has to be done before the transition phase

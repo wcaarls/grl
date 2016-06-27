@@ -178,7 +178,7 @@ void ODESTGEnvironment::start(int test, Vector *obs)
 
   if (!listener_.waitForNewState())
     throw Exception("Error getting start state from simulator");
-    
+
   obs->resize(sensors_.size());
   for (size_t ii=0; ii < sensors_.size(); ++ii)
     (*obs)[ii] = sensors_[ii].evaluate(listener_.getState());
