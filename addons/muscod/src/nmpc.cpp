@@ -168,7 +168,7 @@ TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
   out->resize(outputs_);
 
   // Run multiple NMPC iterations
-  const unsigned int nnmpc = 10;
+  const unsigned int nnmpc = 1;
   for (int inmpc = 0; inmpc < nnmpc; ++inmpc) {
     // 1) Feedback: Embed parameters and initial value from MHE
     // NOTE the same initial values (sd, pf) are embedded several time,

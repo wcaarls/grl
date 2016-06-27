@@ -20,21 +20,35 @@
 --utils = require 'SRC.utils'
 
 -- for model
+torsoMass = 0.91326
+boomMass = 0.860
+boomCMY = 0.835
+boomLength = 1.70
+boomIZZ = 0.31863
+boomVirtualMassX = (boomCMY^2*boomMass + boomIZZ)/(boomLength^2)
+boomVirtualMassZ = boomMass*boomCMY/boomLength
+boomExtForce = (boomVirtualMassZ - boomVirtualMassX)*(-9.81)
+torsoBoomMass = torsoMass + boomVirtualMassX
+torsoBoomCMX = (torsoMass*torsoCMX + boomVirtualMassX*torsoHipDistX)/(torsoMass + boomVirtualMassX)
+torsoBoomCMZ = (torsoMass*torsoCMZ + boomVirtualMassX*torsoHipDistZ)/(torsoMass + boomVirtualMassX)
+torsoBoomIYY = torsoIYY + torsoMass*((torsoCMX-torsoBoomCMX)^2 + (torsoCMZ-torsoBoomCMZ)^2) + boomVirtualMassX*((torsoHipDistX-torsoBoomCMX)^2 + (torsoHipDistZ-torsoBoomCMZ)^2)
+
 inertiadontcare = 0.001
-torsoBoomMass = 0.91326 --ivan
-torsoCMX = -0.00102
-torsoCMZ = 0.009945
-torsoIYY = 0.004676374
+--torsoCMX = -0.00102
+--torsoCMZ = 0.009945
+--torsoIYY = 0.004676374
 torsoheight = (0.24155)
 torsoHipDistX = (0.00273)
 torsoHipDistZ = (-torsoheight/2)
 
+shoulderoffsety = 0.11975
 armMass = 0.095
 armCMX = 0.05308
 armCMZ = -0.14260
 armIYY = 0.00087318718
 armJointX = (-0.00543)
-armJointz = (0.091275)
+armJointY = (shoulderoffsety + 0.005)
+armJointZ = (0.091275)
 
 upleglength = (0.116)
 interlegdist = (0.06390)
@@ -84,7 +98,6 @@ footRightJointZ = (-loleglength)
 dxlheight = 0.051
 dxlwidth = 0.036
 dxldepth = 0.036
-shoulderoffsety = 0.11975
 torsowidth = 0.160
 handoffsetx = 0.11730
 handoffsetz = -0.26947
@@ -95,6 +108,7 @@ kneewheeloffsetz = 0.0165
 footlength = 0.081
 
 local function iyymatrix(iyy)
+  local inertiadontcare = 1.000
   return {
            {inertiadontcare, 0., 0.},
            {0.0, iyy, 0.},
@@ -103,13 +117,17 @@ local function iyymatrix(iyy)
 end
 
 joints = {
+  fixed = {},
   boom = {
     { 0., 0., 0., 1., 0., 0.},
     { 0., 0., 0., 0., 0., 1.},
     { 0., 1., 0., 0., 0., 0.},
   },
-  hinge = {
+  lhinge = {
     { 0., 1., 0., 0., 0., 0.}
+  },
+  hinge = {
+    { 0., -1., 0., 0., 0., 0.}
   }
 }
 
@@ -180,7 +198,7 @@ visuals = {
       dimensions = { (0.020), (0.010), (0.140) },
       color = { 0.8, 0.8, 0.8},
       mesh_center = {
-        (0.01527), (shoulderoffsety + 0.005), (-0.05699)
+        (0.01527), 0.005, (-0.05699)
       },
       src = "meshes/unit_cube.obj",
     },
@@ -190,7 +208,7 @@ visuals = {
       dimensions = { (0.020), (0.010), (0.150) },
       color = colors.bracket,
       mesh_center = {
-        (0.06989), (shoulderoffsety + 0.005), (-0.18714)
+        (0.06989), 0.005, (-0.18714)
       },
       src = "meshes/unit_cube.obj",
     },
@@ -201,7 +219,42 @@ visuals = {
       },
       color = colors.wheel,
       mesh_center = {
-        (handoffsetx), (shoulderoffsety + 0.005), (handoffsetz)
+        (handoffsetx), 0.005, (handoffsetz)
+      },
+      src = "meshes/unit_sphere_lowres.obj"
+    }
+  },
+  upper_arm = {
+    {
+      -- Should be rotated
+      name = "upper_arm_box",
+      dimensions = { (0.020), (0.010), (0.140) },
+      color = { 0.8, 0.8, 0.8},
+      mesh_center = {
+        (0.01527), 0.0, (-0.05699)
+      },
+      src = "meshes/unit_cube.obj",
+    },
+  },
+  lower_arm = {
+    {
+      -- Should be rotated
+      name = "lower_arm_box",
+      dimensions = { (0.020), (0.010), (0.150) },
+      color = colors.bracket,
+      mesh_center = {
+        (0.06989), 0.0, (-0.18714)
+      },
+      src = "meshes/unit_cube.obj",
+    },
+    {
+      name = "hand_wheel",
+      dimensions = {
+        (2*handwheelradius), (2*handwheelradius), (2*handwheelradius)
+      },
+      color = colors.wheel,
+      mesh_center = {
+        (handoffsetx), 0.0, (handoffsetz)
       },
       src = "meshes/unit_sphere_lowres.obj"
     }
@@ -347,21 +400,18 @@ constraint_sets = {
   --   { point = "heel_left", normal = { 1, 0, 0,}, },
   --   { point = "heel_left", normal = { 0, 0, 1,}, },
   -- },
-  double_support = {
-    -- NOTE: one has to be careful with multiple position contacts that should
-    --       are supposed to keep a body straight on the floor
-    { point = "heel_right", normal = { 1, 0, 0,}, },
-    { point = "heel_right", normal = { 0, 0, 1,}, },
-
-    -- { point = "tip_right", normal = { 1, 0, 0,}, },
-    { point = "tip_right", normal = { 0, 0, 1,}, },
-
-    { point = "heel_left", normal = { 1, 0, 0,}, },
-    { point = "heel_left", normal = { 0, 0, 1,}, },
-
-    -- { point = "tip_left", normal = { 1, 0, 0,}, },
-    { point = "tip_left", normal = { 0, 0, 1,}, },
-  },
+  -- double_support = {
+  --   -- NOTE: one has to be careful with multiple position contacts that should
+  --   --       are supposed to keep a body straight on the floor
+  --   { point = "heel_right", normal = { 1, 0, 0,}, },
+  --   { point = "heel_right", normal = { 0, 0, 1,}, },
+  --   -- { point = "tip_right", normal = { 1, 0, 0,}, },
+  --   { point = "tip_right", normal = { 0, 0, 1,}, },
+  --   -- { point = "heel_left", normal = { 1, 0, 0,}, },
+  --   -- { point = "heel_left", normal = { 0, 0, 1,}, },
+  --   -- { point = "tip_left", normal = { 1, 0, 0,}, },
+  --   -- { point = "tip_left", normal = { 0, 0, 1,}, },
+  -- },
 }
 
 -- **************************************************************************
@@ -388,8 +438,8 @@ model = {
       parent = "ROOT",
       body = {
         mass = torsoBoomMass,
-        com = {torsoCMX, 0., torsoCMZ},
-        inertia = iyymatrix(torsoIYY)
+        com = {torsoBoomCMX, 0., torsoBoomCMZ},
+        inertia = iyymatrix(torsoBoomIYY)
       },
       joint = joints.boom,
       visuals = visuals.torso,

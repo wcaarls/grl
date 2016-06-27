@@ -22,7 +22,7 @@
 		<leofloorradius>1.72</leofloorradius>
 		<leofloorlength>2*pi*leofloorradius</leofloorlength>
 		<startheight>0.0410</startheight>
-		<ctrlFrequency>30.0</ctrlFrequency>
+		<ctrlFrequency>20.0</ctrlFrequency>
 		<maxtorque max="10.7">10.7</maxtorque>
 	</constants>
 	<strings comment="These strings will not generate parser warnings; they are assumed to be spelled correctly when spelled this way.">

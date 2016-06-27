@@ -12,20 +12,37 @@
 --    Wouter Caarls <wouter@caarls.org>
 --    Manuel Kudruss <manuel.kudruss@iwr.uni-heidelberg.de>
 --]]
+
 -- strict checks for undefined variables
 --require 'SRC.strict'
 
 -- load module with convenience functions
 --utils = require 'SRC.utils'
 
+-- initial
+armICangle = -0.26 -- = -15*degtorad
+
+
 -- for model
-torsoBoomMass = 0.91326
-torsoCMX = -0.00102
-torsoCMZ = 0.009945
-torsoIYY = 0.004676374
+inertiadontcare = 0.001
 torsoheight = (0.24155)
 torsoHipDistX = (0.00273)
 torsoHipDistZ = (-torsoheight/2)
+torsoMass = 0.91326
+boomMass = 0.860
+boomCMY = 0.835
+boomLength = 1.70
+boomIZZ = 0.31863
+boomVirtualMassX = (boomCMY^2*boomMass + boomIZZ)/(boomLength^2)
+boomVirtualMassZ = boomMass*boomCMY/boomLength
+boomExtForce = (boomVirtualMassZ - boomVirtualMassX)*(-9.81)
+torsoBoomMass = torsoMass + boomVirtualMassX
+torsoCMX = -0.00102
+torsoCMZ = 0.009945
+torsoIYY = 0.004676374
+torsoBoomCMX = (torsoMass*torsoCMX + boomVirtualMassX*torsoHipDistX)/(torsoMass + boomVirtualMassX)
+torsoBoomCMZ = (torsoMass*torsoCMZ + boomVirtualMassX*torsoHipDistZ)/(torsoMass + boomVirtualMassX)
+torsoBoomIYY = torsoIYY + torsoMass*((torsoCMX-torsoBoomCMX)^2 + (torsoCMZ-torsoBoomCMZ)^2) + boomVirtualMassX*((torsoHipDistX-torsoBoomCMX)^2 + (torsoHipDistZ-torsoBoomCMZ)^2)
 
 shoulderoffsety = 0.11975
 armMass = 0.095
@@ -99,6 +116,14 @@ local function iyymatrix(iyy)
            {inertiadontcare, 0., 0.},
            {0.0, iyy, 0.},
            {0., 0., inertiadontcare}
+         }
+end
+
+local function rotymatrix(angle)
+  return {
+           {  math.cos(angle), 0.0, math.sin(angle)},
+           {  0.0,             1.0, 0.0            },
+           { -math.sin(angle), 0.0, math.cos(angle)}
          }
 end
 
@@ -184,7 +209,7 @@ visuals = {
       dimensions = { (0.020), (0.010), (0.140) },
       color = { 0.8, 0.8, 0.8},
       mesh_center = {
-        (0.01527), 0.0, (-0.05699)
+        (0.01527), 0.005, (-0.05699)
       },
       src = "meshes/unit_cube.obj",
     },
@@ -194,7 +219,7 @@ visuals = {
       dimensions = { (0.020), (0.010), (0.150) },
       color = colors.bracket,
       mesh_center = {
-        (0.06989), 0.0, (-0.18714)
+        (0.06989), 0.005, (-0.18714)
       },
       src = "meshes/unit_cube.obj",
     },
@@ -205,7 +230,7 @@ visuals = {
       },
       color = colors.wheel,
       mesh_center = {
-        (handoffsetx), 0.0, (handoffsetz)
+        (handoffsetx), 0.005, (handoffsetz)
       },
       src = "meshes/unit_sphere_lowres.obj"
     }
@@ -527,8 +552,8 @@ model = {
         parent = "hipleft",
         body = {
           mass = torsoBoomMass,
-          com = {torsoCMX, 0., torsoCMZ},
-          inertia = iyymatrix(torsoIYY)
+          com = {torsoBoomCMX, 0., torsoBoomCMZ},
+          inertia = iyymatrix(torsoBoomIYY)
         },
         joint = joints.fixed,
         joint_frame = {
@@ -550,11 +575,7 @@ model = {
         joint = joints.lhinge,
         joint_frame = {
           r = {armJointX, armJointY, armJointZ},
-          E = {
-              { 0.96592582628906831, 0.0, -0.25881904510252074},
-              { 0.0,                 1.0,  0.0},
-              { 0.25881904510252074, 0.0,  0.96592582628906831},
-          },
+          E = rotymatrix(armICangle),
         },
         visuals = visuals.arm
       },

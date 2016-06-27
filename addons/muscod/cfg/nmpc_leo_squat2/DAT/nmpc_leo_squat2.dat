@@ -10,7 +10,7 @@
 
 *  # of multiple shooting intervals on model stages
 nshoot
-0:  20
+0:  5
 
 nstop(*,*)
 10
@@ -279,8 +279,8 @@ qps_qpopt
 qps_qore
 
 libplot
-plot_pgplot
 plot_noplot
+plot_pgplot
 
 *******************************************************************************
 * Setting algorithmic parameters *

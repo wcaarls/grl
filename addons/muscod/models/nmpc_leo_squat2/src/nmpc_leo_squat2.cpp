@@ -246,7 +246,7 @@ void lsqfcn_height_tracking (
 	);
 
 	// regularize: || q - q_desired ||_2^2
-	res[res_cnt++] = 0.01 * (sd[QS["arm"]]         - (-0.26)); // arm
+  res[res_cnt++] = 1 * (sd[QS["arm"]]         - (-0.26)); // arm
 	// res[res_cnt++] = 1.00 * (sd[QS["hip_left"]]    - (-0.01)); // hip_left
 	// res[res_cnt++] = 0.01 * (sd[QS["knee_left"]]   - (-0.01)); // knee_left
 	// res[res_cnt++] = 0.01 * (sd[QS["ankle_left"]]  - (0.05)); // ankle_left
