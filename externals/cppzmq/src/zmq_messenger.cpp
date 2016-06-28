@@ -1,63 +1,79 @@
 #include <zmq_messenger.h>
 #include <iostream>
 
-void ZeromqMessenger::init(const char* pub, const char* sub, const char* sync, int flags)
+void ZeromqMessenger::init(const char* pubAddress, const char* subAddress, const char* syncAddress, int flags)
 {
+  flags_ = flags;
+  int confl = 1;
+
   // Prepare our context
   context_ = new zmq::context_t(1);
 
   // Prepare ZMQ publisher
   publisher_ = new zmq::socket_t(*context_, ZMQ_PUB);
-  publisher_->bind(pub);
+  publisher_->bind(pubAddress);
+  publisher_->setsockopt(ZMQ_CONFLATE, &confl, sizeof(confl)); // Keep only last message
 
   // Prepare ZMQ subscriber
   subscriber_ = new zmq::socket_t(*this->context_, ZMQ_SUB);
-  subscriber_->connect(sub);
-  int confl = 1;
+  subscriber_->connect(subAddress);
   subscriber_->setsockopt(ZMQ_CONFLATE, &confl, sizeof(confl)); // Keep only last message
   subscriber_->setsockopt(ZMQ_SUBSCRIBE, "", 0);
 
-  if (flags & ZMQ_SYNC_PUB)
+  if (flags_ & ZMQ_SYNC_PUB)
   {
-    zmq::socket_t* syncService = new zmq::socket_t(*context_, ZMQ_REP);
-    syncService->bind(sync);
-
-    std::cout << "Waiting for subscribers" << std::endl;
-    int subscribers_expected = 1;
-    int subscribers = 0;
-    while (subscribers < subscribers_expected)
-    {
-      // - wait for synchronization request
-      zmq::message_t update;
-      syncService->recv(&update);
-
-      // - send synchronization reply
-      zmq::message_t message(0);
-      syncService->send(message);
-
-      subscribers++;
-    }
-    std::cout << subscribers << " subscriber(s) connected" << std::endl;
+    syncService_ = new zmq::socket_t(*context_, ZMQ_REP);
+    syncService_->bind(syncAddress);
   }
 
-  if (flags & ZMQ_SYNC_SUB)
+  if (flags_ & ZMQ_SYNC_SUB)
   {
-    std::cout << "Trying to connect" << std::endl;
+    //std::cout << "Trying to connect" << std::endl;
 
     // synchronize with publisher
-    zmq::socket_t* syncService = new zmq::socket_t(*context_, ZMQ_REQ);
-    syncService->connect(sync);
+    syncService_ = new zmq::socket_t(*context_, ZMQ_REQ);
+    syncService_->connect(syncAddress);
 
     // - send a synchronization request
     zmq::message_t message(0);
-    syncService->send(message);
+    syncService_->send(message);
 
     // - wait for synchronization reply
     zmq::message_t update;
-    syncService->recv(&update);
+    syncService_->recv(&update);
 
     // Third, get our updates and report how many we got
-    std::cout << "Ready to receive" << std::endl;
+    //std::cout << "Ready to receive" << std::endl;
+  }
+}
+
+void ZeromqMessenger::sync()
+{
+  //std::cout << "sync" << std::endl;
+  if (connected_)
+    return;
+
+  if (flags_ & ZMQ_SYNC_PUB)
+  {
+    //std::cout << "Waiting for subscribers" << std::endl;
+    if (subscribers_ < subscribers_expected_)
+    {
+      // - wait for synchronization request
+      zmq::message_t update;
+      if (syncService_->recv(&update, ZMQ_DONTWAIT))
+      {
+        // - send synchronization reply
+        zmq::message_t message(0);
+        syncService_->send(message);
+
+        subscribers_++;
+      }
+    }
+
+    if (subscribers_ == subscribers_expected_)
+      connected_ = true;
+
+    //std::cout << subscribers_ << " subscriber(s) connected" << std::endl;
   }
 }
 
