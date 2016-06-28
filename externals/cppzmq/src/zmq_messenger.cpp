@@ -7,7 +7,7 @@ void ZeromqMessenger::init(const char* pubAddress, const char* subAddress, const
   int confl = 1;
 
   // Prepare our context
-  context_ = new zmq::context_t(1);
+  context_ = new zmq::context_t(2);
 
   // Prepare ZMQ publisher
   publisher_ = new zmq::socket_t(*context_, ZMQ_PUB);

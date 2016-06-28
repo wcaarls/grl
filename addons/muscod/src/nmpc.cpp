@@ -5,6 +5,7 @@
 #include <iostream>
 #include <dlfcn.h>
 #include <sys/stat.h>
+#include <iomanip>
 
 // GRL
 #include <grl/policies/nmpc.h>
@@ -167,8 +168,9 @@ TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
     //initial_qc_ << ConstantVector(outputs_, 0.0);
   }
 
-//  if (verbose_)
-//    std::cout << "time: [ " << time << " ]; state: [ " << in2 << "]" << std::endl;
+  if (verbose_)
+    std::cout << "time: [ " << time << " ]; state: [ "
+      << std::fixed << std::setprecision(2) << std::right << std::setw(7) << in2 << "]" << std::endl;
 
   out->resize(outputs_);
   *out << ConstantVector(outputs_, 0.0);

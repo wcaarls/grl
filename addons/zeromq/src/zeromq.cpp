@@ -79,9 +79,13 @@ void ZeromqCommunicator::send(const Vector v) const
 
 bool ZeromqCommunicator::recv(Vector &v) const
 {
-  bool rc = zmq_messenger_.recv(reinterpret_cast<void*>(v.data()), v.cols()*sizeof(double)); // ZMQ_NOBLOCK
+  Vector v_rc = v;
+  bool rc = zmq_messenger_.recv(reinterpret_cast<void*>(v_rc.data()), v_rc.cols()*sizeof(double), ZMQ_NOBLOCK);
   if (rc)
-    std::cout << std::fixed << std::setprecision(2) << std::right << std::setw(7) << v << std::endl;
+  {
+    v = v_rc; // modify content only if data was received
+//    std::cout << std::fixed << std::setprecision(2) << std::right << std::setw(7) << v << std::endl;
+  }
   return rc;
 }
 
@@ -120,7 +124,7 @@ double CommunicatorEnvironment::step(const Vector &action, Vector *obs, double *
 {
   timespec time_end;
   communicator_->send(action);
-  communicator_->recv(*obs);
+  communicator_->recv(*obs);  // Non-blocking, therefore it gets the most recently transmitted state
   clock_gettime(CLOCK_MONOTONIC, &time_end);
   double tau = (time_end.tv_sec - time_begin_.tv_sec) + (static_cast<double>(time_end.tv_nsec - time_begin_.tv_nsec))/1.0e9;
   time_begin_ = time_end;
