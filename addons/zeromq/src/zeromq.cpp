@@ -84,7 +84,7 @@ bool ZeromqCommunicator::recv(Vector &v) const
   if (rc)
   {
     v = v_rc; // modify content only if data was received
-//    std::cout << std::fixed << std::setprecision(2) << std::right << std::setw(7) << v << std::endl;
+    //std::cout << std::fixed << std::setprecision(2) << std::right << std::setw(7) << v << std::endl << std::endl;
   }
   return rc;
 }
