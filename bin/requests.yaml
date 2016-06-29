@@ -276,7 +276,7 @@ environment/communicator:
     type: communicator
     description: Comunicator which exchanges messages with an actual environment
     mutability: configuration
-    default: 0x726f746163696e75
+    default: 0
     optional: 0
 environment/leo2:
   description: LEO/2 environment
@@ -300,12 +300,6 @@ environment/leo2:
     mutability: provided
 environment/leo_squat:
   description: Leo squatting environment
-  xml:
-    type: string
-    description: XML configuration filename
-    mutability: configuration
-    default: ""
-    optional: 1
   target_env:
     type: environment
     description: Interaction environment
@@ -330,30 +324,52 @@ environment/leo_squat:
     mutability: configuration
     default: 0
     optional: 1
-  observation_dims:
-    type: int.observation_dims
-    description: Number of observation dimensions
+  target_observations:
+    type: string
+    description: string.observe
     mutability: configuration
-    default: 0
+    default: Comma-separated list of target states
     optional: 1
-    min: 0
-    max: 2147483647
-  action_dims:
-    type: int.action_dims
-    description: Number of action dimensions
+  target_actions:
+    type: string
+    description: string.actuate
     mutability: configuration
-    default: 0
+    default: Comma-separated list of target actions
     optional: 1
-    min: 0
-    max: 2147483647
+  frequency:
+    type: double.frequency
+    description: frequency
+    mutability: system
+    default: 30
+    optional: 1
+    min: 1
+    max: 1000
+  target_observation_min:
+    type: vector.observation_min
+    description: Lower limit on observations
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  target_observation_max:
+    type: vector.observation_max
+    description: Upper limit on observations
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  target_action_min:
+    type: vector.action_min
+    description: Lower limit on actions
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  target_action_max:
+    type: vector.action_max
+    description: Upper limit on actions
+    mutability: system
+    default: "[  ]"
+    optional: 1
 environment/leo_walk:
   description: Leo walking environment
-  xml:
-    type: string
-    description: XML configuration filename
-    mutability: configuration
-    default: ""
-    optional: 1
   target_env:
     type: environment
     description: Interaction environment
@@ -378,22 +394,50 @@ environment/leo_walk:
     mutability: configuration
     default: 0
     optional: 1
-  observation_dims:
-    type: int.observation_dims
-    description: Number of observation dimensions
+  target_observations:
+    type: string
+    description: string.observe
     mutability: configuration
-    default: 0
+    default: Comma-separated list of target states
     optional: 1
-    min: 0
-    max: 2147483647
-  action_dims:
-    type: int.action_dims
-    description: Number of action dimensions
+  target_actions:
+    type: string
+    description: string.actuate
     mutability: configuration
-    default: 0
+    default: Comma-separated list of target actions
     optional: 1
-    min: 0
-    max: 2147483647
+  frequency:
+    type: double.frequency
+    description: frequency
+    mutability: system
+    default: 30
+    optional: 1
+    min: 1
+    max: 1000
+  target_observation_min:
+    type: vector.observation_min
+    description: Lower limit on observations
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  target_observation_max:
+    type: vector.observation_max
+    description: Upper limit on observations
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  target_action_min:
+    type: vector.action_min
+    description: Lower limit on actions
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  target_action_max:
+    type: vector.action_max
+    description: Upper limit on actions
+    mutability: system
+    default: "[  ]"
+    optional: 1
   learn_stance_knee:
     type: int
     description: Learn stance knee
@@ -1242,7 +1286,7 @@ policy/nmpc:
     min: 1
     max: 2147483647
   pf:
-    type: pf
+    type: vector.pf
     description: NMPC setpoint
     mutability: configuration
     default: "[  ]"
