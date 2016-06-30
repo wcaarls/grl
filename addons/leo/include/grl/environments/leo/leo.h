@@ -128,13 +128,13 @@ class CLeoBhBase: public CLeoBhWalkSym
       return stanceLegLeft() ? leoSim->getJointVoltage(ljKneeLeft) : leoSim->getJointVoltage(ljKneeRight);
     }
 
-    std::string jointIndexToName(int jointIndex) const;
-    int jointNameToIndex(const std::string jointName) const;
+    //void setLeosimMap(int leosim_map) { leosim_map_ = leosim_map; }
 
   protected:
     CButterworthFilter<1>	mJointSpeedFilter[ljNumJoints];
     EnvironmentAgentInterface interface_;
     double frequency_;
+    //int leosim_map_;
 };
 
 /// Base class for simulated and real Leo
@@ -164,12 +164,14 @@ class LeoBaseEnvironment: public Environment
     CLeoState leoState_;
     Environment *target_env_;
     double      frequency_;
+    int         leosim_map_;
 
     int observation_dims_, action_dims_;
     int target_observation_dims_, target_action_dims_;
     Vector target_obs_, target_action_;
     Vector target_observation_min_, target_observation_max_;
     Vector target_action_min_, target_action_max_;
+    std::vector<std::string> target_dof_;
 
     // Exporter
     Exporter *exporter_;
@@ -191,6 +193,9 @@ class LeoBaseEnvironment: public Environment
                      EnvironmentAgentInterface::ActuatorInterface &out,
                      const std::string *req = NULL,
                      std::vector<int>  *reqIdx = NULL) const;
+
+    std::string jointIndexToName(int jointIndex) const;
+    int jointNameToIndex(const std::string jointName) const;
 
   private:
     CLeoBhBase *bh_; // makes it invisible in derived classes

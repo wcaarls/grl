@@ -98,46 +98,6 @@ void CLeoBhBase::updateDerivedStateVars(CLeoState* currentSTGState)
   CLeoBhWalkSym::updateDerivedStateVars(currentSTGState);
 }
 
-int CLeoBhBase::jointNameToIndex(const std::string jointName) const
-{
-  if (jointName == "torso_boom")
-    return ljTorso;
-  else if (jointName == "shoulder")
-    return ljShoulder;
-  else if (jointName == "hipright")
-    return ljHipRight;
-  else if (jointName == "hipleft")
-    return ljHipLeft;
-  else if (jointName == "kneeright")
-    return ljKneeRight;
-  else if (jointName == "kneeleft")
-    return ljKneeLeft;
-  else if (jointName == "ankleright")
-    return ljAnkleRight;
-  else if (jointName == "ankleleft")
-    return ljAnkleLeft;
-  else
-    return -1; // augmented state
-}
-
-std::string CLeoBhBase::jointIndexToName(int jointIndex) const
-{
-  switch(jointIndex)
-  {
-    case ljTorso      : return std::string("torso_boom"); break;
-    case ljShoulder   : return std::string("shoulder");   break;
-    case ljHipRight   : return std::string("hipright");   break;
-    case ljHipLeft    : return std::string("hipleft");    break;
-    case ljKneeRight  : return std::string("kneeright");  break;
-    case ljKneeLeft   : return std::string("kneeleft");   break;
-    case ljAnkleRight : return std::string("ankleright"); break;
-    case ljAnkleLeft  : return std::string("ankleleft");  break;
-    default:
-      ERROR("Joint index out of bounds '" << jointIndex << "'");
-      throw bad_param("leobase:jointIndex");
-  }
-}
-
 /////////////////////////////////
 
 LeoBaseEnvironment::LeoBaseEnvironment() :
@@ -149,7 +109,8 @@ LeoBaseEnvironment::LeoBaseEnvironment() :
   test_(0),
   exporter_(NULL),
   bh_(NULL),
-  frequency_(30.0)
+  frequency_(30.0),
+  leosim_map_(1)
 {
 }
 
@@ -163,6 +124,7 @@ void LeoBaseEnvironment::request(ConfigurationRequest *config)
   config->push_back(CRP("target_observations", "string.observe", "Comma-separated list of target states"));
   config->push_back(CRP("target_actions", "string.actuate", "Comma-separated list of target actions"));
   config->push_back(CRP("frequency", "double.frequency", "frequency", frequency_, CRP::System, 1.0, 1000.0));
+  config->push_back(CRP("leosim_map", "int.leosim_map", "Follow leosim mapping", leosim_map_, CRP::System, 0, 1));
 
   config->push_back(CRP("target_observation_min", "vector.observation_min", "Lower limit on observations", target_observation_min_, CRP::System));
   config->push_back(CRP("target_observation_max", "vector.observation_max", "Upper limit on observations", target_observation_max_, CRP::System));
@@ -177,7 +139,25 @@ void LeoBaseEnvironment::configure(Configuration &config)
   std::vector<std::string> target_actions = cutLongStr( config["target_actions"].str() );
   target_action_dims_ = target_actions.size();
 
+  for (int i = 0; i < target_observations.size(); i++)
+  {
+    std::string name = target_observations[i];
+    std::replace( name.begin(), name.end(), '.', ' ');
+    std::vector<std::string> cuttedName = cutLongStr(name);
+    if (cuttedName.size() == 3)
+    {
+      if (std::find(target_dof_.begin(), target_dof_.end(), cuttedName[1]) == target_dof_.end())
+        target_dof_.push_back(cuttedName[1]);
+    }
+    else
+    {
+      ERROR("Unknown joint '" << target_observations[i] << "'");
+      throw bad_param("leobase:target_observations");
+    }
+  }
+
   frequency_ = config["frequency"];
+  leosim_map_ = config["leosim_map"];
 
   target_env_ = (Environment*)config["target_env"].ptr(); // here we can select an actual Leo enviromnent (simulation/real)
   exporter_ = (Exporter*) config["exporter"].ptr();
@@ -211,6 +191,7 @@ void LeoBaseEnvironment::start(int test)
 {
   test_ = test;
   bh_->resetState(frequency_);
+  //bh_->setLeosimMap(leosim_map_);
 
   if (exporter_)
     exporter_->open((test_?"test":"learn"), (test_?time_test_:time_learn_) != 0.0);
@@ -278,14 +259,14 @@ void LeoBaseEnvironment::configParseObservations(Configuration &config, const st
   int i, j;
   for (i = 0; i < observer.angles.size(); i++)
   {
-    std::string name = "robot." + bh_->jointIndexToName(observer.angles[i]) + ".angle";
+    std::string name = "robot." + jointIndexToName(observer.angles[i]) + ".angle";
     int sensor_idx = findVarIdx(sensors, name);
     observation_min[i] = target_observation_min_[sensor_idx];
     observation_max[i] = target_observation_max_[sensor_idx];
   }
   for (j = 0; j < observer.angle_rates.size(); j++)
   {
-    std::string name = "robot." + bh_->jointIndexToName(observer.angle_rates[j]) + ".anglerate";
+    std::string name = "robot." + jointIndexToName(observer.angle_rates[j]) + ".anglerate";
     int sensor_idx = findVarIdx(sensors, name);
     observation_min[i+j] = target_observation_min_[sensor_idx];
     observation_max[i+j] = target_observation_max_[sensor_idx];
@@ -319,9 +300,9 @@ void LeoBaseEnvironment::fillObserver(const std::vector<std::string> &observer_n
     if (cuttedName.size() == 1)
       observer_interface.augmented.push_back(name);
     else if (cuttedName[2] == "angle")
-      observer_interface.angles.push_back(bh_->jointNameToIndex(cuttedName[1]));
+      observer_interface.angles.push_back(jointNameToIndex(cuttedName[1]));
     else if (cuttedName[2] == "anglerate")
-      observer_interface.angle_rates.push_back(bh_->jointNameToIndex(cuttedName[1]));
+      observer_interface.angle_rates.push_back(jointNameToIndex(cuttedName[1]));
     else
     {
       ERROR("Unknown joint '" << cuttedName[2] << "'");
@@ -464,6 +445,69 @@ void LeoBaseEnvironment::fillActuate(const std::vector<std::string> &genericActi
       std::vector<std::string> cuttedName = cutLongStr(name);
       out.autoActuated.push_back(cuttedName[1]);
       INFO("Adding auto-actuated joint '" << cuttedName[1] << "'");
+    }
+  }
+}
+
+int LeoBaseEnvironment::jointNameToIndex(const std::string jointName) const
+{
+  if (leosim_map_)
+  {
+    if (jointName == "torso_boom")
+      return ljTorso;
+    else if (jointName == "shoulder")
+      return ljShoulder;
+    else if (jointName == "hipright")
+      return ljHipRight;
+    else if (jointName == "hipleft")
+      return ljHipLeft;
+    else if (jointName == "kneeright")
+      return ljKneeRight;
+    else if (jointName == "kneeleft")
+      return ljKneeLeft;
+    else if (jointName == "ankleright")
+      return ljAnkleRight;
+    else if (jointName == "ankleleft")
+      return ljAnkleLeft;
+    else
+      return -1; // augmented state
+  }
+  else
+  {
+    for (int i = 0; i < target_dof_.size(); i++)
+      if (target_dof_[i] == jointName)
+        return i;
+    return -1;
+  }
+}
+
+std::string LeoBaseEnvironment::jointIndexToName(int jointIndex) const
+{
+  if (leosim_map_)
+  {
+    switch(jointIndex)
+    {
+      case ljTorso      : return std::string("torso_boom"); break;
+      case ljShoulder   : return std::string("shoulder");   break;
+      case ljHipRight   : return std::string("hipright");   break;
+      case ljHipLeft    : return std::string("hipleft");    break;
+      case ljKneeRight  : return std::string("kneeright");  break;
+      case ljKneeLeft   : return std::string("kneeleft");   break;
+      case ljAnkleRight : return std::string("ankleright"); break;
+      case ljAnkleLeft  : return std::string("ankleleft");  break;
+      default:
+        ERROR("Joint index out of bounds '" << jointIndex << "'");
+        throw bad_param("leobase:jointIndex, leosim_map");
+    }
+  }
+  else
+  {
+    if (jointIndex >= 0 && jointIndex < target_dof_.size())
+      return target_dof_[jointIndex];
+    else
+    {
+      ERROR("Joint index out of bounds '" << jointIndex << "'");
+      throw bad_param("leobase:jointIndex");
     }
   }
 }

@@ -1,0 +1,65 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 100
+  steps: 0
+  rate: 30
+  test_interval: 0
+  output: rbdl_pid_squat2
+  environment: 
+    type: environment/leo_squat
+    target_env: 
+      type: environment/modeled
+      model: 
+        type: model/dynamical
+        control_step: 0.0333
+        integration_steps: 5
+        dynamics: 
+          type: dynamics/rbdl
+          file: leo_ff_sl.lua
+      task: 
+        type: task/lua
+        file: leo_squat2.lua
+    observe: ankle, knee, hip, direction
+    actuate: ankle, knee, hip
+    target_observations: robot.ankle.angle, robot.knee.angle, robot.hip.angle, robot.shoulder.angle, robot.ankle.anglerate, robot.knee.anglerate, robot.hip.anglerate, robot.shoulder.anglerate
+    target_actions: robot.ankle.voltage, robot.knee.voltage, robot.hip.voltage, robot.shoulder.voltage
+    frequency: 30
+    leosim_map: 0
+    target_observation_min: [-3.1415, -3.1415, -3.1415, -3.1415, -31.4159, -31.4159, -31.4159, -31.4159]
+    target_observation_max: [3.1415, 3.1415, 3.1415, 3.1415, 31.4159, 31.4159, 31.4159, 31.4159]
+    target_action_min: [-10.7, -10.7, -10.7, -10.7]
+    target_action_max: [10.7, 10.7, 10.7, 10.7]
+  agent: 
+    type: agent/master/exclusive
+    gamma: 0.97
+    agent1: 
+      type: agent/sub/compartmentalized
+      min: [-3.1415, -3.1415, -3.1415, -31.4159, -31.4159, -31.4159, 0]
+      max: [3.1415, 3.1415, 3.1415, 31.4159, 31.4159, 31.4159, 1]
+      agent: 
+        type: agent/fixed
+        policy: 
+          type: policy/parameterized/pid
+          setpoint: [0.2, -0.2, 0.1, 0, 0, 0]
+          outputs: 3
+          p: [5.7, 0, 0, 0, 5.75, 0, 0, 0, 8.0, 0.6, 0, 0, 0, 0.8, 0, 0, 0, 0.65]
+          i: []
+          d: []
+          il: []
+    agent2: 
+      type: agent/sub/compartmentalized
+      min: [-3.1415, -3.1415, -3.1415, -31.4159, -31.4159, -31.4159, -1]
+      max: [3.1415, 3.1415, 3.1415, 31.4159, 31.4159, 31.4159, 0]
+      agent: 
+        type: agent/fixed
+        policy: 
+          type: policy/parameterized/pid
+          setpoint: [1.6, -1.9, 0.85, 0, 0, 0]
+          outputs: 3
+          p: [5.5, 0, 0, 0, 6.1, 0, 0, 0, 7.35, 1, 0, 0, 0, 2.1, 0, 0, 0, 2.06]
+          i: []
+          d: []
+          il: []
+  test_agent: experiment/agent
+  save_every: never
