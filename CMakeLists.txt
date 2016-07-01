@@ -25,7 +25,7 @@ set(MODULES base
             externals/ics
             externals/itc
             externals/rbdl
-            externals/cppzmq
+            # externals/cppzmq
             addons/cma
             addons/llr
             addons/gl
@@ -39,7 +39,7 @@ set(MODULES base
 #            addons/leo2
 #            addons/tlm
 #            addons/lqr
-            addons/zeromq
+            # addons/zeromq
 )
 
 # Is there a better way to find out if catkin_make was run?

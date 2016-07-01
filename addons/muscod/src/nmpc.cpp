@@ -92,6 +92,7 @@ void NMPCPolicy::configure(Configuration &config)
 
   //------------------- Initialize NMPC ------------------- //
   muscod_nmpc_ = new MUSCOD();
+  muscod_nmpc_->setLogLevelAndFile(-1, NULL, NULL);
   nmpc_ = new NMPCProblem(problem_path.c_str(), nmpc_model_name_.c_str(), muscod_nmpc_);
 
   // Allocate memory
@@ -110,7 +111,6 @@ void NMPCPolicy::configure(Configuration &config)
   else
   {
     muscod_nmpc_->setLogLevelScreen(-1);
-    muscod_nmpc_->setLogLevelAndFile(-1, NULL, NULL);
   }
 }
 
@@ -163,20 +163,34 @@ TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
   if (time == 0.0)
   {
     muscod_reset(in2, time);
-    //initial_sd_ << in2;
-    //initial_pf_ << 0.0;
-    //initial_qc_ << ConstantVector(outputs_, 0.0);
   }
 
-  if (verbose_)
-    std::cout << "time: [ " << time << " ]; state: [ "
-      << std::fixed << std::setprecision(2) << in2 << "]" << std::endl;
-/*
+  if (time >= 2.0) {
+    initial_pf_ << 0.35;
+  }
+
+  if (time >= 4.0) {
+    initial_pf_ << 0.28;
+  }
+
+  if (time >= 6.0) {
+    initial_pf_ << 0.35;
+  }
+
+  if (time >= 8.0) {
+    initial_pf_ << 0.28;
+  }
+
+  if (time >= 9.5) {
+    initial_pf_ << 0.35;
+  }
+
+  if (verbose_) {
+    std::cout << "time: [ " << time << " ]; state: [ " << in2 << "]" << std::endl;
+    std::cout << "                          param: [ " << initial_pf_ << "]" << std::endl;
+  }
+
   out->resize(outputs_);
-  *out << ConstantVector(outputs_, 0.0);
-  usleep(101000);
-  return ttGreedy;
-*/
 
   // Run multiple NMPC iterations
   const unsigned int nnmpc = 1;
