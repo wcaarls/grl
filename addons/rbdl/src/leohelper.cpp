@@ -8,9 +8,10 @@
 // Author(s): Manuel Kudruss <manuel.kudruss@iwr.uni-heidelberg.de>
 // -----------------------------------------------------------------------------
 
-#include "leomodel.h"
+#include <grl/environments/leohelper.h>
+#include <grl/environments/LuaTypes.h>
 
-#include <../../../../../rbdl/include/grl/environments/LuaTypes.h>
+using namespace ModelHelpers;
 
 // -----------------------------------------------------------------------------
 
@@ -19,28 +20,26 @@ using namespace RigidBodyDynamics;
 using namespace RigidBodyDynamics::Math;
 
 // -----------------------------------------------------------------------------
-
-LeoModel::LeoModel() :
-	activeConstraintSet (""),
-	nDof (-1),
-	nActuatedDof(0),
-	// nParameters(0)
-	dynamicsComputed (false),
-	impulsesComputed (false),
-	kinematicsUpdated (false),
-	momentumComputed (false)
+LeoHelper::LeoHelper() :
+ activeConstraintSet (""),
+ nDof (-1),
+ nActuatedDof(0),
+ // nParameters(0)
+ dynamicsComputed (false),
+ impulsesComputed (false),
+ kinematicsUpdated (false),
+ momentumComputed (false)
 {
 }
-
 // -----------------------------------------------------------------------------
 
-double LeoModel::torque_from_voltage_and_angular_velocity (
+double LeoHelper::torque_from_voltage_and_angular_velocity (
 	const double V, const double w
 ) {
 	return Kt*G*(V - Kt*G*w)/R;
 }
 
-double LeoModel::voltage_from_torque_and_angular_velocity (
+double LeoHelper::voltage_from_torque_and_angular_velocity (
 	const double tau, const double w
 ) {
 	return (R*tau)/(Kt*G) + Kt*G*w;
@@ -48,7 +47,7 @@ double LeoModel::voltage_from_torque_and_angular_velocity (
 
 // -----------------------------------------------------------------------------
 
-void LeoModel::updateState (
+void LeoHelper::updateState (
 	const double *sd, const double *u, const double *p_in,
 	const string cs_name
 ) {
@@ -66,47 +65,48 @@ void LeoModel::updateState (
 
 	assert (nDof == nActuatedDof);
 	for (unsigned int i = 0; i < nActuatedDof; i++) {
-    //tau[i] = u[i] - 0.1*qdot[i];
+		tau[i] = u[i] - 0.1*qdot[i];
 		// TODO control on voltage level
-    tau[i] = torque_from_voltage_and_angular_velocity (u[i], qdot[i]);
+		// tau[i] = torque_from_voltage_and_angular_velocity (u[i], qdot[i]);
 	}
 }
 
 // -----------------------------------------------------------------------------
 // Update robot kinematics
-void LeoModel::updateKinematics ()
+void LeoHelper::updateKinematics ()
 {
-  UpdateKinematics (model, q, qdot, qddot);
+  RigidBodyDynamics::Model m = *model;
+  UpdateKinematics (m, q, qdot, qddot);
 
   kinematicsUpdated = true;
 }
 
-void LeoModel::updateForwardDynamics ()
+void LeoHelper::updateForwardDynamics ()
 {
 	if (!activeConstraintSet.empty()) {
 		// ForwardDynamicsContactsRangeSpaceSparse (
 		ForwardDynamicsContactsNullSpace (
 		// ForwardDynamicsContactsDirect (
-			model, q, qdot, tau,
+      *model, q, qdot, tau,
 			constraints[activeConstraintSet],
 			qddot
 		);
 	} else {
-		ForwardDynamics (model, q, qdot, tau, qddot);
+    ForwardDynamics (*model, q, qdot, tau, qddot);
 	}
 
 	dynamicsComputed = true;
 }
 
-void LeoModel::updateInverseDynamics()
+void LeoHelper::updateInverseDynamics()
 {
 	// FIXME not sure what to use here
-	InverseDynamics(model, q, qdot, qddot, tau);
+  InverseDynamics(*model, q, qdot, qddot, tau);
 	// inverseDynamicsComputed = true;
 }
 
 // -----------------------------------------------------------------------------
-void LeoModel::calcForwardDynamicsRhs (double *res)
+void LeoHelper::calcForwardDynamicsRhs (double *res)
 {
 	// std::cout << "In " << __func__ << std::endl;
 	// std::cout << "activeConstraintSet = " << activeConstraintSet << std::endl;
@@ -115,13 +115,13 @@ void LeoModel::calcForwardDynamicsRhs (double *res)
 		// ForwardDynamicsContactsRangeSpaceSparse (
 		ForwardDynamicsContactsNullSpace (
 		// ForwardDynamicsContactsDirect (
-			model, q, qdot, tau,
+      *model, q, qdot, tau,
 			constraints[activeConstraintSet],
 			qddot
 		);
 	} else {
 		// std::cout << "evaluating 'ForwardDynamics'" << std::endl;
-		ForwardDynamics (model, q, qdot, tau, qddot);
+    ForwardDynamics (*model, q, qdot, tau, qddot);
 	}
 	dynamicsComputed = true;
 
@@ -131,12 +131,12 @@ void LeoModel::calcForwardDynamicsRhs (double *res)
 	}
 }
 
-void LeoModel::calcCollisionImpactRhs (double *res)
+void LeoHelper::calcCollisionImpactRhs (double *res)
 {
 	// FIXME not sure what to use here
 	// ComputeContactImpulsesRangeSpaceSparse (
 	ComputeContactImpulsesDirect (
-		model, q, qdot, constraints[activeConstraintSet], qdot_plus
+    *model, q, qdot, constraints[activeConstraintSet], qdot_plus
 	);
 
 	for (unsigned int i = 0; i < nDof; i++) {
@@ -149,7 +149,7 @@ void LeoModel::calcCollisionImpactRhs (double *res)
 
 // -----------------------------------------------------------------------------
 // Compute the position of a contact point wrt the base frame
-Vector3d LeoModel::getPointPosition (string point_name)
+Vector3d LeoHelper::getPointPosition (string point_name)
 {
 	if (!kinematicsUpdated) {
 		updateKinematics();
@@ -166,11 +166,11 @@ Vector3d LeoModel::getPointPosition (string point_name)
 	unsigned int body_id = point.body_id;
 	Vector3d point_local = point.point_local;
 
-	return CalcBodyToBaseCoordinates (model, q, body_id, point_local, false);
+  return CalcBodyToBaseCoordinates (*model, q, body_id, point_local, false);
 }
 
 // Compute the velocity of a point
-Vector3d LeoModel::getPointVelocity (string point_name)
+Vector3d LeoHelper::getPointVelocity (string point_name)
 {
 	if (!kinematicsUpdated) {
 		updateKinematics();
@@ -187,11 +187,11 @@ Vector3d LeoModel::getPointVelocity (string point_name)
 	unsigned int body_id = point.body_id;
 	Vector3d point_local = point.point_local;
 
-	return CalcPointVelocity (model, q, qdot, body_id, point_local, false);
+  return CalcPointVelocity (*model, q, qdot, body_id, point_local, false);
 }
 
 // Compute the force of a certain point according to the active constraint set
-Vector3d LeoModel::getPointForce (string point_name)
+Vector3d LeoHelper::getPointForce (string point_name)
 {
 	// check existence of points
 	if ( !points.count( point_name ) ) {
@@ -214,7 +214,7 @@ Vector3d LeoModel::getPointForce (string point_name)
 		// ForwardDynamicsContactsRangeSpaceSparse (
 		ForwardDynamicsContactsNullSpace (
 		// ForwardDynamicsContactsDirect (
-			model, q, qdot, tau,
+      *model, q, qdot, tau,
 			constraints[activeConstraintSet],
 			qddot
 		);
@@ -254,38 +254,38 @@ Vector3d LeoModel::getPointForce (string point_name)
 
 // -----------------------------------------------------------------------------
 
-RigidBodyDynamics::Math::MatrixNd LeoModel::calcMassMatrix() {
+RigidBodyDynamics::Math::MatrixNd LeoHelper::calcMassMatrix() {
 	if (!kinematicsUpdated) {
 		updateKinematics();
 	}
 
 	MatrixNd H (nDof, nDof);
-	CompositeRigidBodyAlgorithm (model, q, H, false);
+  CompositeRigidBodyAlgorithm (*model, q, H, false);
 	return H;
 }
 
 // -----------------------------------------------------------------------------
 
-RigidBodyDynamics::Math::MatrixNd LeoModel::calcContactJacobian() {
+RigidBodyDynamics::Math::MatrixNd LeoHelper::calcContactJacobian() {
 	if (!kinematicsUpdated) {
 		updateKinematics();
 	}
 
 	unsigned int rows = constraintSetInfos[activeConstraintSet].constraints.size();
 	MatrixNd G (rows, nDof);
-	CalcContactJacobian(model, q, constraints[activeConstraintSet], G, true);
+  CalcContactJacobian(*model, q, constraints[activeConstraintSet], G, true);
 	return G;
 }
 
 // -----------------------------------------------------------------------------
 
-void LeoModel::calcMomentum() {
+void LeoHelper::calcMomentum() {
 	if (!kinematicsUpdated) {
 		updateKinematics();
 	}
 
 	Utils::CalcCenterOfMass (
-		model, q, qdot, modelMass, centerOfMass,
+    *model, q, qdot, modelMass, centerOfMass,
 		&centerOfMassVelocity, &angularMomentum,
 		false
 	);
@@ -293,7 +293,7 @@ void LeoModel::calcMomentum() {
 	momentumComputed = true;
 }
 
-Vector3d LeoModel::calcAngularMomentum() {
+Vector3d LeoHelper::calcAngularMomentum() {
 	if (!kinematicsUpdated) {
 		updateKinematics();
 	}
@@ -305,7 +305,7 @@ Vector3d LeoModel::calcAngularMomentum() {
 	return angularMomentum;
 }
 
-double LeoModel::calcModelMass() {
+double LeoHelper::calcModelMass() {
 	if (!kinematicsUpdated) {
 		updateKinematics();
 	}
@@ -317,7 +317,7 @@ double LeoModel::calcModelMass() {
 	return modelMass;
 }
 
-Vector3d LeoModel::calcCenterOfMass() {
+Vector3d LeoHelper::calcCenterOfMass() {
 	if (!kinematicsUpdated) {
 		updateKinematics();
 	}
@@ -329,7 +329,7 @@ Vector3d LeoModel::calcCenterOfMass() {
 	return centerOfMass;
 }
 
-Vector3d LeoModel::calcCenterOfMassVelocity() {
+Vector3d LeoHelper::calcCenterOfMassVelocity() {
 	if (!kinematicsUpdated) {
 		updateKinematics();
 	}
@@ -343,14 +343,14 @@ Vector3d LeoModel::calcCenterOfMassVelocity() {
 
 // -----------------------------------------------------------------------------
 
-bool LeoModel::loadModelFromFile (const char* filename, bool verbose)
+bool LeoHelper::loadModelFromFile (const char* filename, bool verbose)
 {
-	if (!RigidBodyDynamics::Addons::LuaModelReadFromFile (filename, &model, verbose)) {
+  if (!RigidBodyDynamics::Addons::LuaModelReadFromFile (filename, model, verbose)) {
 		cerr << "Error loading LuaModel: " << filename << endl;
 		abort();
 	}
 
-	nDof = model.dof_count;
+  nDof = model->dof_count;
 	nActuatedDof = nDof;
 
 	assert (nActuatedDof >= 1 && nActuatedDof <= nDof);
@@ -367,14 +367,14 @@ bool LeoModel::loadModelFromFile (const char* filename, bool verbose)
 
 // -----------------------------------------------------------------------------
 
-bool LeoModel::loadPointsFromFile (const char* filename, bool verbose) {
+bool LeoHelper::loadPointsFromFile (const char* filename, bool verbose) {
 	LuaTable lua_table = LuaTable::fromFile (filename);
 
 	int point_count = lua_table["points"].length();
 
 	for (int pi = 1; pi <= point_count; pi++) {
 		Point point = lua_table["points"][pi];
-		point.body_id = model.GetBodyId (point.body_name.c_str());
+    point.body_id = model->GetBodyId (point.body_name.c_str());
 
 		points[point.name] = point;
 
@@ -396,7 +396,7 @@ bool LeoModel::loadPointsFromFile (const char* filename, bool verbose) {
 
 // -----------------------------------------------------------------------------
 
-bool LeoModel::loadConstraintSetsFromFile (const char* filename, bool verbose) {
+bool LeoHelper::loadConstraintSetsFromFile (const char* filename, bool verbose) {
 	// initialize Constraint Sets
 	LuaTable lua_table = LuaTable::fromFile (filename);
 
@@ -454,7 +454,7 @@ bool LeoModel::loadConstraintSetsFromFile (const char* filename, bool verbose) {
 		// TODO check which solver works better
 		constraints[set_name_str].linear_solver = LinearSolverHouseholderQR;
 		// constraintSets[set_name].linear_solver = LinearSolverPartialPivLU;
-		constraints[set_name_str].Bind (model);
+    constraints[set_name_str].Bind (*model);
 	}
 
 	// check whether we missed some sets
@@ -466,6 +466,7 @@ bool LeoModel::loadConstraintSetsFromFile (const char* filename, bool verbose) {
 	return true;
 }
 
+/*
 // -----------------------------------------------------------------------------
 
 // string model_path = "leo.lua";
@@ -479,7 +480,7 @@ int main(int argc, char const *argv[])
 
 	// Initialize model from lua file
 	cout << "Initializing model ..." << endl;
-	LeoModel leo;
+  LeoHelper leo;
 	leo.loadModelFromFile (model_path.c_str());
 	cout << "... successful!" << endl << endl;
 
@@ -579,5 +580,6 @@ int main(int argc, char const *argv[])
 
 	// return 0;
 }
-
+*/
 // -----------------------------------------------------------------------------
+

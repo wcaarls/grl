@@ -11,10 +11,10 @@
 #ifndef MARKER_MODEL_LUA_TYPES
 #define MARKER_MODEL_LUA_TYPES
 
-#include "leomodel.h"
-
 #include <rbdl/rbdl_math.h>
 #include <rbdl/addons/luamodel/luatables.h>
+
+#include <grl/environments/LuaBasic.h>
 
 template<> RigidBodyDynamics::Math::Vector3d LuaTableNode::getDefault<RigidBodyDynamics::Math::Vector3d>(const RigidBodyDynamics::Math::Vector3d &default_value) {
 	RigidBodyDynamics::Math::Vector3d result = default_value;
