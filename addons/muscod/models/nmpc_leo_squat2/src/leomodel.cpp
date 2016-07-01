@@ -8,7 +8,7 @@
 // Author(s): Manuel Kudruss <manuel.kudruss@iwr.uni-heidelberg.de>
 // -----------------------------------------------------------------------------
 
-#include "leomodel.h"
+#include <leomodel.h>
 
 #include <../../../../../rbdl/include/grl/environments/LuaTypes.h>
 
