@@ -239,14 +239,15 @@ void lsqfcn_height_tracking (
 	// NOTE: sum of lower body angles is equal to angle between ground slope
 	//       and torso. Minimizing deviation from zero keeps torso upright
 	//       during motion execution.
-	res[res_cnt++] = 1.00 * (
+	res[res_cnt++] = 10.00 * (
 		sd[QS["hip_left"]]
 		+ sd[QS["knee_left"]]
 		+ sd[QS["ankle_left"]]
+		- (0.15)  // desired torso angle
 	);
 
 	// regularize: || q - q_desired ||_2^2
-  res[res_cnt++] = 1 * (sd[QS["arm"]]         - (-0.26)); // arm
+  res[res_cnt++] = 1.0 * (sd[QS["arm"]]         - (-0.26)); // arm
 	// res[res_cnt++] = 1.00 * (sd[QS["hip_left"]]    - (-0.01)); // hip_left
 	// res[res_cnt++] = 0.01 * (sd[QS["knee_left"]]   - (-0.01)); // knee_left
 	// res[res_cnt++] = 0.01 * (sd[QS["ankle_left"]]  - (0.05)); // ankle_left
