@@ -97,7 +97,7 @@ class CLeoBhBase: public CLeoBhWalkSym
     bool stanceLegLeft() {return mLastStancelegWasLeft;}
 
   public:
-    void resetState(double frequency);
+    void resetState();
 
     void setObserverInterface(const EnvironmentAgentInterface::ObserverInterface oi) { interface_.observer = oi; }
     void setActuatorInterface(const EnvironmentAgentInterface::ActuatorInterface ai) { interface_.actuator = ai; }
@@ -128,13 +128,12 @@ class CLeoBhBase: public CLeoBhWalkSym
       return stanceLegLeft() ? leoSim->getJointVoltage(ljKneeLeft) : leoSim->getJointVoltage(ljKneeRight);
     }
 
-    //void setLeosimMap(int leosim_map) { leosim_map_ = leosim_map; }
+    std::string jointIndexToName(int jointIndex) const;
+    int jointNameToIndex(const std::string jointName) const;
 
   protected:
     CButterworthFilter<1>	mJointSpeedFilter[ljNumJoints];
     EnvironmentAgentInterface interface_;
-    double frequency_;
-    //int leosim_map_;
 };
 
 /// Base class for simulated and real Leo
@@ -163,15 +162,11 @@ class LeoBaseEnvironment: public Environment
     CSTGLeoSim leoSim_;
     CLeoState leoState_;
     Environment *target_env_;
-    double      frequency_;
-    int         leosim_map_;
+    std::string xml_;
 
     int observation_dims_, action_dims_;
     int target_observation_dims_, target_action_dims_;
     Vector target_obs_, target_action_;
-    Vector target_observation_min_, target_observation_max_;
-    Vector target_action_min_, target_action_max_;
-    std::vector<std::string> target_dof_;
 
     // Exporter
     Exporter *exporter_;
@@ -180,25 +175,23 @@ class LeoBaseEnvironment: public Environment
 
   protected:
     void fillObserver(const std::vector<std::string> &observed_names, EnvironmentAgentInterface::ObserverInterface &observer_interface) const;
-    int findVarIdx(const std::vector<std::string> &genericStates, std::string query) const;
-    void configParseObservations(Configuration &config, const std::vector<std::string> &sensors);
-    void configParseActions(Configuration &config, const std::vector<std::string> &actuators);
+    int findVarIdx(const std::vector<CGenericStateVar> &genericStates, std::string query) const;
+    void configParseObservations(Configuration &config, const std::vector<CGenericStateVar> &sensors);
+    void configParseActions(Configuration &config, const std::vector<CGenericActionVar> &actuators);
 
-    void fillObserve(const std::vector<std::string> &genericStates,
+    void fillObserve(const std::vector<CGenericStateVar> &genericStates,
                      const std::vector<std::string> &observeList,
                      std::vector<std::string> &observe) const;
 
-    void fillActuate(const std::vector<std::string> &genericAction,
+    void fillActuate(const std::vector<CGenericActionVar> &genericAction,
                      const std::vector<std::string> &actuateList,
                      EnvironmentAgentInterface::ActuatorInterface &out,
                      const std::string *req = NULL,
                      std::vector<int>  *reqIdx = NULL) const;
 
-    std::string jointIndexToName(int jointIndex) const;
-    int jointNameToIndex(const std::string jointName) const;
-
   private:
     CLeoBhBase *bh_; // makes it invisible in derived classes
+    //ODESTGEnvironment *ode_;
 };
 
 }

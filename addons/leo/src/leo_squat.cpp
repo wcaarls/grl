@@ -10,7 +10,7 @@ const double B = 0.28;
 
 void CLeoBhSquat::resetState(double time0)
 {
-  CLeoBhBase::resetState(frequency_);
+  CLeoBhBase::resetState();
 
   getHipHeight(getCurrentSTGState()->mJointAngles, hip_height_, hip_pos_);
 

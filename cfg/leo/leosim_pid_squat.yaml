@@ -8,9 +8,10 @@ experiment:
   output: leosim_pid_squat
   environment: 
     type: environment/leo_squat
+    xml: ../../leo/cfg/leo_learn_squatting.xml
     target_env: 
       type: environment/ode
-      xml: ../../leo/cfg/leo_learn_squatting.xml
+      xml: experiment/environment/xml
       randomize: 0
       visualize: 1
     observe: hipright, hipleft, kneeright, kneeleft, ankleright, ankleleft, direction
@@ -21,13 +22,8 @@ experiment:
       style: meshup
       variant: test
       split_runs: 1
-    target_observations: robot.torso_boom.angle, robot.torso_boom.anglerate, robot.shoulder.angle, robot.shoulder.anglerate, robot.hipright.angle, robot.hipright.anglerate, robot.hipleft.angle, robot.hipleft.anglerate, robot.kneeright.angle, robot.kneeright.anglerate, robot.kneeleft.angle, robot.kneeleft.anglerate, robot.ankleright.angle, robot.ankleright.anglerate, robot.ankleleft.angle, robot.ankleleft.anglerate, robot.toeright.contact, robot.heelright.contact, robot.toeleft.contact, robot.heelleft.contact
-    target_actions: robot.shoulder.voltage, robot.hipright.voltage, robot.hipleft.voltage, robot.kneeright.voltage, robot.kneeleft.voltage, robot.ankleright.voltage, robot.ankleleft.voltage
-    frequency: 30
-    target_observation_min: experiment/environment/target_env/observation_min
-    target_observation_max: experiment/environment/target_env/observation_max
-    target_action_min: experiment/environment/target_env/action_min
-    target_action_max: experiment/environment/target_env/action_max
+    observation_dims: experiment/environment/target_env/observation_dims
+    action_dims: experiment/environment/target_env/action_dims
   agent: 
     type: agent/master/exclusive
     gamma: 0.97

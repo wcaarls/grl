@@ -1,7 +1,7 @@
 #include <zmq_messenger.h>
 #include <iostream>
-#include <thread>
-#include <mutex>
+#include <thread>         // std::thread
+#include <mutex>          // std::mutex
 
 std::string gSubAddress;
 std::mutex gMtx;

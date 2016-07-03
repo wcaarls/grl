@@ -70,7 +70,7 @@ void LeoWalkEnvironment::start(int test, Vector *obs)
   target_env_->start(test, &target_obs_);
 
   // Parse obs into CLeoState (Start with left leg being the stance leg)
-  bh_->resetState(frequency_);
+  bh_->resetState();
   bh_->fillLeoState(target_obs_, Vector(), leoState_);
   bh_->setCurrentSTGState(&leoState_);
   bh_->setPreviousSTGState(&leoState_);
