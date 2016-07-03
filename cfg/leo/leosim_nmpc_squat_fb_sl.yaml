@@ -25,7 +25,7 @@ experiment:
       model_name: nmpc_leo_squat_fb_sl
       nmpc_model_name: nmpc_leo_squat_fb_sl
       outputs: 4
-      pf: [0.35]
+      pf: [0.28]
       initFeedback: 1
       verbose: 0
   test_agent: experiment/agent
