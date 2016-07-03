@@ -5,8 +5,8 @@
 //
 // Author(s): Manuel Kudruss <manuel.kudruss@iwr.uni-heidelberg.de>
 // -----------------------------------------------------------------------------
-#ifndef _LEO_MODEL_H
-#define _LEO_MODEL_H
+#ifndef _LEO_HELPER_H
+#define _LEO_HELPER_H
 // -----------------------------------------------------------------------------
 
 #include <vector>
@@ -15,63 +15,20 @@
 
 #include <rbdl/rbdl.h>
 #include <rbdl/rbdl_utils.h>
+
+#include <grl/lua_utils.h>
+#include <grl/environments/rbdl.h>
+#include <grl/environments/LuaBasic.h>
+
 #include <rbdl/addons/luamodel/luamodel.h>
 #include <rbdl/addons/luamodel/luatables.h>
 
-// -----------------------------------------------------------------------------
+namespace ModelHelpers {
 
-/** Data of a single point */
-struct Point {
-    Point() :
-        name ("unknown"),
-        body_id (-1),
-        body_name (""),
-        point_local (
-                std::numeric_limits<double>::signaling_NaN(),
-                std::numeric_limits<double>::signaling_NaN(),
-                std::numeric_limits<double>::signaling_NaN()
-                )
-    { }
+struct LeoHelper {
+    LeoHelper();
 
-    std::string name;
-    unsigned int body_id;
-    std::string body_name;
-    RigidBodyDynamics::Math::Vector3d point_local;
-};
-
-// -----------------------------------------------------------------------------
-
-/** Data of a single constraint */
-struct ConstraintInfo {
-    ConstraintInfo() :
-        point_id (-1),
-        point_name (""),
-        normal (
-                std::numeric_limits<double>::signaling_NaN(),
-                std::numeric_limits<double>::signaling_NaN(),
-                std::numeric_limits<double>::signaling_NaN()
-                ) {
-    }
-    unsigned int point_id;
-    std::string point_name;
-    RigidBodyDynamics::Math::Vector3d normal;
-};
-
-/** Structure that holds data of a complete constraint set */
-struct ConstraintSetInfo {
-    ConstraintSetInfo() :
-        name ("undefined") {
-    }
-    std::vector<ConstraintInfo> constraints;
-    std::string name;
-};
-
-// -----------------------------------------------------------------------------
-
-struct LeoModel {
-    LeoModel();
-
-    // Currently selected constraint set, specified by LeoModel::updateState()
+    // Currently selected constraint set, specified by LeoHelper::updateState()
     std::string activeConstraintSet;
     // Number of actual degrees of freedom
     unsigned int nDof;
@@ -87,7 +44,7 @@ struct LeoModel {
     bool momentumComputed;
 
     // The actual RBDL model
-    RigidBodyDynamics::Model model;
+    RigidBodyDynamics::Model *model;
 
     // Values that are used when calling RBDL
     // RigidBodyDynamics::Math::VectorNd p;
@@ -157,7 +114,8 @@ struct LeoModel {
     bool loadConstraintSetsFromFile (const char* filename, bool verbose=false);
 };
 
+}
 // -----------------------------------------------------------------------------
-/* _LEO_MODEL_H */
+/* _LEO_HELPER_H */
 #endif
 // -----------------------------------------------------------------------------

@@ -268,6 +268,20 @@ dynamics/rbdl:
     mutability: configuration
     default: ""
     optional: 1
+dynamics/rbdl_leo:
+  description: RBDL rigid body dynamics of Leo
+  file:
+    type: string
+    description: RBDL Lua model file
+    mutability: configuration
+    default: ""
+    optional: 1
+  options:
+    type: string
+    description: Lua string to execute when loading model
+    mutability: configuration
+    default: ""
+    optional: 1
 dynamics/tlm:
   description: Two-link manipulator dynamics
 environment/communicator:
@@ -276,7 +290,7 @@ environment/communicator:
     type: communicator
     description: Comunicator which exchanges messages with an actual environment
     mutability: configuration
-    default: 0x726f746163696e75
+    default: 0x3fcf3b645a1cac0a
     optional: 0
 environment/leo2:
   description: LEO/2 environment
@@ -1242,7 +1256,7 @@ policy/nmpc:
     min: 1
     max: 2147483647
   pf:
-    type: pf
+    type: vector.pf
     description: NMPC setpoint
     mutability: configuration
     default: "[  ]"
@@ -2581,6 +2595,38 @@ sandbox_model/compass_walker:
     optional: 1
     min: 0
     max: 1
+sandbox_model/dynamical:
+  description: State transition model that integrates equations of motion and augments state vector with additional elements
+  control_step:
+    type: double.control_step
+    description: Control step time
+    mutability: configuration
+    default: 0.05
+    optional: 1
+    min: 0.001
+    max: 1.797693134862316e+308
+  integration_steps:
+    type: int
+    description: Number of integration steps per control step
+    mutability: configuration
+    default: 5
+    optional: 1
+    min: 1
+    max: 2147483647
+  dynamics:
+    type: dynamics
+    description: Equations of motion
+    mutability: configuration
+    default: 0
+    optional: 0
+  dof_count:
+    type: int.dof_count
+    description: Number of degrees of freedom of the model
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 2147483647
 solver/agent:
   description: Solver that uses a simulated agent
   steps:
@@ -3187,6 +3233,48 @@ task/compass_walker/walk:
     optional: 1
     min: 0
     max: 2147483647
+task/leoSquat:
+  description: Task specification for Leo squatting
+  observation_dims:
+    type: int.observation_dims
+    description: Number of observation dimensions
+    mutability: provided
+  observation_min:
+    type: vector.observation_min
+    description: Lower limit on observations
+    mutability: provided
+  observation_max:
+    type: vector.observation_max
+    description: Upper limit on observations
+    mutability: provided
+  action_dims:
+    type: int.action_dims
+    description: Number of action dimensions
+    mutability: provided
+  action_min:
+    type: vector.action_min
+    description: Lower limit on actions
+    mutability: provided
+  action_max:
+    type: vector.action_max
+    description: Upper limit on actions
+    mutability: provided
+  reward_min:
+    type: double.reward_min
+    description: Lower limit on immediate reward
+    mutability: provided
+  reward_max:
+    type: double.reward_max
+    description: Upper limit on immediate reward
+    mutability: provided
+  timeout:
+    type: double.timeout
+    description: Task timeout
+    mutability: system
+    default: 10
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
 task/lua:
   description: User-provided task specification in LUA
   observation_dims:

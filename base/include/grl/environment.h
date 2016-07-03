@@ -221,6 +221,7 @@ class Dynamics : public Configurable
 
     /// Compute equations of motion, returning accelerations.
     virtual void eom(const Vector &state, const Vector &action, Vector *xdd) const = 0;
+    virtual void finalize(Vector &state) const {}
 };
 
 class DynamicalModel : public Model
@@ -235,7 +236,7 @@ class DynamicalModel : public Model
 
   public:
     DynamicalModel() : dynamics_(NULL), tau_(0.05), steps_(5) { }
-  
+        
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
@@ -315,6 +316,27 @@ class SandboxEnvironment : public Environment
     virtual void start(int test, Vector *obs);
     virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal);
 };
+
+class SandboxDynamicalModel : public DynamicalModel
+{
+  public:
+    TYPEINFO("sandbox_model/dynamical", "State transition model that integrates equations of motion and augments state vector with additional elements")
+
+  public:
+    SandboxDynamicalModel() : dof_count_(0) { }
+  
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    
+    // From Model
+    virtual SandboxDynamicalModel *clone() const;
+    virtual double step(const Vector &state, const Vector &action, Vector *next) const;
+    
+  private:
+    int dof_count_;
+};
+
 
 }
 

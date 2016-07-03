@@ -1,0 +1,34 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 0
+  steps: 0
+  rate: 30
+  test_interval: 0
+  output: rbdl_nmpc_squat2
+  environment: 
+    type: environment/sandbox
+    model: 
+      type: sandbox_model/dynamical
+      control_step: 0.05
+      integration_steps: 5
+      dynamics: 
+        type: dynamics/rbdl_leo
+        file: leo_ff_sl.lua
+      dof_count: 7
+    task: 
+      type: task/leoSquat
+      timeout: 10
+  agent: 
+    type: agent/fixed
+    policy: 
+      type: policy/nmpc
+      lua_model: leo_sl.lua
+      model_name: nmpc_leo_squat2
+      nmpc_model_name: nmpc_leo_squat2
+      outputs: 4
+      pf: [0.28]
+      initFeedback: 1
+      verbose: 0
+  test_agent: experiment/agent
+  save_every: never

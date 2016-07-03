@@ -13,6 +13,8 @@ if (LUA51_FOUND)
   # Build library
   add_library(${TARGET} SHARED
               ${SRC}/rbdl.cpp
+              ${SRC}/leohelper.cpp
+              ${SRC}/rbdl_leo.cpp
              )
 
   set_source_files_properties(${SRC}/rbdl.cpp PROPERTIES COMPILE_FLAGS "-Wno-pedantic -Wno-variadic-macros")
