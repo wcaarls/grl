@@ -49,12 +49,12 @@ class NMPCPolicy : public Policy
     // MUSCOD-II interface
     MUSCOD *muscod_nmpc_;
     NMPCProblem *nmpc_;
-    std::string nmpc_model_name_, lua_model_, model_name_;
+    std::string model_name_, lua_model_, nmpc_model_name_;
     size_t outputs_;
     Vector initial_sd_, initial_pf_, initial_qc_, final_sd_;
 
   public:
-    NMPCPolicy() : muscod_nmpc_(NULL), outputs_(1), verbose_(false), initFeedback_(0) { }
+    NMPCPolicy() : muscod_nmpc_(NULL), outputs_(1), verbose_(0), initFeedback_(0) { }
     ~NMPCPolicy();
 
     // From Configurable

@@ -10,7 +10,7 @@
 
 *  # of multiple shooting intervals on model stages
 nshoot
-0: 10
+0: 5
 
 nstop(*,*)
 100
@@ -242,7 +242,7 @@ nhist
 * Choosing libraries *
 
 libmodel
-libnmpc_leo_squat2
+libnmpc_leo_squat_fb_sl
 
 libhessian
 hess_gaussnewton
@@ -288,9 +288,9 @@ plot_pgplot
 options_acc
 1e-5
 options_ftol
-1e-6
+1e-5
 options_itol
-1e-6
+1e-5
 options_rfac
 0.0
 options_levmar

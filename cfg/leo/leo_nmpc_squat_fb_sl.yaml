@@ -21,7 +21,7 @@ experiment:
     actuate: ankle, knee, hip, shoulder
     exporter: 
       type: exporter/csv
-      file: leo_pid_squat
+      file: leo_nmpc_squat
       style: meshup
       variant: test
       split_runs: 1
@@ -31,11 +31,11 @@ experiment:
     type: agent/fixed
     policy: 
       type: policy/nmpc
-      lua_model: leo_sl.lua
-      model_name: nmpc_leo_squat2
-      nmpc_model_name: nmpc_leo_squat2
+      lua_model: leo_fb_sl.lua
+      model_name: nmpc_leo_squat_fb_sl
+      nmpc_model_name: nmpc_leo_squat_fb_sl
       outputs: 4
-      pf: [ 0.28 ]
+      pf: [0.35]
       initFeedback: 1
       verbose: 0
   test_agent: experiment/agent

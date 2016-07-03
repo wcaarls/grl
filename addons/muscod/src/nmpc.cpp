@@ -165,13 +165,20 @@ TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
     muscod_reset(in2, time);
   }
 
-  if (time >= 2.0) {
-    initial_pf_ << 0.35;
+  if (time < 5.0) {
+    initial_pf_ << 0.28;
   }
+  else if (time < 15.0)
+    initial_pf_ << 0.28 + ((time-5)/10.0)*(0.35-0.28);
+  else
+    initial_pf_ << 0.35;
 
+
+/*
   if (time >= 4.0) {
     initial_pf_ << 0.28;
   }
+
 
   if (time >= 6.0) {
     initial_pf_ << 0.35;
@@ -184,10 +191,11 @@ TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
   if (time >= 9.5) {
     initial_pf_ << 0.35;
   }
-
-  if (verbose_) {
+*/
+  if (verbose_)
+  {
     std::cout << "time: [ " << time << " ]; state: [ " << in2 << "]" << std::endl;
-    std::cout << "                          param: [ " << initial_pf_ << "]" << std::endl;
+//    std::cout << "                          param: [ " << initial_pf_ << "]" << std::endl;
   }
 
   out->resize(outputs_);

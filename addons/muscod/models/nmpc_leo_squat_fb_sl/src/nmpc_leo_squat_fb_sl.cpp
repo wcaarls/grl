@@ -32,7 +32,7 @@ using namespace RigidBodyDynamics::Math;
 
 // -----------------------------------------------------------------------------
 
-string path_to_lua_file = "leo_sl.lua";
+string path_to_lua_file = "leo_fb_sl.lua";
 
 LeoModel leo;
 // std::vector<LeoModel> leo_models;
@@ -688,6 +688,6 @@ void def_model (void)
 	// NOTE: data_in is used to calculate current NMOS and NMS
 	//       or instantiate different RBLD models for parallel evaluation of
 	//       shooting nodes.
-	def_mio (data_in , meshup_out, data_out);
+  def_mio (data_in , NULL, NULL);
 }
 // -----------------------------------------------------------------------------

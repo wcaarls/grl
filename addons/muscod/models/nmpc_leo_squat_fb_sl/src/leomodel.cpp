@@ -470,7 +470,7 @@ bool LeoModel::loadConstraintSetsFromFile (const char* filename, bool verbose) {
 
 // string model_path = "leo.lua";
 // string model_path = "leo_dl.lua";
-string model_path = "leo_sl.lua";
+string model_path = "leo_fb_sl.lua";
 
 int main(int argc, char const *argv[])
 {

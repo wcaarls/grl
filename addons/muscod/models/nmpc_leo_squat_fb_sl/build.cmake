@@ -1,5 +1,5 @@
 # Setup build environment
-set(TARGET nmpc_leo_squat2)
+set(TARGET nmpc_leo_squat_fb_sl)
 
 ADD_LIBRARY ( ${TARGET} SHARED 
               ${SRC}/${TARGET}.cpp
@@ -18,5 +18,5 @@ install(DIRECTORY ${SRC}/../include/grl DESTINATION ${GRL_INCLUDE_DESTINATION} F
 
 
 # Cartpole library links
-execute_process(COMMAND ln -s -f ${CMAKE_CURRENT_BINARY_DIR}/libnmpc_leo_squat2.so ${SRC}/../../../cfg/nmpc_leo_squat2/libnmpc_leo_squat2.so)
+execute_process(COMMAND ln -s -f ${CMAKE_CURRENT_BINARY_DIR}/lib${TARGET}.so ${SRC}/../../../cfg/${TARGET}/lib${TARGET}.so)
 
