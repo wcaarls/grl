@@ -19,6 +19,10 @@ using namespace std;
 using namespace RigidBodyDynamics;
 using namespace RigidBodyDynamics::Math;
 
+const double LeoHelper::Kt = 0.00992;
+const double LeoHelper::G = 193.0;
+const double LeoHelper::R = 8.6;
+
 // -----------------------------------------------------------------------------
 LeoHelper::LeoHelper() :
  activeConstraintSet (""),

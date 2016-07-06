@@ -80,9 +80,9 @@ struct LeoHelper {
     void updateInverseDynamics();
 
     // conversion of torques to/from voltages for given angular velocity of dynamixel
-    const double Kt = 0.00992;
-    const double G = 193.0;
-    const double R = 8.6;
+    static const double Kt;
+    static const double G;
+    static const double R;
     double torque_from_voltage_and_angular_velocity (const double V, const double w);
     double voltage_from_torque_and_angular_velocity (const double tau, const double w);
 
