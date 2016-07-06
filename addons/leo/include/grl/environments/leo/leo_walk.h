@@ -16,6 +16,8 @@ class CLeoBhWalk: public CLeoBhBase
   public:
     CLeoBhWalk(ISTGActuation *actuationInterface) : CLeoBhBase(actuationInterface) {}
     double calculateReward();
+    void parseLeoState(const CLeoState &leoState, Vector &obs);
+    void parseLeoAction(const Vector &action, Vector &target_action);
     std::string getProgressReport(double trialTime);
 };
 
@@ -42,7 +44,7 @@ class LeoWalkEnvironment: public LeoBaseEnvironment
     
   protected:
     int requested_action_dims_;
-    int learn_stance_knee_;
+    //int learn_stance_knee_;
     CLeoBhWalk *bh_;
 };
 

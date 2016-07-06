@@ -11,6 +11,62 @@ double CLeoBhWalk::calculateReward()
   return CLeoBhWalkSym::calculateReward();
 }
 
+void CLeoBhWalk::parseLeoState(const CLeoState &leoState, Vector &obs)
+{
+  int i, j;
+  for (i = 0; i < interface_.observer.angles.size(); i++)
+    obs[i] = leoState.mJointAngles[ interface_.observer.angles[i] ];
+  for (j = 0; j < interface_.observer.angle_rates.size(); j++)
+    obs[i+j] = leoState.mJointSpeeds[ interface_.observer.angle_rates[j] ];
+  for (int k = 0; k < interface_.observer.augmented.size(); k++)
+  {
+    if (interface_.observer.augmented[k] == "heeltoe")
+      obs[i+j+k] = (leoState.mFootContacts == 0?0:1);
+    else
+    {
+      ERROR("Unknown augmented field '" << interface_.observer.augmented[i] << "'");
+      throw bad_param("leo_walk:observer_idx_.augmented[i]");
+    }
+  }
+}
+
+void CLeoBhWalk::parseLeoAction(const Vector &action, Vector &target_action)
+{
+  double actionArm, actionStanceKnee, actionSwingKnee, actionStanceHip, actionSwingHip;
+  Vector actionAnkles;
+
+  actionStanceHip = action[0];
+  actionSwingHip  = action[1];
+  actionSwingKnee = action[2];
+
+  bool ankle_autoActuated = false;
+  for (int i = 0; i < interface_.actuator.autoActuated.size(); i++)
+  {
+    if (interface_.actuator.autoActuated[i] == "shoulder")
+      actionArm = grlAutoActuateArm();
+    if (interface_.actuator.autoActuated[i] == "kneeright") // refers to a stance leg
+      actionStanceKnee = grlAutoActuateKnee();
+    if ((interface_.actuator.autoActuated[i] == "ankleright") || (interface_.actuator.autoActuated[i] == "ankleleft"))
+    {
+      if (!ankle_autoActuated)
+      {
+        grlAutoActuateAnkles(actionAnkles);
+        ankle_autoActuated = true;
+      }
+    }
+  }
+
+  // concatenation happens in the order of <actionvar> definitions in an xml file
+  // shoulder, right hip, left hip, right knee, left knee, right ankle, left ankle
+  if (stanceLegLeft())
+    target_action << actionArm, actionSwingHip, actionStanceHip, actionSwingKnee, actionStanceKnee, actionAnkles;
+  else
+    target_action << actionArm, actionStanceHip, actionSwingHip, actionStanceKnee, actionSwingKnee, actionAnkles;
+
+  //ode_action_ << ConstantVector(7, 5.0); // #ivan
+}
+
+
 std::string CLeoBhWalk::getProgressReport(double trialTime)
 {
   const int pw = 15;
@@ -40,8 +96,7 @@ std::string CLeoBhWalk::getProgressReport(double trialTime)
 
 /////////////////////////////////
 
-LeoWalkEnvironment::LeoWalkEnvironment() :
-  learn_stance_knee_(0)
+LeoWalkEnvironment::LeoWalkEnvironment()
 {
   bh_ = new CLeoBhWalk(&leoSim_);
   set_bh(bh_);
@@ -50,13 +105,41 @@ LeoWalkEnvironment::LeoWalkEnvironment() :
 void LeoWalkEnvironment::request(ConfigurationRequest *config)
 {
   LeoBaseEnvironment::request(config);
-  config->push_back(CRP("learn_stance_knee", "Learn stance knee", learn_stance_knee_, CRP::Configuration, 0, 1));
 }
 
 void LeoWalkEnvironment::configure(Configuration &config)
 {
   LeoBaseEnvironment::configure(config);
-  learn_stance_knee_ = config["learn_stance_knee"];
+
+  // Augmenting state with a direction indicator variable: sit down or stand up
+  const EnvironmentAgentInterface &interface = bh_->getInterface();
+  Vector obs_min = config["observation_min"].v();
+  Vector obs_max = config["observation_max"].v();
+
+  for (int i = 0; i < interface.observer.augmented.size(); i++)
+  {
+    if (interface.observer.augmented[i] == "direction")
+    {
+      obs_min[interface.observer.angles.size()+interface.observer.angle_rates.size() + i] = -1;
+      obs_max[interface.observer.angles.size()+interface.observer.angle_rates.size() + i] = +1;
+    }
+    else if (interface.observer.augmented[i] == "heeltoe")
+    {
+      obs_min[interface.observer.angles.size()+interface.observer.angle_rates.size() + i] =  0;
+      obs_max[interface.observer.angles.size()+interface.observer.angle_rates.size() + i] =  1;
+    }
+    else
+    {
+      ERROR("Unknown augmented field '" << interface.observer.augmented[i] << "'");
+      throw bad_param("leo_squat:os.augmented[i]");
+    }
+  }
+
+  config.set("observation_min", obs_min);
+  config.set("observation_max", obs_max);
+
+  TRACE("Observation min: " << obs_min);
+  TRACE("Observation max: " << obs_max);
 }
 
 LeoWalkEnvironment *LeoWalkEnvironment::clone() const
@@ -66,14 +149,15 @@ LeoWalkEnvironment *LeoWalkEnvironment::clone() const
 
 void LeoWalkEnvironment::start(int test, Vector *obs)
 {
-  // ODEEnvironment::start(test, &ode_obs_);
-  target_env_->start(test, &target_obs_);
+  LeoBaseEnvironment::start(test);
+
+  target_env_->start(test_, &target_obs_);
 
   // Parse obs into CLeoState (Start with left leg being the stance leg)
-  bh_->resetState();
   bh_->fillLeoState(target_obs_, Vector(), leoState_);
   bh_->setCurrentSTGState(&leoState_);
   bh_->setPreviousSTGState(&leoState_);
+  bh_->resetState();
 
   // update derived state variables
   bh_->updateDerivedStateVars(&leoState_); // swing-stance switching happens here
@@ -83,8 +167,6 @@ void LeoWalkEnvironment::start(int test, Vector *obs)
   bh_->parseLeoState(leoState_, *obs);
 
   bh_->setCurrentSTGState(NULL);
-
-  LeoBaseEnvironment::start(test);
 }
 
 double LeoWalkEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)
@@ -93,37 +175,11 @@ double LeoWalkEnvironment::step(const Vector &action, Vector *obs, double *rewar
 
   bh_->setCurrentSTGState(&leoState_);
 
-  // auto actuate unlearned joints to find complete action vector
-  double actionArm, actionStanceKnee, actionSwingKnee, actionStanceHip, actionSwingHip;
-  actionStanceHip = action[0];
-  actionSwingHip  = action[1];
-  if (!learn_stance_knee_)
-  {
-    // Auto actuation of the stance knee
-    actionStanceKnee = bh_->grlAutoActuateKnee();
-    actionSwingKnee  = action[2];
-  }
-  else
-  {
-    // Learn both actions
-    actionStanceKnee = action[2];
-    actionSwingKnee  = action[3];
-  }
-  Vector actionAnkles;
-  bh_->grlAutoActuateAnkles(actionAnkles);
-  actionArm = bh_->grlAutoActuateArm();
+  // Reconstruct a Leo action from a possibly reduced agent action
+  bh_->parseLeoAction(action, target_action_);
 
-  // concatenation happens in the order of <actionvar> definitions in an xml file
-  // shoulder, right hip, left hip, right knee, left knee, right ankle, left ankle
-  if (bh_->stanceLegLeft())
-    target_action_ << actionArm, actionSwingHip, actionStanceHip, actionSwingKnee, actionStanceKnee, actionAnkles;
-  else
-    target_action_ << actionArm, actionStanceHip, actionSwingHip, actionStanceKnee, actionSwingKnee, actionAnkles;
-
-  //ode_action_ << ConstantVector(7, 5.0); // #ivan
-
+  // Execute action
   bh_->setPreviousSTGState(&leoState_);
-  //double tau = ODEEnvironment::step(ode_action_, &ode_obs_, reward, terminal);
   double tau = target_env_->step(target_action_, &target_obs_, reward, terminal);
 
   // Filter joint speeds
@@ -134,21 +190,22 @@ double LeoWalkEnvironment::step(const Vector &action, Vector *obs, double *rewar
   // update derived state variables
   bh_->updateDerivedStateVars(&leoState_);
 
+  // construct new obs from CLeoState
+  bh_->parseLeoState(leoState_, *obs);
+
   // Determine reward
   *reward = bh_->calculateReward();
 
   // ... and termination
   if (*terminal == 1) // timeout
     *terminal = 1;
-  else if (bh_->isDoomedToFall(&leoState_, false))
+  else if (bh_->isDoomedToFall(&leoState_, true))
     *terminal = 2;
   else
     *terminal = 0;
 
-  // construct new obs from CLeoState
-  bh_->parseLeoState(leoState_, *obs);
-
   LeoBaseEnvironment::step(tau, *reward, *terminal);
+
   return tau;
 }
 

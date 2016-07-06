@@ -8,22 +8,20 @@ experiment:
   output: leosim_ff_walk
   environment: 
     type: environment/leo_walk
-    xml: /home/ivan/work/Project/Software/grl/src/grl/addons/leo/cfg/leolearnwalking-sarsa-tc.xml
+    xml: ../../leo/cfg/leo_walk.xml
     target_env: 
       type: environment/ode
       xml: experiment/environment/xml
+      randomize: 0
       visualize: 1
     observe: torso_boom, hipright, hipleft, kneeright, kneeleft
-    actuate: hipright, hipleft, kneeright
+    actuate: hipright, hipleft, kneeleft
     observation_dims: experiment/environment/target_env/observation_dims
     action_dims: experiment/environment/target_env/action_dims
-    learn_stance_knee: 0
   agent: 
     type: agent/fixed
     policy: 
       type: policy/feed_forward
-      action_dims: 3
-      time_control: []
       input: /home/ivan/work/Project/Software/grl/src/grl/addons/leo/csv/walking.csv
   test_agent: experiment/agent
   save_every: never

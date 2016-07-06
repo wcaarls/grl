@@ -290,7 +290,7 @@ environment/communicator:
     type: communicator
     description: Comunicator which exchanges messages with an actual environment
     mutability: configuration
-    default: 0x3fcf3b645a1cac0a
+    default: 0x11a93a0
     optional: 0
 environment/leo2:
   description: LEO/2 environment
@@ -408,14 +408,6 @@ environment/leo_walk:
     optional: 1
     min: 0
     max: 2147483647
-  learn_stance_knee:
-    type: int
-    description: Learn stance knee
-    mutability: configuration
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
 environment/modeled:
   description: Environment that uses a state transition model internally
   model:

@@ -69,7 +69,10 @@ void FeedForwardPolicy::configure(Configuration &config)
   }
   else
   {
+    INFO("Reading input as a vector of doubles");
     const std::vector<std::string> list = cutLongStr(config["input"]);
+    if (list.size() < 2)
+      throw bad_param("policy/feed_forward:input");
     for (int i = 0; i < list.size(); i++)
       v.push_back(std::stod(list[i]));
   }
