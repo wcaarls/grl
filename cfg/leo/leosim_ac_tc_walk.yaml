@@ -7,13 +7,18 @@ experiment:
   test_interval: 10
   output: leo_ac_tc_walk
   environment: 
-    type: environment/leosim
-    xml: leolearnwalking-sarsa-tc.xml
-    visualize: 1
+    type: environment/leo_walk
+    xml: ../../leo/cfg/leo_walk.xml
+    target_env: 
+      type: environment/ode
+      xml: experiment/environment/xml
+      randomize: 0
+      visualize: 1
     observe: torso_boom, hipright, hipleft, kneeright, kneeleft
-    actuate: hipright, hipleft, kneeright, kneeleft
-    learn_stance_knee: 0
-  agent:
+    actuate: hipright, hipleft, kneeleft
+    observation_dims: experiment/environment/target_env/observation_dims
+    action_dims: experiment/environment/target_env/action_dims
+  agent: 
     type: agent/td
     policy: 
       type: policy/action
@@ -28,8 +33,8 @@ experiment:
         projector: 
           type: projector/tile_coding
           tilings: 16
-          memory: 8388608
-          resolution: [0.14, 5, 0.28, 10, 0.28, 10, 0.28, 10, 0.28, 10]
+          memory: 25165824
+          resolution: [0.14, 0.28, 0.28, 0.28, 0.28, 5, 10, 10, 10, 10]
           wrapping: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
       representation: 
         type: representation/parameterized/linear
