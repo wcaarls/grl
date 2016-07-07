@@ -72,6 +72,7 @@ add_library(${TARGET} SHARED
             ${SRC}/representations/ann.cpp
 #            ${SRC}/representations/dmp.cpp
             ${SRC}/representations/additive.cpp
+            ${SRC}/representations/iterative.cpp
             ${SRC}/samplers/greedy.cpp
             ${SRC}/samplers/softmax.cpp
             ${SRC}/solvers/agent.cpp

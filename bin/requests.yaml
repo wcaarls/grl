@@ -2628,6 +2628,30 @@ representation/additive:
     optional: 1
     min: 0
     max: 2
+representation/iterative:
+  description: Representation that iteratively trains a sub-representation
+  epochs:
+    type: int
+    description: Learning epochs
+    mutability: configuration
+    default: 5000
+    optional: 1
+    min: 0
+    max: 2147483647
+  cumulative:
+    type: int
+    description: Add to training set instead of replacing it
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 0
+    max: 1
+  representation:
+    type: representation.
+    description: Downstream representation
+    mutability: configuration
+    default: 0
+    optional: 0
 representation/llr:
   description: Performs locally linear regression through samples
   ridge:
@@ -2690,54 +2714,32 @@ representation/parameterized/ann:
     type: int
     description: Number of input dimensions
     mutability: system
-    default: 0
+    default: 1
     optional: 1
     min: 1
     max: 2147483647
-  output_min:
-    type: vector
-    description: Lower limit on outputs
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  output_max:
-    type: vector
-    description: Upper limit on outputs
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  hiddens:
+  outputs:
     type: int
-    description: Number of hidden nodes
-    mutability: configuration
-    default: 10
-    optional: 1
-    min: 0
-    max: 64
-  steepness:
-    type: double
-    description: Steepness of activation function
-    mutability: configuration
-    default: 5
-    optional: 1
-    min: 0
-    max: 1.797693134862316e+308
-  bias:
-    type: int
-    description: Use bias nodes
-    mutability: configuration
+    description: Number of output dimensions
+    mutability: system
     default: 1
     optional: 1
-    min: 0
-    max: 1
-  recurrent:
-    type: int
-    description: Feed hidden activation back as input
+    min: 1
+    max: 2147483647
+  hiddens:
+    type: vector
+    description: Number of hidden nodes per layer
     mutability: configuration
-    default: 0
+    default: "[ 5 ]"
+    optional: 1
+  eta:
+    type: double
+    description: Learning rate (0=RPROP)
+    mutability: configuration
+    default: 0.7
     optional: 1
     min: 0
-    max: 1
+    max: 2
 representation/parameterized/linear:
   description: Linear-in-parameters representation
   init_min:
@@ -4579,6 +4581,30 @@ representation/additive.transition:
     optional: 1
     min: 0
     max: 2
+representation/iterative.transition:
+  description: Representation that iteratively trains a sub-representation
+  epochs:
+    type: int
+    description: Learning epochs
+    mutability: configuration
+    default: 5000
+    optional: 1
+    min: 0
+    max: 2147483647
+  cumulative:
+    type: int
+    description: Add to training set instead of replacing it
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 0
+    max: 1
+  representation:
+    type: representation.transition
+    description: Downstream representation
+    mutability: configuration
+    default: 0
+    optional: 0
 representation/llr.transition:
   description: Performs locally linear regression through samples
   ridge:
@@ -4641,54 +4667,32 @@ representation/parameterized/ann.transition:
     type: int.observation_dims+int.action_dims
     description: Number of input dimensions
     mutability: system
-    default: 0
+    default: 1
     optional: 1
     min: 1
     max: 2147483647
-  output_min:
-    type: vector
-    description: Lower limit on outputs
+  outputs:
+    type: int.observation_dims+2
+    description: Number of output dimensions
     mutability: system
-    default: "[  ]"
-    optional: 1
-  output_max:
-    type: vector
-    description: Upper limit on outputs
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  hiddens:
-    type: int
-    description: Number of hidden nodes
-    mutability: configuration
-    default: 10
-    optional: 1
-    min: 0
-    max: 64
-  steepness:
-    type: double
-    description: Steepness of activation function
-    mutability: configuration
-    default: 5
-    optional: 1
-    min: 0
-    max: 1.797693134862316e+308
-  bias:
-    type: int
-    description: Use bias nodes
-    mutability: configuration
     default: 1
     optional: 1
-    min: 0
-    max: 1
-  recurrent:
-    type: int
-    description: Feed hidden activation back as input
+    min: 1
+    max: 2147483647
+  hiddens:
+    type: vector
+    description: Number of hidden nodes per layer
     mutability: configuration
-    default: 0
+    default: "[ 5 ]"
+    optional: 1
+  eta:
+    type: double
+    description: Learning rate (0=RPROP)
+    mutability: configuration
+    default: 0.7
     optional: 1
     min: 0
-    max: 1
+    max: 2
 representation/parameterized/linear.transition:
   description: Linear-in-parameters representation
   init_min:
@@ -5020,6 +5024,30 @@ representation/additive.action:
     optional: 1
     min: 0
     max: 2
+representation/iterative.action:
+  description: Representation that iteratively trains a sub-representation
+  epochs:
+    type: int
+    description: Learning epochs
+    mutability: configuration
+    default: 5000
+    optional: 1
+    min: 0
+    max: 2147483647
+  cumulative:
+    type: int
+    description: Add to training set instead of replacing it
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 0
+    max: 1
+  representation:
+    type: representation.action
+    description: Downstream representation
+    mutability: configuration
+    default: 0
+    optional: 0
 representation/llr.action:
   description: Performs locally linear regression through samples
   ridge:
@@ -5082,54 +5110,32 @@ representation/parameterized/ann.action:
     type: int.observation_dims
     description: Number of input dimensions
     mutability: system
-    default: 0
-    optional: 1
-    min: 1
-    max: 64
-  output_min:
-    type: vector.action_min
-    description: Lower limit on outputs
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  output_max:
-    type: vector.action_max
-    description: Upper limit on outputs
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  hiddens:
-    type: int
-    description: Number of hidden nodes
-    mutability: configuration
-    default: 10
-    optional: 1
-    min: 0
-    max: 64
-  steepness:
-    type: double
-    description: Steepness of activation function
-    mutability: configuration
-    default: 5
-    optional: 1
-    min: 0
-    max: 1.797693134862316e+308
-  bias:
-    type: int
-    description: Use bias nodes
-    mutability: configuration
     default: 1
     optional: 1
-    min: 0
-    max: 1
-  recurrent:
-    type: int
-    description: Feed hidden activation back as input
+    min: 1
+    max: 2147483647
+  outputs:
+    type: int.action_dims
+    description: Number of output dimensions
+    mutability: system
+    default: 1
+    optional: 1
+    min: 1
+    max: 2147483647
+  hiddens:
+    type: vector
+    description: Number of hidden nodes per layer
     mutability: configuration
-    default: 0
+    default: "[ 5 ]"
+    optional: 1
+  eta:
+    type: double
+    description: Learning rate (0=RPROP)
+    mutability: configuration
+    default: 0.7
     optional: 1
     min: 0
-    max: 1
+    max: 2
 representation/parameterized/linear.action:
   description: Linear-in-parameters representation
   init_min:
@@ -5254,6 +5260,30 @@ representation/additive.value/action:
     optional: 1
     min: 0
     max: 2
+representation/iterative.value/action:
+  description: Representation that iteratively trains a sub-representation
+  epochs:
+    type: int
+    description: Learning epochs
+    mutability: configuration
+    default: 5000
+    optional: 1
+    min: 0
+    max: 2147483647
+  cumulative:
+    type: int
+    description: Add to training set instead of replacing it
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 0
+    max: 1
+  representation:
+    type: representation.value/action
+    description: Downstream representation
+    mutability: configuration
+    default: 0
+    optional: 0
 representation/llr.value/action:
   description: Performs locally linear regression through samples
   ridge:
@@ -5316,54 +5346,32 @@ representation/parameterized/ann.value/action:
     type: int.observation_dims+int.action_dims
     description: Number of input dimensions
     mutability: system
-    default: 0
+    default: 1
     optional: 1
     min: 1
     max: 2147483647
-  output_min:
-    type: vector
-    description: Lower limit on outputs
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  output_max:
-    type: vector
-    description: Upper limit on outputs
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  hiddens:
+  outputs:
     type: int
-    description: Number of hidden nodes
-    mutability: configuration
-    default: 10
-    optional: 1
-    min: 0
-    max: 64
-  steepness:
-    type: double
-    description: Steepness of activation function
-    mutability: configuration
-    default: 5
-    optional: 1
-    min: 0
-    max: 1.797693134862316e+308
-  bias:
-    type: int
-    description: Use bias nodes
-    mutability: configuration
+    description: Number of output dimensions
+    mutability: system
     default: 1
     optional: 1
-    min: 0
-    max: 1
-  recurrent:
-    type: int
-    description: Feed hidden activation back as input
+    min: 1
+    max: 2147483647
+  hiddens:
+    type: vector
+    description: Number of hidden nodes per layer
     mutability: configuration
-    default: 0
+    default: "[ 5 ]"
+    optional: 1
+  eta:
+    type: double
+    description: Learning rate (0=RPROP)
+    mutability: configuration
+    default: 0.7
     optional: 1
     min: 0
-    max: 1
+    max: 2
 representation/parameterized/linear.value/action:
   description: Linear-in-parameters representation
   init_min:
@@ -5428,6 +5436,30 @@ representation/additive.value/state:
     optional: 1
     min: 0
     max: 2
+representation/iterative.value/state:
+  description: Representation that iteratively trains a sub-representation
+  epochs:
+    type: int
+    description: Learning epochs
+    mutability: configuration
+    default: 5000
+    optional: 1
+    min: 0
+    max: 2147483647
+  cumulative:
+    type: int
+    description: Add to training set instead of replacing it
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 0
+    max: 1
+  representation:
+    type: representation.value/state
+    description: Downstream representation
+    mutability: configuration
+    default: 0
+    optional: 0
 representation/llr.value/state:
   description: Performs locally linear regression through samples
   ridge:
@@ -5490,54 +5522,32 @@ representation/parameterized/ann.value/state:
     type: int.observation_dims
     description: Number of input dimensions
     mutability: system
-    default: 0
+    default: 1
     optional: 1
     min: 1
     max: 2147483647
-  output_min:
-    type: vector
-    description: Lower limit on outputs
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  output_max:
-    type: vector
-    description: Upper limit on outputs
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  hiddens:
+  outputs:
     type: int
-    description: Number of hidden nodes
-    mutability: configuration
-    default: 10
-    optional: 1
-    min: 0
-    max: 64
-  steepness:
-    type: double
-    description: Steepness of activation function
-    mutability: configuration
-    default: 5
-    optional: 1
-    min: 0
-    max: 1.797693134862316e+308
-  bias:
-    type: int
-    description: Use bias nodes
-    mutability: configuration
+    description: Number of output dimensions
+    mutability: system
     default: 1
     optional: 1
-    min: 0
-    max: 1
-  recurrent:
-    type: int
-    description: Feed hidden activation back as input
+    min: 1
+    max: 2147483647
+  hiddens:
+    type: vector
+    description: Number of hidden nodes per layer
     mutability: configuration
-    default: 0
+    default: "[ 5 ]"
+    optional: 1
+  eta:
+    type: double
+    description: Learning rate (0=RPROP)
+    mutability: configuration
+    default: 0.7
     optional: 1
     min: 0
-    max: 1
+    max: 2
 representation/parameterized/linear.value/state:
   description: Linear-in-parameters representation
   init_min:

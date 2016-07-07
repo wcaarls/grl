@@ -2,10 +2,10 @@
  * \brief Artificial neural network representation header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-02-14
+ * \date      2016-06-26
  *
  * \copyright \verbatim
- * Copyright (c) 2015, Wouter Caarls
+ * Copyright (c) 2016, Wouter Caarls
  * All rights reserved.
  *
  * This file is part of GRL, the Generic Reinforcement Learning library.
@@ -33,6 +33,20 @@
 namespace grl
 {
 
+struct ANNLayer
+{
+  size_t size; // Neurons in this layer (excluding bias)
+  Eigen::Map<Matrix> W; // weights from previous layer (neurons_prev+1*neurons)
+  Matrix delta; // dE/dnet (neurons*samples)
+  Matrix activation; // from feedforward pass (neurons*samples)
+  Matrix Delta; // weight adjustment (neurons_prev+1*neurons)
+  
+  // For RPROP
+  Matrix eta, prev_Delta;
+  
+  ANNLayer() : W(NULL, 0, 0) { }
+};
+
 /// Artificial neural network.
 class ANNRepresentation : public ParameterizedRepresentation
 {
@@ -40,14 +54,21 @@ class ANNRepresentation : public ParameterizedRepresentation
     TYPEINFO("representation/parameterized/ann", "Parameterized artificial neural network representation")
 
   protected:
-    Vector output_min_, output_max_;
-    size_t inputs_, hiddens_, outputs_;
-    Vector weights_, state_;
-    double steepness_;
-    int bias_, recurrent_;
+    size_t inputs_, outputs_;
+    Vector hiddens_;
+    double eta_;
+    
+    Vector params_;
+    std::vector<ANNLayer> layers_;
+
+    double error_;
+    size_t samples_;
 
   public:
-    ANNRepresentation() : inputs_(0), hiddens_(10), outputs_(0), steepness_(5), bias_(1), recurrent_(0) { }
+    ANNRepresentation() : inputs_(1), outputs_(1), eta_(0.7), error_(0), samples_(0)
+    {
+      hiddens_ = VectorConstructor(5);
+    }
     
     // From Configurable
     virtual void request(const std::string &role, ConfigurationRequest *config);
@@ -59,27 +80,37 @@ class ANNRepresentation : public ParameterizedRepresentation
     virtual double read(const ProjectionPtr &projection, Vector *result, Vector *stddev) const;
     virtual void write(const ProjectionPtr projection, const Vector &target, const Vector &alpha);
     virtual void update(const ProjectionPtr projection, const Vector &delta);
+    virtual void finalize();
 
     virtual size_t size() const
     {
-      return (inputs_+bias_+recurrent_)*hiddens_+(hiddens_+bias_)*outputs_;
+      return params_.size();
     }
     
     virtual const Vector &params() const
     {
-      return weights_;
+      return params_;
     }
     
     virtual Vector &params()
     {
-      return weights_;
+      return params_;
     }
 
   protected:
-    inline double activate(double x) const
+    /// Sigmoid activation
+    inline static Matrix activate(const Matrix &x)
     {
-      return 1/(1+exp(-steepness_*x));
+      return (1.+(-x.array()).exp()).inverse();
     }
+    
+    /// Derivative of sigmoid activation
+    inline static Matrix dactivate(const Matrix &x)
+    {
+      return x.array()*(1.-x.array());
+    }
+    
+    void backprop(const Matrix &in, const Matrix &out);
 };
 
 }
