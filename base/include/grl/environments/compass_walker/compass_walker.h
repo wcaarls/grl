@@ -86,7 +86,6 @@ class CompassWalkerSandbox : public Sandbox
     size_t steps_;
     CSWModel model_;
     std::deque<double> hip_instant_velocity_;
-    Vector state_;
     Exporter *exporter_;
     int use_avg_velocity_;
 

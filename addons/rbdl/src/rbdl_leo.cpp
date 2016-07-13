@@ -72,13 +72,16 @@ void LeoSquatTask::request(ConfigurationRequest *config)
 
 void LeoSquatTask::configure(Configuration &config)
 {
-  observation_dims_ = 7;
+  //observation_dims_ = 7;
+  observation_dims_ = 9;
   action_dims_ = 4;
 
   Vector v_obs_min, v_obs_max;
   config.set("observation_dims", observation_dims_);
-  std::vector<double> obs_min = {-M_PI, -M_PI, -M_PI, -M_PI, -10*M_PI, -10*M_PI, -10*M_PI, -10*M_PI, -10, 0, -M_PI};
-  std::vector<double> obs_max = { M_PI,  M_PI,  M_PI,  M_PI,  10*M_PI,  10*M_PI,  10*M_PI,  10*M_PI,  10, 5,  M_PI};
+  //std::vector<double> obs_min = {-M_PI, -M_PI, -M_PI, -M_PI, -10*M_PI, -10*M_PI, -10*M_PI, -10*M_PI, -10, 0, -M_PI};
+  //std::vector<double> obs_max = { M_PI,  M_PI,  M_PI,  M_PI,  10*M_PI,  10*M_PI,  10*M_PI,  10*M_PI,  10, 5,  M_PI};
+  std::vector<double> obs_min = {-M_PI, -M_PI, -M_PI, -M_PI, -10*M_PI, -10*M_PI, -10*M_PI, -10*M_PI,   0};
+  std::vector<double> obs_max = { M_PI,  M_PI,  M_PI,  M_PI,  10*M_PI,  10*M_PI,  10*M_PI,  10*M_PI, 100}; // last is time
   toVector(obs_min, v_obs_min);
   toVector(obs_max, v_obs_max);
   config.set("observation_min", v_obs_min);

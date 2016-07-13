@@ -285,6 +285,8 @@ class Sandbox : public Configurable
 
     virtual void start(const Vector &hint, Vector *state) = 0;
     virtual double step(const Vector &action, Vector *next) = 0;
+  protected:
+    Vector state_;
 };
 
 /// Sequential-access transition environment.
@@ -317,13 +319,14 @@ class SandboxEnvironment : public Environment
     virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal);
 };
 
-class SandboxDynamicalModel : public DynamicalModel
+class SandboxDynamicalModel : public Sandbox
 {
   public:
     TYPEINFO("sandbox_model/dynamical", "State transition model that integrates equations of motion and augments state vector with additional elements")
 
   public:
     SandboxDynamicalModel() : dof_count_(0) { }
+    //~SandboxDynamicalModel() {}
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -331,9 +334,12 @@ class SandboxDynamicalModel : public DynamicalModel
     
     // From Model
     virtual SandboxDynamicalModel *clone() const;
-    virtual double step(const Vector &state, const Vector &action, Vector *next) const;
+    virtual void start(const Vector &hint, Vector *state);
+    virtual double step(const Vector &action, Vector *next);
+    //virtual double step(const Vector &state, const Vector &action, Vector *next) const;
     
   private:
+    DynamicalModel dm_;
     int dof_count_;
 };
 
