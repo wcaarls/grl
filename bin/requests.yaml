@@ -302,6 +302,8 @@ dynamics/acrobot:
   description: Acrobot dynamics
 dynamics/cart_pole:
   description: Cart-pole dynamics from Barto et al.
+dynamics/flyer2d:
+  description: 2D flyer dynamics
 dynamics/pendulum:
   description: Pendulum dynamics based on the DCSC MOPS
 dynamics/rbdl:
@@ -3548,6 +3550,70 @@ task/compass_walker/walk:
     optional: 1
     min: 0
     max: 2147483647
+task/flyer2d/regulator:
+  description: 2D flyer regulator task
+  observation_dims:
+    type: int.observation_dims
+    description: Number of observation dimensions
+    mutability: provided
+  observation_min:
+    type: vector.observation_min
+    description: Lower limit on observations
+    mutability: provided
+  observation_max:
+    type: vector.observation_max
+    description: Upper limit on observations
+    mutability: provided
+  action_dims:
+    type: int.action_dims
+    description: Number of action dimensions
+    mutability: provided
+  action_min:
+    type: vector.action_min
+    description: Lower limit on actions
+    mutability: provided
+  action_max:
+    type: vector.action_max
+    description: Upper limit on actions
+    mutability: provided
+  reward_min:
+    type: double.reward_min
+    description: Lower limit on immediate reward
+    mutability: provided
+  reward_max:
+    type: double.reward_max
+    description: Upper limit on immediate reward
+    mutability: provided
+  start:
+    type: vector
+    description: Starting state
+    mutability: configuration
+    default: "[ 0, 0, 0, 0, 0, 0 ]"
+    optional: 1
+  goal:
+    type: vector
+    description: Goal state
+    mutability: configuration
+    default: "[ 0, 0, 0, 0, 0, 0 ]"
+    optional: 1
+  stddev:
+    type: vector
+    description: Starting state standard deviation
+    mutability: configuration
+    default: "[ 0.1, 0.1, 0.1, 0, 0, 0 ]"
+    optional: 1
+  q:
+    type: vector
+    description: Q (state cost) matrix diagonal
+    mutability: configuration
+    default: "[ 1, 1, 1, 0, 0, 0 ]"
+    optional: 1
+  r:
+    type: vector
+    description: R (action cost) matrix diagonal
+    mutability: configuration
+    default: "[ 0.01, 0.01 ]"
+    optional: 1
 task/lua:
   description: User-provided task specification in LUA
   observation_dims:
@@ -4097,6 +4163,14 @@ visualization/field/value:
   representation:
     type: representation
     description: Value representation
+    mutability: configuration
+    default: 0
+    optional: 0
+visualization/flyer2d:
+  description: 2D flyer visualization
+  state:
+    type: state
+    description: 2D flyer state to visualize
     mutability: configuration
     default: 0
     optional: 0

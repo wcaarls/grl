@@ -1,0 +1,73 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 0
+  steps: 0
+  rate: 0
+  test_interval: 10
+  environment: 
+    type: environment/modeled
+    model: 
+      type: model/dynamical
+      control_step: 0.05
+      integration_steps: 5
+      dynamics: 
+        type: dynamics/flyer2d
+    task: 
+      type: task/flyer2d/regulator
+      start: [0, 0, 0, 0, 0, 0]
+      goal: [0, 0, 0, 0, 0, 0]
+      stddev: [0.1, 0.1, 0.1, 0, 0, 0]
+      q: [1, 1, 1, 0, 0, 0]
+      r: [0.01, 0.01]
+  agent: 
+    type: agent/td
+    policy: 
+      type: policy/discrete/q
+      discretizer: 
+        type: discretizer/uniform
+        min: [0.4, 0.4]
+        max: [0.6, 0.6]
+        steps: [3, 3]
+      projector: 
+        type: projector/tile_coding
+        tilings: 16
+        memory: 67108864
+        resolution: [ 0.1, 0.1, 0.31415, 1, 1, 3.1415, 1, 1]
+        wrapping: [ 0,0,0,0,0,0,0,0 ]
+      representation: 
+        type: representation/parameterized/linear
+        init_min: [0]
+        init_max: [1]
+        memory: experiment/agent/policy/projector/memory
+        outputs: 1
+        output_min: []
+        output_max: []
+      sampler: 
+        type: sampler/epsilon_greedy
+        epsilon: 0.05
+    predictor: 
+      type: predictor/sarsa
+      alpha: 0.2
+      gamma: 0.97
+      lambda: 0.65
+      discretizer: experiment/agent/policy/discretizer
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+      trace: 
+        type: trace/enumerated/replacing
+  test_agent: 
+    type: agent/fixed
+    policy: 
+      type: policy/discrete/q
+      discretizer: experiment/agent/policy/discretizer
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+      sampler: 
+        type: sampler/greedy
+  save_every: never
+visualizer: 
+  type: visualizer/glut
+visualization: 
+  type: visualization/flyer2d
+  state: experiment/environment/state

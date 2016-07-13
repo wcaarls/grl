@@ -31,6 +31,7 @@ add_library(${TARGET} SHARED
             ${SRC}/environments/noise.cpp
             ${SRC}/environments/swimmer.cpp
             ${SRC}/environments/shaping.cpp
+            ${SRC}/environments/flyer2d.cpp
             ${SRC}/experiments/approx_test.cpp
             ${SRC}/experiments/online_learning.cpp
             ${SRC}/experiments/batch_learning.cpp
@@ -85,6 +86,7 @@ add_library(${TARGET} SHARED
             ${SRC}/visualizations/pinball.cpp
             ${SRC}/visualizations/windy.cpp
             ${SRC}/visualizations/swimmer.cpp
+            ${SRC}/visualizations/flyer2d.cpp
            )
 
 # Dependencies

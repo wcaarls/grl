@@ -130,7 +130,7 @@ ProjectionPtr ANNProjector::project(const Vector &in) const
     query[ii] = in[ii];
     
   size_t index_samples = std::min(neighbors_, indexed_samples_),
-         linear_samples = store_->size()-indexed_samples_,
+         linear_samples = incremental_?(store_->size()-indexed_samples_):0,
          available_samples = std::min(neighbors_, index_samples+linear_samples);
          
   SampleProjection *projection = new SampleProjection;
