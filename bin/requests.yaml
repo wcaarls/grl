@@ -290,7 +290,7 @@ environment/communicator:
     type: communicator
     description: Comunicator which exchanges messages with an actual environment
     mutability: configuration
-    default: 0x11a93a0
+    default: 0xd9bf50
     optional: 0
 environment/leo2:
   description: LEO/2 environment
@@ -1784,6 +1784,80 @@ predictor/expected_sarsa:
   trace:
     type: trace
     description: Trace of projections
+    mutability: configuration
+    default: 0
+    optional: 0
+predictor/fqi:
+  description: Fitted Q-iteration predictor
+  importer:
+    type: importer
+    description: Optional importer for pre-training
+    mutability: configuration
+    default: 0
+    optional: 1
+  exporter:
+    type: exporter
+    description: Optional exporter for transition log (supports observation, action, reward, next_observation, next_action)
+    mutability: configuration
+    default: 0
+    optional: 1
+  gamma:
+    type: double
+    description: Discount rate
+    mutability: configuration
+    default: 0.97
+    optional: 1
+    min: 0
+    max: 1
+  transitions:
+    type: int
+    description: Maximum number of transitions to store
+    mutability: configuration
+    default: 100000
+    optional: 1
+    min: 1
+    max: 2147483647
+  iterations:
+    type: int
+    description: Number of policy improvement rounds per episode
+    mutability: configuration
+    default: 10
+    optional: 1
+    min: 1
+    max: 2147483647
+  reset_strategy:
+    type: string
+    description: At which point to reset the representation
+    mutability: configuration
+    default: iteration
+    optional: 1
+    options:
+      - never
+      - batch
+      - iteration
+  macro_batch_size:
+    type: int
+    description: Number of episodes/batches after which prediction is rebuilt. Use 0 for no rebuilds.
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 0
+    max: 2147483647
+  discretizer:
+    type: discretizer.action
+    description: Action discretizer
+    mutability: configuration
+    default: 0
+    optional: 0
+  projector:
+    type: projector.pair
+    description: Projects observations onto critic representation space
+    mutability: configuration
+    default: 0
+    optional: 0
+  representation:
+    type: representation.value/action
+    description: Value function representation
     mutability: configuration
     default: 0
     optional: 0

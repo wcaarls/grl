@@ -1,0 +1,70 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 330
+  steps: 0
+  rate: 0
+  test_interval: 3
+  output: leosim_fqi_ertree
+  environment: 
+    type: environment/leo_walk
+    xml: ../../leo/cfg/leo_walk.xml
+    target_env: 
+      type: environment/ode
+      xml: experiment/environment/xml
+      randomize: 0
+      visualize: 1
+    observe: torso_boom, hipright, hipleft, kneeright, kneeleft
+    actuate: hipright, hipleft, kneeleft
+    observation_dims: experiment/environment/target_env/observation_dims
+    action_dims: experiment/environment/target_env/action_dims
+  agent: 
+    type: agent/td
+    policy: 
+      type: policy/discrete/q
+      discretizer: 
+        type: discretizer/uniform
+        min: experiment/environment/action_min
+        max: experiment/environment/action_max
+        steps: [7, 7, 7]
+      projector: 
+        type: projector/sample/ertree
+        samples: 200000
+        trees: 20
+        splits: 5
+        leaf_size: 10
+        inputs: experiment/environment/observation_dims+experiment/environment/action_dims
+        outputs: 1
+      representation: 
+        type: representation/llr
+        ridge: 1e-05
+        order: 0
+        input_nominals: []
+        output_nominals: []
+        outputs: 1
+        output_min: []
+        output_max: experiment/agent/policy/representation/input_nominals
+        projector: experiment/agent/policy/projector
+      sampler: 
+        type: sampler/epsilon_greedy
+        epsilon: 0.05
+    predictor: 
+      type: predictor/fqi
+      gamma: 0.97
+      transitions: 200000
+      iterations: 20
+      reset_strategy: iteration
+      macro_batch_size: 1
+      discretizer: experiment/agent/policy/discretizer
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+  test_agent: 
+    type: agent/fixed
+    policy: 
+      type: policy/discrete/q
+      discretizer: experiment/agent/policy/discretizer
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+      sampler: 
+        type: sampler/greedy
+  save_every: run

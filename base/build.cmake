@@ -53,7 +53,7 @@ add_library(${TARGET} SHARED
             ${SRC}/predictors/sarsa.cpp
 #            ${SRC}/predictors/ggq.cpp
             ${SRC}/predictors/ac.cpp
-#            ${SRC}/predictors/fqi.cpp
+            ${SRC}/predictors/fqi.cpp
             ${SRC}/predictors/qv.cpp
             ${SRC}/predictors/td.cpp
             ${SRC}/predictors/vi.cpp
