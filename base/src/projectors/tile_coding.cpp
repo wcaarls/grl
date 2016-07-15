@@ -35,6 +35,7 @@ void TileCodingProjector::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("tilings", "Number of tilings", tilings_));
   config->push_back(CRP("memory", "int.memory", "Hash table size", memory_));
+  config->push_back(CRP("safe", "Use safe hashing (with collision detection)", safe_, CRP::Configuration, 0, 1));
   
   config->push_back(CRP("resolution", "Size of a single tile", resolution_));
   config->push_back(CRP("wrapping", "vector.wrapping", "Wrapping boundaries (must be multiple of resolution)", wrapping_));
@@ -44,6 +45,14 @@ void TileCodingProjector::configure(Configuration &config)
 {
   tilings_ = config["tilings"];
   memory_ = config["memory"];
+  safe_ = config["safe"];
+  
+  if (safe_)
+  {
+    indices_ = new int32_t[memory_];
+    for (size_t ii=0; ii < memory_; ++ii)
+      indices_[ii] = -1;
+  }
   
   resolution_ = config["resolution"].v();
   wrapping_ = config["wrapping"].v();
@@ -68,22 +77,29 @@ void TileCodingProjector::configure(Configuration &config)
 
 void TileCodingProjector::reconfigure(const Configuration &config)
 {
+  if (config.has("action"))
+    if (config["action"].str() == "reset")
+      if (indices_)
+        for (size_t ii=0; ii < memory_; ++ii)
+          indices_[ii] = -1;
 }
 
 TileCodingProjector *TileCodingProjector::clone() const
 {
-  TileCodingProjector *tc = new TileCodingProjector();
-  tc->tilings_ = tilings_;
-  tc->memory_ = memory_;
-  tc->scaling_ = scaling_;
-  tc->wrapping_ = wrapping_;
+  TileCodingProjector *tc = new TileCodingProjector(*this);
+  
+  if (indices_)
+  {
+    tc->indices_ = new int32_t[memory_];
+    memcpy(tc->indices_, indices_, memory_*sizeof(int32_t));
+  }
   
   return tc;
 }
 
 #define MAX_NUM_VARS 32
 
-ProjectionPtr TileCodingProjector::project(const Vector &in) const
+ProjectionPtr TileCodingProjector::_project(const Vector &in, bool claim) const
 {
   int num_floats = in.size();
   int i,j;
@@ -125,7 +141,7 @@ ProjectionPtr TileCodingProjector::project(const Vector &in) const
     }
     /* add additional indices for tiling and hashing_set so they hash differently */
     coordinates[i] = j;
-    p->indices[j] = getFeatureLocation(coordinates, num_coordinates);
+    p->indices[j] = getFeatureLocation(coordinates, num_coordinates, claim);
   }
   
   return ProjectionPtr(p);

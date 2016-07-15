@@ -2596,6 +2596,14 @@ projector/tile_coding:
     optional: 1
     min: 0
     max: 2147483647
+  safe:
+    type: int
+    description: Use safe hashing (with collision detection)
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
   resolution:
     type: vector
     description: Size of a single tile
@@ -4621,6 +4629,14 @@ projector/tile_coding.pair:
     optional: 1
     min: 0
     max: 2147483647
+  safe:
+    type: int
+    description: Use safe hashing (with collision detection)
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
   resolution:
     type: vector
     description: Size of a single tile
@@ -5064,6 +5080,14 @@ projector/tile_coding.observation:
     optional: 1
     min: 0
     max: 2147483647
+  safe:
+    type: int
+    description: Use safe hashing (with collision detection)
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
   resolution:
     type: vector
     description: Size of a single tile

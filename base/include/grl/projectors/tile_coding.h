@@ -40,11 +40,17 @@ class TileCodingProjector : public Projector
     TYPEINFO("projector/tile_coding", "Hashed tile coding projector")
     
   protected:
-    int tilings_, memory_;
+    int tilings_, memory_, safe_;
+    mutable int32_t *indices_;
     Vector resolution_, scaling_, wrapping_;
     
   public:
-    TileCodingProjector() : tilings_(16), memory_(8*1024*1024) { }
+    TileCodingProjector() : tilings_(16), memory_(8*1024*1024), safe_(0), indices_(NULL) { }
+    
+    ~TileCodingProjector()
+    {
+      safe_delete_array(&indices_);
+    }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -54,9 +60,20 @@ class TileCodingProjector : public Projector
     // From Projector
     virtual TileCodingProjector *clone() const;
     virtual ProjectionLifetime lifetime() const { return plIndefinite; }
-    virtual ProjectionPtr project(const Vector &in) const;
-    
+    virtual ProjectionPtr project(const Vector &in) const
+    {
+      return _project(in, true);
+    }
+    virtual void project(const Vector &base, const std::vector<Vector> &variants, std::vector<ProjectionPtr> *out) const
+    {
+      // NOTE: assumes these types of multi-projections are read-only
+      out->clear();
+      for (size_t ii=0; ii < variants.size(); ++ii)
+        out->push_back(_project(extend(base, variants[ii]), false));
+    }
   protected:
+    ProjectionPtr _project(const Vector &in, bool claim) const;
+    
     // createHashSum() should return an unsigned integer type!
     unsigned int createHashSum(const int *ints, const unsigned int num_ints, unsigned int seed) const
     {
@@ -96,9 +113,38 @@ class TileCodingProjector : public Projector
       return h;
     }
 
-    unsigned int getFeatureLocation(const int *ints, const unsigned int num_ints) const
+    unsigned int getFeatureLocation(const int *ints, const unsigned int num_ints, bool claim) const
     {
-      return createHashSum(ints, num_ints, 449) % memory_;
+      unsigned int h = createHashSum(ints, num_ints, 449), ii = h % memory_;
+      
+      if (indices_)
+      {
+        size_t collisions = 0;
+        
+        while (indices_[ii] != h && indices_[ii] != -1)
+        {
+          collisions++;
+          if (++ii >= memory_)
+            ii = 0;
+        }
+        
+        if (collisions > 8)
+          WARNING("Memory pressure is high. Increase hash table size");
+            
+        if (claim)
+        {
+          // NOTE: Race condition. In rare cases, we could be overwriting a claim
+          // someone else made after we checked. Subsequent projections for our
+          // competitor will then point to a different memory location. The same
+          // principle applies when the memory is not claimed now: it might be
+          // claimed by someone else later, at which point the location in
+          // subsequent projections might change.
+          // This means the lifetime of projections is not actually indefinite...
+          indices_[ii] = h;
+        }
+      }
+      
+      return ii;
     }
 };
 
