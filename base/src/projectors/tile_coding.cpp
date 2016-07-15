@@ -35,7 +35,7 @@ void TileCodingProjector::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("tilings", "Number of tilings", tilings_));
   config->push_back(CRP("memory", "int.memory", "Hash table size", memory_));
-  config->push_back(CRP("safe", "Use safe hashing (with collision detection)", safe_, CRP::Configuration, 0, 1));
+  config->push_back(CRP("safe", "Collision detection (0=off, 1=claim on write, 2=claim always)", safe_, CRP::Configuration, 0, 2));
   
   config->push_back(CRP("resolution", "Size of a single tile", resolution_));
   config->push_back(CRP("wrapping", "vector.wrapping", "Wrapping boundaries (must be multiple of resolution)", wrapping_));

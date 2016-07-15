@@ -59,17 +59,17 @@ class TileCodingProjector : public Projector
 
     // From Projector
     virtual TileCodingProjector *clone() const;
-    virtual ProjectionLifetime lifetime() const { return plIndefinite; }
+    virtual ProjectionLifetime lifetime() const { return safe_==1?plWrite:plIndefinite; }
     virtual ProjectionPtr project(const Vector &in) const
     {
       return _project(in, true);
     }
     virtual void project(const Vector &base, const std::vector<Vector> &variants, std::vector<ProjectionPtr> *out) const
     {
-      // NOTE: assumes these types of multi-projections are read-only
+      // NOTE: safe_ = 1 assumes these types of multi-projections are read-only
       out->clear();
       for (size_t ii=0; ii < variants.size(); ++ii)
-        out->push_back(_project(extend(base, variants[ii]), false));
+        out->push_back(_project(extend(base, variants[ii]), safe_>1));
     }
   protected:
     ProjectionPtr _project(const Vector &in, bool claim) const;
@@ -139,7 +139,6 @@ class TileCodingProjector : public Projector
           // principle applies when the memory is not claimed now: it might be
           // claimed by someone else later, at which point the location in
           // subsequent projections might change.
-          // This means the lifetime of projections is not actually indefinite...
           indices_[ii] = h;
         }
       }
