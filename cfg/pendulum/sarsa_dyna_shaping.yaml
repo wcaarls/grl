@@ -1,0 +1,164 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 0
+  steps: 0
+  rate: 0
+  test_interval: 1
+  environment: 
+    type: environment/pre/shaping
+    environment: 
+      type: environment/modeled
+      model: 
+        type: model/dynamical
+        control_step: 0.03
+        integration_steps: 5
+        dynamics: 
+          type: dynamics/pendulum
+      task: 
+        type: task/pendulum/swingup
+        timeout: 2.99
+        randomization: 0
+    shaping_function: 
+      type: mapping/q_policy
+      policy: 
+        type: policy/discrete/q
+        discretizer: 
+          type: discretizer/uniform
+          min: experiment/environment/environment/task/action_min
+          max: experiment/environment/environment/task/action_max
+          steps: [3]
+        projector: 
+          type: projector/tile_coding
+          tilings: 16
+          memory: 8388608
+          resolution: [0.31415, 3.1415, 3]
+          wrapping: [6.283, 0, 0]
+        representation: 
+          type: representation/parameterized/linear
+          init_min: [0]
+          init_max: [1]
+          memory: experiment/environment/shaping_function/policy/projector/memory
+          outputs: 1
+          output_min: []
+          output_max: []
+        sampler: 
+          type: sampler/greedy
+    gamma: 0.97
+  agent: 
+    type: agent/dyna
+    planning_steps: 200
+    planning_horizon: 100
+    threads: 0
+    policy: 
+      type: policy/discrete/q
+      discretizer: experiment/environment/shaping_function/policy/discretizer
+      projector: experiment/environment/shaping_function/policy/projector
+      representation: 
+        type: representation/parameterized/linear
+        init_min: [ 0 ]
+        init_max: [ 1 ]
+        memory: experiment/environment/shaping_function/policy/projector/memory
+        outputs: 1
+        output_min: [  ]
+        output_max: [  ]
+      sampler: 
+        type: sampler/epsilon_greedy
+        epsilon: 0.05
+    predictor: 
+      type: predictor/sarsa
+      alpha: 0.2
+      gamma: experiment/environment/gamma
+      lambda: 0.65
+      projector: experiment/environment/shaping_function/policy/projector
+      representation: experiment/agent/policy/representation
+      trace: 
+        type: trace/enumerated/replacing
+    model: 
+      type: observation_model/approximated
+      jacobian_step: 0.001
+      control_step: experiment/environment/environment/model/control_step
+      differential: 1
+      wrapping: [6.283, 0]
+      observation_min: experiment/environment/environment/task/observation_min
+      observation_max: experiment/environment/environment/task/observation_max
+      stddev_limit: 1
+      projector: 
+        type: projector/sample/ann
+        samples: 10000
+        neighbors: 12
+        locality: 1
+        interval: 10
+        incremental: 1
+        bucket_size: 10
+        error_bound: 0.1
+        inputs: experiment/environment/environment/task/observation_dims+experiment/environment/environment/task/action_dims
+      representation: 
+        type: representation/llr
+        ridge: 1e-05
+        order: 1
+        input_nominals: []
+        output_nominals: []
+        outputs: experiment/environment/environment/task/observation_dims+2
+        output_min: []
+        output_max: []
+        projector: experiment/agent/model/projector
+    model_predictor: 
+      type: predictor/model
+      differential: 1
+      wrapping: experiment/agent/model/wrapping
+      projector: experiment/agent/model/projector
+      representation: experiment/agent/model/representation
+    model_agent: 
+      type: agent/td
+      policy: 
+        type: policy/discrete/q
+        discretizer: experiment/environment/shaping_function/policy/discretizer
+        projector: experiment/environment/shaping_function/policy/projector
+        representation: experiment/environment/shaping_function/policy/representation
+        sampler: experiment/agent/policy/sampler
+      predictor: 
+        type: predictor/sarsa
+        alpha: 0.02
+        gamma: 0.97
+        lambda: 0
+        projector: experiment/environment/shaping_function/policy/projector
+        representation: experiment/environment/shaping_function/policy/representation
+        trace: 
+          type: trace/enumerated/replacing
+  test_agent: 
+    type: agent/fixed
+    policy: 
+      type: policy/discrete/q
+      discretizer: experiment/environment/shaping_function/policy/discretizer
+      projector: experiment/environment/shaping_function/policy/projector
+      representation: experiment/agent/policy/representation
+      sampler: 
+        type: sampler/greedy
+  save_every: never
+visualizer: 
+  type: visualizer/glut
+visualization: 
+  type: visualization/field/policy/value
+  field_dims: [0, 1]
+  input_min: experiment/environment/environment/task/observation_min
+  input_max: experiment/environment/environment/task/observation_max
+  points: 65536
+  savepoints: 1048576
+  projection: mean
+  policy: experiment/test_agent/policy
+visualization2: 
+  type: visualization/field/policy/value
+  field_dims: [0, 1]
+  input_min: experiment/environment/environment/task/observation_min
+  input_max: experiment/environment/environment/task/observation_max
+  points: 65536
+  savepoints: 1048576
+  projection: mean
+  policy: 
+    type: policy/discrete/q
+    discretizer: experiment/environment/shaping_function/policy/discretizer
+    projector: experiment/environment/shaping_function/policy/projector
+    representation: experiment/environment/shaping_function/policy/representation
+    sampler: 
+      type: sampler/greedy

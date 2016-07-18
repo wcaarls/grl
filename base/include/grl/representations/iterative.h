@@ -1,11 +1,11 @@
-/** \file additive.h
- * \brief Additive representation header file.
+/** \file dmp.h
+ * \brief Iterative representation header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-11-15
+ * \date      2016-07-03
  *
  * \copyright \verbatim
- * Copyright (c) 2015, Wouter Caarls
+ * Copyright (c) 2016, Wouter Caarls
  * All rights reserved.
  *
  * This file is part of GRL, the Generic Reinforcement Learning library.
@@ -25,28 +25,27 @@
  * \endverbatim
  */
 
-#ifndef GRL_ADDITIVE_REPRESENTATION_H_
-#define GRL_ADDITIVE_REPRESENTATION_H_
+#ifndef GRL_ITERATIVE_REPRESENTATION_H_
+#define GRL_ITERATIVE_REPRESENTATION_H_
 
 #include <grl/representation.h>
 
 namespace grl
 {
 
-/// Linear combination of two representations
-class AdditiveRepresentation : public Representation
+/// Representation that iteratively trains a sub-representation (NN epochs).
+class IterativeRepresentation : public Representation
 {
   public:
-    TYPEINFO("representation/additive", "Linear combination of two representations")
-
+    TYPEINFO("representation/iterative", "Representation that iteratively trains a sub-representation")
+    
   protected:
-    Representation* representation1_, *representation2_;
-    int learning_;
+    int epochs_, cumulative_;
+    Representation* representation_;
+    std::vector<std::pair<const ProjectionPtr, const Vector> > samples_;
     
   public:
-    AdditiveRepresentation() : representation1_(NULL), representation2_(NULL), learning_(0)
-    {
-    }
+    IterativeRepresentation() : epochs_(5000), cumulative_(1), representation_(NULL) { }
     
     // From Configurable
     virtual void request(const std::string &role, ConfigurationRequest *config);
@@ -54,12 +53,21 @@ class AdditiveRepresentation : public Representation
     virtual void reconfigure(const Configuration &config);
   
     // From Representation
-    virtual AdditiveRepresentation *clone() const;
-    virtual double read(const ProjectionPtr &projection, Vector *result, Vector *stddev) const;
+    virtual IterativeRepresentation *clone() const;
+    virtual double read(const ProjectionPtr &projection, Vector *result, Vector *stddev) const
+    {
+      return representation_->read(projection, result, stddev);
+    }
+    
     virtual void write(const ProjectionPtr projection, const Vector &target, const Vector &alpha);
-    virtual void update(const ProjectionPtr projection, const Vector &delta);
+    virtual void update(const ProjectionPtr projection, const Vector &delta)
+    {
+      throw Exception("Can not update iterative representation");
+    }
+    
+    virtual void finalize();
 };
 
 }
 
-#endif /* GRL_ADDITIVE_REPRESENTATION_H_ */
+#endif /* GRL_ITERATIVE_REPRESENTATION_H_ */

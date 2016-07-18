@@ -35,12 +35,15 @@ void AdditiveRepresentation::request(const std::string &role, ConfigurationReque
 {
   config->push_back(CRP("representation1", "representation." + role, "First representation", representation1_));
   config->push_back(CRP("representation2", "representation." + role, "Second representation", representation2_));
+
+  config->push_back(CRP("learning", "Which representation to learn (0=both)", learning_, CRP::Configuration, 0, 2));
 }
 
 void AdditiveRepresentation::configure(Configuration &config)
 {
   representation1_ = (Representation*)config["representation1"].ptr();
   representation2_ = (Representation*)config["representation2"].ptr();
+  learning_ = config["learning"];
 }
 
 void AdditiveRepresentation::reconfigure(const Configuration &config)
@@ -70,12 +73,38 @@ double AdditiveRepresentation::read(const ProjectionPtr &projection, Vector *res
 
 void AdditiveRepresentation::write(const ProjectionPtr projection, const Vector &target, const Vector &alpha)
 {
-  representation1_->write(projection, target, alpha);
-  representation2_->write(projection, target, alpha);
+  Vector v;
+
+  switch (learning_)
+  {
+    case 0:
+      representation1_->write(projection, target/2, alpha/2);
+      representation2_->write(projection, target/2, alpha/2);
+      break;
+    case 1:
+      representation2_->read(projection, &v);
+      representation1_->write(projection, target-v, alpha);
+      break;
+    case 2:
+      representation1_->read(projection, &v);
+      representation2_->write(projection, target-v, alpha);
+      break;
+  }
 }
 
 void AdditiveRepresentation::update(const ProjectionPtr projection, const Vector &delta)
 {
-  representation1_->write(projection, delta);
-  representation2_->write(projection, delta);
+  switch (learning_)
+  {
+    case 0:
+      representation1_->update(projection, delta/2);
+      representation2_->update(projection, delta/2);
+      break;
+    case 1:
+      representation1_->update(projection, delta);
+      break;
+    case 2:
+      representation2_->update(projection, delta);
+      break;
+  }
 }

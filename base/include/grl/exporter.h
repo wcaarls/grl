@@ -61,19 +61,18 @@ class CSVExporter : public Exporter
     std::string fields_;
     std::string style_;
     std::string variant_;
-    int split_runs_;
     
     std::ofstream stream_;
     std::vector<size_t> order_;
     std::vector<std::string> headers_;
     std::vector<Vector> append_vec_;
     bool write_header_;
-    static std::map<std::string, int> run_counter_;
+    std::map<std::string, int> run_counter_;
 
-    void writer(std::vector<Vector> var_vec);
+    void write(std::vector<Vector> vars);
 
   public:
-    CSVExporter() : style_("line"), write_header_(true), variant_("test"), split_runs_(1) { }
+    CSVExporter() : style_("line"), variant_("all"), write_header_(true) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);

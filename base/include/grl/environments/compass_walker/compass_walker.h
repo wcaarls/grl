@@ -92,7 +92,7 @@ class CompassWalkerSandbox : public Sandbox
 
   public:
     CompassWalkerSandbox() : tau_(0.2), steps_(20), slope_angle_(0.004),
-      test_(0), time_(0.0), use_avg_velocity_(1) { }
+      test_(0), time_(0.0), exporter_(NULL), use_avg_velocity_(1) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);

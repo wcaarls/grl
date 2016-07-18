@@ -34,15 +34,12 @@ using namespace grl;
 
 REGISTER_CONFIGURABLE(CSVExporter)
 
-std::map<std::string, int> CSVExporter::run_counter_;
-
 void CSVExporter::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("file", "Output base filename", file_));
   config->push_back(CRP("fields", "Comma-separated list of fields to write", fields_));
   config->push_back(CRP("style", "Header style", style_, CRP::Configuration, {"none", "line", "meshup"}));
-  config->push_back(CRP("variant", "Variant of exporter", variant_, CRP::Configuration, {"test", "learn", "all"}));
-  config->push_back(CRP("split_runs", "Write each run output to a separate file", split_runs_));
+  config->push_back(CRP("variant", "Variant to export", variant_, CRP::Configuration, {"test", "learn", "all"}));
 }
 
 void CSVExporter::configure(Configuration &config)
@@ -118,30 +115,24 @@ void CSVExporter::init(const std::initializer_list<std::string> &headers)
 
 void CSVExporter::open(const std::string &variant, bool append)
 {
-  // if stream is opened and run is saved to the same file
-  if (stream_.is_open() && !split_runs_)
-    append = true;
-
-  // close stream only if it is already opened and each run is saved to a separate file
-  if (stream_.is_open() && split_runs_)
+  if (stream_.is_open())
     stream_.close();
 
-  // check if our export objective does not coinside with exporter variant
-  if ((variant == "learn" && variant_ == "test") || (variant == "test"  && variant_ == "learn"))
+  // Check if our export objective matches exporter variant
+  if (variant_ != "all" && variant_ != variant)
     return;
 
+  // Append variant if given
   std::string file = file_;
-  if ((variant_ == "all") && !variant.empty())
+  if (!variant.empty())
     file = file_ + "-" + variant;
 
-  // account for 'run'
-  if (split_runs_)
-  {
-    if (!append)
-      run_counter_[file]++;
-    file = file + "-" + std::to_string(run_counter_[file] - 1);
-  }
+  // Append run
+  if (!append)
+    run_counter_[file]++;
+  file = file + "-" + std::to_string(run_counter_[file] - 1);
 
+  // Write header when opening a new or empty file
   struct stat buffer;
   if (stat((file+".csv").c_str(), &buffer) != 0 || !buffer.st_size || !append)
     write_header_ = true;
@@ -151,9 +142,12 @@ void CSVExporter::open(const std::string &variant, bool append)
   stream_.open((file+".csv").c_str(), std::ofstream::out | (append?std::ofstream::app:std::ofstream::trunc));
 }
 
-void CSVExporter::writer(std::vector<Vector> var_vec)
+void CSVExporter::write(std::vector<Vector> vars)
 {
-  if (var_vec.size() != headers_.size())
+  if (!stream_.is_open())
+    return;
+
+  if (vars.size() != headers_.size())
   {
     ERROR("Variable list does not match header list");
     return;
@@ -166,7 +160,7 @@ void CSVExporter::writer(std::vector<Vector> var_vec)
 
     for (size_t ii=0; ii < order_.size(); ++ii)
     {
-      Vector &v = var_vec[order_[ii]];
+      Vector &v = vars[order_[ii]];
       for (size_t jj = 0; jj < v.size(); ++jj)
       {
         stream_ << headers_[order_[ii]] << "[" << jj << "]";
@@ -187,7 +181,7 @@ void CSVExporter::writer(std::vector<Vector> var_vec)
 
   for (size_t ii=0; ii < order_.size(); ++ii)
   {
-    Vector &v = var_vec[order_[ii]];
+    Vector &v = vars[order_[ii]];
     for (size_t jj = 0; jj < v.size(); ++jj)
     {
       stream_ << std::fixed << std::setw(11) << std::setprecision(6) << v[jj];
@@ -203,7 +197,7 @@ void CSVExporter::write(const std::initializer_list<Vector> &vars)
 {
   std::vector<Vector> var_vec;
   var_vec.insert(var_vec.end(), vars.begin(), vars.end());
-  writer(var_vec);
+  write(var_vec);
 }
 
 void CSVExporter::append(const std::initializer_list<Vector> &vars)
@@ -211,7 +205,7 @@ void CSVExporter::append(const std::initializer_list<Vector> &vars)
   append_vec_.insert(append_vec_.end(), vars.begin(), vars.end());
   if (append_vec_.size() >= headers_.size())
   {
-    writer(append_vec_);
+    write(append_vec_);
     append_vec_.clear();
   }
 }

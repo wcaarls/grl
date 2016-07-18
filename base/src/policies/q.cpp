@@ -64,6 +64,21 @@ QPolicy *QPolicy::clone() const
   return qp;
 }
 
+double QPolicy::value(const Vector &in) const
+{
+  Vector qvalues, distribution;
+  double v=0;
+  
+  values(in, &qvalues);
+  
+  sampler_->distribution(qvalues, &distribution);
+  
+  for (size_t ii=0; ii < qvalues.size(); ++ii)
+    v += qvalues[ii]*distribution[ii];
+    
+  return v;
+}
+
 /**
  * @brief QPolicy::values calculates Q(s,a) values for provided state 'in' and for all actions 'a'
  * @param in: state

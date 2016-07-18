@@ -43,9 +43,10 @@ class GreedySampler : public Sampler
 
   protected:
     Rand *rand_;
+    int rand_max_;
 
   public:
-    GreedySampler() : rand_(NULL) { }
+    GreedySampler() : rand_(NULL), rand_max_(0) { }
     ~GreedySampler() { if (rand_) { delete rand_; rand_ = NULL;} }
 
     // From Configurable

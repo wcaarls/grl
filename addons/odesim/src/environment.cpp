@@ -312,6 +312,8 @@ void ODEEnvironment::run()
   
     app_ = new QApplication(argc, argv);
     ODEDialog *dialog = new ODEDialog(env_);
+    
+    setlocale(LC_ALL, "C");
 
     init_state_ = isInitialized;
     

@@ -56,7 +56,13 @@ void ActionPolicy::configure(Configuration &config)
     throw bad_param("policy/action:{output_min,output_max}");
   
   if (!sigma_.size())
-    sigma_ = ConstantVector(min_.size(), 0.);
+    sigma_ = VectorConstructor(0.);
+    
+  if (sigma_.size() == 1)
+    sigma_ = ConstantVector(min_.size(), sigma_[0]);
+    
+  if (sigma_.size() != min_.size())
+    throw bad_param("policy/action:sigma");
 }
 
 void ActionPolicy::reconfigure(const Configuration &config)

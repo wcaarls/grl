@@ -1,5 +1,5 @@
 /** \file representation.h
- * \brief Generic mapping and representation definitions.
+ * \brief Generic representation definitions.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
  * \date      2015-01-22
@@ -35,33 +35,19 @@
 namespace grl
 {
 
-/// Maps inputs to outputs.
-class Mapping : public Configurable
-{
-  public:
-    virtual ~Mapping() { }
-    virtual Mapping *clone() const = 0;
-
-    /**
-     * \brief Read out the mapping.
-     *
-     * Returns the value of the first output dimension.
-     */
-    virtual double read(const ProjectionPtr &projection, Vector *result) const = 0;
-};
-
 /// Approximates a Mapping.
-class Representation : public Mapping
+class Representation : public Configurable
 {
   public:
     virtual Representation *clone() const = 0;
 
+    /// Read out the approximation.
     virtual double read(const ProjectionPtr &projection, Vector *result) const
     {
       return read(projection, result, NULL);
     }
 
-    /// Read out the approximation.
+    /// Read out the approximation, returning standard deviation of result.
     virtual double read(const ProjectionPtr &projection, Vector *result, Vector *stddev) const = 0;
     
     /// Add a new estimate of the target function, using a single learning rate for all outputs.

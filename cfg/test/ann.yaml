@@ -1,0 +1,23 @@
+experiment: 
+  type: experiment/approx_test
+  train_samples: 1000
+  test_samples: 10000
+  file: approx_test.txt
+  input_min: [0, 0]
+  input_max: [1, 1]
+  projector: 
+    type: projector/identity
+  representation: 
+    type: representation/iterative
+    epochs: 20000
+    representation: 
+      type: representation/parameterized/ann
+      inputs: 2
+      outputs: 1
+      hiddens: [5, 5]
+      eta: 0
+  mapping: 
+    type: mapping/multisine
+    inputs: 2
+    outputs: 1
+    sines: 1

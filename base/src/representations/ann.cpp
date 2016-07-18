@@ -2,10 +2,10 @@
  * \brief Artificial neural network representation source file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-01-22
+ * \date      2016-06-26
  *
  * \copyright \verbatim
- * Copyright (c) 2015, Wouter Caarls
+ * Copyright (c) 2016, Wouter Caarls
  * All rights reserved.
  *
  * This file is part of GRL, the Generic Reinforcement Learning library.
@@ -28,8 +28,6 @@
 #include <string.h>
 #include <grl/representations/ann.h>
 
-#define MAX_NODES 64
-
 using namespace grl;
 
 REGISTER_CONFIGURABLE(ANNRepresentation)
@@ -38,9 +36,8 @@ void ANNRepresentation::request(const std::string &role, ConfigurationRequest *c
 {
   if (role == "action")
   {
-    config->push_back(CRP("inputs", "int.observation_dims", "Number of input dimensions", (int)inputs_, CRP::System, 1, MAX_NODES));
-    config->push_back(CRP("output_min", "vector.action_min", "Lower limit on outputs", output_min_, CRP::System));
-    config->push_back(CRP("output_max", "vector.action_max", "Upper limit on outputs", output_max_, CRP::System));
+    config->push_back(CRP("inputs", "int.observation_dims", "Number of input dimensions", (int)inputs_, CRP::System, 1));
+    config->push_back(CRP("outputs", "int.action_dims", "Number of output dimensions", (int)outputs_, CRP::System, 1));
   }
   else
   {
@@ -50,41 +47,38 @@ void ANNRepresentation::request(const std::string &role, ConfigurationRequest *c
       config->push_back(CRP("inputs", "int.observation_dims", "Number of input dimensions", (int)inputs_, CRP::System, 1));
     else
       config->push_back(CRP("inputs", "Number of input dimensions", (int)inputs_, CRP::System, 1));
-    
-    config->push_back(CRP("output_min", "Lower limit on outputs", output_min_, CRP::System));
-    config->push_back(CRP("output_max", "Upper limit on outputs", output_max_, CRP::System));
+      
+    if (role == "transition")
+      config->push_back(CRP("outputs", "int.observation_dims+2", "Number of output dimensions", (int)outputs_, CRP::System, 1));
+    else
+      config->push_back(CRP("outputs", "Number of output dimensions", (int)outputs_, CRP::System, 1));
   }
   
-  config->push_back(CRP("hiddens", "Number of hidden nodes", (int)hiddens_, CRP::Configuration, 0, MAX_NODES));
+  config->push_back(CRP("hiddens", "Number of hidden nodes per layer", hiddens_, CRP::Configuration));
 
-  config->push_back(CRP("steepness", "Steepness of activation function", steepness_, CRP::Configuration, 0., DBL_MAX));
-  config->push_back(CRP("bias", "Use bias nodes", bias_, CRP::Configuration, 0, 1));
-  config->push_back(CRP("recurrent", "Feed hidden activation back as input", recurrent_, CRP::Configuration, 0, 1));
+  config->push_back(CRP("eta", "Learning rate (0=RPROP)", eta_, CRP::Configuration, 0., 2.));
 }
 
 void ANNRepresentation::configure(Configuration &config)
 {
   inputs_ = config["inputs"];
-  output_min_ = config["output_min"].v();
-  output_max_ = config["output_max"].v();
+  outputs_ = config["outputs"];
+  hiddens_ = config["hiddens"].v();
+
+  layers_.resize(hiddens_.size()+2);
+  layers_[0].size = inputs_;
+  layers_[layers_.size()-1].size = outputs_;
   
-  outputs_ = output_min_.size();
-  hiddens_ = config["hiddens"];
-  if (!hiddens_)
-    hiddens_ = ceil((inputs_+outputs_)/2.);
+  for (size_t ii=0; ii < hiddens_.size(); ++ii)
+  {
+    if (round(hiddens_[ii]) <= 0)
+      throw bad_param("representation/parameterized/ann:hiddens");
+      
+    layers_[ii+1].size = round(hiddens_[ii]);
+  }
     
-  if (output_min_.size() != output_max_.size() || outputs_ > MAX_NODES)
-    throw bad_param("representation/parameterized/ann:{output_min,output_max}");
+  eta_ = config["eta"];
     
-  state_.resize(hiddens_);
-  weights_.resize(size());
-    
-  steepness_ = config["steepness"];
-  bias_ = config["bias"];
-  recurrent_ = config["recurrent"];
- 
-  INFO("Structure [" << inputs_ << ", " << hiddens_ << ", " << outputs_ << "] " << (bias_?"with":"without") << " bias (" << size() << " parameters), steepness " << steepness_);
-  
   // Initialize memory
   reset();
 }
@@ -93,18 +87,43 @@ void ANNRepresentation::reconfigure(const Configuration &config)
 {
   if (config.has("action") && config["action"].str() == "reset")
   {
-    for (size_t ii=0; ii < hiddens_; ++ii)
-      state_[ii] = 0.;
+    size_t sz = 0;
+    for (size_t ii=1; ii < layers_.size(); ++ii)
+      sz += (layers_[ii-1].size+1)*layers_[ii].size;
+    params_ = Vector::Random(sz)*0.01;
+    
+    sz = 0;
+    for (size_t ii=1; ii < layers_.size(); ++ii)
+    {
+      new (&layers_[ii].W) Eigen::Map<Eigen::MatrixXd>(&params_.data()[sz], layers_[ii-1].size+1, layers_[ii].size);
       
-    // Initialize memory
-    for (size_t ii=0; ii < size(); ++ii)
-      weights_[ii] = RandGen::getUniform(-1, 1);
+      layers_[ii].delta = layers_[ii].activation = Matrix();
+      layers_[ii].Delta = Matrix::Zero(layers_[ii-1].size+1, layers_[ii].size);
+
+      layers_[ii].eta = Matrix::Ones(layers_[ii-1].size+1, layers_[ii].size)*0.1;
+      layers_[ii].prev_Delta = Matrix::Zero(layers_[ii-1].size+1, layers_[ii].size);
+
+      sz += (layers_[ii-1].size+1)*layers_[ii].size;
+    }
+    
+    error_ = 0;
+    samples_ = 0;
   }
 }
 
 ANNRepresentation *ANNRepresentation::clone() const
 {
-  return new ANNRepresentation(*this);
+  ANNRepresentation *ann = new ANNRepresentation(*this);
+  
+  // Remap parameter vector to weight matrices
+  size_t sz = 0;
+  for (size_t ii=1; ii < ann->layers_.size(); ++ii)
+  {
+    new (&ann->layers_[ii].W) Eigen::Map<Eigen::MatrixXd>(&ann->params_.data()[sz], ann->layers_[ii-1].size+1, ann->layers_[ii].size);
+    sz += (ann->layers_[ii-1].size+1)*ann->layers_[ii].size;
+  }
+
+  return ann;
 }
 
 double ANNRepresentation::read(const ProjectionPtr &projection, Vector *result, Vector *stddev) const
@@ -113,43 +132,19 @@ double ANNRepresentation::read(const ProjectionPtr &projection, Vector *result, 
   
   if (vp)
   {
-    double hidden[MAX_NODES], output[MAX_NODES];
-    size_t hidden_params = inputs_+bias_+recurrent_;
-    
-    // Calculate hidden activation
-    for (size_t hh=0; hh < hiddens_; ++hh)
+    Eigen::VectorXd act = vp->vector;
+    for (int ii=1; ii < layers_.size(); ++ii)
     {
-      const double *w = &weights_[hidden_params*hh];
-      double act = 0;
-      if (bias_)      act += w[inputs_];                  // Bias
-      if (recurrent_) act += state_[hh]*w[inputs_+bias_]; // Recurrence
-      
-      for (size_t ii=0; ii < inputs_; ++ii)
-        act += w[ii]*vp->vector[ii];
-        
-      hidden[hh] = activate(act);
+      Eigen::VectorXd net = layers_[ii].W.transpose().leftCols(layers_[ii-1].size)*act +
+                            layers_[ii].W.transpose().rightCols<1>(); // Bias
+
+      if (ii == layers_.size()-1)
+        act = net; // Linear activation on output neurons
+      else
+        act = activate(net);
     }
     
-    // TODO: Remember state
-    // memcpy(state_.data(), hidden, hiddens_*sizeof(double));
-    
-    // Calculate output activation
-    for (size_t oo=0; oo < outputs_; ++oo)
-    {
-      const double *w = &weights_[hidden_params*hiddens_+(hiddens_+bias_)*oo];
-      double act = 0;
-      if (bias_) act += w[hiddens_]; // Bias
-      
-      for (size_t hh=0; hh < hiddens_; ++hh)
-        act += w[hh]*hidden[hh];
-        
-      output[oo] = activate(act);
-    }
-    
-    // Normalize outputs from 0..1 to output_min_..output_max_
-    result->resize(outputs_);
-    for (size_t oo=0; oo < outputs_; ++oo)
-      (*result)[oo] = output_min_[oo]+output[oo]*(output_max_[oo]-output_min_[oo]);
+    *result = act;
   }
   else
     throw Exception("representation/parameterized/ann requires a projector returning a VectorProjection");
@@ -161,10 +156,96 @@ double ANNRepresentation::read(const ProjectionPtr &projection, Vector *result, 
 
 void ANNRepresentation::write(const ProjectionPtr projection, const Vector &target, const Vector &alpha)
 {
-  // TODO
+  VectorProjection *vp = dynamic_cast<VectorProjection*>(projection.get());
+  
+  if (vp)
+  {
+    // TODO: allow to call backprop with alpha
+    if (prod(alpha) == 1)
+    {
+      backprop(vp->vector.transpose(), target);
+    }
+    else
+    {
+      Vector v;
+      read(projection, &v, NULL);
+      backprop(vp->vector.transpose(), (alpha*target + (1-alpha)*v).transpose());
+    }
+  }
+  else
+    throw Exception("representation/parameterized/ann requires a projector returning a VectorProjection");
 }
 
 void ANNRepresentation::update(const ProjectionPtr projection, const Vector &delta)
 {
-  // TODO
+  VectorProjection *vp = dynamic_cast<VectorProjection*>(projection.get());
+  
+  if (vp)
+  {
+    // TODO: allow to call backprop with error
+    Vector v;
+    read(projection, &v, NULL);
+    backprop(vp->vector.transpose(), (v+delta).transpose());
+  }
+  else
+    throw Exception("representation/parameterized/ann requires a projector returning a VectorProjection");
+}
+
+void ANNRepresentation::finalize()
+{
+  for (int ii=1; ii < layers_.size(); ++ii)
+  {
+    if (eta_)
+    {
+      // Gradient descent
+      layers_[ii].W -= eta_*layers_[ii].Delta/samples_;
+    }
+    else
+    {
+      // RPROP
+      layers_[ii].eta = ((layers_[ii].Delta.array()*layers_[ii].prev_Delta.array())>0).select(layers_[ii].eta*1.2, layers_[ii].eta*0.5);
+      layers_[ii].W -= (layers_[ii].Delta.array()>0).select(layers_[ii].eta, -layers_[ii].eta);
+      layers_[ii].prev_Delta = layers_[ii].Delta;
+    }
+    
+    layers_[ii].Delta = Matrix::Zero(layers_[ii-1].size+1, layers_[ii].size);
+  }
+  
+  CRAWL("Error: " << error_/samples_);
+  
+  error_ = 0;
+  samples_ = 0;
+}
+
+void ANNRepresentation::backprop(const Matrix &in, const Matrix &out)
+{
+  // Feed forward, to get activations
+  layers_[0].activation = in;
+  for (size_t ii=1; ii < layers_.size(); ++ii)
+  {
+    Matrix net = layers_[ii].W.transpose().leftCols(layers_[ii-1].size)*layers_[ii-1].activation +
+                 layers_[ii].W.transpose().rightCols<1>(); // Bias
+                 
+    if (ii == layers_.size()-1)
+      layers_[ii].activation = net; // Linear activation on output neurons
+    else
+      layers_[ii].activation = activate(net);
+  }
+  
+  // Update error
+  error_ += (layers_[layers_.size()-1].activation - out).array().square().sum();
+
+  // Backpropagation
+  for (int ii=layers_.size()-1; ii > 0; --ii)
+  {
+    if (ii == layers_.size()-1)
+      layers_[ii].delta = layers_[ii].activation - out; // Linear activation on output neurons
+    else
+      layers_[ii].delta = (layers_[ii+1].W*layers_[ii+1].delta).topRows(layers_[ii+1].size).cwiseProduct(dactivate(layers_[ii].activation));
+      
+    layers_[ii].Delta.topRows(layers_[ii-1].size) += layers_[ii-1].activation*layers_[ii].delta.transpose();
+    layers_[ii].Delta.bottomRows<1>() += layers_[ii].delta.transpose(); // Bias
+  }
+  
+  samples_ += in.cols();
 }

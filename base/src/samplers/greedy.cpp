@@ -35,11 +35,13 @@ REGISTER_CONFIGURABLE(EpsilonGreedyOUSampler)
 
 void GreedySampler::request(ConfigurationRequest *config)
 {
+  config->push_back(CRP("rand_max", "In case of multiple maximumum values select a random index among them", rand_max_, CRP::System, 0, 1));
 }
 
 void GreedySampler::configure(Configuration &config)
 {
   rand_ = new Rand();
+  rand_max_ = config["rand_max"];
 }
 
 void GreedySampler::reconfigure(const Configuration &config)
@@ -61,18 +63,19 @@ size_t GreedySampler::sample(const Vector &values, TransitionType &tt) const
   for (size_t ii=1; ii < values.size(); ++ii)
     if (values[ii] > values[mai])
       mai = ii;
-/*
- * Commented code selects random index in case of multiple maximumum values
- *
-  Vector same_values = ConstantVector(values.size(), 0);
-  size_t jj = 0;
-  for (size_t ii=0; ii < values.size(); ++ii)
-    if (values[ii] == values[mai])
-      same_values[jj++] = ii;
 
-  if (jj != 0)
-    mai = same_values[rand_->getInteger(jj)];
-*/
+  if (rand_max_)
+  {
+    Vector same_values = ConstantVector(values.size(), 0);
+    size_t jj = 0;
+    for (size_t ii=0; ii < values.size(); ++ii)
+      if (values[ii] == values[mai])
+        same_values[jj++] = ii;
+
+    if (jj != 0)
+      mai = same_values[rand_->getInteger(jj)];
+  }
+
   tt = ttGreedy;
   return mai;
 }
@@ -80,20 +83,13 @@ size_t GreedySampler::sample(const Vector &values, TransitionType &tt) const
 void GreedySampler::distribution(const Vector &values, Vector *distribution) const
 {
   TransitionType tt;
-  size_t mai = GreedySampler::sample(values, tt);
-  distribution->resize(values.size());
-
-  for (size_t ii=0; ii < values.size(); ++ii)
-  {
-    if (ii == mai)
-      (*distribution)[ii] = 1;
-    else
-      (*distribution)[ii] = 0;
-  }
+  *distribution = ConstantVector(values.size(), 0.);
+  (*distribution)[GreedySampler::sample(values, tt)] = 1;
 }
 
 void EpsilonGreedySampler::request(ConfigurationRequest *config)
 {
+  GreedySampler::request(config);
   config->push_back(CRP("epsilon", "Exploration rate", epsilon_, CRP::Online));
 }
 

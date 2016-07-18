@@ -77,15 +77,12 @@ ApproxTestExperiment *ApproxTestExperiment::clone() const
 
 void ApproxTestExperiment::run()
 {
-  IdentityProjector *ip = new IdentityProjector();
-
   for (size_t ii=0; ii < train_samples_; ++ii)
   {
     Vector in = RandGen::getVector(min_.size()), out;
     in = min_ + in*(max_-min_);
 
-    ProjectionPtr vp = ip->project(in);
-    mapping_->read(vp, &out);
+    mapping_->read(in, &out);
     
     ProjectionPtr p = projector_->project(in);
     representation_->write(p, out);
@@ -107,8 +104,7 @@ void ApproxTestExperiment::run()
     Vector in = RandGen::getVector(min_.size()), out, app;
     in = min_ + in*(max_-min_);
 
-    ProjectionPtr vp = ip->project(in);
-    mapping_->read(vp, &out);
+    mapping_->read(in, &out);
     
     ProjectionPtr p = projector_->project(in);
     representation_->read(p, &app);

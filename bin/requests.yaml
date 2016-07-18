@@ -290,7 +290,7 @@ environment/communicator:
     type: communicator
     description: Comunicator which exchanges messages with an actual environment
     mutability: configuration
-    default: 0xd6ffe0
+    default: 0x16d9cd0
     optional: 0
 environment/leo2:
   description: LEO/2 environment
@@ -721,22 +721,14 @@ exporter/csv:
       - meshup
   variant:
     type: string
-    description: Variant of exporter
+    description: Variant to export
     mutability: configuration
-    default: test
+    default: all
     optional: 1
     options:
       - test
       - learn
       - all
-  split_runs:
-    type: int
-    description: Write each run output to a separate file
-    mutability: configuration
-    default: 1
-    optional: 1
-    min: 0
-    max: 2147483647
 importer/csv:
   description: Comma-separated values importer
   file:
@@ -1771,13 +1763,7 @@ predictor/expected_sarsa:
     optional: 0
   policy:
     type: policy/discrete/q
-    description: Q-value based policy
-    mutability: configuration
-    default: 0
-    optional: 0
-  sampler:
-    type: sampler
-    description: Target distribution
+    description: Q-value based target policy
     mutability: configuration
     default: 0
     optional: 0
@@ -2123,68 +2109,6 @@ predictor/sarsa:
     mutability: configuration
     default: 0
     optional: 0
-predictor/shaped_sarsa:
-  description: SARSA predictor with shaping rewards
-  importer:
-    type: importer
-    description: Optional importer for pre-training
-    mutability: configuration
-    default: 0
-    optional: 1
-  exporter:
-    type: exporter
-    description: Optional exporter for transition log (supports observation, action, reward, next_observation, next_action)
-    mutability: configuration
-    default: 0
-    optional: 1
-  alpha:
-    type: double
-    description: Learning rate
-    mutability: configuration
-    default: 0.2
-    optional: 1
-    min: 0
-    max: 1
-  gamma:
-    type: double
-    description: Discount rate
-    mutability: configuration
-    default: 0.97
-    optional: 1
-    min: 0
-    max: 1
-  lambda:
-    type: double
-    description: Trace decay rate
-    mutability: configuration
-    default: 0.65
-    optional: 1
-    min: 0
-    max: 1
-  projector:
-    type: projector.pair
-    description: Projects observation-action pairs onto representation space
-    mutability: configuration
-    default: 0
-    optional: 0
-  representation:
-    type: representation.value/action
-    description: Q-value representation
-    mutability: configuration
-    default: 0
-    optional: 0
-  trace:
-    type: trace
-    description: Trace of projections
-    mutability: configuration
-    default: 0
-    optional: 0
-  shaping_representation:
-    type: representation.value/action
-    description: Q-value representation for shaping rewards
-    mutability: configuration
-    default: 0
-    optional: 0
 predictor/td:
   description: TD value function predictor
   importer:
@@ -2435,6 +2359,14 @@ projector/tile_coding:
     optional: 1
     min: 0
     max: 2147483647
+  safe:
+    type: int
+    description: Collision detection (0=off, 1=claim on write, 2=claim always)
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 2
   resolution:
     type: vector
     description: Size of a single tile
@@ -2509,54 +2441,32 @@ representation/parameterized/ann:
     type: int
     description: Number of input dimensions
     mutability: system
-    default: 0
+    default: 1
     optional: 1
     min: 1
     max: 2147483647
-  output_min:
-    type: vector
-    description: Lower limit on outputs
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  output_max:
-    type: vector
-    description: Upper limit on outputs
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  hiddens:
+  outputs:
     type: int
-    description: Number of hidden nodes
-    mutability: configuration
-    default: 10
-    optional: 1
-    min: 0
-    max: 64
-  steepness:
-    type: double
-    description: Steepness of activation function
-    mutability: configuration
-    default: 5
-    optional: 1
-    min: 0
-    max: 1.797693134862316e+308
-  bias:
-    type: int
-    description: Use bias nodes
-    mutability: configuration
+    description: Number of output dimensions
+    mutability: system
     default: 1
     optional: 1
-    min: 0
-    max: 1
-  recurrent:
-    type: int
-    description: Feed hidden activation back as input
+    min: 1
+    max: 2147483647
+  hiddens:
+    type: vector
+    description: Number of hidden nodes per layer
     mutability: configuration
-    default: 0
+    default: "[ 5 ]"
+    optional: 1
+  eta:
+    type: double
+    description: Learning rate (0=RPROP)
+    mutability: configuration
+    default: 0.7
     optional: 1
     min: 0
-    max: 1
+    max: 2
 representation/parameterized/linear:
   description: Linear-in-parameters representation
   init_min:
@@ -2601,6 +2511,14 @@ representation/parameterized/linear:
     optional: 1
 sampler/epsilon_greedy:
   description: Maximum search with a uniform random chance of non-maximums
+  rand_max:
+    type: int
+    description: In case of multiple maximumum values select a random index among them
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
   epsilon:
     type: double
     description: Exploration rate
@@ -2611,6 +2529,14 @@ sampler/epsilon_greedy:
     max: 1
 sampler/epsilon_greedy_ou:
   description: Maximum search with an Ornstein-Uhlenbeck random chance of non-maximums
+  rand_max:
+    type: int
+    description: In case of multiple maximumum values select a random index among them
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
   epsilon:
     type: double
     description: Exploration rate
@@ -2671,6 +2597,14 @@ sampler/epsilon_greedy_ou:
     max: 2147483647
 sampler/greedy:
   description: Maximum search
+  rand_max:
+    type: int
+    description: In case of multiple maximumum values select a random index among them
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
 sampler/softmax:
   description: Softmax (Gibbs/Boltzmann) sampler
   tau:
@@ -3733,18 +3667,6 @@ visualization/field/policy/value:
       - mean
       - min
       - max
-  projector:
-    type: projector.pair
-    description: Projects observation-action pairs onto representation space
-    mutability: configuration
-    default: 0
-    optional: 0
-  representation:
-    type: representation.value/action
-    description: Q-value representation
-    mutability: configuration
-    default: 0
-    optional: 0
   policy:
     type: policy/discrete/q
     description: Q-value based control policy
@@ -4185,6 +4107,14 @@ projector/tile_coding.pair:
     optional: 1
     min: 0
     max: 2147483647
+  safe:
+    type: int
+    description: Collision detection (0=off, 1=claim on write, 2=claim always)
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 2
   resolution:
     type: vector
     description: Size of a single tile
@@ -4259,54 +4189,32 @@ representation/parameterized/ann.transition:
     type: int.observation_dims+int.action_dims
     description: Number of input dimensions
     mutability: system
-    default: 0
+    default: 1
     optional: 1
     min: 1
     max: 2147483647
-  output_min:
-    type: vector
-    description: Lower limit on outputs
+  outputs:
+    type: int.observation_dims+2
+    description: Number of output dimensions
     mutability: system
-    default: "[  ]"
-    optional: 1
-  output_max:
-    type: vector
-    description: Upper limit on outputs
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  hiddens:
-    type: int
-    description: Number of hidden nodes
-    mutability: configuration
-    default: 10
-    optional: 1
-    min: 0
-    max: 64
-  steepness:
-    type: double
-    description: Steepness of activation function
-    mutability: configuration
-    default: 5
-    optional: 1
-    min: 0
-    max: 1.797693134862316e+308
-  bias:
-    type: int
-    description: Use bias nodes
-    mutability: configuration
     default: 1
     optional: 1
-    min: 0
-    max: 1
-  recurrent:
-    type: int
-    description: Feed hidden activation back as input
+    min: 1
+    max: 2147483647
+  hiddens:
+    type: vector
+    description: Number of hidden nodes per layer
     mutability: configuration
-    default: 0
+    default: "[ 5 ]"
+    optional: 1
+  eta:
+    type: double
+    description: Learning rate (0=RPROP)
+    mutability: configuration
+    default: 0.7
     optional: 1
     min: 0
-    max: 1
+    max: 2
 representation/parameterized/linear.transition:
   description: Linear-in-parameters representation
   init_min:
@@ -4543,6 +4451,14 @@ projector/tile_coding.observation:
     optional: 1
     min: 0
     max: 2147483647
+  safe:
+    type: int
+    description: Collision detection (0=off, 1=claim on write, 2=claim always)
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 2
   resolution:
     type: vector
     description: Size of a single tile
@@ -4617,54 +4533,32 @@ representation/parameterized/ann.action:
     type: int.observation_dims
     description: Number of input dimensions
     mutability: system
-    default: 0
-    optional: 1
-    min: 1
-    max: 64
-  output_min:
-    type: vector.action_min
-    description: Lower limit on outputs
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  output_max:
-    type: vector.action_max
-    description: Upper limit on outputs
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  hiddens:
-    type: int
-    description: Number of hidden nodes
-    mutability: configuration
-    default: 10
-    optional: 1
-    min: 0
-    max: 64
-  steepness:
-    type: double
-    description: Steepness of activation function
-    mutability: configuration
-    default: 5
-    optional: 1
-    min: 0
-    max: 1.797693134862316e+308
-  bias:
-    type: int
-    description: Use bias nodes
-    mutability: configuration
     default: 1
     optional: 1
-    min: 0
-    max: 1
-  recurrent:
-    type: int
-    description: Feed hidden activation back as input
+    min: 1
+    max: 2147483647
+  outputs:
+    type: int.action_dims
+    description: Number of output dimensions
+    mutability: system
+    default: 1
+    optional: 1
+    min: 1
+    max: 2147483647
+  hiddens:
+    type: vector
+    description: Number of hidden nodes per layer
     mutability: configuration
-    default: 0
+    default: "[ 5 ]"
+    optional: 1
+  eta:
+    type: double
+    description: Learning rate (0=RPROP)
+    mutability: configuration
+    default: 0.7
     optional: 1
     min: 0
-    max: 1
+    max: 2
 representation/parameterized/linear.action:
   description: Linear-in-parameters representation
   init_min:
@@ -4815,54 +4709,32 @@ representation/parameterized/ann.value/action:
     type: int.observation_dims+int.action_dims
     description: Number of input dimensions
     mutability: system
-    default: 0
+    default: 1
     optional: 1
     min: 1
     max: 2147483647
-  output_min:
-    type: vector
-    description: Lower limit on outputs
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  output_max:
-    type: vector
-    description: Upper limit on outputs
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  hiddens:
+  outputs:
     type: int
-    description: Number of hidden nodes
-    mutability: configuration
-    default: 10
-    optional: 1
-    min: 0
-    max: 64
-  steepness:
-    type: double
-    description: Steepness of activation function
-    mutability: configuration
-    default: 5
-    optional: 1
-    min: 0
-    max: 1.797693134862316e+308
-  bias:
-    type: int
-    description: Use bias nodes
-    mutability: configuration
+    description: Number of output dimensions
+    mutability: system
     default: 1
     optional: 1
-    min: 0
-    max: 1
-  recurrent:
-    type: int
-    description: Feed hidden activation back as input
+    min: 1
+    max: 2147483647
+  hiddens:
+    type: vector
+    description: Number of hidden nodes per layer
     mutability: configuration
-    default: 0
+    default: "[ 5 ]"
+    optional: 1
+  eta:
+    type: double
+    description: Learning rate (0=RPROP)
+    mutability: configuration
+    default: 0.7
     optional: 1
     min: 0
-    max: 1
+    max: 2
 representation/parameterized/linear.value/action:
   description: Linear-in-parameters representation
   init_min:
@@ -4967,54 +4839,32 @@ representation/parameterized/ann.value/state:
     type: int.observation_dims
     description: Number of input dimensions
     mutability: system
-    default: 0
+    default: 1
     optional: 1
     min: 1
     max: 2147483647
-  output_min:
-    type: vector
-    description: Lower limit on outputs
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  output_max:
-    type: vector
-    description: Upper limit on outputs
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  hiddens:
+  outputs:
     type: int
-    description: Number of hidden nodes
-    mutability: configuration
-    default: 10
-    optional: 1
-    min: 0
-    max: 64
-  steepness:
-    type: double
-    description: Steepness of activation function
-    mutability: configuration
-    default: 5
-    optional: 1
-    min: 0
-    max: 1.797693134862316e+308
-  bias:
-    type: int
-    description: Use bias nodes
-    mutability: configuration
+    description: Number of output dimensions
+    mutability: system
     default: 1
     optional: 1
-    min: 0
-    max: 1
-  recurrent:
-    type: int
-    description: Feed hidden activation back as input
+    min: 1
+    max: 2147483647
+  hiddens:
+    type: vector
+    description: Number of hidden nodes per layer
     mutability: configuration
-    default: 0
+    default: "[ 5 ]"
+    optional: 1
+  eta:
+    type: double
+    description: Learning rate (0=RPROP)
+    mutability: configuration
+    default: 0.7
     optional: 1
     min: 0
-    max: 1
+    max: 2
 representation/parameterized/linear.value/state:
   description: Linear-in-parameters representation
   init_min:

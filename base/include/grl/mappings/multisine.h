@@ -1,8 +1,8 @@
-/** \file additive.h
- * \brief Additive representation header file.
+/** \file multisine.h
+ * \brief Multisine mapping header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-11-15
+ * \date      2015-01-22
  *
  * \copyright \verbatim
  * Copyright (c) 2015, Wouter Caarls
@@ -25,41 +25,44 @@
  * \endverbatim
  */
 
-#ifndef GRL_ADDITIVE_REPRESENTATION_H_
-#define GRL_ADDITIVE_REPRESENTATION_H_
+#ifndef GRL_MULTISINE_MAPPING_H_
+#define GRL_MULTISINE_MAPPING_H_
 
-#include <grl/representation.h>
+#include <grl/mapping.h>
 
 namespace grl
 {
 
-/// Linear combination of two representations
-class AdditiveRepresentation : public Representation
+/// Sum of sines, used for testing.
+class MultisineMapping : public Mapping
 {
   public:
-    TYPEINFO("representation/additive", "Linear combination of two representations")
-
+    TYPEINFO("mapping/multisine", "Sum of sines mapping")
+    
   protected:
-    Representation* representation1_, *representation2_;
-    int learning_;
+    size_t outputs_, sines_, inputs_;
     
+    Vector params_;
+
   public:
-    AdditiveRepresentation() : representation1_(NULL), representation2_(NULL), learning_(0)
-    {
-    }
-    
+    MultisineMapping() : outputs_(1), sines_(1), inputs_(1) { }
+  
     // From Configurable
-    virtual void request(const std::string &role, ConfigurationRequest *config);
+    virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
   
-    // From Representation
-    virtual AdditiveRepresentation *clone() const;
-    virtual double read(const ProjectionPtr &projection, Vector *result, Vector *stddev) const;
-    virtual void write(const ProjectionPtr projection, const Vector &target, const Vector &alpha);
-    virtual void update(const ProjectionPtr projection, const Vector &delta);
+    // From Mapping
+    virtual MultisineMapping *clone() const;
+    virtual double read(const Vector &in, Vector *result) const ;
+    
+  protected:
+    inline size_t p(size_t oo, size_t ss, size_t ii, size_t pp) const
+    {
+      return oo*(sines_*(1 + 2*inputs_)) + ss*(1 + 2*inputs_) + ii*2 + pp;
+    }
 };
 
 }
 
-#endif /* GRL_ADDITIVE_REPRESENTATION_H_ */
+#endif /* GRL_MULTISINE_MAPPING_H_ */

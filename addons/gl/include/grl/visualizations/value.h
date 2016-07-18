@@ -73,12 +73,10 @@ class PolicyValueVisualization : public FieldVisualization
     TYPEINFO("visualization/field/policy/value", "Visualizes the value of a policy over a field of states")
     
   protected:
-    Projector *projector_;
-    Representation *representation_;
     QPolicy *policy_;
   
   public:
-    PolicyValueVisualization() : projector_(NULL), representation_(NULL), policy_(NULL) { }
+    PolicyValueVisualization() : policy_(NULL) { }
     ~PolicyValueVisualization()
     {
       stopAndJoin();

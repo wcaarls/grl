@@ -1,11 +1,11 @@
-/** \file approx_test.h
- * \brief Approximation test header file.
+/** \file flyer2d.h
+ * \brief 2D flyer visualization header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-01-22
+ * \date      2016-07-13
  *
  * \copyright \verbatim
- * Copyright (c) 2015, Wouter Caarls
+ * Copyright (c) 2016, Wouter Caarls
  * All rights reserved.
  *
  * This file is part of GRL, the Generic Reinforcement Learning library.
@@ -25,45 +25,38 @@
  * \endverbatim
  */
 
-#ifndef GRL_APPROX_TEST_EXPERIMENT_H_
-#define GRL_APPROX_TEST_EXPERIMENT_H_
+#ifndef GRL_FLYER2D_VISUALIZATION_H_
+#define GRL_FLYER2D_VISUALIZATION_H_
 
-#include <grl/projector.h>
-#include <grl/representation.h>
-#include <grl/mapping.h>
-#include <grl/experiment.h>
+#include <grl/state.h>
+#include <grl/visualization.h>
 
 namespace grl
 {
 
-/// Approximation test experiment (supervised learning).
-class ApproxTestExperiment : public Experiment
+/// 2D flyer visualization.
+class Flyer2DVisualization : public Visualization
 {
   public:
-    TYPEINFO("experiment/approx_test", "Approximator test experiment (supervised learning)")
+    TYPEINFO("visualization/flyer2d", "2D flyer visualization")
 
   protected:
-    Projector *projector_;
-    Representation *representation_;
-    Mapping *mapping_;
-    
-    Vector min_, max_;
-    size_t outputs_, train_samples_, test_samples_;
-    std::string file_;
-
-  public:
-    ApproxTestExperiment() : projector_(NULL), representation_(NULL), mapping_(NULL), outputs_(1), train_samples_(1000), test_samples_(1000) { }
+    State *state_;
   
+  public:
+    Flyer2DVisualization() : state_(NULL) { }
+    
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
-
-    // From Experiment
-    virtual ApproxTestExperiment *clone() const;
-    virtual void run();
+  
+    // From Visualization
+    virtual void draw();
+    virtual void idle();
+    virtual void reshape(int width, int height);
 };
 
 }
 
-#endif /* GRL_APPROX_TEST_EXPERIMENT_H_ */
+#endif /* GRL_FLYER2D_VISUALIZATION_H_ */
