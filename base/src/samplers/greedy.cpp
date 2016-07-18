@@ -240,17 +240,22 @@ size_t EpsilonGreedyOUSampler::sample(const Vector &values, TransitionType &tt) 
         iiv.push_back(ii);
       }
       // select random action out of limited possibilities
-      mai = iiv[rand_->getInteger(iiv.size())];
+      int r = rand_->getInteger(iiv.size());
+      mai = iiv[r];
     }
   }
   else
   {
     tt = ttGreedy;
     // PADA action selection rule
-    action_ << MAX(prev_action_[0]-delta_, 0), MAX(prev_action_[1]-delta_, 0), MAX(prev_action_[2]-delta_, 0);
-    for (int i = action_[0]; i <= MIN(prev_action_[0]+delta_, steps_[0]-1); i++)
-    for (int j = action_[1]; j <= MIN(prev_action_[1]+delta_, steps_[1]-1); j++)
-    for (int k = action_[2]; k <= MIN(prev_action_[2]+delta_, steps_[2]-1); k++)
+    int i0 = MAX(prev_action_[0]-delta_, 0);
+    int j0 = MAX(prev_action_[1]-delta_, 0);
+    int k0 = MAX(prev_action_[2]-delta_, 0);
+    action_ << i0, j0, k0;
+//    int t = 0;
+    for (int i = i0; i <= MIN(prev_action_[0]+delta_, steps_[0]-1); i++)
+    for (int j = j0; j <= MIN(prev_action_[1]+delta_, steps_[1]-1); j++)
+    for (int k = k0; k <= MIN(prev_action_[2]+delta_, steps_[2]-1); k++)
     {
       size_t ii = i + j*steps_[0] + k*steps_[0]*steps_[1];
       if (values[ii] > values[mai])
@@ -259,7 +264,13 @@ size_t EpsilonGreedyOUSampler::sample(const Vector &values, TransitionType &tt) 
         action_ << i, j, k;
 //        std::cout << "Action grd: " << action_ << "; ii: " << ii << std::endl;
       }
+//      t++;
     }
+
+//    GreedySampler gs;
+//    size_t a = gs.sample(values, tt);
+//    if (a != mai)
+//      std::cout << "Error!" << std::endl;
   }
 
   prev_action_ = action_;
