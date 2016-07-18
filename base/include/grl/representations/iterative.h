@@ -39,10 +39,13 @@ class IterativeRepresentation : public Representation
   public:
     TYPEINFO("representation/iterative", "Representation that iteratively trains a sub-representation")
     
+    typedef std::pair<ProjectionPtr, Vector> Sample;
+    typedef std::vector<Sample> SampleVector;
+    
   protected:
     int epochs_, cumulative_;
     Representation* representation_;
-    std::vector<std::pair<const ProjectionPtr, const Vector> > samples_;
+    SampleVector samples_;
     
   public:
     IterativeRepresentation() : epochs_(5000), cumulative_(1), representation_(NULL) { }
