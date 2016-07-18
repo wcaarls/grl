@@ -232,7 +232,19 @@ size_t EpsilonGreedyOUSampler::sample(const Vector &values, TransitionType &tt) 
     else
     {
       // random
-      mai = rand_->getInteger(values.size());
+      //mai = rand_->getInteger(values.size());
+      // PADA random action selection rule
+      action_ << MAX(prev_action_[0]-delta_, 0), MAX(prev_action_[1]-delta_, 0), MAX(prev_action_[2]-delta_, 0);
+      std::vector<size_t> iiv;
+      for (int i = action_[0]; i <= MIN(prev_action_[0]+delta_, steps_[0]-1); i++)
+      for (int j = action_[1]; j <= MIN(prev_action_[1]+delta_, steps_[1]-1); j++)
+      for (int k = action_[2]; k <= MIN(prev_action_[2]+delta_, steps_[2]-1); k++)
+      {
+        size_t ii = i + j*steps_[0] + k*steps_[0]*steps_[1];
+        iiv.push_back(ii);
+      }
+      // select random action out of limited possibilities
+      mai = iiv[rand_->getInteger(iiv.size())];
     }
   }
   else

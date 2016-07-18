@@ -5,7 +5,7 @@ experiment:
   steps: 1000000
   rate: 0
   test_interval: 10
-  output: leosim_sarsa_walk
+  output: leosim_sarsa_walk_ou_pada
   environment: 
     type: environment/leo_walk
     xml: ../../leo/cfg/leo_walk.xml
@@ -30,7 +30,7 @@ experiment:
       projector: 
         type: projector/tile_coding
         tilings: 16
-        memory: 268435456
+        memory: 8388608
         resolution: [0.14, 0.28, 0.28, 0.28, 0.28, 5, 10, 10, 10, 10, 6.67, 6.67, 6.67]
         wrapping: []
       representation: 
