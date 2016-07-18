@@ -82,6 +82,33 @@ class EpsilonGreedySampler : public GreedySampler
     virtual void distribution(const Vector &values, Vector *distribution) const;
 };
 
+/// Maximum search with an Ornstein-Uhlenbeck random chance of non-maximums.
+class EpsilonGreedyOUSampler : public EpsilonGreedySampler
+{
+  public:
+    TYPEINFO("sampler/epsilon_greedy_ou", "Maximum search with an Ornstein-Uhlenbeck random chance of non-maximums")
+
+  protected:
+    Vector min_, max_, steps_;
+    mutable Vector action_, prev_action_;
+    double theta_, sigma_;
+    unsigned int delta_;
+    unsigned int use_ou_;
+
+  public:
+    EpsilonGreedyOUSampler() : theta_(0.15), sigma_(0.3), delta_(3), use_ou_(0) { }
+
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+
+    // From Sampler
+    virtual EpsilonGreedyOUSampler *clone();
+    virtual size_t sample(const Vector &values, TransitionType &tt) const;
+    virtual void distribution(const Vector &values, Vector *distribution) const;
+};
+
 }
 
 #endif /* GRL_GREEDY_SAMPLER_H_ */

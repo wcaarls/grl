@@ -30,7 +30,7 @@ experiment:
       projector: 
         type: projector/tile_coding
         tilings: 16
-        memory: 8388608
+        memory: 268435456
         resolution: [0.14, 0.28, 0.28, 0.28, 0.28, 5, 10, 10, 10, 10, 6.67, 6.67, 6.67]
         wrapping: []
       representation: 
@@ -42,8 +42,15 @@ experiment:
         output_min: []
         output_max: []
       sampler: 
-        type: sampler/epsilon_greedy
+        type: sampler/epsilon_greedy_ou
         epsilon: 0.05
+        min: experiment/agent/policy/discretizer/min
+        max: experiment/agent/policy/discretizer/max
+        steps: experiment/agent/policy/discretizer/steps
+        use_ou: 1
+        theta: 0.15
+        sigma: 2
+        delta: 1
     predictor: 
       type: predictor/sarsa
       alpha: 0.2
