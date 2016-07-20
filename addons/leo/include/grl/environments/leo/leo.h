@@ -70,7 +70,7 @@ class CLeoBhBase: public CLeoBhWalkSym
       avLeftAnkleTorque,
       svNumActions
     };
-    enum LeaObservationWalk
+    enum LeoObservationWalk
     {
       owTorsoAngle,
       owTorsoAngleRate,
@@ -108,12 +108,12 @@ class CLeoBhBase: public CLeoBhWalkSym
     void updateDerivedStateVars(CLeoState *currentSTGState);
     void setCurrentSTGState(CLeoState *leoState);
     void setPreviousSTGState(CLeoState *leoState);
-    void grlAutoActuateAnkles(Vector &out)
+    void grlAutoActuateAnkles(double &actionStanceAnkle, double &actionSwingAnkle)
     {
       CSTGLeoSim *leoSim = dynamic_cast<CSTGLeoSim*>(mActuationInterface);
       CLeoBhWalkSym::autoActuateAnkles_FixedPos(leoSim);
-      out.resize(2);
-      out << leoSim->getJointVoltage(ljAnkleRight), leoSim->getJointVoltage(ljAnkleLeft);
+      actionStanceAnkle = leoSim->getJointVoltage( getAnkleStance() );
+      actionSwingAnkle  = leoSim->getJointVoltage( getAnkleSwing() );
     }
     double grlAutoActuateArm()
     {

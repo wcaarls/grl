@@ -32,12 +32,21 @@ void CLeoBhWalk::parseLeoState(const CLeoState &leoState, Vector &obs)
 
 void CLeoBhWalk::parseLeoAction(const Vector &action, Vector &target_action)
 {
-  double actionArm, actionStanceKnee, actionSwingKnee, actionStanceHip, actionSwingHip;
-  Vector actionAnkles;
+  double actionArm, actionStanceHip, actionSwingHip, actionStanceKnee, actionSwingKnee, actionStanceAnkle, actionSwingAnkle;
 
-  actionStanceHip = action[0];
-  actionSwingHip  = action[1];
-  actionSwingKnee = action[2];
+  // Right leg is assumed to be a stance leg in the configuration file
+  if (interface_.actuator.actions[avRightHipTorque] != -1)
+    actionStanceHip = action[ interface_.actuator.actions[avRightHipTorque] ];
+  if (interface_.actuator.actions[avLeftHipTorque] != -1)
+    actionSwingHip = action[ interface_.actuator.actions[avLeftHipTorque] ];
+  if (interface_.actuator.actions[avRightKneeTorque] != -1)
+    actionStanceKnee = action[ interface_.actuator.actions[avRightKneeTorque] ];
+  if (interface_.actuator.actions[avLeftKneeTorque] != -1)
+    actionSwingKnee = action[ interface_.actuator.actions[avLeftKneeTorque] ];
+  if (interface_.actuator.actions[avRightAnkleTorque] != -1)
+    actionStanceAnkle = action[ interface_.actuator.actions[avRightAnkleTorque] ];
+  if (interface_.actuator.actions[avLeftAnkleTorque] != -1)
+    actionSwingAnkle = action[ interface_.actuator.actions[avLeftAnkleTorque] ];
 
   bool ankle_autoActuated = false;
   for (int i = 0; i < interface_.actuator.autoActuated.size(); i++)
@@ -50,7 +59,7 @@ void CLeoBhWalk::parseLeoAction(const Vector &action, Vector &target_action)
     {
       if (!ankle_autoActuated)
       {
-        grlAutoActuateAnkles(actionAnkles);
+        grlAutoActuateAnkles(actionStanceAnkle, actionSwingAnkle);
         ankle_autoActuated = true;
       }
     }
@@ -59,9 +68,9 @@ void CLeoBhWalk::parseLeoAction(const Vector &action, Vector &target_action)
   // concatenation happens in the order of <actionvar> definitions in an xml file
   // shoulder, right hip, left hip, right knee, left knee, right ankle, left ankle
   if (stanceLegLeft())
-    target_action << actionArm, actionSwingHip, actionStanceHip, actionSwingKnee, actionStanceKnee, actionAnkles;
+    target_action << actionArm, actionSwingHip, actionStanceHip, actionSwingKnee, actionStanceKnee, actionSwingAnkle, actionStanceAnkle;
   else
-    target_action << actionArm, actionStanceHip, actionSwingHip, actionStanceKnee, actionSwingKnee, actionAnkles;
+    target_action << actionArm, actionStanceHip, actionSwingHip, actionStanceKnee, actionSwingKnee, actionStanceAnkle, actionSwingAnkle;
 
   //ode_action_ << ConstantVector(7, 5.0); // #ivan
 }
