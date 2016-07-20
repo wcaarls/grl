@@ -74,6 +74,34 @@ agent/dyna:
     type: state
     description: Current observed state of planning
     mutability: provided
+agent/filtering:
+  description: Agent that filters incoming observations and outgoing actions
+  observation_idx:
+    type: vector
+    description: Index vector for downstream observation (-1=pad)
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  action_idx:
+    type: vector
+    description: Index vector for upstream action (-1=pad)
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  action_dims:
+    type: int
+    description: Number of downstream action dimensions
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 2147483647
+  agent:
+    type: agent
+    description: Downstream agent
+    mutability: configuration
+    default: 0
+    optional: 0
 agent/fixed:
   description: Fixed-policy agent
   policy:
@@ -205,6 +233,34 @@ agent/sub/compartmentalized:
   agent:
     type: agent
     description: Sub agent
+    mutability: configuration
+    default: 0
+    optional: 0
+agent/sub/filtering:
+  description: Subagent that filters incoming observations and outgoing actions
+  observation_idx:
+    type: vector
+    description: Index vector for downstream observation (-1=pad)
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  action_idx:
+    type: vector
+    description: Index vector for upstream action (-1=pad)
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  action_dims:
+    type: int
+    description: Number of downstream action dimensions
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 2147483647
+  agent:
+    type: agent/sub
+    description: Downstream subagent
     mutability: configuration
     default: 0
     optional: 0
@@ -2598,7 +2654,7 @@ projector/tile_coding:
     max: 2147483647
   safe:
     type: int
-    description: Use safe hashing (with collision detection)
+    description: Collision detection (0=off, 1=claim on write, 2=claim always)
     mutability: configuration
     default: 0
     optional: 1
@@ -4631,7 +4687,7 @@ projector/tile_coding.pair:
     max: 2147483647
   safe:
     type: int
-    description: Use safe hashing (with collision detection)
+    description: Collision detection (0=off, 1=claim on write, 2=claim always)
     mutability: configuration
     default: 0
     optional: 1
@@ -5082,7 +5138,7 @@ projector/tile_coding.observation:
     max: 2147483647
   safe:
     type: int
-    description: Use safe hashing (with collision detection)
+    description: Collision detection (0=off, 1=claim on write, 2=claim always)
     mutability: configuration
     default: 0
     optional: 1
