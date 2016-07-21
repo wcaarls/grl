@@ -73,7 +73,7 @@ void LeoSquatTask::request(ConfigurationRequest *config)
 void LeoSquatTask::configure(Configuration &config)
 {
   //observation_dims_ = 7;
-  observation_dims_ = 9;
+  observation_dims_ = 9; // ankle, knee, hip, shoulder
   action_dims_ = 4;
 
   Vector v_obs_min, v_obs_max;
@@ -110,7 +110,16 @@ LeoSquatTask *LeoSquatTask::clone() const
 void LeoSquatTask::start(int test, Vector *state) const
 {
   *state = ConstantVector(observation_dims_, 0);
-  //time_ = 0;
+  *state <<
+         1.0586571916803691E+00,
+        -2.1266836153365212E+00,
+         1.0680264236561250E+00,
+        -2.5999999999984957E-01,
+        -0.0,
+        -0.0,
+        -0.0,
+        -0.0,
+         0.0; // time
 }
 
 int LeoSquatTask::failed(const Vector &state) const
@@ -122,7 +131,7 @@ void LeoSquatTask::observe(const Vector &state, Vector *obs, int *terminal) cons
 {
   *obs = state.block(0, 0, 1, observation_dims_); // row-first order
 
-  if (time_ >= timeout_)
+  if (state[8] >= timeout_)
     *terminal = 1;
   else if (failed(state))
     *terminal = 2;

@@ -69,7 +69,7 @@ class LeoSquatTask : public Task
 
 
   public:
-    LeoSquatTask() : time_(0), timeout_(10) { }
+    LeoSquatTask() : timeout_(10) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -89,7 +89,7 @@ class LeoSquatTask : public Task
   protected:
 
     int observation_dims_, action_dims_;
-    double time_, timeout_;
+    double timeout_;
 };
 
 

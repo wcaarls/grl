@@ -145,11 +145,19 @@ double SandboxDynamicalModel::step(const Vector &action, Vector *next)
   // reduce state
   const Vector state0 = state_.block(0, 0, 1, 2*dof_count_+1);
 
+  std::cout << state0 << std::endl;
+  std::cout << action << std::endl;
+
   // call dynamics of the reduced state
   double tau = dm_.step(state0, action, next);
+  //double tau = dm_.step(state0, ConstantVector(4, 0), next);
+
+  std::cout << *next << std::endl;
 
   // augment state
   dm_.dynamics_->finalize(*next);
 
+
+  state_ = *next;
   return tau;
 }
