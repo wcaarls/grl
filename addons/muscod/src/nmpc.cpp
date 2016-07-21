@@ -146,8 +146,8 @@ NMPCPolicy *NMPCPolicy::clone() const
 
 TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
 {
-  //grl_assert(in.size() == initial_sd_.size());
-  grl_assert(outputs_  == initial_qc_.size());
+  grl_assert(in.size() == nmpc_->NXD());
+  grl_assert(outputs_  == nmpc_->NU());
 
   Vector in2 = in;
   /*in2 <<
@@ -183,7 +183,7 @@ TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
   out->resize(outputs_);
 
   // simulate model over specified time interval using NMPC internal model
-  double time_interval = nmpc_->getSamplingRate();
+  double time_interval = 0.05;//nmpc_->getSamplingRate();
   nmpc_->simulate(
       in2, //
       initial_pf_,
@@ -193,7 +193,7 @@ TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
   );
   if (verbose_) {
     std::cout << "NMPC simulation result using time_interval = " << time_interval << " is:" << std::endl;
-    std::cout << final_sd_.transpose() << std::endl;
+    std::cout << final_sd_ << std::endl;
   }
 
   // Run multiple NMPC iterations

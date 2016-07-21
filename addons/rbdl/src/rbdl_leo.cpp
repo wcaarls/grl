@@ -129,7 +129,7 @@ int LeoSquatTask::failed(const Vector &state) const
 
 void LeoSquatTask::observe(const Vector &state, Vector *obs, int *terminal) const
 {
-  *obs = state.block(0, 0, 1, observation_dims_); // row-first order
+  *obs = state.block(0, 0, 1, observation_dims_-1); // exclude time from observations!
 
   if (state[8] >= timeout_)
     *terminal = 1;

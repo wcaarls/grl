@@ -157,7 +157,6 @@ double SandboxDynamicalModel::step(const Vector &action, Vector *next)
   // augment state
   dm_.dynamics_->finalize(*next);
 
-
   state_ = *next;
   return tau;
 }
