@@ -75,10 +75,7 @@ Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *conf
       Configurable *subobj = load(it->second, &subcfg, path + key + "/");
       
       if (!subobj)
-      {
-        safe_delete(&obj);
-        return NULL;
-      }
+        continue;
       
       objconfig.set(key, subobj);
       references_.set(path + key, subobj);
@@ -101,11 +98,7 @@ Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *conf
         Configurable *subobj = load(value, &subcfg, path + key + "/");
         
         if (!subobj)
-        {
-          ERROR("Subconfiguration " << value << " did not yield an object");
-          safe_delete(&obj);
-          return NULL;
-        }
+          continue;
             
         objconfig.set(key, subobj);
         references_.set(path + key, subobj);
