@@ -182,16 +182,18 @@ TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
 
   out->resize(outputs_);
 
+
   // simulate model over specified time interval using NMPC internal model
-  double time_interval = 0.05;//nmpc_->getSamplingRate();
-  nmpc_->simulate(
-      in2, //
-      initial_pf_,
-      initial_qc_,
-      time_interval,
-      &final_sd_
-  );
-  if (verbose_) {
+  if (verbose_)
+  {
+    double time_interval = 0.05; //nmpc_->getSamplingRate();
+    nmpc_->simulate(
+        in2,
+        initial_pf_,
+        initial_qc_,
+        time_interval,
+        &final_sd_
+    );
     std::cout << "NMPC simulation result using time_interval = " << time_interval << " is:" << std::endl;
     std::cout << final_sd_ << std::endl;
   }
