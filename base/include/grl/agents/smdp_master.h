@@ -1,11 +1,11 @@
-/** \file exclusive.h
- * \brief Exclusive master agent header file.
+/** \file smdp_master.h
+ * \brief sMDP master agent header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-06-16
+ * \date      2016-02-03
  *
  * \copyright \verbatim
- * Copyright (c) 2015, Wouter Caarls
+ * Copyright (c) 2016, Wouter Caarls
  * All rights reserved.
  *
  * This file is part of GRL, the Generic Reinforcement Learning library.
@@ -25,8 +25,8 @@
  * \endverbatim
  */
 
-#ifndef GRL_EXCLUSIVE_MASTER_AGENT_H_
-#define GRL_EXCLUSIVE_MASTER_AGENT_H_
+#ifndef GRL_SMDP_MASTER_AGENT_H_
+#define GRL_SMDP_MASTER_AGENT_H_
 
 #include <grl/predictor.h>
 #include <grl/agent.h>
@@ -34,25 +34,22 @@
 namespace grl
 {
 
-/// Fixed-policy agent.
-class ExclusiveMasterAgent : public Agent
+/// Master agent that treats timesteps in which a subagent doesn't run as smdp macro-steps.
+class SMDPMasterAgent : public Agent
 {
-  public:
-    TYPEINFO("agent/master/exclusive", "Master agent that selects one sub-agent to execute")
-
   protected:
     Predictor *predictor_;
     std::vector<SubAgent*> agent_;
-    std::vector<double> time_;
-    double gamma_, reward_;
-    int last_agent_, smdp_steps_;
+    std::vector<double> time_, reward_;
+    double gamma_, tau_, prev_time_;
     Vector prev_obs_, prev_action_;
     
   public:
-    ExclusiveMasterAgent() : predictor_(0), agent_(2), time_(2), gamma_(0.97), reward_(0), last_agent_(0), smdp_steps_(0)
+    SMDPMasterAgent() : predictor_(0), agent_(2), time_(2), reward_(2), gamma_(0.97), tau_(0.05), prev_time_(0)
     {
       agent_[0] = agent_[1] = NULL;
       time_[0] = time_[1] = -1;
+      reward_[0] = reward_[1] = 0.;
     }
   
     // From Configurable    
@@ -61,12 +58,36 @@ class ExclusiveMasterAgent : public Agent
     virtual void reconfigure(const Configuration &config);
 
     // From Agent
-    virtual ExclusiveMasterAgent *clone() const;
+    virtual SMDPMasterAgent *clone() const;
     virtual void start(const Vector &obs, Vector *action);
     virtual void step(double tau, const Vector &obs, double reward, Vector *action);
     virtual void end(double tau, const Vector &obs, double reward);
+    
+    /// Run a specific sub-agent, starting it if it hadn't been started already. Returns confidence.
+    virtual double runSubAgent(size_t idx, double time, const Vector &obs, Vector *action);
+    
+    /// Choose one ore more subagents to run (should call runSubAgent).
+    virtual void runSubAgents(double time, const Vector &obs, Vector *action) = 0;
+};
+
+class ExclusiveMasterAgent : public SMDPMasterAgent
+{
+  public:
+    TYPEINFO("agent/master/exclusive", "Master agent that selects one sub-agent to execute")
+    
+  protected:
+    virtual void runSubAgents(double time, const Vector &obs, Vector *action);
+};
+
+class PredicatedMasterAgent : public SMDPMasterAgent
+{
+  public:
+    TYPEINFO("agent/master/predicated", "Master agent in which execution is predicated on preceding agent confidence")
+    
+  protected:
+    virtual void runSubAgents(double time, const Vector &obs, Vector *action);
 };
 
 }
 
-#endif /* GRL_EXCLUSIVE_MASTER_AGENT_H_ */
+#endif /* GRL_SMDP_MASTER_AGENT_H_ */

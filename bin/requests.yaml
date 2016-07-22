@@ -120,6 +120,14 @@ agent/master/exclusive:
     optional: 1
     min: 0
     max: 1
+  control_step:
+    type: double.control_step
+    description: Characteristic step time on which gamma is defined
+    mutability: system
+    default: 0.05
+    optional: 1
+    min: 0
+    max: 1
   predictor:
     type: predictor
     description: Optional (model) predictor
