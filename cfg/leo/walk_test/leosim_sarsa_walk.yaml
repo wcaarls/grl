@@ -44,13 +44,15 @@ experiment:
         output_max: []
       sampler: 
         type: sampler/epsilon_greedy_ou
+        rand_max: 0
         epsilon: 0.05
         min: experiment/agent/policy/discretizer/min
         max: experiment/agent/policy/discretizer/max
         steps: experiment/agent/policy/discretizer/steps
         use_ou: 1
         theta: 0.15
-        sigma: 2
+        sigma: 1.5
+        center: [ 3, 3, 3 ]
         delta: 7
     predictor: 
       type: predictor/sarsa
