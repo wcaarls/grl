@@ -5,7 +5,7 @@ experiment:
   steps: 1000000
   rate: 0
   test_interval: 10
-  output: leosim_sarsa_walk_ou
+  output: leosim_qlearning_walk
   environment: 
     type: environment/leo_walk
     xml: ../../leo/cfg/leo_walk.xml
@@ -44,21 +44,21 @@ experiment:
         output_max: []
       sampler: 
         type: sampler/epsilon_greedy_ou
-        rand_max: 0
         epsilon: 0.05
         min: experiment/agent/policy/discretizer/min
         max: experiment/agent/policy/discretizer/max
         steps: experiment/agent/policy/discretizer/steps
         use_ou: 1
         theta: 0.15
-        sigma: 1.5
-        center: [ 3, 3, 3 ]
+        sigma: 2
         delta: 7
     predictor: 
-      type: predictor/sarsa
+      type: predictor/advantage
       alpha: 0.2
       gamma: 0.9962
       lambda: 0.8582
+      kappa: 1
+      discretizer: experiment/agent/policy/discretizer
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
       trace: 
@@ -72,5 +72,4 @@ experiment:
       representation: experiment/agent/policy/representation
       sampler: 
         type: sampler/greedy
-        rand_max: 0
-  save_every: never
+  save_every: run

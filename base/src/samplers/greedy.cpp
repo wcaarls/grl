@@ -149,6 +149,8 @@ void EpsilonGreedyOUSampler::request(ConfigurationRequest *config)
   config->push_back(CRP("use_ou", "Use Ornstein-Uhlenbeck process", use_ou_, CRP::System, 0, 1));
   config->push_back(CRP("theta", "Theta parameter of Ornstein-Uhlenbeck", theta_, CRP::System, 0.0, DBL_MAX));
   config->push_back(CRP("sigma", "Sigma parameter of Ornstein-Uhlenbeck", sigma_, CRP::System, 0.0, DBL_MAX));
+  config->push_back(CRP("center", "Centering parameter of Ornstein-Uhlenbeck", center_, CRP::Configuration));
+
   config->push_back(CRP("delta", "Delta of PADA", delta_, CRP::System, 0, INT_MAX));
 }
 
@@ -160,10 +162,12 @@ void EpsilonGreedyOUSampler::configure(Configuration &config)
   max_ = config["max"].v();
   steps_ = config["steps"].v();
 
+  use_ou_ = config["use_ou"];
   theta_ = config["theta"];
   sigma_ = config["sigma"];
+  center_ = config["center"].v();
+
   delta_ = config["delta"];
-  use_ou_ = config["use_ou"];
 
   if (min_.size() != max_.size() || min_.size() != steps_.size())
     throw bad_param("sampler/epsilon_greedy_ou:{min,max,steps}");
@@ -187,22 +191,6 @@ EpsilonGreedyOUSampler *EpsilonGreedyOUSampler::clone()
   return egs;
 }
 
-double MIN(double a, double b)
-{
-  if (a < b)
-    return a;
-  else
-    return b;
-}
-
-double MAX(double a, double b)
-{
-  if (a > b)
-    return a;
-  else
-    return b;
-}
-
 size_t EpsilonGreedyOUSampler::sample(const Vector &values, TransitionType &tt) const
 {
   size_t mai = 0;
@@ -215,26 +203,21 @@ size_t EpsilonGreedyOUSampler::sample(const Vector &values, TransitionType &tt) 
       // Ornstein-Uhlenbeck process
       for (int i = 0; i < steps_.size(); i++)
       {
-        action_[i] = prev_action_[i] * (1-theta_) + sigma_ * rand_->getNormal(0, 1);
-
-        action_[i] = round(action_[i]);
-        action_[i] = MAX(action_[i], 0);
-        action_[i] = MIN(action_[i], steps_[i]-1);
+        action_[i] = prev_action_[i] + theta_ * (center_[i] - prev_action_[i])+ sigma_ * rand_->getNormal(0, 1);
+        action_[i] = fmin(fmax(round(action_[i]), 0), steps_[i]-1);
       }
-
       mai = action_[0] + action_[1]*steps_[0] + action_[2]*steps_[0]*steps_[1];
-//    std::cout << "Action exp: " << action_ << "; ii: " << mai << std::endl;
+      //std::cout << "Action exp: " << action_ << "; ii: " << mai << std::endl;
     }
     else
     {
       // random
-      //mai = rand_->getInteger(values.size());
       // PADA random action selection rule
-      action_ << MAX(prev_action_[0]-delta_, 0), MAX(prev_action_[1]-delta_, 0), MAX(prev_action_[2]-delta_, 0);
+      action_ << fmax(prev_action_[0]-delta_, 0), fmax(prev_action_[1]-delta_, 0), fmax(prev_action_[2]-delta_, 0);
       std::vector<size_t> iiv;
-      for (int i = action_[0]; i <= MIN(prev_action_[0]+delta_, steps_[0]-1); i++)
-      for (int j = action_[1]; j <= MIN(prev_action_[1]+delta_, steps_[1]-1); j++)
-      for (int k = action_[2]; k <= MIN(prev_action_[2]+delta_, steps_[2]-1); k++)
+      for (int i = action_[0]; i <= fmin(prev_action_[0]+delta_, steps_[0]-1); i++)
+      for (int j = action_[1]; j <= fmin(prev_action_[1]+delta_, steps_[1]-1); j++)
+      for (int k = action_[2]; k <= fmin(prev_action_[2]+delta_, steps_[2]-1); k++)
       {
         size_t ii = i + j*steps_[0] + k*steps_[0]*steps_[1];
         iiv.push_back(ii);
@@ -248,31 +231,22 @@ size_t EpsilonGreedyOUSampler::sample(const Vector &values, TransitionType &tt) 
   {
     tt = ttGreedy;
     // PADA action selection rule
-    int i0 = MAX(prev_action_[0]-delta_, 0);
-    int j0 = MAX(prev_action_[1]-delta_, 0);
-    int k0 = MAX(prev_action_[2]-delta_, 0);
+    int i0 = fmax(prev_action_[0]-delta_, 0);
+    int j0 = fmax(prev_action_[1]-delta_, 0);
+    int k0 = fmax(prev_action_[2]-delta_, 0);
     action_ << i0, j0, k0;
-//    int t = 0;
-    for (int i = i0; i <= MIN(prev_action_[0]+delta_, steps_[0]-1); i++)
-    for (int j = j0; j <= MIN(prev_action_[1]+delta_, steps_[1]-1); j++)
-    for (int k = k0; k <= MIN(prev_action_[2]+delta_, steps_[2]-1); k++)
+    for (int i = i0; i <= fmin(prev_action_[0]+delta_, steps_[0]-1); i++)
+    for (int j = j0; j <= fmin(prev_action_[1]+delta_, steps_[1]-1); j++)
+    for (int k = k0; k <= fmin(prev_action_[2]+delta_, steps_[2]-1); k++)
     {
       size_t ii = i + j*steps_[0] + k*steps_[0]*steps_[1];
       if (values[ii] > values[mai])
       {
         mai = ii;
         action_ << i, j, k;
-//        std::cout << "Action grd: " << action_ << "; ii: " << ii << std::endl;
       }
-//      t++;
     }
-
-//    GreedySampler gs;
-//    size_t a = gs.sample(values, tt);
-//    if (a != mai)
-//      std::cout << "Error!" << std::endl;
   }
-
   prev_action_ = action_;
   return mai;
 }

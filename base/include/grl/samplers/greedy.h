@@ -93,6 +93,7 @@ class EpsilonGreedyOUSampler : public EpsilonGreedySampler
     Vector min_, max_, steps_;
     mutable Vector action_, prev_action_;
     double theta_, sigma_;
+    Vector center_;
     unsigned int delta_;
     unsigned int use_ou_;
 

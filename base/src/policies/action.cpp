@@ -35,7 +35,11 @@ REGISTER_CONFIGURABLE(ActionProbabilityPolicy)
 void ActionPolicy::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("sigma", "Standard deviation of exploration distribution", sigma_, CRP::Configuration));
-  
+
+  config->push_back(CRP("use_ou", "Use Ornstein-Uhlenbeck process", use_ou_, CRP::Configuration, 0, 1));
+  config->push_back(CRP("theta", "Theta parameter of Ornstein-Uhlenbeck", theta_, CRP::Configuration));
+  config->push_back(CRP("center", "Centering parameter of Ornstein-Uhlenbeck", center_, CRP::Configuration));
+
   config->push_back(CRP("output_min", "vector.action_min", "Lower limit on outputs", min_, CRP::System));
   config->push_back(CRP("output_max", "vector.action_max", "Upper limit on outputs", max_, CRP::System));
 
@@ -51,7 +55,11 @@ void ActionPolicy::configure(Configuration &config)
   sigma_ = config["sigma"].v();
   min_ = config["output_min"].v();
   max_ = config["output_max"].v();
-  
+
+  use_ou_ = config["use_ou"];
+  theta_ = config["theta"].v();
+  center_ = config["center"].v();
+
   if (min_.size() != max_.size() || !min_.size())
     throw bad_param("policy/action:{output_min,output_max}");
   
@@ -84,9 +92,16 @@ TransitionType ActionPolicy::act(const Vector &in, Vector *out) const
 
   for (size_t ii=0; ii < out->size(); ++ii)
   {
-    if (sigma_[ii])
-      (*out)[ii] += RandGen::getNormal(0., sigma_[ii]);
-      
+    if (!use_ou_)
+    {
+      if (sigma_[ii])
+        (*out)[ii] += RandGen::getNormal(0., sigma_[ii]);
+    }
+    else
+    {
+      (*out)[ii] = (*out)[ii] + theta_[ii]*(center_[ii]-(*out)[ii]) + sigma_[ii] * RandGen::getNormal(0.0, 1.0);
+    }
+
     (*out)[ii] = fmin(fmax((*out)[ii], min_[ii]), max_[ii]);
   }
 

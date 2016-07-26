@@ -22,6 +22,8 @@ agent/fixed:
     mutability: configuration
     default: 0
     optional: 0
+agent/leo_preprogrammed:
+  description: Leo preprogrammed agent
 agent/master/exclusive:
   description: Master agent that selects one sub-agent to execute
   gamma:
@@ -290,7 +292,7 @@ environment/communicator:
     type: communicator
     description: Comunicator which exchanges messages with an actual environment
     mutability: configuration
-    default: 0x16d9cd0
+    default: 0x136af60
     optional: 0
 environment/leo2:
   description: LEO/2 environment
@@ -972,6 +974,26 @@ policy/action:
   sigma:
     type: vector
     description: Standard deviation of exploration distribution
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  use_ou:
+    type: int
+    description: Use Ornstein-Uhlenbeck process
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
+  theta:
+    type: vector
+    description: Theta parameter of Ornstein-Uhlenbeck
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  center:
+    type: vector
+    description: Centering parameter of Ornstein-Uhlenbeck
     mutability: configuration
     default: "[  ]"
     optional: 1
@@ -2587,6 +2609,12 @@ sampler/epsilon_greedy_ou:
     optional: 1
     min: 0
     max: 1.797693134862316e+308
+  center:
+    type: vector
+    description: Centering parameter of Ornstein-Uhlenbeck
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
   delta:
     type: int
     description: Delta of PADA
