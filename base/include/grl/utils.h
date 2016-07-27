@@ -135,6 +135,12 @@ class Rand
     {
       return lrand48()%ma;
     }
+
+    double getOrnsteinUhlenbeck(double prev, double center, double theta, double sigma)
+    {
+      return prev + theta*(center - prev) + sigma * getNormal(0, 1);
+    }
+
 };
 
 /// Random number generator generator.
@@ -156,6 +162,7 @@ class RandGen
     static Vector getVector(size_t sz) { return instance()->getVector(sz); }
     static double getNormal(double mu, double sigma) { return instance()->getNormal(mu, sigma); }
     static size_t getInteger(size_t ma) { return instance()->getInteger(ma); }
+    static double getOrnsteinUhlenbeck(double prev, double center, double theta, double sigma) { return instance()->getOrnsteinUhlenbeck(prev, center, theta, sigma); }
 
     static Rand *instance()
     {

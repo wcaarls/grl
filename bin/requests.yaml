@@ -24,6 +24,20 @@ agent/fixed:
     optional: 0
 agent/leo_preprogrammed:
   description: Leo preprogrammed agent
+  rand_gen:
+    type: random_generator
+    description: Random generator for action pertubation
+    mutability: configuration
+    default: 0
+    optional: 0
+  epsilon:
+    type: double
+    description: Exploration rate
+    mutability: configuration
+    default: 0.05
+    optional: 1
+    min: 0
+    max: 1
   output_min:
     type: vector.action_min
     description: Lower limit on outputs
@@ -2413,6 +2427,78 @@ projector/tile_coding:
     mutability: configuration
     default: "[  ]"
     optional: 1
+random_generator/normal:
+  description: Normal Random generator
+  mu:
+    type: double
+    description: Mean
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
+  sigma:
+    type: double
+    description: Standart deviation
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 0
+    max: 1
+random_generator/ornstein_uhlenbeck:
+  description: Ornstein–Uhlenbeck Random generator
+  center:
+    type: double
+    description: Attraction point
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
+  theta:
+    type: double
+    description: Theta
+    mutability: configuration
+    default: 0.05
+    optional: 1
+    min: 0
+    max: 1
+  sigma:
+    type: double
+    description: Sigma
+    mutability: configuration
+    default: 0.15
+    optional: 1
+    min: 0
+    max: 1
+random_generator/uniform:
+  description: Uniform Random generator
+  lower:
+    type: double
+    description: Lower bound of an interval
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
+  upper:
+    type: double
+    description: Upper bound of an interval
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 0
+    max: 1
+random_generator/uniform_integer:
+  description: Uniform Integer Random generator
+  ma:
+    type: int
+    description: Upper bound of an interval [0, ma)
+    mutability: configuration
+    default: 10
+    optional: 1
+    min: 0
+    max: 2147483647
 representation/llr:
   description: Performs locally linear regression through samples
   ridge:

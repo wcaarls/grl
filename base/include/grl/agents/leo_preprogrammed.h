@@ -29,6 +29,7 @@
 #define GRL_LEO_PREPROGRAMMED_AGENT_H_
 
 #include <grl/agent.h>
+#include <grl/samplers/random_generator.h>
 
 namespace grl
 {
@@ -40,15 +41,17 @@ class LeoPreprogrammedAgent : public Agent
     TYPEINFO("agent/leo_preprogrammed", "Leo preprogrammed agent")
 
   protected:
-    double time_, mSwingTime;
+    double time_, epsilon_;
     Vector min_, max_;
-    double mPreProgEarlySwingTime, mPreProgTorsoAngle, mPreProgShoulderAngle,
-           mPreProgHipAngle, mPreProgAnkleAngle, mPreProgStanceKneeAngle;
     int swing_leg_prev_touch_;
-    
+    double mSwingTime, mPreProgEarlySwingTime, mPreProgTorsoAngle, mPreProgShoulderAngle,
+           mPreProgHipAngle, mPreProgAnkleAngle, mPreProgStanceKneeAngle;
+
+    RandomGenerator *rand_gen_;
+
   public:
     LeoPreprogrammedAgent() :
-      time_(0.), swing_leg_prev_touch_(0), mSwingTime(0.), mPreProgEarlySwingTime(0.184), mPreProgTorsoAngle(-0.09), mPreProgShoulderAngle(-0.262),
+      time_(0.), epsilon_(0.05), swing_leg_prev_touch_(0), mSwingTime(0.), mPreProgEarlySwingTime(0.184), mPreProgTorsoAngle(-0.09), mPreProgShoulderAngle(-0.262),
       mPreProgHipAngle(0.680), mPreProgAnkleAngle(0.065), mPreProgStanceKneeAngle(0.)
     { }
   
