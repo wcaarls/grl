@@ -22,9 +22,9 @@ experiment:
     type: agent/td
     policy: 
       type: policy/action
-      sigma: [1.5, 1.5, 1.5]
+      sigma: [3.57, 3.57, 3.57]
       use_ou: 1
-      theta: [0.535, 0.535, 0.535]
+      theta: [0.178, 0.178, 0.178]
       center: [ 0, 0, 0 ]
       output_min: experiment/environment/action_min
       output_max: experiment/environment/action_max
