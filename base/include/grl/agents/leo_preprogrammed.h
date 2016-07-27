@@ -42,12 +42,13 @@ class LeoPreprogrammedAgent : public Agent
   protected:
     double time_, mSwingTime;
     Vector min_, max_;
-    uint64_t mPreProgEarlySwingTime;
-    double mPreProgTorsoAngle, mPreProgShoulderAngle, mPreProgHipAngle, mPreProgAnkleAngle, mPreProgStanceKneeAngle;
+    double mPreProgEarlySwingTime, mPreProgTorsoAngle, mPreProgShoulderAngle,
+           mPreProgHipAngle, mPreProgAnkleAngle, mPreProgStanceKneeAngle;
+    int swing_leg_prev_touch_;
     
   public:
     LeoPreprogrammedAgent() :
-      time_(0.), mSwingTime(0.), mPreProgEarlySwingTime(0.184), mPreProgTorsoAngle(-0.09), mPreProgShoulderAngle(-0.262),
+      time_(0.), swing_leg_prev_touch_(0), mSwingTime(0.), mPreProgEarlySwingTime(0.184), mPreProgTorsoAngle(-0.09), mPreProgShoulderAngle(-0.262),
       mPreProgHipAngle(0.680), mPreProgAnkleAngle(0.065), mPreProgStanceKneeAngle(0.)
     { }
   

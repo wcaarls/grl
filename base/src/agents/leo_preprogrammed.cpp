@@ -55,7 +55,9 @@ enum LeoJointStateIndexies {
       sHeelStance
 };
 
-enum LeoJointActionIndexies { aShoulder, aHipSwing, aHipStance, aKneeSwing, aKneeStance, aAnkleSwing, aAnkleStance };
+//enum LeoJointActionIndexies { aShoulder, aHipSwing, aHipStance, aKneeSwing, aKneeStance, aAnkleSwing, aAnkleStance };
+// Right leg is assumed to be a stance leg in the configuration file
+enum LeoJointActionIndexies { aShoulder, aHipStance, aHipSwing, aKneeStance, aKneeSwing, aAnkleStance, aAnkleSwing };
 
 void LeoPreprogrammedAgent::request(ConfigurationRequest *config)
 {
@@ -101,11 +103,13 @@ void LeoPreprogrammedAgent::auto_actuate(const Vector &obs, Vector *action)
   std::cout << obs << std::endl;
 
   // restart time at touch down
-  if (obs[sToeSwing] && obs[sHeelSwing])
+  int swing_leg_touch = (obs[sToeSwing] || obs[sHeelSwing]) ? 1:0;
+  if ((swing_leg_prev_touch_ != swing_leg_touch) && (swing_leg_touch == 1))
     mSwingTime = 0;
+  swing_leg_prev_touch_ = swing_leg_touch;
 
+  // auto actuate all joints
   double shoulderVoltage, stanceHipVoltage, swingHipVoltage, stanceKneeVoltage, swingKneeVoltage, stanceAnkleVoltage, swingAnkleVoltage;
-
   autoActuateAnkles_FixedPos(obs, stanceAnkleVoltage, swingAnkleVoltage);
   autoActuateArm(obs, shoulderVoltage);
   autoActuateKnees(obs, stanceKneeVoltage, swingKneeVoltage);
@@ -121,7 +125,7 @@ void LeoPreprogrammedAgent::auto_actuate(const Vector &obs, Vector *action)
   (*action)[aHipStance] = stanceHipVoltage;
   (*action)[aHipSwing] = swingHipVoltage;
   (*action)[aKneeStance] = stanceKneeVoltage;
-  (*action)[aKneeSwing] = swingHipVoltage;
+  (*action)[aKneeSwing] = swingKneeVoltage;
   (*action)[aAnkleStance] = stanceAnkleVoltage;
   (*action)[aAnkleSwing] = swingAnkleVoltage;
 

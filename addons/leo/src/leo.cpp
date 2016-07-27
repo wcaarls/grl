@@ -283,6 +283,14 @@ void LeoBaseEnvironment::configParseObservations(Configuration &config, const st
   fillObserver(observe, observer);
   observation_dims_ = observe.size();
 
+  // mirror left and right legs
+  std::vector<std::string> observer_names_sym = observer_names;
+  for (int i = 0; i < observer_names.size(); i++)
+  {
+    if (observer_names[i])
+  }
+  fillObserver(observer_names_sym, observer_sym);
+
   // mask observation min/max vectors
   Vector ode_observation_min, ode_observation_max, observation_min, observation_max;
   config.get("observation_min", ode_observation_min);

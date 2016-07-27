@@ -61,7 +61,7 @@ void CLeoBhWalk::parseLeoAction(const Vector &action, Vector &target_action)
   {
     if (interface_.actuator.autoActuated[i] == "shoulder")
       actionArm = grlAutoActuateArm();
-    if (interface_.actuator.autoActuated[i] == "kneeright") // refers to a stance leg??? Shall it be left leg, since Leo starts simulation from left leg being stance
+    if (interface_.actuator.autoActuated[i] == "kneeright") // refers to a stance leg
       actionStanceKnee = grlAutoActuateKnee();
     if ((interface_.actuator.autoActuated[i] == "ankleright") || (interface_.actuator.autoActuated[i] == "ankleleft"))
     {

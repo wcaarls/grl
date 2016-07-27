@@ -19,16 +19,16 @@ struct EnvironmentAgentInterface
   {
     std::vector<int> angles;
     std::vector<int> angle_rates;
-//    std::vector<int> contacts;
     std::vector<std::string> augmented;
   };
   struct ActuatorInterface
   {
     std::vector<int> actions;               // mapping: target_action = agent_action(actions == i)
-    std::vector<std::string> autoActuated;  // textual name of actions that should be automatically actuated, for them 'actions = -1'
+    std::vector<std::string> autoActuated;  // textual names of actions that should be automatically actuated, for them 'actions = -1'
   };
 
-  ObserverInterface observer;
+  ObserverInterface observer;     // used for stance leg being left
+  ObserverInterface observer_sym; // used for stance leg being right
   ActuatorInterface actuator;
 };
 
