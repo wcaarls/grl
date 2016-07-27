@@ -284,12 +284,18 @@ void LeoBaseEnvironment::configParseObservations(Configuration &config, const st
   observation_dims_ = observe.size();
 
   // mirror left and right legs
-  std::vector<std::string> observer_names_sym = observer_names;
-  for (int i = 0; i < observer_names.size(); i++)
+  std::vector<std::string> observe_sym = observe;
+  for (int i = 0; i < observe.size(); i++)
   {
-    if (observer_names[i])
+    std::size_t idx = observe[i].find("right");
+    if (idx != std::string::npos)
+      observe_sym[i].replace(idx, 5, "left");
+    idx = observe[i].find("left");
+    if (idx != std::string::npos)
+      observe_sym[i].replace(idx, 4, "right");
   }
-  fillObserver(observer_names_sym, observer_sym);
+  EnvironmentAgentInterface::ObserverInterface observer_sym;
+  fillObserver(observe_sym, observer_sym);
 
   // mask observation min/max vectors
   Vector ode_observation_min, ode_observation_max, observation_min, observation_max;
@@ -320,7 +326,7 @@ void LeoBaseEnvironment::configParseObservations(Configuration &config, const st
   config.set("observation_max", observation_max);
 
   // Prepare observer indexes for easy connection between states of the target environment and agent observations
-  bh_->setObserverInterface(observer);
+  bh_->setObserverInterface(observer, observer_sym);
 }
 
 int LeoBaseEnvironment::findVarIdx(const std::vector<CGenericStateVar> &genericStates, std::string query) const

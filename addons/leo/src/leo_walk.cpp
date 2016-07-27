@@ -13,26 +13,33 @@ double CLeoBhWalk::calculateReward()
 
 void CLeoBhWalk::parseLeoState(const CLeoState &leoState, Vector &obs)
 {
+  EnvironmentAgentInterface::ObserverInterface *observer;
+
+  if (stanceLegLeft())
+    observer = &(interface_.observer);
+  else
+    observer = &(interface_.observer_sym);
+
   int i, j;
-  for (i = 0; i < interface_.observer.angles.size(); i++)
-    obs[i] = leoState.mJointAngles[ interface_.observer.angles[i] ];
-  for (j = 0; j < interface_.observer.angle_rates.size(); j++)
-    obs[i+j] = leoState.mJointSpeeds[ interface_.observer.angle_rates[j] ];
-  for (int k = 0; k < interface_.observer.augmented.size(); k++)
+  for (i = 0; i < observer->angles.size(); i++)
+    obs[i] = leoState.mJointAngles[ observer->angles[i] ];
+  for (j = 0; j < observer->angle_rates.size(); j++)
+    obs[i+j] = leoState.mJointSpeeds[ observer->angle_rates[j] ];
+  for (int k = 0; k < observer->augmented.size(); k++)
   {
-    if (interface_.observer.augmented[k] == "heeltoe")
+    if (observer->augmented[k] == "heeltoe")
       obs[i+j+k] = (leoState.mFootContacts == 0?0:1); // any contact
-    else if (interface_.observer.augmented[k] == "toeright")
+    else if (observer->augmented[k] == "toeright")
       obs[i+j+k] = (leoState.mFootContacts & LEO_FOOTSENSOR_RIGHT_TOE);
-    else if (interface_.observer.augmented[k] == "heelright")
+    else if (observer->augmented[k] == "heelright")
       obs[i+j+k] = (leoState.mFootContacts & LEO_FOOTSENSOR_RIGHT_HEEL);
-    else if (interface_.observer.augmented[k] == "toeleft")
+    else if (observer->augmented[k] == "toeleft")
       obs[i+j+k] = (leoState.mFootContacts & LEO_FOOTSENSOR_LEFT_TOE);
-    else if (interface_.observer.augmented[k] == "heelleft")
+    else if (observer->augmented[k] == "heelleft")
       obs[i+j+k] = (leoState.mFootContacts & LEO_FOOTSENSOR_LEFT_HEEL);
     else
     {
-      ERROR("Unknown augmented field '" << interface_.observer.augmented[i] << "'");
+      ERROR("Unknown augmented field '" << observer->augmented[i] << "'");
       throw bad_param("leo_walk:observer_idx_.augmented[i]");
     }
   }

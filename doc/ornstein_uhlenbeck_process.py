@@ -4,18 +4,18 @@ import math
 
 l = 50
 
-#lim = np.array([0, 6])
-#theta = 0.05
-#sigma = 1.0
-#y0 = 3
-#discrete = 1
-
-mul = 3.566666667
-lim = np.array([-10.7, 10.7])
-theta = mul*0.00
-sigma = mul*1.5
-y0 = 0
+lim = np.array([0, 6])
+theta = 0.05
+sigma = 1.5 # try with 1.0
+y0 = 3
 discrete = 1
+
+#mul = 3.566666667
+#lim = np.array([-10.7, 10.7])
+#theta = mul*0.05
+#sigma = mul*1.5
+#y0 = 0
+#discrete = 1
 
 x = np.arange(l)
 y = np.zeros(l)

@@ -100,7 +100,7 @@ class CLeoBhBase: public CLeoBhWalkSym
   public:
     void resetState();
 
-    void setObserverInterface(const EnvironmentAgentInterface::ObserverInterface oi) { interface_.observer = oi; }
+    void setObserverInterface(const EnvironmentAgentInterface::ObserverInterface oi, const EnvironmentAgentInterface::ObserverInterface oi_sym) { interface_.observer = oi; interface_.observer_sym = oi_sym; }
     void setActuatorInterface(const EnvironmentAgentInterface::ActuatorInterface ai) { interface_.actuator = ai; }
     const EnvironmentAgentInterface &getInterface() const { return interface_; }
 
