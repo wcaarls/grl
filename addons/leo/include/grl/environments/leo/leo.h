@@ -19,6 +19,7 @@ struct EnvironmentAgentInterface
   {
     std::vector<int> angles;
     std::vector<int> angle_rates;
+//    std::vector<int> contacts;
     std::vector<std::string> augmented;
   };
   struct ActuatorInterface

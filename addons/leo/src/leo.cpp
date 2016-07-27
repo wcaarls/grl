@@ -290,7 +290,7 @@ void LeoBaseEnvironment::configParseObservations(Configuration &config, const st
   observation_min.resize(observation_dims_);
   observation_max.resize(observation_dims_);
 
-  int i, j;
+  int i, j, k;
   for (i = 0; i < observer.angles.size(); i++)
   {
     std::string name = "robot." + bh_->jointIndexToName(observer.angles[i]) + ".angle";
@@ -337,6 +337,8 @@ void LeoBaseEnvironment::fillObserver(const std::vector<std::string> &observer_n
       observer_interface.angles.push_back(bh_->jointNameToIndex(cuttedName[1]));
     else if (cuttedName[2] == "anglerate")
       observer_interface.angle_rates.push_back(bh_->jointNameToIndex(cuttedName[1]));
+    else if (cuttedName[2] == "contact")
+      observer_interface.augmented.push_back(cuttedName[1]);
     else
     {
       ERROR("Unknown joint '" << cuttedName[2] << "'");

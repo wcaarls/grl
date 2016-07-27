@@ -24,6 +24,18 @@ agent/fixed:
     optional: 0
 agent/leo_preprogrammed:
   description: Leo preprogrammed agent
+  output_min:
+    type: vector.action_min
+    description: Lower limit on outputs
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  output_max:
+    type: vector.action_max
+    description: Upper limit on outputs
+    mutability: system
+    default: "[  ]"
+    optional: 1
 agent/master/exclusive:
   description: Master agent that selects one sub-agent to execute
   gamma:
@@ -292,7 +304,7 @@ environment/communicator:
     type: communicator
     description: Comunicator which exchanges messages with an actual environment
     mutability: configuration
-    default: 0x136af60
+    default: 0x726f746163696e75
     optional: 0
 environment/leo2:
   description: LEO/2 environment

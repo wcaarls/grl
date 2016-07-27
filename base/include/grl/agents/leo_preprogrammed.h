@@ -40,10 +40,16 @@ class LeoPreprogrammedAgent : public Agent
     TYPEINFO("agent/leo_preprogrammed", "Leo preprogrammed agent")
 
   protected:
-    double time_;
+    double time_, mSwingTime;
+    Vector min_, max_;
+    uint64_t mPreProgEarlySwingTime;
+    double mPreProgTorsoAngle, mPreProgShoulderAngle, mPreProgHipAngle, mPreProgAnkleAngle, mPreProgStanceKneeAngle;
     
   public:
-    LeoPreprogrammedAgent() : time_(0.) { }
+    LeoPreprogrammedAgent() :
+      time_(0.), mSwingTime(0.), mPreProgEarlySwingTime(0.184), mPreProgTorsoAngle(-0.09), mPreProgShoulderAngle(-0.262),
+      mPreProgHipAngle(0.680), mPreProgAnkleAngle(0.065), mPreProgStanceKneeAngle(0.)
+    { }
   
     // From Configurable    
     virtual void request(ConfigurationRequest *config);
@@ -55,6 +61,13 @@ class LeoPreprogrammedAgent : public Agent
     virtual void start(const Vector &obs, Vector *action);
     virtual void step(double tau, const Vector &obs, double reward, Vector *action);
     virtual void end(double tau, const Vector &obs, double reward);
+
+    // own
+    virtual void auto_actuate(const Vector &obs, Vector *action);
+    virtual void autoActuateArm(const Vector &obs, double &shoulderVoltage);
+    virtual void autoActuateAnkles_FixedPos(const Vector &obs, double &stanceAnkleVoltage, double &swingAnkleVoltage);
+    virtual void autoActuateKnees(const Vector &obs, double &stanceKneeVoltage, double &swingKneeVoltage);
+    virtual void autoActuateHips2(const Vector &obs, double &stanceHipVoltage, double &swingHipVoltage);
 };
 
 }

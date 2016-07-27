@@ -21,7 +21,15 @@ void CLeoBhWalk::parseLeoState(const CLeoState &leoState, Vector &obs)
   for (int k = 0; k < interface_.observer.augmented.size(); k++)
   {
     if (interface_.observer.augmented[k] == "heeltoe")
-      obs[i+j+k] = (leoState.mFootContacts == 0?0:1);
+      obs[i+j+k] = (leoState.mFootContacts == 0?0:1); // any contact
+    else if (interface_.observer.augmented[k] == "toeright")
+      obs[i+j+k] = (leoState.mFootContacts & LEO_FOOTSENSOR_RIGHT_TOE);
+    else if (interface_.observer.augmented[k] == "heelright")
+      obs[i+j+k] = (leoState.mFootContacts & LEO_FOOTSENSOR_RIGHT_HEEL);
+    else if (interface_.observer.augmented[k] == "toeleft")
+      obs[i+j+k] = (leoState.mFootContacts & LEO_FOOTSENSOR_LEFT_TOE);
+    else if (interface_.observer.augmented[k] == "heelleft")
+      obs[i+j+k] = (leoState.mFootContacts & LEO_FOOTSENSOR_LEFT_HEEL);
     else
     {
       ERROR("Unknown augmented field '" << interface_.observer.augmented[i] << "'");
@@ -53,7 +61,7 @@ void CLeoBhWalk::parseLeoAction(const Vector &action, Vector &target_action)
   {
     if (interface_.actuator.autoActuated[i] == "shoulder")
       actionArm = grlAutoActuateArm();
-    if (interface_.actuator.autoActuated[i] == "kneeright") // refers to a stance leg
+    if (interface_.actuator.autoActuated[i] == "kneeright") // refers to a stance leg??? Shall it be left leg, since Leo starts simulation from left leg being stance
       actionStanceKnee = grlAutoActuateKnee();
     if ((interface_.actuator.autoActuated[i] == "ankleright") || (interface_.actuator.autoActuated[i] == "ankleleft"))
     {
@@ -125,17 +133,20 @@ void LeoWalkEnvironment::configure(Configuration &config)
   Vector obs_min = config["observation_min"].v();
   Vector obs_max = config["observation_max"].v();
 
+  int offset = interface.observer.angles.size()+interface.observer.angle_rates.size();// + interface.observer.contacts.size();
   for (int i = 0; i < interface.observer.augmented.size(); i++)
   {
     if (interface.observer.augmented[i] == "direction")
     {
-      obs_min[interface.observer.angles.size()+interface.observer.angle_rates.size() + i] = -1;
-      obs_max[interface.observer.angles.size()+interface.observer.angle_rates.size() + i] = +1;
+      obs_min[offset + i] = -1;
+      obs_max[offset + i] = +1;
     }
-    else if (interface.observer.augmented[i] == "heeltoe")
+    else if ( (interface.observer.augmented[i] == "heeltoe") || // any contact
+              (interface.observer.augmented[i] == "toeright") || (interface.observer.augmented[i] == "heelright") ||
+              (interface.observer.augmented[i] == "toeleft") || (interface.observer.augmented[i] == "heelleft") )
     {
-      obs_min[interface.observer.angles.size()+interface.observer.angle_rates.size() + i] =  0;
-      obs_max[interface.observer.angles.size()+interface.observer.angle_rates.size() + i] =  1;
+      obs_min[offset + i] =  0;
+      obs_max[offset + i] =  1;
     }
     else
     {
