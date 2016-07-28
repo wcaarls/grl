@@ -52,7 +52,7 @@ experiment:
         theta: 0.15
         sigma: 1.5
         center: [ 3, 3, 3 ]
-        delta: 2
+        delta: 1
     predictor: 
       type: predictor/sarsa
       alpha: 0.2
