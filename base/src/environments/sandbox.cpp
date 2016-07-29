@@ -142,19 +142,32 @@ void SandboxDynamicalModel::start(const Vector &hint, Vector *state)
 double SandboxDynamicalModel::step(const Vector &action, Vector *next)
 {
   // reduce state
-  const Vector state0 = state_.block(0, 0, 1, 2*dof_count_+1);
+  Vector state0;
+  state0.resize(2*dof_count_ + 1);
+  state0 << state_.block(0, 0, 1, 2*dof_count_), state_[state_.size()-1];
 
-//  std::cout << state0 << std::endl;
+  std::cout << state0 << std::endl;
 //  std::cout << action << std::endl;
 
   // call dynamics of the reduced state
-  double tau = dm_.step(state0, action, next);
-  //double tau = dm_.step(state0, ConstantVector(4, 0), next);
+  Vector next0;
+  next0.resize(state0.size());
+  double tau = dm_.step(state0, action, &next0);
 
-  std::cout << "GRL: " << *next << std::endl;
+  std::cout << "GRL: " << next0 << std::endl;
 
   // augment state
   dm_.dynamics_->finalize(*next);
+  next->resize(state_.size());
+  double t = next0[next0.size()-1];
+  int sitted_setpoint = state_[state_.size()-2];
+  int tt = (int)round(t/tau);
+  int t5 = (int)round(5/tau);
+  if ( tt % t5 == 0 ) // change setpoint every 5 seconds
+    sitted_setpoint = 1 - sitted_setpoint;
+  *next << next0.block(0, 0, 1, 2*dof_count_), sitted_setpoint, t;
+
+  std::cout << "GRL: " << *next << std::endl;
 
   state_ = *next;
   return tau;

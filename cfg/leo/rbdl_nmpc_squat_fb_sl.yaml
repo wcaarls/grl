@@ -18,7 +18,7 @@ experiment:
       dof_count: 4
     task: 
       type: task/leoSquat
-      timeout: 30
+      timeout: 50
   agent: 
     type: agent/fixed
     policy: 
