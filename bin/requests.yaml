@@ -318,7 +318,7 @@ environment/communicator:
     type: communicator
     description: Comunicator which exchanges messages with an actual environment
     mutability: configuration
-    default: 0x726f746163696e75
+    default: 0
     optional: 0
 environment/leo2:
   description: LEO/2 environment
