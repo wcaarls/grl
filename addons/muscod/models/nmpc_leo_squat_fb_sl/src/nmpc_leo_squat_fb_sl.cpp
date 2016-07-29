@@ -424,7 +424,7 @@ void data_in (
 	real_nmsn = max(real_nmsn, *imsn);
 
 	// load Leo model from lua file
-	bool verbose = false;
+  bool verbose = false;
 	if (!model_loaded) {
 		// LeoModel leo;
     string lua_path = rel_data_path + '/' + path_to_lua_file;

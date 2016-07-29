@@ -111,8 +111,21 @@ void RBDLDynamics::eom(const Vector &state, const Vector &action, Vector *xd) co
     qd[ii] = state[ii + dim];
   }
 
-  RigidBodyDynamics::ForwardDynamics(*rbdl->model, q, qd, u, qdd);
+  for (size_t ii=0; ii < dim; ++ii)
+  {
+    const double Kt = 0.00992;
+    const double G = 193.0;
+    const double R = 8.6;
+    u[ii] = Kt*G*(u[ii] - Kt*G*qd[ii])/R;
+  }
 
+  RigidBodyDynamics::ForwardDynamics(*rbdl->model, q, qd, u, qdd);
+/*
+  std::cout << q << std::endl;
+  std::cout << qd << std::endl;
+  std::cout << u << std::endl;
+  std::cout << qdd << std::endl;
+*/
   xd->resize(2*dim+1);
 
   for (size_t ii=0; ii < dim; ++ii)
@@ -164,7 +177,7 @@ RBDLState *RBDLDynamics::createRBDLState() const
     Body &body = rbdl->model->mBodies[i];
     SpatialRigidBodyInertia body_rbi = SpatialRigidBodyInertia::createFromMassComInertiaC(body.mMass, body.mCenterOfMass, body.mInertia);
     TRACE("=============== Spatial inertia of body " << i << " ===============");
-    TRACE(body_rbi.toMatrix() << std::endl);
+    TRACE(std::endl << body_rbi.toMatrix() << std::endl);
   }
   
   NOTICE("Loaded RBDL model with " << rbdl->model->dof_count << " degrees of freedom");

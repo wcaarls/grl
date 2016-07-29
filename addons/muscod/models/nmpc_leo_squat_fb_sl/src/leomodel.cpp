@@ -9,7 +9,6 @@
 // -----------------------------------------------------------------------------
 
 #include <leomodel.h>
-
 #include <../../../../../rbdl/include/grl/environments/LuaTypes.h>
 
 // -----------------------------------------------------------------------------
@@ -121,7 +120,7 @@ void LeoModel::calcForwardDynamicsRhs (double *res)
 		);
 	} else {
 		// std::cout << "evaluating 'ForwardDynamics'" << std::endl;
-		ForwardDynamics (model, q, qdot, tau, qddot);
+    ForwardDynamics (model, q, qdot, tau, qddot);
 	}
 	dynamicsComputed = true;
 
@@ -349,6 +348,19 @@ bool LeoModel::loadModelFromFile (const char* filename, bool verbose)
 		cerr << "Error loading LuaModel: " << filename << endl;
 		abort();
 	}
+
+  if (verbose)
+  {
+    for (unsigned int i = 1; i < model.mBodies.size(); i++)
+    {
+      using namespace RigidBodyDynamics;
+      using namespace RigidBodyDynamics::Math;
+      Body &body = model.mBodies[i];
+      SpatialRigidBodyInertia body_rbi = SpatialRigidBodyInertia::createFromMassComInertiaC(body.mMass, body.mCenterOfMass, body.mInertia);
+      std::cout << "=============== Spatial inertia of body " << i << " ===============" << std::endl;
+      std::cout <<  body_rbi.toMatrix() << std::endl;
+    }
+  }
 
 	nDof = model.dof_count;
 	nActuatedDof = nDof;

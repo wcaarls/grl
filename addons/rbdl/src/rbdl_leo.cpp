@@ -66,19 +66,20 @@ void LeoRBDLDynamics::finalize(Vector &state)
 void LeoSquatTask::request(ConfigurationRequest *config)
 {
   Task::request(config);
-//  config->push_back(CRP("model", "model", "RBDL model defined in LUA", m));
   config->push_back(CRP("timeout", "double.timeout", "Task timeout", timeout_, CRP::System, 0.0, DBL_MAX));
 }
 
 void LeoSquatTask::configure(Configuration &config)
 {
-  observation_dims_ = 7;
+  timeout_ = config["timeout"];
+
+  observation_dims_ = 10; // ankle, knee, hip, shoulder, setpoint switch indicator, time
   action_dims_ = 4;
 
   Vector v_obs_min, v_obs_max;
   config.set("observation_dims", observation_dims_);
-  std::vector<double> obs_min = {-M_PI, -M_PI, -M_PI, -M_PI, -10*M_PI, -10*M_PI, -10*M_PI, -10*M_PI, -10, 0, -M_PI};
-  std::vector<double> obs_max = { M_PI,  M_PI,  M_PI,  M_PI,  10*M_PI,  10*M_PI,  10*M_PI,  10*M_PI,  10, 5,  M_PI};
+  std::vector<double> obs_min = {-M_PI, -M_PI, -M_PI, -M_PI, -10*M_PI, -10*M_PI, -10*M_PI, -10*M_PI, 0, 0};
+  std::vector<double> obs_max = { M_PI,  M_PI,  M_PI,  M_PI,  10*M_PI,  10*M_PI,  10*M_PI,  10*M_PI, 1, timeout_};
   toVector(obs_min, v_obs_min);
   toVector(obs_max, v_obs_max);
   config.set("observation_min", v_obs_min);
@@ -88,11 +89,6 @@ void LeoSquatTask::configure(Configuration &config)
   config.set("action_max", VectorConstructor( 10.7,  10.7,  10.7,  10.7));
   config.set("reward_min", VectorConstructor(-1000));
   config.set("reward_max", VectorConstructor( 1000));
-
-//  rbdl_model_ = (RigidBodyDynamics::Model *) config["model"].ptr();
-  timeout_ = config["timeout"];
-
-  //leo_ = (LeoModel *) new(rbdl_model_);
 }
 
 void LeoSquatTask::reconfigure(const Configuration &config)
@@ -107,7 +103,17 @@ LeoSquatTask *LeoSquatTask::clone() const
 void LeoSquatTask::start(int test, Vector *state) const
 {
   *state = ConstantVector(observation_dims_, 0);
-  //time_ = 0;
+  *state <<
+         1.0586571916803691E+00,
+        -2.1266836153365212E+00,
+         1.0680264236561250E+00,
+        -2.5999999999984957E-01,
+        -0.0,
+        -0.0,
+        -0.0,
+        -0.0,
+         0.0, // indicator for a setpoint
+         0.0; // time
 }
 
 int LeoSquatTask::failed(const Vector &state) const
@@ -117,9 +123,9 @@ int LeoSquatTask::failed(const Vector &state) const
 
 void LeoSquatTask::observe(const Vector &state, Vector *obs, int *terminal) const
 {
-  *obs = state.block(0, 0, 1, observation_dims_); // row-first order
+  *obs = state.block(0, 0, 1, observation_dims_-1); // exclude time from observations!
 
-  if (time_ >= timeout_)
+  if (state[observation_dims_-1] >= timeout_)
     *terminal = 1;
   else if (failed(state))
     *terminal = 2;

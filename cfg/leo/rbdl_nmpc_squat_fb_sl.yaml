@@ -5,7 +5,7 @@ experiment:
   steps: 0
   rate: 30
   test_interval: 0
-  output: rbdl_nmpc_squat2
+  output: rbdl_nmpc_squat_fb_sl
   environment: 
     type: environment/sandbox
     model: 
@@ -14,21 +14,21 @@ experiment:
       integration_steps: 5
       dynamics: 
         type: dynamics/rbdl_leo
-        file: leo_ff_sl.lua
-      dof_count: 7
+        file: leo_fb_sl.lua
+      dof_count: 4
     task: 
       type: task/leoSquat
-      timeout: 10
+      timeout: 50
   agent: 
     type: agent/fixed
     policy: 
       type: policy/nmpc
-      lua_model: leo_sl.lua
-      model_name: nmpc_leo_squat2
-      nmpc_model_name: nmpc_leo_squat2
+      lua_model: leo_fb_sl.lua
+      model_name: nmpc_leo_squat_fb_sl
+      nmpc_model_name: nmpc_leo_squat_fb_sl
       outputs: 4
       pf: [0.28]
       initFeedback: 1
-      verbose: 0
+      verbose: 1
   test_agent: experiment/agent
   save_every: never

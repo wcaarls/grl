@@ -115,33 +115,60 @@ double SandboxEnvironment::step(const Vector &action, Vector *obs, double *rewar
 //-------------------------------------------------------------
 void SandboxDynamicalModel::request(ConfigurationRequest *config)
 {
-  DynamicalModel::request(config);
+  dm_.request(config);
   config->push_back(CRP("dof_count", "int.dof_count", "Number of degrees of freedom of the model", dof_count_, CRP::Configuration, 0, INT_MAX));
 }
 
 void SandboxDynamicalModel::configure(Configuration &config)
 {
-  DynamicalModel::configure(config);
+  dm_.configure(config);
   dof_count_ = config["dof_count"];
 }
 
 SandboxDynamicalModel *SandboxDynamicalModel::clone() const
 {
-  SandboxDynamicalModel *dm = new SandboxDynamicalModel();
-  dm->dynamics_ = dynamics_;
-  return dm;
+//  SandboxDynamicalModel *dm = new SandboxDynamicalModel();
+//  dm->dynamics_ = dynamics_;
+//  return dm;
 }
 
-double SandboxDynamicalModel::step(const Vector &state, const Vector &action, Vector *next) const
+void SandboxDynamicalModel::start(const Vector &hint, Vector *state)
+{
+//  if (exporter_)
+//    exporter_->open((test_?"test":"learn"), time_ != 0.0);
+  state_ = *state;
+}
+
+double SandboxDynamicalModel::step(const Vector &action, Vector *next)
 {
   // reduce state
-  const Vector state0 = state.block(0, 0, 1, 2*dof_count_+1);
+  Vector state0;
+  state0.resize(2*dof_count_ + 1);
+  state0 << state_.block(0, 0, 1, 2*dof_count_), state_[state_.size()-1];
+
+  std::cout << state0 << std::endl;
+//  std::cout << action << std::endl;
 
   // call dynamics of the reduced state
-  double tau = DynamicalModel::step(state0, action, next);
+  Vector next0;
+  next0.resize(state0.size());
+  double tau = dm_.step(state0, action, &next0);
+
+  std::cout << "GRL: " << next0 << std::endl;
 
   // augment state
-  dynamics_->finalize(*next);
+  dm_.dynamics_->finalize(*next);
+  next->resize(state_.size());
+  double t = next0[next0.size()-1];
+  int sitted_setpoint = state_[state_.size()-2];
+  int tt = (int)round(t/tau);
+  int t5 = (int)round(5/tau);
+  if ( tt % t5 == 0 ) // change setpoint every 5 seconds
+    sitted_setpoint = 1 - sitted_setpoint;
+  *next << next0.block(0, 0, 1, 2*dof_count_), sitted_setpoint, t;
 
+  std::cout << "GRL: " << *next << std::endl;
+
+  state_ = *next;
   return tau;
 }

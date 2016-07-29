@@ -146,33 +146,19 @@ NMPCPolicy *NMPCPolicy::clone() const
 
 TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
 {
-  //grl_assert(in.size() == initial_sd_.size());
-  grl_assert(outputs_  == initial_qc_.size());
+  grl_assert(in.size() == nmpc_->NXD() + 1); // setpoint indicator
+  grl_assert(outputs_  == nmpc_->NU());
 
-  Vector in2 = in;
-  /*in2 <<
-         1.0586571916803691E+00,
-        -2.1266836153365212E+00,
-         1.0680264236561250E+00,
-        -2.5999999999984957E-01,
-        -0.0,
-        -0.0,
-        -0.0,
-        -0.0;*/
-
-  if (time == 0.0)
-  {
-    muscod_reset(in2, time);
-  }
-
-  if (time < 20.0) {
+  if (in[in.size()-1] == 0.0)
     initial_pf_ << 0.28;
-  }
-  else if (time < 30.0)
-    initial_pf_ << 0.28 + ((time-20)/10.0)*(0.35-0.28);
   else
     initial_pf_ << 0.35;
 
+  // remove indicator
+  Vector in2 = in.block(0, 0, 1, in.size()-1);
+
+  if (time == 0.0)
+    muscod_reset(in2, time);
 
   if (verbose_)
   {
@@ -181,6 +167,21 @@ TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
   }
 
   out->resize(outputs_);
+
+  // simulate model over specified time interval using NMPC internal model
+  if (verbose_)
+  {
+    double time_interval = 0.05; //nmpc_->getSamplingRate();
+    nmpc_->simulate(
+        in2,
+        initial_pf_,
+        initial_qc_,
+        time_interval,
+        &final_sd_
+    );
+    std::cout << "NMPC simulation result using time_interval = " << time_interval << " is:" << std::endl;
+    std::cout << final_sd_ << std::endl;
+  }
 
   // Run multiple NMPC iterations
   const unsigned int nnmpc = 1;
