@@ -123,7 +123,23 @@ int LeoSquatTask::failed(const Vector &state) const
 
 void LeoSquatTask::observe(const Vector &state, Vector *obs, int *terminal) const
 {
-  *obs = state.block(0, 0, 1, observation_dims_-1); // exclude time from observations!
+  bool reduced = true;
+
+  if (!reduced)
+  {
+   *obs = state.block(0, 0, 1, observation_dims_-1); // exclude time from observations!
+  }
+  else
+  {
+    std::cout << state << std::endl;
+
+    std::cout << state.block(0, 0, 1, 3) << std::endl; // angle
+    std::cout << state.block(0, 4, 1, 3) << std::endl; // angle rate
+    std::cout << state[8] << std::endl; // direction indicator
+
+    obs->resize(state.size()-3);
+    (*obs) << state.block(0, 0, 1, 3), state.block(0, 4, 1, 3), state[8];
+  }
 
   if (state[observation_dims_-1] >= timeout_)
     *terminal = 1;

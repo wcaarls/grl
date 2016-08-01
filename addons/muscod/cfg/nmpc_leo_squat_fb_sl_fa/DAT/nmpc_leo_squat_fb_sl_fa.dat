@@ -224,7 +224,7 @@ nhist
 * Choosing libraries *
 
 libmodel
-libleo_squat_sl_fa
+libnmpc_leo_squat_fb_sl_fa
 
 libhessian
 hess_gaussnewton
@@ -259,6 +259,7 @@ qps_qpopt
 qps_qore
 
 libplot
+plot_noplot
 plot_pgplot
 plot_noplot
 

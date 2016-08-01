@@ -32,7 +32,7 @@ using namespace RigidBodyDynamics::Math;
 
 // -----------------------------------------------------------------------------
 
-string path_to_lua_file = "leo_sl_fa.lua";
+string path_to_lua_file = "leo_fb_sl_fa.lua";
 
 LeoModel leo;
 

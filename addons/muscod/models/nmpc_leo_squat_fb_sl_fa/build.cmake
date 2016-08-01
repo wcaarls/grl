@@ -1,5 +1,5 @@
 # Setup build environment
-set(TARGET nmpc_leo_squat_fb_sl)
+set(TARGET nmpc_leo_squat_fb_sl_fa)
 
 ADD_LIBRARY ( ${TARGET} SHARED 
               ${SRC}/${TARGET}.cpp

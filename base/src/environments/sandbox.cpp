@@ -147,12 +147,23 @@ double SandboxDynamicalModel::step(const Vector &action, Vector *next)
   state0 << state_.block(0, 0, 1, 2*dof_count_), state_[state_.size()-1];
 
   std::cout << state0 << std::endl;
-//  std::cout << action << std::endl;
+
+  // auto-actuate arm
+  Vector action0;
+  action0.resize(dof_count_);
+  if (action.size() == 3)
+  {
+    double armVoltage = (14.0/3.3) * 5.0*(-0.26 - state_[3]);
+    action0 << action, armVoltage;
+    std::cout << action0 << std::endl;
+  }
+  else
+    action0 << action;
 
   // call dynamics of the reduced state
   Vector next0;
   next0.resize(state0.size());
-  double tau = dm_.step(state0, action, &next0);
+  double tau = dm_.step(state0, action0, &next0);
 
   std::cout << "GRL: " << next0 << std::endl;
 
