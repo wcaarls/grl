@@ -222,7 +222,7 @@ class Dynamics : public Configurable
 
     /// Compute equations of motion, returning accelerations.
     virtual void eom(const Vector &state, const Vector &action, Vector *xdd) const = 0;
-    virtual void finalize(Vector &state) const {}
+    virtual void finalize(Vector &next) const {}
 };
 
 class DynamicalModel : public Model
@@ -246,6 +246,7 @@ class DynamicalModel : public Model
     // From Model
     virtual DynamicalModel *clone() const;
     virtual double step(const Vector &state, const Vector &action, Vector *next) const;
+    virtual void finalize(Vector &next) const;
 };
 
 /// Environment modifier that adds sensor and actuator noise.
@@ -358,7 +359,6 @@ class SandboxDynamicalModel : public Sandbox
 
   public:
     SandboxDynamicalModel() : dof_count_(0) { }
-    //~SandboxDynamicalModel() {}
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -368,7 +368,6 @@ class SandboxDynamicalModel : public Sandbox
     virtual SandboxDynamicalModel *clone() const;
     virtual void start(const Vector &hint, Vector *state);
     virtual double step(const Vector &action, Vector *next);
-    //virtual double step(const Vector &state, const Vector &action, Vector *next) const;
     
   private:
     DynamicalModel dm_;

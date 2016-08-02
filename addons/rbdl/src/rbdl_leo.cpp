@@ -40,7 +40,49 @@ using namespace grl;
 REGISTER_CONFIGURABLE(LeoRBDLDynamics)
 REGISTER_CONFIGURABLE(LeoSquatTask)
 
+enum RbdlLeoState
+{
+  rlsAnkleAngle,
+  rlsKneeAngle,
+  rlsHipAngle,
+  rlsArmAngle,
 
+  rlsAnkleAngleRate,
+  rlsKneeAngleRate,
+  rlsHipAngleRate,
+  rlsArmAngleRate,
+
+  rlsDirection,
+  rlsTime,
+
+  rlsLeftTipX,
+  rlsLeftTipY,
+  rlsLeftTipZ,
+
+  rlsLeftHeelX,
+  rlsLeftHeelY,
+  rlsLeftHeelZ,
+
+  rlsRootX,
+  rlsRootY,
+  rlsRootZ,
+
+  rlsMass,
+
+  rlsComX,
+  rlsComY,
+  rlsComZ,
+
+  rlsComVelocityX,
+  rlsComVelocityY,
+  rlsComVelocityZ,
+
+  rlsAngularMomentumX,
+  rlsAngularMomentumY,
+  rlsAngularMomentumZ
+};
+
+/*
 void LeoRBDLDynamics::finalize(Vector &state)
 {
   RBDLState *rbdl = rbdl_state_.instance();
@@ -48,7 +90,7 @@ void LeoRBDLDynamics::finalize(Vector &state)
   size_t dim = rbdl->model->dof_count;
 
   if (state.size() != 2*dim+1)
-    throw Exception("dynamics/rbdl is incompatible with specified task");
+    throw Exception("dynamics/rbdl_leo is incompatible with specified task");
 
   leo_helper_.model = rbdl->model;
   leo_helper_.calcMomentum();
@@ -59,7 +101,9 @@ void LeoRBDLDynamics::finalize(Vector &state)
   augmented_state.resize(state.size()+2);
   augmented_state << state, com[0], com[2];
   state = augmented_state;
+
 }
+*/
 
 //-----------------------------------------------------------
 
@@ -123,7 +167,7 @@ int LeoSquatTask::failed(const Vector &state) const
 
 void LeoSquatTask::observe(const Vector &state, Vector *obs, int *terminal) const
 {
-  bool reduced = true;
+  bool reduced = false;
 
   if (!reduced)
   {
@@ -152,6 +196,28 @@ void LeoSquatTask::observe(const Vector &state, Vector *obs, int *terminal) cons
 void LeoSquatTask::evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const
 {
   *reward = 0;
+
+  // calculate support center from feet positions
+  double suppport_center = 0.5 * (state[rlsLeftTipX] + state[rlsLeftHeelX]);
+
+  // track: || root_z - h_ref ||_2^2
+  *reward +=  100.0 * (state[rlsRootZ] - 0);
+
+  // track: || com_x,y - support center_x,y ||_2^2
+  *reward +=   10.00 * (state[rlsComX] - suppport_center);
+
+  *reward +=   10.00 * state[rlsComVelocityX];
+  *reward +=   10.00 * state[rlsComVelocityZ];
+
+  *reward +=    10.0 * state[rlsAngularMomentumY];
+
+  // NOTE: sum of lower body angles is equal to angle between ground slope
+  //       and torso. Minimizing deviation from zero keeps torso upright
+  //       during motion execution.
+  *reward += 10.00 * ( state[rlsAnkleAngle] + state[rlsKneeAngle] + state[rlsHipAngle] - (0.15) ); // desired torso angle
+
+  // regularize: || q - q_desired ||_2^2
+  *reward += 1.0 * (state[rlsArmAngle]         - (-0.26)); // arm
 }
  
 bool LeoSquatTask::invert(const Vector &obs, Vector *state) const

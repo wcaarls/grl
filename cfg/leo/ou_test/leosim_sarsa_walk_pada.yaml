@@ -49,8 +49,8 @@ experiment:
         max: experiment/agent/policy/discretizer/max
         steps: experiment/agent/policy/discretizer/steps
         use_ou: 0
-        theta: 0.15
-        sigma: 1.5
+        theta: 0.05
+        sigma: 1.0
         center: [ 3, 3, 3 ]
         delta: 1
     predictor: 

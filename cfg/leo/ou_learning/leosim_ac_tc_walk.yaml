@@ -36,8 +36,8 @@ experiment:
         projector: 
           type: projector/tile_coding
           tilings: 16
-          memory: 16777216
-          safe: 0
+          memory: 33554432
+          safe: 1
           resolution: [0.14, 0.28, 0.28, 0.28, 0.28, 5, 10, 10, 10, 10]
           wrapping: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
       representation: 
@@ -63,7 +63,7 @@ experiment:
           type: projector/tile_coding
           tilings: experiment/agent/policy/projector/projector/tilings
           memory: experiment/agent/policy/projector/projector/memory
-          safe: 0
+          safe: 1
           resolution: experiment/agent/policy/projector/projector/resolution
           wrapping: experiment/agent/policy/projector/projector/wrapping
       critic_representation: 
