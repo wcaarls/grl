@@ -37,7 +37,7 @@
 
 namespace grl
 {
-class LeoRBDLDynamics : public RBDLDynamics
+class LeoRBDLDynamics : public RBDLDynamics // put here all stuff needed, if needed!
 {
   public:
     TYPEINFO("dynamics/rbdl_leo", "RBDL rigid body dynamics of Leo")
@@ -54,10 +54,10 @@ class LeoRBDLDynamics : public RBDLDynamics
     //virtual void reconfigure(const Configuration &config);
 
     // From Dynamics
-    virtual void finalize(Vector &state);
+//    virtual void finalize(Vector &state);
 
-  protected:
-    ModelHelpers::LeoHelper leo_helper_;
+//  protected:
+//    ModelHelpers::LeoHelper leo_helper_;
 };
 
 class LeoSquatTask : public Task

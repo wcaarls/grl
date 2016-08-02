@@ -19,6 +19,7 @@ experiment:
     task: 
       type: task/leoSquat
       timeout: 50
+      sandbox: experiment/environment/model
   agent: 
     type: agent/fixed
     policy: 
