@@ -161,6 +161,8 @@ void LeoSquatTask::start(int test, Vector *state) const
          0.28, // rlsRefRootHeight, possible values 0.28 and 0.35
          ConstantVector(rlsStateDim - 2*rlsDofDim - 2, 0); // initialize the rest to zero
 
+  (*state)[rlsRootZ] = 0.28;
+
   root_height_ = 0;
   squats_ = 0;
 }
@@ -225,7 +227,7 @@ void LeoSquatTask::evaluate(const Vector &state, const Vector &action, const Vec
 
   if (failed(next))
   {
-    *reward = -1000;
+    *reward = -10000;
     return;
   }
 
@@ -254,7 +256,11 @@ void LeoSquatTask::evaluate(const Vector &state, const Vector &action, const Vec
   *reward += pow(1.0 * (next[rlsArmAngle] - (-0.26)), 2); // arm
 
   // shaping
-
+  double shaping = pow(10.0 * next[rlsRootZ] - state[rlsRootZ], 2);
+  int s = (next[rlsRootZ] > state[rlsRootZ]) ? 1 : -1;
+  s *= (next[rlsRefRootHeight] > next[rlsRootZ]) ? 1 : -1;
+  shaping *= s;
+  *reward += -shaping;
 
   // negate
   *reward = - *reward;
