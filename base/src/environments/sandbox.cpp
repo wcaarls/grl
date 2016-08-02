@@ -169,7 +169,7 @@ double SandboxDynamicalModel::step(const Vector &action, Vector *next)
 
   // augment state
   double t = next0[2*dof_count_];
-  int direction = state_[2*dof_count_+1];
+  int direction = state_[2*dof_count_+1] > 0.30;
   int tt = (int)round(t/tau);
   int t5 = (int)round(5/tau);
   if ( tt % t5 == 0 ) // change setpoint every 5 seconds

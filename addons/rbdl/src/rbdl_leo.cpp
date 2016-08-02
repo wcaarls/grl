@@ -157,8 +157,10 @@ void LeoSquatTask::start(int test, Vector *state) const
         -0.0,
         -0.0,
         -0.0,
-        -0.0, // end of rlsDofDim
-         ConstantVector(rlsStateDim-2*rlsDofDim, 0); // initialize the rest to zero
+        -0.0,  // end of rlsDofDim
+         0.0,  // rlsTime
+         0.28, // rlsRefRootHeight, possible values 0.28 and 0.35
+         ConstantVector(rlsStateDim - 2*rlsDofDim - 2, 0); // initialize the rest to zero
 }
 
 int LeoSquatTask::failed(const Vector &state) const
