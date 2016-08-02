@@ -15,11 +15,12 @@ experiment:
       dynamics: 
         type: dynamics/rbdl_leo
         file: leo_fb_sl.lua
+        points: tip_left, heel_left, root
+        auxiliary: mm, com, comv, am
       dof_count: 4
     task: 
       type: task/leoSquat
       timeout: 50
-      sandbox: experiment/environment/model
   agent: 
     type: agent/fixed
     policy: 

@@ -149,10 +149,8 @@ TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
   grl_assert(in.size() == nmpc_->NXD() + 1); // setpoint indicator
   grl_assert(outputs_  == nmpc_->NU());
 
-  if (in[in.size()-1] == 0.0)
-    initial_pf_ << 0.28;
-  else
-    initial_pf_ << 0.35;
+  // reference height
+  initial_pf_ << in[in.size()-1];
 
   // remove indicator
   Vector in2 = in.block(0, 0, 1, in.size()-1);

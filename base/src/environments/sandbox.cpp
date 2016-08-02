@@ -143,8 +143,8 @@ double SandboxDynamicalModel::step(const Vector &action, Vector *next)
 {
   // reduce state
   Vector state0;
-  state0.resize(2*dof_count_ + 1);
-  state0 << state_.block(0, 0, 1, 2*dof_count_), state_[state_.size()-1];
+  state0.resize(2*dof_count_+1);
+  state0 << state_.block(0, 0, 1, 2*dof_count_+1);
 
   std::cout << state0 << std::endl;
 
@@ -168,15 +168,16 @@ double SandboxDynamicalModel::step(const Vector &action, Vector *next)
   std::cout << "GRL: " << next0 << std::endl;
 
   // augment state
-  dm_.dynamics_->finalize(*next);
-  next->resize(state_.size());
-  double t = next0[next0.size()-1];
-  int sitted_setpoint = state_[state_.size()-2];
+  double t = next0[2*dof_count_];
+  int direction = state_[2*dof_count_+1];
   int tt = (int)round(t/tau);
   int t5 = (int)round(5/tau);
   if ( tt % t5 == 0 ) // change setpoint every 5 seconds
-    sitted_setpoint = 1 - sitted_setpoint;
-  *next << next0.block(0, 0, 1, 2*dof_count_), sitted_setpoint, t;
+    direction = 1 - direction;
+  next->resize(2*dof_count_+2);
+  *next << next0.block(0, 0, 1, 2*dof_count_+1), direction ? 0.35:0.28;
+
+  dm_.dynamics_->finalize(*next);
 
   std::cout << "GRL: " << *next << std::endl;
 

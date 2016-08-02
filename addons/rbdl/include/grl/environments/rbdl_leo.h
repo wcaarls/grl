@@ -88,7 +88,7 @@ class LeoSquatTask : public Task
 
   protected:
 
-    int observation_dims_, action_dims_;
+    int action_dims_;
     double timeout_;
 };
 

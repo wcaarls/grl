@@ -47,13 +47,15 @@ enum RbdlLeoState
   rlsHipAngle,
   rlsArmAngle,
 
-  rlsAnkleAngleRate,
+  rlsDofDim = rlsArmAngle + 1,
+
+  rlsAnkleAngleRate = rlsDofDim,
   rlsKneeAngleRate,
   rlsHipAngleRate,
   rlsArmAngleRate,
 
-  rlsDirection,
   rlsTime,
+  rlsRefRootHeight,
 
   rlsLeftTipX,
   rlsLeftTipY,
@@ -79,7 +81,8 @@ enum RbdlLeoState
 
   rlsAngularMomentumX,
   rlsAngularMomentumY,
-  rlsAngularMomentumZ
+  rlsAngularMomentumZ,
+  rlsStateDim = rlsAngularMomentumZ + 1
 };
 
 /*
@@ -117,13 +120,12 @@ void LeoSquatTask::configure(Configuration &config)
 {
   timeout_ = config["timeout"];
 
-  observation_dims_ = 10; // ankle, knee, hip, shoulder, setpoint switch indicator, time
   action_dims_ = 4;
 
   Vector v_obs_min, v_obs_max;
-  config.set("observation_dims", observation_dims_);
-  std::vector<double> obs_min = {-M_PI, -M_PI, -M_PI, -M_PI, -10*M_PI, -10*M_PI, -10*M_PI, -10*M_PI, 0, 0};
-  std::vector<double> obs_max = { M_PI,  M_PI,  M_PI,  M_PI,  10*M_PI,  10*M_PI,  10*M_PI,  10*M_PI, 1, timeout_};
+  config.set("observation_dims", 2*rlsDofDim + 1); // 2*dof + time
+  std::vector<double> obs_min = {-M_PI, -M_PI, -M_PI, -M_PI, -10*M_PI, -10*M_PI, -10*M_PI, -10*M_PI, 0};
+  std::vector<double> obs_max = { M_PI,  M_PI,  M_PI,  M_PI,  10*M_PI,  10*M_PI,  10*M_PI,  10*M_PI, 1};
   toVector(obs_min, v_obs_min);
   toVector(obs_max, v_obs_max);
   config.set("observation_min", v_obs_min);
@@ -146,7 +148,7 @@ LeoSquatTask *LeoSquatTask::clone() const
  
 void LeoSquatTask::start(int test, Vector *state) const
 {
-  *state = ConstantVector(observation_dims_, 0);
+  *state = ConstantVector(rlsStateDim, 0);
   *state <<
          1.0586571916803691E+00,
         -2.1266836153365212E+00,
@@ -155,23 +157,29 @@ void LeoSquatTask::start(int test, Vector *state) const
         -0.0,
         -0.0,
         -0.0,
-        -0.0,
-         0.0, // indicator for a setpoint
-         0.0; // time
+        -0.0, // end of rlsDofDim
+         ConstantVector(rlsStateDim-2*rlsDofDim, 0); // initialize the rest to zero
 }
 
 int LeoSquatTask::failed(const Vector &state) const
 {
-  return 0;
+  double torsoAngle = state[rlsAnkleAngle] + state[rlsKneeAngle] + state[rlsHipAngle];
+  if ((torsoAngle < -1.0) || (torsoAngle > 1.0))
+    return 1;
+  else
+    return 0;
 }
 
 void LeoSquatTask::observe(const Vector &state, Vector *obs, int *terminal) const
 {
+  grl_assert(state.size() == rlsStateDim);
+
   bool reduced = false;
 
   if (!reduced)
   {
-   *obs = state.block(0, 0, 1, observation_dims_-1); // exclude time from observations!
+    obs->resize(2*rlsDofDim + 1);
+   *obs << state.block(0, 0, 1, 2*rlsDofDim), state[rlsRefRootHeight];
   }
   else
   {
@@ -185,7 +193,7 @@ void LeoSquatTask::observe(const Vector &state, Vector *obs, int *terminal) cons
     (*obs) << state.block(0, 0, 1, 3), state.block(0, 4, 1, 3), state[8];
   }
 
-  if (state[observation_dims_-1] >= timeout_)
+  if (state[rlsTime] >= timeout_)
     *terminal = 1;
   else if (failed(state))
     *terminal = 2;
@@ -195,29 +203,40 @@ void LeoSquatTask::observe(const Vector &state, Vector *obs, int *terminal) cons
 
 void LeoSquatTask::evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const
 {
+  grl_assert(next.size() == rlsStateDim);
+
+  if (failed(next))
+  {
+    *reward = -1000;
+    return;
+  }
+
   *reward = 0;
 
   // calculate support center from feet positions
-  double suppport_center = 0.5 * (state[rlsLeftTipX] + state[rlsLeftHeelX]);
+  double suppport_center = 0.5 * (next[rlsLeftTipX] + next[rlsLeftHeelX]);
 
   // track: || root_z - h_ref ||_2^2
-  *reward +=  100.0 * (state[rlsRootZ] - 0);
+  *reward +=  pow(100.0 * (next[rlsRootZ] - next[rlsRefRootHeight]), 2);
 
   // track: || com_x,y - support center_x,y ||_2^2
-  *reward +=   10.00 * (state[rlsComX] - suppport_center);
+  *reward +=  pow( 10.00 * (next[rlsComX] - suppport_center), 2);
 
-  *reward +=   10.00 * state[rlsComVelocityX];
-  *reward +=   10.00 * state[rlsComVelocityZ];
+  *reward +=  pow( 10.00 * next[rlsComVelocityX], 2);
+  *reward +=  pow( 10.00 * next[rlsComVelocityZ], 2);
 
-  *reward +=    10.0 * state[rlsAngularMomentumY];
+  *reward +=  pow( 10.00 * next[rlsAngularMomentumY], 2);
 
   // NOTE: sum of lower body angles is equal to angle between ground slope
   //       and torso. Minimizing deviation from zero keeps torso upright
   //       during motion execution.
-  *reward += 10.00 * ( state[rlsAnkleAngle] + state[rlsKneeAngle] + state[rlsHipAngle] - (0.15) ); // desired torso angle
+  *reward += pow(10.00 * ( next[rlsAnkleAngle] + next[rlsKneeAngle] + next[rlsHipAngle] - (0.15) ), 2); // desired torso angle
 
   // regularize: || q - q_desired ||_2^2
-  *reward += 1.0 * (state[rlsArmAngle]         - (-0.26)); // arm
+  *reward += pow(1.0 * (next[rlsArmAngle]         - (-0.26)), 2); // arm
+
+  // negate
+  *reward = - *reward;
 }
  
 bool LeoSquatTask::invert(const Vector &obs, Vector *state) const

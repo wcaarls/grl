@@ -296,6 +296,18 @@ dynamics/rbdl:
     mutability: configuration
     default: ""
     optional: 1
+  points:
+    type: string
+    description: string.points
+    mutability: configuration
+    default: Points
+    optional: 1
+  auxiliary:
+    type: string
+    description: string.auxiliary
+    mutability: configuration
+    default: Model mass(mm), Center of mass (com), Center of mass velocity (comv), Angular momentum (am)
+    optional: 1
 dynamics/rbdl_leo:
   description: RBDL rigid body dynamics of Leo
   file:
@@ -309,6 +321,18 @@ dynamics/rbdl_leo:
     description: Lua string to execute when loading model
     mutability: configuration
     default: ""
+    optional: 1
+  points:
+    type: string
+    description: string.points
+    mutability: configuration
+    default: Points
+    optional: 1
+  auxiliary:
+    type: string
+    description: string.auxiliary
+    mutability: configuration
+    default: Model mass(mm), Center of mass (com), Center of mass velocity (comv), Angular momentum (am)
     optional: 1
 dynamics/tlm:
   description: Two-link manipulator dynamics
@@ -3461,12 +3485,6 @@ task/leoSquat:
     optional: 1
     min: 0
     max: 1.797693134862316e+308
-  sandbox:
-    type: sandbox
-    description: Sanbox model of environment
-    mutability: configuration
-    default: 0
-    optional: 0
 task/lua:
   description: User-provided task specification in LUA
   observation_dims:
