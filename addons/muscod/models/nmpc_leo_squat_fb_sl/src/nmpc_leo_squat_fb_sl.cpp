@@ -35,7 +35,6 @@ using namespace RigidBodyDynamics::Math;
 string path_to_lua_file = "leo_fb_sl.lua";
 
 LeoModel leo;
-// std::vector<LeoModel> leo_models;
 
 bool model_loaded = false;
 bool has_shown_configuration = false;
@@ -50,6 +49,7 @@ string rel_data_path = "";
 vector<double> _plotting_t_values;
 vector<double> _plotting_p_values;
 vector<vector<double> > _plotting_lsq_values;
+vector<vector<double> > _plotting_rdf_values;
 vector<vector<double> > _plotting_sd_values;
 vector<vector<double> > _plotting_u_values;
 
@@ -147,8 +147,12 @@ const unsigned int LSQFCN_HEIGHT_TRACKING_NE = 0
 	+ 1 // height tracking
 	+ 1 // height change minimization
 	+ 1 // minimize angular momentum
-	+ 1 // upright torso
 	+ 1 // regularizing arm motion
+	+ 1 // upright torso
+	+ 1 // upright torso
+	// + 1 // regularizing arm motion
+	+ NXD/2 // reguralizing joint velocities
+	+ NU // reguralizing controls
 	;
 void lsqfcn_height_tracking (
 	double *ts, double *sd, double *sa, double *u, double *p, double *pr,
@@ -224,45 +228,49 @@ void lsqfcn_height_tracking (
 	//       n2 = n++; -> n2 = 0, n = 1
 
 	// track: || root_z - h_ref ||_2^2
-	res[res_cnt++] =  100.0 * (position_root[2] - p[parameter["h_ref"]]);
+	res[res_cnt++] =  100.00 * (position_root[2] - p[parameter["h_ref"]]);
 
 	// track: || com_x,y - support center_x,y ||_2^2
-	res[res_cnt++] =   10.00 * (position_CoM[0] - suppport_center[0]);
+	res[res_cnt++] =   50.00 * (position_CoM[0] - suppport_center[0]);
 
 	res[res_cnt++] =   10.00 * velocity_CoM[0];
 	res[res_cnt++] =   10.00 * velocity_CoM[2];
 
-	res[res_cnt++] =    10.0 * momentum_CoM[1];
-	// res[res_cnt++] = 10.0 * momentum_CoM[0];
-	// res[res_cnt++] = 10.0 * momentum_CoM[0];
+	res[res_cnt++] =  100.00 * momentum_CoM[1];
 
 	// NOTE: sum of lower body angles is equal to angle between ground slope
 	//       and torso. Minimizing deviation from zero keeps torso upright
 	//       during motion execution.
-	res[res_cnt++] = 10.00 * (
+	res[res_cnt++] = 30.00 * (
 		sd[QS["hip_left"]]
 		+ sd[QS["knee_left"]]
 		+ sd[QS["ankle_left"]]
 		- (0.15)  // desired torso angle
 	);
 
+	res[res_cnt++] = 60.00 * (
+		sd[QDOTS["hip_left"]]
+		+ sd[QDOTS["knee_left"]]
+		+ sd[QDOTS["ankle_left"]]
+	);
+
 	// regularize: || q - q_desired ||_2^2
-  res[res_cnt++] = 1.0 * (sd[QS["arm"]]         - (-0.26)); // arm
+	res[res_cnt++] = 10.00 * (sd[QS["arm"]]         - (-0.26)); // arm
 	// res[res_cnt++] = 1.00 * (sd[QS["hip_left"]]    - (-0.01)); // hip_left
 	// res[res_cnt++] = 0.01 * (sd[QS["knee_left"]]   - (-0.01)); // knee_left
 	// res[res_cnt++] = 0.01 * (sd[QS["ankle_left"]]  - (0.05)); // ankle_left
 
 	// regularize: || qdot ||_2^2
-	// res[res_cnt++] = 0.10 * leo.qdot[QS["arm"]]         * leo.qdot[QS["arm"]]; // arm
-	// res[res_cnt++] = 0.10 * leo.qdot[QS["hip_left"]]    * leo.qdot[QS["hip_left"]]; // hip_left
-	// res[res_cnt++] = 0.10 * leo.qdot[QS["knee_left"]]   * leo.qdot[QS["knee_left"]]; // knee_left
-	// res[res_cnt++] = 0.10 * leo.qdot[QS["ankle_left"]]  * leo.qdot[QS["ankle_left"]]; // ankle_left
+	res[res_cnt++] = 6.00 * leo.qdot[QS["arm"]]; // arm
+	res[res_cnt++] = 6.00 * leo.qdot[QS["hip_left"]]; // hip_left
+	res[res_cnt++] = 6.00 * leo.qdot[QS["knee_left"]]; // knee_left
+	res[res_cnt++] = 6.00 * leo.qdot[QS["ankle_left"]]; // ankle_left
 
 	// regularize: || u ||_2^2
-	// res[res_cnt++] = 0.10 * u[TAUS["arm"]]         * u[TAUS["arm"]]; // arm
-	// res[res_cnt++] = 0.10 * u[TAUS["hip_left"]]    * u[TAUS["hip_left"]]; // hip_left
-	// res[res_cnt++] = 0.01 * u[TAUS["knee_left"]]   * u[TAUS["knee_left"]]; // knee_left
-	// res[res_cnt++] = 0.10 * u[TAUS["ankle_left"]]  * u[TAUS["ankle_left"]]; // ankle_left
+	res[res_cnt++] = 0.01 * u[TAUS["arm"]]; // arm
+	res[res_cnt++] = 0.01 * u[TAUS["hip_left"]]; // hip_left
+	res[res_cnt++] = 0.01 * u[TAUS["knee_left"]]; // knee_left
+	res[res_cnt++] = 0.01 * u[TAUS["ankle_left"]]; // ankle_left
 
 	// regularize: || tau ||_2^2
 	// res[res_cnt++] = 0.010 * leo.tau[TAUS["arm"]]         * leo.tau[TAUS["arm"]]; // arm
@@ -328,6 +336,9 @@ void rdfcn(
 	unsigned int res_ne_cnt = 0;
 
 	// update model with current states
+	leo.updateState(sd, u, p, "");
+
+	// retrieve CoM from model
 	Vector3d CoM = leo.calcCenterOfMass();
 
 	// retrieve contact points
@@ -426,7 +437,6 @@ void data_in (
 	// load Leo model from lua file
   bool verbose = false;
 	if (!model_loaded) {
-		// LeoModel leo;
     string lua_path = rel_data_path + '/' + path_to_lua_file;
     leo.loadModelFromFile (lua_path.c_str(), verbose);
     leo.loadPointsFromFile (lua_path.c_str(), verbose);
@@ -442,8 +452,6 @@ void data_in (
 		assert (NXD == QS.size() + QDOTS.size());
 		assert (QS.size() == QDOTS.size());
 	}
-	// setup RBDL models for each shooting node! for each shooting node!
-	// leo_models.push_back(leo);
 }
 
 // -----------------------------------------------------------------------------
@@ -456,6 +464,7 @@ void data_out(
 	) {
 	long lnode = -1;
 	long iteration_cnt = 0;
+
 		// get problem name from MUSCOD
 		// NOTE: fixed size array could cause problems for larger problem names
 	if (!is_problem_name_initialized) {
@@ -469,6 +478,7 @@ void data_out(
 		// crate string with purpose suffix
 		string meshup_header_file = string("RES/meshup_");
 		string data_lsq_file      = string("lsq_");
+		string data_rdf_file      = string("rdf_");
 		string data_sd_file       = string("sd_");
 		string data_u_file        = string("u_");
 		string data_p_file        = string("p_");
@@ -476,6 +486,7 @@ void data_out(
 		// add problem name identifier
 		meshup_header_file += string(problem_name);
 		data_lsq_file      += string(problem_name);
+		data_rdf_file      += string(problem_name);
 		data_sd_file       += string(problem_name);
 		data_u_file        += string(problem_name);
 		data_p_file        += string(problem_name);
@@ -488,6 +499,7 @@ void data_out(
 			sstm << setfill('0') << setw(4) << iteration_cnt;
 			meshup_header_file += sstm.str();
 			data_lsq_file      += sstm.str();
+			data_rdf_file      += sstm.str();
 			data_sd_file       += sstm.str();
 			data_u_file        += sstm.str();
 			data_p_file        += sstm.str();
@@ -496,29 +508,42 @@ void data_out(
 		// add file identifier suffix
 		meshup_header_file += string(".csv");
 		data_lsq_file      += string(".csv");
+		data_rdf_file      += string(".csv");
 		data_sd_file       += string(".csv");
 		data_u_file        += string(".csv");
 		data_p_file        += string(".csv");
 
 		ofstream meshup_header_stream;
 		ofstream data_lsq_stream;
+		ofstream data_rdf_stream;
 		ofstream data_sd_stream;
 		ofstream data_u_stream;
 		ofstream data_p_stream;
 
 		meshup_header_stream.open (meshup_header_file.c_str(),               ios_base::trunc);
 		data_lsq_stream.     open ((string("RES/") + data_lsq_file).c_str(), ios_base::trunc);
+		data_rdf_stream.     open ((string("RES/") + data_rdf_file).c_str(), ios_base::trunc);
 		data_sd_stream.      open ((string("RES/") + data_sd_file).c_str(),  ios_base::trunc);
 		data_u_stream.       open ((string("RES/") + data_u_file). c_str(),  ios_base::trunc);
 		data_p_stream.       open ((string("RES/") + data_p_file). c_str(),  ios_base::trunc);
 
 		if (
-			!meshup_header_stream || !data_lsq_stream || !data_sd_stream ||
-			!data_u_stream || !data_p_stream
+			!meshup_header_stream ||
+			!data_lsq_stream ||
+			!data_rdf_stream ||
+			!data_sd_stream ||
+			!data_u_stream ||
+			!data_p_stream
 		) {
 			cerr << "Error opening file ";
 			if (!meshup_header_stream) {
 				cerr << meshup_header_file;
+			}
+			if (!data_lsq_stream) {
+				cerr << data_lsq_file;
+			}
+			if (!data_rdf_stream) {
+				cerr << data_rdf_file;
 			}
 			if (!data_sd_stream) {
 				cerr << data_sd_file;
@@ -539,12 +564,33 @@ void data_out(
 		if (_plotting_t_values.size() > 0) {
 			// save time dependent quantities
 			for (unsigned int i = 0; i < _plotting_t_values.size(); i ++) {
+				// lsqfcn
+				data_lsq_stream << _plotting_t_values[i] << ", ";
+				for (unsigned int j = 0; j < _plotting_lsq_values[i].size(); j++) {
+					data_lsq_stream << _plotting_lsq_values[i][j];
+					if (j < _plotting_lsq_values[i].size() -1 ) {
+						data_lsq_stream << ", ";
+					}
+				}
+				data_lsq_stream << endl;
+
+				// rdfcn
+				data_rdf_stream << _plotting_t_values[i] << ", ";
+				for (unsigned int j = 0; j < _plotting_rdf_values[i].size(); j++) {
+					data_rdf_stream << _plotting_rdf_values[i][j];
+					if (j < _plotting_rdf_values[i].size() -1 ) {
+						data_rdf_stream << ", ";
+					}
+				}
+				data_rdf_stream << endl;
+
 				// states
 				data_sd_stream << _plotting_t_values[i] << ", ";
 				for (unsigned int j = 0; j < _plotting_sd_values[i].size(); j++) {
 					data_sd_stream << _plotting_sd_values[i][j];
-					if (j < _plotting_sd_values[i].size() -1 )
+					if (j < _plotting_sd_values[i].size() -1 ) {
 						data_sd_stream << ", ";
+					}
 				}
 				data_sd_stream << endl;
 
@@ -552,8 +598,9 @@ void data_out(
 				data_u_stream << _plotting_t_values[i] << ", ";
 				for (unsigned int j = 0; j < _plotting_u_values[i].size(); j++) {
 					data_u_stream << _plotting_u_values[i][j];
-					if (j < _plotting_u_values[i].size() -1 )
+					if (j < _plotting_u_values[i].size() -1 ) {
 						data_u_stream << ", ";
+					}
 				}
 				data_u_stream << endl;
 			}
@@ -562,8 +609,9 @@ void data_out(
 			// parameters
 			for (unsigned int j = 0; j < _plotting_p_values.size(); j++) {
 				data_p_stream << _plotting_p_values[j];
-				if (j < _plotting_p_values.size() -1 )
+				if (j < _plotting_p_values.size() -1 ) {
 					data_p_stream << ", ";
+				}
 			}
 			data_p_stream << endl;
 
@@ -572,11 +620,14 @@ void data_out(
 
 		_plotting_t_values.clear();
 		_plotting_lsq_values.clear();
+		_plotting_rdf_values.clear();
 		_plotting_sd_values.clear();
 		_plotting_u_values.clear();
 		_plotting_p_values.clear();
 
 		meshup_header_stream.close();
+		data_lsq_stream.close();
+		data_rdf_stream.close();
 		data_sd_stream.close();
 		data_u_stream.close();
 		data_p_stream.close();
@@ -595,6 +646,24 @@ void data_out(
 	}
 
 	_plotting_t_values.push_back (*t);
+
+	vector<double> lsq_vec (LSQFCN_HEIGHT_TRACKING_NE);
+	for (unsigned i = 0; i < LSQFCN_HEIGHT_TRACKING_NE; i++) {
+		long dpnd[1] = {0};
+		lsqfcn_height_tracking (
+			t, sd, sa, u, p, NULL, lsq_vec.data(), &dpnd[0], info
+		);
+	}
+	_plotting_lsq_values.push_back (lsq_vec);
+
+	vector<double> rdf_vec (RDFCN_N);
+	for (unsigned i = 0; i < RDFCN_N; i++) {
+		long dpnd[1] = {0};
+		rdfcn (
+			t, sd, sa, u, p, NULL, rdf_vec.data(), &dpnd[0], info
+		);
+	}
+	_plotting_rdf_values.push_back (rdf_vec);
 
 	vector<double> sd_vec (NXD);
 	for (unsigned i = 0; i < NXD; i++)
@@ -670,7 +739,8 @@ void def_model (void)
 	);
 
 	// define LSQ objective
-	// NOTE:
+	// NOTE: 'c' is continuous least-squares allowing intermediate evaluation
+	// NOTE: '*' specifies LSQ at all shooting nodes
 	def_lsq(imos, "c", NPR,
 		LSQFCN_HEIGHT_TRACKING_NE, lsqfcn_height_tracking
 	);
@@ -688,6 +758,7 @@ void def_model (void)
 	// NOTE: data_in is used to calculate current NMOS and NMS
 	//       or instantiate different RBLD models for parallel evaluation of
 	//       shooting nodes.
-  def_mio (data_in , NULL, NULL);
+	// def_mio (data_in , meshup_out, data_out);
+	def_mio (data_in , NULL, NULL);
 }
 // -----------------------------------------------------------------------------
