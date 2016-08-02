@@ -90,4 +90,4 @@ experiment:
       output_max: experiment/environment/action_max
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
-  save_every: run
+  save_every: never
