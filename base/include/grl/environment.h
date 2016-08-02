@@ -51,7 +51,7 @@ class Environment : public Configurable
     virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal) = 0;
 
     /// Progress report.
-    virtual void report(std::ostream &os) { }
+    virtual void report(std::ostream &os) const { }
 };
 
 /// Random-access transition model (works on states instead of observations).
@@ -61,6 +61,9 @@ class Model : public Configurable
     virtual ~Model() { }
     virtual Model *clone() const = 0;
     virtual double step(const Vector &state, const Vector &action, Vector *next) const = 0;
+
+    /// Progress report.
+    virtual void report(std::ostream &os) const { }
 };
 
 class Task : public Configurable
@@ -103,6 +106,9 @@ class Task : public Configurable
     {
       return Matrix();
     }
+
+    /// Progress report.
+    virtual void report(std::ostream &os) const { }
 };
 
 /// Task that regulates to a goal state with quadratic cost.
@@ -211,6 +217,7 @@ class ModeledEnvironment : public Environment
     virtual ModeledEnvironment *clone() const;
     virtual void start(int test, Vector *obs);
     virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal);
+    virtual void report(std::ostream &os) const;
 };
 
 /// Equations of motion.
@@ -306,7 +313,7 @@ class ShapingEnvironment : public Environment
     virtual ShapingEnvironment *clone() const;
     virtual void start(int test, Vector *obs);
     virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal);
-    virtual void report(std::ostream &os);
+    virtual void report(std::ostream &os) const;
 };
 
 /// Sequential-access transition model.
@@ -318,6 +325,10 @@ class Sandbox : public Configurable
 
     virtual void start(const Vector &hint, Vector *state) = 0;
     virtual double step(const Vector &action, Vector *next) = 0;
+
+    /// Progress report.
+    virtual void report(std::ostream &os) const { }
+
   protected:
     Vector state_;
 };
@@ -350,6 +361,7 @@ class SandboxEnvironment : public Environment
     virtual SandboxEnvironment *clone() const;
     virtual void start(int test, Vector *obs);
     virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal);
+    virtual void report(std::ostream &os) const;
 };
 
 class SandboxDynamicalModel : public Sandbox

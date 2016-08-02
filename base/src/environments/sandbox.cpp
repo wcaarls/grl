@@ -112,6 +112,12 @@ double SandboxEnvironment::step(const Vector &action, Vector *obs, double *rewar
   return tau;
 }
 
+void SandboxEnvironment::report(std::ostream &os) const
+{
+  sandbox_->report(os);
+  task_->report(os);
+}
+
 //-------------------------------------------------------------
 void SandboxDynamicalModel::request(ConfigurationRequest *config)
 {
@@ -146,7 +152,7 @@ double SandboxDynamicalModel::step(const Vector &action, Vector *next)
   state0.resize(2*dof_count_+1);
   state0 << state_.block(0, 0, 1, 2*dof_count_+1);
 
-  std::cout << state0 << std::endl;
+//  std::cout << state0 << std::endl;
 
   // auto-actuate arm
   Vector action0;
@@ -160,12 +166,14 @@ double SandboxDynamicalModel::step(const Vector &action, Vector *next)
   else
     action0 << action;
 
+  //action0 << ConstantVector(4, 0);
+
   // call dynamics of the reduced state
   Vector next0;
   next0.resize(state0.size());
   double tau = dm_.step(state0, action0, &next0);
 
-  std::cout << "GRL: " << next0 << std::endl;
+//  std::cout << "GRL: " << next0 << std::endl;
 
   // augment state
   double t = next0[2*dof_count_];
@@ -175,11 +183,11 @@ double SandboxDynamicalModel::step(const Vector &action, Vector *next)
   if ( tt % t5 == 0 ) // change setpoint every 5 seconds
     direction = 1 - direction;
   next->resize(2*dof_count_+2);
-  *next << next0.block(0, 0, 1, 2*dof_count_+1), direction ? 0.35:0.28;
+  *next << next0.block(0, 0, 1, 2*dof_count_+1), (direction?0.35:0.28);
 
   dm_.dynamics_->finalize(*next);
 
-  std::cout << "GRL: " << *next << std::endl;
+//  std::cout << "GRL: " << *next << std::endl;
 
   state_ = *next;
   return tau;

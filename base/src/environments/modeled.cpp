@@ -110,6 +110,12 @@ double ModeledEnvironment::step(const Vector &action, Vector *obs, double *rewar
   return tau;
 }
 
+void ModeledEnvironment::report(std::ostream &os) const
+{
+  model_->report(os);
+  task_->report(os);
+}
+
 void DynamicalModel::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("control_step", "double.control_step", "Control step time", tau_, CRP::Configuration, 0.001, DBL_MAX));

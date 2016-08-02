@@ -168,7 +168,11 @@ TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
 
   // simulate model over specified time interval using NMPC internal model
   if (verbose_)
-  {
+  {/*
+    double a, b, c, d;
+    a = b = c = d = 0;
+    initial_qc_ << a, b, c, d;
+    */
     double time_interval = 0.05; //nmpc_->getSamplingRate();
     nmpc_->simulate(
         in2,

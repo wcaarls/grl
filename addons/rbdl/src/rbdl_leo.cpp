@@ -27,6 +27,7 @@
 
 #include <sys/stat.h>
 #include <libgen.h>
+#include <iomanip>
 
 #include <rbdl/rbdl.h>
 #include <rbdl/addons/luamodel/luamodel.h>
@@ -118,18 +119,16 @@ void LeoSquatTask::request(ConfigurationRequest *config)
 
 void LeoSquatTask::configure(Configuration &config)
 {
+  action_dims_ = 4;
   timeout_ = config["timeout"];
 
-  action_dims_ = 4;
-
-  Vector v_obs_min, v_obs_max;
   config.set("observation_dims", 2*rlsDofDim + 1); // 2*dof + time
   std::vector<double> obs_min = {-M_PI, -M_PI, -M_PI, -M_PI, -10*M_PI, -10*M_PI, -10*M_PI, -10*M_PI, 0};
   std::vector<double> obs_max = { M_PI,  M_PI,  M_PI,  M_PI,  10*M_PI,  10*M_PI,  10*M_PI,  10*M_PI, 1};
-  toVector(obs_min, v_obs_min);
-  toVector(obs_max, v_obs_max);
-  config.set("observation_min", v_obs_min);
-  config.set("observation_max", v_obs_max);
+  toVector(obs_min, observation_min_);
+  toVector(obs_max, observation_max_);
+  config.set("observation_min", observation_min_);
+  config.set("observation_max", observation_max_);
   config.set("action_dims", action_dims_);
   config.set("action_min", VectorConstructor(-10.7, -10.7, -10.7, -10.7));
   config.set("action_max", VectorConstructor( 10.7,  10.7,  10.7,  10.7));
@@ -161,15 +160,32 @@ void LeoSquatTask::start(int test, Vector *state) const
          0.0,  // rlsTime
          0.28, // rlsRefRootHeight, possible values 0.28 and 0.35
          ConstantVector(rlsStateDim - 2*rlsDofDim - 2, 0); // initialize the rest to zero
+
+  root_height_ = 0;
+  squats_ = 0;
 }
 
 int LeoSquatTask::failed(const Vector &state) const
 {
   double torsoAngle = state[rlsAnkleAngle] + state[rlsKneeAngle] + state[rlsHipAngle];
-  if ((torsoAngle < -1.0) || (torsoAngle > 1.0))
+  if ((torsoAngle < -1.0) || (torsoAngle > 1.0) ||
+      // penalty for high joint velocities
+      (state[rlsAnkleAngleRate] < observation_min_[rlsAnkleAngleRate]) ||
+      (state[rlsAnkleAngleRate] > observation_max_[rlsAnkleAngleRate]) ||
+      (state[rlsKneeAngleRate]  < observation_min_[rlsKneeAngleRate])  ||
+      (state[rlsKneeAngleRate]  > observation_max_[rlsKneeAngleRate])  ||
+      (state[rlsHipAngleRate]   < observation_min_[rlsHipAngleRate])   ||
+      (state[rlsHipAngleRate]   > observation_max_[rlsHipAngleRate])   ||
+      (state[rlsArmAngleRate]   < observation_min_[rlsArmAngleRate])   ||
+      (state[rlsArmAngleRate]   > observation_max_[rlsArmAngleRate])   ||
+      // lower-upper leg colision result in large velocities
+      (std::isnan(state[rlsRootZ]))
+      )
     return 1;
   else
+  {
     return 0;
+  }
 }
 
 void LeoSquatTask::observe(const Vector &state, Vector *obs, int *terminal) const
@@ -235,10 +251,18 @@ void LeoSquatTask::evaluate(const Vector &state, const Vector &action, const Vec
   *reward += pow(10.00 * ( next[rlsAnkleAngle] + next[rlsKneeAngle] + next[rlsHipAngle] - (0.15) ), 2); // desired torso angle
 
   // regularize: || q - q_desired ||_2^2
-  *reward += pow(1.0 * (next[rlsArmAngle]         - (-0.26)), 2); // arm
+  *reward += pow(1.0 * (next[rlsArmAngle] - (-0.26)), 2); // arm
+
+  // shaping
+
 
   // negate
   *reward = - *reward;
+
+  // for progress report
+  root_height_ = next[rlsRootZ];
+  if (next[rlsRefRootHeight] != state[rlsRefRootHeight])
+    squats_++;
 }
  
 bool LeoSquatTask::invert(const Vector &obs, Vector *state) const
@@ -250,5 +274,17 @@ Matrix LeoSquatTask::rewardHessian(const Vector &state, const Vector &action) co
 {
   Matrix hessian;
   return hessian;
+}
+
+void LeoSquatTask::report(std::ostream &os) const
+{
+  const int pw = 15;
+  std::stringstream progressString;
+  progressString << std::fixed << std::setprecision(3) << std::right;
+
+  progressString << std::setw(pw) << root_height_;
+  progressString << std::setw(pw) << squats_;
+
+  os << progressString.str();
 }
 
