@@ -260,10 +260,10 @@ void lsqfcn_height_tracking (
 	// res[res_cnt++] = 0.01 * (sd[QS["ankle_left"]]  - (0.05)); // ankle_left
 
 	// regularize: || qdot ||_2^2
-	// res[res_cnt++] = 6.00 * leo.qdot[QS["arm"]]; // arm
-	res[res_cnt++] = 6.00 * leo.qdot[QS["hip_left"]]; // hip_left
-	res[res_cnt++] = 6.00 * leo.qdot[QS["knee_left"]]; // knee_left
-	res[res_cnt++] = 6.00 * leo.qdot[QS["ankle_left"]]; // ankle_left
+  // res[res_cnt++] = 6.00 * sd[QDOTS["arm"]]; // arm
+  res[res_cnt++] = 6.00 * sd[QDOTS["hip_left"]]; // hip_left
+  res[res_cnt++] = 6.00 * sd[QDOTS["knee_left"]]; // knee_left
+  res[res_cnt++] = 6.00 * sd[QDOTS["ankle_left"]]; // ankle_left
 
 	// regularize: || u ||_2^2
 	// res[res_cnt++] = 0.01 * u[TAUS["arm"]]; // arm

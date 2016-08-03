@@ -65,9 +65,9 @@ void LeoModel::updateState (
 
 	assert (nDof == nActuatedDof);
 	for (unsigned int i = 0; i < nActuatedDof; i++) {
-    //tau[i] = u[i] - 0.1*qdot[i];
 		// TODO control on voltage level
     tau[i] = torque_from_voltage_and_angular_velocity (u[i], qdot[i]);
+    //tau[i] = tau[i] - 0.1*qdot[i];  // friction
 	}
 }
 
