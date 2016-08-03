@@ -37,6 +37,52 @@
 
 namespace grl
 {
+
+enum RbdlLeoState
+{
+  rlsAnkleAngle,
+  rlsKneeAngle,
+  rlsHipAngle,
+  rlsArmAngle,
+
+  rlsDofDim = rlsArmAngle + 1,
+
+  rlsAnkleAngleRate = rlsDofDim,
+  rlsKneeAngleRate,
+  rlsHipAngleRate,
+  rlsArmAngleRate,
+
+  rlsTime,
+  rlsRefRootHeight,
+
+  rlsLeftTipX,
+  rlsLeftTipY,
+  rlsLeftTipZ,
+
+  rlsLeftHeelX,
+  rlsLeftHeelY,
+  rlsLeftHeelZ,
+
+  rlsRootX,
+  rlsRootY,
+  rlsRootZ,
+
+  rlsMass,
+
+  rlsComX,
+  rlsComY,
+  rlsComZ,
+
+  rlsComVelocityX,
+  rlsComVelocityY,
+  rlsComVelocityZ,
+
+  rlsAngularMomentumX,
+  rlsAngularMomentumY,
+  rlsAngularMomentumZ,
+  rlsStateDim = rlsAngularMomentumZ + 1
+};
+
 class LeoRBDLDynamics : public RBDLDynamics // put here all stuff needed, if needed!
 {
   public:

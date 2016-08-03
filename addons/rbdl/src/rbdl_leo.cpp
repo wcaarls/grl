@@ -41,51 +41,6 @@ using namespace grl;
 REGISTER_CONFIGURABLE(LeoRBDLDynamics)
 REGISTER_CONFIGURABLE(LeoSquatTask)
 
-enum RbdlLeoState
-{
-  rlsAnkleAngle,
-  rlsKneeAngle,
-  rlsHipAngle,
-  rlsArmAngle,
-
-  rlsDofDim = rlsArmAngle + 1,
-
-  rlsAnkleAngleRate = rlsDofDim,
-  rlsKneeAngleRate,
-  rlsHipAngleRate,
-  rlsArmAngleRate,
-
-  rlsTime,
-  rlsRefRootHeight,
-
-  rlsLeftTipX,
-  rlsLeftTipY,
-  rlsLeftTipZ,
-
-  rlsLeftHeelX,
-  rlsLeftHeelY,
-  rlsLeftHeelZ,
-
-  rlsRootX,
-  rlsRootY,
-  rlsRootZ,
-
-  rlsMass,
-
-  rlsComX,
-  rlsComY,
-  rlsComZ,
-
-  rlsComVelocityX,
-  rlsComVelocityY,
-  rlsComVelocityZ,
-
-  rlsAngularMomentumX,
-  rlsAngularMomentumY,
-  rlsAngularMomentumZ,
-  rlsStateDim = rlsAngularMomentumZ + 1
-};
-
 /*
 void LeoRBDLDynamics::finalize(Vector &state)
 {
@@ -256,7 +211,7 @@ void LeoSquatTask::evaluate(const Vector &state, const Vector &action, const Vec
   *reward += pow(1.0 * (next[rlsArmAngle] - (-0.26)), 2); // arm
 
   // shaping
-  double shaping = pow(10.0 * next[rlsRootZ] - state[rlsRootZ], 2);
+  double shaping = pow(30.0 * next[rlsRootZ] - state[rlsRootZ], 2);
   int s = (next[rlsRootZ] > state[rlsRootZ]) ? 1 : -1;
   s *= (next[rlsRefRootHeight] > next[rlsRootZ]) ? 1 : -1;
   shaping *= s;
@@ -287,10 +242,8 @@ void LeoSquatTask::report(std::ostream &os) const
   const int pw = 15;
   std::stringstream progressString;
   progressString << std::fixed << std::setprecision(3) << std::right;
-
   progressString << std::setw(pw) << root_height_;
   progressString << std::setw(pw) << squats_;
-
   os << progressString.str();
 }
 

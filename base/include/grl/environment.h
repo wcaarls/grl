@@ -347,10 +347,10 @@ class SandboxEnvironment : public Environment
     Exporter *exporter_;
 
     int test_;
-    double time_test_, time_learn_;
+    double time_test_, prev_time_test_, time_learn_;
 
   public:
-    SandboxEnvironment() : sandbox_(NULL), task_(NULL), state_obj_(NULL), exporter_(NULL), test_(false), time_test_(0.), time_learn_(0.) { }
+    SandboxEnvironment() : sandbox_(NULL), task_(NULL), state_obj_(NULL), exporter_(NULL), test_(false), time_test_(0.), prev_time_test_(0.), time_learn_(0.) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);

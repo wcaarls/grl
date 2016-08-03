@@ -26,6 +26,8 @@
  */
 
 #include <grl/environment.h>
+#include <iomanip>
+#include <../../addons/rbdl/include/grl/environments/rbdl_leo.h> // remove if direction is set in task
 
 using namespace grl;
 
@@ -88,6 +90,8 @@ void SandboxEnvironment::start(int test, Vector *obs)
 
   if (exporter_)
     exporter_->open((test_?"test":"learn"), (test_?time_test_:time_learn_) != 0.0);
+
+  prev_time_test_ = time_test_;
 }
 
 double SandboxEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)
@@ -114,6 +118,12 @@ double SandboxEnvironment::step(const Vector &action, Vector *obs, double *rewar
 
 void SandboxEnvironment::report(std::ostream &os) const
 {
+  const int pw = 15;
+  std::stringstream progressString;
+  progressString << std::fixed << std::setprecision(3) << std::right;
+  progressString << std::setw(pw) << (time_test_ - prev_time_test_);
+  os << progressString.str();
+
   sandbox_->report(os);
   task_->report(os);
 }
@@ -174,7 +184,7 @@ double SandboxDynamicalModel::step(const Vector &action, Vector *next)
   double tau = dm_.step(state0, action0, &next0);
 
 //  std::cout << "GRL: " << next0 << std::endl;
-
+/*
   // augment state
   double t = next0[2*dof_count_];
   int direction = state_[2*dof_count_+1] > 0.30;
@@ -184,8 +194,21 @@ double SandboxDynamicalModel::step(const Vector &action, Vector *next)
     direction = 1 - direction;
   next->resize(2*dof_count_+2);
   *next << next0.block(0, 0, 1, 2*dof_count_+1), (direction?0.35:0.28);
+  dm_.dynamics_->finalize(*next);
+*/
+
+  next->resize(2*dof_count_+2);
+  *next << next0, state_[2*dof_count_+1]; // fake direction
 
   dm_.dynamics_->finalize(*next);
+
+  if ( fabs((*next)[rlsComVelocityZ] - 0.0) < 0.01)
+  {
+    if ( fabs((*next)[rlsRootZ] - 0.28) < 0.01)
+      (*next)[rlsRefRootHeight] = 0.35;
+    else if ( fabs((*next)[rlsRootZ] - 0.35) < 0.01)
+      (*next)[rlsRefRootHeight] = 0.28;
+  }
 
 //  std::cout << "GRL: " << *next << std::endl;
 
