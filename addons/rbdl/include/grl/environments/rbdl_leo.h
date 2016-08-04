@@ -43,14 +43,14 @@ enum RbdlLeoState
   rlsAnkleAngle,
   rlsKneeAngle,
   rlsHipAngle,
-  rlsArmAngle,
+  rlsArmAngle,                    // might not be used
 
   rlsDofDim = rlsArmAngle + 1,
 
   rlsAnkleAngleRate = rlsDofDim,
   rlsKneeAngleRate,
   rlsHipAngleRate,
-  rlsArmAngleRate,
+  rlsArmAngleRate,                // might not be used
 
   rlsTime,
   rlsRefRootHeight,
@@ -138,6 +138,23 @@ class LeoSquatTask : public Task
     mutable double root_height_, squats_;
 };
 
+class LeoSquatTaskFA : public LeoSquatTask
+{
+  public:
+    TYPEINFO("task/leoSquatFA", "Task specification for Leo squatting with a fixed arm")
+
+  public:
+    LeoSquatTaskFA() { }
+
+    // From Configurable
+    virtual void configure(Configuration &config);
+
+    // From Task
+    virtual LeoSquatTaskFA *clone() const;
+    virtual void start(int test, Vector *state) const;
+    virtual void observe(const Vector &state, Vector *obs, int *terminal) const;
+    virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const;
+};
 
 }
 

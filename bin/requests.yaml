@@ -3485,6 +3485,48 @@ task/leoSquat:
     optional: 1
     min: 0
     max: 1.797693134862316e+308
+task/leoSquatFA:
+  description: Task specification for Leo squatting with a fixed arm
+  observation_dims:
+    type: int.observation_dims
+    description: Number of observation dimensions
+    mutability: provided
+  observation_min:
+    type: vector.observation_min
+    description: Lower limit on observations
+    mutability: provided
+  observation_max:
+    type: vector.observation_max
+    description: Upper limit on observations
+    mutability: provided
+  action_dims:
+    type: int.action_dims
+    description: Number of action dimensions
+    mutability: provided
+  action_min:
+    type: vector.action_min
+    description: Lower limit on actions
+    mutability: provided
+  action_max:
+    type: vector.action_max
+    description: Upper limit on actions
+    mutability: provided
+  reward_min:
+    type: double.reward_min
+    description: Lower limit on immediate reward
+    mutability: provided
+  reward_max:
+    type: double.reward_max
+    description: Upper limit on immediate reward
+    mutability: provided
+  timeout:
+    type: double.timeout
+    description: Task timeout
+    mutability: system
+    default: 10
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
 task/lua:
   description: User-provided task specification in LUA
   observation_dims:

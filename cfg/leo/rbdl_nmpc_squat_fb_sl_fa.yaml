@@ -19,7 +19,7 @@ experiment:
         auxiliary: mm, com, comv, am
       dof_count: 4
     task: 
-      type: task/leoSquat
+      type: task/leoSquatFA
       timeout: 10
   agent: 
     type: agent/fixed

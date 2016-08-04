@@ -5,7 +5,7 @@ experiment:
   steps: 0
   rate: 0
   test_interval: 10
-  output: rbdl_sarsa_squat_fb_sl_fa
+  output: rbdl_nmpc_squat_fb_sl_fa
   environment: 
     type: environment/sandbox
     model: 
@@ -14,7 +14,7 @@ experiment:
       integration_steps: 5
       dynamics: 
         type: dynamics/rbdl_leo
-        file: leo_fb_sl.lua
+        file: leo_fb_sl_fa.lua
         points: tip_left, heel_left, root
         auxiliary: mm, com, comv, am
       dof_count: 4
@@ -29,13 +29,13 @@ experiment:
         type: discretizer/uniform
         min: experiment/environment/task/action_min
         max: experiment/environment/task/action_max
-        steps: [7, 7, 7, 7]
+        steps: [7, 7, 7]
       projector: 
         type: projector/tile_coding
         tilings: 16
         memory: 33554432
         safe: 1
-        resolution: [0.28, 0.28, 0.28, 0.28, 10, 10, 10, 10, 0.01, 6.67, 6.67, 6.67, 6.67]
+        resolution: [0.28, 0.28, 0.28, 10, 10, 10, 0.01, 6.67, 6.67, 6.67]
         wrapping: []
       representation: 
         type: representation/parameterized/linear

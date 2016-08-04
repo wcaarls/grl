@@ -169,7 +169,7 @@ double SandboxDynamicalModel::step(const Vector &action, Vector *next)
   action0.resize(dof_count_);
   if (action.size() == 3)
   {
-    double armVoltage = (14.0/3.3) * 5.0*(-0.26 - state_[3]);
+    double armVoltage = (14.0/3.3) * 5.0*(-0.26 - state_[rlsArmAngle]);
     action0 << action, armVoltage;
     std::cout << action0 << std::endl;
   }
@@ -210,7 +210,7 @@ double SandboxDynamicalModel::step(const Vector &action, Vector *next)
       (*next)[rlsRefRootHeight] = 0.28;
   }
 
-//  std::cout << "GRL: " << *next << std::endl;
+  std::cout << "GRL: " << *next << std::endl;
 
   state_ = *next;
   return tau;
