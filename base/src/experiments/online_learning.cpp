@@ -35,20 +35,6 @@ using namespace grl;
 
 REGISTER_CONFIGURABLE(OnlineLearningExperiment)
 
-OnlineLearningExperiment::~OnlineLearningExperiment()
-{
-  if (state_)
-  {
-    delete state_;
-    state_ = NULL;
-  }
-  if (curve_)
-  {
-    delete curve_;
-    curve_ = NULL;
-  }
-}
-
 void OnlineLearningExperiment::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("runs", "Number of separate learning runs to perform", runs_, CRP::Configuration, 1));

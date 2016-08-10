@@ -36,7 +36,7 @@
 using namespace grl;
 using namespace std;
 
-static YAMLConfigurator *configurator = new YAMLConfigurator();
+static Configurator *configurator = NULL;
 static struct sigaction act, oldact;
 
 void reconfigure()
@@ -83,14 +83,22 @@ void reconfigure()
     if (words.empty())
     {
       // <key=value...>
-      configurator->reconfigure(config);
+      configurator->reconfigure(config, true);
     }
     else if (words.size() == 1)
     {
-      if (configurator->references().has(words[0]))
+      Configurator *cfg = configurator->find(words[0]);
+      if (cfg)
       {
-        // object <key=value...>
-        configurator->reconfigure(config, words[0]);
+        ObjectConfigurator *oc = dynamic_cast<ObjectConfigurator*>(cfg);
+        
+        if (oc)
+        {
+          // object <key=value...>
+          oc->reconfigure(config);
+        }
+        else
+          WARNING("Cannot reconfigure '" << words[0] << "': not a configurable object.");
       }
       else
       {
@@ -103,7 +111,19 @@ void reconfigure()
     {
       // action object <key=value...>
       config.set("action", words[0]);
-      configurator->reconfigure(config, words[1]);
+      
+      Configurator *cfg = configurator->find(words[1]);
+      if (cfg)
+      {
+        ObjectConfigurator *oc = dynamic_cast<ObjectConfigurator*>(cfg);
+        
+        if (oc)
+          oc->reconfigure(config);
+        else
+          WARNING("Cannot reconfigure '" << words[1] << "': not a configurable object.");
+      }
+      else
+        WARNING("Cannot reconfigure '" << words[1] << "': no such object.");
     }
   }
   
@@ -154,7 +174,7 @@ int main(int argc, char **argv)
 
   if (optind != argc-1)
   {
-    ERROR("Usage: " << endl << "  " << argv[0] << " [-v] [-c] [-s seed] [-r] [-w] [-f file] <yaml file>");
+    ERROR("Usage: " << endl << "  " << argv[0] << " [-v] [-c] [-s seed] <yaml file>");
     return 1;
   }
   
@@ -172,11 +192,34 @@ int main(int argc, char **argv)
   // Load plugins
   loadPlugins();
   
-  Configuration config;
+  NOTICE("Loading configuration from '" << argv[optind] << "'");
+  Configurator *temp = loadYAML(argv[optind]);
   
-  configurator->load(argv[optind], &config);
+  if (!temp)
+  {
+    ERROR("Could not load configuration");
+    return 1;
+  }
   
-  Configurable *obj = (Configurable*)config["experiment"].ptr();
+  NOTICE("Instantiating configuration");
+  configurator = temp->instantiate();
+  delete temp;
+  
+  if (!configurator)
+  {
+    ERROR("Could not instantiate configuration");
+    return 1;
+  }
+
+  Configurator *expconf = configurator->find("experiment");
+  
+  if (!expconf)
+  {
+    ERROR("YAML configuration does not specify an experiment");
+    return 1;
+  }
+  
+  Configurable *obj = expconf->ptr();
   Experiment *experiment = dynamic_cast<Experiment*>(obj);
   
   if (!experiment)
@@ -184,7 +227,7 @@ int main(int argc, char **argv)
     ERROR("Specified experiment has wrong type");
     return 1;
   }
-    
+  
   if (user_config)
     reconfigure();
   

@@ -199,33 +199,212 @@ inline void log(unsigned char level, const std::ostringstream &oss)
   }
 }
 
+class Configurator
+{
+  public:
+    typedef std::vector<Configurator*> ConfiguratorList;
+
+  protected:
+    Configurator *parent_;
+    std::string element_;
+    ConfiguratorList children_;
+    
+  public:
+    Configurator(const std::string &element=std::string(), Configurator *parent=NULL) : parent_(parent), element_(element)
+    {
+      if (parent_)
+        parent_->children_.push_back(this);
+    }
+    
+    virtual ~Configurator()
+    {
+      for (ConfiguratorList::iterator ii=children_.begin(); ii != children_.end(); ++ii)
+        delete *ii;
+    }
+
+    Configurator *root()
+    {
+      Configurator *r = this;
+      while (r && r->parent_)
+        r = r->parent_;
+      return r;
+    }
+
+    const Configurator *root() const
+    {
+      return const_cast<Configurator*>(this)->root();
+    }
+    
+    const std::string &element() const
+    {
+      return element_;
+    }
+    
+    std::string path() const
+    {
+      if (parent_)
+        return parent_->path() + "/" + element_;
+      else
+        return element_;
+    }
+
+    std::string operator[](const std::string &path) const
+    {
+      const Configurator *c = find(path);
+      if (c)
+        return c->str();
+      else
+        return std::string();
+    }
+    
+    // *** virtual functions ***
+    
+    virtual std::string str() const
+    {
+      return std::string();
+    }
+    
+    virtual Configurable *ptr()
+    {
+      return NULL;
+    }
+
+    // Find object in hierarchy.
+    virtual Configurator *find(const std::string &path)
+    {
+      if (path.empty())
+        return this;
+        
+      // Split path
+      size_t pos = path.find_first_of('/');
+      std::string first = path.substr(0, pos), rest;
+      if (pos != std::string::npos)
+        rest = path.substr(pos+1);
+
+      for (ConfiguratorList::iterator ii=children_.begin(); ii != children_.end(); ++ii)
+        if ((*ii)->element_ == first)
+          return (*ii)->find(rest);
+      
+      return NULL;
+    }
+    
+    virtual const Configurator *find(const std::string &path) const
+    {
+      return const_cast<Configurator*>(this)->find(path);
+    }
+    
+    virtual Configurator *instantiate(Configurator *parent=NULL) const
+    {
+      Configurator *cfg = new Configurator(element_, parent);
+    
+      for (ConfiguratorList::const_iterator ii=children_.begin(); ii != children_.end(); ++ii)
+        (*ii)->instantiate(cfg);
+        
+      return cfg;
+    }
+    
+    virtual bool validate(const CRP &crp) const
+    {
+      return false;
+    }
+
+    virtual void reconfigure(const Configuration &config, bool recursive=false)
+    {
+      if (recursive)
+        for (ConfiguratorList::iterator ii=children_.begin(); ii != children_.end(); ++ii)
+          (*ii)->reconfigure(config, recursive);
+    }
+};
+
+class ParameterConfigurator : public Configurator
+{
+  protected:
+    std::string value_;
+    
+  public:
+    ParameterConfigurator(const std::string &element, const std::string &value, Configurator *parent=NULL) : Configurator(element, parent), value_(value) { }
+    
+    virtual std::string str() const;
+    virtual Configurable *ptr();
+    virtual Configurator *find(const std::string &path);
+    virtual ParameterConfigurator *instantiate(Configurator *parent=NULL) const;
+    virtual bool validate(const CRP &crp) const;
+    virtual void reconfigure(const Configuration &config, bool recursive=false);
+};
+
+class ObjectConfigurator : public Configurator
+{
+  protected:
+    std::string type_;
+    Configurable *object_;
+
+  public:
+    ObjectConfigurator(const std::string &element, const std::string &type, Configurator *parent=NULL) : Configurator(element, parent), type_(type), object_(NULL) { }
+    
+    virtual ~ObjectConfigurator();
+    
+    void attach(Configurable *object)
+    {
+      object_ = object;
+    }
+    
+    void detach()
+    {
+      object_ = NULL;
+    }
+
+    virtual std::string str() const
+    {
+      std::ostringstream oss;
+      oss << object_;
+    
+      return oss.str();
+    }
+    
+    Configurable *ptr()
+    {
+      return object_;
+    }
+    
+    virtual ObjectConfigurator *instantiate(Configurator *parent=NULL) const;
+    virtual bool validate(const CRP &crp) const;
+    virtual void reconfigure(const Configuration &config, bool recursive=false);
+};
+
+Configurator *loadYAML(const std::string &file, const std::string &element=std::string(), Configurator *parent=NULL);
+Configurator *loadYAML(const std::string &file, const std::string &element, Configurator *parent, const YAML::Node &node);
+
 /// Configurable object.
 class Configurable
 {
+  private:
+    ObjectConfigurator *configurator_; ///< Configurator that instantiated this object.
+    
   public:
-    std::vector<Configurable*> children_; ///< All Configurable objects that are used as parameters of this one.
+    TYPEINFO("", "Base object")
 
-  protected:
-    /// Configurable-specific log writer (also logs class name).
-    inline void log(unsigned char level, const std::ostringstream &oss) const
+    virtual ~Configurable()
     {
-      if (level <= grl_log_verbosity__)
+      // Avoid double free by ObjectConfigurator in turn.
+      if (configurator_)
       {
-        if (level < 2)
-          std::cerr << grl_log_levels__[level] << " " << path() << ": " << oss.str() << "\x1B[0m" << std::endl;
-        else
-          std::cout << grl_log_levels__[level] << " " << path() << ": " << oss.str() << "\x1B[0m" << std::endl;
+        CRAWL("Deleting associated configurator " << configurator_);
+        
+        configurator_->detach();
+        safe_delete(&configurator_);
       }
     }
     
-  private:
-    std::string path_; ///< Path of this object definition in the configuration tree.
+    void attach(ObjectConfigurator *configurator)
+    {
+      configurator_ = configurator;
+    }
     
-  public:
-    virtual ~Configurable() { }
+    void detach()
+    {
+      configurator_ = NULL;
+    }
     
-    TYPEINFO("", "Base object")
-
     /// Requested configurable parameters.
     virtual void request(ConfigurationRequest * /*config*/) { }
     
@@ -242,19 +421,20 @@ class Configurable
     /// On-line reconfiguration and general messaging.
     virtual void reconfigure(const Configuration &/*config*/) { }
     
-    /// Set the path of this object definition in the configuration tree.
-    void setPath(const std::string &path) { path_ = path; }
-    
     /// Retrieve the path of this object definition in the configuration tree.
-    const std::string &path() const { return path_; }
+    std::string path() const
+    {
+      if (configurator_)
+        return configurator_->path();
+      else
+        return std::string("<unknown>");
+    }
     
     /// Reconfigure configuration subtree.
     void walk(const Configuration &config)
     {
-      reconfigure(config);
-      
-      for (size_t ii=0; ii < children_.size(); ++ii)
-        children_[ii]->walk(config);
+      if (configurator_)
+        configurator_->reconfigure(config, true);
     }
     
     /// Reset configuration subtree.
@@ -264,109 +444,23 @@ class Configurable
       config.set("action", "reset");
       walk(config);
     }
+
+  protected:
+    /// Configurable-specific log writer (also logs class name).
+    inline void log(unsigned char level, const std::ostringstream &oss) const
+    {
+      if (level <= grl_log_verbosity__)
+      {
+        if (level < 2)
+          std::cerr << grl_log_levels__[level] << " " << path() << ": " << oss.str() << "\x1B[0m" << std::endl;
+        else
+          std::cout << grl_log_levels__[level] << " " << path() << ": " << oss.str() << "\x1B[0m" << std::endl;
+      }
+    }
 };
 
 DECLARE_FACTORY(Configurable)
 #define REGISTER_CONFIGURABLE(subx) REGISTER_FACTORY(Configurable, subx, subx::s_type())
-
-/// Configure objects based on a YAML file.
-class YAMLConfigurator
-{
-  protected:
-    std::vector<Configurable*> objects_;
-    Configuration references_;
-    std::vector<std::string> file_;
-
-  public:
-    ~YAMLConfigurator()
-    {
-      for (int ii=objects_.size()-1; ii >= 0; --ii)
-        delete objects_[ii];
-
-      objects_.clear();
-    }
-    
-    /**
-     * \brief Initialize the list of defined parameters with some predefined values.
-     *
-     * Must be called before loading the YAML file.
-     */
-    void populate(const Configuration &config)
-    {
-      references_ = config;
-    }
-    
-    /// Retrieve list of defined parameters.
-    const Configuration &references() const
-    {
-      return references_;
-    }
-    
-    /// Reconfigure all objects.
-    void walk(const Configuration &config)
-    {
-      if (config.has("verbose"))
-        grl_log_verbosity__ = (int)config["verbose"];
-    
-      for (size_t ii=0; ii < objects_.size(); ++ii)
-        objects_[ii]->reconfigure(config);
-    }
-  
-    /// Load a YAML file.
-    Configurable *load(std::string file, Configuration *config, const std::string &path="")
-    {
-      NOTICE("Loading " << file);
-      
-      file_.push_back(file);
-      Configurable *obj = load(YAML::LoadFile(file.c_str()), config, path);
-      file_.pop_back();
-      
-      return obj;
-    }
-
-    /// Build object tree based on YAML description.  
-    Configurable *load(const YAML::Node &node, Configuration *config, const std::string &path);
-
-    /// Reconfigure parameters of objects in the tree.
-    void reconfigure(const Configuration &config, const std::string &path="");
-  protected:
-    /// Write out YAML node as string. 
-    std::string toString(const YAML::Node &node)
-    {
-      if (node.IsScalar())
-      {
-        return node.as<std::string>();
-      }
-      else if (node.IsSequence())
-      {
-        std::string value;
-      
-        /* Ugly hack to convert sequence back to a string */
-        std::stringstream ss;
-        ss << "[ ";
-
-        for (size_t ii=0; ii < node.size(); ++ii)
-        {
-          value = node[ii].as<std::string>();
-          ss << value;
-          if (ii < node.size()-1)
-            ss << ", ";
-        }
-        ss << " ]";
-        value = ss.str();
-
-        return value;
-      }
-      else
-        throw Exception("Unsupported YAML node type");
-    }
-    
-    /// Parse a value, resolving references and integer addition/vector extension.
-    std::string parse(const std::string &value) const;
-
-    /// Validate a parameter value against its request.
-    bool validate(Configurable *obj, const std::string &key, const std::string &value, const CRP &crp);
-};
 
 }
 
