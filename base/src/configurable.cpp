@@ -131,6 +131,46 @@ Configurator *grl::loadYAML(const std::string &file, const std::string &element,
 
 /// *** ParameterConfigurator ***
 
+Configurator *ParameterConfigurator::resolve(const std::string &id)
+{
+  Configurator *reference = Configurator::find(id);
+  if (!reference)
+    reference = Configurator::find("/" + id);
+  return reference;
+}
+ 
+std::string ParameterConfigurator::localize(const std::string &id) const
+{
+  if (id.empty())
+    return id;
+
+  const Configurator *reference = resolve(id);
+  if (reference)
+  {
+    std::string fullpath = reference->path(), ownpath = path(), newpath;
+    size_t ii;
+    
+    // Find first path difference
+    for (ii=0; ii < fullpath.size() && ii < ownpath.size() && ownpath[ii] == fullpath[ii]; ++ii);
+    
+    // Make sure we're on a full folder name
+    while (ownpath[ii] != '/')
+      ii--;
+      
+    // Localized path ends with other's path from this point onwards
+    newpath = fullpath.substr(ii+1);
+
+    // Add ../ for every folder on our own path until the end
+    for (; ii < ownpath.size(); ++ii)
+      if (ownpath[ii] == '/')
+        newpath = "../" + newpath;
+        
+    return newpath;
+  }
+  else
+    return id;
+}
+
 std::string ParameterConfigurator::str() const
 {
   std::string v = value_, id, expv;
@@ -142,7 +182,7 @@ std::string ParameterConfigurator::str() const
     {
       if (!id.empty())
       {
-        const Configurator *reference = root()->find(id);
+        const Configurator *reference = resolve(id);
 
         if (reference)
           expv.insert(expv.size(), reference->str());
@@ -159,7 +199,7 @@ std::string ParameterConfigurator::str() const
   
   if (!id.empty())
   {
-    const Configurator *reference = root()->find(id);
+    const Configurator *reference = resolve(id);
 
     if (reference)
       expv.insert(expv.size(), reference->str());
@@ -217,35 +257,57 @@ std::string ParameterConfigurator::str() const
 
 Configurable *ParameterConfigurator::ptr()
 {
-  Configurator *reference;
-
-  if (!value_.empty() && (reference = root()->find(value_)))
-    return reference->ptr();
-  else
-    return NULL;
+  if (!value_.empty())
+  {
+    Configurator *reference = resolve(value_);
+    if (reference)
+      return reference->ptr();
+  }
+  
+  return NULL;
 }
 
 Configurator *ParameterConfigurator::find(const std::string &path)
 {
-  Configurator *reference;
-  
-  if (!value_.empty() && parent_ && (reference = root()->find(value_)))
-    return reference->find(path);
-  else
-    return Configurator::find(path);
+  if (!value_.empty())
+  {
+    Configurator *reference = resolve(value_);
+    
+    if (reference)
+      return reference->find(path);
+  }
+
+  return Configurator::find(path);
 }
 
 ParameterConfigurator *ParameterConfigurator::instantiate(Configurator *parent) const
 {
+  if (!parent)
+    parent = parent_;
+
+  std::string v = value_, id, expv;
+
   // Make references local
-  return new ParameterConfigurator(element_, value_, parent);
+  for (size_t ii=0; ii < v.size(); ++ii)
+    if (!isalnum(v[ii]) && v[ii] != '/' && v[ii] != '_' && v[ii] != '.')
+    {
+      expv.insert(expv.size(), localize(id));
+      id.clear();
+      expv.push_back(v[ii]);
+    }
+    else
+      id.push_back(v[ii]);
+  
+  expv.insert(expv.size(), localize(id));
+  
+  return new ParameterConfigurator(element_, expv, parent);
 }
 
 bool ParameterConfigurator::validate(const CRP &crp) const
 {
   const Configurator *reference;
 
-  if (!value_.empty() && (reference = root()->find(value_)))
+  if (!value_.empty() && (reference = resolve(value_)))
   {
     return reference->validate(crp);
   }
@@ -320,7 +382,7 @@ bool ParameterConfigurator::validate(const CRP &crp) const
         }
       }
     }
-    else
+    else if (value != "0")
     {
       ERROR("Parameter " << path() << " ('" << value << "') should be an object");
       return false;
@@ -334,7 +396,7 @@ void ParameterConfigurator::reconfigure(const Configuration &config, bool recurs
 {
   Configurator *reference;
 
-  if (!value_.empty() && (reference = root()->find(value_)))
+  if (!value_.empty() && (reference = resolve(value_)))
     reference->reconfigure(config, recursive);
 
   return;
@@ -356,6 +418,9 @@ ObjectConfigurator::~ObjectConfigurator()
 
 ObjectConfigurator* ObjectConfigurator::instantiate(Configurator *parent) const
 {
+  if (!parent)
+    parent = parent_;
+
   // Create object
   ObjectConfigurator *oc = new ObjectConfigurator(element_, type_, parent);
   oc->object_ = ConfigurableFactory::create(type_);
@@ -386,10 +451,7 @@ ObjectConfigurator* ObjectConfigurator::instantiate(Configurator *parent) const
           // Instantiate
           Configurator *nc = (*cc)->instantiate(oc);
           if (!nc)
-          {
-            ERROR("Could not instantiate " << (*cc)->path());
             return NULL;
-          }
           
           // Validate against request
           if (!nc->validate(request[ii]))

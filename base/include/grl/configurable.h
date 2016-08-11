@@ -213,7 +213,16 @@ class Configurator
     Configurator(const std::string &element=std::string(), Configurator *parent=NULL) : parent_(parent), element_(element)
     {
       if (parent_)
+      {
+        for (ConfiguratorList::iterator ii=parent_->children_.begin(); ii != parent_->children_.end(); ++ii)
+          if ((*ii)->element_ == element_)
+          {
+            CRAWL(path() << ": Cowardly refusing to overwrite parent's existing child");
+            return;
+          }
+          
         parent_->children_.push_back(this);
+      }
     }
     
     virtual ~Configurator()
@@ -281,11 +290,25 @@ class Configurator
       if (pos != std::string::npos)
         rest = path.substr(pos+1);
 
-      for (ConfiguratorList::iterator ii=children_.begin(); ii != children_.end(); ++ii)
-        if ((*ii)->element_ == first)
-          return (*ii)->find(rest);
-      
-      return NULL;
+      if (first.empty())
+      {
+        return root()->find(rest);
+      }
+      else if (first == "..")
+      {
+        if (parent_)
+          return parent_->find(rest);
+        else
+          return NULL;
+      }
+      else
+      {
+        for (ConfiguratorList::iterator ii=children_.begin(); ii != children_.end(); ++ii)
+          if ((*ii)->element_ == first)
+            return (*ii)->find(rest);
+
+        return NULL;
+      }
     }
     
     virtual const Configurator *find(const std::string &path) const
@@ -295,10 +318,14 @@ class Configurator
     
     virtual Configurator *instantiate(Configurator *parent=NULL) const
     {
+      if (!parent)
+        parent = parent_;
+    
       Configurator *cfg = new Configurator(element_, parent);
     
       for (ConfiguratorList::const_iterator ii=children_.begin(); ii != children_.end(); ++ii)
-        (*ii)->instantiate(cfg);
+        if (!(*ii)->instantiate(cfg))
+          return NULL;
         
       return cfg;
     }
@@ -323,10 +350,20 @@ class ParameterConfigurator : public Configurator
     
   public:
     ParameterConfigurator(const std::string &element, const std::string &value, Configurator *parent=NULL) : Configurator(element, parent), value_(value) { }
+    std::string localize(const std::string &id) const;
+    Configurator *resolve(const std::string &id);
+    const Configurator *resolve(const std::string &id) const
+    {
+      return const_cast<ParameterConfigurator*>(this)->resolve(id);
+    }
     
     virtual std::string str() const;
     virtual Configurable *ptr();
     virtual Configurator *find(const std::string &path);
+    virtual const Configurator *find(const std::string &path) const
+    {
+      return const_cast<ParameterConfigurator*>(this)->find(path);
+    }
     virtual ParameterConfigurator *instantiate(Configurator *parent=NULL) const;
     virtual bool validate(const CRP &crp) const;
     virtual void reconfigure(const Configuration &config, bool recursive=false);
@@ -340,7 +377,6 @@ class ObjectConfigurator : public Configurator
 
   public:
     ObjectConfigurator(const std::string &element, const std::string &type, Configurator *parent=NULL) : Configurator(element, parent), type_(type), object_(NULL) { }
-    
     virtual ~ObjectConfigurator();
     
     void attach(Configurable *object)
@@ -361,7 +397,7 @@ class ObjectConfigurator : public Configurator
       return oss.str();
     }
     
-    Configurable *ptr()
+    virtual Configurable *ptr()
     {
       return object_;
     }
