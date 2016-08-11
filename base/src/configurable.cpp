@@ -134,7 +134,7 @@ Configurator *grl::loadYAML(const std::string &file, const std::string &element,
 Configurator *ParameterConfigurator::resolve(const std::string &id)
 {
   Configurator *reference = Configurator::find(id);
-  if (!reference)
+  if (!reference && parent_)
     reference = Configurator::find("/" + id);
   return reference;
 }
@@ -260,6 +260,7 @@ Configurable *ParameterConfigurator::ptr()
   if (!value_.empty())
   {
     Configurator *reference = resolve(value_);
+
     if (reference)
       return reference->ptr();
   }
@@ -272,7 +273,7 @@ Configurator *ParameterConfigurator::find(const std::string &path)
   if (!value_.empty())
   {
     Configurator *reference = resolve(value_);
-    
+
     if (reference)
       return reference->find(path);
   }
