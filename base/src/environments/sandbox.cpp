@@ -211,7 +211,7 @@ double SandboxDynamicalModel::step(const Vector &action, Vector *next)
       (*next)[rlsRefRootZ] = 0.28;
   }
 
-  std::cout << "GRL: " << *next << std::endl;
+//  std::cout << "GRL: " << *next << std::endl;
 
   state_ = *next;
   return tau;
