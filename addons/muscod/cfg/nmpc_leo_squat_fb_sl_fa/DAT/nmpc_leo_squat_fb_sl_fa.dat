@@ -261,7 +261,6 @@ qps_qore
 libplot
 plot_noplot
 plot_pgplot
-plot_noplot
 
 *******************************************************************************
 * Setting algorithmic parameters *

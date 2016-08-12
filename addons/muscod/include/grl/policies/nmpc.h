@@ -53,6 +53,9 @@ class NMPCPolicy : public Policy
     size_t outputs_;
     Vector initial_pf_, initial_qc_, final_sd_;
 
+    // GRL
+    Vector action_min_, action_max_;
+
   public:
     NMPCPolicy() : muscod_nmpc_(NULL), outputs_(1), verbose_(0), initFeedback_(0) { }
     ~NMPCPolicy();

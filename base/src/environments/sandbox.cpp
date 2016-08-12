@@ -26,6 +26,8 @@
  */
 
 #include <grl/environment.h>
+#include <iomanip>
+#include <../../addons/rbdl/include/grl/environments/rbdl_leo.h> // remove if direction is set in task
 
 using namespace grl;
 
@@ -88,6 +90,8 @@ void SandboxEnvironment::start(int test, Vector *obs)
 
   if (exporter_)
     exporter_->open((test_?"test":"learn"), (test_?time_test_:time_learn_) != 0.0);
+
+  prev_time_test_ = time_test_;
 }
 
 double SandboxEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)
@@ -110,6 +114,18 @@ double SandboxEnvironment::step(const Vector &action, Vector *obs, double *rewar
   state_obj_->set(state_);
 
   return tau;
+}
+
+void SandboxEnvironment::report(std::ostream &os) const
+{
+  const int pw = 15;
+  std::stringstream progressString;
+  progressString << std::fixed << std::setprecision(3) << std::right;
+  progressString << std::setw(pw) << (time_test_ - prev_time_test_);
+  os << progressString.str();
+
+  sandbox_->report(os);
+  task_->report(os);
 }
 
 //-------------------------------------------------------------
@@ -143,40 +159,57 @@ double SandboxDynamicalModel::step(const Vector &action, Vector *next)
 {
   // reduce state
   Vector state0;
-  state0.resize(2*dof_count_ + 1);
-  state0 << state_.block(0, 0, 1, 2*dof_count_), state_[state_.size()-1];
+  state0.resize(2*dof_count_+1);
+  state0 << state_.block(0, 0, 1, 2*dof_count_+1);
 
-  std::cout << state0 << std::endl;
+//  std::cout << state0 << std::endl;
+//  std::cout << action << std::endl;
 
   // auto-actuate arm
   Vector action0;
   action0.resize(dof_count_);
   if (action.size() == 3)
   {
-    double armVoltage = (14.0/3.3) * 5.0*(-0.26 - state_[3]);
+    double armVoltage = (14.0/3.3) * 5.0*(-0.26 - state_[rlsArmAngle]);
     action0 << action, armVoltage;
-    std::cout << action0 << std::endl;
+//    std::cout << action0 << std::endl;
   }
   else
     action0 << action;
+
+  //action0 << ConstantVector(4, 0);
 
   // call dynamics of the reduced state
   Vector next0;
   next0.resize(state0.size());
   double tau = dm_.step(state0, action0, &next0);
 
-  std::cout << "GRL: " << next0 << std::endl;
-
+//  std::cout << "GRL: " << next0 << std::endl;
+/*
   // augment state
-  dm_.dynamics_->finalize(*next);
-  next->resize(state_.size());
-  double t = next0[next0.size()-1];
-  int sitted_setpoint = state_[state_.size()-2];
+  double t = next0[2*dof_count_];
+  int direction = state_[2*dof_count_+1] > 0.30;
   int tt = (int)round(t/tau);
   int t5 = (int)round(5/tau);
   if ( tt % t5 == 0 ) // change setpoint every 5 seconds
-    sitted_setpoint = 1 - sitted_setpoint;
-  *next << next0.block(0, 0, 1, 2*dof_count_), sitted_setpoint, t;
+    direction = 1 - direction;
+  next->resize(2*dof_count_+2);
+  *next << next0.block(0, 0, 1, 2*dof_count_+1), (direction?0.35:0.28);
+  dm_.dynamics_->finalize(*next);
+*/
+
+  next->resize(2*dof_count_+2);
+  *next << next0, state_[2*dof_count_+1]; // fake direction
+
+  dm_.dynamics_->finalize(*next);
+
+  if ( fabs((*next)[rlsComVelocityZ] - 0.0) < 0.01)
+  {
+    if ( fabs((*next)[rlsRootZ] - 0.28) < 0.01)
+      (*next)[rlsRefRootZ] = 0.35;
+    else if ( fabs((*next)[rlsRootZ] - 0.35) < 0.01)
+      (*next)[rlsRefRootZ] = 0.28;
+  }
 
   std::cout << "GRL: " << *next << std::endl;
 

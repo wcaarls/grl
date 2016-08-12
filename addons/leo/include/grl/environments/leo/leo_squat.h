@@ -59,7 +59,7 @@ class LeoSquatEnvironment: public LeoBaseEnvironment
     virtual LeoSquatEnvironment *clone() const;
     virtual void start(int test, Vector *obs);
     virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal);
-    virtual void report(std::ostream &os);
+    virtual void report(std::ostream &os) const;
 
   protected:
     CLeoBhSquat *bh_;

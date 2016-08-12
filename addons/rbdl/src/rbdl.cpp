@@ -298,12 +298,8 @@ bool RBDLDynamics::loadConstraintSetsFromFile(const char* filename, RigidBodyDyn
 
 void RBDLDynamics::getPointPosition(const Vector &state, const std::string point_name, Vector &out) const
 {
-  /*
-  if (!kinematicsUpdated) {
-    updateKinematics();
-  }
-*/
-  if ( !points.count( point_name ) ) {
+  if ( !points.count( point_name ) )
+  {
     std::cerr << "ERROR in " << __func__ << std::endl;
     std::cerr << "Could not find point '" << point_name << "'!" << std::endl;
     std::cerr << "bailing out ..." << std::endl;
@@ -312,6 +308,7 @@ void RBDLDynamics::getPointPosition(const Vector &state, const std::string point
 
   RBDLState *rbdl = rbdl_state_.instance();
   size_t dim = rbdl->model->dof_count;
+
   RigidBodyDynamics::Math::VectorNd q = RigidBodyDynamics::Math::VectorNd::Zero(dim);
   for (size_t ii=0; ii < dim; ++ii)
     q[ii] = state[ii];
@@ -320,13 +317,11 @@ void RBDLDynamics::getPointPosition(const Vector &state, const std::string point
   unsigned int body_id = point.body_id;
   RigidBodyDynamics::Math::Vector3d point_local = point.point_local;
 
-  out.resize(3);
-  out << RigidBodyDynamics::CalcBodyToBaseCoordinates (*rbdl->model, q, body_id, point_local, false);
-/*
+  RigidBodyDynamics::Math::Vector3d point3d = RigidBodyDynamics::CalcBodyToBaseCoordinates (*rbdl->model, q, body_id, point_local, false);
+
   out.resize(3);
   for (size_t ii=0; ii < 3; ++ii)
     out[ii] = point3d[ii];
-*/
 }
 
 void RBDLDynamics::getAuxiliary(const Vector &state, double &modelMass, Vector &centerOfMass, Vector &centerOfMassVelocity, Vector &angularMomentum) const
@@ -344,9 +339,16 @@ void RBDLDynamics::getAuxiliary(const Vector &state, double &modelMass, Vector &
 
   RigidBodyDynamics::Math::Vector3d com, com_velocity, angular_momentum;
   RigidBodyDynamics::Utils::CalcCenterOfMass(*rbdl->model, q, qd, modelMass, com, &com_velocity, &angular_momentum, false );
-  centerOfMass << com;
-  centerOfMassVelocity << com_velocity;
-  angularMomentum << angular_momentum;
+
+  centerOfMass.resize(3);
+  centerOfMassVelocity.resize(3);
+  angularMomentum.resize(3);
+  for (size_t ii=0; ii < 3; ++ii)
+  {
+    centerOfMass[ii] = com[ii];
+    centerOfMassVelocity[ii] = com_velocity[ii];
+    angularMomentum[ii] = angular_momentum[ii];
+  }
 }
 
 RBDLState *RBDLDynamics::createRBDLState() const

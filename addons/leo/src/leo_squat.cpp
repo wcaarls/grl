@@ -450,7 +450,7 @@ double LeoSquatEnvironment::step(const Vector &action, Vector *obs, double *rewa
   return tau;
 }
 
-void LeoSquatEnvironment::report(std::ostream &os)
+void LeoSquatEnvironment::report(std::ostream &os) const
 {
   double trialTime  = test_?time_test_:time_learn_ - time0_;
   LeoBaseEnvironment::report(os);

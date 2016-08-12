@@ -3,7 +3,7 @@ experiment:
   runs: 1
   trials: 0
   steps: 0
-  rate: 30
+  rate: 0
   test_interval: 0
   output: rbdl_nmpc_squat_fb_sl
   environment: 
@@ -15,11 +15,12 @@ experiment:
       dynamics: 
         type: dynamics/rbdl_leo
         file: leo_fb_sl.lua
+        points: tip_left, heel_left, root
+        auxiliary: mm, com, comv, am
       dof_count: 4
     task: 
       type: task/leoSquat
-      timeout: 50
-      sandbox: experiment/environment/model
+      timeout: 10
   agent: 
     type: agent/fixed
     policy: 

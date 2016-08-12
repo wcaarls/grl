@@ -37,6 +37,52 @@
 
 namespace grl
 {
+
+enum RbdlLeoState
+{
+  rlsAnkleAngle,
+  rlsKneeAngle,
+  rlsHipAngle,
+  rlsArmAngle,                    // might not be used
+
+  rlsDofDim = rlsArmAngle + 1,
+
+  rlsAnkleAngleRate = rlsDofDim,
+  rlsKneeAngleRate,
+  rlsHipAngleRate,
+  rlsArmAngleRate,                // might not be used
+
+  rlsTime,
+  rlsRefRootZ,
+
+  rlsLeftTipX,
+  rlsLeftTipY,
+  rlsLeftTipZ,
+
+  rlsLeftHeelX,
+  rlsLeftHeelY,
+  rlsLeftHeelZ,
+
+  rlsRootX,
+  rlsRootY,
+  rlsRootZ,
+
+  rlsMass,
+
+  rlsComX,
+  rlsComY,
+  rlsComZ,
+
+  rlsComVelocityX,
+  rlsComVelocityY,
+  rlsComVelocityZ,
+
+  rlsAngularMomentumX,
+  rlsAngularMomentumY,
+  rlsAngularMomentumZ,
+  rlsStateDim = rlsAngularMomentumZ + 1
+};
+
 class LeoRBDLDynamics : public RBDLDynamics // put here all stuff needed, if needed!
 {
   public:
@@ -66,10 +112,7 @@ class LeoSquatTask : public Task
     TYPEINFO("task/leoSquat", "Task specification for Leo squatting")
 
   public:
-
-
-  public:
-    LeoSquatTask() : timeout_(10) { }
+    LeoSquatTask() : timeout_(10), root_height_(0), squats_(0) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -83,15 +126,35 @@ class LeoSquatTask : public Task
     virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const;
     virtual bool invert(const Vector &obs, Vector *state) const;
     virtual Matrix rewardHessian(const Vector &state, const Vector &action) const;
-
-    int failed(const Vector &state) const;
+    virtual void report(std::ostream &os) const;
 
   protected:
+    virtual int failed(const Vector &state) const;
 
-    int observation_dims_, action_dims_;
+  protected:
+    Vector observation_min_, observation_max_;
+    int action_dims_;
     double timeout_;
+    mutable double root_height_, squats_;
 };
 
+class LeoSquatTaskFA : public LeoSquatTask
+{
+  public:
+    TYPEINFO("task/leoSquatFA", "Task specification for Leo squatting with a fixed arm")
+
+  public:
+    LeoSquatTaskFA() { }
+
+    // From Configurable
+    virtual void configure(Configuration &config);
+
+    // From Task
+    virtual LeoSquatTaskFA *clone() const;
+    virtual void start(int test, Vector *state) const;
+    virtual void observe(const Vector &state, Vector *obs, int *terminal) const;
+    virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const;
+};
 
 }
 
