@@ -1285,6 +1285,18 @@ policy/mhe_nmpc_sw:
     max: 1
 policy/nmpc:
   description: Nonlinear model predictive control policy using the MUSCOD library
+  action_min:
+    type: vector.action_min
+    description: Lower limit on actions
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  action_max:
+    type: vector.action_max
+    description: Upper limit on actions
+    mutability: system
+    default: "[  ]"
+    optional: 1
   lua_model:
     type: string
     description: Lua model used by MUSCOD

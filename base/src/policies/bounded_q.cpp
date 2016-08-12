@@ -108,6 +108,8 @@ void BoundedQPolicy::filter(const Vector &prev_out, const Vector &qvalues, Vecto
     if (valid)
       idx->push_back(ii);
   }
+
+  grl_assert(idx->size() > 0); // for testing purpose
   
   filtered->resize(idx->size());
   for (size_t ii=0; ii < idx->size(); ++ii)

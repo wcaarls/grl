@@ -24,6 +24,9 @@ NMPCPolicy::~NMPCPolicy()
 
 void NMPCPolicy::request(ConfigurationRequest *config)
 {
+  config->push_back(CRP("action_min", "vector.action_min", "Lower limit on actions", action_min_, CRP::System));
+  config->push_back(CRP("action_max", "vector.action_max", "Upper limit on actions", action_max_, CRP::System));
+
   config->push_back(CRP("lua_model", "Lua model used by MUSCOD", lua_model_));
   config->push_back(CRP("model_name", "Name of the model in grl", model_name_));
   config->push_back(CRP("nmpc_model_name", "Name of MUSCOD MHE model library", nmpc_model_name_));
@@ -76,6 +79,11 @@ void NMPCPolicy::configure(Configuration &config)
   model_name_       = config["model_name"].str();
   outputs_          = config["outputs"];
   verbose_          = config["verbose"];
+  action_min_       = config["action_min"].v();
+  action_max_       = config["action_max"].v();
+
+  if (action_min_.size() != action_max_.size())
+    throw bad_param("policy/nmpc:{action_min, action_max}");
 
   // Setup path for the problem description library and lua, csv, dat files used by it
   std::string problem_path  = model_path + "/" + model_name_;
@@ -206,7 +214,12 @@ TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
   }
 
   // Here we can return the feedback control
-  (*out) = initial_qc_;
+  for (int i = 0; i < action_min_.size(); i++)
+  {
+    (*out)[i] = fmax( fmin(initial_qc_[i], action_max_[i]) , action_min_[i]);
+    if ((*out)[i] != initial_qc_[i])
+      WARNING("NMPC action " << i << " was truncated");
+  }
 
   if (verbose_)
     std::cout << "Feedback Control: [" << *out << "]" << std::endl;

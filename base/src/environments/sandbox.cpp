@@ -163,6 +163,7 @@ double SandboxDynamicalModel::step(const Vector &action, Vector *next)
   state0 << state_.block(0, 0, 1, 2*dof_count_+1);
 
 //  std::cout << state0 << std::endl;
+//  std::cout << action << std::endl;
 
   // auto-actuate arm
   Vector action0;
@@ -171,7 +172,7 @@ double SandboxDynamicalModel::step(const Vector &action, Vector *next)
   {
     double armVoltage = (14.0/3.3) * 5.0*(-0.26 - state_[rlsArmAngle]);
     action0 << action, armVoltage;
-    std::cout << action0 << std::endl;
+//    std::cout << action0 << std::endl;
   }
   else
     action0 << action;

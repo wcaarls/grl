@@ -302,11 +302,11 @@ void LeoSquatTaskFA::observe(const Vector &state, Vector *obs, int *terminal) co
   grl_assert(state.size() == rlsStateDim);
 
   // arm is not actuated => exclude angle and angle rate from observations
-  std::cout << state << std::endl;
+//  std::cout << state << std::endl;
 
-  std::cout << state.block(0, rlsAnkleAngle, 1, rlsHipAngle-rlsAnkleAngle+1) << std::endl; // angle
-  std::cout << state.block(0, rlsAnkleAngleRate, 1, rlsHipAngleRate-rlsAnkleAngleRate+1) << std::endl; // angle rate
-  std::cout << state[rlsRefRootHeight] << std::endl; // direction indicator
+//  std::cout << state.block(0, rlsAnkleAngle, 1, rlsHipAngle-rlsAnkleAngle+1) << std::endl; // angle
+//  std::cout << state.block(0, rlsAnkleAngleRate, 1, rlsHipAngleRate-rlsAnkleAngleRate+1) << std::endl; // angle rate
+//  std::cout << state[rlsRefRootHeight] << std::endl; // direction indicator
 
   obs->resize(3+3+1);
   (*obs) << state.block(0, rlsAnkleAngle, 1, rlsHipAngle-rlsAnkleAngle+1),
@@ -329,7 +329,7 @@ void LeoSquatTaskFA::evaluate(const Vector &state, const Vector &action, const V
 
   if (failed(next))
   {
-    *reward = -10000;
+    *reward = -100000;
     return;
   }
 
@@ -356,7 +356,8 @@ void LeoSquatTaskFA::evaluate(const Vector &state, const Vector &action, const V
   *reward += pow(30.00 * ( next[rlsAnkleAngle] + next[rlsKneeAngle] + next[rlsHipAngle] - (0.15) ), 2); // desired torso angle
 
   // regularize torso
-  *reward += pow(60.00 * (next[rlsAnkleAngleRate] + next[rlsKneeAngleRate] + next[rlsHipAngleRate]), 2);
+  // is this a good way for torso? Results in a very high penalty
+  //*reward += pow(60.00 * (next[rlsAnkleAngleRate] + next[rlsKneeAngleRate] + next[rlsHipAngleRate]), 2);
 
   // regularize: || qdot ||_2^2
   // res[res_cnt++] = 6.00 * sd[QDOTS["arm"]]; // arm
@@ -370,13 +371,15 @@ void LeoSquatTaskFA::evaluate(const Vector &state, const Vector &action, const V
   *reward += pow(0.01 * action[1], 2); // knee_left
   *reward += pow(0.01 * action[2], 2); // ankle_left
 
+/*
+  // perhaps shaping is not needed for a combination of RL+NMPC
   // shaping
   double shaping = pow(30.0 * next[rlsRootZ] - state[rlsRootZ], 2);
   int s = (next[rlsRootZ] > state[rlsRootZ]) ? 1 : -1;
   s *= (next[rlsRefRootHeight] > next[rlsRootZ]) ? 1 : -1;
   shaping *= s;
   *reward += -shaping;
-
+*/
   // negate
   *reward = - *reward;
 
