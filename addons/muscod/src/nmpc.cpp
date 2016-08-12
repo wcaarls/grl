@@ -181,7 +181,7 @@ TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
     a = b = c = d = 0;
     initial_qc_ << a, b, c, d;
     */
-    double time_interval = 0.05; //nmpc_->getSamplingRate();
+    double time_interval = 0.03; //nmpc_->getSamplingRate();
     nmpc_->simulate(
         in2,
         initial_pf_,

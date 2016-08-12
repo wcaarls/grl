@@ -53,7 +53,7 @@ enum RbdlLeoState
   rlsArmAngleRate,                // might not be used
 
   rlsTime,
-  rlsRefRootHeight,
+  rlsRefRootZ,
 
   rlsLeftTipX,
   rlsLeftTipY,

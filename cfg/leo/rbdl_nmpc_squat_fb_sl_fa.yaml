@@ -10,7 +10,7 @@ experiment:
     type: environment/sandbox
     model: 
       type: sandbox_model/dynamical
-      control_step: 0.05
+      control_step: 0.03
       integration_steps: 5
       dynamics: 
         type: dynamics/rbdl_leo
@@ -25,6 +25,8 @@ experiment:
     type: agent/fixed
     policy: 
       type: policy/nmpc
+      action_min: experiment/environment/task/action_min
+      action_max: experiment/environment/task/action_max
       lua_model: leo_fb_sl_fa.lua
       model_name: nmpc_leo_squat_fb_sl_fa
       nmpc_model_name: nmpc_leo_squat_fb_sl_fa

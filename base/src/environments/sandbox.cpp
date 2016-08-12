@@ -206,9 +206,9 @@ double SandboxDynamicalModel::step(const Vector &action, Vector *next)
   if ( fabs((*next)[rlsComVelocityZ] - 0.0) < 0.01)
   {
     if ( fabs((*next)[rlsRootZ] - 0.28) < 0.01)
-      (*next)[rlsRefRootHeight] = 0.35;
+      (*next)[rlsRefRootZ] = 0.35;
     else if ( fabs((*next)[rlsRootZ] - 0.35) < 0.01)
-      (*next)[rlsRefRootHeight] = 0.28;
+      (*next)[rlsRefRootZ] = 0.28;
   }
 
   std::cout << "GRL: " << *next << std::endl;

@@ -156,7 +156,7 @@ void LeoSquatTask::observe(const Vector &state, Vector *obs, int *terminal) cons
   if (!reduced)
   {
     obs->resize(2*rlsDofDim + 1);
-   *obs << state.block(0, 0, 1, 2*rlsDofDim), state[rlsRefRootHeight];
+   *obs << state.block(0, 0, 1, 2*rlsDofDim), state[rlsRefRootZ];
   }
   else
   {
@@ -194,7 +194,7 @@ void LeoSquatTask::evaluate(const Vector &state, const Vector &action, const Vec
   double suppport_center = 0.5 * (next[rlsLeftTipX] + next[rlsLeftHeelX]);
 
   // track: || root_z - h_ref ||_2^2
-  *reward +=  pow(100.0 * (next[rlsRootZ] - next[rlsRefRootHeight]), 2);
+  *reward +=  pow(100.0 * (next[rlsRootZ] - next[rlsRefRootZ]), 2);
 
   // track: || com_x,y - support center_x,y ||_2^2
   *reward +=  pow( 10.00 * (next[rlsComX] - suppport_center), 2);
@@ -215,7 +215,7 @@ void LeoSquatTask::evaluate(const Vector &state, const Vector &action, const Vec
   // shaping
   double shaping = pow(30.0 * next[rlsRootZ] - state[rlsRootZ], 2);
   int s = (next[rlsRootZ] > state[rlsRootZ]) ? 1 : -1;
-  s *= (next[rlsRefRootHeight] > next[rlsRootZ]) ? 1 : -1;
+  s *= (next[rlsRefRootZ] > next[rlsRootZ]) ? 1 : -1;
   shaping *= s;
   *reward += -shaping;
 
@@ -224,7 +224,7 @@ void LeoSquatTask::evaluate(const Vector &state, const Vector &action, const Vec
 
   // for progress report
   root_height_ = next[rlsRootZ];
-  if (next[rlsRefRootHeight] != state[rlsRefRootHeight])
+  if (next[rlsRefRootZ] != state[rlsRefRootZ])
     squats_++;
 }
  
@@ -311,7 +311,7 @@ void LeoSquatTaskFA::observe(const Vector &state, Vector *obs, int *terminal) co
   obs->resize(3+3+1);
   (*obs) << state.block(0, rlsAnkleAngle, 1, rlsHipAngle-rlsAnkleAngle+1),
             state.block(0, rlsAnkleAngleRate, 1, rlsHipAngleRate-rlsAnkleAngleRate+1),
-            state[rlsRefRootHeight];
+            state[rlsRefRootZ];
 
   if (state[rlsTime] >= timeout_)
     *terminal = 1;
@@ -333,58 +333,67 @@ void LeoSquatTaskFA::evaluate(const Vector &state, const Vector &action, const V
     return;
   }
 
-  *reward = 0;
+  double cost = 0;
 
   // calculate support center from feet positions
   double suppport_center = 0.5 * (next[rlsLeftTipX] + next[rlsLeftHeelX]);
 
   // track: || root_z - h_ref ||_2^2
-  *reward +=  pow(100.0 * (next[rlsRootZ] - next[rlsRefRootHeight]), 2);
+  cost +=  pow(100.0 * (next[rlsRootZ] - next[rlsRefRootZ]), 2);
 
 
   // track: || com_x,y - support center_x,y ||_2^2
-  *reward +=  pow( 50.00 * (next[rlsComX] - suppport_center), 2);
+  cost +=  pow( 50.00 * (next[rlsComX] - suppport_center), 2);
 
-  *reward +=  pow( 10.00 * next[rlsComVelocityX], 2);
-  *reward +=  pow( 10.00 * next[rlsComVelocityZ], 2);
+  cost +=  pow( 10.00 * next[rlsComVelocityX], 2);
+  cost +=  pow( 10.00 * next[rlsComVelocityZ], 2);
 
-  *reward +=  pow( 100.00 * next[rlsAngularMomentumY], 2);
+  cost +=  pow( 100.00 * next[rlsAngularMomentumY], 2);
 
   // NOTE: sum of lower body angles is equal to angle between ground slope
   //       and torso. Minimizing deviation from zero keeps torso upright
   //       during motion execution.
-  *reward += pow(30.00 * ( next[rlsAnkleAngle] + next[rlsKneeAngle] + next[rlsHipAngle] - (0.15) ), 2); // desired torso angle
+  cost += pow(30.00 * ( next[rlsAnkleAngle] + next[rlsKneeAngle] + next[rlsHipAngle] - (0.15) ), 2); // desired torso angle
 
   // regularize torso
   // is this a good way for torso? Results in a very high penalty
-  //*reward += pow(60.00 * (next[rlsAnkleAngleRate] + next[rlsKneeAngleRate] + next[rlsHipAngleRate]), 2);
+  //cost += pow(60.00 * (next[rlsAnkleAngleRate] + next[rlsKneeAngleRate] + next[rlsHipAngleRate]), 2);
 
   // regularize: || qdot ||_2^2
   // res[res_cnt++] = 6.00 * sd[QDOTS["arm"]]; // arm
-  *reward += pow(6.00 * next[rlsHipAngleRate], 2); // hip_left
-  *reward += pow(6.00 * next[rlsKneeAngleRate], 2); // knee_left
-  *reward += pow(6.00 * next[rlsAnkleAngleRate], 2); // ankle_left
+  cost += pow(6.00 * next[rlsHipAngleRate], 2); // hip_left
+  cost += pow(6.00 * next[rlsKneeAngleRate], 2); // knee_left
+  cost += pow(6.00 * next[rlsAnkleAngleRate], 2); // ankle_left
 
   // regularize: || u ||_2^2
   // res[res_cnt++] = 0.01 * u[TAUS["arm"]]; // arm
-  *reward += pow(0.01 * action[0], 2); // hip_left
-  *reward += pow(0.01 * action[1], 2); // knee_left
-  *reward += pow(0.01 * action[2], 2); // ankle_left
+  cost += pow(0.01 * action[0], 2); // hip_left
+  cost += pow(0.01 * action[1], 2); // knee_left
+  cost += pow(0.01 * action[2], 2); // ankle_left
+
+  double shaping = 0;
+  double w = 60000.0;
+  double F1, F0 = - fabs(w * (state[rlsRootZ] - state[rlsRefRootZ]));
+  if (state[rlsRefRootZ] == next[rlsRefRootZ])
+    F1 = - fabs(w * (next [rlsRootZ] - next [rlsRefRootZ]));
+  else
+    F1 = - fabs(w * (next [rlsRootZ] - state[rlsRefRootZ]));
+  shaping += F1 - F0;
 
 /*
   // perhaps shaping is not needed for a combination of RL+NMPC
   // shaping
   double shaping = pow(30.0 * next[rlsRootZ] - state[rlsRootZ], 2);
   int s = (next[rlsRootZ] > state[rlsRootZ]) ? 1 : -1;
-  s *= (next[rlsRefRootHeight] > next[rlsRootZ]) ? 1 : -1;
+  s *= (next[rlsRefRootZ] > next[rlsRootZ]) ? 1 : -1;
   shaping *= s;
-  *reward += -shaping;
 */
-  // negate
-  *reward = - *reward;
+
+  // reward is a negative of cost
+  *reward = -cost + shaping;
 
   // for progress report
   root_height_ = next[rlsRootZ];
-  if (next[rlsRefRootHeight] != state[rlsRefRootHeight])
+  if (next[rlsRefRootZ] != state[rlsRefRootZ])
     squats_++;
 }
