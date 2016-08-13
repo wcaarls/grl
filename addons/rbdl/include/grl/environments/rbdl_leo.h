@@ -132,7 +132,7 @@ class LeoSquatTask : public Task
     virtual int failed(const Vector &state) const;
 
   protected:
-    Vector observation_min_, observation_max_;
+    Vector true_obs_min_, true_obs_max_;
     int action_dims_;
     double timeout_;
     mutable double root_height_, squats_;

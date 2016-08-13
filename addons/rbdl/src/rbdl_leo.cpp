@@ -82,10 +82,10 @@ void LeoSquatTask::configure(Configuration &config)
   config.set("observation_dims", 2*rlsDofDim + 1); // 2*dof + time
   std::vector<double> obs_min = {-M_PI, -M_PI, -M_PI, -M_PI, -10*M_PI, -10*M_PI, -10*M_PI, -10*M_PI, 0};
   std::vector<double> obs_max = { M_PI,  M_PI,  M_PI,  M_PI,  10*M_PI,  10*M_PI,  10*M_PI,  10*M_PI, 1};
-  toVector(obs_min, observation_min_);
-  toVector(obs_max, observation_max_);
-  config.set("observation_min", observation_min_);
-  config.set("observation_max", observation_max_);
+  toVector(obs_min, true_obs_min_);
+  toVector(obs_max, true_obs_max_);
+  config.set("observation_min", true_obs_min_);
+  config.set("observation_max", true_obs_max_);
   config.set("action_dims", action_dims_);
   config.set("action_min", VectorConstructor(-10.7, -10.7, -10.7, -10.7));
   config.set("action_max", VectorConstructor( 10.7,  10.7,  10.7,  10.7));
@@ -129,14 +129,14 @@ int LeoSquatTask::failed(const Vector &state) const
   double torsoAngle = state[rlsAnkleAngle] + state[rlsKneeAngle] + state[rlsHipAngle];
   if ((torsoAngle < -1.0) || (torsoAngle > 1.0) ||
       // penalty for high joint velocities
-      (state[rlsAnkleAngleRate] < observation_min_[rlsAnkleAngleRate]) ||
-      (state[rlsAnkleAngleRate] > observation_max_[rlsAnkleAngleRate]) ||
-      (state[rlsKneeAngleRate]  < observation_min_[rlsKneeAngleRate])  ||
-      (state[rlsKneeAngleRate]  > observation_max_[rlsKneeAngleRate])  ||
-      (state[rlsHipAngleRate]   < observation_min_[rlsHipAngleRate])   ||
-      (state[rlsHipAngleRate]   > observation_max_[rlsHipAngleRate])   ||
-      (state[rlsArmAngleRate]   < observation_min_[rlsArmAngleRate])   ||
-      (state[rlsArmAngleRate]   > observation_max_[rlsArmAngleRate])   ||
+      (state[rlsAnkleAngleRate] < true_obs_min_[rlsAnkleAngleRate]) ||
+      (state[rlsAnkleAngleRate] > true_obs_max_[rlsAnkleAngleRate]) ||
+      (state[rlsKneeAngleRate]  < true_obs_min_[rlsKneeAngleRate])  ||
+      (state[rlsKneeAngleRate]  > true_obs_max_[rlsKneeAngleRate])  ||
+      (state[rlsHipAngleRate]   < true_obs_min_[rlsHipAngleRate])   ||
+      (state[rlsHipAngleRate]   > true_obs_max_[rlsHipAngleRate])   ||
+      (state[rlsArmAngleRate]   < true_obs_min_[rlsArmAngleRate])   ||
+      (state[rlsArmAngleRate]   > true_obs_max_[rlsArmAngleRate])   ||
       // lower-upper leg colision result in large velocities
       (std::isnan(state[rlsRootZ]))
       )
@@ -256,13 +256,28 @@ void LeoSquatTaskFA::configure(Configuration &config)
   action_dims_ = 3;
   timeout_ = config["timeout"];
 
-  config.set("observation_dims", 2*rlsDofDim + 1); // 2*dof + time
+  // True observations: 2*dof + time
   std::vector<double> obs_min = {-M_PI, -M_PI, -M_PI, -M_PI, -10*M_PI, -10*M_PI, -10*M_PI, -10*M_PI, 0};
   std::vector<double> obs_max = { M_PI,  M_PI,  M_PI,  M_PI,  10*M_PI,  10*M_PI,  10*M_PI,  10*M_PI, 1};
-  toVector(obs_min, observation_min_);
-  toVector(obs_max, observation_max_);
-  config.set("observation_min", observation_min_);
-  config.set("observation_max", observation_max_);
+  toVector(obs_min, true_obs_min_);
+  toVector(obs_max, true_obs_max_);
+
+  // Observations and actions exposed to an agent
+  int agent_obs_dim = 2*(rlsDofDim-1) + 1;
+  config.set("observation_dims", agent_obs_dim);
+  Vector observation_min, observation_max;
+  observation_min.resize(agent_obs_dim);
+  observation_min << true_obs_min_[rlsAnkleAngle], true_obs_min_[rlsKneeAngle], true_obs_min_[rlsHipAngle],
+      true_obs_min_[rlsAnkleAngleRate], true_obs_min_[rlsKneeAngleRate], true_obs_min_[rlsHipAngleRate], true_obs_min_[rlsTime];
+  observation_max.resize(agent_obs_dim);
+  observation_max << true_obs_max_[rlsAnkleAngle], true_obs_max_[rlsKneeAngle], true_obs_max_[rlsHipAngle],
+      true_obs_max_[rlsAnkleAngleRate], true_obs_max_[rlsKneeAngleRate], true_obs_max_[rlsHipAngleRate], true_obs_max_[rlsTime];
+  config.set("observation_min", observation_min);
+  config.set("observation_max", observation_max);
+
+  std::cout << observation_min << std::endl;
+  std::cout << observation_max << std::endl;
+
   config.set("action_dims", action_dims_);
   config.set("action_min", VectorConstructor(-10.7, -10.7, -10.7));
   config.set("action_max", VectorConstructor( 10.7,  10.7,  10.7));
@@ -329,7 +344,7 @@ void LeoSquatTaskFA::evaluate(const Vector &state, const Vector &action, const V
 
   if (failed(next))
   {
-    *reward = -100000;
+    *reward = -1000000;
     return;
   }
 
@@ -372,6 +387,7 @@ void LeoSquatTaskFA::evaluate(const Vector &state, const Vector &action, const V
   cost += pow(0.01 * action[2], 2); // ankle_left
 
   double shaping = 0;
+
   double w = 60000.0;
   double F1, F0 = - fabs(w * (state[rlsRootZ] - state[rlsRefRootZ]));
   if (state[rlsRefRootZ] == next[rlsRefRootZ])
@@ -380,14 +396,6 @@ void LeoSquatTaskFA::evaluate(const Vector &state, const Vector &action, const V
     F1 = - fabs(w * (next [rlsRootZ] - state[rlsRefRootZ]));
   shaping += F1 - F0;
 
-/*
-  // perhaps shaping is not needed for a combination of RL+NMPC
-  // shaping
-  double shaping = pow(30.0 * next[rlsRootZ] - state[rlsRootZ], 2);
-  int s = (next[rlsRootZ] > state[rlsRootZ]) ? 1 : -1;
-  s *= (next[rlsRefRootZ] > next[rlsRootZ]) ? 1 : -1;
-  shaping *= s;
-*/
 
   // reward is a negative of cost
   *reward = -cost + shaping;
