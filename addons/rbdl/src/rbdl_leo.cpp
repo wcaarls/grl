@@ -138,7 +138,8 @@ int LeoSquatTask::failed(const Vector &state) const
       (state[rlsArmAngleRate]   < true_obs_min_[rlsArmAngleRate])   ||
       (state[rlsArmAngleRate]   > true_obs_max_[rlsArmAngleRate])   ||
       // lower-upper leg colision result in large velocities
-      (std::isnan(state[rlsRootZ]))
+      (std::isnan(state[rlsRootZ])) ||
+      (state[rlsRootZ] < 0)
       )
     return 1;
   else
@@ -344,7 +345,7 @@ void LeoSquatTaskFA::evaluate(const Vector &state, const Vector &action, const V
 
   if (failed(next))
   {
-    *reward = -1000000;
+    *reward = -100; // 1000000
     return;
   }
 
@@ -388,14 +389,18 @@ void LeoSquatTaskFA::evaluate(const Vector &state, const Vector &action, const V
 
   double shaping = 0;
 
-  double w = 60000.0;
-  double F1, F0 = - fabs(w * (state[rlsRootZ] - state[rlsRefRootZ]));
+  double w = 10.0; // 60000
+  double F1, F0;
   if (state[rlsRefRootZ] == next[rlsRefRootZ])
-    F1 = - fabs(w * (next [rlsRootZ] - next [rlsRefRootZ]));
+    F0 = - pow(w * (state[rlsRootZ] - state[rlsRefRootZ]), 2);
   else
-    F1 = - fabs(w * (next [rlsRootZ] - state[rlsRefRootZ]));
+    F0 = - pow(w * (state[rlsRootZ] - next [rlsRefRootZ]), 2);
+
+  F1 = - pow(w * (next [rlsRootZ] - next [rlsRefRootZ]), 2);
+
   shaping += F1 - F0;
 
+  cost = 0;
 
   // reward is a negative of cost
   *reward = -cost + shaping;
