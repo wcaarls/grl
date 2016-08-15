@@ -421,7 +421,7 @@ ObjectConfigurator* ObjectConfigurator::instantiate(Configurator *parent) const
 {
   if (!parent)
     parent = parent_;
-
+    
   // Create object
   ObjectConfigurator *oc = new ObjectConfigurator(element_, type_, parent);
   oc->object_ = ConfigurableFactory::create(type_);
@@ -438,16 +438,14 @@ ObjectConfigurator* ObjectConfigurator::instantiate(Configurator *parent) const
   oc->object_->request("", &request);
 
   // Instantiate and validate configuration parameters
-  for (size_t ii=0; ii < request.size(); ++ii)
+  for (ConfiguratorList::const_iterator cc=children_.begin(); cc != children_.end(); ++cc)
   {
-    std::string key = request[ii].name;
-  
-    if (request[ii].mutability != CRP::Provided)
+    // Find matching parameter request
+    for (size_t ii=0; ii < request.size(); ++ii)
     {
-      // Find matching Configurator
-      for (ConfiguratorList::const_iterator cc=children_.begin(); cc != children_.end(); ++cc)
+      if (request[ii].mutability != CRP::Provided)
       {
-        if ((*cc)->element() == key)
+        if ((*cc)->element() == request[ii].name)
         {
           // Instantiate
           Configurator *nc = (*cc)->instantiate(oc);
@@ -458,12 +456,20 @@ ObjectConfigurator* ObjectConfigurator::instantiate(Configurator *parent) const
           if (!nc->validate(request[ii]))
             return NULL;
 
-          INFO(path() << "/" << key << ": " << nc->str());
-          config.set(key, nc->str());
+          INFO(path() << "/" << request[ii].name << ": " << nc->str());
+          config.set(request[ii].name, nc->str());
         }
       }
+    }
+  }
       
-      // Check for unspecified parameters
+  // Check for unspecified parameters
+  for (size_t ii=0; ii < request.size(); ++ii)
+  {
+    std::string key = request[ii].name;
+    
+    if (request[ii].mutability != CRP::Provided)
+    {
       if (!config.has(key))
       {
         if (request[ii].optional)

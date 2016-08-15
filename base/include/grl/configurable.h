@@ -227,7 +227,7 @@ class Configurator
     
     virtual ~Configurator()
     {
-      for (ConfiguratorList::iterator ii=children_.begin(); ii != children_.end(); ++ii)
+      for (ConfiguratorList::reverse_iterator ii=children_.rbegin(); ii != children_.rend(); ++ii)
         delete *ii;
     }
 
@@ -257,13 +257,13 @@ class Configurator
         return element_;
     }
 
-    std::string operator[](const std::string &path) const
+    ConfigurationParameter operator[](const std::string &path) const
     {
       const Configurator *c = find(path);
       if (c)
-        return c->str();
+        return ConfigurationParameter(c->str());
       else
-        return std::string();
+        throw Exception(Configurator::path() + ": Parameter '" + path + "' not set");
     }
     
     // *** virtual functions ***
@@ -418,6 +418,8 @@ class Configurable
     
   public:
     TYPEINFO("", "Base object")
+    
+    Configurable() : configurator_(NULL) { }
 
     virtual ~Configurable()
     {

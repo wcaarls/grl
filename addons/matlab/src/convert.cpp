@@ -94,7 +94,7 @@ void structToConfig(const mxArray *pm, Configuration &config)
   }
 }
 
-mxArray *taskSpecToStruct(const Configuration &config)
+mxArray *taskSpecToStruct(const Configurator &config)
 {
   const char *fieldnames[] = {"observation_dims", "observation_min", "observation_max",
                               "action_dims", "action_min", "action_max",
@@ -102,10 +102,10 @@ mxArray *taskSpecToStruct(const Configuration &config)
 
   std::string path;
   
-  if (config.has("environment/observation_min"))
-    path = "environment/";
-  else if (config.has("environment/task/observation_min"))
-    path = "environment/task/";
+  if (config.find("observation_min"))
+    path = "";
+  else if (config.find("task/observation_min"))
+    path = "task/";
   else
     mexErrMsgTxt("Could not determine task specification.");
 
