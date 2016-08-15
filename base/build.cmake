@@ -38,6 +38,7 @@ add_library(${TARGET} SHARED
             ${SRC}/exporters/csv.cpp
             ${SRC}/importers/csv.cpp
             ${SRC}/policies/random.cpp
+            ${SRC}/policies/advised_action.cpp
             ${SRC}/policies/action.cpp
             ${SRC}/policies/v.cpp
             ${SRC}/policies/q.cpp

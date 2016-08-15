@@ -202,7 +202,7 @@ double SandboxDynamicalModel::step(const Vector &action, Vector *next)
   *next << next0, state_[2*dof_count_+1]; // fake direction
 
   dm_.dynamics_->finalize(*next);
-/*
+
   if ( fabs((*next)[rlsComVelocityZ] - 0.0) < 0.01)
   {
     if ( fabs((*next)[rlsRootZ] - 0.28) < 0.01)
@@ -210,8 +210,8 @@ double SandboxDynamicalModel::step(const Vector &action, Vector *next)
     else if ( fabs((*next)[rlsRootZ] - 0.35) < 0.01)
       (*next)[rlsRefRootZ] = 0.28;
   }
-*/
-  (*next)[rlsRefRootZ] = 0.35;
+
+//  (*next)[rlsRefRootZ] = 0.35;
 
 //  std::cout << "GRL: " << *next << std::endl;
 

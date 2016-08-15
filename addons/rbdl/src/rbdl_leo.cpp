@@ -345,7 +345,7 @@ void LeoSquatTaskFA::evaluate(const Vector &state, const Vector &action, const V
 
   if (failed(next))
   {
-    *reward = -100; // 1000000
+    *reward = -100;
     return;
   }
 
@@ -389,7 +389,7 @@ void LeoSquatTaskFA::evaluate(const Vector &state, const Vector &action, const V
 
   double shaping = 0;
 
-  double w = 10.0; // 60000
+  double w = 10.0;
   double F1, F0;
   if (state[rlsRefRootZ] == next[rlsRefRootZ])
     F0 = - pow(w * (state[rlsRootZ] - state[rlsRefRootZ]), 2);
@@ -400,10 +400,10 @@ void LeoSquatTaskFA::evaluate(const Vector &state, const Vector &action, const V
 
   shaping += F1 - F0;
 
-  cost = 0;
+  //cost = 0;
 
   // reward is a negative of cost
-  *reward = -cost + shaping;
+  *reward = -0.0001*cost + shaping;
 
   // for progress report
   root_height_ = next[rlsRootZ];

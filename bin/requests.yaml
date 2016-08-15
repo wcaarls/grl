@@ -128,6 +128,32 @@ agent/master/sequential:
     mutability: configuration
     default: 0
     optional: 0
+agent/master/sequential/additive:
+  description: Additive master agent that executes sub-agents sequentially
+  agent1:
+    type: agent
+    description: First subagent, providing the suggested action
+    mutability: configuration
+    default: 0
+    optional: 0
+  agent2:
+    type: agent
+    description: Second subagent, providing the final action
+    mutability: configuration
+    default: 0
+    optional: 0
+  output_min:
+    type: vector.action_min
+    description: Lower limit on outputs
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  output_max:
+    type: vector.action_max
+    description: Upper limit on outputs
+    mutability: system
+    default: "[  ]"
+    optional: 1
 agent/solver:
   description: Agent that successively solves learned models of the environment
   interval:
@@ -342,7 +368,7 @@ environment/communicator:
     type: communicator
     description: Comunicator which exchanges messages with an actual environment
     mutability: configuration
-    default: 0
+    default: 0x3fcf3b645a1cac0a
     optional: 0
 environment/leo2:
   description: LEO/2 environment
@@ -1021,6 +1047,58 @@ optimizer/cma:
     optional: 0
 policy/action:
   description: Policy based on a direct action representation
+  sigma:
+    type: vector
+    description: Standard deviation of exploration distribution
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  use_ou:
+    type: int
+    description: Use Ornstein-Uhlenbeck process
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
+  theta:
+    type: vector
+    description: Theta parameter of Ornstein-Uhlenbeck
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  center:
+    type: vector
+    description: Centering parameter of Ornstein-Uhlenbeck
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  output_min:
+    type: vector.action_min
+    description: Lower limit on outputs
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  output_max:
+    type: vector.action_max
+    description: Upper limit on outputs
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  projector:
+    type: projector.observation
+    description: Projects observations onto representation space
+    mutability: configuration
+    default: 0
+    optional: 0
+  representation:
+    type: representation.action
+    description: Action representation
+    mutability: configuration
+    default: 0
+    optional: 0
+policy/action/advised:
+  description: Action policy with an advised action
   sigma:
     type: vector
     description: Standard deviation of exploration distribution

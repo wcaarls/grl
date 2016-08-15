@@ -60,6 +60,34 @@ class SequentialMasterAgent : public Agent
     virtual void end(double tau, const Vector &obs, double reward);
 };
 
+/// Fixed-policy agent.
+class SequentialAdditiveMasterAgent : public SequentialMasterAgent
+{
+  public:
+    TYPEINFO("agent/master/sequential/additive", "Additive master agent that executes sub-agents sequentially and adds their outputs")
+
+  protected:
+    //std::vector<Agent*> agent_;
+    Vector min_, max_;
+
+  public:
+    //SequentialAdditiveMasterAgent() : agent_(2)
+    //{
+    //  agent_[0] = agent_[1] = NULL;
+    //}
+
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+
+    // From Agent
+    virtual SequentialAdditiveMasterAgent *clone() const;
+    virtual void start(const Vector &obs, Vector *action);
+    virtual void step(double tau, const Vector &obs, double reward, Vector *action);
+    virtual void end(double tau, const Vector &obs, double reward);
+};
+
 }
 
 #endif /* GRL_SEQUENTIAL_MASTER_AGENT_H_ */

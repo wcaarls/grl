@@ -125,6 +125,8 @@ void RBDLDynamics::eom(const Vector &state, const Vector &action, Vector *xd) co
     const double G = 193.0;
     const double R = 8.6;
     u[ii] = Kt*G*(u[ii] - Kt*G*qd[ii])/R;
+
+    u[ii] = u[ii] - 0.1*qd[ii];
   }
 
   RigidBodyDynamics::ForwardDynamics(*rbdl->model, q, qd, u, qdd);

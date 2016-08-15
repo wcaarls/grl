@@ -30,6 +30,7 @@
 using namespace grl;
 
 REGISTER_CONFIGURABLE(SequentialMasterAgent)
+REGISTER_CONFIGURABLE(SequentialAdditiveMasterAgent)
 
 void SequentialMasterAgent::request(ConfigurationRequest *config)
 {
@@ -69,3 +70,57 @@ void SequentialMasterAgent::end(double tau, const Vector &obs, double reward)
   agent_[0]->end(tau, obs, reward);
   agent_[1]->end(tau, obs, reward);
 }
+
+/////////////////////////////////////
+
+void SequentialAdditiveMasterAgent::request(ConfigurationRequest *config)
+{
+  SequentialMasterAgent::request(config);
+  config->push_back(CRP("output_min", "vector.action_min", "Lower limit on outputs", min_, CRP::System));
+  config->push_back(CRP("output_max", "vector.action_max", "Upper limit on outputs", max_, CRP::System));
+}
+
+void SequentialAdditiveMasterAgent::configure(Configuration &config)
+{
+  SequentialMasterAgent::configure(config);
+  min_ = config["output_min"].v();
+  max_ = config["output_max"].v();
+}
+
+void SequentialAdditiveMasterAgent::reconfigure(const Configuration &config)
+{
+}
+
+SequentialAdditiveMasterAgent *SequentialAdditiveMasterAgent::clone() const
+{
+  return NULL;
+}
+
+void SequentialAdditiveMasterAgent::start(const Vector &obs, Vector *action)
+{
+  agent_[0]->start(obs, action);
+  Vector action1;
+  action1.resize(action->size());
+  agent_[1]->start(obs, &action1);
+  *action += action1;
+  for (size_t ii=0; ii < action->size(); ++ii)
+    (*action)[ii] = fmin(fmax((*action)[ii], min_[ii]), max_[ii]);
+}
+
+void SequentialAdditiveMasterAgent::step(double tau, const Vector &obs, double reward, Vector *action)
+{
+  agent_[0]->step(tau, obs, reward, action);
+  Vector action1;
+  action1.resize(action->size());
+  agent_[1]->step(tau, obs, reward, &action1);
+  *action += action1;
+  for (size_t ii=0; ii < action->size(); ++ii)
+    (*action)[ii] = fmin(fmax((*action)[ii], min_[ii]), max_[ii]);
+}
+
+void SequentialAdditiveMasterAgent::end(double tau, const Vector &obs, double reward)
+{
+  agent_[0]->end(tau, obs, reward);
+  agent_[1]->end(tau, obs, reward);
+}
+
