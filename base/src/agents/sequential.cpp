@@ -113,6 +113,7 @@ void SequentialAdditiveMasterAgent::step(double tau, const Vector &obs, double r
   Vector action1;
   action1.resize(action->size());
   agent_[1]->step(tau, obs, reward, &action1);
+//  std::cout << action1 << std::endl;
   *action += action1;
   for (size_t ii=0; ii < action->size(); ++ii)
     (*action)[ii] = fmin(fmax((*action)[ii], min_[ii]), max_[ii]);
