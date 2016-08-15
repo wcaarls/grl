@@ -372,7 +372,7 @@ void LeoSquatTaskFA::evaluate(const Vector &state, const Vector &action, const V
   cost += pow(30.00 * ( next[rlsAnkleAngle] + next[rlsKneeAngle] + next[rlsHipAngle] - (0.15) ), 2); // desired torso angle
 
   // regularize torso
-  // is this a good way for torso? Results in a very high penalty
+  // is this a good way for torso? Results in a very high penalty, and very weird behaviour
   //cost += pow(60.00 * (next[rlsAnkleAngleRate] + next[rlsKneeAngleRate] + next[rlsHipAngleRate]), 2);
 
   // regularize: || qdot ||_2^2
@@ -399,8 +399,6 @@ void LeoSquatTaskFA::evaluate(const Vector &state, const Vector &action, const V
   F1 = - pow(w * (next [rlsRootZ] - next [rlsRefRootZ]), 2);
 
   shaping += F1 - F0;
-
-  //cost = 0;
 
   // reward is a negative of cost
   *reward = -0.0001*cost + shaping;

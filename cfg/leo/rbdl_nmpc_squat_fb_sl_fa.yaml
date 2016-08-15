@@ -21,6 +21,12 @@ experiment:
     task: 
       type: task/leoSquatFA
       timeout: 10
+    exporter: 
+      type: exporter/csv
+      file: rbdl_nmpc_squat_fb_sl_fa
+      fields: time, state, observation, action, reward, terminal
+      style: meshup
+      variant: test
   agent: 
     type: agent/fixed
     policy: 

@@ -247,7 +247,8 @@ void lsqfcn_height_tracking (
 		- (0.15)  // desired torso angle
 	);
 
-	res[res_cnt++] = 60.00 * (
+  // note, the term is OFF
+  res[res_cnt++] = 0*60.00 * (
 		sd[QDOTS["hip_left"]]
 		+ sd[QDOTS["knee_left"]]
 		+ sd[QDOTS["ankle_left"]]
