@@ -1,7 +1,7 @@
 experiment: 
   type: experiment/online_learning
   runs: 1
-  trials: 100000
+  trials: 220
   steps: 0
   rate: 0
   test_interval: 10
@@ -21,6 +21,12 @@ experiment:
     task: 
       type: task/leoSquatFA
       timeout: 10
+    exporter: 
+      type: exporter/csv
+      file: rbdl_nmpc_ac_tc_squat_fb_sl_fa
+      fields: time, state, observation, action, reward, terminal
+      style: meshup
+      variant: test
   agent: 
     type: agent/master/sequential/additive
     agent1: 
