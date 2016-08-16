@@ -227,7 +227,7 @@ void lsqfcn_height_tracking (
 	//       n2 = n++; -> n2 = 0, n = 1
 
 	// track: || root_z - h_ref ||_2^2
-	res[res_cnt++] =  100.00 * (position_root[2] - p[parameter["h_ref"]]);
+  res[res_cnt++] =  100.00 * (position_root[2] - p[parameter["h_ref"]]);
 
 	// track: || com_x,y - support center_x,y ||_2^2
 	res[res_cnt++] =   50.00 * (position_CoM[0] - suppport_center[0]);
