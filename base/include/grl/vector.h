@@ -112,7 +112,11 @@ using ::operator >>;
 using ::operator <<;
 
 #ifdef GRL_EIGEN_VECTOR
-typedef Eigen::Array<double,1,Eigen::Dynamic> Vector;
+#define GRL_STATIC_VECTOR_SIZE 24
+
+typedef Eigen::Array<double,1,Eigen::Dynamic> LargeVector;
+typedef Eigen::Array<double,1,Eigen::Dynamic,Eigen::RowMajor,1,GRL_STATIC_VECTOR_SIZE> Vector;
+typedef Eigen::Array<size_t,1,Eigen::Dynamic,Eigen::RowMajor,1,GRL_STATIC_VECTOR_SIZE> IndexVector;
 
 typedef Eigen::Matrix<double,1,Eigen::Dynamic> RowVector;
 typedef Eigen::Matrix<double,Eigen::Dynamic,1> ColumnVector;

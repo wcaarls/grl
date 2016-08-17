@@ -50,18 +50,18 @@ SoftmaxSampler *SoftmaxSampler::clone()
   return new SoftmaxSampler(*this);
 }
 
-size_t SoftmaxSampler::sample(const Vector &values) const
+size_t SoftmaxSampler::sample(const LargeVector &values) const
 {
-  Vector dist;
+  LargeVector dist;
   
   distribution(values, &dist);
   
   return ::sample(dist, 1.);
 }
 
-void SoftmaxSampler::distribution(const Vector &values, Vector *distribution) const
+void SoftmaxSampler::distribution(const LargeVector &values, LargeVector *distribution) const
 {
-  Vector v(values.size());
+  LargeVector v(values.size());
   double sum=0;
 
   for (size_t ii=0; ii < values.size(); ++ii)

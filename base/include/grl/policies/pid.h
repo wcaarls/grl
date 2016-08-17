@@ -44,7 +44,7 @@ class PIDPolicy : public ParameterizedPolicy
     size_t outputs_;
     
     Vector p_, i_, d_, il_;
-    Vector params_;
+    LargeVector params_;
     
     Vector ival_, prev_in_;
 
@@ -63,8 +63,8 @@ class PIDPolicy : public ParameterizedPolicy
     
     // From ParameterizedPolicy
     virtual size_t size() const { return params_.size(); }
-    virtual const Vector &params() const { return params_; }
-    virtual Vector &params() { return params_; }
+    virtual const LargeVector &params() const { return params_; }
+    virtual LargeVector &params() { return params_; }
 };
 
 }

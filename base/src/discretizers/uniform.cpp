@@ -95,7 +95,7 @@ UniformDiscretizer* UniformDiscretizer::clone()
 
 UniformDiscretizer::iterator UniformDiscretizer::begin() const
 {
-  return iterator(this, IndexVector(steps_.size(), 0));
+  return iterator(this, IndexVector::Constant(steps_.size(), 0));
 }
 
 size_t UniformDiscretizer::size() const
@@ -105,7 +105,7 @@ size_t UniformDiscretizer::size() const
 
 void UniformDiscretizer::inc(IndexVector *idx) const
 {
-  if (idx->empty())
+  if (!idx->size())
     return;
 
   size_t dd;
@@ -121,7 +121,7 @@ void UniformDiscretizer::inc(IndexVector *idx) const
 
 Vector UniformDiscretizer::get(const IndexVector &idx) const
 {
-  if (idx.empty())
+  if (!idx.size())
     return Vector();
 
   Vector out(steps_.size());

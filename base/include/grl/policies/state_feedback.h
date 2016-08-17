@@ -41,7 +41,7 @@ class StateFeedbackPolicy : public ParameterizedPolicy
 
   protected:
     Vector operating_state_, operating_action_;
-    Vector gains_;
+    LargeVector gains_;
     Vector min_, max_;
 
   public:
@@ -58,8 +58,8 @@ class StateFeedbackPolicy : public ParameterizedPolicy
     
     // From ParameterizedPolicy
     virtual size_t size() const { return gains_.size(); }
-    virtual const Vector &params() const { return gains_; }
-    virtual Vector &params() { return gains_; }
+    virtual const LargeVector &params() const { return gains_; }
+    virtual LargeVector &params() { return gains_; }
 };
 
 /// State feedback policy defined over samples

@@ -43,7 +43,7 @@ class UniformDiscretizer : public Discretizer
   protected:
     Vector min_, max_, steps_;
   
-    std::vector<Vector> values_;
+    std::vector<LargeVector> values_;
 
   public:
     // From Configurable

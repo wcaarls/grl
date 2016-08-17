@@ -40,7 +40,8 @@ class LinearRepresentation : public ParameterizedRepresentation
     TYPEINFO("representation/parameterized/linear", "Linear-in-parameters representation")
     
   protected:
-    Vector init_min_, init_max_, output_min_, output_max_, params_;
+    Vector init_min_, init_max_, output_min_, output_max_;
+    LargeVector params_;
     size_t memory_, outputs_;
 
   public:
@@ -66,12 +67,12 @@ class LinearRepresentation : public ParameterizedRepresentation
       return params_.size();
     }
     
-    virtual const Vector &params() const
+    virtual const LargeVector &params() const
     {
       return params_;
     }
     
-    virtual Vector &params()
+    virtual LargeVector &params()
     {
       return params_;
     }

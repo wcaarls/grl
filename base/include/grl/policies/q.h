@@ -67,7 +67,7 @@ class QPolicy : public Policy
     virtual double value(const Vector &in) const;
     
   protected:
-    virtual void values(const Vector &in, Vector *out) const;
+    virtual void values(const Vector &in, LargeVector *out) const;
 };
 
 }

@@ -96,10 +96,10 @@ class ParameterizedRepresentation : public Representation
     virtual size_t size() const = 0;
     
     /// Returns constant parameter vector.
-    virtual const Vector &params() const = 0;
+    virtual const LargeVector &params() const = 0;
     
     /// Returns parameter vector.
-    virtual Vector &params() = 0;
+    virtual LargeVector &params() = 0;
 };
 
 }

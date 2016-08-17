@@ -66,7 +66,7 @@ QPolicy *QPolicy::clone() const
 
 double QPolicy::value(const Vector &in) const
 {
-  Vector qvalues, distribution;
+  LargeVector qvalues, distribution;
   double v=0;
   
   values(in, &qvalues);
@@ -84,7 +84,7 @@ double QPolicy::value(const Vector &in) const
  * @param in: state
  * @param out: each element containes an (e.g. LLR) approximation of a value function Q(s, a), whrere 'a' is an index of vector 'out'
  */
-void QPolicy::values(const Vector &in, Vector *out) const
+void QPolicy::values(const Vector &in, LargeVector *out) const
 {
   // 'projections' contains list of neighbours around state 'in' and any possible action. Number of projections is equal to number of possible actions.
   std::vector<ProjectionPtr> projections;
@@ -98,7 +98,7 @@ void QPolicy::values(const Vector &in, Vector *out) const
 
 void QPolicy::act(const Vector &in, Vector *out) const
 {
-  Vector qvalues;
+  LargeVector qvalues;
   
   values(in, &qvalues);
   size_t action = sampler_->sample(qvalues);

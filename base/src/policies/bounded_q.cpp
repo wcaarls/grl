@@ -66,7 +66,7 @@ void BoundedQPolicy::act(double time, const Vector &in, Vector *out)
 {
   if (out->size())
   {
-    Vector qvalues, filtered;
+    LargeVector qvalues, filtered;
     std::vector<size_t> idx;
     
     values(in, &qvalues);
@@ -83,7 +83,7 @@ void BoundedQPolicy::act(double time, const Vector &in, Vector *out)
  * Returns both the Q values of the valid actions, and
  * an index array such that filtered[ii] = qvalues[idx[ii]]
  */
-void BoundedQPolicy::filter(const Vector &prev_out, const Vector &qvalues, Vector *filtered, std::vector<size_t> *idx) const
+void BoundedQPolicy::filter(const Vector &prev_out, const LargeVector &qvalues, LargeVector *filtered, std::vector<size_t> *idx) const
 {
   if (prev_out.size() != bound_.size())
     ERROR("Previous action has wrong size");

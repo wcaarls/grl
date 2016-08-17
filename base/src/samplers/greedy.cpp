@@ -52,7 +52,7 @@ GreedySampler *GreedySampler::clone()
   return gs;
 }
 
-size_t GreedySampler::sample(const Vector &values) const
+size_t GreedySampler::sample(const LargeVector &values) const
 {
   size_t mai = 0;
 
@@ -62,7 +62,7 @@ size_t GreedySampler::sample(const Vector &values) const
 /*
  * Commented code selects random index in case of multiple maximumum values
  *
-  Vector same_values = ConstantVector(values.size(), 0);
+  LargeVector same_values = LargeVector::Constant(values.size(), 0);
   size_t jj = 0;
   for (size_t ii=0; ii < values.size(); ++ii)
     if (values[ii] == values[mai])
@@ -74,9 +74,9 @@ size_t GreedySampler::sample(const Vector &values) const
   return mai;
 }
 
-void GreedySampler::distribution(const Vector &values, Vector *distribution) const
+void GreedySampler::distribution(const LargeVector &values, LargeVector *distribution) const
 {
-  *distribution = ConstantVector(values.size(), 0.);
+  *distribution = LargeVector::Constant(values.size(), 0.);
   (*distribution)[GreedySampler::sample(values)] = 1;
 }
 
@@ -105,7 +105,7 @@ EpsilonGreedySampler *EpsilonGreedySampler::clone()
   return egs;
 }
 
-size_t EpsilonGreedySampler::sample(const Vector &values) const
+size_t EpsilonGreedySampler::sample(const LargeVector &values) const
 {
   if (rand_->get() < epsilon_)
     return rand_->getInteger(values.size());
@@ -113,7 +113,7 @@ size_t EpsilonGreedySampler::sample(const Vector &values) const
   return GreedySampler::sample(values);
 }
 
-void EpsilonGreedySampler::distribution(const Vector &values, Vector *distribution) const
+void EpsilonGreedySampler::distribution(const LargeVector &values, LargeVector *distribution) const
 {
   GreedySampler::distribution(values, distribution);
 

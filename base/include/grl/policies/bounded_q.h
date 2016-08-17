@@ -54,7 +54,7 @@ class BoundedQPolicy : public QPolicy
     
   protected:
     /// Filter out actions that lie outside bounds.
-    void filter(const Vector &prev_out, const Vector &qvalues, Vector *filtered, std::vector<size_t> *idx) const;
+    void filter(const Vector &prev_out, const LargeVector &qvalues, LargeVector *filtered, std::vector<size_t> *idx) const;
 };
 
 }

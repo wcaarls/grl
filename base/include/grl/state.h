@@ -43,17 +43,17 @@ class State : public Configurable
     TYPEINFO("state", "Encapsulates a system state or observation");
     
   protected:
-    itc::SharedVariable<Vector> var_;
+    itc::SharedVariable<LargeVector> var_;
 
   public:
     /// Returns current value.
-    virtual Vector get()
+    virtual LargeVector get()
     {
       return var_.get();
     }
 
     /// Sets new value.    
-    virtual void set(const Vector &state)
+    virtual void set(const LargeVector &state)
     {
       var_.write(state);
     }
@@ -65,7 +65,7 @@ class State : public Configurable
     }
 
     /// Reads a new value, waiting until it changes if necessary.    
-    virtual Vector read()
+    virtual LargeVector read()
     {
       return var_.read();
     }

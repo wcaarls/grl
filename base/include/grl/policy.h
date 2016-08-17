@@ -72,10 +72,10 @@ class ParameterizedPolicy : public Policy
     virtual size_t size() const = 0;
     
     /// Returns constant policy parameter vector.
-    virtual const Vector &params() const = 0;
+    virtual const LargeVector &params() const = 0;
     
     /// Returns policy parameter vector.
-    virtual Vector &params() = 0;
+    virtual LargeVector &params() = 0;
 };
 
 }

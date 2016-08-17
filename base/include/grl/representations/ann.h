@@ -58,7 +58,7 @@ class ANNRepresentation : public ParameterizedRepresentation
     Vector hiddens_;
     double eta_;
     
-    Vector params_;
+    LargeVector params_;
     std::vector<ANNLayer> layers_;
 
     double error_;
@@ -87,12 +87,12 @@ class ANNRepresentation : public ParameterizedRepresentation
       return params_.size();
     }
     
-    virtual const Vector &params() const
+    virtual const LargeVector &params() const
     {
       return params_;
     }
     
-    virtual Vector &params()
+    virtual LargeVector &params()
     {
       return params_;
     }

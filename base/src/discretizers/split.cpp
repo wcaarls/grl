@@ -62,7 +62,7 @@ SplitDiscretizer* SplitDiscretizer::clone()
 
 SplitDiscretizer::iterator SplitDiscretizer::begin() const
 {
-  return iterator(this, IndexVector(idxsize_, 0));
+  return iterator(this, IndexVector::Constant(idxsize_, 0));
 }
 
 size_t SplitDiscretizer::size() const
@@ -73,15 +73,15 @@ size_t SplitDiscretizer::size() const
 // Note implicit assumption that downstream discretizers discard extra dimensions
 void SplitDiscretizer::inc(IndexVector *idx) const
 {
-  if (idx->empty())
+  if (!idx->size())
     return;
     
   int dd = (*idx)[idxsize_-1];
   discretizer_[dd]->inc(idx);
-  if (idx->empty() && dd < discretizer_.size()-1)
+  if (!idx->size() && dd < discretizer_.size()-1)
   {
     // Switch to next discretizer
-    *idx = IndexVector(idxsize_, 0);
+    *idx = IndexVector::Constant(idxsize_, 0);
     (*idx)[idxsize_-1] = dd+1;
   }
 }
@@ -89,7 +89,7 @@ void SplitDiscretizer::inc(IndexVector *idx) const
 // Note implicit assumption that downstream discretizers discard extra dimensions
 Vector SplitDiscretizer::get(const IndexVector &idx) const
 {
-  if (idx.empty())
+  if (!idx.size())
     return Vector();
 
   int dd = idx[idxsize_-1];

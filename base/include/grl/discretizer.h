@@ -37,9 +37,6 @@ namespace grl
 class Discretizer : public Configurable
 {
   public:
-    typedef std::vector<size_t> IndexVector;
-
-  public:
     virtual ~Discretizer() { }
     virtual Discretizer* clone() = 0;
     
@@ -61,8 +58,8 @@ class Discretizer : public Configurable
       public:
         iterator(const Discretizer *discretizer=NULL, IndexVector idx=IndexVector()) : discretizer_(discretizer), idx_(idx) { }
 
-        bool operator==(const iterator &rhs) const { return idx_ == rhs.idx_; }
-        bool operator!=(const iterator &rhs) const { return idx_ != rhs.idx_; }
+        bool operator==(const iterator &rhs) const { return idx_.size() == rhs.idx_.size() && (idx_ == rhs.idx_).all(); }
+        bool operator!=(const iterator &rhs) const { return idx_.size() != rhs.idx_.size() || (idx_ != rhs.idx_).any(); }
         iterator &operator++() { discretizer_->inc(&idx_); return *this; }
         Vector operator*() { return discretizer_->get(idx_); }
         const IndexVector &idx() { return idx_; }
