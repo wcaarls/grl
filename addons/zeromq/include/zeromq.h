@@ -31,6 +31,7 @@
 #include <zmq_messenger.h>
 #include <grl/environment.h>
 #include <grl/agent.h>
+#include <grl/converter.h>
 #include <drl_messages.pb.h>
 #include <time.h>
 
@@ -74,12 +75,12 @@ class ZeromqCommunicator: public Communicator
     ZeromqMessenger zmq_messenger_;
 };
 
-/// An environment which bridges actual environment with an agent by sending and receiving messages
+/// An environment which bridges actual environment with a middle layer environment by converting states and actions, and then sending and receiving messages
 class CommunicatorEnvironment: public Environment
 {
   public:
     TYPEINFO("environment/communicator", "Communicator environment which interects with a real environment by sending and receiving messages")
-    CommunicatorEnvironment() {} //: observation_dims_(0), action_dims_(0) {}
+    CommunicatorEnvironment(): target_obs_dims_(0), target_action_dims_(0) {}
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -93,9 +94,11 @@ class CommunicatorEnvironment: public Environment
     virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal);
 
   protected:
+    Vector obs_conv, action_conv;
+    StateActionConverter *converter_;
     Communicator *communicator_;
     timespec time_begin_;
-    //int observation_dims_, action_dims_;
+    int target_obs_dims_, target_action_dims_;
 };
 
 /// ZeroMQ agent

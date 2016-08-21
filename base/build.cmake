@@ -14,7 +14,7 @@ add_library(${TARGET} SHARED
             ${SRC}/agents/compartmentalized.cpp
             ${SRC}/agents/voluntary.cpp
             ${SRC}/agents/solver.cpp
-            ${SRC}/agents/leo_learn_squatting.cpp
+            ${SRC}/agents/leo_squatting_agent.cpp
             ${SRC}/agents/leo_preprogrammed.cpp
             ${SRC}/configurable.cpp
             ${SRC}/discretizers/uniform.cpp

@@ -20,7 +20,7 @@ experiment:
       dof_count: 4
     task: 
       type: task/leoSquatFA
-      timeout: 100
+      timeout: 10
     exporter: 
       type: exporter/csv
       file: rbdl_nmpc_squat_fb_sl_fa

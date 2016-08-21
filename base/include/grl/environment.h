@@ -370,7 +370,7 @@ class SandboxDynamicalModel : public Sandbox
     TYPEINFO("sandbox_model/dynamical", "State transition model that integrates equations of motion and augments state vector with additional elements")
 
   public:
-    SandboxDynamicalModel() : dof_count_(0) { }
+    SandboxDynamicalModel() : dof_count_(0), target_env_(NULL) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -382,6 +382,7 @@ class SandboxDynamicalModel : public Sandbox
     virtual double step(const Vector &action, Vector *next);
     
   private:
+    Environment *target_env_;
     DynamicalModel dm_;
     int dof_count_;
 };

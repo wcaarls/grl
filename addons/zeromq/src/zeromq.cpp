@@ -92,12 +92,21 @@ bool ZeromqCommunicator::recv(Vector &v) const
 //////////////////////////////////////////////////////////
 void CommunicatorEnvironment::request(ConfigurationRequest *config)
 {
+  config->push_back(CRP("converter", "converter", "Convert states and actions if needed", converter_));
   config->push_back(CRP("communicator", "communicator", "Comunicator which exchanges messages with an actual environment", communicator_));
+  config->push_back(CRP("target_obs_dims", "Observation dimension of a target", target_obs_dims_, CRP::System));
+  config->push_back(CRP("target_action_dims", "Action dimension of a target", target_action_dims_, CRP::System));
 }
 
 void CommunicatorEnvironment::configure(Configuration &config)
 {
+  converter_ = (StateActionConverter*)config["converter"].ptr();
   communicator_ = (Communicator*)config["communicator"].ptr();
+  target_obs_dims_ = config["target_state_dims"];
+  target_action_dims_ = config["target_action_dims"];
+
+  obs_conv.resize(target_obs_dims_);
+  action_conv.resize(target_action_dims_);
 }
 
 void CommunicatorEnvironment::reconfigure(const Configuration &config)
@@ -112,16 +121,20 @@ CommunicatorEnvironment *CommunicatorEnvironment::clone() const
 
 void CommunicatorEnvironment::start(int test, Vector *obs)
 {
-  communicator_->recv(*obs);
+  communicator_->recv(obs_conv);
   clock_gettime(CLOCK_MONOTONIC, &time_begin_);
+  converter_->convert_state(obs_conv, *obs);
 }
 
 double CommunicatorEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)
 {
   timespec time_end;
-  communicator_->send(action);
-  communicator_->recv(*obs);  // Non-blocking, therefore it gets the most recently transmitted state
+  converter_->convert_action(action, action_conv);
+  communicator_->send(action_conv);
+  communicator_->recv(obs_conv);  // Non-blocking, therefore it gets the most recently transmitted state
   clock_gettime(CLOCK_MONOTONIC, &time_end);
+  converter_->convert_state(obs_conv, *obs);
+
   double tau = (time_end.tv_sec - time_begin_.tv_sec) + (static_cast<double>(time_end.tv_nsec - time_begin_.tv_nsec))/1.0e9;
   time_begin_ = time_end;
   return tau;

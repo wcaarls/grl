@@ -1,4 +1,4 @@
-/** \file leo_learn_squatting.cpp
+/** \file leo_squatting_agent.cpp
  * \brief State-machine agent header file which performs squatting on Leo.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
@@ -25,8 +25,8 @@
  * \endverbatim
  */
 
-#ifndef GRL_LEO_LEARN_SQATTING_H_
-#define GRL_LEO_LEARN_SQATTING_H_
+#ifndef GRL_LEO_SQATTING_AGENT_H_
+#define GRL_LEO_SQATTING_AGENT_H_
 
 #include <grl/agent.h>
 #include <grl/policy.h>
@@ -36,18 +36,18 @@ namespace grl
 {
 
 /// State machine agent.
-class LeoLearnSquatting : public Agent
+class LeoSquattingAgent : public Agent
 {
   public:
-    TYPEINFO("agent/leo_learn_squatting", "Fixed-policy agent")
+    TYPEINFO("agent/leo_squatting_agent", "Fixed-policy agent")
 
   protected:
-    Policy *policy_standup_, *policy_learn_, *policy_;
+    Agent *agent_standup_, *agent_learn_, *agent_;
     Trigger trigger_;
     double time_;
     
   public:
-    LeoLearnSquatting() : policy_standup_(NULL), policy_learn_(NULL), policy_(NULL), time_(0.) { }
+    LeoSquattingAgent() : agent_standup_(NULL), agent_learn_(NULL), agent_(NULL), time_(0.) { }
   
     // From Configurable    
     virtual void request(ConfigurationRequest *config);
@@ -55,7 +55,7 @@ class LeoLearnSquatting : public Agent
     virtual void reconfigure(const Configuration &config);
 
     // From Agent
-    virtual LeoLearnSquatting *clone() const;
+    virtual LeoSquattingAgent *clone() const;
     virtual void start(const Vector &obs, Vector *action);
     virtual void step(double tau, const Vector &obs, double reward, Vector *action);
     virtual void end(double tau, const Vector &obs, double reward);
@@ -63,4 +63,4 @@ class LeoLearnSquatting : public Agent
 
 }
 
-#endif /* GRL_LEO_LEARN_SQATTING_H_ */
+#endif /* GRL_LEO_SQATTING_AGENT_H_ */

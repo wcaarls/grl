@@ -133,26 +133,29 @@ void SandboxDynamicalModel::request(ConfigurationRequest *config)
 {
   dm_.request(config);
   config->push_back(CRP("dof_count", "int.dof_count", "Number of degrees of freedom of the model", dof_count_, CRP::Configuration, 0, INT_MAX));
+  config->push_back(CRP("target_env", "environment", "Interaction environment", target_env_, true));
 }
 
 void SandboxDynamicalModel::configure(Configuration &config)
 {
   dm_.configure(config);
   dof_count_ = config["dof_count"];
+  target_env_ = (Environment*)config["target_env"].ptr(); // here we can select a real enviromnent if needed
 }
 
 SandboxDynamicalModel *SandboxDynamicalModel::clone() const
 {
-//  SandboxDynamicalModel *dm = new SandboxDynamicalModel();
-//  dm->dynamics_ = dynamics_;
-//  return dm;
+  SandboxDynamicalModel *model = new SandboxDynamicalModel();
+  model->dm_ = dm_;
+  return model;
 }
 
 void SandboxDynamicalModel::start(const Vector &hint, Vector *state)
 {
-//  if (exporter_)
-//    exporter_->open((test_?"test":"learn"), time_ != 0.0);
-  state_ = *state;
+  if (target_env_)
+    target_env_->start(0, &state_);
+  else
+    state_ = *state;
 }
 
 double SandboxDynamicalModel::step(const Vector &action, Vector *next)
@@ -162,7 +165,7 @@ double SandboxDynamicalModel::step(const Vector &action, Vector *next)
   state0.resize(2*dof_count_+1);
   state0 << state_.block(0, 0, 1, 2*dof_count_+1);
 
-  //std::cout << state0 << std::endl;
+  std::cout << state0 << std::endl;
 //  std::cout << action << std::endl;
 
   // auto-actuate arm
@@ -172,7 +175,7 @@ double SandboxDynamicalModel::step(const Vector &action, Vector *next)
   {
     double armVoltage = (14.0/3.3) * 5.0*(-0.26 - state_[rlsArmAngle]);
     action0 << action, armVoltage;
-//    std::cout << action0 << std::endl;
+    std::cout << action0 << std::endl;
   }
   else
     action0 << action;
@@ -182,7 +185,14 @@ double SandboxDynamicalModel::step(const Vector &action, Vector *next)
   // call dynamics of the reduced state
   Vector next0;
   next0.resize(state0.size());
-  double tau = dm_.step(state0, action0, &next0);
+  double tau;
+  if (target_env_)
+  {
+    tau = target_env_->step(action0, &next0, NULL, NULL);
+    next0[rlsTime] = state0[rlsTime] + tau;
+  }
+  else
+    tau = dm_.step(state0, action0, &next0);
 
 //  std::cout << "GRL: " << next0 << std::endl;
 /*
@@ -213,7 +223,7 @@ double SandboxDynamicalModel::step(const Vector &action, Vector *next)
 
 //  (*next)[rlsRefRootZ] = 0.35;
 
-//  std::cout << "GRL: " << *next << std::endl;
+  std::cout << "GRL: " << *next << std::endl;
 
   state_ = *next;
   return tau;

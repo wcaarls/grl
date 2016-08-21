@@ -383,9 +383,6 @@ void LeoSquatEnvironment::start(int test, Vector *obs)
 
   target_env_->start(test_, &target_obs_);
 
-  //double com, com1;
-  //bh_->getCOM(NULL, com, com1);
-
   // Parse obs into CLeoState (Start with left leg being the stance leg)
   bh_->fillLeoState(target_obs_, Vector(), leoState_);
   bh_->setCurrentSTGState(&leoState_);

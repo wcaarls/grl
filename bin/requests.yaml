@@ -50,6 +50,20 @@ agent/leo_preprogrammed:
     mutability: system
     default: "[  ]"
     optional: 1
+agent/leo_squatting_agent:
+  description: Fixed-policy agent
+  agent_standup:
+    type: agent
+    description: Safe standup agent
+    mutability: configuration
+    default: 0
+    optional: 0
+  agent_learn:
+    type: agent
+    description: Learning agent
+    mutability: configuration
+    default: 0
+    optional: 0
 agent/master/exclusive:
   description: Master agent that selects one sub-agent to execute
   gamma:
@@ -129,7 +143,7 @@ agent/master/sequential:
     default: 0
     optional: 0
 agent/master/sequential/additive:
-  description: Additive master agent that executes sub-agents sequentially
+  description: Additive master agent that executes sub-agents sequentially and adds their outputs
   agent1:
     type: agent
     description: First subagent, providing the suggested action
@@ -258,6 +272,32 @@ communicator/zeromq:
     mutability: configuration
     default: ""
     optional: 1
+converter/state_action_converter:
+  description: Configurable which is capable of remapping states and actions
+  state_in:
+    type: string
+    description: string.state_in
+    mutability: configuration
+    default: Comma-separated list of state elements in the input vector
+    optional: 1
+  state_out:
+    type: string
+    description: string.state_out
+    mutability: configuration
+    default: Comma-separated list of state elements in the output vector
+    optional: 1
+  action_in:
+    type: string
+    description: string.action_in
+    mutability: configuration
+    default: Comma-separated list of action elements observed in the input vector
+    optional: 1
+  action_out:
+    type: string
+    description: string.action_out
+    mutability: configuration
+    default: Comma-separated list of action elements provided in the output vector
+    optional: 1
 discretizer/peaked:
   description: Peaked discretizer, with more resolution around center
   min:
@@ -364,12 +404,34 @@ dynamics/tlm:
   description: Two-link manipulator dynamics
 environment/communicator:
   description: Communicator environment which interects with a real environment by sending and receiving messages
+  converter:
+    type: converter
+    description: Convert states and actions if needed
+    mutability: configuration
+    default: 0x1b84c80
+    optional: 0
   communicator:
     type: communicator
     description: Comunicator which exchanges messages with an actual environment
     mutability: configuration
-    default: 0x3fcf3b645a1cac0a
+    default: 0
     optional: 0
+  target_obs_dims:
+    type: int
+    description: Observation dimension of a target
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 2147483647
+  target_action_dims:
+    type: int
+    description: Action dimension of a target
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 2147483647
 environment/leo2:
   description: LEO/2 environment
   port:
@@ -2927,6 +2989,12 @@ sandbox_model/dynamical:
     optional: 1
     min: 0
     max: 2147483647
+  target_env:
+    type: environment
+    description: Interaction environment
+    mutability: configuration
+    default: 0
+    optional: 1
 solver/agent:
   description: Solver that uses a simulated agent
   steps:
