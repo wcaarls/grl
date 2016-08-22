@@ -10,9 +10,9 @@ l = 50
 #y0 = 3
 #discrete = 1
 
-mul = 3.566666667
+mul = 3.566666667/3
 lim = np.array([-10.7, 10.7])
-theta = mul*0.05
+theta = mul*0.1
 sigma = mul*1.0
 y0 = 0
 discrete = 1
