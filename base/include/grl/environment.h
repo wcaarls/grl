@@ -348,6 +348,7 @@ class SandboxEnvironment : public Environment
 
     int test_;
     double time_test_, prev_time_test_, time_learn_;
+    int cum_falls_;
 
   public:
     SandboxEnvironment() : sandbox_(NULL), task_(NULL), state_obj_(NULL), exporter_(NULL), test_(false), time_test_(0.), prev_time_test_(0.), time_learn_(0.) { }

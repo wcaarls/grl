@@ -57,6 +57,8 @@ void SandboxEnvironment::configure(Configuration &config)
   state_obj_ = new State();
 
   config.set("state", state_obj_);
+
+  cum_falls_ = 0;
 }
 
 void SandboxEnvironment::reconfigure(const Configuration &config)
@@ -109,6 +111,9 @@ double SandboxEnvironment::step(const Vector &action, Vector *obs, double *rewar
 
   time += tau;
 
+  if ((!test_) && (*terminal == 2))
+    cum_falls_++;
+
   state_ = next;
   obs_ = *obs;
   state_obj_->set(state_);
@@ -121,6 +126,7 @@ void SandboxEnvironment::report(std::ostream &os) const
   const int pw = 15;
   std::stringstream progressString;
   progressString << std::fixed << std::setprecision(3) << std::right;
+  progressString << std::setw(pw) << cum_falls_;
   progressString << std::setw(pw) << (time_test_ - prev_time_test_);
   os << progressString.str();
 
@@ -165,7 +171,7 @@ double SandboxDynamicalModel::step(const Vector &action, Vector *next)
   state0.resize(2*dof_count_+1);
   state0 << state_.block(0, 0, 1, 2*dof_count_+1);
 
-  std::cout << state0 << std::endl;
+//  std::cout << state0 << std::endl;
 //  std::cout << action << std::endl;
 
   // auto-actuate arm
@@ -175,7 +181,7 @@ double SandboxDynamicalModel::step(const Vector &action, Vector *next)
   {
     double armVoltage = (14.0/3.3) * 5.0*(-0.26 - state_[rlsArmAngle]);
     action0 << action, armVoltage;
-    std::cout << action0 << std::endl;
+//    std::cout << action0 << std::endl;
   }
   else
     action0 << action;
@@ -223,7 +229,7 @@ double SandboxDynamicalModel::step(const Vector &action, Vector *next)
 
 //  (*next)[rlsRefRootZ] = 0.35;
 
-  std::cout << "GRL: " << *next << std::endl;
+//  std::cout << "GRL: " << *next << std::endl;
 
   state_ = *next;
   return tau;
