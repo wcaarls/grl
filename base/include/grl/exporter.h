@@ -49,6 +49,15 @@ class Exporter : public Configurable
      * The variable list should correspond to the header name.
      */
     virtual void write(const std::initializer_list<Vector> &list) = 0;
+
+    /**
+     * \brief Append to a line.
+     *
+     * Allows to write a line in multiple calls.
+     * The variable list should contain all or a few of header names.
+     * After the line is fully prepared it is written autamatically.
+     */
+    virtual void append(const std::initializer_list<Vector> &vars) = 0;
 };
 
 class CSVExporter : public Exporter

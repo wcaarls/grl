@@ -26,6 +26,7 @@
  */
 
 #include <grl/agents/sequential.h>
+#include <grl/vector.h>
 
 using namespace grl;
 
@@ -36,12 +37,20 @@ void SequentialMasterAgent::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("agent1", "agent", "First subagent, providing the suggested action", agent_[0]));
   config->push_back(CRP("agent2", "agent", "Second subagent, providing the final action", agent_[1]));
+  config->push_back(CRP("exporter", "exporter", "Optional exporter for transition log (supports time, state, observation, action, reward, terminal)", exporter_, true));
 }
 
 void SequentialMasterAgent::configure(Configuration &config)
 {
   agent_[0] = (SubAgent*)config["agent1"].ptr();
   agent_[1] = (SubAgent*)config["agent2"].ptr();
+  exporter_ = (Exporter*) config["exporter"].ptr();
+
+  if (exporter_)
+  {
+    exporter_->init({"time", "action0", "action1"});
+    exporter_->open("all", 0);
+  }
 }
 
 void SequentialMasterAgent::reconfigure(const Configuration &config)
@@ -55,14 +64,21 @@ SequentialMasterAgent *SequentialMasterAgent::clone() const
 
 void SequentialMasterAgent::start(const Vector &obs, Vector *action)
 {
+  time_ = 0;
   agent_[0]->start(obs, action);
+  exporter_->append({grl::VectorConstructor(time_), *action});
   agent_[1]->start(obs, action);
+  exporter_->append({*action});
 }
 
 void SequentialMasterAgent::step(double tau, const Vector &obs, double reward, Vector *action)
 {
+  time_ += tau;
+
   agent_[0]->step(tau, obs, reward, action);
+  exporter_->append({grl::VectorConstructor(time_), *action});
   agent_[1]->step(tau, obs, reward, action);
+  exporter_->append({*action});
 }
 
 void SequentialMasterAgent::end(double tau, const Vector &obs, double reward)
@@ -98,10 +114,19 @@ SequentialAdditiveMasterAgent *SequentialAdditiveMasterAgent::clone() const
 
 void SequentialAdditiveMasterAgent::start(const Vector &obs, Vector *action)
 {
+  time_ = 0;
+
+  // First action
   agent_[0]->start(obs, action);
+  exporter_->append({grl::VectorConstructor(time_), *action});
+
+  // Second action
   Vector action1;
   action1.resize(action->size());
   agent_[1]->start(obs, &action1);
+  exporter_->append({action1});
+
+  // Add those
   *action += action1;
   for (size_t ii=0; ii < action->size(); ++ii)
     (*action)[ii] = fmin(fmax((*action)[ii], min_[ii]), max_[ii]);
@@ -109,11 +134,19 @@ void SequentialAdditiveMasterAgent::start(const Vector &obs, Vector *action)
 
 void SequentialAdditiveMasterAgent::step(double tau, const Vector &obs, double reward, Vector *action)
 {
+  time_ += tau;
+
+  // First action
   agent_[0]->step(tau, obs, reward, action);
+  exporter_->append({grl::VectorConstructor(time_), *action});
+
+  // Second action
   Vector action1;
   action1.resize(action->size());
   agent_[1]->step(tau, obs, reward, &action1);
-//  std::cout << action1 << std::endl;
+  exporter_->append({action1});
+
+  // Add those
   *action += action1;
   for (size_t ii=0; ii < action->size(); ++ii)
     (*action)[ii] = fmin(fmax((*action)[ii], min_[ii]), max_[ii]);

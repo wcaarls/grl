@@ -29,6 +29,7 @@
 #define GRL_SEQUENTIAL_MASTER_AGENT_H_
 
 #include <grl/agent.h>
+#include <grl/exporter.h>
 
 namespace grl
 {
@@ -41,6 +42,8 @@ class SequentialMasterAgent : public Agent
 
   protected:
     std::vector<Agent*> agent_;
+    Exporter *exporter_;
+    double time_;
     
   public:
     SequentialMasterAgent() : agent_(2)

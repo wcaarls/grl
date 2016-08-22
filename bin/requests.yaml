@@ -142,6 +142,12 @@ agent/master/sequential:
     mutability: configuration
     default: 0
     optional: 0
+  exporter:
+    type: exporter
+    description: Optional exporter for transition log (supports time, state, observation, action, reward, terminal)
+    mutability: configuration
+    default: 0x17410d0
+    optional: 1
 agent/master/sequential/additive:
   description: Additive master agent that executes sub-agents sequentially and adds their outputs
   agent1:
@@ -156,6 +162,12 @@ agent/master/sequential/additive:
     mutability: configuration
     default: 0
     optional: 0
+  exporter:
+    type: exporter
+    description: Optional exporter for transition log (supports time, state, observation, action, reward, terminal)
+    mutability: configuration
+    default: 0
+    optional: 1
   output_min:
     type: vector.action_min
     description: Lower limit on outputs
@@ -408,13 +420,13 @@ environment/communicator:
     type: converter
     description: Convert states and actions if needed
     mutability: configuration
-    default: 0x1b84c80
+    default: 0
     optional: 0
   communicator:
     type: communicator
     description: Comunicator which exchanges messages with an actual environment
     mutability: configuration
-    default: 0
+    default: 0x17ecbe0
     optional: 0
   target_obs_dims:
     type: int
