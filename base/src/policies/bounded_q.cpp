@@ -42,9 +42,6 @@ void BoundedQPolicy::configure(Configuration &config)
   QPolicy::configure(config);
   
   bound_ = config["bound"].v();
-  
-  if (bound_.size() != variants_[0].size())
-    throw bad_param("policy/discrete/q/bounded:bound");
 }
 
 void BoundedQPolicy::reconfigure(const Configuration &config)
@@ -70,10 +67,10 @@ void BoundedQPolicy::act(double time, const Vector &in, Vector *out)
     std::vector<size_t> idx;
     
     values(in, &qvalues);
-    filter(*out, qvalues, &filtered, &idx);
+    filter(in, *out, qvalues, &filtered, &idx);
     
     size_t action = sampler_->sample(filtered);
-    *out = variants_[idx[action]];
+    *out = discretizer_->at(in, idx[action]);
   }
   else
     QPolicy::act(in, out); 
@@ -83,20 +80,22 @@ void BoundedQPolicy::act(double time, const Vector &in, Vector *out)
  * Returns both the Q values of the valid actions, and
  * an index array such that filtered[ii] = qvalues[idx[ii]]
  */
-void BoundedQPolicy::filter(const Vector &prev_out, const LargeVector &qvalues, LargeVector *filtered, std::vector<size_t> *idx) const
+void BoundedQPolicy::filter(const Vector &in, const Vector &prev_out, const LargeVector &qvalues, LargeVector *filtered, std::vector<size_t> *idx) const
 {
   if (prev_out.size() != bound_.size())
-    ERROR("Previous action has wrong size");
+    throw bad_param("policy/discrete/q/bounded:bound");
     
   idx->clear();
   idx->reserve(qvalues.size());
   
-  for (size_t ii=0; ii < variants_.size(); ++ii)
+  size_t aa=0;
+  for (Discretizer::iterator it = discretizer_->begin(in); it != discretizer_->end(); ++it, ++aa)
   {
+    Vector action = *it;
     bool valid=true;
-    for (size_t jj=0; jj < prev_out.size(); ++jj)
+    for (size_t ii=0; ii < prev_out.size(); ++ii)
     {
-      if (fabs(variants_[ii][jj] - prev_out[jj]) > bound_[jj])
+      if (fabs(action[ii] - prev_out[ii]) > bound_[ii])
       {
         valid=false;
         break;
@@ -104,7 +103,7 @@ void BoundedQPolicy::filter(const Vector &prev_out, const LargeVector &qvalues, 
     }
     
     if (valid)
-      idx->push_back(ii);
+      idx->push_back(aa);
   }
   
   filtered->resize(idx->size());

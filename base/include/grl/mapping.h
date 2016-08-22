@@ -68,6 +68,7 @@ class RepresentedMapping : public Mapping
       RepresentedMapping *rm = new RepresentedMapping(*this);
       rm->projector_ = projector_->clone();
       rm->representation_ = representation_->clone();
+      return rm;
     }
   
     // From Configurable

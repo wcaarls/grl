@@ -55,6 +55,7 @@ AdditiveRepresentation *AdditiveRepresentation::clone() const
   AdditiveRepresentation *ar = new AdditiveRepresentation(*this);
   ar->representation1_ = representation1_->clone();
   ar->representation2_ = representation2_->clone();
+  return ar;
 }
 
 double AdditiveRepresentation::read(const ProjectionPtr &projection, Vector *result, Vector *stddev) const

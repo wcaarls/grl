@@ -51,7 +51,6 @@ void AdvantagePredictor::configure(Configuration &config)
   Predictor::configure(config);
   
   discretizer_ = (Discretizer*)config["discretizer"].ptr();
-  discretizer_->options(&variants_);
 
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (Representation*)config["representation"].ptr();
@@ -85,6 +84,7 @@ void AdvantagePredictor::update(const Transition &transition)
 {
   Predictor::update(transition);
 
+  std::vector<Vector> variants;
   std::vector<ProjectionPtr> actions;
   Vector value;
 
@@ -93,9 +93,10 @@ void AdvantagePredictor::update(const Transition &transition)
   double a = representation_->read(p, &value);
   
   // Find max_u A(x_t, u)
-  projector_->project(transition.prev_obs, variants_, &actions);
+  discretizer_->options(transition.prev_obs, &variants);
+  projector_->project(transition.prev_obs, variants, &actions);
   double v=-std::numeric_limits<double>::infinity();
-  for (size_t kk=0; kk < variants_.size(); ++kk)
+  for (size_t kk=0; kk < variants.size(); ++kk)
     v = fmax(v, representation_->read(actions[kk], &value));
     
   double target = v + (transition.reward - v)/kappa_;
@@ -103,9 +104,10 @@ void AdvantagePredictor::update(const Transition &transition)
   if (transition.action.size())
   {
     // Find max_u A(x_{t+1}, u)
-    projector_->project(transition.obs, variants_, &actions);
+    discretizer_->options(transition.obs, &variants);
+    projector_->project(transition.obs, variants, &actions);
     v=-std::numeric_limits<double>::infinity();
-    for (size_t kk=0; kk < variants_.size(); ++kk)
+    for (size_t kk=0; kk < variants.size(); ++kk)
       v = fmax(v, representation_->read(actions[kk], &value));
       
     target += gamma_*v/kappa_;

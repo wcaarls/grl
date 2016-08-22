@@ -42,8 +42,6 @@ void QPolicy::request(ConfigurationRequest *config)
 void QPolicy::configure(Configuration &config)
 {
   discretizer_ = (Discretizer*)config["discretizer"].ptr();
-  discretizer_->options(&variants_);
-  
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (Representation*)config["representation"].ptr();
   sampler_ = (Sampler*)config["sampler"].ptr();
@@ -87,21 +85,24 @@ double QPolicy::value(const Vector &in) const
 void QPolicy::values(const Vector &in, LargeVector *out) const
 {
   // 'projections' contains list of neighbours around state 'in' and any possible action. Number of projections is equal to number of possible actions.
+  std::vector<Vector> variants;
   std::vector<ProjectionPtr> projections;
-  projector_->project(in, variants_, &projections);
 
-  out->resize(variants_.size());
+  discretizer_->options(in, &variants);
+  projector_->project(in, variants, &projections);
+
+  out->resize(variants.size());
   Vector value;
-  for (size_t ii=0; ii < variants_.size(); ++ii)
+  for (size_t ii=0; ii < variants.size(); ++ii)
     (*out)[ii] = representation_->read(projections[ii], &value); // reading approximated values
 }
 
 void QPolicy::act(const Vector &in, Vector *out) const
 {
   LargeVector qvalues;
-  
+
   values(in, &qvalues);
   size_t action = sampler_->sample(qvalues);
-  
-  *out = variants_[action];
+
+  *out = discretizer_->at(in, action);
 }

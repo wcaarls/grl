@@ -46,8 +46,8 @@ class OnlineLearningExperiment : public Experiment
     Environment *environment_;
     State *state_, *curve_;
 
-    int test_interval_;
     size_t runs_, trials_, steps_;
+    int test_interval_;
     double rate_;
     std::string output_, load_file_;
     std::string save_every_;

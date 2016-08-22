@@ -53,8 +53,8 @@ class CompassWalkerModel : public Model
     
   protected:
     double tau_;
-    double slope_angle_;
     size_t steps_;
+    double slope_angle_;
     CSWModel model_;
     std::string integrator_out_;
 
@@ -80,10 +80,10 @@ class CompassWalkerSandbox : public Sandbox
 
   protected:
     double tau_;
-    double time_;
-    int test_;
-    double slope_angle_;
     size_t steps_;
+    double slope_angle_;
+    int test_;
+    double time_;
     CSWModel model_;
     std::deque<double> hip_instant_velocity_;
     Vector state_;
@@ -113,10 +113,10 @@ class CompassWalkerWalkTask : public Task
   
   protected:
     double T_;
-    bool verbose_;
     double initial_state_variation_;
     double slope_angle_;
     double neg_reward_;
+    bool verbose_;
     int observation_dims_;
     Vector observe_;          // Indicator vector with 1s for states, which are observed by an agent
     int steps_;               // Require ceritain number of steps, after which the task is terminated

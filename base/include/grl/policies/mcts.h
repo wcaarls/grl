@@ -151,7 +151,6 @@ class MCTSPolicy : public Policy
     ObservationModel *model_;
     Discretizer *discretizer_;
     
-    std::vector<Vector> actions_;
     double gamma_, epsilon_;
     size_t horizon_;
     double budget_;
@@ -182,9 +181,9 @@ class MCTSPolicy : public Policy
     Vector select() const
     {
       if (trunk_->children())
-        return actions_[trunk_->select(0)->action()];
+        return discretizer_->at(trunk_->state(), trunk_->select(0)->action());
       else
-        return actions_[lrand48()%actions_.size()];
+        return discretizer_->at(trunk_->state(), lrand48()%discretizer_->size(trunk_->state()));
     }
     
     MCTSNode *expand(MCTSNode *node) const
@@ -195,18 +194,18 @@ class MCTSPolicy : public Policy
       int terminal;
 
       size_t a;
-      if (actions_.size() <= 64)
+      if (discretizer_->size(state) <= 64)
       {
         // Quasi-pseudorandom action expansion -- not actually pseudorandom
         // except for the first choice.
-        a = lrand48()%actions_.size();
+        a = lrand48()%discretizer_->size(state);
         while (node->expanded(a))
-          a = (a + 1)%actions_.size();
+          a = (a + 1)%discretizer_->size(state);
       }
       else
         a = node->children();
         
-      Vector action = actions_[a];
+      Vector action = discretizer_->at(state, a);
           
       model_->step(state, action, &next, &reward, &terminal);
       
@@ -217,7 +216,7 @@ class MCTSPolicy : public Policy
       }
       
       if (!node->children())
-        node->allocate(actions_.size());
+        node->allocate(discretizer_->size(state));
         
       return node->expand(a, next, reward, terminal);
     }
@@ -228,7 +227,7 @@ class MCTSPolicy : public Policy
       
       for (size_t ii=0; ii < horizon_ && !node->terminal(); ++ii)
       {
-        if (node->children() != actions_.size())
+        if (node->children() != discretizer_->size(node->state()))
         {
           MCTSNode *child = expand(node);
           
@@ -253,7 +252,7 @@ class MCTSPolicy : public Policy
       for (size_t ii=0; ii < depth && !terminal; ++ii)
       {
         // Not reentrant
-        model_->step(state, actions_[lrand48()%actions_.size()], &next, &reward, &terminal);
+        model_->step(state, discretizer_->at(state, lrand48()%discretizer_->size(state)), &next, &reward, &terminal);
         
         // What to do here?
         if (!next.size())

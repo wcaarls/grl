@@ -131,7 +131,7 @@ void FilteringAgent::end(double tau, const Vector &obs, double reward)
 {
   Vector downstream_obs = reindex(obs, observation_idx_);
   
-  agent_->end(tau, obs, reward);
+  agent_->end(tau, downstream_obs, reward);
 }
 
 // *** FilteringSubAgent ***
@@ -195,12 +195,12 @@ void FilteringSubAgent::end(double tau, const Vector &obs, double reward)
 {
   Vector downstream_obs = reindex(obs, observation_idx_);
   
-  agent_->end(tau, obs, reward);
+  agent_->end(tau, downstream_obs, reward);
 }
 
 double FilteringSubAgent::confidence(const Vector &obs) const
 {
   Vector downstream_obs = reindex(obs, observation_idx_);
 
-  return agent_->confidence(obs);
+  return agent_->confidence(downstream_obs);
 }

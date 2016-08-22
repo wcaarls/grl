@@ -41,9 +41,9 @@ class FilteringAgent : public Agent
     TYPEINFO("agent/filtering", "Agent that filters incoming observations and outgoing actions")
 
   protected:
+    Agent *agent_;
     Vector observation_idx_, action_idx_, inv_action_idx_;
     int action_dims_;
-    Agent *agent_;
     
   public:
     FilteringAgent() : agent_(NULL), action_dims_(0) { }
@@ -67,9 +67,9 @@ class FilteringSubAgent : public SubAgent
     TYPEINFO("agent/sub/filtering", "Subagent that filters incoming observations and outgoing actions")
 
   protected:
+    SubAgent *agent_;
     Vector observation_idx_, action_idx_, inv_action_idx_;
     int action_dims_;
-    SubAgent *agent_;
     
   public:
     FilteringSubAgent() : agent_(NULL), action_dims_(0) { }

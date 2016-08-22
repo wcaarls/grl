@@ -63,10 +63,11 @@ class SplitDiscretizer : public Discretizer
     
     // From Discretizer
     virtual SplitDiscretizer* clone();
-    virtual iterator begin() const;
-    virtual size_t size() const;
-    virtual void inc(IndexVector *idx) const;
-    virtual Vector get(const IndexVector &idx) const;
+    virtual iterator begin(const Vector &point) const;
+    virtual size_t size(const Vector &point) const;
+    virtual void inc(iterator *it) const;
+    virtual Vector get(const iterator &it) const;
+    virtual Vector at(const Vector &point, size_t idx) const;
 };
 
 }

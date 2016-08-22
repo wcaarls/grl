@@ -95,7 +95,7 @@ UniformDiscretizer* UniformDiscretizer::clone()
 
 UniformDiscretizer::iterator UniformDiscretizer::begin() const
 {
-  return iterator(this, IndexVector::Constant(steps_.size(), 0));
+  return iterator(this, Vector(), IndexVector::Constant(steps_.size(), 0));
 }
 
 size_t UniformDiscretizer::size() const
@@ -103,30 +103,45 @@ size_t UniformDiscretizer::size() const
   return prod(steps_);
 }
 
-void UniformDiscretizer::inc(IndexVector *idx) const
+void UniformDiscretizer::inc(iterator *it) const
 {
-  if (!idx->size())
+  if (!it->idx.size())
     return;
 
   size_t dd;
   for (dd=0; dd < steps_.size(); ++dd)
-    if (++(*idx)[dd] == values_[dd].size())
-      (*idx)[dd] = 0;
+    if (++it->idx[dd] == values_[dd].size())
+      it->idx[dd] = 0;
     else
       break;
       
   if (dd == steps_.size())
-    *idx = IndexVector();
+    it->idx = IndexVector();
 }
 
-Vector UniformDiscretizer::get(const IndexVector &idx) const
+Vector UniformDiscretizer::get(const iterator &it) const
 {
-  if (!idx.size())
+  if (!it.idx.size())
     return Vector();
 
   Vector out(steps_.size());
   for (size_t dd=0; dd < out.size(); ++dd)
-    out[dd] = values_[dd][idx[dd]];
+    out[dd] = values_[dd][it.idx[dd]];
     
+  return out;
+}
+
+Vector UniformDiscretizer::at(size_t idx) const
+{
+  Vector out(steps_.size());
+
+  for (size_t dd=0; dd < steps_.size(); ++dd)
+  {
+    size_t ss = steps_[dd];
+  
+    out[dd] = values_[dd][idx % ss];
+    idx /= ss;
+  }
+  
   return out;
 }

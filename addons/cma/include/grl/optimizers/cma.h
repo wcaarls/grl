@@ -44,11 +44,11 @@ class CMAOptimizer : public Optimizer
   protected:
     ParameterizedPolicy *prototype_, *policy_;
     std::vector<ParameterizedPolicy*> policies_;
-    Vector sigma_;
+    LargeVector sigma_;
     
     cmaes_t evo_;
     size_t population_, params_;
-    Vector fitness_;
+    LargeVector fitness_;
     double best_reward_;
   
   public:

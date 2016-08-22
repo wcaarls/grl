@@ -52,8 +52,6 @@ class VPolicy : public Policy
     Sampler *sampler_;
     
     double gamma_;
-    
-    std::vector<Vector> variants_;
 
   public:
     VPolicy() : discretizer_(NULL), model_(NULL), projector_(NULL), representation_(NULL), sampler_(NULL), gamma_(0.97) { }
@@ -67,7 +65,7 @@ class VPolicy : public Policy
     virtual VPolicy *clone() const;
     virtual void act(const Vector &in, Vector *out) const;
     
-    virtual void values(const Vector &in, Vector *out) const;
+    virtual void values(const Vector &in, LargeVector *out) const;
 };
 
 }

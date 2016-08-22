@@ -48,8 +48,6 @@ class QPolicy : public Policy
     Projector *projector_;
     Representation *representation_;
     Sampler *sampler_;
-    
-    std::vector<Vector> variants_;
 
   public:
     QPolicy() : discretizer_(NULL), projector_(NULL), representation_(NULL), sampler_(NULL) { }

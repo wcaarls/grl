@@ -57,7 +57,6 @@ void FQIPredictor::configure(Configuration &config)
   Predictor::configure(config);
   
   discretizer_ = (Discretizer*)config["discretizer"].ptr();
-  discretizer_->options(&variants_);
   
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (Representation*)config["representation"].ptr();
@@ -239,14 +238,17 @@ void FQIPredictor::rebuild()
           if (!t.actions.size() || reproject_actions)
           {
             // Rebuild next state-action projections
+            std::vector<Vector> variants;
+            discretizer_->options(t.transition.obs, &variants);
+            
             t.actions.clear();
-            projector_->project(t.transition.obs, variants_, &t.actions);
+            projector_->project(t.transition.obs, variants, &t.actions);
           }
           
           // Find value of best action
           Vector value;
           double v=-std::numeric_limits<double>::infinity();
-          for (size_t kk=0; kk < variants_.size(); ++kk)
+          for (size_t kk=0; kk < discretizer_->size(t.transition.obs); ++kk)
             v = fmax(v, representation_->read(t.actions[kk], &value));
        
           target += gamma_*v;

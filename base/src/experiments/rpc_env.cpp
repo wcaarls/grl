@@ -66,7 +66,6 @@ RPCEnvExperiment *RPCEnvExperiment::clone() const
 void RPCEnvExperiment::run()
 {
   struct sockaddr_in myaddr, agentaddr;
-  struct hostent *server;
   int yes = 1, fd;
   socklen_t addrlen = sizeof(agentaddr);
 
@@ -138,7 +137,6 @@ void RPCEnvExperiment::writeState(const Vector &state, double reward, bool termi
 Vector RPCEnvExperiment::readVector()
 {
   unsigned char c;
-  double d;
 
   grl_assert(read(socket_, &c, 1) == 1);
   

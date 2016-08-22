@@ -54,7 +54,6 @@ void ValueIterationPredictor::configure(Configuration &config)
   
   model_ = (ObservationModel*)config["model"].ptr();
   discretizer_ = (Discretizer*)config["discretizer"].ptr();
-  discretizer_->options(&variants_);
 
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (Representation*)config["representation"].ptr();
@@ -83,12 +82,12 @@ void ValueIterationPredictor::update(const Transition &transition)
   
   double v=-std::numeric_limits<double>::infinity();
   
-  for (size_t aa=0; aa < variants_.size(); ++aa)
+  for (Discretizer::iterator it = discretizer_->begin(transition.prev_obs); it != discretizer_->end(); ++it)
   {
     Vector next;
     double reward;
     int terminal;
-    model_->step(transition.prev_obs, variants_[aa], &next, &reward, &terminal);
+    model_->step(transition.prev_obs, *it, &next, &reward, &terminal);
     
     if (next.size())
     {
@@ -134,12 +133,12 @@ void QIterationPredictor::update(const Transition &transition)
 {
   Predictor::update(transition);
   
-  for (size_t aa=0; aa < variants_.size(); ++aa)
+  for (Discretizer::iterator it=discretizer_->begin(transition.prev_obs); it != discretizer_->end(); ++it)
   {
     Vector next;
     double reward;
     int terminal;
-    model_->step(transition.prev_obs, variants_[aa], &next, &reward, &terminal);
+    model_->step(transition.prev_obs, *it, &next, &reward, &terminal);
     
     if (next.size())
     {
@@ -148,13 +147,13 @@ void QIterationPredictor::update(const Transition &transition)
         // Find value of best action
         Vector value;
         double v=-std::numeric_limits<double>::infinity();
-        for (size_t ii=0; ii < variants_.size(); ++ii)
-          v = fmax(v, representation_->read(projector_->project(next, variants_[ii]), &value));
+        for (Discretizer::iterator it2=discretizer_->begin(next); it2 != discretizer_->end(); ++it2)
+          v = fmax(v, representation_->read(projector_->project(next, *it2), &value));
         
         reward += gamma_*v;
       }
     
-      representation_->write(projector_->project(transition.prev_obs, variants_[aa]), VectorConstructor(reward));
+      representation_->write(projector_->project(transition.prev_obs, *it), VectorConstructor(reward));
     }
   }
 }

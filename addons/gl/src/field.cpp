@@ -262,7 +262,7 @@ void FieldVisualization::run()
 
 void FieldVisualization::idle()
 {
-  if (updated_ || state_ && state_->test())
+  if (updated_ || (state_ && state_->test()))
     refresh();
 }
 

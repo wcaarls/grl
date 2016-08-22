@@ -62,7 +62,6 @@ class RandomDiscretePolicy : public Policy
 
   protected:
     Discretizer *discretizer_;
-    std::vector<Vector> options_;
 
   public:
     RandomDiscretePolicy() : discretizer_(NULL) { }

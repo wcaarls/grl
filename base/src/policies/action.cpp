@@ -105,7 +105,6 @@ void ActionProbabilityPolicy::request(ConfigurationRequest *config)
 void ActionProbabilityPolicy::configure(Configuration &config)
 {
   discretizer_ = (Discretizer*)config["discretizer"].ptr();
-  discretizer_->options(&variants_);
   
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (Representation*)config["representation"].ptr();
@@ -126,13 +125,16 @@ ActionProbabilityPolicy *ActionProbabilityPolicy::clone() const
 
 void ActionProbabilityPolicy::act(const Vector &in, Vector *out) const
 {
+  std::vector<Vector> variants;
   std::vector<ProjectionPtr> projections;
-  projector_->project(in, variants_, &projections);
-
-  Vector dist(variants_.size()), v;
   
-  for (size_t ii=0; ii < variants_.size(); ++ii)
+  discretizer_->options(in, &variants);
+  projector_->project(in, variants, &projections);
+
+  Vector dist(variants.size()), v;
+  
+  for (size_t ii=0; ii < variants.size(); ++ii)
     dist[ii] = representation_->read(projections[ii], &v);
     
-  *out = variants_[sample(dist)];
+  *out = variants[sample(dist)];
 }
