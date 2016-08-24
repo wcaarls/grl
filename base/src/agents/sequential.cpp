@@ -66,9 +66,11 @@ void SequentialMasterAgent::start(const Vector &obs, Vector *action)
 {
   time_ = 0;
   agent_[0]->start(obs, action);
-  exporter_->append({grl::VectorConstructor(time_), *action});
+  if (exporter_)
+    exporter_->append({grl::VectorConstructor(time_), *action});
   agent_[1]->start(obs, action);
-  exporter_->append({*action});
+  if (exporter_)
+    exporter_->append({*action});
 }
 
 void SequentialMasterAgent::step(double tau, const Vector &obs, double reward, Vector *action)
@@ -76,9 +78,11 @@ void SequentialMasterAgent::step(double tau, const Vector &obs, double reward, V
   time_ += tau;
 
   agent_[0]->step(tau, obs, reward, action);
-  exporter_->append({grl::VectorConstructor(time_), *action});
+  if (exporter_)
+    exporter_->append({grl::VectorConstructor(time_), *action});
   agent_[1]->step(tau, obs, reward, action);
-  exporter_->append({*action});
+  if (exporter_)
+    exporter_->append({*action});
 }
 
 void SequentialMasterAgent::end(double tau, const Vector &obs, double reward)
@@ -118,13 +122,15 @@ void SequentialAdditiveMasterAgent::start(const Vector &obs, Vector *action)
 
   // First action
   agent_[0]->start(obs, action);
-  exporter_->append({grl::VectorConstructor(time_), *action});
+  if (exporter_)
+    exporter_->append({grl::VectorConstructor(time_), *action});
 
   // Second action
   Vector action1;
   action1.resize(action->size());
   agent_[1]->start(obs, &action1);
-  exporter_->append({action1});
+  if (exporter_)
+    exporter_->append({action1});
 
   // Add those
   *action += action1;
@@ -138,13 +144,15 @@ void SequentialAdditiveMasterAgent::step(double tau, const Vector &obs, double r
 
   // First action
   agent_[0]->step(tau, obs, reward, action);
-  exporter_->append({grl::VectorConstructor(time_), *action});
+  if (exporter_)
+    exporter_->append({grl::VectorConstructor(time_), *action});
 
   // Second action
   Vector action1;
   action1.resize(action->size());
   agent_[1]->step(tau, obs, reward, &action1);
-  exporter_->append({action1});
+  if (exporter_)
+    exporter_->append({action1});
 
   // Add those
   *action += action1;

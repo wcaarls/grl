@@ -146,7 +146,7 @@ agent/master/sequential:
     type: exporter
     description: Optional exporter for transition log (supports time, state, observation, action, reward, terminal)
     mutability: configuration
-    default: 0x17410d0
+    default: 0x78a2b0
     optional: 1
 agent/master/sequential/additive:
   description: Additive master agent that executes sub-agents sequentially and adds their outputs
@@ -426,7 +426,7 @@ environment/communicator:
     type: communicator
     description: Comunicator which exchanges messages with an actual environment
     mutability: configuration
-    default: 0x17ecbe0
+    default: 0x835e10
     optional: 0
   target_obs_dims:
     type: int
