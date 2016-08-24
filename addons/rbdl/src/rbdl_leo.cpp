@@ -125,7 +125,7 @@ void LeoSquatTask::start(int test, Vector *state) const
 }
 
 int LeoSquatTask::failed(const Vector &state) const
-{
+{/*
   double torsoAngle = state[rlsAnkleAngle] + state[rlsKneeAngle] + state[rlsHipAngle];
   if ((torsoAngle < -1.0) || (torsoAngle > 1.0) ||
       // penalty for high joint velocities
@@ -142,7 +142,7 @@ int LeoSquatTask::failed(const Vector &state) const
       (state[rlsRootZ] < 0)
       )
     return 1;
-  else
+  else*/
   {
     return 0;
   }

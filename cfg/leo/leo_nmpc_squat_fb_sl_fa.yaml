@@ -1,0 +1,45 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 0
+  steps: 0
+  rate: 0
+  test_interval: 0
+  output: leo_nmpc_squat
+  environment: 
+    type: environment/leo_squat
+    xml: ../../leo/cfg/leo_learn_squatting_nmpc.xml
+    target_env: 
+      type: environment/communicator
+      communicator: 
+        type: communicator/zeromq
+        pub: tcp://*:5561
+        sub: tcp://192.168.1.10:5562
+        event: tcp://192.168.1.10:5560
+        event_mode: ZMQ_SYNC_SUB
+    observe: ankleright, kneeright, hipright, shoulder
+    actuate: ankle, knee, hip, shoulder
+    exporter: 
+      type: exporter/csv
+      file: rbdl_nmpc_squat_fb_sl_fa
+      fields: time, state, observation, action, reward, terminal
+      style: meshup
+      variant: test
+      split_runs: 1
+    observation_dims: 20
+    action_dims: 7
+  agent: 
+    type: agent/fixed
+    policy: 
+      type: policy/nmpc
+      action_min: experiment/environment/task/action_min
+      action_max: experiment/environment/task/action_max
+      lua_model: leo_fb_sl_fa.lua
+      model_name: nmpc_leo_squat_fb_sl_fa
+      nmpc_model_name: nmpc_leo_squat_fb_sl_fa
+      outputs: 3
+      pf: [0.28]
+      initFeedback: 1
+      verbose: 0
+  test_agent: experiment/agent
+  save_every: never

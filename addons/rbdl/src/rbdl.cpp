@@ -300,6 +300,8 @@ bool RBDLDynamics::loadConstraintSetsFromFile(const char* filename, RigidBodyDyn
 
 void RBDLDynamics::getPointPosition(const Vector &state, const std::string point_name, Vector &out) const
 {
+  RBDLState *rbdl = rbdl_state_.instance();
+
   if ( !points.count( point_name ) )
   {
     std::cerr << "ERROR in " << __func__ << std::endl;
@@ -308,7 +310,6 @@ void RBDLDynamics::getPointPosition(const Vector &state, const std::string point
     abort();
   }
 
-  RBDLState *rbdl = rbdl_state_.instance();
   size_t dim = rbdl->model->dof_count;
 
   RigidBodyDynamics::Math::VectorNd q = RigidBodyDynamics::Math::VectorNd::Zero(dim);
@@ -329,6 +330,7 @@ void RBDLDynamics::getPointPosition(const Vector &state, const std::string point
 void RBDLDynamics::getAuxiliary(const Vector &state, double &modelMass, Vector &centerOfMass, Vector &centerOfMassVelocity, Vector &angularMomentum) const
 {
   RBDLState *rbdl = rbdl_state_.instance();
+
   size_t dim = rbdl->model->dof_count;
   RigidBodyDynamics::Math::VectorNd q = RigidBodyDynamics::Math::VectorNd::Zero(dim);
   RigidBodyDynamics::Math::VectorNd qd = RigidBodyDynamics::Math::VectorNd::Zero(dim);

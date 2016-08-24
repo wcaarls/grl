@@ -82,8 +82,8 @@ void SandboxEnvironment::start(int test, Vector *obs)
   int terminal;
 
   task_->start(test, &state_);
-  task_->observe(state_, obs, &terminal);
   sandbox_->start(ConstantVector(1, test), &state_);
+  task_->observe(state_, obs, &terminal);
 
   obs_ = *obs;
   state_obj_->set(state_);
@@ -159,9 +159,23 @@ SandboxDynamicalModel *SandboxDynamicalModel::clone() const
 void SandboxDynamicalModel::start(const Vector &hint, Vector *state)
 {
   if (target_env_)
-    target_env_->start(0, &state_);
-  else
-    state_ = *state;
+  {
+    // reduce state
+    Vector state0;
+    state0.resize(2*dof_count_);
+    state0 << state->block(0, 0, 1, 2*dof_count_);
+
+    target_env_->start(0, &state0);
+
+    *state << state0,
+              0.0,  // rlsTime
+              0.28, // rlsRefRootHeight, possible values 0.28 and 0.35
+              ConstantVector(rlsStateDim - 2*rlsDofDim - 2, 0); // initialize the rest to zero
+  }
+
+//  std::cout << *state << std::endl;
+
+  state_ = *state;
 }
 
 double SandboxDynamicalModel::step(const Vector &action, Vector *next)

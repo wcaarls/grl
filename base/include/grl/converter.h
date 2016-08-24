@@ -41,9 +41,9 @@ class StateActionConverter : public Configurable
 
   protected:
     std::vector<int> state_map_, action_map_;
-
+    int state_in_size_, action_out_size_;
   public:
-    StateActionConverter(){ }
+    StateActionConverter() : state_in_size_(0), action_out_size_(0) { }
     virtual ~StateActionConverter() { }
     virtual StateActionConverter *clone() const
     {
@@ -67,6 +67,9 @@ class StateActionConverter : public Configurable
       const std::vector<std::string> action_in = cutLongStr( config["action_in"].str() );
       const std::vector<std::string> action_out = cutLongStr( config["action_out"].str() );
 
+      state_in_size_ = state_in.size();
+      action_out_size_ = action_out.size();
+
       prepare(state_in, state_out, state_map_);
       prepare(action_in, action_out, action_map_);
 
@@ -85,10 +88,12 @@ class StateActionConverter : public Configurable
 
     virtual int convert_state(const Vector &state_in, Vector &state_out) const
     {
-      state_out.resize(state_map_.size());
+      if (state_out.size() < state_map_.size())
+        state_out.resize(state_map_.size());
+
       if (state_map_.size() > 0)
       {
-        for (int i = 0; i < state_out.size(); i++)
+        for (int i = 0; i < state_map_.size(); i++)
           state_out[i] = state_in[ state_map_[i] ];
       }
       else
@@ -99,10 +104,12 @@ class StateActionConverter : public Configurable
 
     virtual int convert_action(const Vector &action_in, Vector &action_out) const
     {
-      action_out.resize(action_map_.size());
+      if (action_out.size() < action_map_.size())
+        action_out.resize(action_map_.size());
+
       if (action_map_.size() > 0)
       {
-        for (int i = 0; i < action_out.size(); i++)
+        for (int i = 0; i < action_map_.size(); i++)
           action_out[i] = action_in[ action_map_[i] ];
       }
       else
@@ -121,7 +128,7 @@ class StateActionConverter : public Configurable
         it_in = in.begin();
         for (int i = 0; it_in < in.end(); it_in++, i++)
         {
-          if (*it_out != *it_in)
+          if (*it_out == *it_in)
           {
             TRACE("Adding to the observation vector (physical state): " << *it_out);
             map.push_back(i);
@@ -134,6 +141,9 @@ class StateActionConverter : public Configurable
           throw Exception("Field '" + *it_out + "' is not matched with any input");
       }
     }
+
+    virtual int get_state_in_size() { return state_in_size_; }
+    virtual int get_action_out_size() { return action_out_size_; }
 };
 
 REGISTER_CONFIGURABLE(StateActionConverter)

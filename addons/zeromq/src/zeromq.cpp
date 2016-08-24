@@ -102,8 +102,17 @@ void CommunicatorEnvironment::configure(Configuration &config)
 {
   converter_ = (StateActionConverter*)config["converter"].ptr();
   communicator_ = (Communicator*)config["communicator"].ptr();
-  target_obs_dims_ = config["target_state_dims"];
+  target_obs_dims_ = config["target_obs_dims"];
   target_action_dims_ = config["target_action_dims"];
+
+  if (converter_)
+  {
+    if (converter_->get_state_in_size() != target_obs_dims_)
+      throw bad_param("environment/communicator:target_obs_dims");
+
+    if (converter_->get_action_out_size() != target_action_dims_)
+      throw bad_param("environment/communicator:target_action_dims_");
+  }
 
   obs_conv.resize(target_obs_dims_);
   action_conv.resize(target_action_dims_);

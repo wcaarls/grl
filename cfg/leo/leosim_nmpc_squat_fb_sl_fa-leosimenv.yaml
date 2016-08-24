@@ -1,0 +1,34 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 1
+  steps: 0
+  rate: 0
+  test_interval: 0
+  environment: 
+    type: environment/leo_squat
+    xml: ../../leo/cfg/leo_learn_squatting_nmpc.xml
+    target_env: 
+      type: environment/ode
+      xml: experiment/environment/xml
+      randomize: 0
+      visualize: 1
+    observe: ankleright, kneeright, hipright, shoulder, direction
+    actuate: ankle, knee, hip
+    observation_dims: experiment/environment/target_env/observation_dims
+    action_dims: experiment/environment/target_env/action_dims
+  agent: 
+    type: agent/fixed
+    policy: 
+      type: policy/nmpc
+      action_min: experiment/environment/target_env/action_min
+      action_max: experiment/environment/target_env/action_max
+      lua_model: leo_fb_sl_fa.lua
+      model_name: nmpc_leo_squat_fb_sl_fa
+      nmpc_model_name: nmpc_leo_squat_fb_sl_fa
+      outputs: 3
+      pf: [0.28]
+      initFeedback: 1
+      verbose: 0
+  test_agent: experiment/agent
+  save_every: never
