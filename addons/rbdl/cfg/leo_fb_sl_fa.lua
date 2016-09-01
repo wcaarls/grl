@@ -571,7 +571,6 @@ model = {
           inertia = iyymatrix(armIYY)
         },
         joint = joints.lhinge,
-        -- joint = {},
         joint_frame = {
           r = {armJointX, armJointY, armJointZ},
           E = rotymatrix(armICangle),

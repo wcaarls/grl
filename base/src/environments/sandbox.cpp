@@ -195,7 +195,7 @@ double SandboxDynamicalModel::step(const Vector &action, Vector *next)
   {
     double armVoltage = (14.0/3.3) * 5.0*(-0.26 - state_[rlsArmAngle]);
     action0 << action, armVoltage;
-//    std::cout << action0 << std::endl;
+    std::cout << "  > Action: " << action0 << std::endl;
   }
   else
     action0 << action;
@@ -241,10 +241,44 @@ double SandboxDynamicalModel::step(const Vector &action, Vector *next)
       (*next)[rlsRefRootZ] = 0.28;
   }
 
+
 //  (*next)[rlsRefRootZ] = 0.35;
 
-//  std::cout << "GRL: " << *next << std::endl;
+  std::cout << "  > Height: " << (*next)[rlsRootZ] << std::endl;
+
+  std::cout << "  > Next state: " << *next << std::endl;
+
+  export_meshup_animation(action0, *next);
 
   state_ = *next;
   return tau;
 }
+
+double SandboxDynamicalModel::export_meshup_animation(const Vector &action, const Vector &next) const
+{
+  std::ofstream data_stream;
+  data_stream.open ("sd_leo.csv", std::ios_base::trunc);
+  if (!data_stream || 2*dof_count_ > next.size())
+  {
+    std::cerr << "Error opening file sd_leo.csv" << std::endl;
+    abort();
+  }
+  data_stream << next[rlsTime] << ", ";
+  for (int i = 0; i < 2*dof_count_-1; i++)
+    data_stream << next[i] << ", ";
+  data_stream << next[2*dof_count_-1] << std::endl;
+  data_stream.close();
+
+  data_stream.open ("u_leo.csv", std::ios_base::trunc);
+  if (!data_stream || dof_count_ > action.size())
+  {
+    std::cerr << "Error opening file u_leo.csv" << std::endl;
+    abort();
+  }
+  data_stream << next[rlsTime] << ", ";
+  for (int i = 0; i < dof_count_-1; i++)
+    data_stream << action[i] << ", ";
+  data_stream << action[dof_count_-1] << std::endl;
+  data_stream.close();
+}
+

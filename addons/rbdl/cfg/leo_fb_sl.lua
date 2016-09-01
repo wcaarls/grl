@@ -14,17 +14,15 @@
 --]]
 
 -- strict checks for undefined variables
---require 'SRC.strict'
+-- require 'SRC.strict'
 
 -- load module with convenience functions
---utils = require 'SRC.utils'
+-- utils = require 'SRC.utils'
 
 -- initial
 armICangle = -0.26 -- = -15*degtorad
 
-
 -- for model
-inertiadontcare = 0.001
 torsoheight = (0.24155)
 torsoHipDistX = (0.00273)
 torsoHipDistZ = (-torsoheight/2)
@@ -209,45 +207,10 @@ visuals = {
       dimensions = { (0.020), (0.010), (0.140) },
       color = { 0.8, 0.8, 0.8},
       mesh_center = {
-        (0.01527), 0.005, (-0.05699)
-      },
-      src = "meshes/unit_cube.obj",
-    },
-    {
-      -- Should be rotated
-      name = "lower_arm_box",
-      dimensions = { (0.020), (0.010), (0.150) },
-      color = colors.bracket,
-      mesh_center = {
-        (0.06989), 0.005, (-0.18714)
-      },
-      src = "meshes/unit_cube.obj",
-    },
-    {
-      name = "hand_wheel",
-      dimensions = {
-        (2*handwheelradius), (2*handwheelradius), (2*handwheelradius)
-      },
-      color = colors.wheel,
-      mesh_center = {
-        (handoffsetx), 0.005, (handoffsetz)
-      },
-      src = "meshes/unit_sphere_lowres.obj"
-    }
-  },
-  upper_arm = {
-    {
-      -- Should be rotated
-      name = "upper_arm_box",
-      dimensions = { (0.020), (0.010), (0.140) },
-      color = { 0.8, 0.8, 0.8},
-      mesh_center = {
         (0.01527), 0.0, (-0.05699)
       },
       src = "meshes/unit_cube.obj",
     },
-  },
-  lower_arm = {
     {
       -- Should be rotated
       name = "lower_arm_box",
@@ -266,6 +229,41 @@ visuals = {
       color = colors.wheel,
       mesh_center = {
         (handoffsetx), 0.0, (handoffsetz)
+      },
+      src = "meshes/unit_sphere_lowres.obj"
+    }
+  },
+  upper_arm = {
+    {
+      -- Should be rotated
+      name = "upper_arm_box",
+      dimensions = { (0.020), (0.010), (0.140) },
+      color = { 0.8, 0.8, 0.8},
+      mesh_center = {
+        (0.01527), 0.005, (-0.05699)
+      },
+      src = "meshes/unit_cube.obj",
+    },
+  },
+  lower_arm = {
+    {
+      -- Should be rotated
+      name = "lower_arm_box",
+      dimensions = { (0.020), (0.010), (0.150) },
+      color = colors.bracket,
+      mesh_center = {
+        (0.06989), 0.005, (-0.18714)
+      },
+      src = "meshes/unit_cube.obj",
+    },
+    {
+      name = "hand_wheel",
+      dimensions = {
+        (2*handwheelradius), (2*handwheelradius), (2*handwheelradius)
+      },
+      color = colors.wheel,
+      mesh_center = {
+        (handoffsetx), 0.005, (handoffsetz)
       },
       src = "meshes/unit_sphere_lowres.obj"
     }
@@ -579,38 +577,38 @@ model = {
         },
         visuals = visuals.arm
       },
-      -- {
-      --   name = "upper_arm",
-      --   parent = "torso",
-      --   body = {
-      --     mass = armMass,
-      --     com = {armCMX, 0., armCMZ},
-      --     inertia = iyymatrix(armIYY)
-      --   },
-      --   joint = joints.hinge,
-      --   joint_frame = {
-      --     r = {armJointX, armJointY, armJointZ},
-      --     E = {
-      --         { 0.96592582628906831, 0.0, -0.25881904510252074},
-      --         { 0.0,                 1.0,  0.0},
-      --         { 0.25881904510252074, 0.0,  0.96592582628906831},
-      --     },
-      --   },
-      --   visuals = visuals.upper_arm
-      -- },
-      -- {
-      --   name = "lower_arm",
-      --   parent = "upper_arm",
-      --   joint_frame = {
-      --     r = {0.0, 0.0, 0.0},
-      --     E = {
-      --         { 0.96592582628906831, 0.0,  0.25881904510252074},
-      --         { 0.0,                 1.0,  0.0},
-      --         {-0.25881904510252074, 0.0,  0.96592582628906831},
-      --     },
-      --   },
-      --   visuals = visuals.lower_arm
-      -- },
+      {
+        name = "upper_arm",
+        parent = "torso",
+        body = {
+          mass = armMass,
+          com = {armCMX, 0., armCMZ},
+          inertia = iyymatrix(armIYY)
+            },
+        joint = joints.hinge,
+        joint_frame = {
+        r = {armJointX, armJointY, armJointZ},
+          E = {
+              { 0.96592582628906831, 0.0, -0.25881904510252074},
+              { 0.0,                 1.0,  0.0},
+              { 0.25881904510252074, 0.0,  0.96592582628906831},
+           },
+         },
+        visuals = visuals.upper_arm
+      },
+      {
+       name = "lower_arm",
+       parent = "upper_arm",
+       joint_frame = {
+         r = {0.0, 0.0, 0.0},
+         E = {
+             { 0.96592582628906831, 0.0,  0.25881904510252074},
+             { 0.0,                 1.0,  0.0},
+             {-0.25881904510252074, 0.0,  0.96592582628906831},
+         },
+        },
+       visuals = visuals.lower_arm
+      },
   --     {
   --       name = "upperlegright",
   --       parent = "torso",

@@ -381,7 +381,9 @@ class SandboxDynamicalModel : public Sandbox
     virtual SandboxDynamicalModel *clone() const;
     virtual void start(const Vector &hint, Vector *state);
     virtual double step(const Vector &action, Vector *next);
-    
+
+    virtual double export_meshup_animation(const Vector &action, const Vector &next) const;
+
   private:
     Environment *target_env_;
     DynamicalModel dm_;

@@ -3,8 +3,8 @@ experiment:
   runs: 1
   trials: 0
   steps: 70000
-  rate: 0
-  test_interval: 10
+  rate: 1
+  test_interval: 0
   output: leo_nmpc_ac_tc_squat_fb_sl_fa
   environment: 
     type: environment/sandbox
@@ -36,7 +36,7 @@ experiment:
         target_action_dims: 7
     task: 
       type: task/leoSquatFA
-      timeout: 10
+      timeout: 0
     exporter: 
       type: exporter/csv
       file: leo_nmpc_ac_tc_squat_fb_sl_fa
@@ -55,6 +55,6 @@ experiment:
       outputs: 3
       pf: [0.28]
       initFeedback: 1
-      verbose: 1
+      verbose: 0
   test_agent: experiment/agent
   save_every: never

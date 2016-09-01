@@ -329,7 +329,7 @@ void LeoSquatTaskFA::observe(const Vector &state, Vector *obs, int *terminal) co
             state.block(0, rlsAnkleAngleRate, 1, rlsHipAngleRate-rlsAnkleAngleRate+1),
             state[rlsRefRootZ];
 
-  if (state[rlsTime] >= timeout_)
+  if ((timeout_> 0) && (state[rlsTime] >= timeout_))
     *terminal = 1;
   else if (failed(state))
     *terminal = 2;
