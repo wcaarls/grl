@@ -33,12 +33,16 @@ REGISTER_CONFIGURABLE(SplitDiscretizer)
 
 void SplitDiscretizer::request(const std::string &role, ConfigurationRequest *config)
 {
+  config->push_back(CRP("identify", "Identify active discretizer before (-1) or after (1) value", identify_, CRP::Configuration, -1, 1));
+
   config->push_back(CRP("discretizer1", "discretizer." + role, "First discretizer", discretizer_[0]));
   config->push_back(CRP("discretizer2", "discretizer." + role, "Second discretizer", discretizer_[1]));
 }
 
 void SplitDiscretizer::configure(Configuration &config)
 {
+  identify_ = config["identify"];
+
   discretizer_[0] = (Discretizer*)config["discretizer1"].ptr();
   discretizer_[1] = (Discretizer*)config["discretizer2"].ptr();
 }
@@ -95,10 +99,20 @@ Vector SplitDiscretizer::get(const iterator &it) const
   int dd = it.idx[it.idx.size()-1];
   
   Vector v = discretizer_[dd]->get(it);
-  Vector v2(v.size()+1);
-  v2 << dd, v;
-
-  return v2;
+  
+  if (identify_)
+  {
+    Vector v2(v.size()+1);
+    
+    if (identify_ == -1)
+      v2 << dd, v;
+    else
+      v2 << v, dd;
+    
+    return v2;
+  }
+  else
+    return v;
 }
 
 Vector SplitDiscretizer::at(const Vector &point, size_t idx) const
@@ -111,8 +125,18 @@ Vector SplitDiscretizer::at(const Vector &point, size_t idx) const
   ii -= discretizer_[--dd]->size(point);
 
   Vector v = discretizer_[dd]->at(point, idx-ii);
-  Vector v2(v.size()+1);
-  v2 << dd, v;
-
-  return v2;
+  
+  if (identify_)
+  {
+    Vector v2(v.size()+1);
+    
+    if (identify_ == -1)
+      v2 << dd, v;
+    else
+      v2 << v, dd;
+    
+    return v2;
+  }
+  else
+    return v;
 }

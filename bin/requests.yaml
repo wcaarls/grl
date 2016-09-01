@@ -328,8 +328,24 @@ discretizer/peaked:
     mutability: configuration
     default: "[  ]"
     optional: 1
+discretizer/policy:
+  description: Returns the action suggested by a policy
+  policy:
+    type: policy
+    description: Policy whose action to return
+    mutability: configuration
+    default: 0
+    optional: 0
 discretizer/split:
-  description: Discretizer composition. Adds dimension indicating affiliation.
+  description: Compound discretizer
+  identify:
+    type: int
+    description: Identify active discretizer before (-1) or after (1) value
+    mutability: configuration
+    default: -1
+    optional: 1
+    min: -1
+    max: 1
   discretizer1:
     type: discretizer.
     description: First discretizer
@@ -5366,8 +5382,24 @@ discretizer/peaked.action:
     mutability: configuration
     default: "[  ]"
     optional: 1
+discretizer/policy.action:
+  description: Returns the action suggested by a policy
+  policy:
+    type: policy
+    description: Policy whose action to return
+    mutability: configuration
+    default: 0
+    optional: 0
 discretizer/split.action:
-  description: Discretizer composition. Adds dimension indicating affiliation.
+  description: Compound discretizer
+  identify:
+    type: int
+    description: Identify active discretizer before (-1) or after (1) value
+    mutability: configuration
+    default: -1
+    optional: 1
+    min: -1
+    max: 1
   discretizer1:
     type: discretizer.action
     description: First discretizer
@@ -5778,8 +5810,24 @@ discretizer/peaked.observation:
     mutability: configuration
     default: "[  ]"
     optional: 1
+discretizer/policy.observation:
+  description: Returns the action suggested by a policy
+  policy:
+    type: policy
+    description: Policy whose action to return
+    mutability: configuration
+    default: 0
+    optional: 0
 discretizer/split.observation:
-  description: Discretizer composition. Adds dimension indicating affiliation.
+  description: Compound discretizer
+  identify:
+    type: int
+    description: Identify active discretizer before (-1) or after (1) value
+    mutability: configuration
+    default: -1
+    optional: 1
+    min: -1
+    max: 1
   discretizer1:
     type: discretizer.observation
     description: First discretizer

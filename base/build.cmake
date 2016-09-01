@@ -18,6 +18,7 @@ add_library(${TARGET} SHARED
             ${SRC}/discretizers/uniform.cpp
             ${SRC}/discretizers/peaked.cpp
             ${SRC}/discretizers/split.cpp
+            ${SRC}/discretizers/policy.cpp
             ${SRC}/environments/acrobot.cpp
             ${SRC}/environments/observation.cpp
             ${SRC}/environments/modeled.cpp

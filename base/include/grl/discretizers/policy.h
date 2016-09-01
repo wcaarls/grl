@@ -1,8 +1,8 @@
-/** \file split.h
- * \brief Split discretizer header file.
+/** \file policy.h
+ * \brief Policy discretizer header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2016-02-03
+ * \date      2016-09-01
  *
  * \copyright \verbatim
  * Copyright (c) 2016, Wouter Caarls
@@ -25,37 +25,27 @@
  * \endverbatim
  */
 
-#ifndef GRL_SPLIT_DISCRETIZER_H_
-#define GRL_SPLIT_DISCRETIZER_H_
+#ifndef GRL_POLICY_DISCRETIZER_H_
+#define GRL_POLICY_DISCRETIZER_H_
 
 #include <grl/configurable.h>
 #include <grl/discretizer.h>
+#include <grl/policy.h>
 
 namespace grl
 {
 
-/**
- * \brief Split discretizer
- *
- * Combines two discretizers by outputting the union of both discretizations.
- * When identify is set, an extra dimension is added at the start or end to
- * indicate which discretization is active.
- */
-class SplitDiscretizer : public Discretizer
+/// Discretizer that returns the action suggested by a policy.
+class PolicyDiscretizer : public Discretizer
 {
   public:
-    TYPEINFO("discretizer/split", "Compound discretizer")
+    TYPEINFO("discretizer/policy", "Returns the action suggested by a policy")
 
   protected:
-    std::vector<Discretizer*> discretizer_;
-    size_t idxsize_, ressize_;
-    int identify_;
+    Policy *policy_;
 
   public:
-    SplitDiscretizer() : discretizer_(2), idxsize_(0), ressize_(0), identify_(-1)
-    {
-      discretizer_[0] = discretizer_[1] = NULL;
-    }
+    PolicyDiscretizer() : policy_(NULL) { }
   
     // From Configurable
     virtual void request(const std::string &role, ConfigurationRequest *config);
@@ -63,9 +53,9 @@ class SplitDiscretizer : public Discretizer
     virtual void reconfigure(const Configuration &config);
     
     // From Discretizer
-    virtual SplitDiscretizer* clone();
+    virtual PolicyDiscretizer* clone();
     virtual iterator begin(const Vector &point) const;
-    virtual size_t size(const Vector &point) const;
+    virtual size_t size() const;
     virtual void inc(iterator *it) const;
     virtual Vector get(const iterator &it) const;
     virtual Vector at(const Vector &point, size_t idx) const;
@@ -73,4 +63,4 @@ class SplitDiscretizer : public Discretizer
 
 }
 
-#endif /* GRL_SPLIT_DISCRETIZER_H_ */
+#endif /* GRL_POLICY_DISCRETIZER_H_ */

@@ -84,6 +84,9 @@ void reconfigure()
     {
       // <key=value...>
       configurator->reconfigure(config, true);
+
+      if (config.has("verbose"))
+        grl_log_verbosity__ = config["verbose"].i();
     }
     else if (words.size() == 1)
     {
