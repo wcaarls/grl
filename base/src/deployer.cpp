@@ -175,9 +175,9 @@ int main(int argc, char **argv)
     }
   }
 
-  if (optind != argc-1)
+  if (optind > argc-1)
   {
-    ERROR("Usage: " << endl << "  " << argv[0] << " [-v] [-c] [-s seed] <yaml file>");
+    ERROR("Usage: " << endl << "  " << argv[0] << " [-v] [-c] [-s seed] <yaml file> [yaml file...]");
     return 1;
   }
   
@@ -195,8 +195,12 @@ int main(int argc, char **argv)
   // Load plugins
   loadPlugins();
   
-  NOTICE("Loading configuration from '" << argv[optind] << "'");
-  Configurator *temp = loadYAML(argv[optind]);
+  Configurator *temp=NULL;
+  for (; optind < argc; ++optind)
+  {
+    NOTICE("Loading configuration from '" << argv[optind] << "'");
+    temp = loadYAML(argv[optind], "", temp);
+  }
   
   if (!temp)
   {
