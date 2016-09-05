@@ -28,9 +28,9 @@
 #include <grl/policies/pid.h>
 
 #define P(i, o) ((i)*outputs_+(o))
-#define I(i, o) (setpoint_.size()*outputs_+P(i, o))
-#define D(i, o) (2*setpoint_.size()*outputs_+P(i, o))
-#define IL(i, o) (3*setpoint_.size()*outputs_+P(i, o))
+#define I(i, o) (p_.size()+P(i, o))
+#define D(i, o) (p_.size()+i_.size()+P(i, o))
+#define IL(i, o) (p_.size()+i_.size()+d_.size()+P(i, o))
 
 using namespace grl;
 
@@ -56,30 +56,30 @@ void PIDPolicy::configure(Configuration &config)
     
   outputs_ = config["outputs"];
 
-  p_ = config["p"].v();
+  p_ = config["p"].v();/*
   if (!p_.size())
     p_ = ConstantVector(setpoint_.size()*outputs_, 0.);
   if (p_.size() != setpoint_.size()*outputs_)
     throw bad_param("policy/pid:p");
-    
-  i_ = config["i"].v();
+    */
+  i_ = config["i"].v();/*
   if (!i_.size())
     i_ = ConstantVector(setpoint_.size()*outputs_, 0.);
   if (i_.size() != setpoint_.size()*outputs_)
     throw bad_param("policy/pid:i");
-    
-  d_ = config["d"].v();
+    */
+  d_ = config["d"].v();/*
   if (!d_.size())
     d_ = ConstantVector(setpoint_.size()*outputs_, 0.);
   if (d_.size() != setpoint_.size()*outputs_)
     throw bad_param("policy/pid:d");
-    
-  il_ = config["il"].v();
+    */
+  il_ = config["il"].v();/*
   if (!il_.size())
     il_ = ConstantVector(setpoint_.size()*outputs_, 0.);
   if (il_.size() != setpoint_.size()*outputs_)
     throw bad_param("policy/pid:il");
-    
+    */
   params_ = extend(extend(extend(p_, i_), d_), il_);
 
   reset();  
@@ -137,13 +137,23 @@ TransitionType PIDPolicy::act(double time, const Vector &in, Vector *out)
     
     for (size_t ii=0; ii < setpoint_.size(); ++ii)
     {
-      double err = setpoint_[ii] - in[ii];
-      double acc = fmin(ival_[ii*outputs_+oo] + err, params_[IL(ii, oo)]);
-      double diff = in[ii] - prev_in_[ii];
-      
-      u += params_[P(ii, oo)]*err + params_[I(ii, oo)]*acc + params_[D(ii, oo)]*diff;
-      
-      ival_[ii*outputs_+oo] = acc;
+      double err = 0, acc = 0, diff = 0;
+
+      err = setpoint_[ii] - in[ii];
+      u += params_[P(ii, oo)]*err;
+
+      if (i_.size() && il_.size())
+      {
+        acc = fmin(ival_[ii*outputs_+oo] + err, params_[IL(ii, oo)]);
+        ival_[ii*outputs_+oo] = acc;
+        u += params_[I(ii, oo)]*acc;
+      }
+
+      if (d_.size())
+      {
+        diff = in[ii] - prev_in_[ii];
+        u += params_[D(ii, oo)]*diff;
+      }
     }
     
     (*out)[oo] = u;
@@ -257,13 +267,23 @@ TransitionType PIDTrajectoryPolicy::act(double time, const Vector &in, Vector *o
 //    for (size_t ii=0; ii < inputs_; ++ii)
     for (size_t ii=0; ii < inputs_; ii+=2)
     {
-      double err = setpoint_[ii] - in[ii];
-      double acc = fmin(ival_[ii*outputs_+oo] + err, params_[IL(ii, oo)]);
-      double diff = in[ii] - prev_in_[ii];
+      double err = 0, acc = 0, diff = 0;
 
-      u += params_[P(ii, oo)]*err + params_[I(ii, oo)]*acc + params_[D(ii, oo)]*diff;
+      err = setpoint_[ii] - in[ii];
+      u += params_[P(ii, oo)]*err;
 
-      ival_[ii*outputs_+oo] = acc;
+      if (i_.size() && il_.size())
+      {
+        acc = fmin(ival_[ii*outputs_+oo] + err, params_[IL(ii, oo)]);
+        ival_[ii*outputs_+oo] = acc;
+        u += params_[I(ii, oo)]*acc;
+      }
+
+      if (d_.size())
+      {
+        diff = in[ii] - prev_in_[ii];
+        u += params_[D(ii, oo)]*diff;
+      }
     }
 
     (*out)[oo] = u;

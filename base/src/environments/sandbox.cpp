@@ -81,10 +81,21 @@ void SandboxEnvironment::start(int test, Vector *obs)
 {
   int terminal;
 
-  task_->start(test, &state_);
-  sandbox_->start(ConstantVector(1, test), &state_);
-  task_->observe(state_, obs, &terminal);
+  Vector next, action;
+/*  action = ConstantVector(3, 0);
+  do
+  {*/
+    task_->start(test, &state_);
+    sandbox_->start(ConstantVector(1, test), &state_);
+    task_->observe(state_, obs, &terminal);
+/*
+    sandbox_->step(action, &next);
+    task_->observe(next, obs, &terminal);
 
+    if (terminal == 2)
+      std::cout << "Hmmm" << std::endl;
+  } while (terminal == 2);
+*/
   obs_ = *obs;
   state_obj_->set(state_);
 
@@ -195,7 +206,7 @@ double SandboxDynamicalModel::step(const Vector &action, Vector *next)
   {
     double armVoltage = (14.0/3.3) * 5.0*(-0.26 - state_[rlsArmAngle]);
     action0 << action, armVoltage;
-    std::cout << "  > Action: " << action0 << std::endl;
+//    std::cout << "  > Action: " << action0 << std::endl;
   }
   else
     action0 << action;
@@ -232,7 +243,7 @@ double SandboxDynamicalModel::step(const Vector &action, Vector *next)
   *next << next0, state_[2*dof_count_+1]; // fake direction
 
   dm_.dynamics_->finalize(*next);
-
+/*
   if ( fabs((*next)[rlsComVelocityZ] - 0.0) < 0.01)
   {
     if ( fabs((*next)[rlsRootZ] - 0.28) < 0.01)
@@ -240,15 +251,15 @@ double SandboxDynamicalModel::step(const Vector &action, Vector *next)
     else if ( fabs((*next)[rlsRootZ] - 0.35) < 0.01)
       (*next)[rlsRefRootZ] = 0.28;
   }
-
+*/
 
 //  (*next)[rlsRefRootZ] = 0.35;
 
-  std::cout << "  > Height: " << (*next)[rlsRootZ] << std::endl;
+//  std::cout << "  > Height: " << (*next)[rlsRootZ] << std::endl;
 
-  std::cout << "  > Next state: " << *next << std::endl;
+//  std::cout << "  > Next state: " << *next << std::endl;
 
-  export_meshup_animation(action0, *next);
+//  export_meshup_animation(action0, *next);
 
   state_ = *next;
   return tau;

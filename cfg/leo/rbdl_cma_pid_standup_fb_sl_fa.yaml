@@ -1,0 +1,41 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 0
+  steps: 0
+  rate: 0
+  test_interval: 10
+  environment: 
+    type: environment/sandbox
+    model: 
+      type: sandbox_model/dynamical
+      control_step: 0.03
+      integration_steps: 25
+      dynamics: 
+        type: dynamics/rbdl_leo
+        file: leo_fb_sl.lua
+        points: tip_left, heel_left, root
+        auxiliary: mm, com, comv, am
+      dof_count: 4
+    task: 
+      type: task/leoSquatFA
+      timeout: 10
+  agent: 
+    type: agent/black_box
+    episodes: 10
+    optimizer: 
+      type: optimizer/cma
+      population: 0
+      sigma: [1]
+      policy: 
+        type: policy/parameterized/pid
+        setpoint: [1.05884, -2.12575, 1.07339, 0, 0, 0]
+        outputs: experiment/environment/task/action_dims
+        p: [25, 0, 0, 0, 25, 0, 0, 0, 25, 2, 0, 0, 0, 2, 0, 0, 0, 1]
+        i: []
+        d: []
+        il: []
+  test_agent: 
+    type: agent/fixed
+    policy: experiment/agent/optimizer/policy
+  save_every: never

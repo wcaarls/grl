@@ -5,16 +5,16 @@ experiment:
   steps: 70000
   rate: 0
   test_interval: 10
-  output: rbdl_nmpc_ac_tc_squat_fb_sl_fa
+  output: rbdl_pid_squat_fb_sl_fa
   environment: 
     type: environment/sandbox
     model: 
       type: sandbox_model/dynamical
       control_step: 0.03
-      integration_steps: 5
+      integration_steps: 25
       dynamics: 
         type: dynamics/rbdl_leo
-        file: leo_fb_sl_fa.lua
+        file: leo_fb_sl.lua
         points: tip_left, heel_left, root
         auxiliary: mm, com, comv, am
       dof_count: 4
@@ -23,7 +23,7 @@ experiment:
       timeout: 10
     exporter: 
       type: exporter/csv
-      file: rbdl_nmpc_ac_tc_squat_fb_sl_fa
+      file: rbdl_pid_squat_fb_sl_fa
       fields: time, state, observation, action, reward, terminal
       style: meshup
       variant: test
@@ -31,11 +31,11 @@ experiment:
     type: agent/fixed
     policy: 
       type: policy/parameterized/pid
-      setpoint: [ 1.05884, -2.12575, 1.07339, 0, 0, 0 ]
+      setpoint: [1.05884, -2.12575, 1.07339, 0, 0, 0]
       outputs: experiment/environment/task/action_dims
-      p: [ 7.35, 0, 0, 0, 6.1, 0, 0, 0, 5.5, 2, 0, 0, 0, 2, 0, 0, 0, 1 ]
-      i: [  ]
-      d: [  ]
-      il: [  ]
+      p: [27.6035, 12.4543, 0.489456, 9.37329, 27.8245, 9.4813, -3.66296, 0.667898, 15.3962, 6.53336, 4.65849, -3.27758, 3.82707, 5.01062, 0.159657, 3.81938, 1.37788, -0.0391014]
+      i: []
+      d: []
+      il: []
   test_agent: experiment/agent
   save_every: never

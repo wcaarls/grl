@@ -125,9 +125,9 @@ void LeoSquatTask::start(int test, Vector *state) const
 }
 
 int LeoSquatTask::failed(const Vector &state) const
-{/*
+{
   double torsoAngle = state[rlsAnkleAngle] + state[rlsKneeAngle] + state[rlsHipAngle];
-  if ((torsoAngle < -1.0) || (torsoAngle > 1.0) ||
+  if ((torsoAngle < -1.7) || (torsoAngle > 1.7) ||
       // penalty for high joint velocities
       (state[rlsAnkleAngleRate] < true_obs_min_[rlsAnkleAngleRate]) ||
       (state[rlsAnkleAngleRate] > true_obs_max_[rlsAnkleAngleRate]) ||
@@ -138,11 +138,11 @@ int LeoSquatTask::failed(const Vector &state) const
       (state[rlsArmAngleRate]   < true_obs_min_[rlsArmAngleRate])   ||
       (state[rlsArmAngleRate]   > true_obs_max_[rlsArmAngleRate])   ||
       // lower-upper leg colision result in large velocities
-      (std::isnan(state[rlsRootZ])) ||
+      //(std::isnan(state[rlsRootZ])) ||
       (state[rlsRootZ] < 0)
       )
     return 1;
-  else*/
+  else
   {
     return 0;
   }
@@ -294,6 +294,8 @@ LeoSquatTaskFA *LeoSquatTaskFA::clone() const
 void LeoSquatTaskFA::start(int test, Vector *state) const
 {
   *state = ConstantVector(rlsStateDim, 0);
+
+  // sitted pose
   *state <<
          1.0586571916803691E+00,
         -2.1266836153365212E+00,
@@ -306,8 +308,46 @@ void LeoSquatTaskFA::start(int test, Vector *state) const
          0.0,  // rlsTime
          0.28, // rlsRefRootHeight, possible values 0.28 and 0.35
          ConstantVector(rlsStateDim - 2*rlsDofDim - 2, 0); // initialize the rest to zero
+/*
+  // falling pose
+  *state <<
+         0.0,
+         0.0,
+         0.0,
+        -0.239169,
+        -0.0,
+        -0.0,
+        -0.0,
+        -0.0,  // end of rlsDofDim
+         0.0,  // rlsTime
+         0.28, // rlsRefRootHeight, possible values 0.28 and 0.35
+         ConstantVector(rlsStateDim - 2*rlsDofDim - 2, 0); // initialize the rest to zero
+*/
+
+  // sample angles
+  const double upLegLength  = 0.1160;  // length of the thigh
+  const double loLegLength  = 0.1045; // length of the shin
+  double a, b, c, h;
+  do
+  {
+    a = RandGen::getUniform(-1.65,  1.48);
+    b = RandGen::getUniform(-2.53,  0.00);
+    c = RandGen::getUniform(-0.61,  2.53);
+
+    h = loLegLength*cos(a) + upLegLength*cos(a+b);
+  }
+  while (fabs(a + b + c) > 3.1415/2.0 || h < 0.07);
+
+//  std::cout << "Initial height: " << h << std::endl;
+
+  (*state)[rlsAnkleAngle] = a;
+  (*state)[rlsKneeAngle] = b;
+  (*state)[rlsHipAngle] = c;
+//  (*state)[rlsArmAngle] = RandGen::getUniform(-5.50,  0.36);
 
   (*state)[rlsRootZ] = 0.28;
+
+//  std::cout << "Initial state: " << *state << std::endl;
 
   root_height_ = 0;
   squats_ = 0;
@@ -318,12 +358,6 @@ void LeoSquatTaskFA::observe(const Vector &state, Vector *obs, int *terminal) co
   grl_assert(state.size() == rlsStateDim);
 
   // arm is not actuated => exclude angle and angle rate from observations
-//  std::cout << state << std::endl;
-
-//  std::cout << state.block(0, rlsAnkleAngle, 1, rlsHipAngle-rlsAnkleAngle+1) << std::endl; // angle
-//  std::cout << state.block(0, rlsAnkleAngleRate, 1, rlsHipAngleRate-rlsAnkleAngleRate+1) << std::endl; // angle rate
-//  std::cout << state[rlsRefRootHeight] << std::endl; // direction indicator
-
   obs->resize(3+3+1);
   (*obs) << state.block(0, rlsAnkleAngle, 1, rlsHipAngle-rlsAnkleAngle+1),
             state.block(0, rlsAnkleAngleRate, 1, rlsHipAngleRate-rlsAnkleAngleRate+1),
@@ -332,7 +366,10 @@ void LeoSquatTaskFA::observe(const Vector &state, Vector *obs, int *terminal) co
   if ((timeout_> 0) && (state[rlsTime] >= timeout_))
     *terminal = 1;
   else if (failed(state))
+  {
+//    std::cout << state << std::endl;
     *terminal = 2;
+  }
   else
     *terminal = 0;
 }

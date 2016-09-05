@@ -31,9 +31,9 @@ boomMass = 0.860
 boomCMY = 0.835
 boomLength = 1.70
 boomIZZ = 0.31863
-boomVirtualMassX = (boomCMY^2*boomMass + boomIZZ)/(boomLength^2)
-boomVirtualMassZ = boomMass*boomCMY/boomLength
-boomExtForce = (boomVirtualMassZ - boomVirtualMassX)*(-9.81)
+boomVirtualMassX = 0 --(boomCMY^2*boomMass + boomIZZ)/(boomLength^2)
+--boomVirtualMassZ = boomMass*boomCMY/boomLength
+--boomExtForce = (boomVirtualMassZ - boomVirtualMassX)*(-9.81)
 torsoBoomMass = torsoMass + boomVirtualMassX
 torsoCMX = -0.00102
 torsoCMZ = 0.009945
@@ -452,9 +452,9 @@ model = {
           -- support_center = {
           --   coordinates = {0.0405, 0., 0.}
           -- },
-          CoM = {
-            coordinates = {0.0351913, -0.00137974, 0.28}
-          },
+          --CoM = {
+          --  coordinates = {0.0351913, -0.00137974, 0.28}
+          --},
         }
       },
       {
@@ -577,38 +577,38 @@ model = {
         },
         visuals = visuals.arm
       },
-      {
-        name = "upper_arm",
-        parent = "torso",
-        body = {
-          mass = armMass,
-          com = {armCMX, 0., armCMZ},
-          inertia = iyymatrix(armIYY)
-            },
-        joint = joints.hinge,
-        joint_frame = {
-        r = {armJointX, armJointY, armJointZ},
-          E = {
-              { 0.96592582628906831, 0.0, -0.25881904510252074},
-              { 0.0,                 1.0,  0.0},
-              { 0.25881904510252074, 0.0,  0.96592582628906831},
-           },
-         },
-        visuals = visuals.upper_arm
-      },
-      {
-       name = "lower_arm",
-       parent = "upper_arm",
-       joint_frame = {
-         r = {0.0, 0.0, 0.0},
-         E = {
-             { 0.96592582628906831, 0.0,  0.25881904510252074},
-             { 0.0,                 1.0,  0.0},
-             {-0.25881904510252074, 0.0,  0.96592582628906831},
-         },
-        },
-       visuals = visuals.lower_arm
-      },
+      -- {
+      --   name = "upper_arm",
+      --   parent = "torso",
+      --   body = {
+      --     mass = armMass,
+      --     com = {armCMX, 0., armCMZ},
+      --     inertia = iyymatrix(armIYY)
+      --   },
+      --   joint = joints.hinge,
+      --   joint_frame = {
+      --     r = {armJointX, armJointY, armJointZ},
+      --     E = {
+      --         { 0.96592582628906831, 0.0, -0.25881904510252074},
+      --         { 0.0,                 1.0,  0.0},
+      --         { 0.25881904510252074, 0.0,  0.96592582628906831},
+      --     },
+      --   },
+      --   visuals = visuals.upper_arm
+      -- },
+      -- {
+      --   name = "lower_arm",
+      --   parent = "upper_arm",
+      --   joint_frame = {
+      --     r = {0.0, 0.0, 0.0},
+      --     E = {
+      --         { 0.96592582628906831, 0.0,  0.25881904510252074},
+      --         { 0.0,                 1.0,  0.0},
+      --         {-0.25881904510252074, 0.0,  0.96592582628906831},
+      --     },
+      --   },
+      --   visuals = visuals.lower_arm
+      -- },
   --     {
   --       name = "upperlegright",
   --       parent = "torso",

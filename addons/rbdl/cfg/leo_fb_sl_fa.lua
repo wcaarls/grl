@@ -31,9 +31,9 @@ boomMass = 0.860
 boomCMY = 0.835
 boomLength = 1.70
 boomIZZ = 0.31863
-boomVirtualMassX = (boomCMY^2*boomMass + boomIZZ)/(boomLength^2)
-boomVirtualMassZ = boomMass*boomCMY/boomLength
-boomExtForce = (boomVirtualMassZ - boomVirtualMassX)*(-9.81)
+boomVirtualMassX = 0 --(boomCMY^2*boomMass + boomIZZ)/(boomLength^2)
+--boomVirtualMassZ = boomMass*boomCMY/boomLength
+--boomExtForce = (boomVirtualMassZ - boomVirtualMassX)*(-9.81)
 torsoBoomMass = torsoMass + boomVirtualMassX
 torsoCMX = -0.00102
 torsoCMZ = 0.009945
@@ -452,9 +452,9 @@ model = {
           -- support_center = {
           --   coordinates = {0.0405, 0., 0.}
           -- },
-          CoM = {
-            coordinates = {0.0351913, -0.00137974, 0.28}
-          },
+          --CoM = {
+          --  coordinates = {0.0351913, -0.00137974, 0.28}
+          --},
         }
       },
       {
@@ -570,7 +570,8 @@ model = {
           com = {armCMX, 0., armCMZ},
           inertia = iyymatrix(armIYY)
         },
-        joint = joints.lhinge,
+        -- joint = joints.lhinge,
+        joint = {},
         joint_frame = {
           r = {armJointX, armJointY, armJointZ},
           E = rotymatrix(armICangle),
