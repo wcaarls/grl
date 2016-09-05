@@ -467,6 +467,13 @@ ObjectConfigurator* ObjectConfigurator::instantiate(Configurator *parent) const
   // Instantiate and validate configuration parameters
   for (ConfiguratorList::const_iterator cc=children_.begin(); cc != children_.end(); ++cc)
   {
+    // Instantiate
+    Configurator *nc = (*cc)->instantiate(oc);
+    if (!nc)
+      return NULL;
+    
+    INFO(path() << "/" << (*cc)->element() << ": " << nc->str());
+
     // Find matching parameter request
     for (size_t ii=0; ii < request.size(); ++ii)
     {
@@ -474,16 +481,10 @@ ObjectConfigurator* ObjectConfigurator::instantiate(Configurator *parent) const
       {
         if ((*cc)->element() == request[ii].name)
         {
-          // Instantiate
-          Configurator *nc = (*cc)->instantiate(oc);
-          if (!nc)
-            return NULL;
-          
           // Validate against request
           if (!nc->validate(request[ii]))
             return NULL;
 
-          INFO(path() << "/" << request[ii].name << ": " << nc->str());
           config.set(request[ii].name, nc->str());
         }
       }
