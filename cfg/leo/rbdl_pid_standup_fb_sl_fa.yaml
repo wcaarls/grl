@@ -20,7 +20,7 @@ experiment:
       dof_count: 4
     task: 
       type: task/leoSquatFA
-      timeout: 10
+      timeout: 4
     exporter: 
       type: exporter/csv
       file: rbdl_pid_squat_fb_sl_fa
@@ -33,7 +33,7 @@ experiment:
       type: policy/parameterized/pid
       setpoint: [1.05884, -2.12575, 1.07339, 0, 0, 0]
       outputs: experiment/environment/task/action_dims
-      p: [27.6035, 12.4543, 0.489456, 9.37329, 27.8245, 9.4813, -3.66296, 0.667898, 15.3962, 6.53336, 4.65849, -3.27758, 3.82707, 5.01062, 0.159657, 3.81938, 1.37788, -0.0391014]
+      p: [22.6066,   10.9796,   3.61769,   16.3292,   27.1049,    8.6072,   1.59535, -0.346524,   17.9629,   5.67291,   1.50186,   2.08167,   6.55467,   5.11266,   3.14173,   2.62488,  0.830859,   1.93028]
       i: []
       d: []
       il: []
