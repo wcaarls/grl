@@ -146,7 +146,7 @@ agent/master/sequential:
     type: exporter
     description: Optional exporter for transition log (supports time, state, observation, action, reward, terminal)
     mutability: configuration
-    default: 0x78a2b0
+    default: 0xeb72d0
     optional: 1
 agent/master/sequential/additive:
   description: Additive master agent that executes sub-agents sequentially and adds their outputs
@@ -426,7 +426,7 @@ environment/communicator:
     type: communicator
     description: Comunicator which exchanges messages with an actual environment
     mutability: configuration
-    default: 0x835e10
+    default: 0xf62e60
     optional: 0
   target_obs_dims:
     type: int
@@ -1475,12 +1475,6 @@ policy/nmpc:
     optional: 1
     min: 1
     max: 2147483647
-  pf:
-    type: vector.pf
-    description: NMPC setpoint
-    mutability: configuration
-    default: "[  ]"
-    optional: 1
   initFeedback:
     type: int
     description: Initialize feedback
@@ -3007,6 +3001,18 @@ sandbox_model/dynamical:
     mutability: configuration
     default: 0
     optional: 1
+  action_min:
+    type: vector.action_min
+    description: Lower limit on actions
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  action_max:
+    type: vector.action_max
+    description: Upper limit on actions
+    mutability: system
+    default: "[  ]"
+    optional: 1
 solver/agent:
   description: Solver that uses a simulated agent
   steps:
@@ -3697,6 +3703,22 @@ task/leoSquatFA:
     optional: 1
     min: 0
     max: 1.797693134862316e+308
+  initial_setpoint:
+    type: double.initial_setpoint
+    description: Initial setpoint
+    mutability: system
+    default: 0.28
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
+  rand_init:
+    type: int.rand_init
+    description: Initialization from a random pose
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
 task/lua:
   description: User-provided task specification in LUA
   observation_dims:

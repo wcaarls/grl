@@ -111,6 +111,7 @@ class StateActionConverter : public Configurable
       {
         for (int i = 0; i < action_map_.size(); i++)
           action_out[i] = action_in[ action_map_[i] ];
+        //std::cout << action_in << " > " << action_out << std::endl;
       }
       else
       {

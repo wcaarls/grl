@@ -31,7 +31,7 @@ void NMPCPolicy::request(ConfigurationRequest *config)
   config->push_back(CRP("model_name", "Name of the model in grl", model_name_));
   config->push_back(CRP("nmpc_model_name", "Name of MUSCOD MHE model library", nmpc_model_name_));
   config->push_back(CRP("outputs", "int.action_dims", "Number of outputs", (int)outputs_, CRP::System, 1));
-  config->push_back(CRP("pf", "vector.pf", "NMPC setpoint", initial_pf_));
+//  config->push_back(CRP("pf", "vector.pf", "NMPC setpoint", initial_pf_));
   config->push_back(CRP("initFeedback", "Initialize feedback", (int)initFeedback_, CRP::System, 0, 1));
   config->push_back(CRP("verbose", "Verbose mode", (int)verbose_, CRP::System, 0, 1));
 }
@@ -110,8 +110,8 @@ void NMPCPolicy::configure(Configuration &config)
   final_sd_   = ConstantVector(nmpc_->NXD(), 0);
 
   // Muscod params
-  grl_assert(config["pf"].v().size() == nmpc_->NP());
-  initial_pf_ << config["pf"].v(); // parameters
+//  grl_assert(config["pf"].v().size() == nmpc_->NP());
+//  initial_pf_ << config["pf"].v(); // parameters
   initFeedback_ = config["initFeedback"];
 
   if (verbose_)
@@ -176,11 +176,7 @@ TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
 
   // simulate model over specified time interval using NMPC internal model
   if (verbose_)
-  {/*
-    double a, b, c, d;
-    a = b = c = d = 0;
-    initial_qc_ << a, b, c, d;
-    */
+  {
     double time_interval = 0.03; //nmpc_->getSamplingRate();
     nmpc_->simulate(
         in2,

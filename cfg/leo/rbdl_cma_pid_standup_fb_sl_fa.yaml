@@ -17,9 +17,13 @@ experiment:
         points: tip_left, heel_left, root
         auxiliary: mm, com, comv, am
       dof_count: 4
+      action_min: [-10.7, -10.7, -10.7]
+      action_max: [10.7,  10.7,  10.7]
     task: 
       type: task/leoSquatFA
-      timeout: 10
+      timeout: 5
+      initial_setpoint: 0.368641
+      rand_init: 1
   agent: 
     type: agent/black_box
     episodes: 10
@@ -29,7 +33,7 @@ experiment:
       sigma: [1]
       policy: 
         type: policy/parameterized/pid
-        setpoint: [1.05884, -2.12575, 1.07339, 0, 0, 0]
+        setpoint: [0.389273, -0.881163, 0.656759, 0, 0, 0]
         outputs: experiment/environment/task/action_dims
         p: [25, 0, 0, 0, 25, 0, 0, 0, 25, 2, 0, 0, 0, 2, 0, 0, 0, 1]
         i: []

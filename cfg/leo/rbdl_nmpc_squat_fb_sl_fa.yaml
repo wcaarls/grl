@@ -11,16 +11,18 @@ experiment:
     model: 
       type: sandbox_model/dynamical
       control_step: 0.03
-      integration_steps: 5
+      integration_steps: 25
       dynamics: 
         type: dynamics/rbdl_leo
-        file: leo_fb_sl_fa.lua
+        file: leo_fb_sl.lua
         points: tip_left, heel_left, root
         auxiliary: mm, com, comv, am
       dof_count: 4
     task: 
       type: task/leoSquatFA
       timeout: 10
+      initial_setpoint: 0.37
+      rand_init: 0
     exporter: 
       type: exporter/csv
       file: rbdl_nmpc_squat_fb_sl_fa
@@ -37,7 +39,6 @@ experiment:
       model_name: nmpc_leo_squat_fb_sl_fa
       nmpc_model_name: nmpc_leo_squat_fb_sl_fa
       outputs: 3
-      pf: [0.28]
       initFeedback: 1
       verbose: 0
   test_agent: experiment/agent

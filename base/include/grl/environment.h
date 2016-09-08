@@ -388,6 +388,7 @@ class SandboxDynamicalModel : public Sandbox
     Environment *target_env_;
     DynamicalModel dm_;
     int dof_count_;
+    Vector action_min_, action_max_;
 };
 
 

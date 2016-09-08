@@ -18,9 +18,13 @@ experiment:
         points: tip_left, heel_left, root
         auxiliary: mm, com, comv, am
       dof_count: 4
+      action_min: [-10.7, -10.7, -10.7]
+      action_max: [10.7,  10.7,  10.7]
     task: 
       type: task/leoSquatFA
-      timeout: 10
+      timeout: 4
+      initial_setpoint: 0.368641
+      rand_init: 1
     exporter: 
       type: exporter/csv
       file: rbdl_pid_squat_fb_sl_fa
@@ -31,9 +35,9 @@ experiment:
     type: agent/fixed
     policy: 
       type: policy/parameterized/pid
-      setpoint: [1.05884, -2.12575, 1.07339, 0, 0, 0]
+      setpoint: [0.389273, -0.881163, 0.656759, 0, 0, 0]
       outputs: experiment/environment/task/action_dims
-      p: [27.6035, 12.4543, 0.489456, 9.37329, 27.8245, 9.4813, -3.66296, 0.667898, 15.3962, 6.53336, 4.65849, -3.27758, 3.82707, 5.01062, 0.159657, 3.81938, 1.37788, -0.0391014]
+      p: [30.8672,   18.1773,   7.21857,  -5.58252,   26.4855,   1.84077,  -2.66453,  0.608965,   24.1362,   5.48128,   4.02699,  -1.97949, -0.884299,   3.19642,  -6.18342,   0.78891,   2.29501,  -1.57301]
       i: []
       d: []
       il: []
