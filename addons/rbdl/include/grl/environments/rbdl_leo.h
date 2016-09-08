@@ -144,9 +144,10 @@ class LeoSquatTaskFA : public LeoSquatTask
     TYPEINFO("task/leoSquatFA", "Task specification for Leo squatting with a fixed arm")
 
   public:
-    LeoSquatTaskFA() { }
+    LeoSquatTaskFA() : rand_init_(0), initial_setpoint_(0.28) { }
 
     // From Configurable
+    virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
 
     // From Task
@@ -154,6 +155,10 @@ class LeoSquatTaskFA : public LeoSquatTask
     virtual void start(int test, Vector *state) const;
     virtual void observe(const Vector &state, Vector *obs, int *terminal) const;
     virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const;
+
+    // own
+    double initial_setpoint_;
+    int rand_init_;
 };
 
 }

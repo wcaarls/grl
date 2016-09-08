@@ -81,21 +81,10 @@ void SandboxEnvironment::start(int test, Vector *obs)
 {
   int terminal;
 
-  Vector next, action;
-/*  action = ConstantVector(3, 0);
-  do
-  {*/
-    task_->start(test, &state_);
-    sandbox_->start(ConstantVector(1, test), &state_);
-    task_->observe(state_, obs, &terminal);
-/*
-    sandbox_->step(action, &next);
-    task_->observe(next, obs, &terminal);
+  task_->start(test, &state_);
+  sandbox_->start(ConstantVector(1, test), &state_);
+  task_->observe(state_, obs, &terminal);
 
-    if (terminal == 2)
-      std::cout << "Hmmm" << std::endl;
-  } while (terminal == 2);
-*/
   obs_ = *obs;
   state_obj_->set(state_);
 
@@ -151,6 +140,8 @@ void SandboxDynamicalModel::request(ConfigurationRequest *config)
   dm_.request(config);
   config->push_back(CRP("dof_count", "int.dof_count", "Number of degrees of freedom of the model", dof_count_, CRP::Configuration, 0, INT_MAX));
   config->push_back(CRP("target_env", "environment", "Interaction environment", target_env_, true));
+  config->push_back(CRP("action_min", "vector.action_min", "Lower limit on actions", action_min_, CRP::System));
+  config->push_back(CRP("action_max", "vector.action_max", "Upper limit on actions", action_max_, CRP::System));
 }
 
 void SandboxDynamicalModel::configure(Configuration &config)
@@ -158,6 +149,9 @@ void SandboxDynamicalModel::configure(Configuration &config)
   dm_.configure(config);
   dof_count_ = config["dof_count"];
   target_env_ = (Environment*)config["target_env"].ptr(); // here we can select a real enviromnent if needed
+
+  action_min_ = config["action_min"].v();
+  action_max_ = config["action_max"].v();
 }
 
 SandboxDynamicalModel *SandboxDynamicalModel::clone() const
@@ -196,22 +190,25 @@ double SandboxDynamicalModel::step(const Vector &action, Vector *next)
   state0.resize(2*dof_count_+1);
   state0 << state_.block(0, 0, 1, 2*dof_count_+1);
 
-//  std::cout << state0 << std::endl;
-//  std::cout << action << std::endl;
-
   // auto-actuate arm
   Vector action0;
   action0.resize(dof_count_);
   if (action.size() == 3)
   {
     double armVoltage = (14.0/3.3) * 5.0*(-0.26 - state_[rlsArmAngle]);
+    armVoltage = fmin(10.7, fmax(armVoltage, -10.7)); // ensure voltage within limits
     action0 << action, armVoltage;
-//    std::cout << "  > Action: " << action0 << std::endl;
   }
   else
     action0 << action;
 
-  //action0 << ConstantVector(4, 0);
+  for (int i = 0; i < action_min_.size(); i++)
+    action0[i] = fmin(action_max_[i], fmax(action0[i], action_min_[i])); // ensure voltage within limits
+
+//  action0 << ConstantVector(4, 0);
+
+//  std::cout << state0 << std::endl;
+//  std::cout << "  > Action: " << action0 << std::endl;
 
   // call dynamics of the reduced state
   Vector next0;
@@ -225,24 +222,11 @@ double SandboxDynamicalModel::step(const Vector &action, Vector *next)
   else
     tau = dm_.step(state0, action0, &next0);
 
-//  std::cout << "GRL: " << next0 << std::endl;
-/*
-  // augment state
-  double t = next0[2*dof_count_];
-  int direction = state_[2*dof_count_+1] > 0.30;
-  int tt = (int)round(t/tau);
-  int t5 = (int)round(5/tau);
-  if ( tt % t5 == 0 ) // change setpoint every 5 seconds
-    direction = 1 - direction;
-  next->resize(2*dof_count_+2);
-  *next << next0.block(0, 0, 1, 2*dof_count_+1), (direction?0.35:0.28);
-  dm_.dynamics_->finalize(*next);
-*/
-
   next->resize(2*dof_count_+2);
   *next << next0, state_[2*dof_count_+1]; // fake direction
 
   dm_.dynamics_->finalize(*next);
+
 /*
   if ( fabs((*next)[rlsComVelocityZ] - 0.0) < 0.01)
   {
@@ -253,17 +237,13 @@ double SandboxDynamicalModel::step(const Vector &action, Vector *next)
   }
 */
 
-//  (*next)[rlsRefRootZ] = 0.35;
-
 //  std::cout << "  > Height: " << (*next)[rlsRootZ] << std::endl;
-
 //  std::cout << "  > Next state: " << *next << std::endl;
-
 //  export_meshup_animation(action0, *next);
 
   state_ = *next;
   return tau;
-}
+  }
 
 double SandboxDynamicalModel::export_meshup_animation(const Vector &action, const Vector &next) const
 {

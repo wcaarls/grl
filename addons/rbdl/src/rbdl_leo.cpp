@@ -251,11 +251,21 @@ void LeoSquatTask::report(std::ostream &os) const
 }
 
 /////////////////////////////////////////////////
+void LeoSquatTaskFA::request(ConfigurationRequest *config)
+{
+  LeoSquatTask::request(config);
+  config->push_back(CRP("initial_setpoint", "double.initial_setpoint", "Initial setpoint", initial_setpoint_, CRP::System, 0.0, DBL_MAX));
+  config->push_back(CRP("rand_init", "int.rand_init", "Initialization from a random pose", rand_init_, CRP::System, 0, 1));
+//  config->push_back(CRP("action_min", "vector.action_min", "Lower limit on actions", CRP::Provided));
+//  config->push_back(CRP("action_max", "vector.action_max", "Upper limit on actions", CRP::Provided));
+}
 
 void LeoSquatTaskFA::configure(Configuration &config)
 {
   action_dims_ = 3;
   timeout_ = config["timeout"];
+  initial_setpoint_ = config["initial_setpoint"];
+  rand_init_ = config["rand_init"];
 
   // True observations: 2*dof + time
   std::vector<double> obs_min = {-M_PI, -M_PI, -M_PI, -M_PI, -10*M_PI, -10*M_PI, -10*M_PI, -10*M_PI, 0};
@@ -306,51 +316,35 @@ void LeoSquatTaskFA::start(int test, Vector *state) const
         -0.0,
         -0.0,  // end of rlsDofDim
          0.0,  // rlsTime
-         0.28, // rlsRefRootHeight, possible values 0.28 and 0.35
+         initial_setpoint_, // rlsRefRootHeight, possible values 0.28 and 0.35
          ConstantVector(rlsStateDim - 2*rlsDofDim - 2, 0); // initialize the rest to zero
-/*
-  // falling pose
-  *state <<
-         0.0,
-         0.0,
-         0.0,
-        -0.239169,
-        -0.0,
-        -0.0,
-        -0.0,
-        -0.0,  // end of rlsDofDim
-         0.0,  // rlsTime
-         0.28, // rlsRefRootHeight, possible values 0.28 and 0.35
-         ConstantVector(rlsStateDim - 2*rlsDofDim - 2, 0); // initialize the rest to zero
-*/
 
-  // sample angles
-  const double upLegLength  = 0.1160;  // length of the thigh
-  const double loLegLength  = 0.1045; // length of the shin
-  double a, b, c, h;
-  do
+  if (rand_init_)
   {
-    a = RandGen::getUniform(-1.65,  1.48);
-    b = RandGen::getUniform(-2.53,  0.00);
-    c = RandGen::getUniform(-0.61,  2.53);
+    // sample angles
+    const double upLegLength  = 0.1160; // length of the thigh
+    const double loLegLength  = 0.1045; // length of the shin
+    double a, b, c, h;
+    do
+    {
+      a = RandGen::getUniform(-1.65,  1.48);
+      b = RandGen::getUniform(-2.53,  0.00);
+      c = RandGen::getUniform(-0.61,  2.53);
+      h = loLegLength*cos(a) + upLegLength*cos(a+b);
+    }
+    while (fabs(a + b + c) > 3.1415/2.0 || h < 0.07);
 
-    h = loLegLength*cos(a) + upLegLength*cos(a+b);
+    (*state)[rlsAnkleAngle] = a;
+    (*state)[rlsKneeAngle] = b;
+    (*state)[rlsHipAngle] = c;
+
+    TRACE("Initial height: " << h);
   }
-  while (fabs(a + b + c) > 3.1415/2.0 || h < 0.07);
-
-//  std::cout << "Initial height: " << h << std::endl;
-
-  (*state)[rlsAnkleAngle] = a;
-  (*state)[rlsKneeAngle] = b;
-  (*state)[rlsHipAngle] = c;
-//  (*state)[rlsArmAngle] = RandGen::getUniform(-5.50,  0.36);
-
-  (*state)[rlsRootZ] = 0.28;
-
-//  std::cout << "Initial state: " << *state << std::endl;
 
   root_height_ = 0;
   squats_ = 0;
+
+  CRAWL("Initial state: " << *state);
 }
 
 void LeoSquatTaskFA::observe(const Vector &state, Vector *obs, int *terminal) const
@@ -398,8 +392,9 @@ void LeoSquatTaskFA::evaluate(const Vector &state, const Vector &action, const V
   // track: || com_x,y - support center_x,y ||_2^2
   cost +=  pow( 50.00 * (next[rlsComX] - suppport_center), 2);
 
-  cost +=  pow( 10.00 * next[rlsComVelocityX], 2);
-  cost +=  pow( 10.00 * next[rlsComVelocityZ], 2);
+  double velW = 50.0; // 10.0
+  cost +=  pow( velW * next[rlsComVelocityX], 2);
+  cost +=  pow( velW * next[rlsComVelocityZ], 2);
 
   cost +=  pow( 100.00 * next[rlsAngularMomentumY], 2);
 
@@ -414,9 +409,10 @@ void LeoSquatTaskFA::evaluate(const Vector &state, const Vector &action, const V
 
   // regularize: || qdot ||_2^2
   // res[res_cnt++] = 6.00 * sd[QDOTS["arm"]]; // arm
-  cost += pow(6.00 * next[rlsHipAngleRate], 2); // hip_left
-  cost += pow(6.00 * next[rlsKneeAngleRate], 2); // knee_left
-  cost += pow(6.00 * next[rlsAnkleAngleRate], 2); // ankle_left
+  double rateW = 30.0; // 6.0
+  cost += pow(rateW * next[rlsHipAngleRate], 2); // hip_left
+  cost += pow(rateW * next[rlsKneeAngleRate], 2); // knee_left
+  cost += pow(rateW * next[rlsAnkleAngleRate], 2); // ankle_left
 
   // regularize: || u ||_2^2
   // res[res_cnt++] = 0.01 * u[TAUS["arm"]]; // arm
