@@ -8,14 +8,22 @@
 #include <iomanip>
 
 // GRL
-#include <grl/policies/nmpc.h>
+#include <grl/policies/nmpc_mlrti.h>
 
 // MUSCOD-II interface
 #include <wrapper.hpp>
 
 using namespace grl;
 
-REGISTER_CONFIGURABLE(NMPCPolicy)
+REGISTER_CONFIGURABLE(NMPCPolicyMLRTI);
+
+double tic, tac, ttac, ptac;
+
+double stop_watch(){
+    static struct timespec timer;
+    if (clock_gettime (CLOCK_REALTIME, &timer) != 0) return -1;
+    return (double) timer.tv_sec + 1.0E-9 * (double) timer.tv_nsec;
+}
 
 // clean-up MUSCOD-II main thread
 void stop_thread (
@@ -67,15 +75,15 @@ void stop_thread (
     pthread_join(*muscod_thread_, NULL);
 }
 
-NMPCPolicy::~NMPCPolicy()
+NMPCPolicyMLRTI::~NMPCPolicyMLRTI()
 {
   // release pointer on instances
-  cntl = NULL;
-  idle = NULL;
+  cntl_ = NULL;
+  idle_ = NULL;
 
   // stop threads
-  stop_thread (*nmpc_A, &thread_A);
-  stop_thread (*nmpc_B, &thread_B);
+  stop_thread (*nmpc_A_, &thread_A);
+  stop_thread (*nmpc_B_, &thread_B);
 
   // safely delete instances
   safe_delete(&nmpc_A_);
@@ -84,7 +92,7 @@ NMPCPolicy::~NMPCPolicy()
   safe_delete(&muscod_B_);
 }
 
-void NMPCPolicy::request(ConfigurationRequest *config)
+void NMPCPolicyMLRTI::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("lua_model", "Lua model used by MUSCOD", lua_model_));
   config->push_back(CRP("model_name", "Name of the model in grl", model_name_));
@@ -95,7 +103,7 @@ void NMPCPolicy::request(ConfigurationRequest *config)
   config->push_back(CRP("verbose", "Verbose mode", (int)verbose_, CRP::System, 0, 1));
 }
 
-void *NMPCPolicy::setup_model_path(const std::string path, const std::string model, const std::string lua_model)
+void *NMPCPolicyMLRTI::setup_model_path(const std::string path, const std::string model, const std::string lua_model)
 {
   // get the library handle,
   std::string so_path  = path + "/" + "lib" + model + ".so";
@@ -133,12 +141,12 @@ void *NMPCPolicy::setup_model_path(const std::string path, const std::string mod
 // run MUSCOD-II NMPC for several iterations to initialize controller for
 // current initial sd/pf, first qc is optional
 void initialize_controller (
-    MUSCODProblem& nmpc, const int nnmpc_init,
-    Eigen::VectorXd& sd, Eigen::VectorXd& pf,
-    Eigen::VectorXd* qc = NULL
+    MUSCODProblem& nmpc, const int nmpc_ninit_,
+    Vector& sd, Vector& pf,
+    Vector* qc = NULL
 ) {
     // initialize NMPC by nmpc_init SQP iterations
-    for (int inmpc = 0; inmpc < nnmpc_init; ++inmpc) {
+    for (int inmpc = 0; inmpc < nmpc_ninit_; ++inmpc) {
         // 1) Feedback: Embed parameters and initial value
         nmpc.feedback(sd, pf, qc);
         // 2) Transition
@@ -222,14 +230,14 @@ void *muscod_run (void *indata)
     unsigned long NU = nmpc.NU();
 
     // define initial value and placeholder for feedback
-    Eigen::VectorXd sd = Eigen::VectorXd::Zero (NXD);
-    Eigen::VectorXd pf = Eigen::VectorXd::Zero (NP);
-    Eigen::VectorXd qc = Eigen::VectorXd::Zero (NU);
+    Vector sd = Vector::Zero (NXD);
+    Vector pf = Vector::Zero (NP);
+    Vector qc = Vector::Zero (NU);
 
     // same for exchange TODO: move this to backup_muscod_state
-    nmpc.m_sd = Eigen::VectorXd::Zero (NXD);
-    nmpc.m_pf = Eigen::VectorXd::Zero (NP);
-    nmpc.m_qc = Eigen::VectorXd::Zero (NU);
+    nmpc.m_sd = Vector::Zero (NXD);
+    nmpc.m_pf = Vector::Zero (NP);
+    nmpc.m_qc = Vector::Zero (NU);
     nmpc.m_is_initialized = true;
 
     // release setup of thread
@@ -365,7 +373,7 @@ void *muscod_run (void *indata)
     pthread_exit(NULL);
 } // END OF muscod_run
 
-void NMPCPolicy::configure(Configuration &config)
+void NMPCPolicyMLRTI::configure(Configuration &config)
 {
   std::string model_path;
   model_path        = std::string(MUSCOD_CONFIG_DIR);
@@ -392,7 +400,7 @@ void NMPCPolicy::configure(Configuration &config)
   muscod_A_ = new MUSCOD();
   if (verbose_)
   {
-        muscod_A_.setLogLevelTotal(-1);
+        muscod_A_->setLogLevelTotal(-1);
   }
 
   // initialize NMPCProblem instance
@@ -408,9 +416,10 @@ void NMPCPolicy::configure(Configuration &config)
   }
 
   // initialize controller by running several SQP iterations
-  initialize_controller (
-    *nmpc_A, nnmpc_init, initial_sd, initial_pf, &first_qc
-  );()
+  // TODO where to initialize controller?
+  // initialize_controller (
+  //   *nmpc_A_, nmpc_ninit_, initial_sd, initial_pf, &first_qc
+  // );
 
   // provide condition variable and mutex to NMPC instance
   nmpc_A_->cond_iv_ready_ = &cond_iv_ready_A_;
@@ -418,15 +427,15 @@ void NMPCPolicy::configure(Configuration &config)
 
   // start NMPC controller in own thread running signal controlled event loop
   initialize_thread(
-    &muscod_thread_A, muscod_run, static_cast<void*> (nmpc_A),
-    &cond_iv_ready_A, &mutex_A, true
+    &thread_A_, muscod_run, static_cast<void*> (nmpc_A_),
+    &cond_iv_ready_A_, &mutex_A_, true
   );
 
   //------------------- Initialize NMPC thread B ------------------- //
   muscod_B_ = new MUSCOD();
   if (verbose_)
   {
-        muscod_A_.setLogLevelTotal(-1);
+        muscod_A_->setLogLevelTotal(-1);
   }
 
   nmpc_B_ = new NMPCProblem(
@@ -440,43 +449,49 @@ void NMPCPolicy::configure(Configuration &config)
         nmpc_B_->m_verbose = false;
   }
 
+  // initialize controller by running several SQP iterations
+  // TODO where to initialize controller?
+  // initialize_controller (
+  //   *nmpc_B_, nmpc_ninit_, initial_sd, initial_pf, &first_qc
+  // );
+
   // provide condition variable and mutex to NMPC instance
   nmpc_B_->cond_iv_ready_ = &cond_iv_ready_B_;
   nmpc_B_->mutex_ = &mutex_B_;
 
   // start NMPC controller in own thread running signal controlled event loop
   initialize_thread(
-    &muscod_thread_B, muscod_run, static_cast<void*> (nmpc_B),
-    &cond_iv_ready_B, &mutex_B, true
+    &thread_B_, muscod_run, static_cast<void*> (nmpc_B_),
+    &cond_iv_ready_B_, &mutex_B_, true
   );
 
   //------------------- Define state of MLRTI NMPC ------------------- //
 
   // use pointers to identify different controllers
-  // NOTE cntl means LMPC at current set-point
-  // NOTE idle means NMPC feedback before going into re-linearization
-  cntl = nmpc_A; // LMPC controller
-  idle = nmpc_B; // NMPC controller
+  // NOTE cntl_ means LMPC at current set-point
+  // NOTE idle_ means NMPC feedback before going into re-linearization
+  cntl_ = nmpc_A_; // LMPC controller
+  idle_ = nmpc_B_; // NMPC controller
 
   // set proper mode of controller
   // NOTE nmpc_mode 0 => provide feedback but then re-linearize controller
   // NOTE nmpc_mode 1 => provide linear feedback only, no re-linearization
-  idle->set_nmpc_mode(0);
-  cntl->set_nmpc_mode(1);
+  idle_->set_nmpc_mode(0);
+  cntl_->set_nmpc_mode(1);
 
   // define current state
-  STATE current_state = idle_call;
+  STATE current_state_ = idle_call;
 
   //------------------- Initialize NMPC data ------------------- //
 
   // Allocate memory
-  //initial_sd_ = ConstantVector(nmpc_->NXD(), 0);
-  initial_pf_ = ConstantVector(nmpc_->NP(), 0);
-  initial_qc_ = ConstantVector(nmpc_->NU(), 0);
-  final_sd_   = ConstantVector(nmpc_->NXD(), 0);
+  //initial_sd_ = ConstantVector(nmpc_A_->NXD(), 0);
+  initial_pf_ = ConstantVector(nmpc_A_->NP(), 0);
+  initial_qc_ = ConstantVector(nmpc_A_->NU(), 0);
+  final_sd_   = ConstantVector(nmpc_A_->NXD(), 0);
 
   // Muscod params
-  grl_assert(config["pf"].v().size() == nmpc_->NP());
+  grl_assert(config["pf"].v().size() == nmpc_A_->NP());
   initial_pf_ << config["pf"].v(); // parameters
   initFeedback_ = config["initFeedback"];
 
@@ -485,36 +500,37 @@ void NMPCPolicy::configure(Configuration &config)
   }
 }
 
-void NMPCPolicy::reconfigure(const Configuration &config)
+void NMPCPolicyMLRTI::reconfigure(const Configuration &config)
 {
 }
 
 
-void NMPCPolicy::muscod_reset(const Vector &initial_obs, double time)
+void NMPCPolicyMLRTI::muscod_reset(const Vector &initial_obs, double time)
 {
+  Vector initial_sd_ = initial_obs;
   nmpc_A_->set_nmpc_mode(0);
   initialize_controller (
-    *nmpc_A_, nnmpc_init, initial_obs_, initial_pf_, &initial_qc
+    *nmpc_A_, nmpc_ninit_, initial_sd_, initial_pf_, &initial_qc_
   );
 
   nmpc_B_->set_nmpc_mode(0);
   initialize_controller (
-    *nmpc_B_, nnmpc_init, initial_obs_, initial_pf_, &initial_qc
+    *nmpc_B_, nmpc_ninit_, initial_sd_, initial_pf_, &initial_qc_
   );
 
   //------------------- Define state of MLRTI NMPC ------------------- //
 
   // use pointers to identify different controllers
-  // NOTE cntl means LMPC at current set-point
-  // NOTE idle means NMPC feedback before going into re-linearization
-  cntl = nmpc_A; // LMPC controller
-  idle = nmpc_B; // NMPC controller
+  // NOTE cntl_ means LMPC at current set-point
+  // NOTE idle_ means NMPC feedback before going into re-linearization
+  cntl_ = nmpc_A_; // LMPC controller
+  idle_ = nmpc_B_; // NMPC controller
 
   // set proper mode of controller
   // NOTE nmpc_mode 0 => provide feedback but then re-linearize controller
   // NOTE nmpc_mode 1 => provide linear feedback only, no re-linearization
-  idle->set_nmpc_mode(0);
-  cntl->set_nmpc_mode(1);
+  idle_->set_nmpc_mode(0);
+  cntl_->set_nmpc_mode(1);
 
   // define current state
   STATE current_state = idle_call;
@@ -523,7 +539,7 @@ void NMPCPolicy::muscod_reset(const Vector &initial_obs, double time)
     std::cout << "MUSCOD is reseted!" << std::endl;
 }
 
-NMPCPolicy *NMPCPolicy::clone() const
+NMPCPolicyMLRTI *NMPCPolicyMLRTI::clone() const
 {
   return NULL;
 }
@@ -565,8 +581,8 @@ void wait_for_iv_ready (NMPCProblem* nmpc, bool verbose = false)
 
 void provide_iv (
     NMPCProblem* nmpc,
-    const Eigen::VectorXd& initial_sd,
-    const Eigen::VectorXd& initial_pf,
+    const Vector& initial_sd,
+    const Vector& initial_pf,
     bool* iv_provided,
     bool wait = true,
     bool verbose = false
@@ -649,7 +665,7 @@ void wait_for_qc_ready (NMPCProblem* nmpc, bool verbose = false)
 
 void retrieve_qc (
     NMPCProblem* nmpc,
-    Eigen::VectorXd* first_qc,
+    Vector* first_qc,
     bool* qc_retrieved,
     bool wait = true,
     bool verbose = false
@@ -706,9 +722,9 @@ void retrieve_qc (
 
 void get_feedback (
     NMPCProblem* nmpc,
-    const Eigen::VectorXd& initial_sd,
-    const Eigen::VectorXd& initial_pf,
-    Eigen::VectorXd* first_qc,
+    const Vector& initial_sd,
+    const Vector& initial_pf,
+    Vector* first_qc,
     bool* iv_provided,
     bool* qc_retrieved,
     bool wait = true,
@@ -723,7 +739,7 @@ void get_feedback (
     return;
 }
 
-TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
+TransitionType NMPCPolicyMLRTI::act(double time, const Vector &in, Vector *out)
 {
   grl_assert(in.size() == nmpc_A_->NXD() + 1); // setpoint indicator
   grl_assert(outputs_  == nmpc_A_->NU());
@@ -735,29 +751,29 @@ TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
   }
 
   // remove indicator
-  Vector in2 = in.block(0, 0, 1, in.size()-1);
+  Vector initial_sd_ = in.block(0, 0, 1, in.size()-1);
 
   if (time == 0.0)
-    muscod_reset(in2, time);
+    muscod_reset(initial_sd_, time);
 
   if (verbose_)
   {
-    std::cout << "time: [ " << time << " ]; state: [ " << in2 << "]" << std::endl;
+    std::cout << "time: [ " << time << " ]; state: [ " << initial_sd_ << "]" << std::endl;
     std::cout << "                          param: [ " << initial_pf_ << "]" << std::endl;
   }
 
   // switch statement implementing the above mentioned finite state machine
   // 0: idle_call
-  //    call idle at current state, retrieve feedback, start
+  //    call idle_ at current state, retrieve feedback, start
   //    re-linearization
   //    state -> 1 (idle_ready)
   // 1: idle_ready:
-  //    while waiting for the preparation phase of idle, provide feedback
-  //    from cntl, if idle is ready state -> 2 (idle_switch)
+  //    while waiting for the preparation phase of idle_, provide feedback
+  //    from cntl_, if idle_ is ready state -> 2 (idle_switch)
   // 2: idle_switch
-  //    switch controllers idle <-> cntl
+  //    switch controllers idle_ <-> cntl_
   //    state -> 0 (idle_call)
-  switch (current_state) {
+  switch (current_state_) {
     case idle_call:
       if (verbose_)
       {
@@ -768,17 +784,17 @@ TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
       //       qc is is computed
       // NOTE: due to waiting flag, main thread is on hold until
       //       computations are finished (<=2ms!)
-      idle_iv_provided = true;
-      idle_qc_retrieved = true;
+      idle_iv_provided_ = true;
+      idle_qc_retrieved_ = true;
 
       // establish IPC communication to NMPC thread
       get_feedback (
-        idle,
-        initial_sd,
-        initial_pf,
-        first_qc,
-        &idle_iv_provided,
-        &idle_qc_retrieved,
+        idle_,
+        initial_sd_,
+        initial_pf_,
+        &initial_qc_,
+        &idle_iv_provided_,
+        &idle_qc_retrieved_,
         // NOTE: we use wait flag here to guarantee separation of
         //       feedback phases
         true // wait flag
@@ -786,7 +802,7 @@ TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
 
       // handle return values from thread
       // NOTE iv_provided and qc_retrieved shall be true!
-      if (idle_iv_provided == true) {
+      if (idle_iv_provided_ == true) {
           if (verbose_)
           {
             std::cout << "MAIN: Provided initial values to thread!" << std::endl;
@@ -795,7 +811,7 @@ TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
         std::cerr << "MAIN: Providing initial values to thread was not possible!" << std::endl;
         abort();
       }
-      if (idle_qc_retrieved == true) {
+      if (idle_qc_retrieved_ == true) {
           if (verbose_)
           {
             std::cout << "MAIN: Retrieved feedback controls!" << std::endl;
@@ -808,29 +824,29 @@ TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
       if (verbose_)
       {
         std::cout << "MAIN: timing statistics:" << std::endl;
-        std::cout << idle->timing._timing << std::endl;
+        std::cout << idle_->timing._timing << std::endl;
       }
 
       // store entries for later analysis and write to file
-      timing_values_idle.push_back(idle->timing._timing);
-      timing_values.push_back(idle->timing._timing);
+      timing_values_idle_.push_back(idle_->timing._timing);
+      timing_values_.push_back(idle_->timing._timing);
 
-      // copy idle timer states to ttimer
-      ttimer = idle->timing;
+      // copy idle_ timer states to ttimer
+      ttimer_ = idle_->timing;
 
-      // idle is successfully idled, feedback
+      // idle_ is successfully idled, feedback
       if (verbose_)
       {
         std::cout << "MAIN: idled!" << std::endl;
       }
       // change state:
       //   state -> 1 (idle_ready)
-      current_state = idle_ready;
+      current_state_ = idle_ready;
 
       // break statement of switch case
       break; //optional
 
-  // idle (NMPC) controller is idled and while waiting linear feedback
+  // idle_ (NMPC) controller is idled and while waiting linear feedback
   // is provided
   case idle_ready:
     if (verbose_)
@@ -842,17 +858,17 @@ TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
     //       qc is is computed
     // NOTE: due to waiting flag, main thread is on hold until
     //       computations are finished (<=2ms!)
-    cntl_iv_provided = true;
-    cntl_qc_retrieved = true;
+    cntl_iv_provided_ = true;
+    cntl_qc_retrieved_ = true;
 
     // establish IPC communication to NMPC thread
     get_feedback (
-      cntl, // LMPC controller
-      initial_sd,
-      initial_pf,
-      first_qc,
-      &cntl_iv_provided,
-      &cntl_qc_retrieved,
+      cntl_, // LMPC controller
+      initial_sd_,
+      initial_pf_,
+      &initial_qc_,
+      &cntl_iv_provided_,
+      &cntl_qc_retrieved_,
       // NOTE: we use wait flag here to guarantee separation of
       //       feedback phases
       true // wait flag
@@ -861,7 +877,7 @@ TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
     // handle return values from thread
     // NOTE iv_provided and qc_retrieved shall be true!
     // FIXME is this necessary?
-    if (cntl_iv_provided == true) {
+    if (cntl_iv_provided_ == true) {
           if (verbose_)
           {
             std::cout << "MAIN: Provided initial values to thread!" << std::endl;
@@ -870,7 +886,7 @@ TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
       std::cerr << "MAIN: Providing initial values to thread was not possible!" << std::endl;
       abort();
     }
-    if (cntl_qc_retrieved == true) {
+    if (cntl_qc_retrieved_ == true) {
           if (verbose_)
           {
             std::cout << "MAIN: Retrieved feedback controls!" << std::endl;
@@ -883,17 +899,17 @@ TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
     if (verbose_)
     {
       std::cout << "MAIN: timing statistics:" << std::endl;
-      std::cout << cntl->timing._timing << std::endl;
+      std::cout << cntl_->timing._timing << std::endl;
     }
 
     // store entries for later analysis and write to file
-    timing_values_cntl.push_back(cntl->timing._timing);
-    timing_values.push_back(cntl->timing._timing);
+    timing_values_cntl_.push_back(cntl_->timing._timing);
+    timing_values_.push_back(cntl_->timing._timing);
 
-    // copy idle timer states to ttimer
-    ttimer = cntl->timing;
+    // copy idle_ timer states to ttimer
+    ttimer_ = cntl_->timing;
 
-    if (idle->get_iv_ready()) {
+    if (idle_->get_iv_ready()) {
           if (verbose_)
           {
                   std::cout << std::endl;
@@ -903,12 +919,12 @@ TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
 
         // change state:
         //   state -> 2 (idle_switch)
-        current_state = idle_switch;
+        current_state_ = idle_switch;
     }
     // break statement of switch case
     break; //optional
 
-  // when idle (NMPC) controller is finished switch controllers and
+  // when idle_ (NMPC) controller is finished switch controllers and
   // reset state machine
   case idle_switch:
     if (verbose_)
@@ -917,15 +933,15 @@ TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
     }
 
     // use pointers to identify different controllers
-    // switch controllers cntl <-> idle
-    cntl = nmpc_B;
-    idle = nmpc_A;
+    // switch controllers cntl_ <-> idle_
+    cntl_ = nmpc_B_;
+    idle_ = nmpc_A_;
 
     // set proper mode of controller
     // NOTE nmpc_mode 0 => provide feedback but then re-linearize controller
     // NOTE nmpc_mode 1 => provide linear feedback only, no re-linearization
-    idle->set_nmpc_mode(0);
-    cntl->set_nmpc_mode(1);
+    idle_->set_nmpc_mode(0);
+    cntl_->set_nmpc_mode(1);
 
     if (verbose_)
     {
@@ -936,7 +952,7 @@ TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
 
     // change state:
     //   state -> 0 (idle_call)
-    current_state = idle_call;
+    current_state_ = idle_call;
 
     break; //optional
 

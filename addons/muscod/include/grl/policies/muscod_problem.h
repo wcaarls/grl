@@ -17,6 +17,9 @@
 #include <dlfcn.h> // to handle dynamic libraries
 #include <iostream> // for standard cout, cerr
 
+// threading support
+#include <pthread.h>
+
 // Eigen3 support
 #include <Eigen/Dense>
 
@@ -30,6 +33,47 @@
 // namespace MUSCODProblem { // BEGIN NAMESPACE MUSCOD
 // *****************************************************************************
 
+struct MUSCODTiming {
+
+    // vector of timing data
+    // of single operations
+    // 0: feedback
+    // 1: transition
+    // 2: shift
+    // 3: prepare
+
+    // of combined operations
+    // 4: preparation
+    // 5: total
+    grl::Vector _timing;
+
+    void time_feedback (double timing) {_timing[0] = timing;}
+    void time_transition (double timing) {_timing[1] = timing;}
+    void time_shift (double timing) {_timing[2] = timing;}
+    void time_prepare (double timing) {_timing[3] = timing;}
+    void time_preparation (double timing) {_timing[4] = timing;}
+    void time_total (double timing) {_timing[5] = timing;}
+
+    double get_feedback () {return _timing[0];}
+    double get_transition () {return _timing[1];}
+    double get_shift () {return _timing[2];}
+    double get_prepare () {return _timing[3];}
+    double get_preparation () {return _timing[4];}
+    double get_total () {return _timing[5];}
+
+    MUSCODTiming ()
+    {
+        // initialize vectors
+        _timing = grl::Vector::Zero(6);
+    };
+
+    void reset() {
+      _timing.fill(0.0);
+    }
+
+};
+
+
 // *****************************************************************************
 // MUSCOD data base class
 // *****************************************************************************
@@ -37,12 +81,20 @@
 struct MUSCODProblem {
   bool m_verbose;
 
+  // thread handles
+  std::string thread_id;
+  pthread_cond_t* cond_iv_ready_;
+  pthread_mutex_t* mutex_;
+
   // MUSCOD-II handles
   bool m_extern_muscod;
   std::string m_problem_path, m_model_name;
   MUSCOD* m_muscod; // pointer to MUSCOD process
   CHMData* m_data; // pointer to MUSCOD data
   TOptions* m_options; // pointer to MUSCOD options
+
+  // MUSCOD-II timing statistics of NMPC evaluations
+  MUSCODTiming timing;
 
   // problem library handles
   void* m_problem_so_handle; // handle to problem library
@@ -64,9 +116,10 @@ struct MUSCODProblem {
 
   // ---------------------------------------------------------------------------
 
+  /*
   void print_states () {
     // grl::Vector times (m_NMSN);
-    Eigen::MatrixXd states (m_NXD, m_NMSN);
+    // grl::MatrixXd states (m_NXD, m_NMSN);
     // set up measurements on horizon
     for (int imsn = 0; imsn < m_NMSN; ++imsn) {
       m_muscod->getNodeSD(imsn, states.col(imsn).data());
@@ -78,7 +131,7 @@ struct MUSCODProblem {
   }
 
   void print_controls () {
-    Eigen::MatrixXd controls (m_NU, m_NMSN);
+    // grl::MatrixXd controls (m_NU, m_NMSN);
     // set up measurements on horizon
     for (int imsn = 0; imsn < m_NMSN; ++imsn) {
       m_muscod->getNodeQC(imsn, controls.col(imsn).data());
@@ -91,6 +144,7 @@ struct MUSCODProblem {
     m_muscod->getPF(parameters.data());
     std::cout << "parameters = " << std::endl << parameters << std::endl;
   }
+  */
 
   // ---------------------------------------------------------------------------
 
@@ -185,7 +239,13 @@ struct MUSCODProblem {
   MUSCODProblem(
     std::string problem_path, std::string model_name,
     MUSCOD* muscod = NULL
-  ) : m_extern_muscod(false) {
+  ) :
+    m_verbose (false),
+    cond_iv_ready_ (NULL),
+    mutex_ (NULL),
+    m_extern_muscod(false),
+    thread_id ("")
+  {
     // assign model and problem path
     m_problem_path = problem_path;
     m_model_name = model_name;

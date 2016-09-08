@@ -11,11 +11,12 @@
 #include <grl/policy.h>
 #include <grl/policies/muscod_data.h> // MUSCOD-II thread-safe data structure
 #include "wrapper.hpp" // MUSCOD-II interface
+#include "muscod_nmpc.h" // MUSCOD-II NMPCProblem class
 #include <time.h>
 
 namespace grl {
 
-class NMPCPolicyTh: public Policy
+class NMPCPolicyMLRTI: public Policy
 {
   public:
     TYPEINFO(
@@ -25,9 +26,11 @@ class NMPCPolicyTh: public Policy
 
   protected:
     int verbose_, single_step_; // TODO what is single_step_?
+    int initFeedback_;
     int nmpc_ninit_; // number of MUSCOD SQP iterations for initialization
-    std::string model_name_, lua_model_;
+    std::string model_name_, lua_model_, nmpc_model_name_;
     size_t outputs_, inputs_;
+    Vector initial_pf_, initial_qc_, final_sd_;
 
     // MUSCOD-II interface
     void *so_handle_; // handle to a shared library with problem definitions
@@ -47,8 +50,8 @@ class NMPCPolicyTh: public Policy
     pthread_mutex_t mutex_B_;
 
     // pointer to different NMPC modes
-    NMPCProblem* cntl;
-    NMPCProblem* idle;
+    NMPCProblem* cntl_;
+    NMPCProblem* idle_;
 
     Vector muscod_obs_;
     Matrix muscod_action_;
@@ -69,6 +72,7 @@ class NMPCPolicyTh: public Policy
         idle_switch,
         STATE_LAST
     };
+    STATE current_state_;
 
     // temporary variable to control IPC to controller threads
     // NOTE iv_provided and qc_retrieved booleans are options for get_feedback
@@ -82,10 +86,14 @@ class NMPCPolicyTh: public Policy
     bool cntl_iv_provided_;
     bool cntl_qc_retrieved_;
 
+    // joint timing statistics
+    // NOTE ttimer copies respective data from controller timings
+    MUSCODTiming ttimer_;
+
     // define variables to time NMPC execution
-    std::vector<Eigen::VectorXd> timing_values_;
-    std::vector<Eigen::VectorXd> timing_values_idle_;
-    std::vector<Eigen::VectorXd> timing_values_cntl_;
+    std::vector<Vector> timing_values_;
+    std::vector<Vector> timing_values_idle_;
+    std::vector<Vector> timing_values_cntl_;
 
     // pthread thread, conditions and mutexes
     void   print_array(const double* arr, const unsigned int len);
@@ -93,17 +101,19 @@ class NMPCPolicyTh: public Policy
     void   muscod_quit(void* data);
 
   public:
-    NMPCPolicyTh():
+    NMPCPolicyMLRTI():
         single_step_(0),
         nmpc_ninit_(10),
+        initFeedback_(0),
         inputs_(0),
         outputs_(0),
         verbose_(0) ,
         idle_iv_provided_ (true),
         idle_qc_retrieved_ (true),
         cntl_iv_provided_ (true),
-        cntl_qc_retrieved_ (true);
-    ~NMPCPolicyTh() {};
+        cntl_qc_retrieved_ (true)
+    {};
+    ~NMPCPolicyMLRTI() {};
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -111,8 +121,11 @@ class NMPCPolicyTh: public Policy
     virtual void reconfigure(const Configuration &config);
 
     // From Policy
-    virtual NMPCPolicyTh *clone() const;
+    virtual NMPCPolicyMLRTI *clone() const;
     virtual TransitionType act(double time, const Vector &in, Vector *out);
+
+    // Own
+    void *setup_model_path(const std::string path, const std::string model, const std::string lua_model);
 };
 
 } /* namespace grl */

@@ -44,7 +44,7 @@ if (MUSCOD_FOUND)
 
   link_directories( ${MUSCOD_DIR}/lib64 )
   link_directories( ${MUSCOD_DIR}/../../Packages/COMMON_CODE/${MUSCOD_BUILD_TYPE}/lib64/ )
-  link_directories( ${MUSCOD_DIR}/../../Packages/LIBLAC/${MUSCOD_BUILD_TYPE}/lib64/ )  
+  link_directories( ${MUSCOD_DIR}/../../Packages/LIBLAC/${MUSCOD_BUILD_TYPE}/lib64/ )
   link_directories( ${MUSCOD_DIR}/../../Packages/INTERFACES/${MUSCOD_BUILD_TYPE}/CPP/ )
 
   include_directories( ${MUSCOD_DIR}/../../Packages/INTERFACES/${MUSCOD_BUILD_TYPE}/include/ )
@@ -56,6 +56,7 @@ if (MUSCOD_FOUND)
               ${SRC}/nmpc_sw.cpp
               ${SRC}/mhe_nmpc_sw.cpp
               ${SRC}/nmpc_th.cpp
+              ${SRC}/nmpc_mlrti.cpp
              )
 
   # Add dependencies
