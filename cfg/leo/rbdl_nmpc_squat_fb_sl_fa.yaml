@@ -1,7 +1,7 @@
 experiment: 
   type: experiment/online_learning
   runs: 1
-  trials: 0
+  trials: 1
   steps: 0
   rate: 0
   test_interval: 0
@@ -18,10 +18,12 @@ experiment:
         points: tip_left, heel_left, root
         auxiliary: mm, com, comv, am
       dof_count: 4
+      action_min: [-10.7, -10.7, -10.7]
+      action_max: [10.7, 10.7, 10.7]
     task: 
       type: task/leoSquatFA
       timeout: 10
-      initial_setpoint: 0.37
+      initial_setpoint: 0.28
       rand_init: 0
     exporter: 
       type: exporter/csv

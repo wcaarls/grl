@@ -227,7 +227,6 @@ double SandboxDynamicalModel::step(const Vector &action, Vector *next)
 
   dm_.dynamics_->finalize(*next);
 
-/*
   if ( fabs((*next)[rlsComVelocityZ] - 0.0) < 0.01)
   {
     if ( fabs((*next)[rlsRootZ] - 0.28) < 0.01)
@@ -235,7 +234,6 @@ double SandboxDynamicalModel::step(const Vector &action, Vector *next)
     else if ( fabs((*next)[rlsRootZ] - 0.35) < 0.01)
       (*next)[rlsRefRootZ] = 0.28;
   }
-*/
 
 //  std::cout << "  > Height: " << (*next)[rlsRootZ] << std::endl;
 //  std::cout << "  > Next state: " << *next << std::endl;
@@ -243,7 +241,7 @@ double SandboxDynamicalModel::step(const Vector &action, Vector *next)
 
   state_ = *next;
   return tau;
-  }
+}
 
 double SandboxDynamicalModel::export_meshup_animation(const Vector &action, const Vector &next) const
 {

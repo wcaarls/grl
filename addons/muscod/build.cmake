@@ -56,7 +56,7 @@ if (MUSCOD_FOUND)
               ${SRC}/nmpc_sw.cpp
               ${SRC}/mhe_nmpc_sw.cpp
               ${SRC}/nmpc_th.cpp
-              ${SRC}/nmpc_mlrti.cpp
+#              ${SRC}/nmpc_mlrti.cpp
              )
 
   # Add dependencies

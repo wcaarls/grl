@@ -256,8 +256,6 @@ void LeoSquatTaskFA::request(ConfigurationRequest *config)
   LeoSquatTask::request(config);
   config->push_back(CRP("initial_setpoint", "double.initial_setpoint", "Initial setpoint", initial_setpoint_, CRP::System, 0.0, DBL_MAX));
   config->push_back(CRP("rand_init", "int.rand_init", "Initialization from a random pose", rand_init_, CRP::System, 0, 1));
-//  config->push_back(CRP("action_min", "vector.action_min", "Lower limit on actions", CRP::Provided));
-//  config->push_back(CRP("action_max", "vector.action_max", "Upper limit on actions", CRP::Provided));
 }
 
 void LeoSquatTaskFA::configure(Configuration &config)
@@ -360,10 +358,7 @@ void LeoSquatTaskFA::observe(const Vector &state, Vector *obs, int *terminal) co
   if ((timeout_> 0) && (state[rlsTime] >= timeout_))
     *terminal = 1;
   else if (failed(state))
-  {
-//    std::cout << state << std::endl;
     *terminal = 2;
-  }
   else
     *terminal = 0;
 }
@@ -392,7 +387,7 @@ void LeoSquatTaskFA::evaluate(const Vector &state, const Vector &action, const V
   // track: || com_x,y - support center_x,y ||_2^2
   cost +=  pow( 50.00 * (next[rlsComX] - suppport_center), 2);
 
-  double velW = 50.0; // 10.0
+  double velW = 10.0; // 10.0
   cost +=  pow( velW * next[rlsComVelocityX], 2);
   cost +=  pow( velW * next[rlsComVelocityZ], 2);
 
@@ -409,7 +404,7 @@ void LeoSquatTaskFA::evaluate(const Vector &state, const Vector &action, const V
 
   // regularize: || qdot ||_2^2
   // res[res_cnt++] = 6.00 * sd[QDOTS["arm"]]; // arm
-  double rateW = 30.0; // 6.0
+  double rateW = 6.0; // 6.0
   cost += pow(rateW * next[rlsHipAngleRate], 2); // hip_left
   cost += pow(rateW * next[rlsKneeAngleRate], 2); // knee_left
   cost += pow(rateW * next[rlsAnkleAngleRate], 2); // ankle_left

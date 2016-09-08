@@ -11,13 +11,15 @@ experiment:
     model: 
       type: sandbox_model/dynamical
       control_step: 0.03
-      integration_steps: 5
+      integration_steps: 25
       dynamics: 
         type: dynamics/rbdl_leo
-        file: leo_fb_sl_fa.lua
+        file: leo_fb_sl.lua
         points: tip_left, heel_left, root
         auxiliary: mm, com, comv, am
       dof_count: 4
+      action_min: [-10.7, -10.7, -10.7]
+      action_max: [10.7,  10.7,  10.7]
     task: 
       type: task/leoSquatFA
       timeout: 10
