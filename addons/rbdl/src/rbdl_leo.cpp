@@ -317,6 +317,8 @@ void LeoSquatTaskFA::start(int test, Vector *state) const
          initial_setpoint_, // rlsRefRootHeight, possible values 0.28 and 0.35
          ConstantVector(rlsStateDim - 2*rlsDofDim - 2, 0); // initialize the rest to zero
 
+  (*state)[rlsRootZ] = initial_setpoint_;
+
   if (rand_init_)
   {
     // sample angles
