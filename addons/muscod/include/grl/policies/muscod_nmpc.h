@@ -10,6 +10,10 @@
 // Includes
 // *****************************************************************************
 
+// GRL
+#include <grl/utils.h>
+#include <grl/vector.h>
+
 // C++ standard library
 #include <iostream>
 
@@ -57,9 +61,13 @@ struct NMPCProblem : public MUSCODProblem {
   int m_shift_mode;
 
   // work space for NMPC
-  Eigen::VectorXd m_sd;
-  Eigen::VectorXd m_pf;
-  Eigen::VectorXd m_qc;
+  grl::Vector m_sd; // only first shooting node contains initial values
+  grl::Vector m_pf; // global parameters
+  grl::Vector m_qc; // all controls have to saved
+
+  // place holder for initial solution
+  grl::Vector backup_h, backup_p;
+  grl::Matrix backup_xd, backup_qc;
 
 // -----------------------------------------------------------------------------
 // thread-safe setters and getters
@@ -196,6 +204,38 @@ struct NMPCProblem : public MUSCODProblem {
     std::cout << "In function '" << __func__ << "' no mutex is assigned!" << std::endl;
     abort();
   }
+
+  inline void backup_muscod_state()
+  {
+    backup_h.resize(m_NH);
+    backup_p.resize(m_NP);
+    backup_xd = grl::Matrix::Constant(m_NMSN, m_NXD, 0.0);
+    backup_qc = grl::Matrix::Constant(m_NMSN, m_NU,  0.0);
+
+    m_muscod->getHF(backup_h.data());
+    m_muscod->getPF(backup_p.data());
+
+    grl::Vector mssqp_xd = grl::ConstantVector(m_NXD, 0.0);
+    grl::Vector mssqp_qc = grl::ConstantVector(m_NU,  0.0);
+    for (unsigned int imsn = 0; imsn < m_NMSN; ++imsn)
+    {
+      m_muscod->getNodeSD(imsn, mssqp_xd.data());
+      m_muscod->getNodeQC(imsn, mssqp_qc.data());
+      backup_xd.row(imsn) = mssqp_xd;
+      backup_qc.row(imsn) = mssqp_qc;
+    }
+  };
+
+  inline void restore_muscod_state()
+  {
+      m_muscod->setHF(backup_h.data());
+      m_muscod->setPF(backup_p.data());
+      for (unsigned int imsn = 0; imsn < m_NMSN; ++imsn)
+      {
+        m_muscod->setNodeSD(imsn, backup_xd.row(imsn).data());
+        m_muscod->setNodeQC(imsn, backup_qc.row(imsn).data());
+      }
+  };
 
 
 // -----------------------------------------------------------------------------
