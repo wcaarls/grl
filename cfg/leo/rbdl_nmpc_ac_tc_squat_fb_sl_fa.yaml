@@ -4,7 +4,7 @@ experiment:
   trials: 0
   steps: 70000
   rate: 0
-  test_interval: 10
+  test_interval: 0
   output: rbdl_nmpc_ac_tc_squat_fb_sl_fa
   environment: 
     type: environment/sandbox
@@ -19,10 +19,12 @@ experiment:
         auxiliary: mm, com, comv, am
       dof_count: 4
       action_min: [-10.7, -10.7, -10.7]
-      action_max: [10.7,  10.7,  10.7]
+      action_max: [10.7, 10.7, 10.7]
     task: 
       type: task/leoSquatFA
       timeout: 10
+      initial_setpoint: 0.28
+      rand_init: 0
     exporter: 
       type: exporter/csv
       file: rbdl_nmpc_ac_tc_squat_fb_sl_fa
@@ -41,7 +43,6 @@ experiment:
         model_name: nmpc_leo_squat_fb_sl_fa
         nmpc_model_name: nmpc_leo_squat_fb_sl_fa
         outputs: 3
-        pf: [0.28]
         initFeedback: 1
         verbose: 0
     agent2: 

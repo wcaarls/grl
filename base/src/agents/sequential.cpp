@@ -124,7 +124,7 @@ void SequentialAdditiveMasterAgent::start(const Vector &obs, Vector *action)
   agent_[0]->start(obs, action);
   if (exporter_)
     exporter_->append({grl::VectorConstructor(time_), *action});
-
+/*
   // Second action
   Vector action1;
   action1.resize(action->size());
@@ -136,6 +136,7 @@ void SequentialAdditiveMasterAgent::start(const Vector &obs, Vector *action)
   *action += action1;
   for (size_t ii=0; ii < action->size(); ++ii)
     (*action)[ii] = fmin(fmax((*action)[ii], min_[ii]), max_[ii]);
+  */
 }
 
 void SequentialAdditiveMasterAgent::step(double tau, const Vector &obs, double reward, Vector *action)
@@ -146,7 +147,7 @@ void SequentialAdditiveMasterAgent::step(double tau, const Vector &obs, double r
   agent_[0]->step(tau, obs, reward, action);
   if (exporter_)
     exporter_->append({grl::VectorConstructor(time_), *action});
-
+/*
   // Second action
   Vector action1;
   action1.resize(action->size());
@@ -158,6 +159,7 @@ void SequentialAdditiveMasterAgent::step(double tau, const Vector &obs, double r
   *action += action1;
   for (size_t ii=0; ii < action->size(); ++ii)
     (*action)[ii] = fmin(fmax((*action)[ii], min_[ii]), max_[ii]);
+    */
 }
 
 void SequentialAdditiveMasterAgent::end(double tau, const Vector &obs, double reward)

@@ -64,7 +64,7 @@ class NMPCPolicy : public Policy
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
-    virtual void muscod_reset(const Vector &initial_obs, double time);
+    virtual void muscod_reset(const Vector &initial_obs, const Vector &initial_pf, Vector &initial_qc) const;
 
     // From Policy
     virtual NMPCPolicy *clone() const;

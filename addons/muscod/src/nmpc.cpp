@@ -110,10 +110,14 @@ void NMPCPolicy::configure(Configuration &config)
   final_sd_   = ConstantVector(nmpc_->NXD(), 0);
 
   // Muscod params
-//  grl_assert(config["pf"].v().size() == nmpc_->NP());
-//  initial_pf_ << config["pf"].v(); // parameters
   initFeedback_ = config["initFeedback"];
-
+/*
+  // Save muscod state
+  nmpc_->feedback();
+  nmpc_->transition();
+  nmpc_->preparation();
+  nmpc_->backup_muscod_state();
+*/
   if (verbose_)
     std::cout << "MUSCOD is ready!" << std::endl;
   else
@@ -126,15 +130,25 @@ void NMPCPolicy::reconfigure(const Configuration &config)
 {
 }
 
-
-void NMPCPolicy::muscod_reset(const Vector &initial_obs, double time)
+void NMPCPolicy::muscod_reset(const Vector &initial_obs, const Vector &initial_pf, Vector &initial_qc) const
 {
+  /*
+  // Reload muscod state
+  nmpc_->restore_muscod_state();
+*/
+/*
+  // Reinitialize state and time
+  for (int IXD = 0; IXD < nmpc_->NXD(); ++IXD)
+    data_.sd[IXD] = initial_obs[IXD];
+  data_.pf[0] = initial_pf[0];
+*/
+
   // initialize NMPC
-  for (int inmpc = 0; inmpc < 10; ++inmpc)
+  for (int inmpc = 0; inmpc < 50; ++inmpc)
   {
     // 1) Feedback: Embed parameters and initial value from MHE
     if (initFeedback_)
-      nmpc_->feedback(initial_obs, initial_pf_, &initial_qc_);
+      nmpc_->feedback(initial_obs, initial_pf, &initial_qc);
     else
       nmpc_->feedback();
     // 2) Transition
@@ -163,14 +177,14 @@ TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
   // remove indicator
   Vector in2 = in.block(0, 0, 1, in.size()-1);
 
-  if (time == 0.0)
-    muscod_reset(in2, time);
-
   if (verbose_)
   {
     std::cout << "time: [ " << time << " ]; state: [ " << in2 << "]" << std::endl;
     std::cout << "                          param: [ " << initial_pf_ << "]" << std::endl;
   }
+
+  if (time == 0.0)
+    muscod_reset(in2, initial_pf_, initial_qc_);
 
   out->resize(outputs_);
 

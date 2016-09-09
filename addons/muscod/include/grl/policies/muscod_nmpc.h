@@ -224,7 +224,7 @@ struct NMPCProblem : public MUSCODProblem {
       backup_xd.row(imsn) = mssqp_xd;
       backup_qc.row(imsn) = mssqp_qc;
     }
-  };
+  }
 
   inline void restore_muscod_state()
   {
@@ -235,7 +235,7 @@ struct NMPCProblem : public MUSCODProblem {
         m_muscod->setNodeSD(imsn, backup_xd.row(imsn).data());
         m_muscod->setNodeQC(imsn, backup_qc.row(imsn).data());
       }
-  };
+  }
 
 
 // -----------------------------------------------------------------------------
