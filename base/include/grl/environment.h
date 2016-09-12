@@ -63,7 +63,7 @@ class Model : public Configurable
     virtual double step(const Vector &state, const Vector &action, Vector *next) const = 0;
 
     /// Progress report.
-    virtual void report(std::ostream &os) const { }
+    virtual void report(std::ostream &os, const Vector &state) const { }
 };
 
 class Task : public Configurable
@@ -108,7 +108,7 @@ class Task : public Configurable
     }
 
     /// Progress report.
-    virtual void report(std::ostream &os) const { }
+    virtual void report(std::ostream &os, const Vector &state) const { }
 };
 
 /// Task that regulates to a goal state with quadratic cost.
@@ -348,7 +348,6 @@ class SandboxEnvironment : public Environment
 
     int test_;
     double time_test_, prev_time_test_, time_learn_;
-    int cum_falls_;
 
   public:
     SandboxEnvironment() : sandbox_(NULL), task_(NULL), state_obj_(NULL), exporter_(NULL), test_(false), time_test_(0.), prev_time_test_(0.), time_learn_(0.) { }
@@ -364,33 +363,6 @@ class SandboxEnvironment : public Environment
     virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal);
     virtual void report(std::ostream &os) const;
 };
-
-class SandboxDynamicalModel : public Sandbox
-{
-  public:
-    TYPEINFO("sandbox_model/dynamical", "State transition model that integrates equations of motion and augments state vector with additional elements")
-
-  public:
-    SandboxDynamicalModel() : dof_count_(0), target_env_(NULL) { }
-  
-    // From Configurable
-    virtual void request(ConfigurationRequest *config);
-    virtual void configure(Configuration &config);
-    
-    // From Model
-    virtual SandboxDynamicalModel *clone() const;
-    virtual void start(const Vector &hint, Vector *state);
-    virtual double step(const Vector &action, Vector *next);
-
-    virtual double export_meshup_animation(const Vector &action, const Vector &next, bool append = false) const;
-
-  private:
-    Environment *target_env_;
-    DynamicalModel dm_;
-    int dof_count_;
-    Vector action_min_, action_max_;
-};
-
 
 }
 

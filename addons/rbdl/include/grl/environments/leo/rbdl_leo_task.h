@@ -30,10 +30,8 @@
 
 #include <functional>
 #include <grl/environment.h>
-#include <grl/environments/leohelper.h>
+//???? used? #include <grl/environments/leohelper.h>
 #include <grl/environments/rbdl.h>
-
-//namespace RigidBodyDynamics {}
 
 namespace grl
 {
@@ -80,85 +78,44 @@ enum RbdlLeoState
   rlsAngularMomentumX,
   rlsAngularMomentumY,
   rlsAngularMomentumZ,
+
   rlsStateDim = rlsAngularMomentumZ + 1
 };
 
-class LeoRBDLDynamics : public RBDLDynamics // put here all stuff needed, if needed!
+enum SquattingTaskState
 {
-  public:
-    TYPEINFO("dynamics/rbdl_leo", "RBDL rigid body dynamics of Leo")
-
-  public:
-
-
-  public:
-    LeoRBDLDynamics() { }
-
-    // From Configurable
-    //virtual void request(ConfigurationRequest *config);
-    //virtual void configure(Configuration &config);
-    //virtual void reconfigure(const Configuration &config);
-
-    // From Dynamics
-//    virtual void finalize(Vector &state);
-
-//  protected:
-//    ModelHelpers::LeoHelper leo_helper_;
+  stsSquats = rlsStateDim,
+  stsStateDim
 };
 
-class LeoSquatTask : public Task
+class LeoSquattingTask : public Task
 {
   public:
-    TYPEINFO("task/leoSquat", "Task specification for Leo squatting")
+    TYPEINFO("task/leoSquattingFA", "Task specification for Leo squatting with a fixed arm")
 
   public:
-    LeoSquatTask() : timeout_(10), root_height_(0), squats_(0) { }
+    LeoSquattingTask() : timeout_(0), rand_init_(0), init_height_(0.28) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
-    virtual void reconfigure(const Configuration &config);
 
     // From Task
-    virtual LeoSquatTask *clone() const;
+    virtual LeoSquattingTask *clone() const;
     virtual void start(int test, Vector *state) const;
     virtual void observe(const Vector &state, Vector *obs, int *terminal) const;
     virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const;
+    virtual void report(std::ostream &os, const Vector &state) const;
     virtual bool invert(const Vector &obs, Vector *state) const;
     virtual Matrix rewardHessian(const Vector &state, const Vector &action) const;
-    virtual void report(std::ostream &os) const;
 
   protected:
     virtual int failed(const Vector &state) const;
 
   protected:
-    Vector true_obs_min_, true_obs_max_;
-    int action_dims_;
-    double timeout_;
-    mutable double root_height_, squats_;
-};
-
-class LeoSquatTaskFA : public LeoSquatTask
-{
-  public:
-    TYPEINFO("task/leoSquatFA", "Task specification for Leo squatting with a fixed arm")
-
-  public:
-    LeoSquatTaskFA() : rand_init_(0), initial_setpoint_(0.28) { }
-
-    // From Configurable
-    virtual void request(ConfigurationRequest *config);
-    virtual void configure(Configuration &config);
-
-    // From Task
-    virtual LeoSquatTaskFA *clone() const;
-    virtual void start(int test, Vector *state) const;
-    virtual void observe(const Vector &state, Vector *obs, int *terminal) const;
-    virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const;
-
-    // own
-    double initial_setpoint_;
+    double timeout_, init_height_;
     int rand_init_;
+    Vector target_obs_min_, target_obs_max_;
 };
 
 }

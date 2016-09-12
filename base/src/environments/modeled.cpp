@@ -112,8 +112,8 @@ double ModeledEnvironment::step(const Vector &action, Vector *obs, double *rewar
 
 void ModeledEnvironment::report(std::ostream &os) const
 {
-  model_->report(os);
-  task_->report(os);
+  model_->report(os, state_);
+  task_->report(os, state_);
 }
 
 void DynamicalModel::request(ConfigurationRequest *config)

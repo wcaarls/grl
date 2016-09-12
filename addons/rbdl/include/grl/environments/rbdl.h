@@ -32,6 +32,7 @@
 #include <grl/environment.h>
 #include <rbdl/rbdl.h>
 #include <grl/environments/LuaBasic.h>
+#include <lua.h>
 
 namespace RigidBodyDynamics {}
 

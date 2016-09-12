@@ -8,7 +8,7 @@
 // Author(s): Manuel Kudruss <manuel.kudruss@iwr.uni-heidelberg.de>
 // -----------------------------------------------------------------------------
 
-#include <grl/environments/leohelper.h>
+#include <grl/environments/leo/rbdl_leo_helpers.h>
 #include <grl/environments/LuaTypes.h>
 
 using namespace ModelHelpers;

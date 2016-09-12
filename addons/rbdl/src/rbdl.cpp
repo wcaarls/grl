@@ -28,7 +28,6 @@
 #include <sys/stat.h>
 #include <libgen.h>
 
-//#include <rbdl/rbdl.h>
 #include <rbdl/addons/luamodel/luamodel.h>
 #include <rbdl/addons/luamodel/luatables.h>
 #include <rbdl/rbdl_mathutils.h>
