@@ -237,16 +237,17 @@ double SandboxDynamicalModel::step(const Vector &action, Vector *next)
 
 //  std::cout << "  > Height: " << (*next)[rlsRootZ] << std::endl;
 //  std::cout << "  > Next state: " << *next << std::endl;
-//  export_meshup_animation(action0, *next);
+  export_meshup_animation(action0, *next, true);
 
   state_ = *next;
   return tau;
 }
 
-double SandboxDynamicalModel::export_meshup_animation(const Vector &action, const Vector &next) const
+
+double SandboxDynamicalModel::export_meshup_animation(const Vector &action, const Vector &next, bool append) const
 {
   std::ofstream data_stream;
-  data_stream.open ("sd_leo.csv", std::ios_base::trunc);
+  data_stream.open ("sd_leo.csv", append?(std::ios_base::app):(std::ios_base::trunc));
   if (!data_stream || 2*dof_count_ > next.size())
   {
     std::cerr << "Error opening file sd_leo.csv" << std::endl;
@@ -258,7 +259,7 @@ double SandboxDynamicalModel::export_meshup_animation(const Vector &action, cons
   data_stream << next[2*dof_count_-1] << std::endl;
   data_stream.close();
 
-  data_stream.open ("u_leo.csv", std::ios_base::trunc);
+  data_stream.open ("u_leo.csv", append?(std::ios_base::app):(std::ios_base::trunc));
   if (!data_stream || dof_count_ > action.size())
   {
     std::cerr << "Error opening file u_leo.csv" << std::endl;

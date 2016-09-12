@@ -1,11 +1,11 @@
 experiment: 
   type: experiment/online_learning
   runs: 1
-  trials: 10000
+  trials: 1
   steps: 0
   rate: 0
-  test_interval: 100
-  output: rbdl_ac_tc_squat_fb_sl_fa
+  test_interval: 0
+  output: rbdl_ac_tc_squat_fb_sl_fa_play
   environment: 
     type: environment/sandbox
     model: 
@@ -97,4 +97,5 @@ experiment:
       output_max: experiment/environment/task/action_max
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
-  save_every: run
+  load_file: rbdl_ac_tc_squat_fb_sl_fa-run0
+  save_every: never

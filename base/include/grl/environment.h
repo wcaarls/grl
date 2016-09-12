@@ -382,7 +382,7 @@ class SandboxDynamicalModel : public Sandbox
     virtual void start(const Vector &hint, Vector *state);
     virtual double step(const Vector &action, Vector *next);
 
-    virtual double export_meshup_animation(const Vector &action, const Vector &next) const;
+    virtual double export_meshup_animation(const Vector &action, const Vector &next, bool append = false) const;
 
   private:
     Environment *target_env_;
