@@ -44,6 +44,7 @@ void SequentialMasterAgent::configure(Configuration &config)
 {
   agent_[0] = (SubAgent*)config["agent1"].ptr();
   agent_[1] = (SubAgent*)config["agent2"].ptr();
+
   exporter_ = (Exporter*) config["exporter"].ptr();
 
   if (exporter_)
