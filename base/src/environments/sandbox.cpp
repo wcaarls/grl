@@ -237,7 +237,7 @@ double SandboxDynamicalModel::step(const Vector &action, Vector *next)
 
 //  std::cout << "  > Height: " << (*next)[rlsRootZ] << std::endl;
 //  std::cout << "  > Next state: " << *next << std::endl;
-  export_meshup_animation(action0, *next, true);
+//  export_meshup_animation(action0, *next, true);
 
   state_ = *next;
   return tau;

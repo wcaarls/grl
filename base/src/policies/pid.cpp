@@ -56,33 +56,25 @@ void PIDPolicy::configure(Configuration &config)
     
   outputs_ = config["outputs"];
 
-  p_ = config["p"].v();/*
-  if (!p_.size())
-    p_ = ConstantVector(setpoint_.size()*outputs_, 0.);
-  if (p_.size() != setpoint_.size()*outputs_)
+  p_ = config["p"].v();
+  if (p_.size() && p_.size() != setpoint_.size()*outputs_)
     throw bad_param("policy/pid:p");
-    */
-  i_ = config["i"].v();/*
-  if (!i_.size())
-    i_ = ConstantVector(setpoint_.size()*outputs_, 0.);
-  if (i_.size() != setpoint_.size()*outputs_)
+
+  i_ = config["i"].v();
+  if (i_.size() && i_.size() != setpoint_.size()*outputs_)
     throw bad_param("policy/pid:i");
-    */
-  d_ = config["d"].v();/*
-  if (!d_.size())
-    d_ = ConstantVector(setpoint_.size()*outputs_, 0.);
-  if (d_.size() != setpoint_.size()*outputs_)
+
+  d_ = config["d"].v();
+  if (d_.size() && d_.size() != setpoint_.size()*outputs_)
     throw bad_param("policy/pid:d");
-    */
-  il_ = config["il"].v();/*
-  if (!il_.size())
-    il_ = ConstantVector(setpoint_.size()*outputs_, 0.);
-  if (il_.size() != setpoint_.size()*outputs_)
+
+  il_ = config["il"].v();
+  if (il_.size() && il_.size() != setpoint_.size()*outputs_)
     throw bad_param("policy/pid:il");
-    */
+
   params_ = extend(extend(extend(p_, i_), d_), il_);
 
-  reset();  
+  reset();
 }
 
 void PIDPolicy::reconfigure(const Configuration &config)
@@ -112,7 +104,9 @@ TransitionType PIDPolicy::act(const Vector &in, Vector *out) const
       
       // Autonomous policy assumes no accumulated errors or differences, but
       // integration happens before applying the gains.
-      u += (params_[P(ii, oo)]+params_[I(ii, oo)])*err;
+      u += params_[P(ii, oo)]*err;
+      if (i_.size() && il_.size())
+        u += params_[I(ii, oo)]*err;
     }
     
     (*out)[oo] = u;
@@ -183,28 +177,20 @@ void PIDTrajectoryPolicy::configure(Configuration &config)
   outputs_ = config["outputs"];
 
   p_ = config["p"].v();
-  if (!p_.size())
-    p_ = ConstantVector(inputs_*outputs_, 0.);
-  if (p_.size() != inputs_*outputs_)
-    throw bad_param("policy/pidt:p");
+  if (p_.size() && p_.size() != setpoint_.size()*outputs_)
+    throw bad_param("policy/pid:p");
 
   i_ = config["i"].v();
-  if (!i_.size())
-    i_ = ConstantVector(inputs_*outputs_, 0.);
-  if (i_.size() != inputs_*outputs_)
-    throw bad_param("policy/pidt:i");
+  if (i_.size() && i_.size() != setpoint_.size()*outputs_)
+    throw bad_param("policy/pid:i");
 
   d_ = config["d"].v();
-  if (!d_.size())
-    d_ = ConstantVector(inputs_*outputs_, 0.);
-  if (d_.size() != inputs_*outputs_)
-    throw bad_param("policy/pidt:d");
+  if (d_.size() && d_.size() != setpoint_.size()*outputs_)
+    throw bad_param("policy/pid:d");
 
   il_ = config["il"].v();
-  if (!il_.size())
-    il_ = ConstantVector(inputs_*outputs_, 0.);
-  if (il_.size() != inputs_*outputs_)
-    throw bad_param("policy/pidt:il");
+  if (il_.size() && il_.size() != setpoint_.size()*outputs_)
+    throw bad_param("policy/pid:il");
 
   params_ = extend(extend(extend(p_, i_), d_), il_);
 
@@ -226,23 +212,7 @@ PIDTrajectoryPolicy *PIDTrajectoryPolicy::clone() const
 
 TransitionType PIDTrajectoryPolicy::act(const Vector &in, Vector *out) const
 {
-  out->resize(outputs_);
-
-  for (size_t oo=0; oo < outputs_; ++oo)
-  {
-    double u = 0;
-
-    for (size_t ii=0; ii < inputs_; ++ii)
-    {
-      double err = setpoint_[ii] - in[ii];
-
-      // Autonomous policy assumes no accumulated errors or differences, but
-      // integration happens before applying the gains.
-      u += (params_[P(ii, oo)]+params_[I(ii, oo)])*err;
-    }
-
-    (*out)[oo] = u;
-  }
+  WARNING("Trajectory policy has no autonomous policy implementation");
   return ttGreedy;
 }
 
@@ -264,8 +234,7 @@ TransitionType PIDTrajectoryPolicy::act(double time, const Vector &in, Vector *o
   {
     double u = 0;
 
-//    for (size_t ii=0; ii < inputs_; ++ii)
-    for (size_t ii=0; ii < inputs_; ii+=2)
+    for (size_t ii=0; ii < inputs_; ++ii)
     {
       double err = 0, acc = 0, diff = 0;
 
