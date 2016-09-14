@@ -4,7 +4,7 @@ experiment:
   trials: 0
   steps: 70000
   rate: 0
-  test_interval: 0
+  test_interval: 10
   output: rbdl_nmpc_ac_tc_squat_fb_sl_fa
   environment: 
     type: environment/sandbox

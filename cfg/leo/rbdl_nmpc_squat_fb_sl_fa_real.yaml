@@ -1,11 +1,11 @@
 experiment: 
   type: experiment/online_learning
   runs: 1
-  trials: 0
-  steps: 70000
+  trials: 1
+  steps: 0
   rate: 0
-  test_interval: 10
-  output: rbdl_pid_squat_fb_sl_fa
+  test_interval: 0
+  output: rbdl_nmpc_squat_fb_sl_fa_real
   environment: 
     type: environment/sandbox
     model: 
@@ -14,32 +14,34 @@ experiment:
       integration_steps: 25
       dynamics: 
         type: dynamics/rbdl_leo
-        file: leo_fb_sl.lua
+        file: leo_fb_sl_real.lua
         points: tip_left, heel_left, root
         auxiliary: mm, com, comv, am
       dof_count: 4
       action_min: [-10.7, -10.7, -10.7]
-      action_max: [10.7,  10.7,  10.7]
+      action_max: [10.7, 10.7, 10.7]
     task: 
       type: task/leoSquatFA
-      timeout: 4
-      initial_setpoint: 0.368641
-      rand_init: 1
+      timeout: 10
+      initial_setpoint: 0.28
+      rand_init: 0
     exporter: 
       type: exporter/csv
-      file: rbdl_pid_squat_fb_sl_fa
+      file: rbdl_nmpc_squat_fb_sl_fa_real
       fields: time, state, observation, action, reward, terminal
       style: meshup
       variant: test
   agent: 
     type: agent/fixed
     policy: 
-      type: policy/parameterized/pid
-      setpoint: [0.389273, -0.881163, 0.656759, 0, 0, 0]
-      outputs: experiment/environment/task/action_dims
-      p: [30.8672, 18.1773, 7.21857, -5.58252, 26.4855, 1.84077, -2.66453, 0.608965, 24.1362, 5.48128, 4.02699, -1.97949, -0.884299, 3.19642, -6.18342, 0.78891, 2.29501, -1.57301]
-      i: []
-      d: []
-      il: []
+      type: policy/nmpc
+      action_min: experiment/environment/task/action_min
+      action_max: experiment/environment/task/action_max
+      lua_model: leo_fb_sl_fa.lua
+      model_name: nmpc_leo_squat_fb_sl_fa
+      nmpc_model_name: nmpc_leo_squat_fb_sl_fa
+      outputs: 3
+      initFeedback: 1
+      verbose: 0
   test_agent: experiment/agent
   save_every: never

@@ -1,11 +1,11 @@
 experiment: 
   type: experiment/online_learning
   runs: 1
-  trials: 1
-  steps: 0
+  trials: 0
+  steps: 70000
   rate: 0
-  test_interval: 0
-  output: rbdl_nmpc_ac_tc_squat_fb_sl_fa_play
+  test_interval: 10
+  output: rbdl_nmpc_ac_tc_squat_fb_sl_fa_real
   environment: 
     type: environment/sandbox
     model: 
@@ -14,7 +14,7 @@ experiment:
       integration_steps: 25
       dynamics: 
         type: dynamics/rbdl_leo
-        file: leo_fb_sl.lua
+        file: leo_fb_sl_real.lua
         points: tip_left, heel_left, root
         auxiliary: mm, com, comv, am
       dof_count: 4
@@ -25,12 +25,6 @@ experiment:
       timeout: 10
       initial_setpoint: 0.28
       rand_init: 0
-    exporter: 
-      type: exporter/csv
-      file: rbdl_nmpc_ac_tc_squat_fb_sl_fa_play
-      fields: time, state, observation, action, reward, terminal
-      style: meshup
-      variant: test
   agent: 
     type: agent/master/sequential/additive
     agent1: 
@@ -105,12 +99,6 @@ experiment:
           type: trace/enumerated/replacing
         actor_projector: experiment/agent/agent2/policy/projector
         actor_representation: experiment/agent/agent2/policy/representation
-    exporter: 
-      type: exporter/csv
-      file: rbdl_nmpc_ac_tc_squat_fb_sl_fa_play_actor
-      fields: time, action0, action1
-      style: meshup
-      variant: all
     output_min: experiment/environment/task/action_min
     output_max: experiment/environment/task/action_max
   test_agent: 
@@ -128,8 +116,6 @@ experiment:
         output_max: experiment/environment/task/action_max
         projector: experiment/agent/agent2/policy/projector
         representation: experiment/agent/agent2/policy/representation
-    exporter: experiment/agent/exporter
     output_min: experiment/environment/task/action_min
     output_max: experiment/environment/task/action_max
-  load_file: leo_rbdl_nmpc_ac_tc_squat_fb_sl_fa-mp1-run0
-  save_every: never
+  save_every: run

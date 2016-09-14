@@ -5,7 +5,7 @@ experiment:
   steps: 0
   rate: 0
   test_interval: 0
-  output: rbdl_nmpc_ac_tc_squat_fb_sl_fa_play
+  output: rbdl_nmpc_ac_tc_squat_fb_sl_fa_real_play
   environment: 
     type: environment/sandbox
     model: 
@@ -14,7 +14,7 @@ experiment:
       integration_steps: 25
       dynamics: 
         type: dynamics/rbdl_leo
-        file: leo_fb_sl.lua
+        file: leo_fb_sl_real.lua
         points: tip_left, heel_left, root
         auxiliary: mm, com, comv, am
       dof_count: 4
@@ -131,5 +131,5 @@ experiment:
     exporter: experiment/agent/exporter
     output_min: experiment/environment/task/action_min
     output_max: experiment/environment/task/action_max
-  load_file: leo_rbdl_nmpc_ac_tc_squat_fb_sl_fa-mp1-run0
+  load_file: rbdl_nmpc_ac_tc_squat_fb_sl_fa_real-run0
   save_every: never
