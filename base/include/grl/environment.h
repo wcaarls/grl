@@ -229,7 +229,7 @@ class Dynamics : public Configurable
 
     /// Compute equations of motion, returning accelerations.
     virtual void eom(const Vector &state, const Vector &action, Vector *xdd) const = 0;
-    virtual void finalize(Vector &next) const {}
+    virtual void finalize(const Vector &state, Vector &out) const {}
 };
 
 class DynamicalModel : public Model
@@ -253,7 +253,7 @@ class DynamicalModel : public Model
     // From Model
     virtual DynamicalModel *clone() const;
     virtual double step(const Vector &state, const Vector &action, Vector *next) const;
-    virtual void finalize(Vector &next) const;
+    virtual void finalize(Vector &state) const;
 };
 
 /// Environment modifier that adds sensor and actuator noise.
@@ -330,7 +330,7 @@ class Sandbox : public Configurable
     virtual void report(std::ostream &os) const { }
 
   protected:
-    Vector state_;
+    Vector state_, state_step_, next_step_, action_step_;
 };
 
 /// Sequential-access transition environment.

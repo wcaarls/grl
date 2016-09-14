@@ -16,9 +16,10 @@
 #include <rbdl/rbdl.h>
 #include <rbdl/rbdl_utils.h>
 #include <rbdl/addons/luamodel/luamodel.h>
-#include <rbdl/addons/luamodel/luatables.h>
+//#include <rbdl/addons/luamodel/luatables.h>
 
-#include <../../../../../rbdl/include/grl/environments/LuaBasic.h>
+//#include "LuaBasic.h"
+#include "LuaTypes.h"
 
 // -----------------------------------------------------------------------------
 struct LeoModel {

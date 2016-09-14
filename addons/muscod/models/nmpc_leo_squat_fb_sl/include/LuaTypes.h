@@ -14,9 +14,9 @@
 #include <rbdl/rbdl_math.h>
 #include <rbdl/addons/luamodel/luatables.h>
 
-#include <grl/environments/LuaBasic.h>
+#include "LuaBasic.h"
 
-template<> RigidBodyDynamics::Math::Vector3d LuaTableNode::getDefault<RigidBodyDynamics::Math::Vector3d>(const RigidBodyDynamics::Math::Vector3d &default_value) {
+template<> inline RigidBodyDynamics::Math::Vector3d LuaTableNode::getDefault<RigidBodyDynamics::Math::Vector3d>(const RigidBodyDynamics::Math::Vector3d &default_value) {
 	RigidBodyDynamics::Math::Vector3d result = default_value;
 
 	if (stackQueryValue()) {
@@ -37,7 +37,7 @@ template<> RigidBodyDynamics::Math::Vector3d LuaTableNode::getDefault<RigidBodyD
 	return result;
 }
 
-template<> RigidBodyDynamics::Math::SpatialVector LuaTableNode::getDefault<RigidBodyDynamics::Math::SpatialVector>(const RigidBodyDynamics::Math::SpatialVector &default_value) {
+template<> inline RigidBodyDynamics::Math::SpatialVector LuaTableNode::getDefault<RigidBodyDynamics::Math::SpatialVector>(const RigidBodyDynamics::Math::SpatialVector &default_value) {
 	RigidBodyDynamics::Math::SpatialVector result = default_value;
 
 	if (stackQueryValue()) {
@@ -60,7 +60,7 @@ template<> RigidBodyDynamics::Math::SpatialVector LuaTableNode::getDefault<Rigid
 	return result;
 }
 
-template<> RigidBodyDynamics::Math::Matrix3d LuaTableNode::getDefault<RigidBodyDynamics::Math::Matrix3d>(const RigidBodyDynamics::Math::Matrix3d &default_value) {
+template<> inline RigidBodyDynamics::Math::Matrix3d LuaTableNode::getDefault<RigidBodyDynamics::Math::Matrix3d>(const RigidBodyDynamics::Math::Matrix3d &default_value) {
 	RigidBodyDynamics::Math::Matrix3d result = default_value;
 
 	if (stackQueryValue()) {
@@ -96,7 +96,7 @@ template<> RigidBodyDynamics::Math::Matrix3d LuaTableNode::getDefault<RigidBodyD
 	return result;
 }
 
-template<> RigidBodyDynamics::Math::SpatialTransform LuaTableNode::getDefault<RigidBodyDynamics::Math::SpatialTransform>(const RigidBodyDynamics::Math::SpatialTransform &default_value) {
+template<> inline RigidBodyDynamics::Math::SpatialTransform LuaTableNode::getDefault<RigidBodyDynamics::Math::SpatialTransform>(const RigidBodyDynamics::Math::SpatialTransform &default_value) {
 	RigidBodyDynamics::Math::SpatialTransform result = default_value;
 
 	if (stackQueryValue()) {
@@ -111,7 +111,7 @@ template<> RigidBodyDynamics::Math::SpatialTransform LuaTableNode::getDefault<Ri
 	return result;
 }
 
-template<> Point LuaTableNode::getDefault<Point>(const Point &default_value) {
+template<> inline Point LuaTableNode::getDefault<Point>(const Point &default_value) {
 	Point result = default_value;
 
 	if (stackQueryValue()) {
@@ -127,7 +127,7 @@ template<> Point LuaTableNode::getDefault<Point>(const Point &default_value) {
 	return result;
 }
 
-template<> ConstraintInfo LuaTableNode::getDefault<ConstraintInfo>(const ConstraintInfo &default_value) {
+template<> inline ConstraintInfo LuaTableNode::getDefault<ConstraintInfo>(const ConstraintInfo &default_value) {
 	ConstraintInfo result = default_value;
 
 	if (stackQueryValue()) {

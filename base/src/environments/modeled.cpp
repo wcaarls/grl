@@ -167,7 +167,6 @@ double DynamicalModel::step(const Vector &state, const Vector &action, Vector *n
   return tau_;
 }
 
-void DynamicalModel::finalize(Vector &next) const
+void DynamicalModel::finalize(Vector &state) const
 {
-  dynamics_->finalize(next);
 }

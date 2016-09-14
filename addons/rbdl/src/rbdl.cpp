@@ -25,15 +25,17 @@
  * \endverbatim
  */
 
+#include <grl/environments/rbdl.h>
+
 #include <sys/stat.h>
 #include <libgen.h>
+#include <rbdl/rbdl_mathutils.h>
 
 #include <rbdl/addons/luamodel/luamodel.h>
 #include <rbdl/addons/luamodel/luatables.h>
-#include <rbdl/rbdl_mathutils.h>
 
 #include <grl/lua_utils.h>
-#include <grl/environments/rbdl.h>
+#include <grl/environments/LuaTypes.h>
 
 using namespace grl;
 
@@ -118,23 +120,8 @@ void RBDLDynamics::eom(const Vector &state, const Vector &action, Vector *xd) co
     qd[ii] = state[ii + dim];
   }
 
-  for (size_t ii=0; ii < dim; ++ii)
-  {
-    const double Kt = 0.00992;
-    const double G = 193.0;
-    const double R = 8.6;
-    u[ii] = Kt*G*(u[ii] - Kt*G*qd[ii])/R;
-
-    u[ii] = u[ii] - 0.0*qd[ii];
-  }
-
   RigidBodyDynamics::ForwardDynamics(*rbdl->model, q, qd, u, qdd);
-/*
-  std::cout << q << std::endl;
-  std::cout << qd << std::endl;
-  std::cout << u << std::endl;
-  std::cout << qdd << std::endl;
-*/
+
   xd->resize(2*dim+1);
 
   for (size_t ii=0; ii < dim; ++ii)
@@ -145,15 +132,14 @@ void RBDLDynamics::eom(const Vector &state, const Vector &action, Vector *xd) co
   (*xd)[2*dim] = 1.;
 }
 
-void RBDLDynamics::finalize(Vector &next) const
+void RBDLDynamics::finalize(const Vector &state, Vector &out) const
 {
-  std::vector<double> v;
-  fromVector(next, v);
   Vector pt;
+  std::vector<double> v;
 
   for (int ii = 0; ii < points_.size(); ii++)
   {
-    getPointPosition(next, points_[ii], pt);
+    getPointPosition(state, points_[ii], pt);
     v.push_back(pt[0]);
     v.push_back(pt[1]);
     v.push_back(pt[2]);
@@ -162,7 +148,7 @@ void RBDLDynamics::finalize(Vector &next) const
   double modelMass;
   Vector centerOfMass, centerOfMassVelocity, angularMomentum;
   if (auxiliary_.size())
-    getAuxiliary(next, modelMass, centerOfMass, centerOfMassVelocity, angularMomentum);
+    getAuxiliary(state, modelMass, centerOfMass, centerOfMassVelocity, angularMomentum);
 
   for (int ii = 0; ii < auxiliary_.size(); ii++)
   {
@@ -187,12 +173,12 @@ void RBDLDynamics::finalize(Vector &next) const
       v.push_back(angularMomentum[2]);
     }
   }
-  toVector(v, next);
+  toVector(v, out);
 }
 
 bool RBDLDynamics::loadPointsFromFile(const char* filename, RigidBodyDynamics::Model *model, bool verbose) const
 {
-  LuaTable lua_table = LuaTable::fromFile (filename);
+  LuaTable lua_table = LuaTable::fromFile(filename);
 
   int point_count = lua_table["points"].length();
 
@@ -257,8 +243,7 @@ bool RBDLDynamics::loadConstraintSetsFromFile(const char* filename, RigidBodyDyn
 
     for (int ci = 0; ci < constraint_count; ci++)
     {
-      ConstraintInfo constraint_info =
-      lua_table["constraint_sets"][set_name_str.c_str()][ci + 1];
+      ConstraintInfo constraint_info = lua_table["constraint_sets"][set_name_str.c_str()][ci + 1];
       std::string point_name = constraint_info.point_name.c_str();
       constraint_info.point_id = ci;
 

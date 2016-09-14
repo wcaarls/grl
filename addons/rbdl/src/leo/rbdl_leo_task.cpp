@@ -43,36 +43,34 @@ void LeoSquattingTask::request(ConfigurationRequest *config)
 {
   Task::request(config);
   config->push_back(CRP("timeout", "double.timeout", "Task timeout", timeout_, CRP::System, 0.0, DBL_MAX));
-  config->push_back(CRP("initial_height", "double.initial_height", "Initial root hight", init_height_, CRP::System, 0.0, DBL_MAX));
   config->push_back(CRP("rand_init", "int.rand_init", "Initialization from a random pose", rand_init_, CRP::System, 0, 1));
 }
 
 void LeoSquattingTask::configure(Configuration &config)
 {
   timeout_ = config["timeout"];
-  init_height_ = config["initial_height"];
   rand_init_ = config["rand_init"];
 
-  // True observations: 2*dof + time
+  // Target observations: 2*target_dof + time
   std::vector<double> obs_min = {-M_PI, -M_PI, -M_PI, -M_PI, -10*M_PI, -10*M_PI, -10*M_PI, -10*M_PI, 0};
   std::vector<double> obs_max = { M_PI,  M_PI,  M_PI,  M_PI,  10*M_PI,  10*M_PI,  10*M_PI,  10*M_PI, 1};
   toVector(obs_min, target_obs_min_);
   toVector(obs_max, target_obs_max_);
 
   // Observations and actions exposed to an agent
-  int agent_obs_dim = 2*(rlsDofDim-1) + 1;
-  config.set("observation_dims", agent_obs_dim);
+  dof_ = rlsDofDim-1;
+  config.set("observation_dims", 2*dof_+1);
   Vector observation_min, observation_max;
-  observation_min.resize(agent_obs_dim);
+  observation_min.resize(2*dof_+1);
   observation_min << target_obs_min_[rlsAnkleAngle], target_obs_min_[rlsKneeAngle], target_obs_min_[rlsHipAngle],
       target_obs_min_[rlsAnkleAngleRate], target_obs_min_[rlsKneeAngleRate], target_obs_min_[rlsHipAngleRate], target_obs_min_[rlsTime];
-  observation_max.resize(agent_obs_dim);
+  observation_max.resize(2*dof_+1);
   observation_max << target_obs_max_[rlsAnkleAngle], target_obs_max_[rlsKneeAngle], target_obs_max_[rlsHipAngle],
       target_obs_max_[rlsAnkleAngleRate], target_obs_max_[rlsKneeAngleRate], target_obs_max_[rlsHipAngleRate], target_obs_max_[rlsTime];
   config.set("observation_min", observation_min);
   config.set("observation_max", observation_max);
 
-  config.set("action_dims", 3);
+  config.set("action_dims", dof_);
   config.set("action_min", VectorConstructor(-10.7, -10.7, -10.7));
   config.set("action_max", VectorConstructor( 10.7,  10.7,  10.7));
   config.set("reward_min", VectorConstructor(-1000));
@@ -89,7 +87,7 @@ LeoSquattingTask *LeoSquattingTask::clone() const
 
 void LeoSquattingTask::start(int test, Vector *state) const
 {
-  *state = ConstantVector(stsStateDim, 0);
+  *state = ConstantVector(2*rlsDofDim+1, 0);
 
   // sitted pose
   *state <<
@@ -101,11 +99,10 @@ void LeoSquattingTask::start(int test, Vector *state) const
         -0.0,
         -0.0,
         -0.0,  // end of rlsDofDim
-         0.0,  // rlsTime
-         0.0,//init_height_, // rlsRefRootHeight, possible values 0.28 and 0.35
-         ConstantVector(stsStateDim - 2*rlsDofDim - 2, 0); // initialize the rest to zero
+         0.0;  // rlsTime
+//         ConstantVector(stsStateDim - 2*rlsDofDim, 0); // initialize the rest to zero
 
-  (*state)[rlsRootZ] = init_height_;
+//  (*state)[rlsRootZ] = init_height_;
 
   if (rand_init_)
   {
@@ -137,7 +134,7 @@ void LeoSquattingTask::observe(const Vector &state, Vector *obs, int *terminal) 
   grl_assert(state.size() == stsStateDim);
 
   // arm is not actuated => exclude angle and angle rate from observations
-  obs->resize(3+3+1);
+  obs->resize(2*dof_+1);
   (*obs) << state.block(0, rlsAnkleAngle, 1, rlsHipAngle-rlsAnkleAngle+1),
             state.block(0, rlsAnkleAngleRate, 1, rlsHipAngleRate-rlsAnkleAngleRate+1),
             state[rlsRefRootZ];

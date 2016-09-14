@@ -146,7 +146,7 @@ agent/master/sequential:
     type: exporter
     description: Optional exporter for transition log (supports time, state, observation, action, reward, terminal)
     mutability: configuration
-    default: 0xeb72d0
+    default: 0x192a250
     optional: 1
 agent/master/sequential/additive:
   description: Additive master agent that executes sub-agents sequentially and adds their outputs
@@ -386,47 +386,19 @@ dynamics/rbdl:
     mutability: configuration
     default: Model mass(mm), Center of mass (com), Center of mass velocity (comv), Angular momentum (am)
     optional: 1
-dynamics/rbdl_leo:
-  description: RBDL rigid body dynamics of Leo
-  file:
-    type: string
-    description: RBDL Lua model file
-    mutability: configuration
-    default: ""
-    optional: 1
-  options:
-    type: string
-    description: Lua string to execute when loading model
-    mutability: configuration
-    default: ""
-    optional: 1
-  points:
-    type: string
-    description: string.points
-    mutability: configuration
-    default: Points
-    optional: 1
-  auxiliary:
-    type: string
-    description: string.auxiliary
-    mutability: configuration
-    default: Model mass(mm), Center of mass (com), Center of mass velocity (comv), Angular momentum (am)
-    optional: 1
-dynamics/tlm:
-  description: Two-link manipulator dynamics
 environment/communicator:
   description: Communicator environment which interects with a real environment by sending and receiving messages
   converter:
     type: converter
     description: Convert states and actions if needed
     mutability: configuration
-    default: 0
+    default: 0xffffffff
     optional: 0
   communicator:
     type: communicator
     description: Comunicator which exchanges messages with an actual environment
     mutability: configuration
-    default: 0xf62e60
+    default: 0
     optional: 0
   target_obs_dims:
     type: int
@@ -444,26 +416,6 @@ environment/communicator:
     optional: 1
     min: 0
     max: 2147483647
-environment/leo2:
-  description: LEO/2 environment
-  port:
-    type: string
-    description: Device ID of FTDI usb-to-serial converter
-    mutability: configuration
-    default: i:0x0403:0x6001
-    optional: 1
-  bps:
-    type: int
-    description: Bit rate
-    mutability: configuration
-    default: 57600
-    optional: 1
-    min: 0
-    max: 2147483647
-  state:
-    type: state
-    description: Current state of the robot
-    mutability: provided
 environment/leo_squat:
   description: Leo squatting environment
   xml:
@@ -500,7 +452,7 @@ environment/leo_squat:
     type: int.observation_dims
     description: Number of observation dimensions
     mutability: configuration
-    default: 0
+    default: 27215072
     optional: 1
     min: 0
     max: 2147483647
@@ -548,7 +500,7 @@ environment/leo_walk:
     type: int.observation_dims
     description: Number of observation dimensions
     mutability: configuration
-    default: 0
+    default: 27215072
     optional: 1
     min: 0
     max: 2147483647
@@ -2963,7 +2915,7 @@ sandbox_model/compass_walker:
     optional: 1
     min: 0
     max: 1
-sandbox_model/dynamical:
+sandbox_model/leo_squatting:
   description: State transition model that integrates equations of motion and augments state vector with additional elements
   control_step:
     type: double.control_step
@@ -2987,11 +2939,11 @@ sandbox_model/dynamical:
     mutability: configuration
     default: 0
     optional: 0
-  dof_count:
-    type: int.dof_count
-    description: Number of degrees of freedom of the model
+  target_dof:
+    type: int.target_dof
+    description: Number of degrees of freedom of the target model
     mutability: configuration
-    default: 0
+    default: 4
     optional: 1
     min: 0
     max: 2147483647
@@ -3013,6 +2965,32 @@ sandbox_model/dynamical:
     mutability: system
     default: "[  ]"
     optional: 1
+  animation:
+    type: string
+    description: Save current state or full animation
+    mutability: configuration
+    default: ""
+    optional: 1
+    options:
+      - nope
+      - full
+      - immediate
+  lower_height:
+    type: double.lower_height
+    description: Lower bound of root height to switch direction
+    mutability: configuration
+    default: 0.28
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
+  upper_height:
+    type: double.upper_height
+    description: Upper bound of root height to switch direction
+    mutability: configuration
+    default: 0.35
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
 solver/agent:
   description: Solver that uses a simulated agent
   steps:
@@ -3053,82 +3031,6 @@ solver/agent:
     type: state
     description: Current observed state of planning
     mutability: provided
-solver/ilqg:
-  description: Iterative Linear Quadratic Gaussian trajectory optimizer
-  horizon:
-    type: int
-    description: Horizon
-    mutability: configuration
-    default: 100
-    optional: 1
-    min: 0
-    max: 2147483647
-  iterations:
-    type: int
-    description: Maximum number of iterations
-    mutability: configuration
-    default: 100
-    optional: 1
-    min: 0
-    max: 2147483647
-  stddev:
-    type: vector
-    description: Standard deviation of initial random action sequence
-    mutability: configuration
-    default: "[  ]"
-    optional: 1
-  regularization:
-    type: string
-    description: Regularization method
-    mutability: configuration
-    default: state
-    optional: 1
-    options:
-      - none
-      - state
-      - controls
-  model:
-    type: observation_model
-    description: Observation model
-    mutability: configuration
-    default: 0
-    optional: 0
-  policy:
-    type: policy/sample_feedback
-    description: Sample feedback policy to adjust
-    mutability: configuration
-    default: 0
-    optional: 0
-  trajectory:
-    type: trajectory
-    description: Predicted trajectory
-    mutability: provided
-solver/lqr:
-  description: Linear Quadratic Regulator solver
-  operating_state:
-    type: vector
-    description: Operating state around which to linearize
-    mutability: configuration
-    default: "[  ]"
-    optional: 1
-  operating_action:
-    type: vector
-    description: Operating action around which to linearize
-    mutability: configuration
-    default: "[  ]"
-    optional: 1
-  model:
-    type: observation_model
-    description: Observation model
-    mutability: configuration
-    default: 0
-    optional: 0
-  policy:
-    type: policy/parameterized/state_feedback
-    description: State feedback policy to adjust
-    mutability: configuration
-    default: 0
-    optional: 0
 solver/vi:
   description: Value iteration solver
   sweeps:
@@ -3619,49 +3521,7 @@ task/compass_walker/walk:
     optional: 1
     min: 0
     max: 2147483647
-task/leoSquat:
-  description: Task specification for Leo squatting
-  observation_dims:
-    type: int.observation_dims
-    description: Number of observation dimensions
-    mutability: provided
-  observation_min:
-    type: vector.observation_min
-    description: Lower limit on observations
-    mutability: provided
-  observation_max:
-    type: vector.observation_max
-    description: Upper limit on observations
-    mutability: provided
-  action_dims:
-    type: int.action_dims
-    description: Number of action dimensions
-    mutability: provided
-  action_min:
-    type: vector.action_min
-    description: Lower limit on actions
-    mutability: provided
-  action_max:
-    type: vector.action_max
-    description: Upper limit on actions
-    mutability: provided
-  reward_min:
-    type: double.reward_min
-    description: Lower limit on immediate reward
-    mutability: provided
-  reward_max:
-    type: double.reward_max
-    description: Upper limit on immediate reward
-    mutability: provided
-  timeout:
-    type: double.timeout
-    description: Task timeout
-    mutability: system
-    default: 10
-    optional: 1
-    min: 0
-    max: 1.797693134862316e+308
-task/leoSquatFA:
+task/leo_squatting:
   description: Task specification for Leo squatting with a fixed arm
   observation_dims:
     type: int.observation_dims
@@ -3699,15 +3559,7 @@ task/leoSquatFA:
     type: double.timeout
     description: Task timeout
     mutability: system
-    default: 10
-    optional: 1
-    min: 0
-    max: 1.797693134862316e+308
-  initial_setpoint:
-    type: double.initial_setpoint
-    description: Initial setpoint
-    mutability: system
-    default: 0.28
+    default: 0
     optional: 1
     min: 0
     max: 1.797693134862316e+308
@@ -3879,40 +3731,6 @@ task/pendulum/swingup:
     optional: 1
     min: 0
     max: 1
-task/tlm/balancing:
-  description: Two-link manipulator balancing task
-  observation_dims:
-    type: int.observation_dims
-    description: Number of observation dimensions
-    mutability: provided
-  observation_min:
-    type: vector.observation_min
-    description: Lower limit on observations
-    mutability: provided
-  observation_max:
-    type: vector.observation_max
-    description: Upper limit on observations
-    mutability: provided
-  action_dims:
-    type: int.action_dims
-    description: Number of action dimensions
-    mutability: provided
-  action_min:
-    type: vector.action_min
-    description: Lower limit on actions
-    mutability: provided
-  action_max:
-    type: vector.action_max
-    description: Upper limit on actions
-    mutability: provided
-  reward_min:
-    type: double.reward_min
-    description: Lower limit on immediate reward
-    mutability: provided
-  reward_max:
-    type: double.reward_max
-    description: Upper limit on immediate reward
-    mutability: provided
 trace/enumerated/accumulating:
   description: Accumulating eligibility trace using a queue of projections
 trace/enumerated/replacing:
@@ -4258,14 +4076,6 @@ visualization/state:
   state:
     type: state
     description: State to visualize
-    mutability: configuration
-    default: 0
-    optional: 0
-visualization/tlm:
-  description: Two-link manipulator visualization
-  state:
-    type: state
-    description: Two-link manipulator state to visualize
     mutability: configuration
     default: 0
     optional: 0

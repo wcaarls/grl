@@ -75,7 +75,7 @@ class RBDLDynamics : public Dynamics
     // From Dynamics
     virtual RBDLDynamics *clone() const;
     virtual void eom(const Vector &state, const Vector &action, Vector *xd) const;
-    virtual void finalize(Vector &next) const;
+    virtual void finalize(const Vector &state, Vector &out) const;
     
   protected:
     // own

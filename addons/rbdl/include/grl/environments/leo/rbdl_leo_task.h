@@ -30,7 +30,6 @@
 
 #include <functional>
 #include <grl/environment.h>
-//???? used? #include <grl/environments/leohelper.h>
 #include <grl/environments/rbdl.h>
 
 namespace grl
@@ -91,10 +90,10 @@ enum SquattingTaskState
 class LeoSquattingTask : public Task
 {
   public:
-    TYPEINFO("task/leoSquattingFA", "Task specification for Leo squatting with a fixed arm")
+    TYPEINFO("task/leo_squatting", "Task specification for Leo squatting with a fixed arm")
 
   public:
-    LeoSquattingTask() : timeout_(0), rand_init_(0), init_height_(0.28) { }
+    LeoSquattingTask() : timeout_(0), rand_init_(0), dof_(3) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -113,8 +112,9 @@ class LeoSquattingTask : public Task
     virtual int failed(const Vector &state) const;
 
   protected:
-    double timeout_, init_height_;
+    double timeout_;
     int rand_init_;
+    int dof_;
     Vector target_obs_min_, target_obs_max_;
 };
 
