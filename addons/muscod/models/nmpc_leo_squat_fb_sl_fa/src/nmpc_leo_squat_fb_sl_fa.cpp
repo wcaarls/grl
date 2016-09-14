@@ -143,15 +143,15 @@ void check_dimensions(
 
 const unsigned int LSQFCN_HEIGHT_TRACKING_NE = 0
 	+ 1 //stability tracking of center of support
-	+ 1 // com velocity minimization
+	// + 1 // com velocity minimization
 	+ 1 // height tracking
-	+ 1 // height change minimization
-	+ 1 // minimize angular momentum
+	// + 1 // height change minimization
+	// + 1 // minimize angular momentum
 	+ 1 // upright torso
-	+ 1 // upright torso
+	// + 1 // upright torso
 	// + 1 // regularizing arm motion
 	+ NXD/2 // reguralizing joint velocities
-	+ NU // reguralizing controls
+	// + NU // reguralizing controls
 	;
 void lsqfcn_height_tracking (
 	double *ts, double *sd, double *sa, double *u, double *p, double *pr,
@@ -227,15 +227,15 @@ void lsqfcn_height_tracking (
 	//       n2 = n++; -> n2 = 0, n = 1
 
 	// track: || root_z - h_ref ||_2^2
-  res[res_cnt++] =  100.00 * (position_root[2] - p[parameter["h_ref"]]);
+	res[res_cnt++] = 50.00 * (position_root[2] - p[parameter["h_ref"]]);
 
 	// track: || com_x,y - support center_x,y ||_2^2
-	res[res_cnt++] =   50.00 * (position_CoM[0] - suppport_center[0]);
+	res[res_cnt++] = 100.00 * (position_CoM[0] - suppport_center[0]);
 
-	res[res_cnt++] =   10.00 * velocity_CoM[0];
-	res[res_cnt++] =   10.00 * velocity_CoM[2];
+	// res[res_cnt++] =   10.00 * velocity_CoM[0];
+	// res[res_cnt++] =   10.00 * velocity_CoM[2];
 
-	res[res_cnt++] =  100.00 * momentum_CoM[1];
+	// res[res_cnt++] =  100.00 * momentum_CoM[1];
 
 	// NOTE: sum of lower body angles is equal to angle between ground slope
 	//       and torso. Minimizing deviation from zero keeps torso upright
@@ -247,12 +247,11 @@ void lsqfcn_height_tracking (
 		- (0.15)  // desired torso angle
 	);
 
-  // note, the term is OFF
-  res[res_cnt++] = 0*60.00 * (
-		sd[QDOTS["hip_left"]]
-		+ sd[QDOTS["knee_left"]]
-		+ sd[QDOTS["ankle_left"]]
-	);
+	// res[res_cnt++] = 60.00 * (
+	// 	sd[QDOTS["hip_left"]]
+	// 	+ sd[QDOTS["knee_left"]]
+	// 	+ sd[QDOTS["ankle_left"]]
+	// );
 
 	// regularize: || q - q_desired ||_2^2
 	// res[res_cnt++] = 1.00 * (sd[QS["arm"]]         - (-0.26)); // arm
@@ -261,16 +260,16 @@ void lsqfcn_height_tracking (
 	// res[res_cnt++] = 0.01 * (sd[QS["ankle_left"]]  - (0.05)); // ankle_left
 
 	// regularize: || qdot ||_2^2
-  // res[res_cnt++] = 6.00 * sd[QDOTS["arm"]]; // arm
-  res[res_cnt++] = 6.00 * sd[QDOTS["hip_left"]]; // hip_left
-  res[res_cnt++] = 6.00 * sd[QDOTS["knee_left"]]; // knee_left
-  res[res_cnt++] = 6.00 * sd[QDOTS["ankle_left"]]; // ankle_left
+	// res[res_cnt++] = 6.00 * sd[QDOTS["arm"]]; // arm
+	res[res_cnt++] = 5.00 * sd[QDOTS["hip_left"]]; // hip_left
+	res[res_cnt++] = 5.00 * sd[QDOTS["knee_left"]]; // knee_left
+	res[res_cnt++] = 5.00 * sd[QDOTS["ankle_left"]]; // ankle_left
 
 	// regularize: || u ||_2^2
 	// res[res_cnt++] = 0.01 * u[TAUS["arm"]]; // arm
-	res[res_cnt++] = 0.01 * u[TAUS["hip_left"]]; // hip_left
-	res[res_cnt++] = 0.01 * u[TAUS["knee_left"]]; // knee_left
-	res[res_cnt++] = 0.01 * u[TAUS["ankle_left"]]; // ankle_left
+	// res[res_cnt++] = 0.01 * u[TAUS["hip_left"]]; // hip_left
+	// res[res_cnt++] = 0.01 * u[TAUS["knee_left"]]; // knee_left
+	// res[res_cnt++] = 0.01 * u[TAUS["ankle_left"]]; // ankle_left
 
 	// regularize: || tau ||_2^2
 	// res[res_cnt++] = 0.010 * leo.tau[TAUS["arm"]]         * leo.tau[TAUS["arm"]]; // arm
@@ -758,7 +757,7 @@ void def_model (void)
 	// NOTE: data_in is used to calculate current NMOS and NMS
 	//       or instantiate different RBLD models for parallel evaluation of
 	//       shooting nodes.
-	def_mio (data_in , meshup_out, data_out);
-	// def_mio (data_in , NULL, NULL);
+	// def_mio (data_in , meshup_out, data_out);
+	def_mio (data_in , NULL, NULL);
 }
 // -----------------------------------------------------------------------------

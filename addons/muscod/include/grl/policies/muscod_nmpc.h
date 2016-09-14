@@ -232,8 +232,12 @@ struct NMPCProblem : public MUSCODProblem {
       m_muscod->setPF(backup_p.data());
       for (unsigned int imsn = 0; imsn < m_NMSN; ++imsn)
       {
-        m_muscod->setNodeSD(imsn, backup_xd.row(imsn).data());
-        m_muscod->setNodeQC(imsn, backup_qc.row(imsn).data());
+        if (imsn > 0) {
+          m_muscod->setNodeSD(imsn, backup_xd.row(imsn).data());
+        }
+        if (imsn < m_NMSN - 1) {
+          m_muscod->setNodeQC(imsn, backup_qc.row(imsn).data());
+        }
       }
   }
 

@@ -100,7 +100,11 @@ void NMPCPolicy::configure(Configuration &config)
 
   //------------------- Initialize NMPC ------------------- //
   muscod_nmpc_ = new MUSCOD();
-  muscod_nmpc_->setLogLevelAndFile(-1, NULL, NULL);
+  if (verbose_) {
+    muscod_nmpc_->setLogLevelAndFile(-1, NULL, NULL);
+  } else {
+    muscod_nmpc_->setLogLevelTotal(-1);
+  }
   nmpc_ = new NMPCProblem(problem_path.c_str(), nmpc_model_name_.c_str(), muscod_nmpc_);
 
   // Allocate memory
@@ -111,19 +115,22 @@ void NMPCPolicy::configure(Configuration &config)
 
   // Muscod params
   initFeedback_ = config["initFeedback"];
-/*
-  // Save muscod state
+
   nmpc_->feedback();
   nmpc_->transition();
   nmpc_->preparation();
-  nmpc_->backup_muscod_state();
-*/
+
+  // Save muscod state
+  if (verbose_) {
+    std::cout << "saving MUSCOD-II state to" << std::endl;
+    std::cout << "  " << nmpc_->m_options->modelDirectory << restart_path_ << "/" << restart_name_ << ".bin" << std::endl;
+  }
+  nmpc_->m_muscod->writeRestartFile(
+    restart_path_.c_str(), restart_name_.c_str()
+  );
+
   if (verbose_)
     std::cout << "MUSCOD is ready!" << std::endl;
-  else
-  {
-    muscod_nmpc_->setLogLevelScreen(-1);
-  }
 }
 
 void NMPCPolicy::reconfigure(const Configuration &config)
@@ -132,25 +139,26 @@ void NMPCPolicy::reconfigure(const Configuration &config)
 
 void NMPCPolicy::muscod_reset(const Vector &initial_obs, const Vector &initial_pf, Vector &initial_qc) const
 {
-  /*
-  // Reload muscod state
-  nmpc_->restore_muscod_state();
-*/
-/*
-  // Reinitialize state and time
-  for (int IXD = 0; IXD < nmpc_->NXD(); ++IXD)
-    data_.sd[IXD] = initial_obs[IXD];
-  data_.pf[0] = initial_pf[0];
-*/
+  // restore muscod state
+  if (verbose_) {
+    std::cout << "restoring MUSCOD-II state to" << std::endl;
+    std::cout << "  " << nmpc_->m_options->modelDirectory << restart_path_ << "/" << restart_name_ << ".bin" << std::endl;
+  }
+  nmpc_->m_muscod->readRestartFile(restart_path_.c_str(), restart_name_.c_str());
+  nmpc_->m_muscod->nmpcInitialize (
+      4,  // 4 for restart
+      restart_path_.c_str(), restart_name_.c_str()
+  );
 
   // initialize NMPC
-  for (int inmpc = 0; inmpc < 50; ++inmpc)
+  for (int inmpc = 0; inmpc < 20; ++inmpc)
   {
     // 1) Feedback: Embed parameters and initial value from MHE
-    if (initFeedback_)
+    if (initFeedback_) {
       nmpc_->feedback(initial_obs, initial_pf, &initial_qc);
-    else
+    } else {
       nmpc_->feedback();
+    }
     // 2) Transition
     nmpc_->transition();
     // 3) Preparation
