@@ -176,7 +176,7 @@ void RBDLDynamics::finalize(const Vector &state, Vector &out) const
   toVector(v, out);
 }
 
-bool RBDLDynamics::loadPointsFromFile(const char* filename, RigidBodyDynamics::Model *model, bool verbose) const
+bool RBDLDynamics::loadPointsFromFile(const char* filename, RigidBodyDynamics::Model *model) const
 {
   LuaTable lua_table = LuaTable::fromFile(filename);
 
@@ -189,25 +189,22 @@ bool RBDLDynamics::loadPointsFromFile(const char* filename, RigidBodyDynamics::M
 
     points[point.name] = point;
 
-    if (verbose)
-    {
-      std::cout << " Adding Point: " << point.name << std::endl;
-      std::cout << "    body =        " << point.body_name << " (id = " << point.body_id << ")" << std::endl;
-      std::cout << "    point_local = [" << point.point_local.transpose() << "]" << std::endl;
-    }
+    TRACE(" Adding Point: " << point.name);
+    TRACE("    body =        " << point.body_name << " (id = " << point.body_id << ")");
+    TRACE("    point_local = [" << point.point_local.transpose() << "]");
   }
 
   // check whether we missed some points
   if (points.size() != point_count)
   {
-    std::cerr << "Error: not all contact points have been loaded!" << std::endl;
+    ERROR("Error: not all contact points have been loaded!");
     abort();
   }
 
   return true;
 }
 
-bool RBDLDynamics::loadConstraintSetsFromFile(const char* filename, RigidBodyDynamics::Model *model, bool verbose) const
+bool RBDLDynamics::loadConstraintSetsFromFile(const char* filename, RigidBodyDynamics::Model *model) const
 {
   // initialize Constraint Sets
   LuaTable lua_table = LuaTable::fromFile (filename);
@@ -222,7 +219,7 @@ bool RBDLDynamics::loadConstraintSetsFromFile(const char* filename, RigidBodyDyn
     }
     else
     {
-      std::cerr << "Found invalid constraint set name, string expected!" << std::endl;
+      ERROR("Found invalid constraint set name, string expected!");
       abort();
     }
   }
@@ -231,8 +228,7 @@ bool RBDLDynamics::loadConstraintSetsFromFile(const char* filename, RigidBodyDyn
   {
     std::string set_name_str = constraint_set_names[si];
 
-    if (verbose)
-      std::cout << "ConstraintSet '" << set_name_str << std::endl;
+    TRACE("ConstraintSet '" << set_name_str);
 
     unsigned int constraint_count = lua_table["constraint_sets"][constraint_set_names[si].c_str()].length();
 
@@ -247,12 +243,10 @@ bool RBDLDynamics::loadConstraintSetsFromFile(const char* filename, RigidBodyDyn
       std::string point_name = constraint_info.point_name.c_str();
       constraint_info.point_id = ci;
 
-      if (verbose)
-      {
-        std::cout << "  Adding Constraint point: " << points[point_name].name << std::endl;
-        std::cout << "    body id = " << points[point_name].body_id << std::endl;
-        std::cout << "    normal =  [" << constraint_info.normal.transpose() << "]" << std::endl;
-      }
+      TRACE("  Adding Constraint point: " << points[point_name].name);
+      TRACE("    body id = " << points[point_name].body_id);
+      TRACE("    normal =  [" << constraint_info.normal.transpose() << "]");
+
       cs.AddConstraint (
         points[point_name].body_id,
         points[point_name].point_local,
@@ -275,7 +269,7 @@ bool RBDLDynamics::loadConstraintSetsFromFile(const char* filename, RigidBodyDyn
   // check whether we missed some sets
   if (constraints.size() != constraint_set_names.size())
   {
-    std::cerr << "Error: not all constraint sets have been loaded!" << std::endl;
+    ERROR("Error: not all constraint sets have been loaded!");
     abort();
   }
 
@@ -386,9 +380,8 @@ RBDLState *RBDLDynamics::createRBDLState() const
   NOTICE("Loaded RBDL model with " << rbdl->model->dof_count << " degrees of freedom");
 
   // Load optional things
-  bool verbose = true;
-  loadPointsFromFile(file_.c_str(), rbdl->model, verbose);
-  loadConstraintSetsFromFile(file_.c_str(), rbdl->model, verbose);
+  loadPointsFromFile(file_.c_str(), rbdl->model);
+  loadConstraintSetsFromFile(file_.c_str(), rbdl->model);
   
   return rbdl;
 }

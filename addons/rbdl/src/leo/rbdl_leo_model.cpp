@@ -38,8 +38,6 @@ void LeoSandboxModel::request(ConfigurationRequest *config)
 
   config->push_back(CRP("target_dof", "int.target_dof", "Number of degrees of freedom of the target model", target_dof_, CRP::Configuration, 0, INT_MAX));
   config->push_back(CRP("target_env", "environment", "Interaction environment", target_env_, true));
-  config->push_back(CRP("action_min", "vector.action_min", "Lower limit on actions", action_min_, CRP::System));
-  config->push_back(CRP("action_max", "vector.action_max", "Upper limit on actions", action_max_, CRP::System));
   config->push_back(CRP("animation", "Save current state or full animation", animation_, CRP::Configuration, {"nope", "full", "immediate"}));
 }
 
@@ -49,8 +47,6 @@ void LeoSandboxModel::configure(Configuration &config)
 
   target_env_ = (Environment*)config["target_env"].ptr(); // Select a real enviromnent if needed
   target_dof_ = config["target_dof"];
-  action_min_ = config["action_min"].v();
-  action_max_ = config["action_max"].v();
   animation_ = config["animation"].str();
 }
 
@@ -166,9 +162,6 @@ double LeoSquattingSandboxModel::step(const Vector &action, Vector *next)
   else
     action_step_ << action;
 
-  for (int i = 0; i < action_min_.size(); i++)
-    action_step_[i] = fmin(action_max_[i], fmax(action_step_[i], action_min_[i])); // ensure voltage within limits
-
 //  action_step_ << ConstantVector(target_dof_, 0);
 
 //  std::cout << state_step_ << std::endl;
@@ -203,8 +196,8 @@ double LeoSquattingSandboxModel::step(const Vector &action, Vector *next)
   if ((*next)[rlsRefRootZ] != state_[rlsRefRootZ])
     (*next)[stsSquats] = state_[stsSquats] + 1;
 
-  std::cout << "  > Height: " << (*next)[rlsRootZ] << std::endl;
-  std::cout << "  > Next state: " << *next << std::endl;
+//  std::cout << "  > Height: " << (*next)[rlsRootZ] << std::endl;
+//  std::cout << "  > Next state: " << *next << std::endl;
 
   if (animation_ != "no")
     export_meshup_animation(*next, action_step_);

@@ -83,8 +83,8 @@ class RBDLDynamics : public Dynamics
 
   protected:
     RBDLState *createRBDLState() const;
-    bool loadPointsFromFile(const char* filename, RigidBodyDynamics::Model *model, bool verbose) const;
-    bool loadConstraintSetsFromFile(const char* filename, RigidBodyDynamics::Model *model, bool verbose) const;
+    bool loadPointsFromFile(const char* filename, RigidBodyDynamics::Model *model) const;
+    bool loadConstraintSetsFromFile(const char* filename, RigidBodyDynamics::Model *model) const;
     void getPointPosition(const Vector &state, const std::string point_name, Vector &out) const;
     void getAuxiliary(const Vector &state, double &modelMass, Vector &centerOfMass, Vector &centerOfMassVelocity, Vector &angularMomentum) const;
 };

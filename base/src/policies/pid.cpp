@@ -46,10 +46,16 @@ void PIDPolicy::request(ConfigurationRequest *config)
   config->push_back(CRP("i", "I gains", i_, CRP::Online));
   config->push_back(CRP("d", "D gains (use P gain on velocity instead, if available)", d_, CRP::Online));
   config->push_back(CRP("il", "Integration limits", il_, CRP::Online));
+
+  config->push_back(CRP("action_min", "vector.action_min", "Lower limit on actions", action_min_, CRP::System));
+  config->push_back(CRP("action_max", "vector.action_max", "Upper limit on actions", action_max_, CRP::System));
 }
 
 void PIDPolicy::configure(Configuration &config)
 {
+  action_min_ = config["action_min"].v();
+  action_max_ = config["action_max"].v();
+
   setpoint_ = config["setpoint"].v();
   if (!setpoint_.size())
     throw bad_param("policy/pid:setpoint");
@@ -108,8 +114,8 @@ TransitionType PIDPolicy::act(const Vector &in, Vector *out) const
       if (i_.size() && il_.size())
         u += params_[I(ii, oo)]*err;
     }
-    
-    (*out)[oo] = u;
+
+    (*out)[oo] = fmin(action_max_[oo], fmax(u, action_min_[oo]));
   }
   return ttGreedy;
 }
@@ -150,7 +156,7 @@ TransitionType PIDPolicy::act(double time, const Vector &in, Vector *out)
       }
     }
     
-    (*out)[oo] = u;
+    (*out)[oo] = fmin(action_max_[oo], fmax(u, action_min_[oo]));
   }
   
   prev_in_ = in;
@@ -168,10 +174,16 @@ void PIDTrajectoryPolicy::request(ConfigurationRequest *config)
   config->push_back(CRP("i", "I gains", i_, CRP::Online));
   config->push_back(CRP("d", "D gains (use P gain on velocity instead, if available)", d_, CRP::Online));
   config->push_back(CRP("il", "Integration limits", il_, CRP::Online));
+
+  config->push_back(CRP("action_min", "vector.action_min", "Lower limit on actions", action_min_, CRP::System));
+  config->push_back(CRP("action_max", "vector.action_max", "Upper limit on actions", action_max_, CRP::System));
 }
 
 void PIDTrajectoryPolicy::configure(Configuration &config)
 {
+  action_min_ = config["action_min"].v();
+  action_max_ = config["action_max"].v();
+
   trajectory_ = (Policy*)config["policy"].ptr();
   inputs_ = config["inputs"];
   outputs_ = config["outputs"];
@@ -255,7 +267,7 @@ TransitionType PIDTrajectoryPolicy::act(double time, const Vector &in, Vector *o
       }
     }
 
-    (*out)[oo] = u;
+    (*out)[oo] = fmin(action_max_[oo], fmax(u, action_min_[oo]));
   }
 
   prev_in_ = in;

@@ -160,6 +160,21 @@ local function get_point_by_name (container, name)
     print('container does not contain point with name: ', name)
 end
 
+function control(state, action)
+    -- Convert voltage to torque
+    Kt = 0.00992
+    G = 193.0
+    R = 8.6
+    dof = 4
+    for ii = 0, dof-1 do
+--      print(action[ii])
+      action[ii] = Kt*G*(action[ii] - Kt*G*state[dof + ii])/R;
+--      print(action[ii])
+      -- action[ii] = action[ii] - 0.0*state[dof + ii]; -- Friction
+    end
+    return {action[0], action[1], action[2], action[3]}
+end
+
 -- **************************************************************************
 -- *** VISUALS **************************************************************
 -- **************************************************************************

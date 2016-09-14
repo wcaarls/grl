@@ -53,7 +53,6 @@ class LeoSandboxModel: public Sandbox
     int target_dof_;
     Environment *target_env_;
     DynamicalModel dm_;
-    Vector action_min_, action_max_;
     std::string animation_;
 };
 

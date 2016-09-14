@@ -43,11 +43,10 @@ class PIDPolicy : public ParameterizedPolicy
   protected:
     Vector setpoint_;
     size_t outputs_;
-    
     Vector p_, i_, d_, il_;
     Vector params_;
-    
     Vector ival_, prev_in_;
+    Vector action_min_, action_max_;
 
   public:
     PIDPolicy() : outputs_(1) { }
@@ -75,14 +74,13 @@ class PIDTrajectoryPolicy : public ParameterizedPolicy
     TYPEINFO("policy/parameterized/pidt", "Parameterized policy based on a proportional-integral-derivative controller for tranjectory tracking")
 
   protected:
-    Policy *trajectory_; // TODO: should be a "Timeline" importer
-    Vector setpoint_; // the dynamic setpoint is taken from trajectory at the current time
+    Policy *trajectory_;  // TODO: could be a "Timeline" importer ?
+    Vector setpoint_;     // the dynamic setpoint is taken from trajectory at the current time
     size_t inputs_, outputs_;
-
     Vector p_, i_, d_, il_;
     Vector params_;
-
     Vector ival_, prev_in_;
+    Vector action_min_, action_max_;
 
   public:
     PIDTrajectoryPolicy() : inputs_(1), outputs_(1) { }
