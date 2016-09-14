@@ -47,7 +47,7 @@ class LeoSandboxModel: public Sandbox
     virtual double step(const Vector &action, Vector *next) = 0;
 
   protected:
-    virtual double export_meshup_animation(const Vector &state, const Vector &action) const;
+    virtual void export_meshup_animation(const Vector &state, const Vector &action = Vector()) const;
 
   protected:
     int target_dof_;

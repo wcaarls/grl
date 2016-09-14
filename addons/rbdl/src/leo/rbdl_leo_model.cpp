@@ -37,8 +37,8 @@ void LeoSandboxModel::request(ConfigurationRequest *config)
   dm_.request(config);
 
   config->push_back(CRP("target_dof", "int.target_dof", "Number of degrees of freedom of the target model", target_dof_, CRP::Configuration, 0, INT_MAX));
-  config->push_back(CRP("target_env", "environment", "Interaction environment", target_env_, true));
   config->push_back(CRP("animation", "Save current state or full animation", animation_, CRP::Configuration, {"nope", "full", "immediate"}));
+  config->push_back(CRP("target_env", "environment", "Interaction environment", target_env_, true));
 }
 
 void LeoSandboxModel::configure(Configuration &config)
@@ -50,20 +50,14 @@ void LeoSandboxModel::configure(Configuration &config)
   animation_ = config["animation"].str();
 }
 
-double LeoSandboxModel::export_meshup_animation(const Vector &state, const Vector &action) const
+void LeoSandboxModel::export_meshup_animation(const Vector &state, const Vector &action) const
 {
+  if (animation_ == "nope")
+    return;
+
+  std::ios_base::openmode om = (animation_ == "full" && action.size() != 0)?(std::ios_base::app):(std::ios_base::trunc);
+
   std::ofstream data_stream;
-
-  if (action.size() == 0 && state.size() == 0)
-  {
-    data_stream.open("sd_leo.csv", std::ofstream::out | std::ofstream::trunc);
-    data_stream.close();
-    data_stream.open("u_leo.csv", std::ofstream::out | std::ofstream::trunc);
-    data_stream.close();
-  }
-
-  std::ios_base::openmode om = (animation_ == "full")?(std::ios_base::app):(std::ios_base::trunc);
-
   data_stream.open("sd_leo.csv", om);
   if (!data_stream || 2*target_dof_ > state.size())
   {
@@ -133,11 +127,7 @@ void LeoSquattingSandboxModel::start(const Vector &hint, Vector *state)
   state_ << *state, VectorConstructor(lower_height_), rbdl_addition_, VectorConstructor(0.0);
   *state = state_;
 
-  if (animation_ == "full")
-    export_meshup_animation(Vector(), Vector());
-
-  if (animation_ != "no")
-    export_meshup_animation(state_, ConstantVector(target_dof_, 0));
+  export_meshup_animation(state_, ConstantVector(target_dof_, 0));
 
   TRACE("Initial state: " << state_);
 }
@@ -199,8 +189,7 @@ double LeoSquattingSandboxModel::step(const Vector &action, Vector *next)
 //  std::cout << "  > Height: " << (*next)[rlsRootZ] << std::endl;
 //  std::cout << "  > Next state: " << *next << std::endl;
 
-  if (animation_ != "no")
-    export_meshup_animation(*next, action_step_);
+  export_meshup_animation(*next, action_step_);
 
   state_ = *next;
   return tau;

@@ -8,17 +8,18 @@ experiment:
   environment: 
     type: environment/sandbox
     model: 
-      type: sandbox_model/dynamical
+      type: sandbox_model/leo_squatting
       control_step: 0.03
       integration_steps: 25
       dynamics: 
-        type: dynamics/rbdl_leo
+        type: dynamics/rbdl
         file: leo_fb_sl.lua
         points: tip_left, heel_left, root
         auxiliary: mm, com, comv, am
-      dof_count: 4
-      action_min: [-10.7, -10.7, -10.7]
-      action_max: [10.7,  10.7,  10.7]
+      target_dof: 4
+      animation: immediate
+      lower_height: 0.28
+      upper_height: 0.35
     task: 
       type: task/leoSquatFA
       timeout: 5

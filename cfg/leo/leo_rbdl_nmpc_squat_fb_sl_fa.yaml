@@ -11,7 +11,7 @@ experiment:
     model: 
       type: sandbox_model/dynamical
       control_step: 0.03
-      integration_steps: 5
+      integration_steps: 25
       dynamics: 
         type: dynamics/rbdl_leo
         file: leo_fb_sl_fa.lua
