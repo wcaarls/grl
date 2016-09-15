@@ -146,7 +146,7 @@ agent/master/sequential:
     type: exporter
     description: Optional exporter for transition log (supports time, state, observation, action, reward, terminal)
     mutability: configuration
-    default: 0x243f450
+    default: 0x680230
     optional: 1
 agent/master/sequential/additive:
   description: Additive master agent that executes sub-agents sequentially and adds their outputs
@@ -452,7 +452,7 @@ environment/leo_squat:
     type: int.observation_dims
     description: Number of observation dimensions
     mutability: configuration
-    default: 38836016
+    default: 7644576
     optional: 1
     min: 0
     max: 2147483647
@@ -500,7 +500,7 @@ environment/leo_walk:
     type: int.observation_dims
     description: Number of observation dimensions
     mutability: configuration
-    default: 38836016
+    default: 7644576
     optional: 1
     min: 0
     max: 2147483647
@@ -512,6 +512,82 @@ environment/leo_walk:
     optional: 1
     min: 0
     max: 2147483647
+environment/leosim:
+  description: Leo simulation environment
+  xml:
+    type: string
+    description: XML configuration filename
+    mutability: configuration
+    default: ../addons/odesim/cfg/robot.xml
+    optional: 1
+  randomize:
+    type: int
+    description: Randomize initial state
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 2147483647
+  visualize:
+    type: int
+    description: Whether to display 3D visualization
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 0
+    max: 1
+  observation_dims:
+    type: int.observation_dims
+    description: Number of observation dimensions
+    mutability: provided
+  observation_min:
+    type: vector.observation_min
+    description: Lower limit on observations
+    mutability: provided
+  observation_max:
+    type: vector.observation_max
+    description: Upper limit on observations
+    mutability: provided
+  action_dims:
+    type: int.action_dims
+    description: Number of action dimensions
+    mutability: provided
+  action_min:
+    type: vector.action_min
+    description: Lower limit on actions
+    mutability: provided
+  action_max:
+    type: vector.action_max
+    description: Upper limit on actions
+    mutability: provided
+  reward_min:
+    type: double.reward_min
+    description: Lower limit on immediate reward
+    mutability: provided
+  reward_max:
+    type: double.reward_max
+    description: Upper limit on immediate reward
+    mutability: provided
+  observe:
+    type: string
+    description: string.observe_
+    mutability: configuration
+    default: Comma-separated list of state elements observed by an agent
+    optional: 1
+  actuate:
+    type: string
+    description: string.actuate_
+    mutability: configuration
+    default: Comma-separated list of action elements provided by an agent
+    optional: 1
+  learn_stance_knee:
+    type: int
+    description: Learn stance knee
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
 environment/modeled:
   description: Environment that uses a state transition model internally
   model:
@@ -1311,6 +1387,18 @@ policy/feed_forward:
     optional: 1
 policy/mhe_nmpc:
   description: Nonlinear model predictive control policy with moving horizon estimator using the MUSCOD library
+  action_min:
+    type: vector.action_min
+    description: Lower limit on actions
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  action_max:
+    type: vector.action_max
+    description: Upper limit on actions
+    mutability: system
+    default: "[  ]"
+    optional: 1
   lua_model:
     type: string
     description: Lua model used by MUSCOD
@@ -1323,12 +1411,6 @@ policy/mhe_nmpc:
     mutability: configuration
     default: ""
     optional: 1
-  mhe_model_name:
-    type: string
-    description: Name of MUSCOD MHE model library
-    mutability: configuration
-    default: ""
-    optional: 1
   nmpc_model_name:
     type: string
     description: Name of MUSCOD MHE model library
@@ -1339,46 +1421,18 @@ policy/mhe_nmpc:
     type: int.action_dims
     description: Number of outputs
     mutability: system
-    default: 1
+    default: 0
     optional: 1
     min: 1
     max: 2147483647
-  verbose:
+  initFeedback:
     type: int
-    description: Verbose mode
+    description: Initialize feedback
     mutability: system
     default: 0
     optional: 1
     min: 0
     max: 1
-policy/mhe_nmpc_sw:
-  description: Nonlinear model predictive control policy for the simplest walker with moving horizon estimator using the MUSCOD library
-  model_name:
-    type: string
-    description: Name of the model in grl
-    mutability: configuration
-    default: ""
-    optional: 1
-  mhe_model_name:
-    type: string
-    description: Name of MUSCOD MHE model library
-    mutability: configuration
-    default: ""
-    optional: 1
-  nmpc_model_name:
-    type: string
-    description: Name of MUSCOD MHE model library
-    mutability: configuration
-    default: ""
-    optional: 1
-  outputs:
-    type: int.action_dims
-    description: Number of outputs
-    mutability: system
-    default: 1
-    optional: 1
-    min: 1
-    max: 2147483647
   verbose:
     type: int
     description: Verbose mode
@@ -1423,7 +1477,7 @@ policy/nmpc:
     type: int.action_dims
     description: Number of outputs
     mutability: system
-    default: 1
+    default: 0
     optional: 1
     min: 1
     max: 2147483647
@@ -1443,8 +1497,26 @@ policy/nmpc:
     optional: 1
     min: 0
     max: 1
-policy/nmpc_sw:
-  description: Nonlinear model predictive control policy for the simplest walker using the MUSCOD library
+policy/nmpc_mlrti:
+  description: "Thread-based nonlinear model predictive control policy using the MUSCOD library and implementing a multi-level real-time iteration "
+  action_min:
+    type: vector.action_min
+    description: Lower limit on actions
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  action_max:
+    type: vector.action_max
+    description: Upper limit on actions
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  lua_model:
+    type: string
+    description: Lua model used by MUSCOD
+    mutability: configuration
+    default: ""
+    optional: 1
   model_name:
     type: string
     description: Name of the model in grl
@@ -1461,10 +1533,18 @@ policy/nmpc_sw:
     type: int.action_dims
     description: Number of outputs
     mutability: system
-    default: 1
+    default: 0
     optional: 1
     min: 1
     max: 2147483647
+  initFeedback:
+    type: int
+    description: Initialize feedback
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
   verbose:
     type: int
     description: Verbose mode

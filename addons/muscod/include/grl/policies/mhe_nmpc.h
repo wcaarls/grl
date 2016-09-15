@@ -29,6 +29,7 @@
 #define GRL_MHE_NMPC_H_
 
 #include <grl/policy.h>
+#include <grl/policies/nmpc_base.h>
 #include <grl/policies/muscod_mhe.h>
 #include <grl/policies/muscod_nmpc.h>
 
@@ -38,24 +39,20 @@ namespace grl
 {
 
 /// NMPC policy with moving horizon estimator (MHE)
-class MHE_NMPCPolicy : public Policy
+class MHE_NMPCPolicy : public NMPCBase
 {
   public:
     TYPEINFO("policy/mhe_nmpc", "Nonlinear model predictive control policy with moving horizon estimator using the MUSCOD library")
 
   protected:
-    int verbose_;
-
-    // MUSCOD-II interface
     MUSCOD *muscod_mhe_, *muscod_nmpc_;
     MHEProblem *mhe_;
     NMPCProblem *nmpc_;
-    std::string mhe_model_name_, nmpc_model_name_, lua_model_, model_name_;
-    size_t outputs_;
+    std::string mhe_model_name_;
     Vector initial_sd_, initial_pf_, initial_qc_, final_sd_, hs_, ss_;
 
   public:
-    MHE_NMPCPolicy() : muscod_mhe_(NULL), muscod_nmpc_(NULL), outputs_(1), verbose_(false) { }
+    MHE_NMPCPolicy() : muscod_mhe_(NULL), muscod_nmpc_(NULL){ }
     ~MHE_NMPCPolicy();
 
     // From Configurable
@@ -67,9 +64,6 @@ class MHE_NMPCPolicy : public Policy
     // From Policy
     virtual MHE_NMPCPolicy *clone() const;
     virtual TransitionType act(double time, const Vector &in, Vector *out);
-
-    // Own
-    void *setup_model_path(const std::string path, const std::string model, const std::string lua_model);
 };
 
 }

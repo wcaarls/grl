@@ -30,6 +30,7 @@
 
 #include <grl/policy.h>
 #include <grl/policies/muscod_nmpc.h>
+#include <grl/policies/nmpc_base.h>
 
 class MUSCOD;
 
@@ -37,20 +38,14 @@ namespace grl
 {
 
 /// NMPC policy
-class NMPCPolicy : public Policy
+class NMPCPolicy : public NMPCBase
 {
   public:
     TYPEINFO("policy/nmpc", "Nonlinear model predictive control policy using the MUSCOD library")
 
   protected:
-    int verbose_;
-    int initFeedback_;
-
-    // MUSCOD-II interface
     MUSCOD *muscod_nmpc_;
     NMPCProblem *nmpc_;
-    std::string model_name_, lua_model_, nmpc_model_name_;
-    size_t outputs_;
     Vector initial_pf_, initial_qc_, final_sd_;
 
     // relative path to model directory
@@ -58,11 +53,8 @@ class NMPCPolicy : public Policy
     const std::string restart_path_ = "";
     const std::string restart_name_ = "run_nmpc";
 
-    // GRL
-    Vector action_min_, action_max_;
-
   public:
-    NMPCPolicy() : muscod_nmpc_(NULL), outputs_(1), verbose_(0), initFeedback_(0) { };
+    NMPCPolicy() { }
     ~NMPCPolicy();
 
     // From Configurable
@@ -74,9 +66,6 @@ class NMPCPolicy : public Policy
     // From Policy
     virtual NMPCPolicy *clone() const;
     virtual TransitionType act(double time, const Vector &in, Vector *out);
-
-    // Own
-    void *setup_model_path(const std::string path, const std::string model, const std::string lua_model);
 };
 
 }

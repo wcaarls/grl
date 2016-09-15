@@ -24,68 +24,15 @@ NMPCPolicy::~NMPCPolicy()
 
 void NMPCPolicy::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("action_min", "vector.action_min", "Lower limit on actions", action_min_, CRP::System));
-  config->push_back(CRP("action_max", "vector.action_max", "Upper limit on actions", action_max_, CRP::System));
-
-  config->push_back(CRP("lua_model", "Lua model used by MUSCOD", lua_model_));
-  config->push_back(CRP("model_name", "Name of the model in grl", model_name_));
-  config->push_back(CRP("nmpc_model_name", "Name of MUSCOD MHE model library", nmpc_model_name_));
-  config->push_back(CRP("outputs", "int.action_dims", "Number of outputs", (int)outputs_, CRP::System, 1));
-  config->push_back(CRP("initFeedback", "Initialize feedback", (int)initFeedback_, CRP::System, 0, 1));
-  config->push_back(CRP("verbose", "Verbose mode", (int)verbose_, CRP::System, 0, 1));
-}
-
-void *NMPCPolicy::setup_model_path(const std::string path, const std::string model, const std::string lua_model)
-{
-  // get the library handle,
-  std::string so_path  = path + "/" + "lib" + model + ".so";
-  void *so_handle = dlopen(so_path.c_str(), RTLD_NOW|RTLD_GLOBAL);
-  if (so_handle==NULL)
-  {
-    std::cout << "ERROR: Could not load MUSCOD-II shared model library: '" << so_path << "'" << std::endl;
-    std::cout << "dlerror responce: " << dlerror() << std::endl;
-    std::cout << "bailing out ..." << std::endl;
-    exit(EXIT_FAILURE);
-  }
-
-  // get the function handle
-  void (*so_set_path)(std::string, std::string);
-  std::string so_set_path_fn = "set_path"; // name of a function which sets the path
-  so_set_path = (void (*)(std::string, std::string)) dlsym(so_handle, so_set_path_fn.c_str());
-  if (so_set_path==NULL)
-  {
-    std::cout << "ERROR: Could not symbol in shared library: '" << so_set_path_fn << "'" << std::endl;
-    std::cout << "bailing out ..." << std::endl;
-    std::exit(-1);
-  }
-
-  // ... and finally set the paths
-  if (verbose_)
-  {
-    std::cout << "MUSCOD: setting new problem path to: '" << path << "'" <<std::endl;
-    std::cout << "MUSCOD: setting new Lua model file to: '" << lua_model << "'" <<std::endl;
-  }
-  so_set_path(path, lua_model);
-
-  return so_handle;
+  NMPCBase::request(config);
 }
 
 void NMPCPolicy::configure(Configuration &config)
 {
-  std::string model_path;
-  model_path        = std::string(MUSCOD_CONFIG_DIR);
-  nmpc_model_name_  = config["nmpc_model_name"].str();
-  model_name_       = config["model_name"].str();
-  outputs_          = config["outputs"];
-  verbose_          = config["verbose"];
-  action_min_       = config["action_min"].v();
-  action_max_       = config["action_max"].v();
-
-  if (action_min_.size() != action_max_.size())
-    throw bad_param("policy/nmpc:{action_min, action_max}");
+  NMPCBase::configure(config);
 
   // Setup path for the problem description library and lua, csv, dat files used by it
-  std::string problem_path  = model_path + "/" + model_name_;
+  std::string problem_path  = model_path_ + "/" + model_name_;
 
   //-------------------- Load Lua model which is used by muscod ------------------- //
   if (!config["lua_model"].str().empty())

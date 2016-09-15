@@ -82,8 +82,10 @@ NMPCPolicyMLRTI::~NMPCPolicyMLRTI()
   idle_ = NULL;
 
   // stop threads
-  stop_thread (*nmpc_A_, &thread_A);
-  stop_thread (*nmpc_B_, &thread_B);
+  if (nmpc_A_)
+    stop_thread (*nmpc_A_, &thread_A_, true);
+  if (nmpc_B_)
+  stop_thread (*nmpc_B_, &thread_B_, true);
 
   // safely delete instances
   safe_delete(&nmpc_A_);
@@ -94,15 +96,9 @@ NMPCPolicyMLRTI::~NMPCPolicyMLRTI()
 
 void NMPCPolicyMLRTI::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("lua_model", "Lua model used by MUSCOD", lua_model_));
-  config->push_back(CRP("model_name", "Name of the model in grl", model_name_));
-  config->push_back(CRP("nmpc_model_name", "Name of MUSCOD NMPC model library", nmpc_model_name_));
-  config->push_back(CRP("outputs", "int.action_dims", "Number of outputs", (int)outputs_, CRP::System, 1));
-  config->push_back(CRP("pf", "vector.pf", "NMPC setpoint", initial_pf_));
-  config->push_back(CRP("initFeedback", "Initialize feedback", (int)initFeedback_, CRP::System, 0, 1));
-  config->push_back(CRP("verbose", "Verbose mode", (int)verbose_, CRP::System, 0, 1));
+  NMPCBase::request(config);
 }
-
+/*
 void *NMPCPolicyMLRTI::setup_model_path(const std::string path, const std::string model, const std::string lua_model)
 {
   // get the library handle,
@@ -137,7 +133,7 @@ void *NMPCPolicyMLRTI::setup_model_path(const std::string path, const std::strin
 
   return so_handle;
 }
-
+*/
 // run MUSCOD-II NMPC for several iterations to initialize controller for
 // current initial sd/pf, first qc is optional
 void initialize_controller (
@@ -375,15 +371,10 @@ void *muscod_run (void *indata)
 
 void NMPCPolicyMLRTI::configure(Configuration &config)
 {
-  std::string model_path;
-  model_path        = std::string(MUSCOD_CONFIG_DIR);
-  nmpc_model_name_  = config["nmpc_model_name"].str();
-  model_name_       = config["model_name"].str();
-  outputs_          = config["outputs"];
-  verbose_          = config["verbose"];
+  NMPCBase::configure(config);
 
   // Setup path for the problem description library and lua, csv, dat files used by it
-  std::string problem_path  = model_path + "/" + model_name_;
+  std::string problem_path  = model_path_ + "/" + model_name_;
 
   //-------------------- Load Lua model which is used by muscod ------------------- //
   lua_model_ = problem_path + "/" + config["lua_model"].str();
@@ -480,7 +471,7 @@ void NMPCPolicyMLRTI::configure(Configuration &config)
   cntl_->set_nmpc_mode(1);
 
   // define current state
-  STATE current_state_ = idle_call;
+  current_state_ = idle_call;
 
   //------------------- Initialize NMPC data ------------------- //
 
@@ -491,8 +482,6 @@ void NMPCPolicyMLRTI::configure(Configuration &config)
   final_sd_   = ConstantVector(nmpc_A_->NXD(), 0);
 
   // Muscod params
-  grl_assert(config["pf"].v().size() == nmpc_A_->NP());
-  initial_pf_ << config["pf"].v(); // parameters
   initFeedback_ = config["initFeedback"];
 
   if (verbose_) {

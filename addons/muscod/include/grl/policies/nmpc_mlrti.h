@@ -10,13 +10,14 @@
 
 #include <grl/policy.h>
 #include <grl/policies/muscod_data.h> // MUSCOD-II thread-safe data structure
+#include <grl/policies/nmpc_base.h>
 #include "wrapper.hpp" // MUSCOD-II interface
 #include "muscod_nmpc.h" // MUSCOD-II NMPCProblem class
 #include <time.h>
 
 namespace grl {
 
-class NMPCPolicyMLRTI: public Policy
+class NMPCPolicyMLRTI: public NMPCBase
 {
   public:
     TYPEINFO(
@@ -25,15 +26,8 @@ class NMPCPolicyMLRTI: public Policy
     )
 
   protected:
-    int verbose_, single_step_; // TODO what is single_step_?
-    int initFeedback_;
     int nmpc_ninit_; // number of MUSCOD SQP iterations for initialization
-    std::string model_name_, lua_model_, nmpc_model_name_;
-    size_t outputs_, inputs_;
     Vector initial_pf_, initial_qc_, final_sd_;
-
-    // MUSCOD-II interface
-    void *so_handle_; // handle to a shared library with problem definitions
 
     MUSCOD *muscod_A_;
     NMPCProblem *nmpc_A_;
@@ -102,18 +96,18 @@ class NMPCPolicyMLRTI: public Policy
 
   public:
     NMPCPolicyMLRTI():
-        single_step_(0),
         nmpc_ninit_(10),
-        initFeedback_(0),
-        inputs_(0),
-        outputs_(0),
-        verbose_(0) ,
         idle_iv_provided_ (true),
         idle_qc_retrieved_ (true),
         cntl_iv_provided_ (true),
-        cntl_qc_retrieved_ (true)
-    {};
-    ~NMPCPolicyMLRTI() {};
+        cntl_qc_retrieved_ (true),
+        nmpc_A_(NULL),
+        nmpc_B_(NULL),
+        muscod_A_(NULL),
+        muscod_B_(NULL)
+    {}
+
+    ~NMPCPolicyMLRTI();
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -125,7 +119,7 @@ class NMPCPolicyMLRTI: public Policy
     virtual TransitionType act(double time, const Vector &in, Vector *out);
 
     // Own
-    void *setup_model_path(const std::string path, const std::string model, const std::string lua_model);
+    //void *setup_model_path(const std::string path, const std::string model, const std::string lua_model);
 };
 
 } /* namespace grl */

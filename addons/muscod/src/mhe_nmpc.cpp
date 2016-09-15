@@ -24,61 +24,16 @@ MHE_NMPCPolicy::~MHE_NMPCPolicy()
 
 void MHE_NMPCPolicy::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("lua_model", "Lua model used by MUSCOD", lua_model_));
-  config->push_back(CRP("model_name", "Name of the model in grl", model_name_));
-  config->push_back(CRP("mhe_model_name", "Name of MUSCOD MHE model library", mhe_model_name_));
-  config->push_back(CRP("nmpc_model_name", "Name of MUSCOD MHE model library", nmpc_model_name_));
-  config->push_back(CRP("outputs", "int.action_dims", "Number of outputs", (int)outputs_, CRP::System, 1));
-  config->push_back(CRP("verbose", "Verbose mode", (int)verbose_, CRP::System, 0, 1));
-}
-
-void *MHE_NMPCPolicy::setup_model_path(const std::string path, const std::string model, const std::string lua_model)
-{
-  // get the library handle,
-  std::string so_path  = path + "/" + "lib" + model + ".so";
-  void *so_handle = dlopen(so_path.c_str(), RTLD_NOW|RTLD_GLOBAL);
-  if (so_handle==NULL)
-  {
-    std::cout << "ERROR: Could not load MUSCOD-II shared model library: '" << so_path << "'" << std::endl;
-    std::cout << "dlerror responce: " << dlerror() << std::endl;
-    std::cout << "bailing out ..." << std::endl;
-    exit(EXIT_FAILURE);
-  }
-
-  // get the function handle
-  void (*so_set_path)(std::string, std::string);
-  std::string so_set_path_fn = "set_path"; // name of a function which sets the path
-  so_set_path = (void (*)(std::string, std::string)) dlsym(so_handle, so_set_path_fn.c_str());
-  if (so_set_path==NULL)
-  {
-    std::cout << "ERROR: Could not symbol in shared library: '" << so_set_path_fn << "'" << std::endl;
-    std::cout << "bailing out ..." << std::endl;
-    std::exit(-1);
-  }
-
-  // ... and finally set the paths
-  if (verbose_)
-  {
-    std::cout << "MUSCOD: setting new problem path to: '" << path << "'" <<std::endl;
-    std::cout << "MUSCOD: setting new Lua model file to: '" << lua_model << "'" <<std::endl;
-  }
-  so_set_path(path, lua_model);
-
-  return so_handle;
+  NMPCBase::request(config);
 }
 
 void MHE_NMPCPolicy::configure(Configuration &config)
 {
-  std::string model_path;
-  model_path        = std::string(MUSCOD_CONFIG_DIR);
-  model_name_       = config["model_name"].str();
+  NMPCBase::configure(config);
   mhe_model_name_   = config["mhe_model_name"].str();
-  nmpc_model_name_  = config["nmpc_model_name"].str();
-  outputs_          = config["outputs"];
-  verbose_          = config["verbose"];
 
   // Setup path for the problem description library and lua, csv, dat files used by it
-  std::string problem_path  = model_path + "/" + model_name_;
+  std::string problem_path  = model_path_ + "/" + model_name_;
 
   //-------------------- Load Lua model which is used by muscod ------------------- //
   if (!config["lua_model"].str().empty())
@@ -121,22 +76,6 @@ void MHE_NMPCPolicy::configure(Configuration &config)
   ss_ = ConstantVector(mhe_->NXD() + mhe_->NU(), 1);
   ss_ << 1.00, 1.00, 1.00, 1.00, 0.10; // no error
 
-  // FIXME This part is needed
-  // if (!verbose_) {
-    // muscod_mhe_->setLogLevelScreen(-1);
-    // muscod_mhe_->setLogLevelAndFile(-1, NULL, NULL);
-    // muscod_nmpc_->setLogLevelScreen(-1);
-    // muscod_nmpc_->setLogLevelAndFile(-1, NULL, NULL);
-  // }
-
-/*
-  // save solver state
-  // FIXME this part is needed
-  data_.backup_muscod_state(muscod_);
-  data_.sd = ConstantVector(data_.NXD, 0.0);
-  data_.pf = ConstantVector(data_.NP,  0.0);
-*/
-
   if (verbose_)
     std::cout << "MUSCOD is ready!" << std::endl;
 }
@@ -148,14 +87,6 @@ void MHE_NMPCPolicy::reconfigure(const Configuration &config)
 
 void MHE_NMPCPolicy::muscod_reset(const Vector &initial_obs, double time)
 {
-  // FIXME
-  // load solution state
-  // data_.restore_muscod_state(muscod_);
-
-  // // Reinitialize state and time
-  // for (int IP = 0; IP < data_.NP; ++IP)
-  //   data_.pf[IP] = time;
-
   // initialize NMPC
   for (int inmpc = 0; inmpc < 10; ++inmpc) {
     // 1) Feedback: Embed parameters and initial value from MHE
