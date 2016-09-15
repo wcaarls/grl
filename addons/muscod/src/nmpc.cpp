@@ -31,11 +31,13 @@ NMPCPolicy::~NMPCPolicy()
 void NMPCPolicy::request(ConfigurationRequest *config)
 {
   NMPCBase::request(config);
+  config->push_back(CRP("feedback", "Choose between a non-treaded and a threaded feedback of NMPC", feedback_, CRP::Configuration, {"non-threaded", "threaded"}));
 }
 
 void NMPCPolicy::configure(Configuration &config)
 {
   NMPCBase::configure(config);
+  feedback_ = config["feedback"].str();
 
   // Setup path for the problem description library and lua, csv, dat files used by it
   std::string problem_path  = model_path_ + "/" + model_name_;
@@ -201,6 +203,14 @@ TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
       //       computations are finished (<=2ms!)
       iv_provided_ = true;
       qc_retrieved_ = true;
+
+      // NOTE do that only once at last iteration
+      // NOTE this has to be done before the transition phase
+      if (nnmpc_ > 0 && inmpc == nnmpc_ - 1) {
+        nmpc_->set_shift_mode (1);
+      } else {
+        nmpc_->set_shift_mode (-1);
+      }
 
       // establish IPC communication to NMPC thread
       get_feedback (

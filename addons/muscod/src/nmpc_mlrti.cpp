@@ -153,6 +153,20 @@ void NMPCPolicyMLRTI::configure(Configuration &config)
   initial_qc_ = ConstantVector(nmpc_A_->NU(), 0);
   final_sd_   = ConstantVector(nmpc_A_->NXD(), 0);
 
+  // run single SQP iteration to be able to write a restart file
+  nmpc_->feedback();
+  nmpc_->transition();
+  nmpc_->preparation();
+
+  // Save MUSCOD state
+  if (verbose_) {
+    std::cout << "saving MUSCOD-II state to" << std::endl;
+    std::cout << "  " << nmpc_->m_options->modelDirectory << restart_path_ << "/" << restart_name_ << ".bin" << std::endl;
+  }
+  nmpc_->m_muscod->writeRestartFile(
+    restart_path_.c_str(), restart_name_.c_str()
+  );
+
   // Muscod params
   initFeedback_ = config["initFeedback"];
 
@@ -168,16 +182,61 @@ void NMPCPolicyMLRTI::reconfigure(const Configuration &config)
 
 void NMPCPolicyMLRTI::muscod_reset(const Vector &initial_obs, double time)
 {
-  Vector initial_sd_ = initial_obs;
+  // restore muscod state
+  if (verbose_) {
+    std::cout << "restoring MUSCOD-II state to" << std::endl;
+    std::cout << "  " << nmpc_A_->m_options->modelDirectory << restart_path_ << "/" << restart_name_ << ".bin" << std::endl;
+  }
+  nmpc_A_->m_muscod->readRestartFile(restart_path_.c_str(), restart_name_.c_str());
+  nmpc_A_->m_muscod->nmpcInitialize (
+      4, // guess_type = 4 for warm start
+      restart_path_.c_str(), restart_name_.c_str()
+  );
+  // turn on mode '0' for proper re-initialization
   nmpc_A_->set_nmpc_mode(0);
-  initialize_controller (
-    *nmpc_A_, nmpc_ninit_, initial_sd_, initial_pf_, &initial_qc_
-  );
 
-  nmpc_B_->set_nmpc_mode(0);
-  initialize_controller (
-    *nmpc_B_, nmpc_ninit_, initial_sd_, initial_pf_, &initial_qc_
+  // initialize NMPC
+  for (int inmpc = 0; inmpc < 10; ++inmpc)
+  {
+    // 1) Feedback: Embed parameters and initial value from MHE
+    if (initFeedback_) {
+      nmpc_A_->feedback(initial_obs, initial_pf, &initial_qc);
+    } else {
+      nmpc_A_->feedback();
+    }
+    // 2) Transition
+    nmpc_A_->transition();
+    // 3) Preparation
+    nmpc_A_->preparation();
+  }
+
+  // restore muscod state
+  if (verbose_) {
+    std::cout << "restoring MUSCOD-II state to" << std::endl;
+    std::cout << "  " << nmpc_B_->m_options->modelDirectory << restart_path_ << "/" << restart_name_ << ".bin" << std::endl;
+  }
+  nmpc_B_->m_muscod->readRestartFile(restart_path_.c_str(), restart_name_.c_str());
+  nmpc_B_->m_muscod->nmpcInitialize (
+      4, // guess_type = 4 for warm start
+      restart_path_.c_str(), restart_name_.c_str()
   );
+  // turn on mode '0' for proper re-initialization
+  nmpc_B_->set_nmpc_mode(0);
+
+  // initialize NMPC
+  for (int inmpc = 0; inmpc < 10; ++inmpc)
+  {
+    // 1) Feedback: Embed parameters and initial value from MHE
+    if (initFeedback_) {
+      nmpc_B_->feedback(initial_obs, initial_pf, &initial_qc);
+    } else {
+      nmpc_B_->feedback();
+    }
+    // 2) Transition
+    nmpc_B_->transition();
+    // 3) Preparation
+    nmpc_B_->preparation();
+  }
 
   //------------------- Define state of MLRTI NMPC ------------------- //
 
