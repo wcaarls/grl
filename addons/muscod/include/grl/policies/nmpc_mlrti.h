@@ -50,6 +50,11 @@ class NMPCPolicyMLRTI: public NMPCBase
     Vector muscod_obs_;
     Matrix muscod_action_;
 
+    // relative path to model directory
+    // NOTE will end up next to the DAT file as 'run_nmpc.bin'!
+    const std::string restart_path_ = "";
+    const std::string restart_name_ = "run_nmpc";
+
     // state machine to handle multi-level real-time iteration:
     // 0: idle_call
     //    call idle at current state, retrieve feedback, start re-linearization

@@ -78,11 +78,10 @@ void NMPCPolicyMLRTI::configure(Configuration &config)
         nmpc_A_->m_verbose = false;
   }
 
-  // initialize controller by running several SQP iterations
-  // TODO where to initialize controller?
-  // initialize_controller (
-  //   *nmpc_A_, nmpc_ninit_, initial_sd, initial_pf, &first_qc
-  // );
+  // run single SQP iteration to be able to write a restart file
+  nmpc_A_->feedback();
+  nmpc_A_->transition();
+  nmpc_A_->preparation();
 
   // provide condition variable and mutex to NMPC instance
   nmpc_A_->cond_iv_ready_ = &cond_iv_ready_A_;
@@ -112,11 +111,10 @@ void NMPCPolicyMLRTI::configure(Configuration &config)
         nmpc_B_->m_verbose = false;
   }
 
-  // initialize controller by running several SQP iterations
-  // TODO where to initialize controller?
-  // initialize_controller (
-  //   *nmpc_B_, nmpc_ninit_, initial_sd, initial_pf, &first_qc
-  // );
+  // run single SQP iteration to be able to write a restart file
+  nmpc_B_->feedback();
+  nmpc_B_->transition();
+  nmpc_B_->preparation();
 
   // provide condition variable and mutex to NMPC instance
   nmpc_B_->cond_iv_ready_ = &cond_iv_ready_B_;
@@ -153,17 +151,12 @@ void NMPCPolicyMLRTI::configure(Configuration &config)
   initial_qc_ = ConstantVector(nmpc_A_->NU(), 0);
   final_sd_   = ConstantVector(nmpc_A_->NXD(), 0);
 
-  // run single SQP iteration to be able to write a restart file
-  nmpc_->feedback();
-  nmpc_->transition();
-  nmpc_->preparation();
-
   // Save MUSCOD state
   if (verbose_) {
     std::cout << "saving MUSCOD-II state to" << std::endl;
-    std::cout << "  " << nmpc_->m_options->modelDirectory << restart_path_ << "/" << restart_name_ << ".bin" << std::endl;
+    std::cout << "  " << nmpc_A_->m_options->modelDirectory << restart_path_ << "/" << restart_name_ << ".bin" << std::endl;
   }
-  nmpc_->m_muscod->writeRestartFile(
+  nmpc_A_->m_muscod->writeRestartFile(
     restart_path_.c_str(), restart_name_.c_str()
   );
 
@@ -200,7 +193,7 @@ void NMPCPolicyMLRTI::muscod_reset(const Vector &initial_obs, double time)
   {
     // 1) Feedback: Embed parameters and initial value from MHE
     if (initFeedback_) {
-      nmpc_A_->feedback(initial_obs, initial_pf, &initial_qc);
+      nmpc_A_->feedback(initial_obs, initial_pf_, &initial_qc_);
     } else {
       nmpc_A_->feedback();
     }
@@ -228,7 +221,7 @@ void NMPCPolicyMLRTI::muscod_reset(const Vector &initial_obs, double time)
   {
     // 1) Feedback: Embed parameters and initial value from MHE
     if (initFeedback_) {
-      nmpc_B_->feedback(initial_obs, initial_pf, &initial_qc);
+      nmpc_B_->feedback(initial_obs, initial_pf_, &initial_qc_);
     } else {
       nmpc_B_->feedback();
     }
