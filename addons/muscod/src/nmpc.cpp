@@ -743,6 +743,14 @@ TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
       iv_provided_ = true;
       qc_retrieved_ = true;
 
+      // NOTE do that only once at last iteration
+      // NOTE this has to be done before the transition phase
+      if (nnmpc_ > 0 && inmpc == nnmpc_ - 1) {
+        nmpc_->set_shift_mode (1);
+      } else {
+        nmpc_->set_shift_mode (-1);
+      }
+
       // establish IPC communication to NMPC thread
       get_feedback (
           nmpc_,
