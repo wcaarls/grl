@@ -81,12 +81,16 @@ void MHE_NMPCPolicy::configure(Configuration &config)
   std::string problem_path  = model_path + "/" + model_name_;
 
   //-------------------- Load Lua model which is used by muscod ------------------- //
-  lua_model_ = problem_path + "/" + config["lua_model"].str();
+  if (!config["lua_model"].str().empty())
+  {
+    lua_model_ = problem_path + "/" + config["lua_model"].str();
 
-  struct stat buffer;
-  if (stat(lua_model_.c_str(), &buffer) != 0) // check if lua file exists in the problem description folder
-    lua_model_ = std::string(RBDL_LUA_CONFIG_DIR) + "/" + config["lua_model"].str(); // if not, then use it as a reference from dynamics
-
+    struct stat buffer;
+    if (stat(lua_model_.c_str(), &buffer) != 0) // check if lua file exists in the problem description folder
+      lua_model_ = std::string(RBDL_LUA_CONFIG_DIR) + "/" + config["lua_model"].str(); // if not, then use it as a reference from dynamics
+  }
+  else
+    lua_model_ = "";
   //----------------- Set path in the problem description library ----------------- //
   setup_model_path(problem_path, mhe_model_name_, lua_model_);
   setup_model_path(problem_path, nmpc_model_name_, lua_model_);

@@ -23,6 +23,7 @@ NMPC_SWPolicy::~NMPC_SWPolicy()
 
 void NMPC_SWPolicy::request(ConfigurationRequest *config)
 {
+  config->push_back(CRP("lua_model", "Lua model used by MUSCOD", lua_model_));
   config->push_back(CRP("model_name", "Name of the model in grl", model_name_));
   config->push_back(CRP("nmpc_model_name", "Name of MUSCOD MHE model library", nmpc_model_name_));
   config->push_back(CRP("outputs", "int.action_dims", "Number of outputs", (int)outputs_, CRP::System, 1));
@@ -76,8 +77,19 @@ void NMPC_SWPolicy::configure(Configuration &config)
   // Setup path for the problem description library and lua, csv, dat files used by it
   std::string problem_path  = model_path + "/" + model_name_;
 
+  //-------------------- Load Lua model which is used by muscod ------------------- //
+  if (!config["lua_model"].str().empty())
+  {
+    lua_model_ = problem_path + "/" + config["lua_model"].str();
+
+    struct stat buffer;
+    if (stat(lua_model_.c_str(), &buffer) != 0) // check if lua file exists in the problem description folder
+      lua_model_ = std::string(RBDL_LUA_CONFIG_DIR) + "/" + config["lua_model"].str(); // if not, then use it as a reference from dynamics
+  }
+  else
+    lua_model_ = "";
   //----------------- Set path in the problem description library ----------------- //
-  void * so_handle_nmpc = setup_model_path(problem_path, nmpc_model_name_, "");
+  setup_model_path(problem_path, nmpc_model_name_, lua_model_);
 
   //------------------- Initialize NMPC ------------------- //
   muscod_nmpc_ = new MUSCOD();
@@ -141,7 +153,7 @@ TransitionType NMPC_SWPolicy::act(double time, const Vector &in, Vector *out)
     // NOTE the same initial values (sd, pf) are embedded several time,
     //      but this will result in the same solution as running a MUSCOD
     //      instance for several iterations
-    nmpc_->feedback(initial_sd_, initial_pf_, &initial_qc_);
+    nmpc_->feedback(in, initial_pf_, &initial_qc_);
     // 2) Shifting
     // NOTE do that only once at last iteration
     // NOTE this has to be done before the transition phase

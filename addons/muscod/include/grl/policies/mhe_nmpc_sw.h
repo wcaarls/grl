@@ -50,7 +50,7 @@ class MHE_NMPC_SWPolicy : public Policy
     MUSCOD *muscod_mhe_, *muscod_nmpc_;
     MHEProblem *mhe_;
     NMPCProblem *nmpc_;
-    std::string mhe_model_name_, nmpc_model_name_, model_name_;
+    std::string mhe_model_name_, nmpc_model_name_, lua_model_, model_name_;
     size_t outputs_;
     Vector initial_sd_, initial_pf_, initial_qc_, final_sd_, hs_, ss_;
 

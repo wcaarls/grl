@@ -24,6 +24,7 @@ MHE_NMPC_SWPolicy::~MHE_NMPC_SWPolicy()
 
 void MHE_NMPC_SWPolicy::request(ConfigurationRequest *config)
 {
+  config->push_back(CRP("lua_model", "Lua model used by MUSCOD", lua_model_));
   config->push_back(CRP("model_name", "Name of the model in grl", model_name_));
   config->push_back(CRP("mhe_model_name", "Name of MUSCOD MHE model library", mhe_model_name_));
   config->push_back(CRP("nmpc_model_name", "Name of MUSCOD MHE model library", nmpc_model_name_));
@@ -79,9 +80,20 @@ void MHE_NMPC_SWPolicy::configure(Configuration &config)
   // Setup path for the problem description library and lua, csv, dat files used by it
   std::string problem_path  = model_path + "/" + model_name_;
 
+  //-------------------- Load Lua model which is used by muscod ------------------- //
+  if (!config["lua_model"].str().empty())
+  {
+    lua_model_ = problem_path + "/" + config["lua_model"].str();
+
+    struct stat buffer;
+    if (stat(lua_model_.c_str(), &buffer) != 0) // check if lua file exists in the problem description folder
+      lua_model_ = std::string(RBDL_LUA_CONFIG_DIR) + "/" + config["lua_model"].str(); // if not, then use it as a reference from dynamics
+  }
+  else
+    lua_model_ = "";
   //----------------- Set path in the problem description library ----------------- //
-  setup_model_path(problem_path, mhe_model_name_, "");
-  void * so_handle_nmpc = setup_model_path(problem_path, nmpc_model_name_, "");
+  setup_model_path(problem_path, mhe_model_name_, lua_model_);
+  setup_model_path(problem_path, nmpc_model_name_, lua_model_);
 
   //------------------- Initialize MHE ------------------- //
   muscod_mhe_ = new MUSCOD();
