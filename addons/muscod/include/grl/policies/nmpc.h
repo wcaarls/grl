@@ -63,9 +63,10 @@ class NMPCPolicy : public NMPCBase
     const std::string restart_name_ = "run_nmpc";
 
     std::string feedback_;
+    int n_iter_;
 
   public:
-    NMPCPolicy() : muscod_nmpc_(0), nmpc_(0) { }
+    NMPCPolicy() : muscod_nmpc_(NULL), nmpc_(NULL), n_iter_(1) { }
     ~NMPCPolicy();
 
     // From Configurable

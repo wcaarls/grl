@@ -32,12 +32,14 @@ void NMPCPolicy::request(ConfigurationRequest *config)
 {
   NMPCBase::request(config);
   config->push_back(CRP("feedback", "Choose between a non-treaded and a threaded feedback of NMPC", feedback_, CRP::Configuration, {"non-threaded", "threaded"}));
+  config->push_back(CRP("n_iter", "Number of iteration", (int)n_iter_, CRP::System, 0, INT_MAX));
 }
 
 void NMPCPolicy::configure(Configuration &config)
 {
   NMPCBase::configure(config);
   feedback_ = config["feedback"].str();
+  n_iter_ = config["n_iter"];
 
   // Setup path for the problem description library and lua, csv, dat files used by it
   std::string problem_path  = model_path_ + "/" + model_name_;
@@ -168,74 +170,76 @@ TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
 
   out->resize(outputs_);
 
-   // Run multiple NMPC iterations
-  const unsigned int nnmpc = 0;
-  for (int inmpc = 0; inmpc < nnmpc; ++inmpc) {
-    std::cout << "NON-THREADED VERSION!" << std::endl;
-    // 1) Feedback: Embed parameters and initial value from MHE
-    // NOTE the same initial values (sd, pf) are embedded several time,
-    //      but this will result in the same solution as running a MUSCOD
-    //      instance for several iterations
-    nmpc_->feedback(initial_sd_, initial_pf_, &initial_qc_);
-    // 2) Shifting
-    // NOTE do that only once at last iteration
-    // NOTE this has to be done before the transition phase
-    if (nnmpc > 0 && inmpc == nnmpc-1) {
-      nmpc_->shifting(1);
-    }
-    // 3) Transition
-    nmpc_->transition();
-    // 4) Preparation
-    nmpc_->preparation();
-  }
-  // } // END FOR NMPC ITERATIONS
-
-   // Run multiple NMPC iterations
-  const unsigned int nnmpc_ = 1;
-  for (int inmpc = 0; inmpc < nnmpc_; ++inmpc) {
-      // std::cout << "THREADED VERSION!" << std::endl;
-      // 1) Feedback: Embed parameters and initial value from SIMULATION
-      // establish IPC communication to NMPC thread
-
-      // NOTE: both flags are set to true then iv is provided and
-      //       qc is is computed
-      // NOTE: due to waiting flag, main thread is on hold until
-      //       computations are finished (<=2ms!)
-      iv_provided_ = true;
-      qc_retrieved_ = true;
-
+  if (feedback_ == "non-threaded")
+  {
+    for (int inmpc = 0; inmpc < n_iter_; ++inmpc) {
+      std::cout << "NON-THREADED VERSION!" << std::endl;
+      // 1) Feedback: Embed parameters and initial value from MHE
+      // NOTE the same initial values (sd, pf) are embedded several time,
+      //      but this will result in the same solution as running a MUSCOD
+      //      instance for several iterations
+      nmpc_->feedback(initial_sd_, initial_pf_, &initial_qc_);
+      // 2) Shifting
       // NOTE do that only once at last iteration
       // NOTE this has to be done before the transition phase
-      if (nnmpc_ > 0 && inmpc == nnmpc_ - 1) {
-        nmpc_->set_shift_mode (1);
-      } else {
-        nmpc_->set_shift_mode (-1);
+      if (n_iter_ > 0 && inmpc == n_iter_-1) {
+        nmpc_->shifting(1);
       }
+      // 3) Transition
+      nmpc_->transition();
+      // 4) Preparation
+      nmpc_->preparation();
+    }
+    // } // END FOR NMPC ITERATIONS
+  }
 
-      // establish IPC communication to NMPC thread
-      get_feedback (
-          nmpc_,
-          initial_sd_,
-          initial_pf_,
-          &initial_qc_,
-          &iv_provided_,
-          &qc_retrieved_,
-          // NOTE: we use wait flag here to guarantee separation of
-          //       feedback phases
-          // TODO do something with it
-          true // wait flag
-      );
+  if (feedback_ == "threaded")
+  {
+    for (int inmpc = 0; inmpc < n_iter_; ++inmpc) {
+        // std::cout << "THREADED VERSION!" << std::endl;
+        // 1) Feedback: Embed parameters and initial value from SIMULATION
+        // establish IPC communication to NMPC thread
 
-      // wait for preparation phase
-      if (true) { // TODO Add wait flag
-        wait_for_iv_ready(nmpc_, verbose_);
-        if (nmpc_->get_iv_ready() == true) {
+        // NOTE: both flags are set to true then iv is provided and
+        //       qc is is computed
+        // NOTE: due to waiting flag, main thread is on hold until
+        //       computations are finished (<=2ms!)
+        iv_provided_ = true;
+        qc_retrieved_ = true;
+
+        // NOTE do that only once at last iteration
+        // NOTE this has to be done before the transition phase
+        if (n_iter_ > 0 && inmpc == n_iter_ - 1) {
+          nmpc_->set_shift_mode (1);
         } else {
-            std::cerr << "MAIN: bailing out ..." << std::endl;
-            abort();
+          nmpc_->set_shift_mode (-1);
         }
-      }
-  } // END FOR NMPC ITERATIONS
+
+        // establish IPC communication to NMPC thread
+        get_feedback (
+            nmpc_,
+            initial_sd_,
+            initial_pf_,
+            &initial_qc_,
+            &iv_provided_,
+            &qc_retrieved_,
+            // NOTE: we use wait flag here to guarantee separation of
+            //       feedback phases
+            // TODO do something with it
+            true // wait flag
+        );
+
+        // wait for preparation phase
+        if (true) { // TODO Add wait flag
+          wait_for_iv_ready(nmpc_, verbose_);
+          if (nmpc_->get_iv_ready() == true) {
+          } else {
+              std::cerr << "MAIN: bailing out ..." << std::endl;
+              abort();
+          }
+        }
+    } // END FOR NMPC ITERATIONS
+  }
 
   // Here we can return the feedback control
   // NOTE feedback control is cut of at action limits 'action_min/max'
