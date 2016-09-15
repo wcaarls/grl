@@ -51,6 +51,7 @@ if (MUSCOD_FOUND)
 
   # Build library
   add_library(${TARGET} SHARED
+              ${SRC}/nmpc_base.cpp
               ${SRC}/nmpc.cpp
               ${SRC}/mhe_nmpc.cpp
               ${SRC}/nmpc_th.cpp

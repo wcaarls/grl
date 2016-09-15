@@ -15,10 +15,16 @@
 
 using namespace grl;
 
-REGISTER_CONFIGURABLE(NMPCPolicy)
+REGISTER_CONFIGURABLE(NMPCPolicy);
 
 NMPCPolicy::~NMPCPolicy()
 {
+  // stop threads
+  if (nmpc_)
+    stop_thread (*nmpc_, &thread_);
+
+  // safely delete instances
+  safe_delete(&nmpc_);
   safe_delete(&muscod_nmpc_);
 }
 
@@ -56,21 +62,35 @@ void NMPCPolicy::configure(Configuration &config)
     muscod_nmpc_->setLogLevelTotal(-1);
   }
   nmpc_ = new NMPCProblem(problem_path.c_str(), nmpc_model_name_.c_str(), muscod_nmpc_);
+  if (verbose_) {
+    nmpc_->m_verbose = true;
+  } else {
+    nmpc_->m_verbose = false;
+  }
+
+  // provide condition variable and mutex to NMPC instance
+  nmpc_->cond_iv_ready_ = &cond_iv_ready_;
+  nmpc_->mutex_ = &mutex_;
+
+  // start NMPC controller in own thread running signal controlled event loop
+  initialize_thread(
+    &thread_, muscod_run, static_cast<void*> (nmpc_),
+    &cond_iv_ready_, &mutex_, true
+  );
 
   // Allocate memory
   //initial_sd_ = ConstantVector(nmpc_->NXD(), 0);
   initial_pf_ = ConstantVector(nmpc_->NP(), 0);
   initial_qc_ = ConstantVector(nmpc_->NU(), 0);
+  initial_sd_ = ConstantVector(nmpc_->NXD(), 0);
   final_sd_   = ConstantVector(nmpc_->NXD(), 0);
 
-  // Muscod params
-  initFeedback_ = config["initFeedback"];
-
+  // run single SQP iteration to be able to write a restart file
   nmpc_->feedback();
   nmpc_->transition();
   nmpc_->preparation();
 
-  // Save muscod state
+  // Save MUSCOD state
   if (verbose_) {
     std::cout << "saving MUSCOD-II state to" << std::endl;
     std::cout << "  " << nmpc_->m_options->modelDirectory << restart_path_ << "/" << restart_name_ << ".bin" << std::endl;
@@ -80,7 +100,7 @@ void NMPCPolicy::configure(Configuration &config)
   );
 
   if (verbose_)
-    std::cout << "MUSCOD is ready!" << std::endl;
+    std::cout << "MUSCOD-II is ready!" << std::endl;
 }
 
 void NMPCPolicy::reconfigure(const Configuration &config)
@@ -126,49 +146,35 @@ NMPCPolicy *NMPCPolicy::clone() const
 
 TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
 {
-  grl_assert(in.size() == nmpc_->NXD() + 1); // setpoint indicator
+  grl_assert(in.size() == nmpc_->NXD() + nmpc_->NP()); // setpoint indicator
   grl_assert(outputs_  == nmpc_->NU());
 
   // reference height
   initial_pf_ << in[in.size()-1];
 
   // remove indicator
-  Vector in2 = in.block(0, 0, 1, in.size()-1);
+  initial_sd_ << in.block(0, 0, 1, in.size()-1);
 
   if (verbose_)
   {
-    std::cout << "time: [ " << time << " ]; state: [ " << in2 << "]" << std::endl;
+    std::cout << "time: [ " << time << " ]; state: [ " << initial_sd_ << "]" << std::endl;
     std::cout << "                          param: [ " << initial_pf_ << "]" << std::endl;
   }
 
   if (time == 0.0)
-    muscod_reset(in2, initial_pf_, initial_qc_);
+    muscod_reset(initial_sd_, initial_pf_, initial_qc_);
 
   out->resize(outputs_);
 
-  // simulate model over specified time interval using NMPC internal model
-  if (verbose_)
-  {
-    double time_interval = 0.03; //nmpc_->getSamplingRate();
-    nmpc_->simulate(
-        in2,
-        initial_pf_,
-        initial_qc_,
-        time_interval,
-        &final_sd_
-    );
-    std::cout << "NMPC simulation result using time_interval = " << time_interval << " is:" << std::endl;
-    std::cout << final_sd_ << std::endl;
-  }
-
-  // Run multiple NMPC iterations
-  const unsigned int nnmpc = 1;
+   // Run multiple NMPC iterations
+  const unsigned int nnmpc = 0;
   for (int inmpc = 0; inmpc < nnmpc; ++inmpc) {
+    std::cout << "NON-THREADED VERSION!" << std::endl;
     // 1) Feedback: Embed parameters and initial value from MHE
     // NOTE the same initial values (sd, pf) are embedded several time,
     //      but this will result in the same solution as running a MUSCOD
     //      instance for several iterations
-    nmpc_->feedback(in2, initial_pf_, &initial_qc_);
+    nmpc_->feedback(initial_sd_, initial_pf_, &initial_qc_);
     // 2) Shifting
     // NOTE do that only once at last iteration
     // NOTE this has to be done before the transition phase
@@ -180,8 +186,49 @@ TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
     // 4) Preparation
     nmpc_->preparation();
   }
+  // } // END FOR NMPC ITERATIONS
+
+   // Run multiple NMPC iterations
+  const unsigned int nnmpc_ = 1;
+  for (int inmpc = 0; inmpc < nnmpc_; ++inmpc) {
+      // std::cout << "THREADED VERSION!" << std::endl;
+      // 1) Feedback: Embed parameters and initial value from SIMULATION
+      // establish IPC communication to NMPC thread
+
+      // NOTE: both flags are set to true then iv is provided and
+      //       qc is is computed
+      // NOTE: due to waiting flag, main thread is on hold until
+      //       computations are finished (<=2ms!)
+      iv_provided_ = true;
+      qc_retrieved_ = true;
+
+      // establish IPC communication to NMPC thread
+      get_feedback (
+          nmpc_,
+          initial_sd_,
+          initial_pf_,
+          &initial_qc_,
+          &iv_provided_,
+          &qc_retrieved_,
+          // NOTE: we use wait flag here to guarantee separation of
+          //       feedback phases
+          // TODO do something with it
+          true // wait flag
+      );
+
+      // wait for preparation phase
+      if (true) { // TODO Add wait flag
+        wait_for_iv_ready(nmpc_, verbose_);
+        if (nmpc_->get_iv_ready() == true) {
+        } else {
+            std::cerr << "MAIN: bailing out ..." << std::endl;
+            abort();
+        }
+      }
+  } // END FOR NMPC ITERATIONS
 
   // Here we can return the feedback control
+  // NOTE feedback control is cut of at action limits 'action_min/max'
   for (int i = 0; i < action_min_.size(); i++)
   {
     (*out)[i] = fmax( fmin(initial_qc_[i], action_max_[i]) , action_min_[i]);

@@ -46,7 +46,18 @@ class NMPCPolicy : public NMPCBase
   protected:
     MUSCOD *muscod_nmpc_;
     NMPCProblem *nmpc_;
-    Vector initial_pf_, initial_qc_, final_sd_;
+    const std::string thread_id_ = "";
+    pthread_t thread_;
+    pthread_cond_t cond_iv_ready_;
+    pthread_mutex_t mutex_;
+
+    std::string model_name_, lua_model_, nmpc_model_name_;
+    size_t outputs_;
+    Vector initial_sd_, initial_pf_, initial_qc_, final_sd_;
+
+    // CONTROL LOOP
+    bool iv_provided_;
+    bool qc_retrieved_;
 
     // relative path to model directory
     // NOTE will end up next to the DAT file as 'run_nmpc.bin'!
@@ -54,7 +65,7 @@ class NMPCPolicy : public NMPCBase
     const std::string restart_name_ = "run_nmpc";
 
   public:
-    NMPCPolicy() { }
+    NMPCPolicy() : muscod_nmpc_(0), nmpc_(0) { }
     ~NMPCPolicy();
 
     // From Configurable
