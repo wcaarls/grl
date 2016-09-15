@@ -27,7 +27,6 @@
 
 #include <grl/environment.h>
 #include <iomanip>
-//#include <../../addons/rbdl/include/grl/environments/rbdl_leo.h> // remove if direction is set in task
 
 using namespace grl;
 

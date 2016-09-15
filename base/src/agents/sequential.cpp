@@ -144,14 +144,18 @@ void SequentialAdditiveMasterAgent::step(double tau, const Vector &obs, double r
   time_ += tau;
 
   // First action
+  timer t;
   agent_[0]->step(tau, obs, reward, action);
+  TRACE("Eapesed time (1): " << t.elapsed() << " s" << std::endl);
   if (exporter_)
     exporter_->append({grl::VectorConstructor(time_), *action});
 
   // Second action
   Vector action1;
   action1.resize(action->size());
+  t.restart();
   agent_[1]->step(tau, obs, reward, &action1);
+  TRACE("Eapesed time (2) " << t.elapsed() << " s" << std::endl);
   if (exporter_)
     exporter_->append({action1});
 

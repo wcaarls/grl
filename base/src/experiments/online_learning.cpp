@@ -149,6 +149,7 @@ void OnlineLearningExperiment::run()
       if (test) agent = test_agent_;
       
       environment_->start(test, &obs);
+
       CRAWL(obs);
       agent->start(obs, &action);
       state_->set(obs);
@@ -164,7 +165,7 @@ void OnlineLearningExperiment::run()
         }
 
         double tau = environment_->step(action, &obs, &reward, &terminal);
-        
+
         CRAWL(action << " - " << reward << " -> " << obs);
         
         total_reward += reward;

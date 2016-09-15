@@ -100,9 +100,6 @@ void LeoSquattingTask::start(int test, Vector *state) const
         -0.0,
         -0.0,  // end of rlsDofDim
          0.0;  // rlsTime
-//         ConstantVector(stsStateDim - 2*rlsDofDim, 0); // initialize the rest to zero
-
-//  (*state)[rlsRootZ] = init_height_;
 
   if (rand_init_)
   {
@@ -165,17 +162,16 @@ void LeoSquattingTask::evaluate(const Vector &state, const Vector &action, const
   double suppport_center = 0.5 * (next[rlsLeftTipX] + next[rlsLeftHeelX]);
 
   // track: || root_z - h_ref ||_2^2
-  cost +=  pow(100.0 * (next[rlsRootZ] - next[rlsRefRootZ]), 2);
-
+  cost +=  pow(50.0 * (next[rlsRootZ] - next[rlsRefRootZ]), 2);
 
   // track: || com_x,y - support center_x,y ||_2^2
-  cost +=  pow( 50.00 * (next[rlsComX] - suppport_center), 2);
+  cost +=  pow( 100.00 * (next[rlsComX] - suppport_center), 2);
 
-  double velW = 10.0; // 10.0
-  cost +=  pow( velW * next[rlsComVelocityX], 2);
-  cost +=  pow( velW * next[rlsComVelocityZ], 2);
+  //double velW = 10.0; // 10.0
+  //cost +=  pow( velW * next[rlsComVelocityX], 2);
+  //cost +=  pow( velW * next[rlsComVelocityZ], 2);
 
-  cost +=  pow( 100.00 * next[rlsAngularMomentumY], 2);
+  //cost +=  pow( 100.00 * next[rlsAngularMomentumY], 2);
 
   // NOTE: sum of lower body angles is equal to angle between ground slope
   //       and torso. Minimizing deviation from zero keeps torso upright
@@ -188,16 +184,16 @@ void LeoSquattingTask::evaluate(const Vector &state, const Vector &action, const
 
   // regularize: || qdot ||_2^2
   // res[res_cnt++] = 6.00 * sd[QDOTS["arm"]]; // arm
-  double rateW = 6.0; // 6.0
+  double rateW = 5.0; // 6.0
   cost += pow(rateW * next[rlsHipAngleRate], 2); // hip_left
   cost += pow(rateW * next[rlsKneeAngleRate], 2); // knee_left
   cost += pow(rateW * next[rlsAnkleAngleRate], 2); // ankle_left
 
   // regularize: || u ||_2^2
   // res[res_cnt++] = 0.01 * u[TAUS["arm"]]; // arm
-  cost += pow(0.01 * action[0], 2); // hip_left
-  cost += pow(0.01 * action[1], 2); // knee_left
-  cost += pow(0.01 * action[2], 2); // ankle_left
+//  cost += pow(0.01 * action[0], 2); // hip_left
+//  cost += pow(0.01 * action[1], 2); // knee_left
+//  cost += pow(0.01 * action[2], 2); // ankle_left
 
   double shaping = 0;
 
@@ -218,6 +214,9 @@ void LeoSquattingTask::evaluate(const Vector &state, const Vector &action, const
 
 int LeoSquattingTask::failed(const Vector &state) const
 {
+  if (std::isnan(state[rlsRootZ]))
+    ERROR("NaN value of root, try to reduce integration period to cope with this.");
+
   double torsoAngle = state[rlsAnkleAngle] + state[rlsKneeAngle] + state[rlsHipAngle];
   if ((torsoAngle < -1.7) || (torsoAngle > 1.7) ||
       // penalty for high joint velocities
@@ -229,8 +228,6 @@ int LeoSquattingTask::failed(const Vector &state) const
       (state[rlsHipAngleRate]   > target_obs_max_[rlsHipAngleRate])   ||
       (state[rlsArmAngleRate]   < target_obs_min_[rlsArmAngleRate])   ||
       (state[rlsArmAngleRate]   > target_obs_max_[rlsArmAngleRate])   ||
-      // lower-upper leg colision result in large velocities
-      //(std::isnan(state[rlsRootZ])) ||
       (state[rlsRootZ] < 0)
       )
     return 1;
@@ -245,7 +242,6 @@ void LeoSquattingTask::report(std::ostream &os, const Vector &state) const
   const int pw = 15;
   std::stringstream progressString;
   progressString << std::fixed << std::setprecision(3) << std::right;
-//  progressString << std::setw(pw) << cum_falls_;
   progressString << std::setw(pw) << state[rlsRootZ];
   progressString << std::setw(pw) << state[stsSquats];
   os << progressString.str();
