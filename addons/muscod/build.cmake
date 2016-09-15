@@ -53,8 +53,6 @@ if (MUSCOD_FOUND)
   add_library(${TARGET} SHARED
               ${SRC}/nmpc.cpp
               ${SRC}/mhe_nmpc.cpp
-              ${SRC}/nmpc_sw.cpp
-              ${SRC}/mhe_nmpc_sw.cpp
               ${SRC}/nmpc_th.cpp
 #              ${SRC}/nmpc_mlrti.cpp
              )
