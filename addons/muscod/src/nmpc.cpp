@@ -41,6 +41,8 @@ void NMPCPolicy::configure(Configuration &config)
   feedback_ = config["feedback"].str();
   n_iter_ = config["n_iter"];
 
+  INFO("Running " << feedback_ << " implementation of NMPC");
+
   // Setup path for the problem description library and lua, csv, dat files used by it
   std::string problem_path  = model_path_ + "/" + model_name_;
 
@@ -173,7 +175,7 @@ TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
   if (feedback_ == "non-threaded")
   {
     for (int inmpc = 0; inmpc < n_iter_; ++inmpc) {
-      std::cout << "NON-THREADED VERSION!" << std::endl;
+      //std::cout << "NON-THREADED VERSION!" << std::endl;
       // 1) Feedback: Embed parameters and initial value from MHE
       // NOTE the same initial values (sd, pf) are embedded several time,
       //      but this will result in the same solution as running a MUSCOD
