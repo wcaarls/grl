@@ -92,16 +92,11 @@ class OrnsteinUhlenbeckSampler : public EpsilonGreedySampler
 
   protected:
     Discretizer *discretizer_;
-    Vector min_, max_, steps_;
-    mutable Vector action_idx_;
-    double theta_, sigma_;
-    Vector center_;
-    unsigned int delta_;
-
-    std::vector<Vector> variants_;
+    Vector theta_, sigma_, center_;
+    mutable size_t mai_;
 
   public:
-    OrnsteinUhlenbeckSampler() : theta_(0.15), sigma_(0.3), delta_(3) { }
+    OrnsteinUhlenbeckSampler() { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -122,14 +117,13 @@ class PADASampler : public EpsilonGreedySampler
     TYPEINFO("sampler/pada", "Maximum search with a PADA random chance of non-maximums")
 
   protected:
-    Vector min_, max_, steps_;
-    mutable Vector action_, prev_action_;
-    double theta_, sigma_;
-    Vector center_;
-    unsigned int delta_;
+    Discretizer *discretizer_;
+    mutable Vector sample_idx_;
+    Vector steps_;
+    Vector delta_;
 
   public:
-    PADASampler() : theta_(0.15), sigma_(0.3), delta_(3) { }
+    PADASampler() { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -139,6 +133,9 @@ class PADASampler : public EpsilonGreedySampler
     // From Sampler
     virtual PADASampler *clone();
     virtual size_t sample(const Vector &values, TransitionType &tt) const;
+
+  protected:
+    void increment(Vector &idx, const Vector &lower_idx, Vector &upper_idx) const;
 };
 
 }

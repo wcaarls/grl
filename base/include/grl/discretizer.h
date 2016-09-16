@@ -77,6 +77,18 @@ class Discretizer : public Configurable
     
     virtual void   inc(IndexVector *idx) const = 0;
     virtual Vector get(const IndexVector &idx) const = 0;
+
+    /// Finds the most closest vector to 'vec' in L1 sense and satisfies discretization steps
+    virtual void discretize(Vector &vec) const = 0;
+
+    /// Converts vector to an linear offset of pointing to an indexed representation of the same input vector
+    virtual void convert(const Vector &vec, size_t &mai) const = 0;
+
+    /// Converts indexed vector to an linear offset of pointing to an indexed representation of the same input vector
+    virtual void convert_idx(const Vector &vec_idx, size_t &mai) const = 0;
+
+    /// Opposite to previous, converts a linear representation of an indexed offset to an actual discretized vector
+    virtual void convert(size_t mai, Vector &vec) const = 0;
 };
 
 }

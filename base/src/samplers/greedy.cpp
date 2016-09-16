@@ -31,7 +31,8 @@ using namespace grl;
 
 REGISTER_CONFIGURABLE(GreedySampler)
 REGISTER_CONFIGURABLE(EpsilonGreedySampler)
-REGISTER_CONFIGURABLE(EpsilonGreedyOUSampler)
+REGISTER_CONFIGURABLE(OrnsteinUhlenbeckSampler)
+REGISTER_CONFIGURABLE(PADASampler)
 
 void GreedySampler::request(ConfigurationRequest *config)
 {
@@ -142,39 +143,26 @@ void OrnsteinUhlenbeckSampler::request(ConfigurationRequest *config)
 {
   EpsilonGreedySampler::request(config);
 
-  config->push_back(CRP("min", "vector.action_min", "Lower limit", min_, CRP::System));
-  config->push_back(CRP("max", "vector.action_max", "Upper limit", max_, CRP::System));
-  config->push_back(CRP("steps", "Discretization steps per dimension", steps_, CRP::Configuration));
-
-  config->push_back(CRP("theta", "Theta parameter of Ornstein-Uhlenbeck", theta_, CRP::System, 0.0, DBL_MAX));
-  config->push_back(CRP("sigma", "Sigma parameter of Ornstein-Uhlenbeck", sigma_, CRP::System, 0.0, DBL_MAX));
+  config->push_back(CRP("discretizer", "discretizer.action", "Action discretizer", discretizer_));
+  config->push_back(CRP("theta", "Theta parameter of Ornstein-Uhlenbeck", theta_, CRP::Configuration));
+  config->push_back(CRP("sigma", "Sigma parameter of Ornstein-Uhlenbeck", sigma_, CRP::Configuration));
   config->push_back(CRP("center", "Centering parameter of Ornstein-Uhlenbeck", center_, CRP::Configuration));
-
-  config->push_back(CRP("delta", "Delta of PADA", delta_, CRP::System, 0, INT_MAX));
 }
 
 void OrnsteinUhlenbeckSampler::configure(Configuration &config)
 {
   EpsilonGreedySampler::configure(config);
 
-  min_ = config["min"].v();
-  max_ = config["max"].v();
-  //steps_ = config["steps"].v();
   discretizer_ = (Discretizer*)config["discretizer"].ptr();
 
-  theta_ = config["theta"];
-  sigma_ = config["sigma"];
+  if (theta_.size() != sigma_.size() || sigma_.size() != center_.size() || center_.size() == 0)
+    throw bad_param("sampler/ornstein_ohlenbeck:{theta,sigma,center}");
+
+  theta_ = config["theta"].v();
+  sigma_ = config["sigma"].v();
   center_ = config["center"].v();
 
-  delta_ = config["delta"];
-
-  if (min_.size() != max_.size() || min_.size() != steps_.size())
-    throw bad_param("sampler/epsilon_greedy_ou:{min,max,steps}");
-
-  action_idx_.resize(steps_.size());
-  action_idx_.resize(steps_.size());
-  for (int i = 0; i < steps_.size(); i++)
-    action_idx_[i] = action_idx_[i] = floor(steps_[i]/2);
+  discretizer_->convert(center_, mai_);
 }
 
 void OrnsteinUhlenbeckSampler::reconfigure(const Configuration &config)
@@ -186,75 +174,56 @@ OrnsteinUhlenbeckSampler *OrnsteinUhlenbeckSampler::clone()
 {
   OrnsteinUhlenbeckSampler *egs = new OrnsteinUhlenbeckSampler(*this);
   egs->rand_ = rand_->clone();
-
   return egs;
 }
 
 size_t OrnsteinUhlenbeckSampler::sample(const Vector &values, TransitionType &tt) const
 {
-  size_t mai = 0;
-
   if (rand_->get() < epsilon_)
   {
     tt = ttExploratory;
-    for (int i = 0; i < steps_.size(); i++)
-    {
-      action_idx_[i] = action_idx_[i] + theta_ * (center_[i] - action_idx_[i])+ sigma_ * rand_->getNormal(0, 1);
-      action_idx_[i] = fmin(fmax(round(action_idx_[i]), 0), steps_[i]-1);
-    }
-    // convert action index to array index
-    mai = action_idx_[0] + action_idx_[1]*steps_[0] + action_idx_[2]*steps_[0]*steps_[1];
-    return mai;
+
+    // convert array index to values
+    Vector smp;
+    discretizer_->convert(mai_, smp);
+
+    // pertub action according to Ornstein-Uhlenbeck
+    for (int i = 0; i < smp.size(); i++)
+      smp[i] = smp[i] + theta_[i] * (center_[i] - smp[i])+ sigma_[i] * rand_->getNormal(0, 1);
+
+    // find nearest discretized sample (min-max bounds preserved automatically)
+    discretizer_->discretize(smp);
+
+    // find value index of the sample and keep it for nex run
+    discretizer_->convert(smp, mai_);
   }
+  else
+    mai_ = GreedySampler::sample(values, tt);
 
-  mai = GreedySampler::sample(values, tt);
-
-  // convert array index to value index
-  mai / (steps_[0]*steps_[1]);
-
-  action_idx_ = action_idx_;
-  return mai;
+  return mai_;
 }
 
 /////////////////////////////////////////////////////////////////
-
 
 void PADASampler::request(ConfigurationRequest *config)
 {
   EpsilonGreedySampler::request(config);
 
-  config->push_back(CRP("min", "vector.action_min", "Lower limit", min_, CRP::System));
-  config->push_back(CRP("max", "vector.action_max", "Upper limit", max_, CRP::System));
+  config->push_back(CRP("discretizer", "discretizer.action", "Action discretizer", discretizer_));
   config->push_back(CRP("steps", "Discretization steps per dimension", steps_, CRP::Configuration));
-
-  config->push_back(CRP("theta", "Theta parameter of Ornstein-Uhlenbeck", theta_, CRP::System, 0.0, DBL_MAX));
-  config->push_back(CRP("sigma", "Sigma parameter of Ornstein-Uhlenbeck", sigma_, CRP::System, 0.0, DBL_MAX));
-  config->push_back(CRP("center", "Centering parameter of Ornstein-Uhlenbeck", center_, CRP::Configuration));
-
-  config->push_back(CRP("delta", "Delta of PADA", delta_, CRP::System, 0, INT_MAX));
+  config->push_back(CRP("delta", "Delta of PADA", delta_, CRP::Configuration));
 }
 
 void PADASampler::configure(Configuration &config)
 {
   EpsilonGreedySampler::configure(config);
 
-  min_ = config["min"].v();
-  max_ = config["max"].v();
+  discretizer_ = (Discretizer*)config["discretizer"].ptr();
   steps_ = config["steps"].v();
+  delta_ = config["delta"].v();
 
-  theta_ = config["theta"];
-  sigma_ = config["sigma"];
-  center_ = config["center"].v();
-
-  delta_ = config["delta"];
-
-  if (min_.size() != max_.size() || min_.size() != steps_.size())
-    throw bad_param("sampler/epsilon_greedy_ou:{min,max,steps}");
-
-  action_.resize(steps_.size());
-  prev_action_.resize(steps_.size());
-  for (int i = 0; i < steps_.size(); i++)
-    action_[i] = prev_action_[i] = floor(steps_[i]/2);
+  if (steps_.size() != delta_.size())
+    throw bad_param("sampler/pada:{steps, delta}");
 }
 
 void PADASampler::reconfigure(const Configuration &config)
@@ -262,70 +231,79 @@ void PADASampler::reconfigure(const Configuration &config)
   EpsilonGreedySampler::reconfigure(config);
 }
 
-PADASampler *OrnsteinUhlenbeckSampler::clone()
+PADASampler *PADASampler::clone()
 {
   PADASampler *egs = new PADASampler(*this);
   egs->rand_ = rand_->clone();
-
   return egs;
+}
+
+void PADASampler::increment(Vector &idx, const Vector &lower_idx, Vector &upper_idx) const
+{
+  for (int ii = 0; ii < lower_idx.size(); ii++)
+  {
+    if (idx[ii] < upper_idx[ii])
+    {
+      idx[ii]++;
+      break;
+    }
+    else
+      idx[ii] = lower_idx[ii];
+  }
 }
 
 size_t PADASampler::sample(const Vector &values, TransitionType &tt) const
 {
-  size_t mai = 0;
+  // select indexes of upper and lower bounds
+  Vector lower_idx, upper_idx, current_idx;
+  for (int ii = 0; ii < sample_idx_.size(); ii++)
+  {
+    lower_idx[ii] = fmax(sample_idx_[ii]-delta_[ii], 0);
+    upper_idx[ii] = fmax(sample_idx_[ii]+delta_[ii], steps_[ii]-1);
+  }
 
-  if (rand_->get() < epsilon_)
+  if (rand_->get() < epsilon_ && sample_idx_.size() != 0) // skip to Greedy if action is not initialized yet
   {
     tt = ttExploratory;
-    if (use_ou_)
+
+    // collect all variants of discretized vectors withing bounds
+    current_idx = lower_idx;
+    std::vector<Vector> v_current_idx;
+    while (current_idx != upper_idx)
     {
-      // Ornstein-Uhlenbeck process
-      for (int i = 0; i < steps_.size(); i++)
-      {
-        action_[i] = prev_action_[i] + theta_ * (center_[i] - prev_action_[i])+ sigma_ * rand_->getNormal(0, 1);
-        action_[i] = fmin(fmax(round(action_[i]), 0), steps_[i]-1);
-      }
-      mai = action_[0] + action_[1]*steps_[0] + action_[2]*steps_[0]*steps_[1];
-      //std::cout << "Action exp: " << action_ << "; ii: " << mai << std::endl;
+      v_current_idx.push_back(current_idx);
+      increment(current_idx, lower_idx, upper_idx);
     }
-    else
-    {
-      // random
-      // PADA random action selection rule
-      action_ << fmax(prev_action_[0]-delta_, 0), fmax(prev_action_[1]-delta_, 0), fmax(prev_action_[2]-delta_, 0);
-      std::vector<size_t> iiv;
-      for (int i = action_[0]; i <= fmin(prev_action_[0]+delta_, steps_[0]-1); i++)
-      for (int j = action_[1]; j <= fmin(prev_action_[1]+delta_, steps_[1]-1); j++)
-      for (int k = action_[2]; k <= fmin(prev_action_[2]+delta_, steps_[2]-1); k++)
-      {
-        size_t ii = i + j*steps_[0] + k*steps_[0]*steps_[1];
-        iiv.push_back(ii);
-      }
-      // select random action out of limited possibilities
-      int r = rand_->getInteger(iiv.size());
-      mai = iiv[r];
-    }
+    v_current_idx.push_back(current_idx);
+
+    // select random sample
+    int r = rand_->getInteger(v_current_idx.size());
+    sample_idx_ = v_current_idx[r];
+
+    // convert to an index
+    size_t mai;
+    discretizer_->convert_idx(sample_idx_, mai);
+    return mai;
   }
   else
   {
     tt = ttGreedy;
-    // PADA action selection rule
-    int i0 = fmax(prev_action_[0]-delta_, 0);
-    int j0 = fmax(prev_action_[1]-delta_, 0);
-    int k0 = fmax(prev_action_[2]-delta_, 0);
-    action_ << i0, j0, k0;
-    for (int i = i0; i <= fmin(prev_action_[0]+delta_, steps_[0]-1); i++)
-    for (int j = j0; j <= fmin(prev_action_[1]+delta_, steps_[1]-1); j++)
-    for (int k = k0; k <= fmin(prev_action_[2]+delta_, steps_[2]-1); k++)
+    size_t max_mai;
+
+    // select the best value within bounds
+    sample_idx_ = current_idx;
+    discretizer_->convert_idx(current_idx, max_mai);
+    while (current_idx != upper_idx)
     {
-      size_t ii = i + j*steps_[0] + k*steps_[0]*steps_[1];
-      if (values[ii] > values[mai])
+      size_t mai;
+      discretizer_->convert_idx(current_idx, mai);
+      if (values[mai] > values[max_mai])
       {
-        mai = ii;
-        action_ << i, j, k;
+        max_mai = mai;
+        sample_idx_ = current_idx;
       }
+      increment(current_idx, lower_idx, upper_idx);
     }
+    return max_mai;
   }
-  prev_action_ = action_;
-  return mai;
 }

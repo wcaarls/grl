@@ -41,7 +41,7 @@ class UniformDiscretizer : public Discretizer
     TYPEINFO("discretizer/uniform", "Uniform discretizer")
 
   protected:
-    Vector min_, max_, steps_;
+    Vector min_, max_, delta_, steps_;
   
     std::vector<Vector> values_;
 
@@ -57,10 +57,10 @@ class UniformDiscretizer : public Discretizer
     virtual size_t size() const;
     virtual void inc(IndexVector *idx) const;
     virtual Vector get(const IndexVector &idx) const;
-
-    // Own
-    virtual size_t convert(const IndexVector &idx) const;
-    virtual IndexVector
+    virtual void discretize(Vector &vec) const;
+    virtual void convert(const Vector &vec, size_t &mai) const;
+    virtual void convert_idx(const Vector &vec_idx, size_t &mai) const;
+    virtual void convert(size_t mai, Vector &vec) const;
 };
 
 }
