@@ -46,9 +46,8 @@ void RBDLDynamics::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("file", "RBDL Lua model file", file_, CRP::Configuration));
   config->push_back(CRP("options", "Lua string to execute when loading model", options_, CRP::Configuration));
-
-  config->push_back(CRP("points", "string.points", "Points"));
-  config->push_back(CRP("auxiliary", "string.auxiliary", "Model mass(mm), Center of mass (com), Center of mass velocity (comv), Angular momentum (am)"));
+  config->push_back(CRP("points", "Points", "", CRP::Configuration));
+  config->push_back(CRP("auxiliary", "Model mass(mm), Center of mass (com), Center of mass velocity (comv), Angular momentum (am)", "", CRP::Configuration));
 }
 
 void RBDLDynamics::configure(Configuration &config)

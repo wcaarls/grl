@@ -180,14 +180,15 @@ NMPCPolicy *NMPCPolicy::clone() const
 
 TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
 {
-  grl_assert(in.size() == nmpc_->NXD() + nmpc_->NP()); // setpoint indicator
+  grl_assert((in.size() == nmpc_->NXD() + nmpc_->NP()) || (in.size() == nmpc_->NXD()));
   grl_assert(outputs_  == nmpc_->NU());
 
-  // reference height
-  initial_pf_ << in[in.size()-1];
-
-  // remove indicator
-  initial_sd_ << in.block(0, 0, 1, in.size()-1);
+  // subdivide 'in' into state and setpoint
+  if (in.size() == nmpc_->NXD() + nmpc_->NP())
+  {
+    initial_sd_ << in.block(0, 0, 1, nmpc_->NXD());
+    initial_pf_ << in.block(0, nmpc_->NXD(), 1, nmpc_->NP());
+  }
 
   if (verbose_)
   {

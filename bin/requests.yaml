@@ -146,7 +146,7 @@ agent/master/sequential:
     type: exporter
     description: Optional exporter for transition log (supports time, state, observation, action, reward, terminal)
     mutability: configuration
-    default: 0x2528030
+    default: 0x10dd060
     optional: 1
 agent/master/sequential/additive:
   description: Additive master agent that executes sub-agents sequentially and adds their outputs
@@ -376,15 +376,15 @@ dynamics/rbdl:
     optional: 1
   points:
     type: string
-    description: string.points
+    description: Points
     mutability: configuration
-    default: Points
+    default: ""
     optional: 1
   auxiliary:
     type: string
-    description: string.auxiliary
+    description: Model mass(mm), Center of mass (com), Center of mass velocity (comv), Angular momentum (am)
     mutability: configuration
-    default: Model mass(mm), Center of mass (com), Center of mass velocity (comv), Angular momentum (am)
+    default: ""
     optional: 1
 environment/communicator:
   description: Communicator environment which interects with a real environment by sending and receiving messages
@@ -452,7 +452,7 @@ environment/leo_squat:
     type: int.observation_dims
     description: Number of observation dimensions
     mutability: configuration
-    default: 39789472
+    default: 18510672
     optional: 1
     min: 0
     max: 2147483647
@@ -500,7 +500,7 @@ environment/leo_walk:
     type: int.observation_dims
     description: Number of observation dimensions
     mutability: configuration
-    default: 39789472
+    default: 18510672
     optional: 1
     min: 0
     max: 2147483647
@@ -1387,6 +1387,14 @@ policy/feed_forward:
     optional: 1
 policy/mhe_nmpc:
   description: Nonlinear model predictive control policy with moving horizon estimator using the MUSCOD library
+  verbose:
+    type: int
+    description: Verbose mode
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
   action_min:
     type: vector.action_min
     description: Lower limit on actions
@@ -1428,14 +1436,6 @@ policy/mhe_nmpc:
   initFeedback:
     type: int
     description: Initialize feedback
-    mutability: system
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
-  verbose:
-    type: int
-    description: Verbose mode
     mutability: system
     default: 0
     optional: 1
@@ -1443,6 +1443,14 @@ policy/mhe_nmpc:
     max: 1
 policy/nmpc:
   description: Nonlinear model predictive control policy using the MUSCOD library
+  verbose:
+    type: int
+    description: Verbose mode
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
   action_min:
     type: vector.action_min
     description: Lower limit on actions
@@ -1484,14 +1492,6 @@ policy/nmpc:
   initFeedback:
     type: int
     description: Initialize feedback
-    mutability: system
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
-  verbose:
-    type: int
-    description: Verbose mode
     mutability: system
     default: 0
     optional: 1
@@ -1516,6 +1516,14 @@ policy/nmpc:
     max: 2147483647
 policy/nmpc_mlrti:
   description: "Thread-based nonlinear model predictive control policy using the MUSCOD library and implementing a multi-level real-time iteration "
+  verbose:
+    type: int
+    description: Verbose mode
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
   action_min:
     type: vector.action_min
     description: Lower limit on actions
@@ -1557,14 +1565,6 @@ policy/nmpc_mlrti:
   initFeedback:
     type: int
     description: Initialize feedback
-    mutability: system
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
-  verbose:
-    type: int
-    description: Verbose mode
     mutability: system
     default: 0
     optional: 1
