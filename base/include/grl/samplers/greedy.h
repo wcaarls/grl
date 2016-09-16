@@ -31,6 +31,7 @@
 #include <grl/sampler.h>
 #include <grl/utils.h>
 #include <grl/grl.h>
+#include <grl/discretizer.h>
 
 namespace grl
 {
@@ -90,11 +91,14 @@ class OrnsteinUhlenbeckSampler : public EpsilonGreedySampler
     TYPEINFO("sampler/ornstein_ohlenbeck", "Maximum search with an Ornstein-Uhlenbeck random chance of non-maximums")
 
   protected:
+    Discretizer *discretizer_;
     Vector min_, max_, steps_;
-    mutable Vector action_, prev_action_;
+    mutable Vector action_idx_;
     double theta_, sigma_;
     Vector center_;
     unsigned int delta_;
+
+    std::vector<Vector> variants_;
 
   public:
     OrnsteinUhlenbeckSampler() : theta_(0.15), sigma_(0.3), delta_(3) { }

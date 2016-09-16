@@ -57,6 +57,10 @@ class UniformDiscretizer : public Discretizer
     virtual size_t size() const;
     virtual void inc(IndexVector *idx) const;
     virtual Vector get(const IndexVector &idx) const;
+
+    // Own
+    virtual size_t convert(const IndexVector &idx) const;
+    virtual IndexVector
 };
 
 }

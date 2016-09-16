@@ -159,7 +159,8 @@ void OrnsteinUhlenbeckSampler::configure(Configuration &config)
 
   min_ = config["min"].v();
   max_ = config["max"].v();
-  steps_ = config["steps"].v();
+  //steps_ = config["steps"].v();
+  discretizer_ = (Discretizer*)config["discretizer"].ptr();
 
   theta_ = config["theta"];
   sigma_ = config["sigma"];
@@ -170,12 +171,10 @@ void OrnsteinUhlenbeckSampler::configure(Configuration &config)
   if (min_.size() != max_.size() || min_.size() != steps_.size())
     throw bad_param("sampler/epsilon_greedy_ou:{min,max,steps}");
 
-  action_.resize(steps_.size());
-  prev_action_.resize(steps_.size());
+  action_idx_.resize(steps_.size());
+  action_idx_.resize(steps_.size());
   for (int i = 0; i < steps_.size(); i++)
-    action_[i] = prev_action_[i] = floor(steps_[i]/2);
-
-
+    action_idx_[i] = action_idx_[i] = floor(steps_[i]/2);
 }
 
 void OrnsteinUhlenbeckSampler::reconfigure(const Configuration &config)
@@ -200,19 +199,20 @@ size_t OrnsteinUhlenbeckSampler::sample(const Vector &values, TransitionType &tt
     tt = ttExploratory;
     for (int i = 0; i < steps_.size(); i++)
     {
-      action_[i] = prev_action_[i] + theta_ * (center_[i] - prev_action_[i])+ sigma_ * rand_->getNormal(0, 1);
-      action_[i] = fmin(fmax(round(action_[i]), 0), steps_[i]-1);
+      action_idx_[i] = action_idx_[i] + theta_ * (center_[i] - action_idx_[i])+ sigma_ * rand_->getNormal(0, 1);
+      action_idx_[i] = fmin(fmax(round(action_idx_[i]), 0), steps_[i]-1);
     }
-    mai = action_[0] + action_[1]*steps_[0] + action_[2]*steps_[0]*steps_[1];
-
-    prev_action_ = action_;
+    // convert action index to array index
+    mai = action_idx_[0] + action_idx_[1]*steps_[0] + action_idx_[2]*steps_[0]*steps_[1];
     return mai;
   }
 
   mai = GreedySampler::sample(values, tt);
 
+  // convert array index to value index
+  mai / (steps_[0]*steps_[1]);
 
-  prev_action_ = action_;
+  action_idx_ = action_idx_;
   return mai;
 }
 
