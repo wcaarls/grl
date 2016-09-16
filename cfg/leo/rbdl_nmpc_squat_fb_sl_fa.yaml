@@ -42,7 +42,7 @@ experiment:
       nmpc_model_name: nmpc_leo_squat_fb_sl_fa
       outputs: 3
       initFeedback: 1
-      verbose: 1
+      verbose: 0
       feedback: threaded
       n_iter: 1
   test_agent: experiment/agent

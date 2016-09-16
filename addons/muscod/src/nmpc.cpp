@@ -113,7 +113,7 @@ void NMPCPolicy::reconfigure(const Configuration &config)
 {
 }
 
-void NMPCPolicy::muscod_reset(const Vector &initial_obs, const Vector &initial_pf, Vector &initial_qc) const
+void NMPCPolicy::muscod_reset(const Vector &initial_obs, const Vector &initial_pf, Vector &initial_qc)
 {
   // restore muscod state
   if (verbose_) {
@@ -139,6 +139,23 @@ void NMPCPolicy::muscod_reset(const Vector &initial_obs, const Vector &initial_p
     nmpc_->transition();
     // 3) Preparation
     nmpc_->preparation();
+  }
+
+  // NOTE: both flags are set to true then iv is provided and
+  //       qc is is computed
+  // NOTE: due to waiting flag, main thread is on hold until
+  //       computations are finished (<=2ms!)
+  iv_provided_ = true;
+  qc_retrieved_ = true;
+
+  // wait for preparation phase
+  if (true) { // TODO Add wait flag
+    wait_for_iv_ready(nmpc_, verbose_);
+    if (nmpc_->get_iv_ready() == true) {
+    } else {
+        std::cerr << "MAIN: bailing out ..." << std::endl;
+        abort();
+    }
   }
 
   if (verbose_)
@@ -202,12 +219,6 @@ TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
         // 1) Feedback: Embed parameters and initial value from SIMULATION
         // establish IPC communication to NMPC thread
 
-        // NOTE: both flags are set to true then iv is provided and
-        //       qc is is computed
-        // NOTE: due to waiting flag, main thread is on hold until
-        //       computations are finished (<=2ms!)
-        iv_provided_ = true;
-        qc_retrieved_ = true;
 
         // NOTE do that only once at last iteration
         // NOTE this has to be done before the transition phase
@@ -218,26 +229,12 @@ TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
         }
 
         // provide iv to thread, get time until thread was ready
+        iv_provided_ = true;
         provide_iv (nmpc_, initial_sd_, initial_pf_, &iv_provided_, false, verbose_);
 
         // provide iv to thread, get time until thread was ready
-        retrieve_qc (nmpc_, &initial_qc_, &qc_retrieved_, true, verbose_);
-
-        /*
-        // establish IPC communication to NMPC thread
-        get_feedback (
-            nmpc_,
-            initial_sd_,
-            initial_pf_,
-            &initial_qc_,
-            &iv_provided_,
-            &qc_retrieved_,
-            // NOTE: we use wait flag here to guarantee separation of
-            //       feedback phases
-            // TODO do something with it
-            true // wait flag
-        );
-        */
+        if (iv_provided_)
+          retrieve_qc (nmpc_, &initial_qc_, &qc_retrieved_, true, verbose_);
 
         // wait for preparation phase
         if (false) { // TODO Add wait flag

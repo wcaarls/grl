@@ -479,8 +479,11 @@ void provide_iv (
 
           // signal back that initial values was provided
           *iv_provided = true;
+          return;
     }
 
+    // signal back that initial values was *NOT* provided
+    *iv_provided = false;
     return;
 }
 
@@ -564,8 +567,11 @@ void retrieve_qc (
 
         // signal back that control was provided
         *qc_retrieved = true;
+        return;
     }
 
+    // signal back that control was *NOT* provided
+    *qc_retrieved = false;
     return;
 }
 
