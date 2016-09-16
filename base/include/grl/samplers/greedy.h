@@ -84,10 +84,10 @@ class EpsilonGreedySampler : public GreedySampler
 };
 
 /// Maximum search with an Ornstein-Uhlenbeck random chance of non-maximums.
-class EpsilonGreedyOUSampler : public EpsilonGreedySampler
+class OrnsteinUhlenbeckSampler : public EpsilonGreedySampler
 {
   public:
-    TYPEINFO("sampler/epsilon_greedy_ou", "Maximum search with an Ornstein-Uhlenbeck random chance of non-maximums")
+    TYPEINFO("sampler/ornstein_ohlenbeck", "Maximum search with an Ornstein-Uhlenbeck random chance of non-maximums")
 
   protected:
     Vector min_, max_, steps_;
@@ -95,10 +95,9 @@ class EpsilonGreedyOUSampler : public EpsilonGreedySampler
     double theta_, sigma_;
     Vector center_;
     unsigned int delta_;
-    unsigned int use_ou_;
 
   public:
-    EpsilonGreedyOUSampler() : theta_(0.15), sigma_(0.3), delta_(3), use_ou_(0) { }
+    OrnsteinUhlenbeckSampler() : theta_(0.15), sigma_(0.3), delta_(3) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -106,9 +105,36 @@ class EpsilonGreedyOUSampler : public EpsilonGreedySampler
     virtual void reconfigure(const Configuration &config);
 
     // From Sampler
-    virtual EpsilonGreedyOUSampler *clone();
+    virtual OrnsteinUhlenbeckSampler *clone();
     virtual size_t sample(const Vector &values, TransitionType &tt) const;
-    virtual void distribution(const Vector &values, Vector *distribution) const;
+};
+
+/// Maximum search with a PADA random chance of non-maximums.
+/// For details see "Learning while preventing mechanical failure due to random motions"
+/// by H. J. Meijdam, M. C. Plooij and W. Caarls
+class PADASampler : public EpsilonGreedySampler
+{
+  public:
+    TYPEINFO("sampler/pada", "Maximum search with a PADA random chance of non-maximums")
+
+  protected:
+    Vector min_, max_, steps_;
+    mutable Vector action_, prev_action_;
+    double theta_, sigma_;
+    Vector center_;
+    unsigned int delta_;
+
+  public:
+    PADASampler() : theta_(0.15), sigma_(0.3), delta_(3) { }
+
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+
+    // From Sampler
+    virtual PADASampler *clone();
+    virtual size_t sample(const Vector &values, TransitionType &tt) const;
 };
 
 }

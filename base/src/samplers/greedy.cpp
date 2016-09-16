@@ -138,7 +138,7 @@ void EpsilonGreedySampler::distribution(const Vector &values, Vector *distributi
 
 //////////////////////////////////////////
 
-void EpsilonGreedyOUSampler::request(ConfigurationRequest *config)
+void OrnsteinUhlenbeckSampler::request(ConfigurationRequest *config)
 {
   EpsilonGreedySampler::request(config);
 
@@ -146,7 +146,6 @@ void EpsilonGreedyOUSampler::request(ConfigurationRequest *config)
   config->push_back(CRP("max", "vector.action_max", "Upper limit", max_, CRP::System));
   config->push_back(CRP("steps", "Discretization steps per dimension", steps_, CRP::Configuration));
 
-  config->push_back(CRP("use_ou", "Use Ornstein-Uhlenbeck process", use_ou_, CRP::System, 0, 1));
   config->push_back(CRP("theta", "Theta parameter of Ornstein-Uhlenbeck", theta_, CRP::System, 0.0, DBL_MAX));
   config->push_back(CRP("sigma", "Sigma parameter of Ornstein-Uhlenbeck", sigma_, CRP::System, 0.0, DBL_MAX));
   config->push_back(CRP("center", "Centering parameter of Ornstein-Uhlenbeck", center_, CRP::Configuration));
@@ -154,7 +153,7 @@ void EpsilonGreedyOUSampler::request(ConfigurationRequest *config)
   config->push_back(CRP("delta", "Delta of PADA", delta_, CRP::System, 0, INT_MAX));
 }
 
-void EpsilonGreedyOUSampler::configure(Configuration &config)
+void OrnsteinUhlenbeckSampler::configure(Configuration &config)
 {
   EpsilonGreedySampler::configure(config);
 
@@ -162,7 +161,87 @@ void EpsilonGreedyOUSampler::configure(Configuration &config)
   max_ = config["max"].v();
   steps_ = config["steps"].v();
 
-  use_ou_ = config["use_ou"];
+  theta_ = config["theta"];
+  sigma_ = config["sigma"];
+  center_ = config["center"].v();
+
+  delta_ = config["delta"];
+
+  if (min_.size() != max_.size() || min_.size() != steps_.size())
+    throw bad_param("sampler/epsilon_greedy_ou:{min,max,steps}");
+
+  action_.resize(steps_.size());
+  prev_action_.resize(steps_.size());
+  for (int i = 0; i < steps_.size(); i++)
+    action_[i] = prev_action_[i] = floor(steps_[i]/2);
+
+
+}
+
+void OrnsteinUhlenbeckSampler::reconfigure(const Configuration &config)
+{
+  EpsilonGreedySampler::reconfigure(config);
+}
+
+OrnsteinUhlenbeckSampler *OrnsteinUhlenbeckSampler::clone()
+{
+  OrnsteinUhlenbeckSampler *egs = new OrnsteinUhlenbeckSampler(*this);
+  egs->rand_ = rand_->clone();
+
+  return egs;
+}
+
+size_t OrnsteinUhlenbeckSampler::sample(const Vector &values, TransitionType &tt) const
+{
+  size_t mai = 0;
+
+  if (rand_->get() < epsilon_)
+  {
+    tt = ttExploratory;
+    for (int i = 0; i < steps_.size(); i++)
+    {
+      action_[i] = prev_action_[i] + theta_ * (center_[i] - prev_action_[i])+ sigma_ * rand_->getNormal(0, 1);
+      action_[i] = fmin(fmax(round(action_[i]), 0), steps_[i]-1);
+    }
+    mai = action_[0] + action_[1]*steps_[0] + action_[2]*steps_[0]*steps_[1];
+
+    prev_action_ = action_;
+    return mai;
+  }
+
+  mai = GreedySampler::sample(values, tt);
+
+
+  prev_action_ = action_;
+  return mai;
+}
+
+/////////////////////////////////////////////////////////////////
+
+
+void PADASampler::request(ConfigurationRequest *config)
+{
+  EpsilonGreedySampler::request(config);
+
+  config->push_back(CRP("min", "vector.action_min", "Lower limit", min_, CRP::System));
+  config->push_back(CRP("max", "vector.action_max", "Upper limit", max_, CRP::System));
+  config->push_back(CRP("steps", "Discretization steps per dimension", steps_, CRP::Configuration));
+
+  config->push_back(CRP("theta", "Theta parameter of Ornstein-Uhlenbeck", theta_, CRP::System, 0.0, DBL_MAX));
+  config->push_back(CRP("sigma", "Sigma parameter of Ornstein-Uhlenbeck", sigma_, CRP::System, 0.0, DBL_MAX));
+  config->push_back(CRP("center", "Centering parameter of Ornstein-Uhlenbeck", center_, CRP::Configuration));
+
+  config->push_back(CRP("delta", "Delta of PADA", delta_, CRP::System, 0, INT_MAX));
+}
+
+void PADASampler::configure(Configuration &config)
+{
+  EpsilonGreedySampler::configure(config);
+
+  min_ = config["min"].v();
+  max_ = config["max"].v();
+  steps_ = config["steps"].v();
+
   theta_ = config["theta"];
   sigma_ = config["sigma"];
   center_ = config["center"].v();
@@ -178,20 +257,20 @@ void EpsilonGreedyOUSampler::configure(Configuration &config)
     action_[i] = prev_action_[i] = floor(steps_[i]/2);
 }
 
-void EpsilonGreedyOUSampler::reconfigure(const Configuration &config)
+void PADASampler::reconfigure(const Configuration &config)
 {
   EpsilonGreedySampler::reconfigure(config);
 }
 
-EpsilonGreedyOUSampler *EpsilonGreedyOUSampler::clone()
+PADASampler *OrnsteinUhlenbeckSampler::clone()
 {
-  EpsilonGreedyOUSampler *egs = new EpsilonGreedyOUSampler(*this);
+  PADASampler *egs = new PADASampler(*this);
   egs->rand_ = rand_->clone();
 
   return egs;
 }
 
-size_t EpsilonGreedyOUSampler::sample(const Vector &values, TransitionType &tt) const
+size_t PADASampler::sample(const Vector &values, TransitionType &tt) const
 {
   size_t mai = 0;
 
@@ -249,9 +328,4 @@ size_t EpsilonGreedyOUSampler::sample(const Vector &values, TransitionType &tt) 
   }
   prev_action_ = action_;
   return mai;
-}
-
-void EpsilonGreedyOUSampler::distribution(const Vector &values, Vector *distribution) const
-{
-  EpsilonGreedySampler::distribution(values, distribution);
 }
