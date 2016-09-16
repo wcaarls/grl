@@ -3,7 +3,7 @@ experiment:
   runs: 1
   trials: 1
   steps: 0
-  rate: 0
+  rate: 30
   test_interval: 0
   output: rbdl_nmpc_squat_fb_sl_fa
   environment: 
@@ -42,7 +42,7 @@ experiment:
       nmpc_model_name: nmpc_leo_squat_fb_sl_fa
       outputs: 3
       initFeedback: 1
-      verbose: 0
+      verbose: 1
       feedback: threaded
       n_iter: 1
   test_agent: experiment/agent

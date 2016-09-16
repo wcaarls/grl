@@ -131,7 +131,7 @@ void stop_thread (
 
         // wait until thread is ready, i.e. cond_iv_ready_ condition is established
         while (!data_.get_iv_ready()) {
-            if (cnt > 10000) {
+            if (cnt > 100000) {
                 if (verbose) {
                     std::cerr << "MAIN: thread frozen!" << std::endl;
                 }
@@ -410,7 +410,7 @@ void wait_for_iv_ready (NMPCProblem* nmpc, bool verbose)
 
     // sleep loop until thread is ready
     while (!nmpc->get_iv_ready()) {
-        if (cnt >= 10000) {
+        if (cnt >= 100000) {
             if (verbose) {
                 std::cerr << "MAIN: thread frozen!" << std::endl;
             }
@@ -472,7 +472,7 @@ void provide_iv (
           // signal to MUSCOD thread to embed initial values and start the
           // computation
           nmpc->iv_ready_ = false;
-          pthread_cond_signal(nmpc->cond_iv_ready_);
+          pthread_cond_signal(nmpc->cond_iv_ready_); // Seems like the problem is here!
 
           // UNLOCK THREAD
           pthread_mutex_unlock(nmpc->mutex_);
@@ -494,7 +494,7 @@ void wait_for_qc_ready (NMPCProblem* nmpc, bool verbose)
     }
 
     while (!nmpc->get_qc_ready()) {
-        if (cnt >= 10000) {
+        if (cnt >= 100000) {
             if (verbose) {
                 std::cerr << "MAIN: thread frozen!" << std::endl;
             }

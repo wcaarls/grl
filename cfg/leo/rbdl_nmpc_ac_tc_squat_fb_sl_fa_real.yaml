@@ -39,6 +39,8 @@ experiment:
         outputs: 3
         initFeedback: 1
         verbose: 0
+        feedback: non-threaded
+        n_iter: 1
     agent2: 
       type: agent/td
       policy: 

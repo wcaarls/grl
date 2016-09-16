@@ -217,6 +217,13 @@ TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
           nmpc_->set_shift_mode (-1);
         }
 
+        // provide iv to thread, get time until thread was ready
+        provide_iv (nmpc_, initial_sd_, initial_pf_, &iv_provided_, false, verbose_);
+
+        // provide iv to thread, get time until thread was ready
+        retrieve_qc (nmpc_, &initial_qc_, &qc_retrieved_, true, verbose_);
+
+        /*
         // establish IPC communication to NMPC thread
         get_feedback (
             nmpc_,
@@ -230,9 +237,10 @@ TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
             // TODO do something with it
             true // wait flag
         );
+        */
 
         // wait for preparation phase
-        if (true) { // TODO Add wait flag
+        if (false) { // TODO Add wait flag
           wait_for_iv_ready(nmpc_, verbose_);
           if (nmpc_->get_iv_ready() == true) {
           } else {
