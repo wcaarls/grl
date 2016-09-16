@@ -44,6 +44,7 @@ using namespace grl;
 //-------------------------------------- GRL -----------------------------------//
 void NMPCBase::request(ConfigurationRequest *config)
 {
+  config->push_back(CRP("verbose", "Verbose mode", (int)verbose_, CRP::System, 0, 1));
   config->push_back(CRP("action_min", "vector.action_min", "Lower limit on actions", action_min_, CRP::System));
   config->push_back(CRP("action_max", "vector.action_max", "Upper limit on actions", action_max_, CRP::System));
   config->push_back(CRP("lua_model", "Lua model used by MUSCOD", lua_model_));
@@ -51,7 +52,6 @@ void NMPCBase::request(ConfigurationRequest *config)
   config->push_back(CRP("nmpc_model_name", "Name of MUSCOD MHE model library", nmpc_model_name_));
   config->push_back(CRP("outputs", "int.action_dims", "Number of outputs", (int)outputs_, CRP::System, 1));
   config->push_back(CRP("initFeedback", "Initialize feedback", (int)initFeedback_, CRP::System, 0, 1));
-  config->push_back(CRP("verbose", "Verbose mode", (int)verbose_, CRP::System, 0, 1));
 }
 
 void NMPCBase::configure(Configuration &config)
@@ -131,7 +131,7 @@ void stop_thread (
 
         // wait until thread is ready, i.e. cond_iv_ready_ condition is established
         while (!data_.get_iv_ready()) {
-            if (cnt > 100000) {
+            if (cnt > 10000) {
                 if (verbose) {
                     std::cerr << "MAIN: thread frozen!" << std::endl;
                 }
@@ -410,7 +410,7 @@ void wait_for_iv_ready (NMPCProblem* nmpc, bool verbose)
 
     // sleep loop until thread is ready
     while (!nmpc->get_iv_ready()) {
-        if (cnt >= 100000) {
+        if (cnt >= 10000) {
             if (verbose) {
                 std::cerr << "MAIN: thread frozen!" << std::endl;
             }
@@ -497,7 +497,7 @@ void wait_for_qc_ready (NMPCProblem* nmpc, bool verbose)
     }
 
     while (!nmpc->get_qc_ready()) {
-        if (cnt >= 100000) {
+        if (cnt >= 10000) {
             if (verbose) {
                 std::cerr << "MAIN: thread frozen!" << std::endl;
             }

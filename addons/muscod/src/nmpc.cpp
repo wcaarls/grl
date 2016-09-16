@@ -115,11 +115,22 @@ void NMPCPolicy::reconfigure(const Configuration &config)
 
 void NMPCPolicy::muscod_reset(const Vector &initial_obs, const Vector &initial_pf, Vector &initial_qc)
 {
+  // wait for preparation phase
+  if (true) { // TODO Add wait flag
+    wait_for_iv_ready(nmpc_, verbose_);
+    if (nmpc_->get_iv_ready() == true) {
+    } else {
+        std::cerr << "MAIN: bailing out ..." << std::endl;
+        abort();
+    }
+  }
+
   // restore muscod state
   if (verbose_) {
     std::cout << "restoring MUSCOD-II state to" << std::endl;
     std::cout << "  " << nmpc_->m_options->modelDirectory << restart_path_ << "/" << restart_name_ << ".bin" << std::endl;
   }
+
   nmpc_->m_muscod->readRestartFile(restart_path_.c_str(), restart_name_.c_str());
   nmpc_->m_muscod->nmpcInitialize (
       4,  // 4 for restart
