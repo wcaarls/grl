@@ -50,7 +50,6 @@ void NMPCBase::request(ConfigurationRequest *config)
   config->push_back(CRP("lua_model", "Lua model used by MUSCOD", lua_model_));
   config->push_back(CRP("model_name", "Name of the model in grl", model_name_));
   config->push_back(CRP("nmpc_model_name", "Name of MUSCOD MHE model library", nmpc_model_name_));
-  config->push_back(CRP("outputs", "int.action_dims", "Number of outputs", (int)outputs_, CRP::System, 1));
   config->push_back(CRP("initFeedback", "Initialize feedback", (int)initFeedback_, CRP::System, 0, 1));
 }
 
@@ -59,7 +58,6 @@ void NMPCBase::configure(Configuration &config)
   model_path_       = std::string(MUSCOD_CONFIG_DIR);
   nmpc_model_name_  = config["nmpc_model_name"].str();
   model_name_       = config["model_name"].str();
-  outputs_          = config["outputs"];
   verbose_          = config["verbose"];
   action_min_       = config["action_min"].v();
   action_max_       = config["action_max"].v();

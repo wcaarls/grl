@@ -262,7 +262,6 @@ NMPCPolicyMLRTI *NMPCPolicyMLRTI::clone() const
 TransitionType NMPCPolicyMLRTI::act(double time, const Vector &in, Vector *out)
 {
   grl_assert(in.size() == nmpc_A_->NXD() + 1); // setpoint indicator
-  grl_assert(outputs_  == nmpc_A_->NU());
 
   // reference height
   initial_pf_ << in[in.size()-1];

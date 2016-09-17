@@ -91,6 +91,9 @@ void NMPCPolicy::configure(Configuration &config)
   initial_sd_ = ConstantVector(nmpc_->NXD(), 0);
   final_sd_   = ConstantVector(nmpc_->NXD(), 0);
 
+  grl_assert(nmpc_->NU() == action_max_.size());
+  grl_assert(nmpc_->NU() == action_min_.size());
+
   // run single SQP iteration to be able to write a restart file
   nmpc_->feedback();
   nmpc_->transition();
@@ -181,7 +184,6 @@ NMPCPolicy *NMPCPolicy::clone() const
 TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
 {
   grl_assert((in.size() == nmpc_->NXD() + nmpc_->NP()) || (in.size() == nmpc_->NXD()));
-  grl_assert(outputs_  == nmpc_->NU());
 
   // subdivide 'in' into state and setpoint
   if (in.size() == nmpc_->NXD() + nmpc_->NP())
@@ -199,7 +201,7 @@ TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
   if (time == 0.0)
     muscod_reset(initial_sd_, initial_pf_, initial_qc_);
 
-  out->resize(outputs_);
+  out->resize( nmpc_->NU() );
 
   if (feedback_ == "non-threaded")
   {

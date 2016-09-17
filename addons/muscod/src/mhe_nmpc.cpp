@@ -129,7 +129,7 @@ TransitionType MHE_NMPCPolicy::act(double time, const Vector &in, Vector *out)
   if (verbose_)
     std::cout << "time: [ " << time << " ]; state: [ " << in << "]" << std::endl;
 
-  out->resize(outputs_);
+  out->resize( nmpc_->NU() ); // todo: check correctness
 
   // Run mutiple MHE iterations
   const unsigned int nmhe = 10;

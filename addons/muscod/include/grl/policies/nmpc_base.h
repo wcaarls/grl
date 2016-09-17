@@ -40,14 +40,13 @@ namespace grl
 class NMPCBase : public Policy
 {
   public:
-    NMPCBase() : initFeedback_(0), inputs_(0), outputs_(0), verbose_(0) {}
+    NMPCBase() : initFeedback_(0), verbose_(0) {}
 
   //-------------------------------------- GRL -----------------------------------//
   protected:
     int verbose_;
     int initFeedback_;
     std::string model_name_, lua_model_, nmpc_model_name_, model_path_;
-    size_t outputs_, inputs_;
     Vector action_min_, action_max_;
 
     // From Configurable
