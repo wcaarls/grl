@@ -43,17 +43,13 @@ experiment:
         output_min: []
         output_max: []
       sampler: 
-        type: sampler/epsilon_greedy_ou
+        type: sampler/ornstein_ohlenbeck
         rand_max: 0
         epsilon: 0.05
-        min: experiment/agent/policy/discretizer/min
-        max: experiment/agent/policy/discretizer/max
-        steps: experiment/agent/policy/discretizer/steps
-        use_ou: 1
-        theta: 0.05
-        sigma: 1.0
-        center: [ 3, 3, 3 ]
-        delta: 7
+        discretizer: experiment/agent/policy/discretizer
+        theta: [ 0.01, 0.01, 0.01 ]
+        sigma: [ 3.0, 3.0, 3.0 ]
+        center: [ 0.0, 0.0, 0.0 ]
     predictor: 
       type: predictor/sarsa
       alpha: 0.2

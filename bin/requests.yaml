@@ -146,7 +146,7 @@ agent/master/sequential:
     type: exporter
     description: Optional exporter for transition log (supports time, state, observation, action, reward, terminal)
     mutability: configuration
-    default: 0x196c070
+    default: 0x1be60e0
     optional: 1
 agent/master/sequential/additive:
   description: Additive master agent that executes sub-agents sequentially and adds their outputs
@@ -376,15 +376,15 @@ dynamics/rbdl:
     optional: 1
   points:
     type: string
-    description: Points
+    description: string.points
     mutability: configuration
-    default: ""
+    default: Points
     optional: 1
   auxiliary:
     type: string
-    description: Model mass(mm), Center of mass (com), Center of mass velocity (comv), Angular momentum (am)
+    description: string.auxiliary
     mutability: configuration
-    default: ""
+    default: Model mass(mm), Center of mass (com), Center of mass velocity (comv), Angular momentum (am)
     optional: 1
 environment/communicator:
   description: Communicator environment which interects with a real environment by sending and receiving messages
@@ -452,7 +452,7 @@ environment/leo_squat:
     type: int.observation_dims
     description: Number of observation dimensions
     mutability: configuration
-    default: 27485008
+    default: 30082032
     optional: 1
     min: 0
     max: 2147483647
@@ -500,7 +500,7 @@ environment/leo_walk:
     type: int.observation_dims
     description: Number of observation dimensions
     mutability: configuration
-    default: 27485008
+    default: 30082032
     optional: 1
     min: 0
     max: 2147483647
@@ -1387,14 +1387,6 @@ policy/feed_forward:
     optional: 1
 policy/mhe_nmpc:
   description: Nonlinear model predictive control policy with moving horizon estimator using the MUSCOD library
-  verbose:
-    type: int
-    description: Verbose mode
-    mutability: system
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
   action_min:
     type: vector.action_min
     description: Lower limit on actions
@@ -1425,9 +1417,25 @@ policy/mhe_nmpc:
     mutability: configuration
     default: ""
     optional: 1
+  outputs:
+    type: int.action_dims
+    description: Number of outputs
+    mutability: system
+    default: 0
+    optional: 1
+    min: 1
+    max: 2147483647
   initFeedback:
     type: int
     description: Initialize feedback
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
+  verbose:
+    type: int
+    description: Verbose mode
     mutability: system
     default: 0
     optional: 1
@@ -1435,14 +1443,6 @@ policy/mhe_nmpc:
     max: 1
 policy/nmpc:
   description: Nonlinear model predictive control policy using the MUSCOD library
-  verbose:
-    type: int
-    description: Verbose mode
-    mutability: system
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
   action_min:
     type: vector.action_min
     description: Lower limit on actions
@@ -1473,9 +1473,25 @@ policy/nmpc:
     mutability: configuration
     default: ""
     optional: 1
+  outputs:
+    type: int.action_dims
+    description: Number of outputs
+    mutability: system
+    default: 0
+    optional: 1
+    min: 1
+    max: 2147483647
   initFeedback:
     type: int
     description: Initialize feedback
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
+  verbose:
+    type: int
+    description: Verbose mode
     mutability: system
     default: 0
     optional: 1
@@ -1500,14 +1516,6 @@ policy/nmpc:
     max: 2147483647
 policy/nmpc_mlrti:
   description: "Thread-based nonlinear model predictive control policy using the MUSCOD library and implementing a multi-level real-time iteration "
-  verbose:
-    type: int
-    description: Verbose mode
-    mutability: system
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
   action_min:
     type: vector.action_min
     description: Lower limit on actions
@@ -1538,9 +1546,25 @@ policy/nmpc_mlrti:
     mutability: configuration
     default: ""
     optional: 1
+  outputs:
+    type: int.action_dims
+    description: Number of outputs
+    mutability: system
+    default: 0
+    optional: 1
+    min: 1
+    max: 2147483647
   initFeedback:
     type: int
     description: Initialize feedback
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
+  verbose:
+    type: int
+    description: Verbose mode
     mutability: system
     default: 0
     optional: 1
@@ -2878,7 +2902,17 @@ sampler/epsilon_greedy:
     optional: 1
     min: 0
     max: 1
-sampler/epsilon_greedy_ou:
+sampler/greedy:
+  description: Maximum search
+  rand_max:
+    type: int
+    description: In case of multiple maximumum values select a random index among them
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
+sampler/ornstein_ohlenbeck:
   description: Maximum search with an Ornstein-Uhlenbeck random chance of non-maximums
   rand_max:
     type: int
@@ -2896,64 +2930,32 @@ sampler/epsilon_greedy_ou:
     optional: 1
     min: 0
     max: 1
-  min:
-    type: vector.action_min
-    description: Lower limit
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  max:
-    type: vector.action_max
-    description: Upper limit
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  steps:
+  discretizer:
+    type: discretizer.action
+    description: Action discretizer
+    mutability: configuration
+    default: 0x2256740
+    optional: 0
+  theta:
     type: vector
-    description: Discretization steps per dimension
+    description: Theta parameter of Ornstein-Uhlenbeck
     mutability: configuration
     default: "[  ]"
     optional: 1
-  use_ou:
-    type: int
-    description: Use Ornstein-Uhlenbeck process
-    mutability: system
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
-  theta:
-    type: double
-    description: Theta parameter of Ornstein-Uhlenbeck
-    mutability: system
-    default: 0.15
-    optional: 1
-    min: 0
-    max: 1.797693134862316e+308
   sigma:
-    type: double
+    type: vector
     description: Sigma parameter of Ornstein-Uhlenbeck
-    mutability: system
-    default: 0.3
+    mutability: configuration
+    default: "[  ]"
     optional: 1
-    min: 0
-    max: 1.797693134862316e+308
   center:
     type: vector
     description: Centering parameter of Ornstein-Uhlenbeck
     mutability: configuration
     default: "[  ]"
     optional: 1
-  delta:
-    type: int
-    description: Delta of PADA
-    mutability: system
-    default: 3
-    optional: 1
-    min: 0
-    max: 2147483647
-sampler/greedy:
-  description: Maximum search
+sampler/pada:
+  description: Maximum search with a PADA random chance of non-maximums
   rand_max:
     type: int
     description: In case of multiple maximumum values select a random index among them
@@ -2962,6 +2964,32 @@ sampler/greedy:
     optional: 1
     min: 0
     max: 1
+  epsilon:
+    type: double
+    description: Exploration rate
+    mutability: online
+    default: 0.05
+    optional: 1
+    min: 0
+    max: 1
+  discretizer:
+    type: discretizer.action
+    description: Action discretizer
+    mutability: configuration
+    default: 0
+    optional: 0
+  steps:
+    type: vector
+    description: Discretization steps per dimension
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  delta:
+    type: vector
+    description: Delta of PADA
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
 sampler/softmax:
   description: Softmax (Gibbs/Boltzmann) sampler
   tau:

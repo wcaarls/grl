@@ -141,7 +141,7 @@ void UniformDiscretizer::discretize(Vector &vec) const
   {
     double nearest = values_[dd][0];
     for (size_t vv=1; vv < steps_[dd]; ++vv)
-      if (fabs(nearest-vec[dd]) < fabs(values_[dd][vv]-vec[dd]))
+      if (fabs(nearest-vec[dd]) > fabs(values_[dd][vv]-vec[dd]))
         nearest = values_[dd][vv];
     vec[dd] = nearest;
   }
@@ -163,7 +163,7 @@ void UniformDiscretizer::convert(const Vector &vec, size_t &mai) const
   mai = static_cast<size_t>(round(dmai));
 }
 
-void UniformDiscretizer::convert_idx(const Vector &vec_idx, size_t &mai) const
+void UniformDiscretizer::convert(const std::vector<size_t> &vec_idx, size_t &mai) const
 {
   double steps = 1;
   double dmai = vec_idx[0];
@@ -177,8 +177,9 @@ void UniformDiscretizer::convert_idx(const Vector &vec_idx, size_t &mai) const
   mai = static_cast<size_t>(round(dmai));
 }
 
+/*
 void UniformDiscretizer::convert(size_t mai, Vector &vec) const
 {
   vec = values_[mai];
 }
-
+*/

@@ -154,13 +154,14 @@ void OrnsteinUhlenbeckSampler::configure(Configuration &config)
   EpsilonGreedySampler::configure(config);
 
   discretizer_ = (Discretizer*)config["discretizer"].ptr();
-
-  if (theta_.size() != sigma_.size() || sigma_.size() != center_.size() || center_.size() == 0)
-    throw bad_param("sampler/ornstein_ohlenbeck:{theta,sigma,center}");
+  discretizer_->options(&variants_);
 
   theta_ = config["theta"].v();
   sigma_ = config["sigma"].v();
   center_ = config["center"].v();
+
+  if (theta_.size() != sigma_.size() || sigma_.size() != center_.size() || center_.size() == 0)
+    throw bad_param("sampler/ornstein_ohlenbeck:{theta,sigma,center}");
 
   discretizer_->convert(center_, mai_);
 }
@@ -184,15 +185,18 @@ size_t OrnsteinUhlenbeckSampler::sample(const Vector &values, TransitionType &tt
     tt = ttExploratory;
 
     // convert array index to values
-    Vector smp;
-    discretizer_->convert(mai_, smp);
+    Vector smp = variants_[mai_];
+    std::cout << smp << std::endl;
 
     // pertub action according to Ornstein-Uhlenbeck
     for (int i = 0; i < smp.size(); i++)
       smp[i] = smp[i] + theta_[i] * (center_[i] - smp[i])+ sigma_[i] * rand_->getNormal(0, 1);
 
+    std::cout << smp << std::endl;
+
     // find nearest discretized sample (min-max bounds preserved automatically)
     discretizer_->discretize(smp);
+    std::cout << smp << std::endl;
 
     // find value index of the sample and keep it for nex run
     discretizer_->convert(smp, mai_);
@@ -238,7 +242,7 @@ PADASampler *PADASampler::clone()
   return egs;
 }
 
-void PADASampler::increment(Vector &idx, const Vector &lower_idx, Vector &upper_idx) const
+void PADASampler::increment(std::vector<size_t> &idx, const std::vector<size_t> &lower_idx, const std::vector<size_t> &upper_idx) const
 {
   for (int ii = 0; ii < lower_idx.size(); ii++)
   {
@@ -255,7 +259,7 @@ void PADASampler::increment(Vector &idx, const Vector &lower_idx, Vector &upper_
 size_t PADASampler::sample(const Vector &values, TransitionType &tt) const
 {
   // select indexes of upper and lower bounds
-  Vector lower_idx, upper_idx, current_idx;
+  std::vector<size_t> lower_idx, upper_idx, current_idx;
   for (int ii = 0; ii < sample_idx_.size(); ii++)
   {
     lower_idx[ii] = fmax(sample_idx_[ii]-delta_[ii], 0);
@@ -268,8 +272,8 @@ size_t PADASampler::sample(const Vector &values, TransitionType &tt) const
 
     // collect all variants of discretized vectors withing bounds
     current_idx = lower_idx;
-    std::vector<Vector> v_current_idx;
-    while (current_idx != upper_idx)
+    std::vector<std::vector<size_t>> v_current_idx;
+    while (!std::equal(current_idx.begin(), current_idx.end(), upper_idx.begin()))
     {
       v_current_idx.push_back(current_idx);
       increment(current_idx, lower_idx, upper_idx);
@@ -282,7 +286,7 @@ size_t PADASampler::sample(const Vector &values, TransitionType &tt) const
 
     // convert to an index
     size_t mai;
-    discretizer_->convert_idx(sample_idx_, mai);
+    discretizer_->convert(sample_idx_, mai);
     return mai;
   }
   else
@@ -292,11 +296,11 @@ size_t PADASampler::sample(const Vector &values, TransitionType &tt) const
 
     // select the best value within bounds
     sample_idx_ = current_idx;
-    discretizer_->convert_idx(current_idx, max_mai);
-    while (current_idx != upper_idx)
+    discretizer_->convert(current_idx, max_mai);
+    while (!std::equal(current_idx.begin(), current_idx.end(), upper_idx.begin()))
     {
       size_t mai;
-      discretizer_->convert_idx(current_idx, mai);
+      discretizer_->convert(current_idx, mai);
       if (values[mai] > values[max_mai])
       {
         max_mai = mai;

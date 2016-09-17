@@ -92,6 +92,7 @@ class OrnsteinUhlenbeckSampler : public EpsilonGreedySampler
 
   protected:
     Discretizer *discretizer_;
+    std::vector<Vector> variants_;
     Vector theta_, sigma_, center_;
     mutable size_t mai_;
 
@@ -118,7 +119,7 @@ class PADASampler : public EpsilonGreedySampler
 
   protected:
     Discretizer *discretizer_;
-    mutable Vector sample_idx_;
+    mutable std::vector<size_t> sample_idx_;
     Vector steps_;
     Vector delta_;
 
@@ -135,7 +136,7 @@ class PADASampler : public EpsilonGreedySampler
     virtual size_t sample(const Vector &values, TransitionType &tt) const;
 
   protected:
-    void increment(Vector &idx, const Vector &lower_idx, Vector &upper_idx) const;
+    void increment(std::vector<size_t> &idx, const std::vector<size_t> &lower_idx, const std::vector<size_t> &upper_idx) const;
 };
 
 }
