@@ -43,16 +43,12 @@ experiment:
         output_min: []
         output_max: []
       sampler: 
-        type: sampler/epsilon_greedy_ou
+        type: sampler/pada
+        rand_max: 0
         epsilon: 0.05
-        min: experiment/agent/policy/discretizer/min
-        max: experiment/agent/policy/discretizer/max
+        discretizer: experiment/agent/policy/discretizer
         steps: experiment/agent/policy/discretizer/steps
-        use_ou: 0
-        theta: 0.05
-        sigma: 1.0
-        center: [ 3, 3, 3 ]
-        delta: 1
+        delta: [ 1, 1, 1 ]
     predictor: 
       type: predictor/sarsa
       alpha: 0.2
@@ -71,4 +67,5 @@ experiment:
       representation: experiment/agent/policy/representation
       sampler: 
         type: sampler/greedy
+        rand_max: 0
   save_every: never

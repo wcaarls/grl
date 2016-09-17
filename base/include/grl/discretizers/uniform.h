@@ -60,7 +60,6 @@ class UniformDiscretizer : public Discretizer
     virtual void discretize(Vector &vec) const;
     virtual void convert(const Vector &vec, size_t &mai) const;
     virtual void convert(const std::vector<size_t> &vec_idx, size_t &mai) const;
-    //virtual void convert(size_t mai, Vector &vec) const;
 };
 
 }

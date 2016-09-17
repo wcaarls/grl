@@ -86,9 +86,6 @@ class Discretizer : public Configurable
 
     /// Converts indexed vector to an linear offset of pointing to an indexed representation of the same input vector
     virtual void convert(const std::vector<size_t> &vec_idx, size_t &mai) const = 0;
-
-    /// Opposite to previous, converts a linear representation of an indexed offset to an actual discretized vector
-//    virtual void convert(size_t mai, Vector &vec) const = 0;
 };
 
 }

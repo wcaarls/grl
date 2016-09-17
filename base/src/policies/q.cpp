@@ -105,6 +105,6 @@ TransitionType QPolicy::act(const Vector &in, Vector *out) const
   size_t action = sampler_->sample(qvalues, tt);
   
   *out = variants_[action];
-  std::cout << *out << std::endl;
+  TRACE(*out);
   return tt;
 }
