@@ -14,7 +14,8 @@ using namespace grl;
 ODESimulator::ODESimulator():
   CGenericODESim("simulator", 8),
   PosixNonRealTimeThread("simulator-thread", BaseThread::NORMAL),
-  mEvtActuation(false, false)
+  mEvtActuation(false, false),
+  mRandomize(0)
 {
   mLogDebugLn("Simulator constructor");
 

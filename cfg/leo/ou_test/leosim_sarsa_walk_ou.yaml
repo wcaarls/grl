@@ -12,7 +12,7 @@ experiment:
     target_env: 
       type: environment/ode
       xml: experiment/environment/xml
-      randomize: 0
+      randomize: 1
       visualize: 1
     observe: torso_boom, hipright, hipleft, kneeright, kneeleft
     actuate: hipright, hipleft, kneeleft
