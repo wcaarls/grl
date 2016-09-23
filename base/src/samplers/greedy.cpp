@@ -286,9 +286,11 @@ size_t PADASampler::sample(const Vector &values, TransitionType &tt) const
     while (!std::equal(current_idx.begin(), current_idx.end(), upper_idx.begin()))
     {
       v_current_idx.push_back(current_idx);
+      TRACE(current_idx);
       increment(current_idx, lower_idx, upper_idx);
     }
     v_current_idx.push_back(current_idx);
+    TRACE(current_idx);
 
     // select random sample
     int r = rand_->getInteger(v_current_idx.size());
@@ -323,6 +325,12 @@ size_t PADASampler::sample(const Vector &values, TransitionType &tt) const
       increment(current_idx, lower_idx, upper_idx);
       TRACE(current_idx);
     }
+/*
+    // Verification, best action for no bounds
+    size_t mai = GreedySampler::sample(values, tt);
+    if (mai != max_mai)
+      std::cout << "Not correct action" << std::endl;
+*/
     return max_mai;
   }
 }

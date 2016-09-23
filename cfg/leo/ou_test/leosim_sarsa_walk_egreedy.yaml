@@ -16,6 +16,11 @@ experiment:
       visualize: 1
     observe: torso_boom, hipright, hipleft, kneeright, kneeleft
     actuate: hipright, hipleft, kneeleft
+    exporter: 
+      type: exporter/csv
+      file: leosim_sarsa_walk_egreedy
+      style: meshup
+      variant: test
     observation_dims: experiment/environment/target_env/observation_dims
     action_dims: experiment/environment/target_env/action_dims
   agent: 

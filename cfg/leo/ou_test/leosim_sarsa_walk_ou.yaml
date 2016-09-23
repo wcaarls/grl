@@ -16,6 +16,11 @@ experiment:
       visualize: 1
     observe: torso_boom, hipright, hipleft, kneeright, kneeleft
     actuate: hipright, hipleft, kneeleft
+    exporter: 
+      type: exporter/csv
+      file: leosim_sarsa_walk_ou
+      style: meshup
+      variant: test
     observation_dims: experiment/environment/target_env/observation_dims
     action_dims: experiment/environment/target_env/action_dims
   agent: 
@@ -47,9 +52,9 @@ experiment:
         rand_max: 0
         epsilon: 0.05
         discretizer: experiment/agent/policy/discretizer
-        theta: [ 0.01, 0.01, 0.01 ]
-        sigma: [ 3.0, 3.0, 3.0 ]
-        center: [ 0.0, 0.0, 0.0 ]
+        theta: [0.01, 0.01, 0.01]
+        sigma: [3.0, 3.0, 3.0]
+        center: [0.0, 0.0, 0.0]
     predictor: 
       type: predictor/sarsa
       alpha: 0.2

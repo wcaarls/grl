@@ -6,7 +6,7 @@ l = 50
 lim = np.array([-10.7, 10.7])
 
 theta = 0.01
-sigma = 3.0
+sigma = 3
 y0 = 0
 discrete = 7
 
