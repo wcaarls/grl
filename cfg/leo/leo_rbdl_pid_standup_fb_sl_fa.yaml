@@ -19,8 +19,8 @@ experiment:
         auxiliary: mm, com, comv, am
       target_dof: 4
       animation: nope
-      lower_height: 0.28
-      upper_height: 0.35
+      lower_height: 1.00
+      upper_height: 1.00
       target_env: 
         type: environment/communicator
         converter: 
@@ -57,5 +57,7 @@ experiment:
       i: []
       d: []
       il: []
+      action_min: experiment/environment/task/action_min
+      action_max: experiment/environment/task/action_max
   test_agent: experiment/agent
   save_every: never

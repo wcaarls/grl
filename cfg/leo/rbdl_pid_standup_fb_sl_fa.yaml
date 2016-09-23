@@ -18,13 +18,12 @@ experiment:
         points: tip_left, heel_left, root
         auxiliary: mm, com, comv, am
       target_dof: 4
-      animation: immediate
-      lower_height: 0.28
-      upper_height: 0.35
+      animation: nope
+      lower_height: 1.00
+      upper_height: 1.00
     task: 
-      type: task/leoSquatFA
-      timeout: 4
-      initial_setpoint: 0.368641
+      type: task/leo_squatting
+      timeout: 10
       rand_init: 1
     exporter: 
       type: exporter/csv
@@ -42,5 +41,7 @@ experiment:
       i: []
       d: []
       il: []
+      action_min: experiment/environment/task/action_min
+      action_max: experiment/environment/task/action_max
   test_agent: experiment/agent
   save_every: never
