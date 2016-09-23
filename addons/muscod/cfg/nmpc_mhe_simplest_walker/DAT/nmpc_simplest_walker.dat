@@ -734,7 +734,7 @@ libmssqp
 mssqp_standard
 
 libeval
-eval_ind_pt
+eval_ind
 
 libind
 0: ind_rkfswt
@@ -743,8 +743,8 @@ libqps
 qps_qpopt
 
 libplot
-plot_pgplot
 plot_noplot
+plot_pgplot
 plot_memplot
 
 **********************************
