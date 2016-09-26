@@ -20,7 +20,7 @@ experiment:
       type: exporter/csv
       file: leosim_sarsa_walk_ou
       style: meshup
-      variant: test
+      variant: all
     observation_dims: experiment/environment/target_env/observation_dims
     action_dims: experiment/environment/target_env/action_dims
   agent: 
