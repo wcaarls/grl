@@ -338,8 +338,23 @@ class Configurator
     virtual void reconfigure(const Configuration &config, bool recursive=false)
     {
       if (recursive)
+      {
         for (ConfiguratorList::iterator ii=children_.begin(); ii != children_.end(); ++ii)
-          (*ii)->reconfigure(config, recursive);
+        {
+          // Do not reconfigure if child is on path.
+          Configurator *child = (*ii)->find(""), *node=this;
+
+          while (node)
+          {
+            if (node == child)
+              break;
+            node = node->parent_;
+          }
+
+          if (!node)
+            (*ii)->reconfigure(config, recursive);
+        }
+      }
     }
 };
 
