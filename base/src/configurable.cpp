@@ -185,7 +185,8 @@ std::string ParameterConfigurator::localize(const std::string &id) const
       ii--;
       
     // Localized path ends with other's path from this point onwards
-    newpath = fullpath.substr(ii+1);
+    if (ii < fullpath.size())
+      newpath = fullpath.substr(ii+1);
 
     // Add ../ for every folder on our own path until the end
     for (; ii < ownpath.size(); ++ii)
