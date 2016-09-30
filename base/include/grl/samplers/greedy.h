@@ -84,61 +84,6 @@ class EpsilonGreedySampler : public GreedySampler
     virtual void distribution(const Vector &values, Vector *distribution) const;
 };
 
-/// Maximum search with an Ornstein-Uhlenbeck random chance of non-maximums.
-class OrnsteinUhlenbeckSampler : public EpsilonGreedySampler
-{
-  public:
-    TYPEINFO("sampler/ornstein_ohlenbeck", "Maximum search with an Ornstein-Uhlenbeck random chance of non-maximums")
-
-  protected:
-    Discretizer *discretizer_;
-    std::vector<Vector> variants_;
-    Vector theta_, sigma_, center_;
-    mutable size_t mai_;
-
-  public:
-    OrnsteinUhlenbeckSampler() { }
-
-    // From Configurable
-    virtual void request(ConfigurationRequest *config);
-    virtual void configure(Configuration &config);
-    virtual void reconfigure(const Configuration &config);
-
-    // From Sampler
-    virtual OrnsteinUhlenbeckSampler *clone();
-    virtual size_t sample(const Vector &values, TransitionType &tt) const;
-};
-
-/// Maximum search with a PADA random chance of non-maximums.
-/// For details see "Learning while preventing mechanical failure due to random motions"
-/// by H. J. Meijdam, M. C. Plooij and W. Caarls
-class PADASampler : public EpsilonGreedySampler
-{
-  public:
-    TYPEINFO("sampler/pada", "Maximum search with a PADA random chance of non-maximums")
-
-  protected:
-    Discretizer *discretizer_;
-    mutable std::vector<size_t> sample_idx_;
-    Vector steps_;
-    Vector delta_;
-
-  public:
-    PADASampler() { }
-
-    // From Configurable
-    virtual void request(ConfigurationRequest *config);
-    virtual void configure(Configuration &config);
-    virtual void reconfigure(const Configuration &config);
-
-    // From Sampler
-    virtual PADASampler *clone();
-    virtual size_t sample(const Vector &values, TransitionType &tt) const;
-
-  protected:
-    void increment(std::vector<size_t> &idx, const std::vector<size_t> &lower_idx, const std::vector<size_t> &upper_idx) const;
-};
-
 }
 
 #endif /* GRL_GREEDY_SAMPLER_H_ */

@@ -5,7 +5,7 @@ import math
 l = 50
 lim = np.array([-10.7, 10.7])
 
-theta = 0.01
+theta = 0.10
 sigma = 3
 y0 = 0
 discrete = 7
