@@ -190,6 +190,8 @@ TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
   {
     initial_sd_ << in.block(0, 0, 1, nmpc_->NXD());
     initial_pf_ << in.block(0, nmpc_->NXD(), 1, nmpc_->NP());
+  } else {
+    initial_sd_ << in;
   }
 
   if (verbose_)
