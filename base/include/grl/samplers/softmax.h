@@ -42,9 +42,10 @@ class SoftmaxSampler : public Sampler
 
   protected:
     double tau_;
+    mutable double min_, max_;
 
   public:
-    SoftmaxSampler() : tau_(1.) { }
+    SoftmaxSampler() : tau_(1.), min_(DBL_MAX), max_(DBL_MIN) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);

@@ -22,6 +22,7 @@ experiment:
       type: exporter/csv
       file: ras_results/cart-pendulum/xxxx_nmpc/cart_pole_ras2016_rbdl_nmpc_0000-test
       style: meshup
+      variant: test
   agent: 
     type: agent/fixed
     policy: 
@@ -30,7 +31,10 @@ experiment:
       model_name: inmpc_cartpole
       nmpc_model_name: nmpc_cartpole
       outputs: experiment/environment/task/action_dims
+      initFeedback: 0
       verbose: 0
+      feedback: non-threaded
+      n_iter: 1
   test_agent: experiment/agent
   save_every: never
 visualizer: 
