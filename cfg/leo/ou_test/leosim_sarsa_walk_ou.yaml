@@ -72,7 +72,6 @@ experiment:
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
       sampler: 
-        type: sampler/ornstein_ohlenbeck
+        type: sampler/greedy
         rand_max: 0
-        epsilon: 0.0
   save_every: never
