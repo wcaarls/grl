@@ -2,13 +2,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math
 
-l = 50
+l = 5000
 lim = np.array([-10.7, 10.7])
 
-theta = 0.10
-sigma = 3
+theta = 0.002
+sigma = 0.5
 y0 = 0
-discrete = 7
+discrete = 0
 
 x = np.arange(l)
 y = np.zeros(l)
