@@ -33,12 +33,14 @@ REGISTER_CONFIGURABLE(SequentialMasterAgent)
 
 void SequentialMasterAgent::request(ConfigurationRequest *config)
 {
+  config->push_back(CRP("predictor", "predictor", "Optional (model) predictor", predictor_, true));
   config->push_back(CRP("agent1", "agent", "First subagent, providing the suggested action", agent_[0]));
   config->push_back(CRP("agent2", "agent", "Second subagent, providing the final action", agent_[1]));
 }
 
 void SequentialMasterAgent::configure(Configuration &config)
 {
+  predictor_ = (Predictor*)config["predictor"].ptr();
   agent_[0] = (SubAgent*)config["agent1"].ptr();
   agent_[1] = (SubAgent*)config["agent2"].ptr();
 }
@@ -56,16 +58,34 @@ void SequentialMasterAgent::start(const Vector &obs, Vector *action)
 {
   agent_[0]->start(obs, action);
   agent_[1]->start(obs, action);
+
+  prev_obs_ = obs;
+  prev_action_ = *action;
 }
 
 void SequentialMasterAgent::step(double tau, const Vector &obs, double reward, Vector *action)
 {
   agent_[0]->step(tau, obs, reward, action);
   agent_[1]->step(tau, obs, reward, action);
+
+  if (predictor_)
+  {
+    Transition t(prev_obs_, prev_action_, reward, obs, *action);
+    predictor_->update(t);
+  }
+  
+  prev_obs_ = obs;
+  prev_action_ = *action;
 }
 
 void SequentialMasterAgent::end(double tau, const Vector &obs, double reward)
 {
   agent_[0]->end(tau, obs, reward);
   agent_[1]->end(tau, obs, reward);
+
+  if (predictor_)
+  {
+    Transition t(prev_obs_, prev_action_, reward, obs);
+    predictor_->update(t);
+  }
 }
