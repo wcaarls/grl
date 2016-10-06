@@ -2,7 +2,7 @@ experiment:
   type: experiment/online_learning
   runs: 1
   trials: 0
-  steps: 500000
+  steps: 1000000
   rate: 0
   test_interval: 10
   output: leosim_sarsa_walk_softmax
