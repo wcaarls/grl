@@ -146,7 +146,7 @@ agent/master/sequential:
     type: exporter
     description: Optional exporter for transition log (supports time, state, observation, action, reward, terminal)
     mutability: configuration
-    default: 0xb28100
+    default: 0x1cfc140
     optional: 1
 agent/master/sequential/additive:
   description: Additive master agent that executes sub-agents sequentially and adds their outputs
@@ -452,7 +452,7 @@ environment/leo_squat:
     type: int.observation_dims
     description: Number of observation dimensions
     mutability: configuration
-    default: 12526528
+    default: 31220736
     optional: 1
     min: 0
     max: 2147483647
@@ -500,7 +500,7 @@ environment/leo_walk:
     type: int.observation_dims
     description: Number of observation dimensions
     mutability: configuration
-    default: 12526528
+    default: 31220736
     optional: 1
     min: 0
     max: 2147483647
@@ -943,12 +943,6 @@ model/compass_walker:
     optional: 1
     min: -1.797693134862316e+308
     max: 1.797693134862316e+308
-  integrator_out:
-    type: string
-    description: string.integrator_out_
-    mutability: configuration
-    default: ""
-    optional: 1
 model/dynamical:
   description: State transition model that integrates equations of motion
   control_step:
@@ -1381,9 +1375,9 @@ policy/feed_forward:
   description: Feed-forward policy
   input:
     type: string
-    description: string.input_
+    description: CSV file with timestep and controls
     mutability: configuration
-    default: CSV file with timestep and controls
+    default: ""
     optional: 1
 policy/mhe_nmpc:
   description: Nonlinear model predictive control policy with moving horizon estimator using the MUSCOD library
@@ -2910,7 +2904,7 @@ sampler/ornstein_ohlenbeck:
     type: discretizer.action
     description: Action discretizer
     mutability: configuration
-    default: 0
+    default: 0x6365626e656c686f
     optional: 0
   theta:
     type: vector
@@ -2952,7 +2946,7 @@ sampler/pada:
     type: discretizer.action
     description: Action discretizer
     mutability: configuration
-    default: 0
+    default: 0x6365626e656c686f
     optional: 0
   steps:
     type: vector
@@ -3412,7 +3406,7 @@ task/compass_walker/vref:
     optional: 1
   steps:
     type: int
-    description: number of steps after wiich task is terminated
+    description: number of steps after which task is terminated
     mutability: configuration
     default: 0
     optional: 1
@@ -3508,7 +3502,7 @@ task/compass_walker/vrefu:
     optional: 1
   steps:
     type: int
-    description: number of steps after wiich task is terminated
+    description: number of steps after which task is terminated
     mutability: configuration
     default: 0
     optional: 1
@@ -3604,7 +3598,7 @@ task/compass_walker/walk:
     optional: 1
   steps:
     type: int
-    description: number of steps after wiich task is terminated
+    description: number of steps after which task is terminated
     mutability: configuration
     default: 0
     optional: 1

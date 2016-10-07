@@ -3,7 +3,7 @@ experiment:
   runs: 1
   trials: 1
   steps: 0
-  rate: 0
+  rate: 20
   test_interval: 0
   environment: 
     type: environment/modeled
@@ -35,7 +35,7 @@ experiment:
       outputs: experiment/environment/task/action_dims
       initFeedback: 0
       verbose: 0
-      feedback: non-threaded
+      feedback: threaded
       n_iter: 1
   test_agent: experiment/agent
   save_every: never

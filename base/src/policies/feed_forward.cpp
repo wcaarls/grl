@@ -34,7 +34,7 @@ REGISTER_CONFIGURABLE(FeedForwardPolicy)
 
 void FeedForwardPolicy::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("input", "string.input_", "CSV file with timestep and controls"));
+  config->push_back(CRP("input", "CSV file with timestep and controls", "", CRP::Configuration));
 }
 
 void FeedForwardPolicy::configure(Configuration &config)
@@ -70,7 +70,7 @@ void FeedForwardPolicy::configure(Configuration &config)
   else
   {
     INFO("Reading input as a vector of doubles");
-    const std::vector<std::string> list = cutLongStr(config["input"]);
+    const std::vector<std::string> list = cutLongStr(input_);
     if (list.size() < 2)
       throw bad_param("policy/feed_forward:input");
     for (int i = 0; i < list.size(); i++)
@@ -109,8 +109,21 @@ TransitionType FeedForwardPolicy::act(double time, const Vector &in, Vector *out
 
   out->resize(shift_-1); // do not count time
 
-  // linear interpolation on the interval (t_tis1; t_tis2]
-  double k = (time-time_control_[tis1])/(time_control_[tis2] - time_control_[tis1]);
+  double k;
+  if (tis2 >= time_control_.size())
+  {
+    // keep the last active control if control for this time interval is not specified
+    tis2 = time_control_.size() - shift_;
+    tis1 = tis2 - shift_;
+    k = 1;
+    WARNING("Control for this time interval is not specified. Use last control of " << time_control_.block(0, tis2+1, 1, shift_-1));
+  }
+  else
+  {
+    // linear interpolation on the interval (t_tis1; t_tis2]
+    k = (time-time_control_[tis1])/(time_control_[tis2] - time_control_[tis1]);
+  }
+
   for (size_t ii=0; ii < shift_-1; ++ii)
     (*out)[ii] = (1-k) * time_control_[tis1+1+ii] +
                      k * time_control_[tis2+1+ii];

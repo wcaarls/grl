@@ -2,7 +2,7 @@ experiment:
   type: experiment/online_learning
   runs: 1
   trials: 0
-  steps: 500000
+  steps: 1000000
   rate: 0
   test_interval: 10
   output: leosim_sarsa_walk_ou
@@ -52,8 +52,8 @@ experiment:
         rand_max: 0
         epsilon: 0.05
         discretizer: experiment/agent/policy/discretizer
-        theta: [0.01, 0.01, 0.01]
-        sigma: [3.0, 3.0, 3.0]
+        theta: [0.0, 0.0, 0.0]
+        sigma: [0.1, 0.1, 0.1]
         center: [0.0, 0.0, 0.0]
     predictor: 
       type: predictor/sarsa

@@ -110,6 +110,10 @@ void BoundedQPolicy::filter(const Vector &prev_out, const Vector &qvalues, Vecto
   }
 
   grl_assert(idx->size() > 0); // for testing purpose
+  TRACE("Previous action: " << prev_out);
+  for (size_t ii=0; ii < idx->size(); ++ii)
+    TRACE("  " << variants_[(*idx)[ii]]);
+  TRACE("================");
   
   filtered->resize(idx->size());
   for (size_t ii=0; ii < idx->size(); ++ii)

@@ -16,6 +16,11 @@ experiment:
       visualize: 1
     observe: torso_boom, hipright, hipleft, kneeright, kneeleft
     actuate: hipright, hipleft, kneeleft
+    exporter: 
+      type: exporter/csv
+      file: leosim_sarsa_walk_softmax
+      style: meshup
+      variant: all
     observation_dims: experiment/environment/target_env/observation_dims
     action_dims: experiment/environment/target_env/action_dims
   agent: 
@@ -44,7 +49,7 @@ experiment:
         output_max: []
       sampler: 
         type: sampler/softmax
-        tau: 1
+        tau: 0.2
     predictor: 
       type: predictor/sarsa
       alpha: 0.2
@@ -61,5 +66,7 @@ experiment:
       discretizer: experiment/agent/policy/discretizer
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
-      sampler: experiment/agent/policy/sampler
+      sampler: 
+        type: sampler/greedy
+        rand_max: 0
   save_every: never

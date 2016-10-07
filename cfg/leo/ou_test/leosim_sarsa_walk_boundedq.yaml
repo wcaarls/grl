@@ -5,7 +5,7 @@ experiment:
   steps: 1000000
   rate: 0
   test_interval: 10
-  output: leosim_sarsa_walk_pada
+  output: leosim_sarsa_walk_boundedq
   environment: 
     type: environment/leo_walk
     xml: ../../leo/cfg/leo_walk.xml
@@ -18,7 +18,7 @@ experiment:
     actuate: hipright, hipleft, kneeleft
     exporter: 
       type: exporter/csv
-      file: leosim_sarsa_walk_pada
+      file: leosim_sarsa_walk_boundedq
       style: meshup
       variant: all
     observation_dims: experiment/environment/target_env/observation_dims
@@ -26,7 +26,8 @@ experiment:
   agent: 
     type: agent/td
     policy: 
-      type: policy/discrete/q
+      type: policy/discrete/q/bounded
+      bound: [3.6, 3.6, 3.6]
       discretizer: 
         type: discretizer/uniform
         min: experiment/environment/action_min
@@ -48,12 +49,9 @@ experiment:
         output_min: []
         output_max: []
       sampler: 
-        type: sampler/pada
+        type: sampler/epsilon_greedy
         rand_max: 0
         epsilon: 0.05
-        discretizer: experiment/agent/policy/discretizer
-        steps: experiment/agent/policy/discretizer/steps
-        delta: [1, 1, 1]
     predictor: 
       type: predictor/sarsa
       alpha: 0.2
@@ -66,15 +64,12 @@ experiment:
   test_agent: 
     type: agent/fixed
     policy: 
-      type: policy/discrete/q
+      type: policy/discrete/q/bounded
+      bound: experiment/agent/policy/bound
       discretizer: experiment/agent/policy/discretizer
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
       sampler: 
-        type: sampler/pada
+        type: sampler/greedy
         rand_max: 0
-        epsilon: 0.0
-        discretizer: experiment/agent/policy/discretizer
-        steps: experiment/agent/policy/discretizer/steps
-        delta: experiment/agent/policy/sampler/delta
   save_every: never

@@ -2,47 +2,47 @@ experiment:
   type: experiment/online_learning
   runs: 1
   trials: 0
-  steps: 1000000
+  steps: 15000
   rate: 0
   test_interval: 10
-  output: leosim_sarsa_walk_egreedy
+  output: pendulum_sarsa_egreedy
   environment: 
-    type: environment/leo_walk
-    xml: ../../leo/cfg/leo_walk.xml
-    target_env: 
-      type: environment/ode
-      xml: experiment/environment/xml
-      randomize: 1
-      visualize: 1
-    observe: torso_boom, hipright, hipleft, kneeright, kneeleft
-    actuate: hipright, hipleft, kneeleft
+    type: environment/modeled
+    model: 
+      type: model/dynamical
+      control_step: 0.03
+      integration_steps: 5
+      dynamics: 
+        type: dynamics/pendulum
+    task: 
+      type: task/pendulum/swingup
+      timeout: 2.99
+      randomization: 0
     exporter: 
       type: exporter/csv
-      file: leosim_sarsa_walk_egreedy
+      file: pendulum_sarsa_egreedy
       style: meshup
       variant: all
-    observation_dims: experiment/environment/target_env/observation_dims
-    action_dims: experiment/environment/target_env/action_dims
   agent: 
     type: agent/td
     policy: 
       type: policy/discrete/q
       discretizer: 
         type: discretizer/uniform
-        min: experiment/environment/action_min
-        max: experiment/environment/action_max
-        steps: [7, 7, 7]
+        min: experiment/environment/task/action_min
+        max: experiment/environment/task/action_max
+        steps: [3]
       projector: 
         type: projector/tile_coding
         tilings: 16
-        memory: 33554432
-        safe: 1
-        resolution: [0.14, 0.28, 0.28, 0.28, 0.28, 5, 10, 10, 10, 10, 6.67, 6.67, 6.67]
-        wrapping: []
+        memory: 8388608
+        safe: 0
+        resolution: [0.31415, 3.1415, 3]
+        wrapping: [6.283, 0, 0]
       representation: 
         type: representation/parameterized/linear
         init_min: [0]
-        init_max: [0.01]
+        init_max: [1]
         memory: experiment/agent/policy/projector/memory
         outputs: 1
         output_min: []
@@ -54,12 +54,12 @@ experiment:
     predictor: 
       type: predictor/sarsa
       alpha: 0.2
-      gamma: 0.9962
-      lambda: 0.8582
+      gamma: 0.97
+      lambda: 0.65
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
       trace: 
-        type: trace/enumerated/accumulating
+        type: trace/enumerated/replacing
   test_agent: 
     type: agent/fixed
     policy: 
@@ -71,3 +71,14 @@ experiment:
         type: sampler/greedy
         rand_max: 0
   save_every: never
+visualizer: 
+  type: visualizer/glut
+visualization: 
+  type: visualization/field/policy/value
+  field_dims: [0, 1]
+  input_min: experiment/environment/task/observation_min
+  input_max: experiment/environment/task/observation_max
+  points: 65536
+  savepoints: 1048576
+  projection: mean
+  policy: experiment/test_agent/policy

@@ -5,7 +5,7 @@ experiment:
   steps: 1000000
   rate: 0
   test_interval: 10
-  output: leosim_sarsa_walk_pada
+  output: leosim_sarsa_walk_ou
   environment: 
     type: environment/leo_walk
     xml: ../../leo/cfg/leo_walk.xml
@@ -18,7 +18,7 @@ experiment:
     actuate: hipright, hipleft, kneeleft
     exporter: 
       type: exporter/csv
-      file: leosim_sarsa_walk_pada
+      file: leosim_sarsa_walk_ou
       style: meshup
       variant: all
     observation_dims: experiment/environment/target_env/observation_dims
@@ -48,12 +48,13 @@ experiment:
         output_min: []
         output_max: []
       sampler: 
-        type: sampler/pada
+        type: sampler/ornstein_ohlenbeck
         rand_max: 0
         epsilon: 0.05
         discretizer: experiment/agent/policy/discretizer
-        steps: experiment/agent/policy/discretizer/steps
-        delta: [1, 1, 1]
+        theta: [0.01, 0.01, 0.01]
+        sigma: [3.0, 3.0, 3.0]
+        center: [0.0, 0.0, 0.0]
     predictor: 
       type: predictor/sarsa
       alpha: 0.2
@@ -71,10 +72,6 @@ experiment:
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
       sampler: 
-        type: sampler/pada
+        type: sampler/greedy
         rand_max: 0
-        epsilon: 0.0
-        discretizer: experiment/agent/policy/discretizer
-        steps: experiment/agent/policy/discretizer/steps
-        delta: experiment/agent/policy/sampler/delta
   save_every: never

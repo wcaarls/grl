@@ -43,7 +43,7 @@ void CompassWalkerModel::request(ConfigurationRequest *config)
   config->push_back(CRP("control_step", "double.control_step", "Control step time", tau_, CRP::Configuration, 0.001, DBL_MAX));
   config->push_back(CRP("integration_steps", "Number of integration steps per control step", (int)steps_, CRP::Configuration, 1));
   config->push_back(CRP("slope_angle", "double.slope_angle", "Inclination of the slope", slope_angle_, CRP::Configuration, -DBL_MAX, DBL_MAX));
-  config->push_back(CRP("integrator_out", "string.integrator_out_", ""));
+//  config->push_back(CRP("integrator_out", "string.integrator_out_", ""));
 }
 
 void CompassWalkerModel::configure(Configuration &config)
@@ -51,7 +51,7 @@ void CompassWalkerModel::configure(Configuration &config)
   tau_ = config["control_step"];
   steps_ = config["integration_steps"];
   slope_angle_ = config["slope_angle"];
-  integrator_out_ = config["integrator_out"].str();
+//  integrator_out_ = config["integrator_out"].str();
 
   model_.setSlopeAngle(slope_angle_);
   model_.setTiming(tau_, steps_);
@@ -205,7 +205,7 @@ void CompassWalkerWalkTask::request(ConfigurationRequest *config)
   config->push_back(CRP("slope_angle", "double.slope_angle", "Inclination of the slope", slope_angle_, CRP::System, -DBL_MAX, DBL_MAX));
   config->push_back(CRP("negative_reward", "Negative reward", neg_reward_, CRP::Configuration, -DBL_MAX, 0.));
   config->push_back(CRP("observe", "State elements observed by an agent", observe_, CRP::Configuration));
-  config->push_back(CRP("steps", "number of steps after wiich task is terminated", steps_, CRP::Configuration, 0, INT_MAX));
+  config->push_back(CRP("steps", "number of steps after which task is terminated", steps_, CRP::Configuration, 0, INT_MAX));
 }
 
 void CompassWalkerWalkTask::configure(Configuration &config)
