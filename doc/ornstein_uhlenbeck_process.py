@@ -12,8 +12,8 @@ def main():
   lim = np.array([-10.7, 10.7])
 
   if 1:
-    sigma = 3.0
-    theta = 0.57
+    sigma = 2.0
+    theta = 0.1
     plot_single(sigma, theta, lim)
   else:
     plot_grid(np.linspace(0, 3, 10), np.linspace(0, 1, 10), lim)
