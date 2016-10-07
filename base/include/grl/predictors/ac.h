@@ -54,12 +54,15 @@ class ActionACPredictor : public Predictor
 
     double alpha_, beta_, gamma_, lambda_;
     
+    std::string update_method_;
+    Vector step_limit_;
+    
     Vector min_, max_;
 
   public:  
     ActionACPredictor() : critic_projector_(NULL), critic_representation_(NULL), critic_trace_(NULL),
                           actor_projector_(NULL), actor_representation_(NULL), actor_trace_(NULL),
-                          alpha_(0.2), beta_(0.01), gamma_(0.97), lambda_(0.65) { }
+                          alpha_(0.2), beta_(0.01), gamma_(0.97), lambda_(0.65), update_method_("proportional") { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);

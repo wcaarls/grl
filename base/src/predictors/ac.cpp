@@ -41,6 +41,9 @@ void ActionACPredictor::request(ConfigurationRequest *config)
   config->push_back(CRP("gamma", "Discount rate", gamma_));
   config->push_back(CRP("lambda", "Trace decay rate", lambda_));
 
+  config->push_back(CRP("update_method", "Actor update method", update_method_, CRP::Configuration, {"proportional", "cacla"}));
+  config->push_back(CRP("step_limit", "Actor exploration step limit", step_limit_));
+
   config->push_back(CRP("critic_projector", "projector.observation", "Projects observations onto critic representation space", critic_projector_));
   config->push_back(CRP("critic_representation", "representation.value/state", "Value function representation", critic_representation_));
   config->push_back(CRP("critic_trace", "trace", "Trace of critic projections", critic_trace_));
@@ -66,6 +69,9 @@ void ActionACPredictor::configure(Configuration &config)
   beta_ = config["beta"];
   gamma_ = config["gamma"];
   lambda_ = config["lambda"];
+  
+  update_method_ = config["update_method"].str();
+  step_limit_ = config["step_limit"].v();
 }
 
 void ActionACPredictor::reconfigure(const Configuration &config)
@@ -92,6 +98,9 @@ ActionACPredictor *ActionACPredictor::clone() const
 void ActionACPredictor::update(const Transition &transition)
 {
   Predictor::update(transition);
+  
+  if (step_limit_.size() && step_limit_.size() != transition.prev_action.size())
+    throw bad_param("predictor/ac:step_limit");
 
   // (LLR) obtain buckets with nearest neighbours
   ProjectionPtr cp = critic_projector_->project(transition.prev_obs);
@@ -109,21 +118,34 @@ void ActionACPredictor::update(const Transition &transition)
   critic_representation_->update(*critic_trace_, VectorConstructor(alpha_*delta), gamma_*lambda_);
   //
   critic_trace_->add(cp, gamma_*lambda_);
-  
-  actor_representation_->read(ap, &u);
-  if (!u.size())
-    u = ConstantVector(transition.prev_action.size(), 0.);
-  target_u = u + delta*(transition.prev_action - u);
 
-  actor_representation_->write(ap, target_u, beta_);
-  if (actor_trace_)
+  if (update_method_[0] == 'p' || delta > 0)
   {
-    actor_representation_->update(*actor_trace_, beta_*(target_u-u), gamma_*lambda_);
-    actor_trace_->add(ap, gamma_*lambda_);
+    actor_representation_->read(ap, &u);
+    if (!u.size())
+      u = ConstantVector(transition.prev_action.size(), 0.);
+    Vector Delta = (transition.prev_action - u);
+    
+    if (step_limit_.size())
+      for (size_t ii=0; ii < Delta.size(); ++ii)
+        Delta[ii] = fmin(fmax(Delta[ii], -step_limit_[ii]), step_limit_[ii]);
+
+    if (update_method_[0] == 'p')
+      Delta = delta * Delta;
+
+    target_u = u + Delta;
+
+    actor_representation_->write(ap, target_u, beta_);
+    if (actor_trace_)
+    {
+      actor_representation_->update(*actor_trace_, beta_*(target_u-u), gamma_*lambda_);
+      actor_trace_->add(ap, gamma_*lambda_);
+    }
+    
+    actor_representation_->finalize();
   }
   
   critic_representation_->finalize();
-  actor_representation_->finalize();
 }
 
 void ActionACPredictor::finalize()
