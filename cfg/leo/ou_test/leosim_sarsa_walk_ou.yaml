@@ -23,6 +23,8 @@ experiment:
       variant: all
     observation_dims: experiment/environment/target_env/observation_dims
     action_dims: experiment/environment/target_env/action_dims
+    contact_signal: 
+      type: signal/v
   agent: 
     type: agent/td
     policy: 
@@ -55,6 +57,7 @@ experiment:
         theta: [0.1, 0.1, 0.1]
         sigma: [2.0, 2.0, 2.0]
         center: [0.0, 0.0, 0.0]
+        contact_signal: experiment/environment/contact_signal
     predictor: 
       type: predictor/sarsa
       alpha: 0.2

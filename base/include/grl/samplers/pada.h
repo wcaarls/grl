@@ -33,6 +33,7 @@
 #include <grl/grl.h>
 #include <grl/discretizer.h>
 #include <grl/samplers/greedy.h>
+#include <grl/signals/signal_v.h>
 
 namespace grl
 {
@@ -50,6 +51,7 @@ class PADASampler : public EpsilonGreedySampler
     mutable std::vector<size_t> sample_idx_;
     Vector steps_;
     Vector delta_;
+    Signal *mirror_sig_;
 
   public:
     PADASampler() { }

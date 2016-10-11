@@ -121,6 +121,7 @@ std::string CLeoBhWalk::getProgressReport(double trialTime)
 /////////////////////////////////
 
 LeoWalkEnvironment::LeoWalkEnvironment()
+  : mirror_sig_(NULL)
 {
   bh_ = new CLeoBhWalk(&leoSim_);
   set_bh(bh_);
@@ -129,11 +130,13 @@ LeoWalkEnvironment::LeoWalkEnvironment()
 void LeoWalkEnvironment::request(ConfigurationRequest *config)
 {
   LeoBaseEnvironment::request(config);
+  config->push_back(CRP("contact_signal", "signal", "Contact signal", mirror_sig_, true));
 }
 
 void LeoWalkEnvironment::configure(Configuration &config)
 {
   LeoBaseEnvironment::configure(config);
+  mirror_sig_ = (Signal*)config["contact_signal"].ptr();
 
   // Augmenting state with a direction indicator variable: sit down or stand up
   const EnvironmentAgentInterface &interface = bh_->getInterface();
@@ -194,6 +197,10 @@ void LeoWalkEnvironment::start(int test, Vector *obs)
   bh_->parseLeoState(leoState_, *obs);
 
   bh_->setCurrentSTGState(NULL);
+
+  // signal contact (agent may use this signal to tackle discontinuities)
+  if (mirror_sig_)
+    mirror_sig_->set(VectorConstructor(0, 0, 0, 0, 0, 1)); // last '1' means start => any action is possible
 }
 
 double LeoWalkEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)
@@ -204,6 +211,7 @@ double LeoWalkEnvironment::step(const Vector &action, Vector *obs, double *rewar
 
   // Reconstruct a Leo action from a possibly reduced agent action
   bh_->parseLeoAction(action, target_action_);
+  double auto_actuated_knee_voltage = bh_->grlAutoActuateKnee();
 
   // Execute action
   bh_->setPreviousSTGState(&leoState_);
@@ -230,6 +238,15 @@ double LeoWalkEnvironment::step(const Vector &action, Vector *obs, double *rewar
     *terminal = 2;
   else
     *terminal = 0;
+
+  // signal contact (agent may use this signal to tackle discontinuities)
+  if (mirror_sig_)
+  {
+    mirror_sig_->set(VectorConstructor(bh_->madeFootstep(), auto_actuated_knee_voltage, 0, 1, 2, 0)); // last '0' means step
+    TRACE(auto_actuated_knee_voltage);
+    if (bh_->madeFootstep())
+      std::cout << "contact happened" << std::endl;
+  }
 
   LeoBaseEnvironment::step(tau, *reward, *terminal);
 

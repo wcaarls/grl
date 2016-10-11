@@ -39,6 +39,7 @@ void OrnsteinUhlenbeckSampler::request(ConfigurationRequest *config)
   config->push_back(CRP("theta", "Theta parameter of Ornstein-Uhlenbeck", theta_, CRP::Configuration));
   config->push_back(CRP("sigma", "Sigma parameter of Ornstein-Uhlenbeck", sigma_, CRP::Configuration));
   config->push_back(CRP("center", "Centering parameter of Ornstein-Uhlenbeck", center_, CRP::Configuration));
+  config->push_back(CRP("contact_signal", "signal", "Signal", mirror_sig_, true));
 }
 
 void OrnsteinUhlenbeckSampler::configure(Configuration &config)
@@ -56,6 +57,8 @@ void OrnsteinUhlenbeckSampler::configure(Configuration &config)
     throw bad_param("sampler/ornstein_ohlenbeck:{theta,sigma,center}");
 
   discretizer_->convert(center_, mai_);
+
+  mirror_sig_ = (Signal*)config["contact_signal"].ptr();
 }
 
 void OrnsteinUhlenbeckSampler::reconfigure(const Configuration &config)
@@ -72,12 +75,33 @@ OrnsteinUhlenbeckSampler *OrnsteinUhlenbeckSampler::clone()
 
 size_t OrnsteinUhlenbeckSampler::sample(const Vector &values, TransitionType &tt) const
 {
-  if (rand_->get() < epsilon_)
+  Vector sig;
+  mirror_sig_->get(&sig);
+
+  if (rand_->get() < epsilon_ && sig[5] == 0) // start function (sig[5] == 1) => any action is possible
   {
     tt = ttExploratory;
 
     // convert array index to values
     Vector smp = variants_[mai_];
+
+    // mirror if needed
+    if (sig.size() && sig[0])
+    {
+      int hipright, hipleft, kneeleft;
+      hipright = sig[2];
+      hipleft  = sig[3];
+      kneeleft = sig[4];
+
+      TRACE(smp);
+      double tmp = smp[hipright];
+      smp[hipright] = smp[hipleft];
+      smp[hipleft] = tmp;
+
+      smp[kneeleft] = sig[1];
+    }
+    if (sig.size() && sig[5])
+      TRACE('Error: No OU at start');
     TRACE(smp);
 
     // pertub action according to Ornstein-Uhlenbeck

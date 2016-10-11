@@ -33,6 +33,7 @@
 #include <grl/grl.h>
 #include <grl/discretizer.h>
 #include <grl/samplers/greedy.h>
+#include <grl/signals/signal_v.h>
 
 namespace grl
 {
@@ -48,6 +49,7 @@ class OrnsteinUhlenbeckSampler : public EpsilonGreedySampler
     std::vector<Vector> variants_;
     Vector theta_, sigma_, center_;
     mutable size_t mai_;
+    Signal *mirror_sig_;
 
   public:
     OrnsteinUhlenbeckSampler() { }

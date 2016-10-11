@@ -146,7 +146,7 @@ agent/master/sequential:
     type: exporter
     description: Optional exporter for transition log (supports time, state, observation, action, reward, terminal)
     mutability: configuration
-    default: 0x2020e10
+    default: 0x26340d0
     optional: 1
 agent/master/sequential/additive:
   description: Additive master agent that executes sub-agents sequentially and adds their outputs
@@ -452,7 +452,7 @@ environment/leo_squat:
     type: int.observation_dims
     description: Number of observation dimensions
     mutability: configuration
-    default: 34531072
+    default: 40901216
     optional: 1
     min: 0
     max: 2147483647
@@ -500,7 +500,7 @@ environment/leo_walk:
     type: int.observation_dims
     description: Number of observation dimensions
     mutability: configuration
-    default: 34531072
+    default: 40901216
     optional: 1
     min: 0
     max: 2147483647
@@ -512,6 +512,12 @@ environment/leo_walk:
     optional: 1
     min: 0
     max: 2147483647
+  contact_signal:
+    type: signal
+    description: Contact signal
+    mutability: configuration
+    default: 0
+    optional: 1
 environment/leosim:
   description: Leo simulation environment
   xml:
@@ -2969,7 +2975,7 @@ sampler/ornstein_ohlenbeck:
     type: discretizer.action
     description: Action discretizer
     mutability: configuration
-    default: 0
+    default: 0x2cbe800
     optional: 0
   theta:
     type: vector
@@ -2988,6 +2994,12 @@ sampler/ornstein_ohlenbeck:
     description: Centering parameter of Ornstein-Uhlenbeck
     mutability: configuration
     default: "[  ]"
+    optional: 1
+  contact_signal:
+    type: signal
+    description: Signal
+    mutability: configuration
+    default: 0
     optional: 1
 sampler/pada:
   description: Maximum search with a PADA random chance of non-maximums
@@ -3011,7 +3023,7 @@ sampler/pada:
     type: discretizer.action
     description: Action discretizer
     mutability: configuration
-    default: 0
+    default: 0x2cbe800
     optional: 0
   steps:
     type: vector
@@ -3024,6 +3036,12 @@ sampler/pada:
     description: Delta of PADA
     mutability: configuration
     default: "[  ]"
+    optional: 1
+  contact_signal:
+    type: signal
+    description: Signal
+    mutability: configuration
+    default: 0
     optional: 1
 sampler/softmax:
   description: Softmax (Gibbs/Boltzmann) sampler
@@ -3139,6 +3157,8 @@ sandbox_model/leo_squatting:
     optional: 1
     min: 0
     max: 1.797693134862316e+308
+signal/v:
+  description: Vector-based signal
 solver/agent:
   description: Solver that uses a simulated agent
   steps:

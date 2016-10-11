@@ -93,6 +93,11 @@ void CLeoBhBase::updateDerivedStateVars(CLeoState* currentSTGState)
   CLeoBhWalkSym::updateDerivedStateVars(currentSTGState);
 }
 
+bool CLeoBhBase::madeFootstep()
+{
+  return CLeoBhWalkSym::mMadeFootstep;
+}
+
 int CLeoBhBase::jointNameToIndex(const std::string jointName) const
 {
   if (jointName == "torso_boom")

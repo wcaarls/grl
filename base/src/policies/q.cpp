@@ -104,7 +104,16 @@ TransitionType QPolicy::act(const Vector &in, Vector *out) const
   values(in, &qvalues);
   size_t action = sampler_->sample(qvalues, tt);
   
+//  Vector prev_out = *out;
+//  TRACE(prev_out);
   *out = variants_[action];
   TRACE(*out);
+/*
+  // Neighbouring action in case of PADA
+  for (int i = 0; i < prev_out.size(); i++)
+    if (fabs((*out)[i] - prev_out[i]) > 5.35)
+      std::cout << "Something is wrong!" << std::endl;
+  prev_out = *out;
+*/
   return tt;
 }

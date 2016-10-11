@@ -77,6 +77,7 @@ add_library(${TARGET} SHARED
             ${SRC}/samplers/pada.cpp
             ${SRC}/samplers/ornstein_uhlenbeck.cpp
             ${SRC}/samplers/random_generator.cpp
+            ${SRC}/signals/signal_v.cpp
             ${SRC}/solvers/agent.cpp
             ${SRC}/solvers/vi.cpp
             ${SRC}/traces/enumerated.cpp

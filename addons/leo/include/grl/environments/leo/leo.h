@@ -107,6 +107,7 @@ class CLeoBhBase: public CLeoBhWalkSym
     void fillLeoState(const Vector &obs, const Vector &action, CLeoState &leoState);
     void parseLeoState(const CLeoState &leoState, Vector &obs);
     void updateDerivedStateVars(CLeoState *currentSTGState);
+    bool madeFootstep();
     void setCurrentSTGState(CLeoState *leoState);
     void setPreviousSTGState(CLeoState *leoState);
     void grlAutoActuateAnkles(double &actionStanceAnkle, double &actionSwingAnkle)

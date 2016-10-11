@@ -38,6 +38,7 @@ void PADASampler::request(ConfigurationRequest *config)
   config->push_back(CRP("discretizer", "discretizer.action", "Action discretizer", discretizer_));
   config->push_back(CRP("steps", "Discretization steps per dimension", steps_, CRP::Configuration));
   config->push_back(CRP("delta", "Delta of PADA", delta_, CRP::Configuration));
+  config->push_back(CRP("contact_signal", "signal", "Signal", mirror_sig_, true));
 }
 
 void PADASampler::configure(Configuration &config)
@@ -57,6 +58,8 @@ void PADASampler::configure(Configuration &config)
 
   for (int i = 0; i < steps_.size(); i++)
     sample_idx_.push_back((steps_[i]-1)/2); // initial action centered by default
+
+  mirror_sig_ = (Signal*)config["contact_signal"].ptr();
 }
 
 void PADASampler::reconfigure(const Configuration &config)
@@ -87,18 +90,58 @@ void PADASampler::increment(std::vector<size_t> &idx, const std::vector<size_t> 
 
 size_t PADASampler::sample(const Vector &values, TransitionType &tt) const
 {
+  Vector sig;
+  mirror_sig_->get(&sig);
+  Vector delta = delta_;
+  if (sig.size())
+  {
+    if (sig[0])
+    {
+      // contact happened
+      int hipright, hipleft, kneeleft;
+      hipright = sig[2];
+      hipleft  = sig[3];
+      kneeleft = sig[4];
+
+      TRACE(sample_idx_);
+      size_t tmp = sample_idx_[hipright];
+      sample_idx_[hipright] = sample_idx_[hipleft];
+      sample_idx_[hipleft] = tmp;
+
+      const double prev_knee_auto_actuated = sig[1];
+      double nearest = DBL_MAX;
+      for (int i = 0; i < steps_[kneeleft]; i++)
+      {
+        double v = (i-3)*(10.7/3);
+        if (fabs(prev_knee_auto_actuated - nearest) > fabs(prev_knee_auto_actuated - v))
+        {
+          nearest = v;
+          sample_idx_[kneeleft] = i;
+        }
+      }
+      TRACE(sample_idx_);
+    }
+
+    if (sig[5]) // start function => any action is possible
+    {
+      for (int ii = 0; ii < sample_idx_.size(); ii++)
+        delta[ii] = INT_MAX;
+    }
+  }
+
   // select indexes of upper and lower bounds
   std::vector<size_t> lower_idx, upper_idx, current_idx;
   lower_idx.resize(sample_idx_.size());
   upper_idx.resize(sample_idx_.size());
   for (int ii = 0; ii < sample_idx_.size(); ii++)
   {
-    lower_idx[ii] = fmax(sample_idx_[ii]-delta_[ii], 0);
-    upper_idx[ii] = fmin(sample_idx_[ii]+delta_[ii], steps_[ii]-1);
+    lower_idx[ii] = fmax(sample_idx_[ii]-delta[ii], 0);
+    upper_idx[ii] = fmin(sample_idx_[ii]+delta[ii], steps_[ii]-1);
   }
   TRACE(lower_idx);
   TRACE(upper_idx);
 
+  size_t mai;
   if (rand_->get() < epsilon_) // skip to Greedy if action is not initialized yet
   {
     tt = ttExploratory;
@@ -121,39 +164,41 @@ size_t PADASampler::sample(const Vector &values, TransitionType &tt) const
     TRACE(sample_idx_);
 
     // convert to an index
-    size_t mai;
     discretizer_->convert(sample_idx_, mai);
-    return mai;
   }
   else
   {
     tt = ttGreedy;
-    size_t max_mai;
+    size_t max_mai, loop_mai;
 
     // select the best value within bounds
-    current_idx = lower_idx;
+    sample_idx_ = current_idx = lower_idx;
     discretizer_->convert(current_idx, max_mai);
     increment(current_idx, lower_idx, upper_idx);
     TRACE(current_idx);
     while (!std::equal(current_idx.begin(), current_idx.end(), upper_idx.begin()))
     {
-      size_t mai;
-      discretizer_->convert(current_idx, mai);
-      if (values[mai] > values[max_mai])
+      discretizer_->convert(current_idx, loop_mai);
+      if (values[loop_mai] > values[max_mai])
       {
-        max_mai = mai;
+        max_mai = loop_mai;
         sample_idx_ = current_idx;
         TRACE(values[max_mai]);
       }
       increment(current_idx, lower_idx, upper_idx);
       TRACE(current_idx);
     }
+    mai = max_mai;
 /*
-    // Verification, best action for no bounds
-    size_t mai = GreedySampler::sample(values, tt);
-    if (mai != max_mai)
-      std::cout << "Not correct action" << std::endl;
+    // Verification test: best action with no bounds
+    if (tt == ttGreedy)
+    {
+      loop_mai = GreedySampler::sample(values, tt);
+      if (loop_mai != max_mai)
+        std::cout << "Not correct action" << std::endl;
+    }
 */
-    return max_mai;
   }
+
+  return mai;
 }

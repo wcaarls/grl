@@ -3,6 +3,7 @@
 
 #include <leo.h>
 #include <grl/environments/odesim/environment.h>
+#include <grl/signals/signal_v.h>
 #include <LeoBhWalkSym.h>
 #include <STGLeo.h>
 #include <STGLeoSim.h>
@@ -46,6 +47,7 @@ class LeoWalkEnvironment: public LeoBaseEnvironment
     int requested_action_dims_;
     //int learn_stance_knee_;
     CLeoBhWalk *bh_;
+    Signal *mirror_sig_;
 };
 
 }

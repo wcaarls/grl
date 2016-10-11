@@ -177,9 +177,3 @@ void UniformDiscretizer::convert(const std::vector<size_t> &vec_idx, size_t &mai
   mai = static_cast<size_t>(round(dmai));
 }
 
-/*
-void UniformDiscretizer::convert(size_t mai, Vector &vec) const
-{
-  vec = values_[mai];
-}
-*/
