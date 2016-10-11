@@ -244,8 +244,8 @@ double LeoWalkEnvironment::step(const Vector &action, Vector *obs, double *rewar
   {
     mirror_sig_->set(VectorConstructor(bh_->madeFootstep(), auto_actuated_knee_voltage, 0, 1, 2, 0)); // last '0' means step
     TRACE(auto_actuated_knee_voltage);
-    if (bh_->madeFootstep())
-      std::cout << "contact happened" << std::endl;
+    //if (bh_->madeFootstep())
+    //  std::cout << "contact happened" << std::endl;
   }
 
   LeoBaseEnvironment::step(tau, *reward, *terminal);
