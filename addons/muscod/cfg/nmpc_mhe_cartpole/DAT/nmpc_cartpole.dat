@@ -743,6 +743,7 @@ libqps
 qps_qpopt
 
 libplot
+plot_noplot
 plot_pgplot
 plot_noplot
 plot_memplot

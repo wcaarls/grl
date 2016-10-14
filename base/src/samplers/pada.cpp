@@ -129,6 +129,11 @@ size_t PADASampler::sample(const Vector &values, TransitionType &tt) const
     }
   }
 
+  //--------------------------------------
+  // Uncomment for any signal for the knee
+  delta[2] = INT_MAX;
+  //--------------------------------------
+
   // select indexes of upper and lower bounds
   std::vector<size_t> lower_idx, upper_idx, current_idx;
   lower_idx.resize(sample_idx_.size());

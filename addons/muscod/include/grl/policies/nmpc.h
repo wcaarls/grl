@@ -29,8 +29,9 @@
 #define GRL_NMPC_POLICY_H_
 
 #include <grl/policy.h>
-#include <grl/policies/muscod_nmpc.h>
 #include <grl/policies/nmpc_base.h>
+#include <grl/policies/muscod_nmpc.h>
+
 
 class MUSCOD;
 

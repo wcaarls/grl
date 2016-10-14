@@ -14,7 +14,7 @@ experiment:
       dynamics: 
         type: dynamics/rbdl
         file: cart_pendulum.lua
-        options: friction=0.1
+        options: friction=0.2
     task: 
       type: task/lua
       file: cart_pendulum_swingup_balance_unwrap.lua
@@ -22,16 +22,21 @@ experiment:
       type: exporter/csv
       file: ras_results/cart-pendulum/xxxx_mhe_nmpc/cart_pole_ras2016_rbdl_nmpc_0000-test
       style: meshup
+      variant: test
   agent: 
     type: agent/fixed
     policy: 
       type: policy/mhe_nmpc
+      verbose: 0
+      initFeedback: 0
+      action_min: experiment/environment/task/action_min
+      action_max: experiment/environment/task/action_max
       lua_model: experiment/environment/model/dynamics/file
       model_name: nmpc_mhe_cartpole
-      mhe_model_name: mhe_cartpole
       nmpc_model_name: nmpc_cartpole
-      outputs: experiment/environment/task/action_dims
-      verbose: 0
+      mhe_model_name: mhe_cartpole
+      feedback: non-threaded
+      n_iter: 10
   test_agent: experiment/agent
   save_every: never
 visualizer: 

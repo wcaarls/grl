@@ -33,6 +33,7 @@
 #include <grl/policies/muscod_mhe.h>
 #include <grl/policies/muscod_nmpc.h>
 
+
 class MUSCOD;
 
 namespace grl
@@ -48,18 +49,34 @@ class MHE_NMPCPolicy : public NMPCBase
     MUSCOD *muscod_mhe_, *muscod_nmpc_;
     MHEProblem *mhe_;
     NMPCProblem *nmpc_;
-    std::string mhe_model_name_;
+    const std::string thread_id_ = "";
+    pthread_t thread_;
+    pthread_cond_t cond_iv_ready_;
+    pthread_mutex_t mutex_;
+
     Vector initial_sd_, initial_pf_, initial_qc_, final_sd_, hs_, ss_;
 
+    // CONTROL LOOP
+    bool iv_provided_;
+    bool qc_retrieved_;
+
+    // relative path to model directory
+    // NOTE will end up next to the DAT file as 'run_nmpc.bin'!
+    const std::string restart_path_ = "";
+    const std::string restart_name_ = "run_nmpc";
+
+    std::string feedback_;
+    int n_iter_;
+
   public:
-    MHE_NMPCPolicy() : muscod_mhe_(NULL), muscod_nmpc_(NULL){ }
+    MHE_NMPCPolicy() : muscod_mhe_(NULL), muscod_nmpc_(NULL), mhe_(NULL), nmpc_(NULL), n_iter_(1) { }
     ~MHE_NMPCPolicy();
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
-    virtual void muscod_reset(const Vector &initial_obs, double time);
+    virtual void muscod_reset(const Vector &initial_obs, const Vector &initial_pf, Vector &initial_qc);
 
     // From Policy
     virtual MHE_NMPCPolicy *clone() const;
