@@ -131,7 +131,7 @@ size_t PADASampler::sample(const Vector &values, TransitionType &tt) const
 
   //--------------------------------------
   // Uncomment for any signal for the knee
-  delta[2] = INT_MAX;
+  delta[0] = delta[1] = delta[2] = INT_MAX;
   //--------------------------------------
 
   // select indexes of upper and lower bounds
@@ -194,7 +194,7 @@ size_t PADASampler::sample(const Vector &values, TransitionType &tt) const
       TRACE(current_idx);
     }
     mai = max_mai;
-/*
+
     // Verification test: best action with no bounds
     if (tt == ttGreedy)
     {
@@ -202,7 +202,7 @@ size_t PADASampler::sample(const Vector &values, TransitionType &tt) const
       if (loop_mai != max_mai)
         std::cout << "Not correct action" << std::endl;
     }
-*/
+
   }
 
   return mai;

@@ -87,17 +87,18 @@ void SoftmaxSampler::distribution(const Vector &values, Vector *distribution) co
       v[ii] = exp(p);
       sum += v[ii];
       (*distribution)[ii] = 1;
-
+/*
       if (min_ > p)
         min_ = p;
       if (max_ < p)
         max_ = p;
+      */
     }
     else
       (*distribution)[ii] = 0;
   }
 
-  std::cout << "Q " << sum << ", " << min_ << ", " << max_ << std::endl;
+//  std::cout << "Q " << sum << ", " << min_ << ", " << max_ << std::endl;
 
   for (size_t ii=0; ii < values.size(); ++ii)
     (*distribution)[ii] *= v[ii]/sum;
