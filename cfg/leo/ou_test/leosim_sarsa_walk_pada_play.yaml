@@ -2,32 +2,28 @@ experiment:
   type: experiment/online_learning
   runs: 1
   trials: 0
-  steps: 1000000
-  rate: 0
-  test_interval: 10
-  output: leosim_sarsa_walk_boundedq
+  steps: 0
+  rate: 10
+  test_interval: 0
+  output: leosim_sarsa_walk_pada
   environment: 
     type: environment/leo_walk
     xml: ../../leo/cfg/leo_walk.xml
     target_env: 
       type: environment/ode
       xml: experiment/environment/xml
-      randomize: 1
+      randomize: 0
       visualize: 1
     observe: torso_boom, hipright, hipleft, kneeright, kneeleft
     actuate: hipright, hipleft, kneeleft
-    exporter: 
-      type: exporter/csv
-      file: leosim_sarsa_walk_boundedq
-      style: meshup
-      variant: all
     observation_dims: experiment/environment/target_env/observation_dims
     action_dims: experiment/environment/target_env/action_dims
+    contact_signal: 
+      type: signal/v
   agent: 
     type: agent/td
     policy: 
-      type: policy/discrete/q/bounded
-      bound: [3.6, 3.6, 3.6]
+      type: policy/discrete/q
       discretizer: 
         type: discretizer/uniform
         min: experiment/environment/action_min
@@ -49,9 +45,13 @@ experiment:
         output_min: []
         output_max: []
       sampler: 
-        type: sampler/epsilon_greedy
+        type: sampler/pada
         rand_max: 0
         epsilon: 0.05
+        discretizer: experiment/agent/policy/discretizer
+        steps: experiment/agent/policy/discretizer/steps
+        delta: [1, 1, 1]
+        contact_signal: experiment/environment/contact_signal
     predictor: 
       type: predictor/sarsa
       alpha: 0.2
@@ -64,12 +64,17 @@ experiment:
   test_agent: 
     type: agent/fixed
     policy: 
-      type: policy/discrete/q/bounded
-      bound: experiment/agent/policy/bound
+      type: policy/discrete/q
       discretizer: experiment/agent/policy/discretizer
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
       sampler: 
-        type: sampler/greedy
+        type: sampler/pada
         rand_max: 0
+        epsilon: 0.0
+        discretizer: experiment/agent/policy/discretizer
+        steps: experiment/agent/policy/discretizer/steps
+        delta: experiment/agent/policy/sampler/delta
+        contact_signal: experiment/environment/contact_signal
+  load_file: leo_ou_test_leosim_sarsa_walk_pada-mp4-run0
   save_every: never
