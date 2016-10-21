@@ -64,6 +64,22 @@ class OrnsteinUhlenbeckSampler : public EpsilonGreedySampler
     virtual size_t sample(const Vector &values, TransitionType &tt) const;
 };
 
+class OrnsteinUhlenbeckSampler2 : public OrnsteinUhlenbeckSampler
+{
+  public:
+    TYPEINFO("sampler/ornstein_ohlenbeck2", "Maximum search with an Ornstein-Uhlenbeck random chance of non-maximums")
+
+  protected:
+    mutable Vector noise_;
+
+  public:
+    OrnsteinUhlenbeckSampler2() { }
+
+    // From Sampler
+    virtual OrnsteinUhlenbeckSampler2 *clone();
+    virtual size_t sample(const Vector &values, TransitionType &tt) const;
+};
+
 }
 
 #endif /* GRL_ORNSTEIN_UHLENBECK_SAMPLER_H_ */
