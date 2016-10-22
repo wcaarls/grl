@@ -2,7 +2,7 @@ experiment:
   type: experiment/online_learning
   runs: 1
   trials: 0
-  steps: 1000000
+  steps: 700000
   rate: 0
   test_interval: 10
   output: leosim_sarsa_walk_ou2
@@ -54,8 +54,8 @@ experiment:
         rand_max: 0
         epsilon: 0.05
         discretizer: experiment/agent/policy/discretizer
-        theta: [0.15, 0.15, 0.15]
-        sigma: [0.20, 0.20, 0.20]
+        theta: [0.001, 0.001, 0.001]
+        sigma: [0.02, 0.02, 0.02]
         center: [0.0, 0.0, 0.0]
         contact_signal: experiment/environment/contact_signal
     predictor: 
@@ -77,4 +77,4 @@ experiment:
       sampler: 
         type: sampler/greedy
         rand_max: 0
-  save_every: never
+  save_every: run

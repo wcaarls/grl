@@ -4,7 +4,7 @@ import math
 from mpl_toolkits.mplot3d import axes3d
 from matplotlib import cm
 
-l = 5000
+l = 1000
 y0 = 0
 discrete = 0
 
@@ -12,8 +12,8 @@ def main():
   lim = np.array([-10.7, 10.7])
 
   if 1:
-    sigma = 0.2
-    theta = 0.15
+    sigma = 0.02
+    theta = 0.001
     plot_single(sigma, theta, lim)
   else:
     plot_grid(np.linspace(0, 3, 10), np.linspace(0, 1, 10), lim)

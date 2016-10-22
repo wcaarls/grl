@@ -59,14 +59,14 @@ size_t SoftmaxSampler::sample(const Vector &values, TransitionType &tt) const
   
   tt = ttExploratory;
   size_t idx = ::sample(dist, 1.);
-
+/*
   GreedySampler gs;
   TransitionType gtt;
   size_t gidx = gs.sample(values, gtt);
 
   if (idx != gidx)
     std::cout << "Non-greedy action selected" << std::endl;
-
+*/
   return idx;
 }
 
