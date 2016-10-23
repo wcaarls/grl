@@ -169,11 +169,11 @@
 							<b>0.0</b>
 						</color>
 						<x>0.0</x>
-						<y>-torsowidth</y>
+						<y comment="-torsowidth">0</y>
 						<z>0.0</z>
-						<dx>0.001</dx>
-						<dy>torsowidth</dy>
-						<dz>torsoheight</dz>
+						<dx comment="0.001">0</dx>
+						<dy comment="torsowidth">0</dy>
+						<dz comment="torsowidth">0</dz>
 					</box>
 				</drawinfo>
 			</body>

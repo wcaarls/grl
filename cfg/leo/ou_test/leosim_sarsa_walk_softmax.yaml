@@ -49,7 +49,7 @@ experiment:
         output_max: []
       sampler: 
         type: sampler/softmax
-        tau: 0.2
+        tau: 0.05
     predictor: 
       type: predictor/sarsa
       alpha: 0.2
