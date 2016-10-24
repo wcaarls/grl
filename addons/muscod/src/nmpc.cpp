@@ -87,6 +87,7 @@ void NMPCPolicy::configure(Configuration &config)
   // Allocate memory
   initial_sd_ = ConstantVector(nmpc_->NXD(), 0);
   initial_pf_ = ConstantVector(nmpc_->NP(), 0);
+  initial_hf_ = ConstantVector(nmpc_->NH(), 0);
   initial_qc_ = ConstantVector(nmpc_->NU(), 0);
   final_sd_   = ConstantVector(nmpc_->NXD(), 0);
 
@@ -140,11 +141,71 @@ void NMPCPolicy::muscod_reset(const Vector &initial_obs, const Vector &initial_p
   );
 
   // initialize NMPC
-  for (int inmpc = 0; inmpc < 20; ++inmpc)
+  for (int inmpc = 0; inmpc < 10; ++inmpc)
   {
     // 1) Feedback: Embed parameters and initial value from MHE
     if (initFeedback_) {
       nmpc_->feedback(initial_obs, initial_pf, &initial_qc);
+    } else {
+      nmpc_->feedback();
+    }
+    // 2) Transition
+    nmpc_->transition();
+    // 3) Preparation
+    nmpc_->preparation();
+  }
+
+  // NOTE: both flags are set to true then iv is provided and
+  //       qc is is computed
+  // NOTE: due to waiting flag, main thread is on hold until
+  //       computations are finished (<=2ms!)
+  iv_provided_ = true;
+  qc_retrieved_ = true;
+
+  // wait for preparation phase
+  if (true) { // TODO Add wait flag
+    wait_for_iv_ready(nmpc_, verbose_);
+    if (nmpc_->get_iv_ready() == true) {
+    } else {
+        std::cerr << "MAIN: bailing out ..." << std::endl;
+        abort();
+    }
+  }
+
+  if (verbose_)
+    std::cout << "MUSCOD is reseted!" << std::endl;
+}
+
+void NMPCPolicy::muscod_reset(const Vector &initial_obs, Vector &initial_qc)
+{
+  // wait for preparation phase
+  if (true) { // TODO Add wait flag
+    wait_for_iv_ready(nmpc_, verbose_);
+    if (nmpc_->get_iv_ready() == true) {
+    } else {
+        std::cerr << "MAIN: bailing out ..." << std::endl;
+        abort();
+    }
+  }
+
+  // restore muscod state
+  if (verbose_) {
+    std::cout << "restoring MUSCOD-II state to" << std::endl;
+    std::cout << "  " << nmpc_->m_options->modelDirectory << restart_path_ << "/" << restart_name_ << ".bin" << std::endl;
+  }
+
+  nmpc_->m_muscod->readRestartFile(restart_path_.c_str(), restart_name_.c_str());
+  nmpc_->m_muscod->nmpcInitialize (
+      4,  // 4 for restart
+      restart_path_.c_str(), restart_name_.c_str()
+  );
+
+  // initialize NMPC
+  for (int inmpc = 0; inmpc < 20; ++inmpc)
+  {
+    // 1) Feedback: Embed parameters and initial value from MHE
+    if (initFeedback_) {
+      nmpc_->feedback(initial_obs, &initial_qc);
     } else {
       nmpc_->feedback();
     }

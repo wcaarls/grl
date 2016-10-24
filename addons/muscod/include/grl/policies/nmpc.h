@@ -52,7 +52,7 @@ class NMPCPolicy : public NMPCBase
     pthread_cond_t cond_iv_ready_;
     pthread_mutex_t mutex_;
 
-    Vector initial_sd_, initial_pf_, initial_qc_, final_sd_;
+    Vector initial_sd_, initial_pf_, initial_hf_, initial_qc_, final_sd_;
 
     // CONTROL LOOP
     bool iv_provided_;
@@ -75,6 +75,7 @@ class NMPCPolicy : public NMPCBase
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
     virtual void muscod_reset(const Vector &initial_obs, const Vector &initial_pf, Vector &initial_qc);
+    virtual void muscod_reset(const Vector &initial_obs, Vector &initial_qc);
 
     // From Policy
     virtual NMPCPolicy *clone() const;

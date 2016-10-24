@@ -29,6 +29,7 @@
 #include <dlfcn.h>
 #include <sys/stat.h>
 #include <iomanip>
+#include <unistd.h>
 
 // GRL
 #include <grl/policies/nmpc_mlrti.h>

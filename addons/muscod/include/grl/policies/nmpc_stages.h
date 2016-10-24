@@ -43,9 +43,20 @@ class NMPCStagesPolicy : public NMPCPolicy
   public:
     TYPEINFO("policy/nmpc_stages", "Nonlinear model predictive control policy using the MUSCOD library")
 
+    bool roll_out;
+    bool run_nmpc;
+
+    Vector initial_hf_;
+    Vector initial_swt_;
+
   public:
-    //NMPCPolicy() :  { }
-    //~NMPCPolicy();
+    NMPCStagesPolicy() :
+        NMPCPolicy (),
+        roll_out (false),
+        run_nmpc (true)
+    { }
+    //~NMPCStagesPolicy();
+
 
     // From Policy
     virtual TransitionType act(double time, const Vector &in, Vector *out);
