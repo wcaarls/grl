@@ -80,9 +80,9 @@ struct NMPCProblem : public MUSCODProblem {
     abort();
   }
 
-  void set_nmpc_mode(bool mode) {
-    if ((mode < 0) || (4 < mode)) {
-        std::cout << "Incorrect mode: "<< mode << " not 0 <= mode <= 4!" << std::endl;
+  void set_nmpc_mode(long mode) {
+    if ((mode < 0) || (1 < mode)) {
+        std::cout << "Incorrect mode: "<< mode << " not 0 <= mode <= 1!" << std::endl;
         abort();
     }
     if (mutex_) {
@@ -107,9 +107,9 @@ struct NMPCProblem : public MUSCODProblem {
     abort();
   }
 
-  void set_shift_mode(bool mode) {
-    if ((mode < 0) || (1 < mode)) {
-        std::cout << "Incorrect mode: "<< mode << " not 0 <= mode <= 1!" << std::endl;
+  void set_shift_mode(long mode) {
+    if ((mode < 0) || (4 < mode)) {
+        std::cout << "Incorrect mode: "<< mode << " not 0 <= mode <= 4!" << std::endl;
         abort();
     }
     if (mutex_) {

@@ -14,18 +14,19 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * \endverbatim
  */
 
 #include <cmath>
+#include <numeric>
 #include <grl/environments/compass_walker/SWModel.h>
 #include <grl/environments/compass_walker/compass_walker.h>
 
@@ -72,7 +73,7 @@ double CompassWalkerModel::step(const Vector &state, const Vector &action, Vecto
     throw Exception("model/compass_walker requires a task/compass_walker subclass");
 
   CSWModelState swstate;
-  
+
   swstate.init(state[CompassWalker::siStanceFootX],
                state[CompassWalker::siStanceLegAngle],
                state[CompassWalker::siStanceLegAngleRate],

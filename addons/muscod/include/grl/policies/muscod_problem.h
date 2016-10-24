@@ -104,15 +104,17 @@ struct MUSCODProblem {
   void (*so_set_plot_counter) (bool counter);
 
   // problem dimensions
-  unsigned long m_NMOS, m_NMSN, m_NXD, m_NXA, m_NU, m_NP, m_NH;
+  unsigned long NMOS_, NMSN_, NXD_, NXA_, NU_, NP_, NH_;
+  grl::Vector nmsn_;
 
-  unsigned long NMOS() {return m_NMOS;}
-  unsigned long NMSN() {return m_NMSN;}
-  unsigned long NXD() {return m_NXD;}
-  unsigned long NXA() {return m_NXA;}
-  unsigned long NU() {return m_NU;}
-  unsigned long NP() {return m_NP;}
-  unsigned long NH() {return m_NH;}
+  unsigned long NMOS() {return NMOS_;}
+  unsigned long NMSN() {return NMSN_;}
+  unsigned long NMSN(long imos) {return nmsn_[imos];}
+  unsigned long NXD() {return NXD_;}
+  unsigned long NXA() {return NXA_;}
+  unsigned long NU() {return NU_;}
+  unsigned long NP() {return NP_;}
+  unsigned long NH() {return NH_;}
 
   // ---------------------------------------------------------------------------
 
@@ -331,7 +333,7 @@ struct MUSCODProblem {
   }
 
   bool get_plot_counter(){
-    so_get_plot_counter();
+    return (bool) so_get_plot_counter();
   }
 
   void set_plot_counter(bool choice){
@@ -342,22 +344,26 @@ struct MUSCODProblem {
 
   void get_NMOS () {
     // get Problem dimensions
-    m_NMOS = m_muscod->getNMOS();
-    if (m_NMOS != 1) {
-      std::cerr << "In " << __func__ << ": ";
-      // Begin ERROR MESSAGE
-      std::cerr << "more then one stage is not allowed for NMPC";
-      std::cerr << std::endl;
-      // End ERROR MESSAGE
-      std::cerr << "bailing out..." << std::endl;
-      exit(EXIT_FAILURE);
-    };
+    NMOS_ = m_muscod->getNMOS();
+    // if (NMOS_ != 1) {
+    //   std::cerr << "In " << __func__ << ": ";
+    //   // Begin ERROR MESSAGE
+    //   std::cerr << "more then one stage is not allowed for NMPC";
+    //   std::cerr << std::endl;
+    //   // End ERROR MESSAGE
+    //   std::cerr << "bailing out..." << std::endl;
+    //   exit(EXIT_FAILURE);
+    // };
   }
 
   void get_NMSN () {
     // get number of shooting intervals
-    m_NMSN = m_muscod->getNMSN(0);
-    if (m_NMSN <= 0) {
+    nmsn_ = grl::Vector::Zero(NMOS_);
+    for (int imos = 0; imos < NMOS_; ++imos) {
+      nmsn_[imos] = m_muscod->getNMSN(imos);
+    }
+    NMSN_ = nmsn_.sum();
+    if (NMSN_ <= 0) {
       std::cerr << "In " << __func__ << ": ";
       // Begin ERROR MESSAGE
       std::cerr << "could not get number of shooting nodes from MUSCOD";
@@ -370,7 +376,7 @@ struct MUSCODProblem {
 
   void get_NXD_NXA_NU (long imos=0) {
     // get state and control dimensions
-    if (m_muscod->getDimIMSN(imos, &m_NXD, &m_NXA, &m_NU) != 0) {
+    if (m_muscod->getDimIMSN(imos, &NXD_, &NXA_, &NU_) != 0) {
       std::cerr << "In " << __func__ << ": ";
       // Begin ERROR MESSAGE
       std::cerr << "could not get problem dimensions from MUSCOD";
@@ -383,7 +389,7 @@ struct MUSCODProblem {
 
   void get_NP () {
     // get number of parameters and horizon length
-    if ((m_muscod->getNP(&m_NP) < 0)) {
+    if ((m_muscod->getNP(&NP_) < 0)) {
       std::cerr << "In " << __func__ << ": ";
       // Begin ERROR MESSAGE
       std::cerr << "could not get NP from MUSCOD";
@@ -396,7 +402,7 @@ struct MUSCODProblem {
 
   void get_NH () {
     // get number of parameters and horizon length
-    if ((m_muscod->getNH(&m_NH) < 0)) {
+    if ((m_muscod->getNH(&NH_) < 0)) {
       std::cerr << "In " << __func__ << ": ";
       // Begin ERROR MESSAGE
       std::cerr << "could not get NH from MUSCOD";
@@ -407,6 +413,44 @@ struct MUSCODProblem {
     }
   }
 
+    void getHF (grl::Vector* hf) {
+        // get number of parameters and horizon length
+        m_muscod->getHF((*hf).data());
+    }
+
+    void setHF (
+        grl::Vector& hf
+    ){
+        m_muscod->setHF(hf.data());
+    }
+
+    void getNodeSD (
+        const unsigned long imsn,
+        grl::Vector* sd
+    ){
+        m_muscod->getNodeSD(imsn, (*sd).data());
+    }
+
+    void setNodeSD (
+        const unsigned long imsn,
+        grl::Vector& sd
+    ){
+        m_muscod->setNodeSD(imsn, sd.data());
+    }
+
+    void getNodeQC (
+        const unsigned long imsn,
+        grl::Vector* qc
+    ){
+        m_muscod->getNodeQC(imsn, (*qc).data());
+    }
+
+    void setNodeQC (
+        const unsigned long imsn,
+        grl::Vector& qc
+    ){
+        m_muscod->setNodeQC(imsn, qc.data());
+    }
 
 }; // END MUSCODProblem
 

@@ -1,4 +1,4 @@
-experiment: 
+experiment:
   type: experiment/online_learning
   runs: 1
   trials: 1
@@ -6,14 +6,14 @@ experiment:
   rate: 0
   test_interval: 0
   output: simplest_walker_ras2016_nmpc_0004
-  environment: 
+  environment:
     type: environment/modeled
-    model: 
+    model:
       type: model/compass_walker
       control_step: 0.2
       integration_steps: 20
       slope_angle: 0.004
-    task: 
+    task:
       type: task/compass_walker/vrefu
       timeout: 100
       initial_state_variation: 0.0
@@ -23,28 +23,28 @@ experiment:
       steps: 0
       reference_velocity: 0.12
       per_step_reward: 0
-    exporter: 
+    exporter:
       type: exporter/csv
       file: simplest_walker_ras2016_nmpc_0004
       style: meshup
       variant: all
-  agent: 
+  agent:
     type: agent/fixed
-    policy: 
+    policy:
       type: policy/nmpc_stages
       verbose: 0
       action_min: experiment/environment/task/action_min
       action_max: experiment/environment/task/action_max
       lua_model: ../../rbdl/cfg/simplest_walker.lua
       model_name: nmpc_simplest_walker
-      nmpc_model_name: nmpc_simplest_walker
+      nmpc_model_name: passive_nmpc_stages
       initFeedback: 0
       feedback: non-threaded
-      n_iter: 10
+      n_iter: 3
   test_agent: experiment/agent
   save_every: never
-visualizer: 
+visualizer:
   type: visualizer/glut
-visualization: 
+visualization:
   type: visualization/compass_walker
   state: experiment/environment/state
