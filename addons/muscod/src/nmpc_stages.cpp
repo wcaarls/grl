@@ -218,9 +218,9 @@ TransitionType NMPCStagesPolicy::act(double time, const Vector &in, Vector *out)
     // } // END FOR NMPC ITERATIONS
   }
 
-  /*
   if (feedback_ == "threaded")
   {
+  /*
     // TODO NOT TESTED YET
     abort();
     for (int inmpc = 0; inmpc < n_iter_; ++inmpc) {
