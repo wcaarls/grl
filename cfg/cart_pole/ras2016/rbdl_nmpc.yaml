@@ -35,8 +35,8 @@ experiment:
       outputs: experiment/environment/task/action_dims
       initFeedback: 0
       verbose: 0
-      feedback: threaded
-      n_iter: 1
+      feedback: non-threaded
+      n_iter: 10
   test_agent: experiment/agent
   save_every: never
 visualizer: 

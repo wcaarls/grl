@@ -25,6 +25,7 @@
  * \endverbatim
  */
 #include <grl/samplers/softmax.h>
+#include <grl/samplers/greedy.h>
 
 using namespace grl;
 
@@ -32,7 +33,7 @@ REGISTER_CONFIGURABLE(SoftmaxSampler)
 
 void SoftmaxSampler::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("tau", "Temperature of Boltzmann distribution", tau_, CRP::Online, 0.001, 100.));
+  config->push_back(CRP("tau", "Temperature of Boltzmann distribution", tau_, CRP::Online, 0.000001, 100.));
 }
 
 void SoftmaxSampler::configure(Configuration &config)
@@ -57,29 +58,74 @@ size_t SoftmaxSampler::sample(const Vector &values, TransitionType &tt) const
   distribution(values, &dist);
   
   tt = ttExploratory;
-  return ::sample(dist, 1.);
+  size_t idx = ::sample(dist, 1.);
+/*
+  GreedySampler gs;
+  TransitionType gtt;
+  size_t gidx = gs.sample(values, gtt);
+
+  if (idx != gidx)
+    std::cout << "Non-greedy action selected" << std::endl;
+*/
+  return idx;
 }
 
 void SoftmaxSampler::distribution(const Vector &values, Vector *distribution) const
 {
-  Vector v(values.size());
-  double sum=0;
+  Vector v(values);
+  for (size_t ii=0; ii < values.size(); ++ii)
+    if (std::isnan(v[ii]) || std::isnan(values[ii]))
+      std::cout << "NaN value in Boltzmann distribution 1" << std::endl;
+
+  distribution->resize(v.size());
+  const double threshold = -100;
+
+  // Find max_power and min_power, and center of feasible powers
+  double max_power = -DBL_MAX;
+  for (size_t ii=0; ii < values.size(); ++ii)
+  {
+    double p = values[ii]/tau_;
+    max_power = (max_power < p) ? p : max_power;
+  }
+  double min_power = max_power + threshold;
+  double center = (max_power+min_power)/2.0;
+
+  // Discard powers from interval [0.0; threshold] * max_power
+  double sum = 0;
+  for (size_t ii=0; ii < values.size(); ++ii)
+  {
+    double p = values[ii]/tau_;
+    if (p > min_power)
+    {
+      p -= center;
+      v[ii] = exp(p);
+      sum += v[ii];
+      (*distribution)[ii] = 1;
+
+      if (std::isnan(v[ii]))
+        std::cout << "NaN value in Boltzmann distribution 2" << std::endl;
+/*
+      if (min_ > p)
+        min_ = p;
+      if (max_ < p)
+        max_ = p;
+      */
+    }
+    else
+    {
+      (*distribution)[ii] = 0;
+      if (std::isnan(v[ii]))
+        std::cout << "NaN value in Boltzmann distribution 3" << std::endl;
+    }
+  }
+
+//  std::cout << "Q " << sum << ", " << min_ << ", " << max_ << std::endl;
 
   for (size_t ii=0; ii < values.size(); ++ii)
   {
-    v[ii] = exp(values[ii]/tau_);
-    sum += v[ii];
-/*
-    if (min_ > values[ii])
-      min_ = values[ii];
-    if (max_ < values[ii])
-      max_ = values[ii];
-      */
+    (*distribution)[ii] *= v[ii]/sum;
+    if (std::isnan((*distribution)[ii]))
+      std::cout << "NaN value in Boltzmann distribution 4" << std::endl;
+      //ERROR("NaN value in Boltzmann distribution");
   }
-
-//  std::cout << "Q " << min_ << ", " << max_ << std::endl;
-
-  distribution->resize(v.size());
-  for (size_t ii=0; ii < values.size(); ++ii)
-    (*distribution)[ii] = v[ii]/sum;
 }

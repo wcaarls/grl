@@ -56,7 +56,6 @@ class CompassWalkerModel : public Model
     double slope_angle_;
     size_t steps_;
     CSWModel model_;
-//    std::string integrator_out_;
 
   public:
     CompassWalkerModel() : tau_(0.2), steps_(20), slope_angle_(0.004) { }

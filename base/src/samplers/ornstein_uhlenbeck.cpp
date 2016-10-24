@@ -30,6 +30,7 @@
 using namespace grl;
 
 REGISTER_CONFIGURABLE(OrnsteinUhlenbeckSampler)
+REGISTER_CONFIGURABLE(OrnsteinUhlenbeckSampler2)
 
 void OrnsteinUhlenbeckSampler::request(ConfigurationRequest *config)
 {
@@ -120,5 +121,66 @@ size_t OrnsteinUhlenbeckSampler::sample(const Vector &values, TransitionType &tt
     mai_ = GreedySampler::sample(values, tt);
 
   return mai_;
+}
+
+/////////////////////////////
+
+OrnsteinUhlenbeckSampler2 *OrnsteinUhlenbeckSampler2::clone()
+{
+  OrnsteinUhlenbeckSampler2 *egs = new OrnsteinUhlenbeckSampler2(*this);
+  egs->rand_ = rand_->clone();
+  return egs;
+}
+
+size_t OrnsteinUhlenbeckSampler2::sample(const Vector &values, TransitionType &tt) const
+{
+  Vector sig;
+  mirror_sig_->get(&sig);
+
+  // Calculate noise
+  if (sig.size())
+  {
+    // start function (sig[5] == 1) => noise is zero
+    if (sig[5])
+      noise_ = ConstantVector(3, 0.0);
+
+    // mirror if needed
+    if (sig[0])
+      noise_ = ConstantVector(3, 0.0);
+/*    {
+      int hipright, hipleft, kneeleft;
+      hipright = sig[2];
+      hipleft  = sig[3];
+      kneeleft = sig[4];
+
+      TRACE(noise_);
+      double tmp = noise_[hipright];
+      noise_[hipright] = noise_[hipleft];
+      noise_[hipleft] = tmp;
+      noise_[kneeleft] = 0;
+    }
+*/
+  }
+  TRACE(noise_);
+  for (int i = 0; i < noise_.size(); i++)
+    noise_[i] = noise_[i] + theta_[i] * (center_[i] - noise_[i])+ sigma_[i] * rand_->getNormal(0, 1);
+  TRACE(noise_);
+
+  // Greedy action selection
+  size_t mai = GreedySampler::sample(values, tt);
+  TRACE(variants_[mai]);
+
+  // convert array index to values
+  Vector smp = variants_[mai] + 10.7*noise_;
+  TRACE(smp);
+
+  // find nearest discretized sample (min-max bounds preserved automatically)
+  discretizer_->discretize(smp);
+  TRACE(smp);
+
+  // find value index of the sample and keep it for nex run
+  discretizer_->convert(smp, mai);
+
+  return mai;
 }
 

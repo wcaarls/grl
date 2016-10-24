@@ -46,12 +46,12 @@ using namespace grl;
 void NMPCBase::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("verbose", "Verbose mode", (int)verbose_, CRP::System, 0, 1));
+  config->push_back(CRP("initFeedback", "Initialize feedback", (int)initFeedback_, CRP::System, 0, 1));
   config->push_back(CRP("action_min", "vector.action_min", "Lower limit on actions", action_min_, CRP::System));
   config->push_back(CRP("action_max", "vector.action_max", "Upper limit on actions", action_max_, CRP::System));
   config->push_back(CRP("lua_model", "Lua model used by MUSCOD", lua_model_));
   config->push_back(CRP("model_name", "Name of the model in grl", model_name_));
-  config->push_back(CRP("nmpc_model_name", "Name of MUSCOD MHE model library", nmpc_model_name_));
-  config->push_back(CRP("initFeedback", "Initialize feedback", (int)initFeedback_, CRP::System, 0, 1));
+  config->push_back(CRP("nmpc_model_name", "Name of MUSCOD NMPC model library", nmpc_model_name_));
 }
 
 void NMPCBase::configure(Configuration &config)

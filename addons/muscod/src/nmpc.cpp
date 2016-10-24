@@ -85,11 +85,10 @@ void NMPCPolicy::configure(Configuration &config)
   );
 
   // Allocate memory
-  //initial_sd_ = ConstantVector(nmpc_->NXD(), 0);
+  initial_sd_ = ConstantVector(nmpc_->NXD(), 0);
   initial_pf_ = ConstantVector(nmpc_->NP(), 0);
   initial_hf_ = ConstantVector(nmpc_->NH(), 0);
   initial_qc_ = ConstantVector(nmpc_->NU(), 0);
-  initial_sd_ = ConstantVector(nmpc_->NXD(), 0);
   final_sd_   = ConstantVector(nmpc_->NXD(), 0);
 
   grl_assert(nmpc_->NU() == action_max_.size());

@@ -4,16 +4,16 @@ import math
 from mpl_toolkits.mplot3d import axes3d
 from matplotlib import cm
 
-l = 500
+l = 1000
 y0 = 0
-discrete = 7
+discrete = 0
 
 def main():
   lim = np.array([-10.7, 10.7])
 
   if 1:
-    sigma = 2.0
-    theta = 0.1
+    sigma = 0.02
+    theta = 0.001
     plot_single(sigma, theta, lim)
   else:
     plot_grid(np.linspace(0, 3, 10), np.linspace(0, 1, 10), lim)
@@ -91,13 +91,13 @@ def get_ou_data(sigma, theta, lim):
     if (y[i] > lim[1]):
       y[i] = lim[1]
     
-    if discrete:
-      y[i] = np.trunc(y[i]/step + np.copysign(0.5,y[i])) * step
+    #if discrete:
+    #  y[i] = np.trunc(y[i]/step + np.copysign(0.5,y[i])) * step
 
   if discrete:
     a = np.trunc(y/step + np.copysign(0.5,y))
   else:
-    a = y
+    a = lim[1]*y
 
   Tm = []
   prev_prev = 0;

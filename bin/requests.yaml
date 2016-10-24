@@ -146,7 +146,7 @@ agent/master/sequential:
     type: exporter
     description: Optional exporter for transition log (supports time, state, observation, action, reward, terminal)
     mutability: configuration
-    default: 0x26340d0
+    default: 0x9861c0
     optional: 1
 agent/master/sequential/additive:
   description: Additive master agent that executes sub-agents sequentially and adds their outputs
@@ -452,7 +452,7 @@ environment/leo_squat:
     type: int.observation_dims
     description: Number of observation dimensions
     mutability: configuration
-    default: 40901216
+    default: 10828464
     optional: 1
     min: 0
     max: 2147483647
@@ -500,7 +500,7 @@ environment/leo_walk:
     type: int.observation_dims
     description: Number of observation dimensions
     mutability: configuration
-    default: 40901216
+    default: 10828464
     optional: 1
     min: 0
     max: 2147483647
@@ -1395,6 +1395,14 @@ policy/mhe_nmpc:
     optional: 1
     min: 0
     max: 1
+  initFeedback:
+    type: int
+    description: Initialize feedback
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
   action_min:
     type: vector.action_min
     description: Lower limit on actions
@@ -1421,18 +1429,33 @@ policy/mhe_nmpc:
     optional: 1
   nmpc_model_name:
     type: string
+    description: Name of MUSCOD NMPC model library
+    mutability: configuration
+    default: ""
+    optional: 1
+  mhe_model_name:
+    type: string
     description: Name of MUSCOD MHE model library
     mutability: configuration
     default: ""
     optional: 1
-  initFeedback:
+  feedback:
+    type: string
+    description: Choose between a non-treaded and a threaded feedback of NMPC
+    mutability: configuration
+    default: ""
+    optional: 1
+    options:
+      - non-threaded
+      - threaded
+  n_iter:
     type: int
-    description: Initialize feedback
+    description: Number of iteration
     mutability: system
-    default: 0
+    default: 1
     optional: 1
     min: 0
-    max: 1
+    max: 2147483647
 policy/nmpc:
   description: Nonlinear model predictive control policy using the MUSCOD library
   verbose:
@@ -1443,6 +1466,14 @@ policy/nmpc:
     optional: 1
     min: 0
     max: 1
+  initFeedback:
+    type: int
+    description: Initialize feedback
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
   action_min:
     type: vector.action_min
     description: Lower limit on actions
@@ -1469,18 +1500,10 @@ policy/nmpc:
     optional: 1
   nmpc_model_name:
     type: string
-    description: Name of MUSCOD MHE model library
+    description: Name of MUSCOD NMPC model library
     mutability: configuration
     default: ""
     optional: 1
-  initFeedback:
-    type: int
-    description: Initialize feedback
-    mutability: system
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
   feedback:
     type: string
     description: Choose between a non-treaded and a threaded feedback of NMPC
@@ -1508,6 +1531,14 @@ policy/nmpc_mlrti:
     optional: 1
     min: 0
     max: 1
+  initFeedback:
+    type: int
+    description: Initialize feedback
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
   action_min:
     type: vector.action_min
     description: Lower limit on actions
@@ -1534,18 +1565,10 @@ policy/nmpc_mlrti:
     optional: 1
   nmpc_model_name:
     type: string
-    description: Name of MUSCOD MHE model library
+    description: Name of MUSCOD NMPC model library
     mutability: configuration
     default: ""
     optional: 1
-  initFeedback:
-    type: int
-    description: Initialize feedback
-    mutability: system
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
 policy/nmpc_stages:
   description: Nonlinear model predictive control policy using the MUSCOD library
   verbose:
@@ -1556,6 +1579,14 @@ policy/nmpc_stages:
     optional: 1
     min: 0
     max: 1
+  initFeedback:
+    type: int
+    description: Initialize feedback
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
   action_min:
     type: vector.action_min
     description: Lower limit on actions
@@ -1582,18 +1613,10 @@ policy/nmpc_stages:
     optional: 1
   nmpc_model_name:
     type: string
-    description: Name of MUSCOD MHE model library
+    description: Name of MUSCOD NMPC model library
     mutability: configuration
     default: ""
     optional: 1
-  initFeedback:
-    type: int
-    description: Initialize feedback
-    mutability: system
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
   feedback:
     type: string
     description: Choose between a non-treaded and a threaded feedback of NMPC
@@ -2975,7 +2998,55 @@ sampler/ornstein_ohlenbeck:
     type: discretizer.action
     description: Action discretizer
     mutability: configuration
-    default: 0x2cbe800
+    default: 0
+    optional: 0
+  theta:
+    type: vector
+    description: Theta parameter of Ornstein-Uhlenbeck
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  sigma:
+    type: vector
+    description: Sigma parameter of Ornstein-Uhlenbeck
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  center:
+    type: vector
+    description: Centering parameter of Ornstein-Uhlenbeck
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  contact_signal:
+    type: signal
+    description: Signal
+    mutability: configuration
+    default: 0
+    optional: 1
+sampler/ornstein_ohlenbeck2:
+  description: Maximum search with an Ornstein-Uhlenbeck random chance of non-maximums
+  rand_max:
+    type: int
+    description: In case of multiple maximumum values select a random index among them
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
+  epsilon:
+    type: double
+    description: Exploration rate
+    mutability: online
+    default: 0.05
+    optional: 1
+    min: 0
+    max: 1
+  discretizer:
+    type: discretizer.action
+    description: Action discretizer
+    mutability: configuration
+    default: 0x6365626e656c686f
     optional: 0
   theta:
     type: vector
@@ -3023,7 +3094,7 @@ sampler/pada:
     type: discretizer.action
     description: Action discretizer
     mutability: configuration
-    default: 0x2cbe800
+    default: 0x6365626e656c686f
     optional: 0
   steps:
     type: vector
@@ -3051,7 +3122,7 @@ sampler/softmax:
     mutability: online
     default: 1
     optional: 1
-    min: 0.001
+    min: 1e-06
     max: 100
 sandbox_model/compass_walker:
   description: Simplest walker model from Garcia et al. with a sequential evaluation
