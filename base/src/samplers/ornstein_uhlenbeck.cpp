@@ -102,7 +102,7 @@ size_t OrnsteinUhlenbeckSampler::sample(const Vector &values, TransitionType &tt
       smp[kneeleft] = sig[1];
     }
     if (sig.size() && sig[5])
-      TRACE('Error: No OU at start');
+      TRACE("Error: No OU at start");
     TRACE(smp);
 
     // pertub action according to Ornstein-Uhlenbeck
