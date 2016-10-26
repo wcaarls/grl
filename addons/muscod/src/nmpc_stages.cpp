@@ -263,7 +263,7 @@ TransitionType NMPCStagesPolicy::act(double time, const Vector &in, Vector *out)
 
   // re-enable flag
   run_nmpc = true;
-  initial_qc_ << Vector::Zero (nmpc_->NU());
+  // initial_qc_ << Vector::Zero (nmpc_->NU());
 
   // Here we can return the feedback control
   // NOTE feedback control is cut of at action limits 'action_min/max'
