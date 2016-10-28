@@ -146,7 +146,7 @@ agent/master/sequential:
     type: exporter
     description: Optional exporter for transition log (supports time, state, observation, action, reward, terminal)
     mutability: configuration
-    default: 0x9861c0
+    default: 0x24f59d0
     optional: 1
 agent/master/sequential/additive:
   description: Additive master agent that executes sub-agents sequentially and adds their outputs
@@ -452,7 +452,7 @@ environment/leo_squat:
     type: int.observation_dims
     description: Number of observation dimensions
     mutability: configuration
-    default: 10828464
+    default: 39582960
     optional: 1
     min: 0
     max: 2147483647
@@ -500,7 +500,7 @@ environment/leo_walk:
     type: int.observation_dims
     description: Number of observation dimensions
     mutability: configuration
-    default: 10828464
+    default: 39582960
     optional: 1
     min: 0
     max: 2147483647
@@ -2966,6 +2966,96 @@ sampler/epsilon_greedy:
     optional: 1
     min: 0
     max: 1
+sampler/epsilon_ornstein_ohlenbeck:
+  description: Exploitations are done by greedy action selection without constraints, as in e-greedy. Explorations are done with time-correlated noise, as it is in ou.
+  rand_max:
+    type: int
+    description: In case of multiple maximumum values select a random index among them
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
+  epsilon:
+    type: double
+    description: Exploration rate
+    mutability: online
+    default: 0.05
+    optional: 1
+    min: 0
+    max: 1
+  discretizer:
+    type: discretizer.action
+    description: Action discretizer
+    mutability: configuration
+    default: 0x2b836d0
+    optional: 0
+  theta:
+    type: vector
+    description: Theta parameter of Ornstein-Uhlenbeck
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  sigma:
+    type: vector
+    description: Sigma parameter of Ornstein-Uhlenbeck
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  center:
+    type: vector
+    description: Centering parameter of Ornstein-Uhlenbeck
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  contact_signal:
+    type: signal
+    description: Signal
+    mutability: configuration
+    default: 0
+    optional: 1
+sampler/epsilon_pada:
+  description: exploitations are done by greedy action selection without constraints, as in e-greedy. Explorations are done with constrained set of actions, as it is in pada.
+  rand_max:
+    type: int
+    description: In case of multiple maximumum values select a random index among them
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
+  epsilon:
+    type: double
+    description: Exploration rate
+    mutability: online
+    default: 0.05
+    optional: 1
+    min: 0
+    max: 1
+  discretizer:
+    type: discretizer.action
+    description: Action discretizer
+    mutability: configuration
+    default: 0x2b836d0
+    optional: 0
+  steps:
+    type: vector
+    description: Discretization steps per dimension
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  delta:
+    type: vector
+    description: Delta of PADA
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  contact_signal:
+    type: signal
+    description: Signal
+    mutability: configuration
+    default: 0
+    optional: 1
 sampler/greedy:
   description: Maximum search
   rand_max:
@@ -3113,6 +3203,66 @@ sampler/pada:
     description: Signal
     mutability: configuration
     default: 0
+    optional: 1
+sampler/pada_ornstein_ohlenbeck:
+  description: "Exploitations and exploitations are same as ou, but action is selected from a constrained set, as in pada. "
+  rand_max:
+    type: int
+    description: In case of multiple maximumum values select a random index among them
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
+  epsilon:
+    type: double
+    description: Exploration rate
+    mutability: online
+    default: 0.05
+    optional: 1
+    min: 0
+    max: 1
+  discretizer:
+    type: discretizer.action
+    description: Action discretizer
+    mutability: configuration
+    default: 0
+    optional: 0
+  theta:
+    type: vector
+    description: Theta parameter of Ornstein-Uhlenbeck
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  sigma:
+    type: vector
+    description: Sigma parameter of Ornstein-Uhlenbeck
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  center:
+    type: vector
+    description: Centering parameter of Ornstein-Uhlenbeck
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  contact_signal:
+    type: signal
+    description: Signal
+    mutability: configuration
+    default: 0
+    optional: 1
+  steps:
+    type: vector
+    description: Discretization steps per dimension
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  delta:
+    type: vector
+    description: Delta of PADA
+    mutability: configuration
+    default: "[  ]"
     optional: 1
 sampler/softmax:
   description: Softmax (Gibbs/Boltzmann) sampler

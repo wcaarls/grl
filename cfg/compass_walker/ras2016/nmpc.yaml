@@ -3,7 +3,7 @@ experiment:
   runs: 1
   trials: 1
   steps: 0
-  rate: 1
+  rate: 5
   test_interval: 0
   output: simplest_walker_ras2016_nmpc_0004
   environment:

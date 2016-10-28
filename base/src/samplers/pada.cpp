@@ -30,15 +30,16 @@
 using namespace grl;
 
 REGISTER_CONFIGURABLE(PADASampler)
+REGISTER_CONFIGURABLE(EpsilonPADASampler)
 
 void PADASampler::request(ConfigurationRequest *config)
 {
   EpsilonGreedySampler::request(config);
 
   config->push_back(CRP("discretizer", "discretizer.action", "Action discretizer", discretizer_));
-  config->push_back(CRP("steps", "Discretization steps per dimension", steps_, CRP::Configuration));
+  //config->push_back(CRP("steps", "Discretization steps per dimension", steps_, CRP::Configuration));
   config->push_back(CRP("delta", "Delta of PADA", delta_, CRP::Configuration));
-  config->push_back(CRP("contact_signal", "signal", "Signal", mirror_sig_, true));
+  config->push_back(CRP("contact_signal", "signal", "Signal", env_event_, true));
 }
 
 void PADASampler::configure(Configuration &config)
@@ -46,20 +47,20 @@ void PADASampler::configure(Configuration &config)
   EpsilonGreedySampler::configure(config);
 
   discretizer_ = (Discretizer*)config["discretizer"].ptr();
-  steps_ = config["steps"].v();
   delta_ = config["delta"].v();
-
-  if (steps_.size() != delta_.size())
-    throw bad_param("sampler/pada:{steps, delta}");
 
   for (int i = 0; i < delta_.size(); i++)
     if (delta_[i] < 0)
       throw bad_param("sampler/pada:delta");
 
-  for (int i = 0; i < steps_.size(); i++)
-    sample_idx_.push_back((steps_[i]-1)/2); // initial action centered by default
+  state_idx_v_.resize(delta_.size());
+  Vector initial_state = ConstantVector(delta_.size(), 0.0); // default action = 0
+  discretizer_->discretize(initial_state, &state_idx_v_);
 
-  mirror_sig_ = (Signal*)config["contact_signal"].ptr();
+//  for (int i = 0; i < steps.size(); i++)
+//    current_idx_v_[i] = (steps[i]-1)/2; // initial action centered by default
+
+  env_event_ = (Signal*)config["contact_signal"].ptr();
 }
 
 void PADASampler::reconfigure(const Configuration &config)
@@ -74,136 +75,196 @@ PADASampler *PADASampler::clone()
   return egs;
 }
 
-void PADASampler::increment(std::vector<size_t> &idx, const std::vector<size_t> &lower_idx, const std::vector<size_t> &upper_idx) const
+void PADASampler::increment(IndexVector &idx_v, const IndexVector &lower_bound, const IndexVector &upper_bound) const
 {
-  for (int ii = 0; ii < lower_idx.size(); ii++)
+  for (int ii = 0; ii < lower_bound.size(); ii++)
   {
-    if (idx[ii] < upper_idx[ii])
+    if (idx_v[ii] < upper_bound[ii])
     {
-      idx[ii]++;
+      idx_v[ii]++;
       break;
     }
     else
-      idx[ii] = lower_idx[ii];
+      idx_v[ii] = lower_bound[ii];
   }
 }
 
-size_t PADASampler::sample(const Vector &values, TransitionType &tt) const
+Vector PADASampler::env_event_processor() const
 {
-  Vector sig;
-  mirror_sig_->get(&sig);
   Vector delta = delta_;
-  if (sig.size())
+  Vector data;
+  env_event_->get(&data);
+  if (data.size())
   {
-    if (sig[0])
+    if (data[0])
     {
       // contact happened
       int hipright, hipleft, kneeleft;
-      hipright = sig[2];
-      hipleft  = sig[3];
-      kneeleft = sig[4];
+      hipright = data[2];
+      hipleft  = data[3];
+      kneeleft = data[4];
 
-      TRACE(sample_idx_);
-      size_t tmp = sample_idx_[hipright];
-      sample_idx_[hipright] = sample_idx_[hipleft];
-      sample_idx_[hipleft] = tmp;
+      TRACE(state_idx_v_);
+      size_t tmp = state_idx_v_[hipright];
+      state_idx_v_[hipright] = state_idx_v_[hipleft];
+      state_idx_v_[hipleft] = tmp;
 
-      const double prev_knee_auto_actuated = sig[1];
+      const double prev_knee_auto_actuated = data[1];
       double nearest = DBL_MAX;
-      for (int i = 0; i < steps_[kneeleft]; i++)
+      for (int i = 0; i < discretizer_->steps()[kneeleft]; i++)
       {
         double v = (i-3)*(10.7/3);
         if (fabs(prev_knee_auto_actuated - nearest) > fabs(prev_knee_auto_actuated - v))
         {
           nearest = v;
-          sample_idx_[kneeleft] = i;
+          state_idx_v_[kneeleft] = i;
         }
       }
-      TRACE(sample_idx_);
+      TRACE(state_idx_v_);
     }
 
-    if (sig[5]) // start function => any action is possible
+    if (data[5]) // start function => any action is possible
     {
-      for (int ii = 0; ii < sample_idx_.size(); ii++)
+      for (int ii = 0; ii < state_idx_v_.size(); ii++)
         delta[ii] = INT_MAX;
     }
   }
 
   //--------------------------------------
   // Uncomment for any signal for the knee
-  delta[0] = delta[1] = delta[2] = INT_MAX;
+  // delta[0] = delta[1] = delta[2] = INT_MAX;
   //--------------------------------------
 
-  // select indexes of upper and lower bounds
-  std::vector<size_t> lower_idx, upper_idx, current_idx;
-  lower_idx.resize(sample_idx_.size());
-  upper_idx.resize(sample_idx_.size());
-  for (int ii = 0; ii < sample_idx_.size(); ii++)
-  {
-    lower_idx[ii] = fmax(sample_idx_[ii]-delta[ii], 0);
-    upper_idx[ii] = fmin(sample_idx_[ii]+delta[ii], steps_[ii]-1);
-  }
-  TRACE(lower_idx);
-  TRACE(upper_idx);
+  return delta;
+}
 
-  size_t mai;
-  if (rand_->get() < epsilon_) // skip to Greedy if action is not initialized yet
+void PADASampler::get_bounds(Vector &delta, IndexVector &lower_bound, IndexVector &upper_bound) const
+{
+  // select indexes of upper and lower bounds
+  lower_bound.resize(state_idx_v_.size());
+  upper_bound.resize(state_idx_v_.size());
+  for (int ii = 0; ii < state_idx_v_.size(); ii++)
+  {
+    lower_bound[ii] = fmax(state_idx_v_[ii]-delta[ii], 0);
+    upper_bound[ii] = fmin(state_idx_v_[ii]+delta[ii], discretizer_->steps()[ii]-1);
+  }
+  TRACE(lower_bound);
+  TRACE(upper_bound);
+}
+
+size_t PADASampler::exploration_step(IndexVector &lower_bound, IndexVector &upper_bound) const
+{
+  // collect all variants of discretized vectors within bounds
+  IndexVector idx_v = lower_bound;
+  std::vector<IndexVector> idx_collection;
+  while (!std::equal(idx_v.begin(), idx_v.end(), upper_bound.begin()))
+  {
+    idx_collection.push_back(idx_v);
+    TRACE(idx_v);
+    increment(idx_v, lower_bound, upper_bound);
+  }
+  idx_collection.push_back(idx_v);
+  TRACE(idx_v);
+
+  // select random sample
+  int r = rand_->getInteger(idx_collection.size());
+  state_idx_v_ = idx_collection[r];
+  TRACE(state_idx_v_);
+
+  // convert to an index
+  return discretizer_->convert(state_idx_v_);
+}
+
+size_t PADASampler::exploitation_step(const Vector &values, IndexVector &lower_bound, IndexVector &upper_bound) const
+{
+  IndexVector idx_v;
+  size_t max_idx, loop_idx;
+
+  // select the best value within bounds
+  state_idx_v_ = idx_v = lower_bound;
+  max_idx = discretizer_->convert(idx_v);
+  increment(idx_v, lower_bound, upper_bound);
+  TRACE(idx_v);
+  while (!std::equal(idx_v.begin(), idx_v.end(), upper_bound.begin()))
+  {
+    loop_idx = discretizer_->convert(idx_v);
+    if (values[loop_idx] > values[max_idx])
+    {
+      max_idx = loop_idx;
+      state_idx_v_ = idx_v;
+      TRACE(values[max_idx]);
+    }
+    increment(idx_v, lower_bound, upper_bound);
+    TRACE(idx_v);
+  }
+
+  // Verification test: best action with no bounds
+/*
+  size_t greedy_idx = GreedySampler::sample(values, tt);
+  if (greedy_idx != max_idx)
+    std::cout << "Not correct action" << std::endl;
+*/
+  return max_idx;
+}
+
+
+size_t PADASampler::sample(const Vector &values, TransitionType &tt) const
+{
+  IndexVector lower_bound, upper_bound;
+  Vector delta = env_event_processor();
+  get_bounds(delta, lower_bound, upper_bound);
+
+  if (rand_->get() < epsilon_)
   {
     tt = ttExploratory;
-
-    // collect all variants of discretized vectors within bounds
-    current_idx = lower_idx;
-    std::vector<std::vector<size_t>> v_current_idx;
-    while (!std::equal(current_idx.begin(), current_idx.end(), upper_idx.begin()))
-    {
-      v_current_idx.push_back(current_idx);
-      TRACE(current_idx);
-      increment(current_idx, lower_idx, upper_idx);
-    }
-    v_current_idx.push_back(current_idx);
-    TRACE(current_idx);
-
-    // select random sample
-    int r = rand_->getInteger(v_current_idx.size());
-    sample_idx_ = v_current_idx[r];
-    TRACE(sample_idx_);
-
-    // convert to an index
-    discretizer_->convert(sample_idx_, mai);
+    return exploration_step(lower_bound, upper_bound);
   }
   else
   {
     tt = ttGreedy;
-    size_t max_mai, loop_mai;
-
-    // select the best value within bounds
-    sample_idx_ = current_idx = lower_idx;
-    discretizer_->convert(current_idx, max_mai);
-    increment(current_idx, lower_idx, upper_idx);
-    TRACE(current_idx);
-    while (!std::equal(current_idx.begin(), current_idx.end(), upper_idx.begin()))
-    {
-      discretizer_->convert(current_idx, loop_mai);
-      if (values[loop_mai] > values[max_mai])
-      {
-        max_mai = loop_mai;
-        sample_idx_ = current_idx;
-        TRACE(values[max_mai]);
-      }
-      increment(current_idx, lower_idx, upper_idx);
-      TRACE(current_idx);
-    }
-    mai = max_mai;
-
-    // Verification test: best action with no bounds
-    if (tt == ttGreedy)
-    {
-      loop_mai = GreedySampler::sample(values, tt);
-      if (loop_mai != max_mai)
-        std::cout << "Not correct action" << std::endl;
-    }
-
+    return exploitation_step(values, lower_bound, upper_bound);
   }
-
-  return mai;
 }
+
+size_t PADASampler::sample(const Vector &values, const IndexVector &state, TransitionType &tt) const
+{
+  state_idx_v_ = state;
+  return sample(values, tt);
+}
+
+//////////////////////////////////////////////////////////
+
+EpsilonPADASampler *EpsilonPADASampler::clone()
+{
+  EpsilonPADASampler *egs = new EpsilonPADASampler(*this);
+  egs->rand_ = rand_->clone();
+  return egs;
+}
+
+size_t EpsilonPADASampler::sample(const Vector &values, TransitionType &tt) const
+{
+  size_t idx;
+
+  if (rand_->get() < epsilon_)
+  {
+    tt = ttExploratory;
+    std::vector<size_t> lower_bound, upper_bound;
+    Vector delta = env_event_processor();
+    get_bounds(delta, lower_bound, upper_bound);
+    idx = exploration_step(lower_bound, upper_bound);
+  }
+  else
+  {
+    tt = ttGreedy;
+    idx = GreedySampler::sample(values, tt);
+    state_idx_v_ = discretizer_->convert(idx);
+    TRACE(state_idx_v_);
+  }
+/*
+  size_t idx_test = discretizer_->convert(state_idx_v_);
+  if (idx_test != idx)
+    std::cout << "Not correct action" << std::endl;
+*/
+  return idx;
+}
+

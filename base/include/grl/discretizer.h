@@ -37,9 +37,6 @@ namespace grl
 class Discretizer : public Configurable
 {
   public:
-    typedef std::vector<size_t> IndexVector;
-
-  public:
     virtual ~Discretizer() { }
     virtual Discretizer* clone() = 0;
     
@@ -78,14 +75,16 @@ class Discretizer : public Configurable
     virtual void   inc(IndexVector *idx) const = 0;
     virtual Vector get(const IndexVector &idx) const = 0;
 
+    virtual Vector steps()  const = 0;
+
     /// Finds the most closest vector to 'vec' in L1 sense and satisfies discretization steps
-    virtual void discretize(Vector &vec) const = 0;
+    /// As an optiona parmater (2) returns index of the discretized vector
+    virtual void discretize(Vector &vec, IndexVector *idx_v = NULL) const = 0;
 
-    /// Converts vector to an linear offset of pointing to an indexed representation of the same input vector
-    virtual void convert(const Vector &vec, size_t &mai) const = 0;
+    /// Converts indexed vector to an linear offset of pointing to an indexed representation of the same input vector, and back
+    virtual size_t convert(const IndexVector &idx_v) const = 0;
+    virtual IndexVector convert(const size_t idx) const = 0;
 
-    /// Converts indexed vector to an linear offset of pointing to an indexed representation of the same input vector
-    virtual void convert(const std::vector<size_t> &vec_idx, size_t &mai) const = 0;
 };
 
 }

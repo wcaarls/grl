@@ -48,10 +48,9 @@ class PADASampler : public EpsilonGreedySampler
 
   protected:
     Discretizer *discretizer_;
-    mutable std::vector<size_t> sample_idx_;
-    Vector steps_;
+    mutable IndexVector state_idx_v_;
     Vector delta_;
-    Signal *mirror_sig_;
+    Signal *env_event_;
 
   public:
     PADASampler() { }
@@ -64,9 +63,28 @@ class PADASampler : public EpsilonGreedySampler
     // From Sampler
     virtual PADASampler *clone();
     virtual size_t sample(const Vector &values, TransitionType &tt) const;
+    virtual size_t sample(const Vector &values, const IndexVector &state, TransitionType &tt) const;
 
   protected:
-    void increment(std::vector<size_t> &idx, const std::vector<size_t> &lower_idx, const std::vector<size_t> &upper_idx) const;
+    virtual void increment(IndexVector &idx_v, const IndexVector &lower_bound, const IndexVector &upper_bound) const;
+    virtual Vector env_event_processor() const;
+    virtual void get_bounds(Vector &delta, IndexVector &lower_bound, IndexVector &upper_bound) const;
+    virtual size_t exploration_step(IndexVector &lower_bound, IndexVector &upper_bound) const;
+    virtual size_t exploitation_step(const Vector &values, IndexVector &lower_bound, IndexVector &upper_bound) const;
+};
+
+
+class EpsilonPADASampler : public PADASampler
+{
+  public:
+    TYPEINFO("sampler/epsilon_pada", "exploitations are done by greedy action selection without constraints, as in e-greedy. Explorations are done with constrained set of actions, as it is in pada.")
+
+  public:
+    EpsilonPADASampler() { }
+
+    // From Sampler
+    virtual EpsilonPADASampler *clone();
+    virtual size_t sample(const Vector &values, TransitionType &tt) const;
 };
 
 }

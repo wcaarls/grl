@@ -111,6 +111,8 @@ namespace grl {
 using ::operator >>;
 using ::operator <<;
 
+typedef std::vector<size_t> IndexVector;
+
 #ifdef GRL_EIGEN_VECTOR
 typedef Eigen::Array<double,1,Eigen::Dynamic> Vector;
 

@@ -86,6 +86,17 @@ void UniformDiscretizer::configure(Configuration &config)
     for (size_t vv=0; vv < steps_[dd]; ++vv)
       values_[dd][vv] = min_[dd] + delta_[dd] * vv;
   }
+
+  // discretizer multipliers
+  // creates a sequence of multiplier offsets: 1 steps_[0] steps_[0]*steps_[1] ...
+  mult_.resize(steps_.size());
+  mult_[0] = 1;
+  for (int dd = 1, steps = 1; dd < steps_.size(); ++dd)
+  {
+    steps *= steps_[dd-1];
+    mult_[dd] = steps;
+  }
+
 }
 
 void UniformDiscretizer::reconfigure(const Configuration &config)
@@ -135,18 +146,26 @@ Vector UniformDiscretizer::get(const IndexVector &idx) const
   return out;
 }
 
-void UniformDiscretizer::discretize(Vector &vec) const
+void UniformDiscretizer::discretize(Vector &vec, IndexVector *idx_v) const
 {
   for (int dd=0; dd < steps_.size(); ++dd)
   {
     double nearest = values_[dd][0];
+    size_t nearest_vv = 0;
     for (size_t vv=1; vv < steps_[dd]; ++vv)
+    {
       if (fabs(nearest-vec[dd]) > fabs(values_[dd][vv]-vec[dd]))
+      {
         nearest = values_[dd][vv];
+        nearest_vv = vv;
+      }
+    }
     vec[dd] = nearest;
+    if (idx_v)
+      (*idx_v)[dd] = nearest_vv;
   }
 }
-
+/*
 void UniformDiscretizer::convert(const Vector &vec, size_t &mai) const
 {
   double steps = 1;
@@ -162,8 +181,8 @@ void UniformDiscretizer::convert(const Vector &vec, size_t &mai) const
   //     mai = sample_[0] + sample_[1]*steps_[0] + sample_[2]*steps_[0]*steps_[1];
   mai = static_cast<size_t>(round(dmai));
 }
-
-void UniformDiscretizer::convert(const std::vector<size_t> &vec_idx, size_t &mai) const
+*/
+size_t UniformDiscretizer::convert(const IndexVector &vec_idx) const
 {
   double steps = 1;
   double dmai = vec_idx[0];
@@ -174,6 +193,19 @@ void UniformDiscretizer::convert(const std::vector<size_t> &vec_idx, size_t &mai
     dmai += vec_idx[dd]*steps;
   }
   //     mai = sample_[0] + sample_[1]*steps_[0] + sample_[2]*steps_[0]*steps_[1];
-  mai = static_cast<size_t>(round(dmai));
+  return static_cast<size_t>(round(dmai));
+}
+
+IndexVector UniformDiscretizer::convert(const size_t idx) const
+{
+  size_t ii = idx;
+  IndexVector vec_idx;
+  vec_idx.resize(steps_.size());
+  for (int dd = steps_.size()-1; dd >= 0; --dd)
+  {
+    vec_idx[dd] = static_cast<int>(ii) / static_cast<int>(mult_[dd]);
+    ii = static_cast<int>(ii) % static_cast<int>(mult_[dd]);
+  }
+  return vec_idx;
 }
 
