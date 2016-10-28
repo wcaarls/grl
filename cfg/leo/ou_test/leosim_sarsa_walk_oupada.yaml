@@ -52,13 +52,12 @@ experiment:
       sampler: 
         type: sampler/pada_ornstein_ohlenbeck
         rand_max: 0
-        epsilon: 0.00
+        epsilon: 0.0
         discretizer: experiment/agent/policy/discretizer
         theta: [0.001, 0.001, 0.001]
         sigma: [0.02, 0.02, 0.02]
         center: [0.0, 0.0, 0.0]
         contact_signal: experiment/environment/contact_signal
-        steps: experiment/agent/policy/discretizer/steps
         delta: [1, 1, 1]
     predictor: 
       type: predictor/sarsa
@@ -77,6 +76,10 @@ experiment:
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
       sampler: 
-        type: sampler/greedy
+        type: sampler/pada
         rand_max: 0
+        epsilon: 0.0
+        discretizer: experiment/agent/policy/discretizer
+        delta: experiment/agent/policy/sampler/delta
+        contact_signal: experiment/environment/contact_signal
   save_every: run

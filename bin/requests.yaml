@@ -146,7 +146,7 @@ agent/master/sequential:
     type: exporter
     description: Optional exporter for transition log (supports time, state, observation, action, reward, terminal)
     mutability: configuration
-    default: 0x24f59d0
+    default: 0x11d29d0
     optional: 1
 agent/master/sequential/additive:
   description: Additive master agent that executes sub-agents sequentially and adds their outputs
@@ -452,7 +452,7 @@ environment/leo_squat:
     type: int.observation_dims
     description: Number of observation dimensions
     mutability: configuration
-    default: 39582960
+    default: 19516656
     optional: 1
     min: 0
     max: 2147483647
@@ -500,7 +500,7 @@ environment/leo_walk:
     type: int.observation_dims
     description: Number of observation dimensions
     mutability: configuration
-    default: 39582960
+    default: 19516656
     optional: 1
     min: 0
     max: 2147483647
@@ -2988,7 +2988,7 @@ sampler/epsilon_ornstein_ohlenbeck:
     type: discretizer.action
     description: Action discretizer
     mutability: configuration
-    default: 0x2b836d0
+    default: 0
     optional: 0
   theta:
     type: vector
@@ -3036,14 +3036,8 @@ sampler/epsilon_pada:
     type: discretizer.action
     description: Action discretizer
     mutability: configuration
-    default: 0x2b836d0
+    default: 0
     optional: 0
-  steps:
-    type: vector
-    description: Discretization steps per dimension
-    mutability: configuration
-    default: "[  ]"
-    optional: 1
   delta:
     type: vector
     description: Delta of PADA
@@ -3136,7 +3130,7 @@ sampler/ornstein_ohlenbeck2:
     type: discretizer.action
     description: Action discretizer
     mutability: configuration
-    default: 0x6365626e656c686f
+    default: 0
     optional: 0
   theta:
     type: vector
@@ -3184,14 +3178,8 @@ sampler/pada:
     type: discretizer.action
     description: Action discretizer
     mutability: configuration
-    default: 0x6365626e656c686f
+    default: 0
     optional: 0
-  steps:
-    type: vector
-    description: Discretization steps per dimension
-    mutability: configuration
-    default: "[  ]"
-    optional: 1
   delta:
     type: vector
     description: Delta of PADA
@@ -3250,13 +3238,7 @@ sampler/pada_ornstein_ohlenbeck:
     type: signal
     description: Signal
     mutability: configuration
-    default: 0
-    optional: 1
-  steps:
-    type: vector
-    description: Discretization steps per dimension
-    mutability: configuration
-    default: "[  ]"
+    default: 0x18b9d18
     optional: 1
   delta:
     type: vector

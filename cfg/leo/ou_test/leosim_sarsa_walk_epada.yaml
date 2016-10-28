@@ -54,7 +54,6 @@ experiment:
         rand_max: 0
         epsilon: 0.05
         discretizer: experiment/agent/policy/discretizer
-        steps: experiment/agent/policy/discretizer/steps
         delta: [1, 1, 1]
         contact_signal: experiment/environment/contact_signal
     predictor: 
@@ -74,11 +73,6 @@ experiment:
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
       sampler: 
-        type: sampler/epsilon_pada
+        type: sampler/greedy
         rand_max: 0
-        epsilon: 0.0
-        discretizer: experiment/agent/policy/discretizer
-        steps: experiment/agent/policy/discretizer/steps
-        delta: experiment/agent/policy/sampler/delta
-        contact_signal: experiment/environment/contact_signal
   save_every: never
