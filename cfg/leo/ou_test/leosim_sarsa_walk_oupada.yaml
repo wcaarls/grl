@@ -82,4 +82,4 @@ experiment:
         discretizer: experiment/agent/policy/discretizer
         delta: experiment/agent/policy/sampler/delta
         contact_signal: experiment/environment/contact_signal
-  save_every: run
+  save_every: never

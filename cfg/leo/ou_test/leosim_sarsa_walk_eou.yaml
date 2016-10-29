@@ -77,4 +77,4 @@ experiment:
       sampler: 
         type: sampler/greedy
         rand_max: 0
-  save_every: run
+  save_every: never
