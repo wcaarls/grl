@@ -37,7 +37,6 @@ void PADASampler::request(ConfigurationRequest *config)
   EpsilonGreedySampler::request(config);
 
   config->push_back(CRP("discretizer", "discretizer.action", "Action discretizer", discretizer_));
-  //config->push_back(CRP("steps", "Discretization steps per dimension", steps_, CRP::Configuration));
   config->push_back(CRP("delta", "Delta of PADA", delta_, CRP::Configuration));
   config->push_back(CRP("contact_signal", "signal", "Signal", env_event_, true));
 }
@@ -56,9 +55,6 @@ void PADASampler::configure(Configuration &config)
   state_idx_v_.resize(delta_.size());
   Vector initial_state = ConstantVector(delta_.size(), 0.0); // default action = 0
   discretizer_->discretize(initial_state, &state_idx_v_);
-
-//  for (int i = 0; i < steps.size(); i++)
-//    current_idx_v_[i] = (steps[i]-1)/2; // initial action centered by default
 
   env_event_ = (Signal*)config["contact_signal"].ptr();
 }

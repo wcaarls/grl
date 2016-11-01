@@ -36,7 +36,7 @@ experiment:
       initFeedback: 0
       verbose: 0
       feedback: non-threaded
-      n_iter: 10
+      n_iter: 5
   test_agent: experiment/agent
   save_every: never
 visualizer: 
