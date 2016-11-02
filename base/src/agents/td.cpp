@@ -35,12 +35,16 @@ void TDAgent::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("policy", "policy", "Control policy", policy_));
   config->push_back(CRP("predictor", "predictor", "Value function predictor", predictor_));
+
+  config->push_back(CRP("transition_type", "signal", "Transition type", transition_type_, true));
 }
 
 void TDAgent::configure(Configuration &config)
 {
   policy_ = (Policy*)config["policy"].ptr();
   predictor_ = (Predictor*)config["predictor"].ptr();
+
+  transition_type_ = (Signal*)config["transition_type"].ptr();
 }
 
 void TDAgent::reconfigure(const Configuration &config)
@@ -63,10 +67,11 @@ void TDAgent::start(const Vector &obs, Vector *action)
   predictor_->finalize();
   
   state->time = 0;
-  policy_->act(state->time, obs, action);
+  TransitionType tt = policy_->act(state->time, obs, action);
   
   state->prev_obs = obs;
   state->prev_action = *action;
+  transition_type_->set(VectorConstructor((double)tt));
 }
 
 void TDAgent::step(double tau, const Vector &obs, double reward, Vector *action)
@@ -80,6 +85,7 @@ void TDAgent::step(double tau, const Vector &obs, double reward, Vector *action)
 
   state->prev_obs = obs;
   state->prev_action = *action;
+  transition_type_->set(VectorConstructor((double)tt));
 }
 
 void TDAgent::end(double tau, const Vector &obs, double reward)

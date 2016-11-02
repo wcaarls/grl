@@ -162,10 +162,14 @@ void LeoBaseEnvironment::request(ConfigurationRequest *config)
 
   config->push_back(CRP("observation_dims", "int.observation_dims", "Number of observation dimensions", target_observation_dims_));
   config->push_back(CRP("action_dims", "int.action_dims", "Number of action dimensions", target_action_dims_));
+
+  config->push_back(CRP("transition_type", "signal", "Transition type", transition_type_, true));
 }
 
 void LeoBaseEnvironment::configure(Configuration &config)
 {
+  transition_type_ = (Signal*)config["transition_type"].ptr();
+
   // Setup path to a configuration file
   xml_ = config["xml"].str();
   struct stat buffer;
@@ -180,7 +184,7 @@ void LeoBaseEnvironment::configure(Configuration &config)
 
   exporter_ = (Exporter*) config["exporter"].ptr();
   if (exporter_)
-    exporter_->init({"time", "state0", "state1", "action", "reward", "terminal"});
+    exporter_->init({"time", "state0", "state1", "action", "reward", "terminal", "transition_type"});
 
   // Process configuration of Leo
   CXMLConfiguration xmlConfig;
@@ -246,6 +250,10 @@ void LeoBaseEnvironment::step(double tau, double reward, int terminal)
 
   if (exporter_)
   {
+    // transition type
+    Vector tt;
+    transition_type_->get(&tt);
+
     std::vector<double> s0(bh_->getPreviousSTGState()->mJointAngles, bh_->getPreviousSTGState()->mJointAngles + ljNumJoints);
     std::vector<double> v0(bh_->getPreviousSTGState()->mJointSpeeds, bh_->getPreviousSTGState()->mJointSpeeds + ljNumJoints);
     s0.insert(s0.end(), v0.begin(), v0.end());
@@ -257,7 +265,7 @@ void LeoBaseEnvironment::step(double tau, double reward, int terminal)
     toVector(a, av);
 
     exporter_->write({grl::VectorConstructor(time), s0v,  s1v,
-                      av, grl::VectorConstructor(reward), grl::VectorConstructor(terminal)
+                      av, grl::VectorConstructor(reward), grl::VectorConstructor(terminal), tt
                      });
   }
 

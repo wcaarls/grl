@@ -45,7 +45,6 @@ class SignalV : public Signal//<Vector>
     virtual SignalV *clone() const
     {
       return new SignalV(*this);
-      //return NULL;
     }
 
     virtual void set(const Vector &in)
