@@ -20,7 +20,7 @@ REGISTER_CONFIGURABLE(NMPCStagesPolicy);
 TransitionType NMPCStagesPolicy::act(double time, const Vector &in, Vector *out)
 {
   // NOTE this time it's different NXD is larger than the values in 'in'
-  grl_assert((in.size() == nmpc_->NXD()));
+  grl_assert((in.size() == nmpc_->NXD()+1));
 
   // subdivide 'in' into state and set-point
   // TODO subdivide into actual states and switch statement

@@ -147,6 +147,10 @@ inline Vector VectorConstructor(double a, double b, double c, double d, double e
 {
   Vector v(6); v << a, b, c, d ,e, f; return v;
 }
+inline Vector VectorConstructor(double a, double b, double c, double d, double e, double f, double g)
+{
+  Vector v(7); v << a, b, c, d ,e, f, g; return v;
+}
 
 using ::pow;
 using ::log;

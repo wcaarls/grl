@@ -154,7 +154,7 @@ double CompassWalkerSandbox::step(const Vector &action, Vector *next)
                state_[CompassWalker::siHipAngle],
                state_[CompassWalker::siHipAngleRate]);
 
-  model_.singleStep(swstate, action[0], test_?exporter_:NULL, time_);
+  model_.singleStep(swstate, action[0], test_?exporter_:NULL, time_, &step_distance_);
   if (test_)
     time_ += tau_;
 
@@ -187,6 +187,7 @@ double CompassWalkerSandbox::step(const Vector &action, Vector *next)
   else
     (*next)[CompassWalker::siLastHipX] = state_[CompassWalker::siLastHipX];
   (*next)[CompassWalker::siHipVelocity] = hip_velocity;
+  (*next)[CompassWalker::siStepDistance] = step_distance_;
   (*next)[CompassWalker::siTime] = state_[CompassWalker::siTime] + tau_;
   (*next)[CompassWalker::siTimeout] = state_[CompassWalker::siTimeout];
 
@@ -222,8 +223,8 @@ void CompassWalkerWalkTask::configure(Configuration &config)
   observation_dims_ = (observe_.array() != 0).count();
 
   // mask observation min/max vectors
-  Vector full_observation_min = VectorConstructor(-M_PI/8, -M_PI/4, -M_PI, -M_PI, 0, 0), observation_min;
-  Vector full_observation_max = VectorConstructor( M_PI/8,  M_PI/4,  M_PI,  M_PI, 0.5, 5.0), observation_max;
+  Vector full_observation_min = VectorConstructor(-M_PI/8, -M_PI/4, -M_PI, -M_PI, 0, 0, 0), observation_min;
+  Vector full_observation_max = VectorConstructor( M_PI/8,  M_PI/4,  M_PI,  M_PI, 0.5, 5.0, DBL_MAX), observation_max;
   observation_min.resize(observation_dims_);
   observation_max.resize(observation_dims_);
   for (int i = 0, j = 0; i < observe_.size(); i++)
@@ -282,6 +283,7 @@ void CompassWalkerWalkTask::start(int test, Vector *state) const
   (*state)[CompassWalker::siStanceLegChanged] = false;
   (*state)[CompassWalker::siLastHipX] = swstate.getHipX();
   (*state)[CompassWalker::siHipVelocity] = -swstate.mStanceLegAngleRate * cos(swstate.mStanceLegAngle);
+  (*state)[CompassWalker::siStepDistance] = 0;
   (*state)[CompassWalker::siTime] = 0;
 
   if (test)
@@ -304,6 +306,7 @@ void CompassWalkerWalkTask::observe(const Vector &state, Vector *obs, int *termi
   obs_[CompassWalker::oiHipAngleRate] = state[CompassWalker::siHipAngleRate] - 2 * state[CompassWalker::siStanceLegAngleRate];
   obs_[CompassWalker::oiStanceLegChanged] = state[CompassWalker::siStanceLegChanged] > 0.5;
   obs_[CompassWalker::oiHipVelocity] = state[CompassWalker::siHipVelocity];
+  obs_[CompassWalker::oiStepDistance] = state[CompassWalker::siStepDistance];
 
   // Mask unwanted observations
   obs->resize(observation_dims_);

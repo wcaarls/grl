@@ -38,11 +38,11 @@ class CompassWalker
 {
   public:
     enum stateIndex       { siStanceLegAngle, siHipAngle, siStanceLegAngleRate, siHipAngleRate,
-                            siStanceLegChanged, siStanceFootX, siLastHipX, siHipVelocity, siTime,
+                            siStanceLegChanged, siStanceFootX, siLastHipX, siHipVelocity, siStepDistance, siTime,
                             siTimeout, ssStateSize};
 
     enum observationIndex { oiStanceLegAngle, oiHipAngle, oiStanceLegAngleRate, oiHipAngleRate,
-                            oiStanceLegChanged, oiHipVelocity, osMaxObservationSize};
+                            oiStanceLegChanged, oiHipVelocity, oiStepDistance, osMaxObservationSize};
 };
 
 // Compass (simplest) walker model.
@@ -87,10 +87,11 @@ class CompassWalkerSandbox : public Sandbox
     std::deque<double> hip_instant_velocity_;
     Exporter *exporter_;
     int use_avg_velocity_;
+    double step_distance_;
 
   public:
     CompassWalkerSandbox() : tau_(0.2), steps_(20), slope_angle_(0.004),
-      test_(0), time_(0.0), exporter_(NULL), use_avg_velocity_(1) { }
+      test_(0), time_(0.0), exporter_(NULL), use_avg_velocity_(1), step_distance_(0) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
