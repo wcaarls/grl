@@ -20,7 +20,9 @@ REGISTER_CONFIGURABLE(NMPCStagesPolicy);
 TransitionType NMPCStagesPolicy::act(double time, const Vector &in, Vector *out)
 {
   // NOTE this time it's different NXD is larger than the values in 'in'
-  grl_assert((in.size() == nmpc_->NXD()+1));
+  std::cout << "in.size() = "    << in.size() << std::endl;
+  std::cout << "nmpc_->NXD() = " << nmpc_->NXD() << std::endl;
+  grl_assert((in.size() == nmpc_->NXD()+1) || (in.size() == nmpc_->NXD()));
 
   // subdivide 'in' into state and set-point
   // TODO subdivide into actual states and switch statement
@@ -34,6 +36,13 @@ TransitionType NMPCStagesPolicy::act(double time, const Vector &in, Vector *out)
     initial_sd_[2] = in[2];
     initial_sd_[3] = in[3] + 2* in[2];
 
+    if (in.size() == nmpc_->NXD())
+    {
+      std::cout << "AVG VELOCITY?" << std::endl;
+      initial_sd_[4] = in[5]; // v_h
+    }
+
+    // last entry is always time
     initial_sd_[nmpc_->NXD()-1] = 0.0; // time is always zero for NMPC!
 
     // FIXME
@@ -74,7 +83,7 @@ TransitionType NMPCStagesPolicy::act(double time, const Vector &in, Vector *out)
     } else {
       std::cout << "*NO* SWITCH DETECTED!" << std::endl;
       roll_out = false;
-      run_nmpc = false;
+      run_nmpc = true;
     }
   }
 
@@ -195,70 +204,69 @@ TransitionType NMPCStagesPolicy::act(double time, const Vector &in, Vector *out)
 
   if (run_nmpc)
   {
-  if (feedback_ == "non-threaded")
-  {
-    for (int inmpc = 0; inmpc < n_iter_; ++inmpc) {
-      //std::cout << "NON-THREADED VERSION!" << std::endl;
-      // 1) Feedback: Embed parameters and initial value from MHE
-      // NOTE the same initial values (sd, pf) are embedded several time,
-      //      but this will result in the same solution as running a MUSCOD
-      //      instance for several iterations
-      nmpc_->feedback(initial_sd_, &initial_qc_);
-      // 2) Shifting
-      // NOTE do that only once at last iteration
-      // NOTE this has to be done before the transition phase
-      // if (n_iter_ > 0 && inmpc == n_iter_-1) {
-      //   nmpc_->shifting(-1);
-      // }
-      // 3) Transition
-      nmpc_->transition();
-      // 4) Preparation
-      nmpc_->preparation();
-    }
-    // } // END FOR NMPC ITERATIONS
-  }
-
-  if (feedback_ == "threaded")
-  {
-  /*
-    // TODO NOT TESTED YET
-    abort();
-    for (int inmpc = 0; inmpc < n_iter_; ++inmpc) {
-        // std::cout << "THREADED VERSION!" << std::endl;
-        // 1) Feedback: Embed parameters and initial value from SIMULATION
-        // establish IPC communication to NMPC thread
-
-
+    if (feedback_ == "non-threaded")
+    {
+      for (int inmpc = 0; inmpc < n_iter_; ++inmpc) {
+        //std::cout << "NON-THREADED VERSION!" << std::endl;
+        // 1) Feedback: Embed parameters and initial value from MHE
+        // NOTE the same initial values (sd, pf) are embedded several time,
+        //      but this will result in the same solution as running a MUSCOD
+        //      instance for several iterations
+        nmpc_->feedback(initial_sd_, &initial_qc_);
+        // 2) Shifting
         // NOTE do that only once at last iteration
         // NOTE this has to be done before the transition phase
-        if (n_iter_ > 0 && inmpc == n_iter_ - 1) {
-          nmpc_->set_shift_mode (1);
-        } else {
-          nmpc_->set_shift_mode (-1);
-        }
+        // if (n_iter_ > 0 && inmpc == n_iter_-1) {
+        //   nmpc_->shifting(-1);
+        // }
+        // 3) Transition
+        nmpc_->transition();
+        // 4) Preparation
+        nmpc_->preparation();
+      }
+      // } // END FOR NMPC ITERATIONS
+    }
 
-        // provide iv to thread, get time until thread was ready
-        iv_provided_ = true;
-        provide_iv (nmpc_, initial_sd_, initial_pf_, &iv_provided_, false, verbose_);
+    if (feedback_ == "threaded")
+    {
+    /*
+      // TODO NOT TESTED YET
+      abort();
+      for (int inmpc = 0; inmpc < n_iter_; ++inmpc) {
+          // std::cout << "THREADED VERSION!" << std::endl;
+          // 1) Feedback: Embed parameters and initial value from SIMULATION
+          // establish IPC communication to NMPC thread
 
-        // provide iv to thread, get time until thread was ready
-        if (iv_provided_)
-          retrieve_qc (nmpc_, &initial_qc_, &qc_retrieved_, true, verbose_);
 
-        // wait for preparation phase
-        if (false) { // TODO Add wait flag
-          wait_for_iv_ready(nmpc_, verbose_);
-          if (nmpc_->get_iv_ready() == true) {
+          // NOTE do that only once at last iteration
+          // NOTE this has to be done before the transition phase
+          if (n_iter_ > 0 && inmpc == n_iter_ - 1) {
+            nmpc_->set_shift_mode (1);
           } else {
-              std::cerr << "MAIN: bailing out ..." << std::endl;
-              abort();
+            nmpc_->set_shift_mode (-1);
           }
-        }
-    } // END FOR NMPC ITERATIONS
-  */
-  }
-  } else {
 
+          // provide iv to thread, get time until thread was ready
+          iv_provided_ = true;
+          provide_iv (nmpc_, initial_sd_, initial_pf_, &iv_provided_, false, verbose_);
+
+          // provide iv to thread, get time until thread was ready
+          if (iv_provided_)
+            retrieve_qc (nmpc_, &initial_qc_, &qc_retrieved_, true, verbose_);
+
+          // wait for preparation phase
+          if (false) { // TODO Add wait flag
+            wait_for_iv_ready(nmpc_, verbose_);
+            if (nmpc_->get_iv_ready() == true) {
+            } else {
+                std::cerr << "MAIN: bailing out ..." << std::endl;
+                abort();
+            }
+          }
+      } // END FOR NMPC ITERATIONS
+    */
+    }
+  } else {
   }
 
   // re-enable flag

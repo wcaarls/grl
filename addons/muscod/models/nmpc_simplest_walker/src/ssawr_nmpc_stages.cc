@@ -22,11 +22,11 @@
 // *****************************************************************************
 
 // define problem name
-static const std::string PROBLEM_NAME = "Passive NMPC Stages";
+static const std::string PROBLEM_NAME = "SSAWR NMPC Stages";
 
 // define MUSCOD-II Dimensions
 static const unsigned int NMOS = 6;  // Number of phases (MOdel Stages)
-static const unsigned int NXD  = 5;  // Number of differential states
+static const unsigned int NXD  = 6;  // Number of differential states
 static const unsigned int NXA  = 0;  // Number of algebraic states
 static const unsigned int NU   = 1;  // Number of controls
 static const unsigned int NP   = 6;  // Number of parameters
@@ -46,10 +46,10 @@ static const double sK = sqrt(K);
 
 // weights
 static const double w_vref = 10.00;
-static const double w_tau =  00.10;
+static const double w_tau =  00.01;
 static const double w_time = 01.00;
 static const double w_periodicity = 00.01;
-static const double w_slacks = 1.00;
+static const double w_slacks = 500.00;
 static const double w_slackf = 10.00;
 
 // define square roots of weights for LSQ objective
@@ -110,7 +110,7 @@ void def_model(void) {
 		// jacmlo, jacmup, astruc,
 		0, 0, 0,
 		// MatPtr afcn, RHSPtr ffcn, RHSPtr gfcn,
-		NULL, ffcn, NULL,
+		NULL, ffcn_avg, NULL,
 		// rwh,  iwh
 		NULL, NULL
 	);
@@ -146,13 +146,13 @@ void def_model(void) {
 		// jacmlo, jacmup, astruc,
 		0, 0, 0,
 		// MatPtr afcn, RHSPtr ffcn, RHSPtr gfcn,
-		NULL, ffcn, NULL,
+		NULL, ffcn_avg, NULL,
 		// rwh,  iwh
 		NULL, NULL
 	);
 
 	// define LSQ objective
-	def_lsq(imos, "s", NPR, LSQFCN_MIN_TAU_AND_MAX_TIME, lsqfcn_min_tau_and_max_time);
+	def_lsq(imos, "s", NPR, LSQFCN_AVG_MIN_TAU_AND_MAX_TIME, lsqfcn_avg_min_tau_and_max_time);
 	def_lsq(imos, "i", NPR, LSQFCN_MIN_TAU, lsqfcn_min_tau);
 
 	// define constraints
@@ -187,7 +187,7 @@ void def_model(void) {
 		// jacmlo, jacmup, astruc,
 		0, 0, 0,
 		// MatPtr afcn, RHSPtr ffcn, RHSPtr gfcn,
-		NULL, ffcn_trans, NULL,
+		NULL, ffcn_trans_avg, NULL,
 		// rwh,  iwh
 		NULL, NULL
 	);
@@ -229,7 +229,7 @@ void def_model(void) {
 		// jacmlo, jacmup, astruc,
 		0, 0, 0,
 		// MatPtr afcn, RHSPtr ffcn, RHSPtr gfcn,
-		NULL, ffcn, NULL,
+		NULL, ffcn_avg, NULL,
 		// rwh,  iwh
 		NULL, NULL
 	);
@@ -272,7 +272,7 @@ void def_model(void) {
 		// jacmlo, jacmup, astruc,
 		0, 0, 0,
 		// MatPtr afcn, RHSPtr ffcn, RHSPtr gfcn,
-		NULL, ffcn, NULL,
+		NULL, ffcn_avg, NULL,
 		// rwh,  iwh
 		NULL, NULL
 	);
@@ -281,6 +281,7 @@ void def_model(void) {
 	def_lsq(imos, "*", NPR, LSQFCN_MIN_TAU, lsqfcn_min_tau);
 
 	// define constraints
+	// NOTE: enforce periodicity on motion
 	def_mpc(
 		imos, "s", NPR,
 		0, 0, NULL,
@@ -313,14 +314,17 @@ void def_model(void) {
 		// jacmlo, jacmup, astruc,
 		0, 0, 0,
 		// MatPtr afcn, RHSPtr ffcn, RHSPtr gfcn,
-		NULL, ffcn_trans, NULL,
+		NULL, ffcn_trans_avg, NULL,
 		// rwh,  iwh
 		NULL, NULL
 	);
 
 	// define LSQ objective
 	// NOTE: define min tau to regularize controls
-	def_lsq(imos, "s", NPR, LSQFCN_MIN_TAU, lsqfcn_min_tau);
+	def_lsq(imos, "s", NPR,
+		MSQFCN_TRACK_AVG_WREG_AND_PERIODICTY_NE,
+		msqfcn_track_avg_wreg
+	);
 	def_lsq(imos, "i", NPR, LSQFCN_MIN_TAU, lsqfcn_min_tau);
 	def_lsq(imos, "e", NPR, LSQFCN_MIN_SLACKS, lsqfcn_min_slacks);
 
@@ -359,6 +363,6 @@ void def_model(void) {
 	// NOTE: data_in is used to calculate current NMOS and NMS
 	//       or instantiate different RBLD models for parallel evaluation of
 	//       shooting nodes.
-	def_mio (data_in, NULL, NULL);
-	// def_mio (data_in , meshup_out, data_out);
+	// def_mio (data_in, NULL, NULL);
+	def_mio (data_in , meshup_out, data_out);
 }

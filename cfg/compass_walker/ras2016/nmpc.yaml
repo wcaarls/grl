@@ -8,17 +8,17 @@ experiment:
   output: simplest_walker_ras2016_nmpc_0004
   environment:
     type: environment/sandbox
-    model: 
+    model:
       type: sandbox_model/compass_walker
       control_step: 0.2
       integration_steps: 20
       slope_angle: 0.004
-      exporter: 
+      exporter:
         type: exporter/csv
         file: simplest_walker_ras2016_nmpc_0004-integrator
         style: meshup
       use_avg_velocity: 1
-    task: 
+    task:
       type: task/compass_walker/vrefu
       timeout: 100
       initial_state_variation: 0.0
@@ -42,10 +42,10 @@ experiment:
       action_max: experiment/environment/task/action_max
       lua_model: ../../rbdl/cfg/simplest_walker.lua
       model_name: nmpc_simplest_walker
-      nmpc_model_name: passive_nmpc_stages
+      nmpc_model_name: ssiwr_nmpc_stages
       initFeedback: 0
       feedback: non-threaded
-      n_iter: 3
+      n_iter: 10
   test_agent: experiment/agent
   save_every: never
 visualizer:
