@@ -6,6 +6,7 @@
 #include <STGLeo.h>
 #include <STGLeoSim.h>
 #include <ThirdOrderButterworth.h>
+#include <grl/signals/signal_v.h>
 
 namespace grl
 {
@@ -193,7 +194,7 @@ class LeoBaseEnvironment: public Environment
 
   private:
     CLeoBhBase *bh_; // makes it invisible in derived classes
-    //ODESTGEnvironment *ode_;
+    Signal *transition_type_;
 };
 
 }

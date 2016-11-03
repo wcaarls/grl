@@ -146,7 +146,7 @@ agent/master/sequential:
     type: exporter
     description: Optional exporter for transition log (supports time, state, observation, action, reward, terminal)
     mutability: configuration
-    default: 0x11d29d0
+    default: 0x24e69d0
     optional: 1
 agent/master/sequential/additive:
   description: Additive master agent that executes sub-agents sequentially and adds their outputs
@@ -258,6 +258,12 @@ agent/td:
     mutability: configuration
     default: 0
     optional: 0
+  transition_type:
+    type: signal
+    description: Transition type
+    mutability: configuration
+    default: 0
+    optional: 1
 communicator/zeromq:
   description: A zeromq class capable to establish a link by events and send messages asynchronously (publisher/subscriber)
   pub:
@@ -452,7 +458,7 @@ environment/leo_squat:
     type: int.observation_dims
     description: Number of observation dimensions
     mutability: configuration
-    default: 19516656
+    default: 0
     optional: 1
     min: 0
     max: 2147483647
@@ -464,6 +470,12 @@ environment/leo_squat:
     optional: 1
     min: 0
     max: 2147483647
+  transition_type:
+    type: signal
+    description: Transition type
+    mutability: configuration
+    default: 0
+    optional: 1
 environment/leo_walk:
   description: Leo walking environment
   xml:
@@ -500,7 +512,7 @@ environment/leo_walk:
     type: int.observation_dims
     description: Number of observation dimensions
     mutability: configuration
-    default: 19516656
+    default: 0
     optional: 1
     min: 0
     max: 2147483647
@@ -512,6 +524,12 @@ environment/leo_walk:
     optional: 1
     min: 0
     max: 2147483647
+  transition_type:
+    type: signal
+    description: Transition type
+    mutability: configuration
+    default: 0
+    optional: 1
   contact_signal:
     type: signal
     description: Contact signal
@@ -3082,7 +3100,7 @@ sampler/ornstein_ohlenbeck:
     type: discretizer.action
     description: Action discretizer
     mutability: configuration
-    default: 0
+    default: 0x2b841c0
     optional: 0
   theta:
     type: vector
@@ -3106,7 +3124,7 @@ sampler/ornstein_ohlenbeck:
     type: signal
     description: Signal
     mutability: configuration
-    default: 0
+    default: 0x2b833f0
     optional: 1
 sampler/ornstein_ohlenbeck2:
   description: Maximum search with an Ornstein-Uhlenbeck random chance of non-maximums
@@ -3130,7 +3148,7 @@ sampler/ornstein_ohlenbeck2:
     type: discretizer.action
     description: Action discretizer
     mutability: configuration
-    default: 0
+    default: 0x2b841c0
     optional: 0
   theta:
     type: vector
@@ -3154,7 +3172,7 @@ sampler/ornstein_ohlenbeck2:
     type: signal
     description: Signal
     mutability: configuration
-    default: 0
+    default: 0x2b833f0
     optional: 1
 sampler/pada:
   description: Maximum search with a PADA random chance of non-maximums
@@ -3178,7 +3196,7 @@ sampler/pada:
     type: discretizer.action
     description: Action discretizer
     mutability: configuration
-    default: 0
+    default: 0x2b833f0
     optional: 0
   delta:
     type: vector
@@ -3238,7 +3256,7 @@ sampler/pada_ornstein_ohlenbeck:
     type: signal
     description: Signal
     mutability: configuration
-    default: 0x18b9d18
+    default: 0x2beaee8
     optional: 1
   delta:
     type: vector

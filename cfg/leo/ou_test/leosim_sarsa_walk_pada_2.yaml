@@ -5,7 +5,7 @@ experiment:
   steps: 1000000
   rate: 0
   test_interval: 10
-  output: leosim_sarsa_walk_pada_5
+  output: leosim_sarsa_walk_pada_2
   environment: 
     type: environment/leo_walk
     xml: ../../leo/cfg/leo_walk.xml
@@ -18,11 +18,13 @@ experiment:
     actuate: hipright, hipleft, kneeleft
     exporter: 
       type: exporter/csv
-      file: leosim_sarsa_walk_pada_5
+      file: leosim_sarsa_walk_pada_2
       style: meshup
       variant: all
     observation_dims: experiment/environment/target_env/observation_dims
     action_dims: experiment/environment/target_env/action_dims
+    transition_type: 
+      type: signal/v
     contact_signal: 
       type: signal/v
   agent: 
@@ -54,7 +56,6 @@ experiment:
         rand_max: 0
         epsilon: 0.05
         discretizer: experiment/agent/policy/discretizer
-        steps: experiment/agent/policy/discretizer/steps
         delta: [2, 2, 2]
         contact_signal: experiment/environment/contact_signal
     predictor: 
@@ -66,6 +67,7 @@ experiment:
       representation: experiment/agent/policy/representation
       trace: 
         type: trace/enumerated/accumulating
+    transition_type: experiment/environment/transition_type
   test_agent: 
     type: agent/fixed
     policy: 
@@ -78,7 +80,6 @@ experiment:
         rand_max: 0
         epsilon: 0.0
         discretizer: experiment/agent/policy/discretizer
-        steps: experiment/agent/policy/discretizer/steps
         delta: experiment/agent/policy/sampler/delta
         contact_signal: experiment/environment/contact_signal
   save_every: never

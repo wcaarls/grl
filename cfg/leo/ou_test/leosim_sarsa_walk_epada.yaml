@@ -23,6 +23,8 @@ experiment:
       variant: all
     observation_dims: experiment/environment/target_env/observation_dims
     action_dims: experiment/environment/target_env/action_dims
+    transition_type: 
+      type: signal/v
     contact_signal: 
       type: signal/v
   agent: 
@@ -65,6 +67,7 @@ experiment:
       representation: experiment/agent/policy/representation
       trace: 
         type: trace/enumerated/accumulating
+    transition_type: experiment/environment/transition_type
   test_agent: 
     type: agent/fixed
     policy: 
