@@ -1249,8 +1249,8 @@ static void data_in (
 	if (!has_shown_configuration) {
 		std::cout << "LOADING PROBLEM:" << std::endl;
 		std::cout << PROBLEM_NAME << std::endl;
-
 		std::cout << std::endl;
+
 		std::cout << "MODEL CONFIGURATION" << std::endl;
 		std::cout << std::endl;
 		std::cout << "NMOS = " << NMOS << std::endl;

@@ -61,8 +61,8 @@ TransitionType NMPCStagesPolicy::act(double time, const Vector &in, Vector *out)
     std::cout << "switch: [ " << initial_swt_ << "]" << std::endl;
   // }
 
-  if (time == 0.0)
-    muscod_reset(initial_sd_, initial_qc_);
+  // if (time == 0.0)
+  //   muscod_reset(initial_sd_, initial_qc_);
 
   out->resize( nmpc_->NU() );
 
@@ -204,8 +204,8 @@ TransitionType NMPCStagesPolicy::act(double time, const Vector &in, Vector *out)
 
   if (run_nmpc)
   {
-    if (feedback_ == "non-threaded")
-    {
+    // if (feedback_ == "non-threaded")
+    // {
       for (int inmpc = 0; inmpc < n_iter_; ++inmpc) {
         //std::cout << "NON-THREADED VERSION!" << std::endl;
         // 1) Feedback: Embed parameters and initial value from MHE
@@ -225,10 +225,10 @@ TransitionType NMPCStagesPolicy::act(double time, const Vector &in, Vector *out)
         nmpc_->preparation();
       }
       // } // END FOR NMPC ITERATIONS
-    }
+    // }
 
-    if (feedback_ == "threaded")
-    {
+    // if (feedback_ == "threaded")
+    // {
     /*
       // TODO NOT TESTED YET
       abort();
@@ -265,8 +265,9 @@ TransitionType NMPCStagesPolicy::act(double time, const Vector &in, Vector *out)
           }
       } // END FOR NMPC ITERATIONS
     */
-    }
+    // }
   } else {
+    std::cout << "NMPC skipped!" << std::endl;
   }
 
   // re-enable flag
