@@ -22,7 +22,10 @@ TransitionType NMPCStagesPolicy::act(double time, const Vector &in, Vector *out)
   // NOTE this time it's different NXD is larger than the values in 'in'
   std::cout << "in.size() = "    << in.size() << std::endl;
   std::cout << "nmpc_->NXD() = " << nmpc_->NXD() << std::endl;
-  grl_assert((in.size() == nmpc_->NXD()+1) || (in.size() == nmpc_->NXD()));
+  grl_assert(
+    (in.size() == nmpc_->NXD()+1) || (in.size() == nmpc_->NXD())
+    || (in.size() == nmpc_->NXD()+2)
+  );
 
   // subdivide 'in' into state and set-point
   // TODO subdivide into actual states and switch statement
@@ -42,8 +45,11 @@ TransitionType NMPCStagesPolicy::act(double time, const Vector &in, Vector *out)
       initial_sd_[4] = in[5]; // v_h
     }
 
-    // last entry is always time
-    initial_sd_[nmpc_->NXD()-1] = 0.0; // time is always zero for NMPC!
+    if (in.size() == nmpc_->NXD()+2)
+    {
+      // last entry is always time
+      initial_sd_[nmpc_->NXD()-1] = 0.0; // time is always zero for NMPC!
+    }
 
     // FIXME
     initial_hf_.resize(nmpc_->NH());
@@ -65,6 +71,13 @@ TransitionType NMPCStagesPolicy::act(double time, const Vector &in, Vector *out)
   //   muscod_reset(initial_sd_, initial_qc_);
 
   out->resize( nmpc_->NU() );
+
+
+  if (true) {
+    initial_qc_ << Vector::Zero (nmpc_->NU());
+    nmpc_->simulate(initial_sd_, initial_qc_, 0.2, &final_sd_);
+    std::cout << "final:  [ " << final_sd_ << "]" << std::endl;
+  } else  {
 
   // retrieve current stage durations
   nmpc_->getHF(&initial_hf_);
@@ -273,6 +286,7 @@ TransitionType NMPCStagesPolicy::act(double time, const Vector &in, Vector *out)
   // re-enable flag
   run_nmpc = true;
   // initial_qc_ << Vector::Zero (nmpc_->NU());
+  }
 
   // Here we can return the feedback control
   // NOTE feedback control is cut of at action limits 'action_min/max'

@@ -2,7 +2,9 @@
 set ( TARGETS
     passive_nmpc_stages
     ssiwr_nmpc_stages
+    ssiwr_nmpc_stageless
     ssawr_nmpc_stages
+    ssawr_nmpc_stageless
 )
 
 foreach(TARGET ${TARGETS})

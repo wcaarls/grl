@@ -208,6 +208,30 @@ struct MUSCODProblem {
     );
   }
 
+  void simulate(
+    const grl::Vector& initial_sd,
+    const grl::Vector& initial_qc,
+    const double& integration_time,
+    grl::Vector* final_sd
+  ) {
+    m_muscod->nmpcSimulate(
+      1,               // simulate, no derivatives
+      integration_time,           // time interval
+      initial_sd.data(),  // take current initial value
+      NULL,            // no algebraic states
+      initial_qc.data(),    // use feedback control
+      NULL,  // no parameters involved
+      final_sd->data(),
+      NULL,   // final_sa
+      NULL,   // final_sd_sd0
+      NULL,   // final_sd_q
+      NULL,   // final_sd_pf
+      NULL,   // final_sa_sd0
+      NULL,   // final_sa_q
+      NULL    // final_sa_pf
+    );
+  }
+
   double getSamplingRate () {
     double ptime;
     m_muscod->getNodePhystime(0, ptime, false);
