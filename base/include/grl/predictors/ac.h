@@ -109,6 +109,46 @@ class ProbabilityACPredictor : public Predictor
     virtual void finalize();
 };
 
+/// Q-based actor-critic predictor.
+class QACPredictor : public Predictor
+{
+  public:
+    TYPEINFO("predictor/ac/q", "Actor-critic predictor for direct action policies with a Q-value based critic")
+
+  protected:
+    Discretizer *discretizer_;
+
+    Projector *critic_projector_;
+    Representation *critic_representation_;
+    Trace *critic_trace_;
+    
+    Projector *actor_projector_;
+    Representation *actor_representation_;
+    Trace *actor_trace_;
+    
+    double alpha_, beta_, gamma_, lambda_;
+    
+    std::string update_method_;
+    Vector step_limit_;
+    
+    Vector min_, max_;
+
+  public:  
+    QACPredictor() : discretizer_(NULL), critic_projector_(NULL), critic_representation_(NULL), critic_trace_(NULL),
+                     actor_projector_(NULL), actor_representation_(NULL), actor_trace_(NULL),
+                     alpha_(0.2), beta_(0.01), gamma_(0.97), lambda_(0.65), update_method_("proportional") { }
+
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+    
+    // From Predictor
+    virtual QACPredictor *clone() const;
+    virtual void update(const Transition &transition);
+    virtual void finalize();
+};
+
 }
 
 #endif /* GRL_AC_PREDICTOR_H_ */
