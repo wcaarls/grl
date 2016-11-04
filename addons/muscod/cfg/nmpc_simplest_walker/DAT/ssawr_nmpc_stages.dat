@@ -19,13 +19,13 @@ nshoot
 *  parameters start values, scale factors, and bounds
 
 ; from optimal solution
-p
-  0:   4.0000000000000001E-03
-  1:   1.2000000000000000E-01
-  2:   7.1287355334311532E-05
-  3:   1.4257471066863946E-04
-  4:   5.6404888112861250E-04
-  5:   1.8283519311257836E-05
+; p
+;   0:   4.0000000000000001E-03
+;   1:   1.2000000000000000E-01
+;   2:   7.1287355334311532E-01
+;   3:   1.4257471066863946E-01
+;   4:   5.6404888112861250E-01
+;   5:   1.8283519311257836E-01
 
 p
   0:   0.004
@@ -106,7 +106,7 @@ h_max
   1:  8.0
   2:  0.0
   3:  0.2
-  4:  4.0
+  4:  8.0
   5:  0.0
 
 h_fix
@@ -456,6 +456,7 @@ sd(*,*)
  2: 0.0
  3: 0.0
  4: 0.0
+ 5: 0.0
 
 sd_min(*,*)
  0: -100.0
@@ -552,11 +553,14 @@ libssawr_nmpc_stages
 
 libhessian
 hess_gaussnewton
+hess_limitedmemoryupdate
 hess_update
 
 libsolve
 solve_fullstep
 solve_slse
+solve_alf
+solve_tbox
 
 libcond
 cond_min
@@ -597,7 +601,7 @@ options_itol
 options_rfac
 0.0
 options_levmar
-0.00000
+0.0000
 options_qp_featol
 1.0e-8
 options_qp_relax

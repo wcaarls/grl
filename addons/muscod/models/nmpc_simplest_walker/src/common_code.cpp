@@ -110,9 +110,6 @@ static void lsqfcn_track_vref_wreg (
 		);
 		return;
 	}
-	// define constraint counters
-	// unsigned int res_ne_cnt = 0;
-
 	// rename for convenience
 	const double slope = p[0];
 	const double v_ref = p[1];
@@ -144,9 +141,6 @@ static void lsqfcn_track_vref_wreg (
 		res[0] = sw_vref * (v_ref - hip_vx) * discount;
 		res[1] = sw_tau * tau * discount;
 	}
-
-	// check dimensions of function
-	// check_dimensions(0, 0, res_ne_cnt, LSQFCN_TRACK_VREF_WREG_NE, __func__);
 }
 
 // -----------------------------------------------------------------------------
@@ -212,6 +206,19 @@ static void msqfcn_track_avg_wreg (
 		res[res_ne_cnt++] = sw_vref * ( v_ref - (v_hx / sd_time) );
 		res[res_ne_cnt++] = sw_tau * tau;
 	}
+
+	// std::cout << "in function: " << __func__ << std::endl;
+	// std::cout << "cimos = " << info->cimos
+	// 	<< ", cnode = " << info->cnode
+	// 	<< ", time =  " << ts[0]
+	// 	<< std::endl;
+	// std::cout << "sd_time = " << sd_time << std::endl;
+	// std::cout << "v_ref  = " << v_ref  << std::endl;
+	// std::cout << "v_hx / sd_time = " << v_hx / sd_time << std::endl;
+	// std::cout << "v_ref - (v_hx / sd_time) = " << v_ref - (v_hx / sd_time) << std::endl;
+	// std::cout << "res[0] = " << res[0] << std::endl;
+	// std::cout << "res[1] = " << res[1] << std::endl;
+	// std::cout << std::endl;
 
 	// check dimensions of function
 	check_dimensions(
@@ -350,14 +357,20 @@ static void lsqfcn_avg_min_tau_and_max_time (
 	// NOTE: tracking of reference velocity
 	if (info->cimos > 2) {  // for limit cycle stage
 		res[0] = sK * sw_tau * tau * discount;
-		res[1] = sK * sw_time * discount * cos(sd_time) ;
+		res[1] = sK * sw_time * discount * cos(sd_time/4.0) ;
 	} else {  // for transition stage
 		res[0] = sw_tau * tau * discount;
-		res[1] = sw_time * discount * cos(sd_time) ;
+		res[1] = sw_time * discount * cos(sd_time/4.0) ;
 	}
-	// std::cout << "cimos = " << info->cimos << std::endl;
-	// std::cout << "cnode = " << info->cnode << std::endl;
-	// std::cout << "time =  " << res[1] << std::endl;
+
+	// std::cout << "in function: " << __func__ << std::endl;
+	// std::cout << "cimos = " << info->cimos
+	// 	<< ", cnode = " << info->cnode
+	// 	<< ", time =  " << ts[0]
+	// 	<< std::endl;
+	// std::cout << "res[0] = " << res[0] << std::endl;
+	// std::cout << "res[1] = " << res[1] << std::endl;
+	// std::cout << std::endl;
 
 	// check dimensions of function
 	// check_dimensions(0, 0, res_ne_cnt, LSQFCN_MIN_TAU, __func__);
@@ -415,12 +428,24 @@ static void lsqfcn_track_vref_wreg_and_max_time (
 	if (info->cimos > 2) {  // for limit cycle stage
 		res[0] = sK * sw_vref * (v_ref - hip_vx) * discount;
 		res[1] = sK * sw_tau * tau * discount;
-		res[2] = sK * sw_time * discount * cos(sd_time) ;
+		res[2] = sK * sw_time * discount * cos(sd_time/4.0) ;
 	} else {  // for transition stage
 		res[0] = sw_vref * (v_ref - hip_vx) * discount;
 		res[1] = sw_tau * tau * discount;
-		res[2] = sw_time * discount * cos(sd_time) ;
+		res[2] = sw_time * discount * cos(sd_time/4.0) ;
 	}
+
+	// std::cout << "in function: " << __func__ << std::endl;
+	// std::cout << "cimos = " << info->cimos
+	// 	<< ", cnode = " << info->cnode
+	// 	<< ", time =  " << ts[0]
+	// 	<< std::endl;
+	// std::cout << "sd_time =    " << sd_time << std::endl;
+	// std::cout << "c(sd_time) = " << cos(sd_time) << std::endl;
+	// std::cout << "res[0] =     " << res[0] << std::endl;
+	// std::cout << "res[1] =     " << res[1] << std::endl;
+	// std::cout << "res[3] =     " << res[3] << std::endl;
+	// std::cout << std::endl;
 
 	// check dimensions of function
 	// check_dimensions(0, 0, res_ne_cnt, LSQFCN_TRACK_VREF_WREG_NE, __func__);
@@ -428,7 +453,7 @@ static void lsqfcn_track_vref_wreg_and_max_time (
 
 // -----------------------------------------------------------------------------
 
-static const unsigned int LSQFCN_MIN_TAU = 1;
+static const unsigned int LSQFCN_MIN_TAU = NU;
 static void lsqfcn_min_tau (
 	double *ts, double *sd, double *sa, double *u, double *p, double *pr,
 	double *res, long *dpnd, InfoPtr *info
@@ -478,6 +503,14 @@ static void lsqfcn_min_tau (
 	} else {  // for transition stage
 		res[0] = sw_tau * tau * discount;
 	}
+
+	// std::cout << "in function: " << __func__ << std::endl;
+	// std::cout << "cimos = " << info->cimos
+	// 	<< ", cnode = " << info->cnode
+	// 	<< ", time =  " << ts[0]
+	// 	<< std::endl;
+	// std::cout << "res[0] = " << res[0] << std::endl;
+	// std::cout << std::endl;
 
 	// check dimensions of function
 	// check_dimensions(0, 0, res_ne_cnt, LSQFCN_MIN_TAU, __func__);
@@ -583,7 +616,9 @@ static void lsqfcn_min_slacks (
 	const double slack1 = p[3];
 	const double slack2 = p[4];
 	const double slack3 = p[5];
+	#ifdef SLACKF
 	const double slackf = p[6];
+	#endif
 
 	const double phi_st = sd[0];
 	const double phi_h = sd[1];
@@ -610,6 +645,7 @@ static void lsqfcn_min_slacks (
 		res[2] = sK * sw_slacks * slack2;
 		res[3] = sK * sw_slacks * slack3;
 	#ifdef SLACKF
+		std::cout << "PENIS" << std::endl;
 		res[4] = sK * sw_slackf * slackf;
 	#endif
 
@@ -620,9 +656,21 @@ static void lsqfcn_min_slacks (
 		res[3] = sw_slacks * slack3;
 
 	#ifdef SLACKF
+		std::cout << "PENIS" << std::endl;
 		res[4] = sw_slackf * slackf;
 	#endif
 	}
+
+	// std::cout << "in function: " << __func__ << std::endl;
+	// std::cout << "cimos = " << info->cimos
+	// 	<< ", cnode = " << info->cnode
+	// 	<< ", time =  " << ts[0]
+	// 	<< std::endl;
+	// std::cout << "res[0] = " << res[0] << std::endl;
+	// std::cout << "res[1] = " << res[1] << std::endl;
+	// std::cout << "res[2] = " << res[2] << std::endl;
+	// std::cout << "res[3] = " << res[3] << std::endl;
+	// std::cout << std::endl;
 
 	// check dimensions of function
 	// check_dimensions(0, 0, res_ne_cnt, LSQFCN_SLACKS, __func__);
@@ -783,8 +831,6 @@ static void ffcn (
 	double *t, double *xd, double *xa, double *u, double *p, double *rhs,
 	double *rwh, long *iwh, InfoPtr *info
 ) {
-	// define rhs counter
-	// unsigned int rhs_cnt = 0;
 
 	// rename for convenience
 	const double sigma   =  p[0];
@@ -813,9 +859,6 @@ static void ffcn_trans (
 	double *t, double *xd, double *xa, double *u, double *p, double *rhs,
 	double *rwh, long *iwh, InfoPtr *info
 ) {
-	// define rhs counter
-	// unsigned int rhs_cnt = 0;
-
 	// rename for convenience
 	const double sigma   =  p[0];
 	const double act     =  u[0];
@@ -911,6 +954,171 @@ static void ffcn_trans_avg (
 // *****************************************************************************
 // Implicit State Dependent Switches
 // *****************************************************************************
+
+static const unsigned int NSWT = 1; // Number of switching functions
+
+static void detect_switch_fcn (
+	double *t, double *xd, double *xa, double* u, double *p,
+	long *DUMMY, long *iswt, long *nswt, double *res,
+	double *rwh, long *iwh, InfoPtr *info
+) {
+	// rename for convenience
+	const double phi_st = xd[0];
+	const double phi_h = xd[1];
+
+	// check for ground contact of swing foot
+	res[0] = get_swing_foot_py(phi_st, phi_h);
+}
+
+// *****************************************************************************
+
+static void execute_switch_fcn (
+	double *t, double *xd, double *xa, double *u, double *p,
+	long iswt, double *rwh, long *iwh, InfoPtr *info
+) {
+	// define rhs counter
+	static unsigned int rhs_cnt = 0;
+
+	// rename for convenience
+	static double rhs[5] = {0., 0., 0., 0., 0.};
+
+	const double sigma   =  p[0];
+	const double act     =  u[0];
+
+	const double phi_st  = xd[0];
+	const double phi_h   = xd[1];
+	const double dphi_st = xd[2];
+	const double dphi_h  = xd[3];
+	const double sd_time = xd[4];
+
+	const bool debug_output = false;
+	if (debug_output) {
+		std::cout << "switch detected at t = " << *t << std::endl;
+		std::cout << "switch signature: info->swt[" << iswt << "] = " << info->swt[iswt] << std::endl;
+	}
+
+	// confirm switch
+	if ((get_swing_foot_vy(phi_st, phi_h, dphi_st, dphi_h) < 0)) // Penetrating
+	{
+		if (debug_output) {
+			std::cout << "penetrating contact: swf_vx =" << get_swing_foot_vy(phi_st, phi_h, dphi_st, dphi_h) << " < 0" << std::endl;
+		}
+		if((phi_h*phi_h >= parallel_TOL*parallel_TOL)) // forward step
+		{
+			if (debug_output) {
+				std::cout << "feet not parallel: " << sqrt(phi_h*phi_h) << " = |phi_h| >= TOL = " << parallel_TOL << std::endl;
+				std::cout << "SWITCH CONFIRMED!" << std::endl;
+				std::cout << std::endl;
+			}
+			// [      \phi_st+ ] = [ -1 0 0                                   0 ] [      \phi_st- ]
+			// [      \phi_h+  ] = [ -2 0 0                                   0 ] [      \phi_h-  ]
+			// [ \dot \phi_st+ ] = [  0 0 cos(2*\phi_st-)                     0 ] [ \dot \phi_st- ]
+			// [ \dot \phi_h+  ] = [  0 0 cos(2*\phi_st-)*(1-cos(2*\phi_st-)) 0 ] [ \dot \phi_h-  ]
+			rhs[0] = -1.0*phi_st;
+			rhs[1] = -2.0*phi_st;
+			rhs[2] = dphi_st*cos(2.0*phi_st);
+			rhs[3] = dphi_st*cos(2.0*phi_st)*(1.0 - cos(2*phi_st));
+			rhs[4] = 0.0; // time: reset after switch
+
+			// apply transition function
+			xd[0] = rhs[0];
+			xd[1] = rhs[1];
+			xd[2] = rhs[2];
+			xd[3] = rhs[3];
+			xd[4] = rhs[4];
+
+			// leave scope of function
+			return;
+		}
+	}
+	// else proceed with nominal solution
+	if (debug_output) {
+		std::cout << "SWITCH REJECTED!" << std::endl;
+		std::cout << std::endl;
+	}
+	// define right-hand side
+	xd[0] = phi_st;
+	xd[1] = phi_h;
+	xd[2] = dphi_st;
+	xd[3] = dphi_h;
+	xd[4] = sd_time;
+}
+
+static void execute_switch_fcn_avg (
+	double *t, double *xd, double *xa, double *u, double *p,
+	long iswt, double *rwh, long *iwh, InfoPtr *info
+) {
+	// define rhs counter
+	static unsigned int rhs_cnt = 0;
+
+	// rename for convenience
+	static double rhs[6] = {0., 0., 0., 0., 0., 0.};
+
+	const double sigma   =  p[0];
+	const double act     =  u[0];
+
+	const double phi_st  = xd[0];
+	const double phi_h   = xd[1];
+	const double dphi_st = xd[2];
+	const double dphi_h  = xd[3];
+	const double v_hx    = xd[4];
+	const double sd_time = xd[5];
+
+	const bool debug_output = false;
+	if (debug_output) {
+		std::cout << "switch detected at t = " << *t << std::endl;
+		std::cout << "switch signature: info->swt[" << iswt << "] = " << info->swt[iswt] << std::endl;
+	}
+
+	// confirm switch
+	if ((get_swing_foot_vy(phi_st, phi_h, dphi_st, dphi_h) < 0)) // Penetrating
+	{
+		if (debug_output) {
+			std::cout << "penetrating contact: swf_vx =" << get_swing_foot_vy(phi_st, phi_h, dphi_st, dphi_h) << " < 0" << std::endl;
+		}
+		if((phi_h*phi_h >= parallel_TOL*parallel_TOL)) // forward step
+		{
+			if (debug_output) {
+				std::cout << "feet not parallel: " << sqrt(phi_h*phi_h) << " = |phi_h| >= TOL = " << parallel_TOL << std::endl;
+				std::cout << "SWITCH CONFIRMED!" << std::endl;
+				std::cout << std::endl;
+			}
+			// [      \phi_st+ ] = [ -1 0 0                                   0 ] [      \phi_st- ]
+			// [      \phi_h+  ] = [ -2 0 0                                   0 ] [      \phi_h-  ]
+			// [ \dot \phi_st+ ] = [  0 0 cos(2*\phi_st-)                     0 ] [ \dot \phi_st- ]
+			// [ \dot \phi_h+  ] = [  0 0 cos(2*\phi_st-)*(1-cos(2*\phi_st-)) 0 ] [ \dot \phi_h-  ]
+			rhs[0] = -1.0*phi_st;
+			rhs[1] = -2.0*phi_st;
+			rhs[2] = dphi_st*cos(2.0*phi_st);
+			rhs[3] = dphi_st*cos(2.0*phi_st)*(1.0 - cos(2*phi_st));
+			rhs[4] = 0.0; // v_hx: reset after each step
+			rhs[5] = 0.0; // time: reset after each step
+
+			// apply transition function
+			xd[0] = rhs[0];
+			xd[1] = rhs[1];
+			xd[2] = rhs[2];
+			xd[3] = rhs[3];
+			xd[4] = rhs[4];
+			xd[5] = rhs[5];
+
+			// leave scope of function
+			return;
+		}
+	}
+	// else proceed with nominal solution
+	if (debug_output) {
+		std::cout << "SWITCH REJECTED!" << std::endl;
+		std::cout << std::endl;
+	}
+	// define right-hand side
+	xd[0] = phi_st;
+	xd[1] = phi_h;
+	xd[2] = dphi_st;
+	xd[3] = dphi_h;
+	xd[4] = v_hx;
+	xd[4] = sd_time;
+}
 
 // *****************************************************************************
 // Decoupled Constraints
@@ -1014,7 +1222,8 @@ static void rdfcn_full_feasibility (
 	//       n2 = n++; -> n2 = 0, n = 1
 
 	res[0] = get_hip_py(phi_st); // >= 0.0
-	res[1] = get_swing_foot_py(phi_st, phi_h) - (-0.000); // >= 0.0
+	// res[1] = get_swing_foot_py(phi_st, phi_h) - (-0.000); // >= 0.0
+	res[1] = get_swing_foot_py(phi_st, phi_h) + (0.001); // >= 0.0
 	// res[res_n_cnt++] = get_hip_vx(phi_st, dphi_st); // >= 0.0
 	// res[res_n_cnt++] = get_swing_foot_vx(phi_st, phi_h, dphi_st, dphi_h); // >= 0.0
 	// NOTE enforce maximal stance foot angle before falling
@@ -1079,7 +1288,7 @@ static void rdfcn_slacked_feasibility (
 
 ///  Constraints ensuring not to fall or penetrate ground
 //                 # of all constraints     # of equality constraints
-static const unsigned int RDFCN_PARTLY_FEASIBILITY_N = 3, RDFCN_PARTLY_FEASIBILITY_NE = 0;
+static const unsigned int RDFCN_PARTLY_FEASIBILITY_N = 4, RDFCN_PARTLY_FEASIBILITY_NE = 0;
 static void rdfcn_partly_feasibility (
 	double *ts, double *sd, double *sa, double *u, double *p, double *pr,
 	double *res, long *dpnd, InfoPtr *info
@@ -1118,13 +1327,13 @@ static void rdfcn_partly_feasibility (
 	//       n2 = n++; -> n2 = 0, n = 1
 
 	res[0] = get_hip_py(phi_st); // >= 0.0
-	// res[1] = get_swing_foot_py(phi_st, phi_h) - (-0.000); // >= 0.0
 	// res[res_n_cnt++] = get_hip_vx(phi_st, dphi_st); // >= 0.0
 	// res[res_n_cnt++] = get_swing_foot_vx(phi_st, phi_h, dphi_st, dphi_h); // >= 0.0
 	// |phi_st| > Pi/8 = 0.3926875
 	res[1] = 0.3926875*0.3926875 - phi_st*phi_st; // >= 0.0
 	// |phi_h - 2*phi_st| > Pi/4 = 0.78
 	res[2] = 0.78*0.78 - (phi_h - 2*phi_st)*(phi_h - 2*phi_st); // >= 0.0
+	res[3] = get_swing_foot_py(phi_st, phi_h) + (0.001); // >= 0.0
 }
 
 // *****************************************************************************
@@ -1166,10 +1375,10 @@ static void rcfcn_s (
 	//       n = 0;    -> n  = 0
 	//       n2 = n++; -> n2 = 0, n = 1
 
-	res[0] = 100.0 * phi_st;  // == 0
-	res[1] = 100.0 * phi_h;   // == 0
-	res[2] = 100.0 * dphi_st; // == 0
-	res[3] = 100.0 * dphi_h;  // == 0
+	res[0] = 1.0 * phi_st;  // == 0
+	res[1] = 1.0 * phi_h;   // == 0
+	res[2] = 1.0 * dphi_st; // == 0
+	res[3] = 1.0 * dphi_h;  // == 0
 
 	// check dimensions of constraints
 	// check_dimensions(
@@ -1216,10 +1425,10 @@ static void rcfcn_e (
 	//       n = 0;    -> n  = 0
 	//       n2 = n++; -> n2 = 0, n = 1
 
-	res[0] = -100.0 * (phi_st  + slack0);
-	res[1] = -100.0 * (phi_h   + slack1);
-	res[2] = -100.0 * (dphi_st + slack2);
-	res[3] = -100.0 * (dphi_h  + slack3);
+	res[0] = -1.0 * (phi_st  + slack0);
+	res[1] = -1.0 * (phi_h   + slack1);
+	res[2] = -1.0 * (dphi_st + slack2);
+	res[3] = -1.0 * (dphi_h  + slack3);
 
 	// check dimensions of constraints
 	// check_dimensions(

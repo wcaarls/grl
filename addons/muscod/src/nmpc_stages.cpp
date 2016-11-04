@@ -20,8 +20,6 @@ REGISTER_CONFIGURABLE(NMPCStagesPolicy);
 TransitionType NMPCStagesPolicy::act(double time, const Vector &in, Vector *out)
 {
   // NOTE this time it's different NXD is larger than the values in 'in'
-  std::cout << "in.size() = "    << in.size() << std::endl;
-  std::cout << "nmpc_->NXD() = " << nmpc_->NXD() << std::endl;
   grl_assert(
     (in.size() == nmpc_->NXD()+1) || (in.size() == nmpc_->NXD())
     || (in.size() == nmpc_->NXD()+2)
@@ -33,39 +31,32 @@ TransitionType NMPCStagesPolicy::act(double time, const Vector &in, Vector *out)
   // {
     std::cout << "in:  [ " << in << "]" << std::endl;
     // initial_sd_.block(0, 0, 1, nmpc_->NXD()-1) << in.block(0, 0, 1, nmpc_->NXD()-1);
+    if (in[4] == 1) {
+      last_time_ == time;
+    }
 
     initial_sd_[0] = in[0];
     initial_sd_[1] = in[1] + 2* in[0];
     initial_sd_[2] = in[2];
     initial_sd_[3] = in[3] + 2* in[2];
-
-    if (in.size() == nmpc_->NXD())
-    {
-      std::cout << "AVG VELOCITY?" << std::endl;
-      initial_sd_[4] = in[5]; // v_h
-    }
-
-    if (in.size() == nmpc_->NXD()+2)
-    {
-      // last entry is always time
-      initial_sd_[nmpc_->NXD()-1] = 0.0; // time is always zero for NMPC!
-    }
+    initial_sd_[4] = in[5]; // v_h
+    initial_sd_[5] = time - last_time_;
 
     // FIXME
     initial_hf_.resize(nmpc_->NH());
 
     initial_swt_.resize(1);
-    initial_swt_ << in.block(0, nmpc_->NXD()-1, 1, 1 /*one switch*/);
+    initial_swt_ << in[4];
   // } else {
   //   initial_sd_ << in;
   // }
 
-  // if (verbose_)
-  // {
+  if (verbose_)
+  {
     std::cout << "time: [ " << time << " ]" << std::endl;
     std::cout << "state:  [ " << initial_sd_ << "]" << std::endl;
     std::cout << "switch: [ " << initial_swt_ << "]" << std::endl;
-  // }
+  }
 
   // if (time == 0.0)
   //   muscod_reset(initial_sd_, initial_qc_);
@@ -73,7 +64,7 @@ TransitionType NMPCStagesPolicy::act(double time, const Vector &in, Vector *out)
   out->resize( nmpc_->NU() );
 
 
-  if (true) {
+  if (false) {
     initial_qc_ << Vector::Zero (nmpc_->NU());
     nmpc_->simulate(initial_sd_, initial_qc_, 0.2, &final_sd_);
     std::cout << "final:  [ " << final_sd_ << "]" << std::endl;

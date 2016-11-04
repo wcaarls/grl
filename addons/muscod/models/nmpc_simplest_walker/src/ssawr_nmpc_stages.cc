@@ -41,7 +41,7 @@ static const double rl_y = 1.000;
 static const double rl_sy = sqrt(rl_y);
 
 // define weight constant for limit cycle
-static const double K = 1.0; // number of future limit cycles
+static const double K = 100.0; // number of future limit cycles
 static const double sK = sqrt(K);
 
 // weights
@@ -49,7 +49,7 @@ static const double w_vref = 10.00;
 static const double w_tau =  00.01;
 static const double w_time = 01.00;
 static const double w_periodicity = 00.01;
-static const double w_slacks = 500.00;
+static const double w_slacks = 400.00;
 static const double w_slackf = 10.00;
 
 // define square roots of weights for LSQ objective
@@ -194,9 +194,8 @@ void def_model(void) {
 
 	// define LSQ objective
 	// NOTE: define min tau to regularize controls
-	def_lsq(imos, "*", NPR,
-		LSQFCN_MIN_TAU, lsqfcn_min_tau
-	);
+	def_lsq(imos, "s", NPR, MSQFCN_TRACK_AVG_WREG_NE, msqfcn_track_avg_wreg);
+	def_lsq(imos, "i", NPR, LSQFCN_MIN_TAU, lsqfcn_min_tau);
 
 	// define constraints
 	// NOTE: enforce switching conditions before impact
@@ -205,13 +204,6 @@ void def_model(void) {
 		rdfcn_trans,
 		NULL
 	);
-
-	// def_mpc(
-	// 	imos, "i", NPR,
-	// 	RDFCN_FULL_FEASIBILITY_N, RDFCN_FULL_FEASIBILITY_NE,
-	// 	rdfcn_full_feasibility,
-	// 	NULL
-	// );
 
 	// increment model stage
 	imos++;
@@ -241,20 +233,22 @@ void def_model(void) {
 	// NOTE: enforce periodicity on motion
 	def_mpc(
 		imos, "s", NPR,
-		0, 0, NULL,
+		// 0, 0, NULL,
 		// RDFCN_FULL_FEASIBILITY_N, RDFCN_FULL_FEASIBILITY_NE,
 		// rdfcn_full_feasibility,
-		// RDFCN_PARTLY_FEASIBILITY_N, RDFCN_PARTLY_FEASIBILITY_NE,
-		// rdfcn_partly_feasibility,
+		RDFCN_PARTLY_FEASIBILITY_N, RDFCN_PARTLY_FEASIBILITY_NE,
+		rdfcn_partly_feasibility,
 		rcfcn_s
 	);
 
-	// def_mpc(
-	// 	imos, "i", NPR,
+	def_mpc(
+		imos, "i", NPR,
 	// 	RDFCN_FULL_FEASIBILITY_N, RDFCN_FULL_FEASIBILITY_NE,
 	// 	rdfcn_full_feasibility,
-	// 	NULL
-	// );
+		RDFCN_PARTLY_FEASIBILITY_N, RDFCN_PARTLY_FEASIBILITY_NE,
+		rdfcn_partly_feasibility,
+		NULL
+	);
 
 	// increment model stage
 	imos++;
@@ -284,17 +278,17 @@ void def_model(void) {
 	// NOTE: enforce periodicity on motion
 	def_mpc(
 		imos, "s", NPR,
-		0, 0, NULL,
-		// RDFCN_FULL_FEASIBILITY_N, RDFCN_FULL_FEASIBILITY_NE,
-		// rdfcn_full_feasibility,
+		// 0, 0, NULL,
+		RDFCN_PARTLY_FEASIBILITY_N, RDFCN_PARTLY_FEASIBILITY_NE,
+		rdfcn_partly_feasibility,
 		NULL
 	);
 
 	def_mpc(
 		imos, "i", NPR,
-		0, 0, NULL,
-		// RDFCN_FULL_FEASIBILITY_N, RDFCN_FULL_FEASIBILITY_NE,
-		// rdfcn_full_feasibility,
+		// 0, 0, NULL,
+		RDFCN_PARTLY_FEASIBILITY_N, RDFCN_PARTLY_FEASIBILITY_NE,
+		rdfcn_partly_feasibility,
 		NULL
 	);
 
@@ -321,10 +315,7 @@ void def_model(void) {
 
 	// define LSQ objective
 	// NOTE: define min tau to regularize controls
-	def_lsq(imos, "s", NPR,
-		MSQFCN_TRACK_AVG_WREG_AND_PERIODICTY_NE,
-		msqfcn_track_avg_wreg
-	);
+	def_lsq(imos, "s", NPR, MSQFCN_TRACK_AVG_WREG_NE, msqfcn_track_avg_wreg);
 	def_lsq(imos, "i", NPR, LSQFCN_MIN_TAU, lsqfcn_min_tau);
 	def_lsq(imos, "e", NPR, LSQFCN_MIN_SLACKS, lsqfcn_min_slacks);
 
@@ -357,12 +348,12 @@ void def_model(void) {
 	imos++;
 
 	// check number of model stages
-	// check_dimensions(0, 0, imos, NMOS, __func__);
+	check_dimensions(0, 0, imos, NMOS, __func__);
 
 	// specify setup, tear-down and plotting functions
 	// NOTE: data_in is used to calculate current NMOS and NMS
 	//       or instantiate different RBLD models for parallel evaluation of
 	//       shooting nodes.
-	// def_mio (data_in, NULL, NULL);
-	def_mio (data_in , meshup_out, data_out);
+	def_mio (data_in, NULL, NULL);
+	// def_mio (data_in , meshup_out, data_out);
 }

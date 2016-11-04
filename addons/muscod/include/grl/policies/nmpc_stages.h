@@ -46,6 +46,8 @@ class NMPCStagesPolicy : public NMPCPolicy
     bool roll_out;
     bool run_nmpc;
 
+    double last_time_;
+
     Vector initial_hf_;
     Vector initial_swt_;
 
@@ -53,7 +55,8 @@ class NMPCStagesPolicy : public NMPCPolicy
     NMPCStagesPolicy() :
         NMPCPolicy (),
         roll_out (false),
-        run_nmpc (true)
+        run_nmpc (true),
+        last_time_ (0.0)
     { }
     //~NMPCStagesPolicy();
 

@@ -42,7 +42,7 @@ experiment:
       action_max: experiment/environment/task/action_max
       lua_model: ../../rbdl/cfg/simplest_walker.lua
       model_name: nmpc_simplest_walker
-      nmpc_model_name: ssawr_nmpc_stageless
+      nmpc_model_name: ssawr_nmpc_stages
       initFeedback: 0
       feedback: non-threaded
       n_iter: 3
