@@ -260,6 +260,33 @@ class PinballMovementTask : public Task
     bool succeeded(const Vector &state) const;
 };
 
+/// Pinball movement task with quadratic costs
+class PinballRegulatorTask : public RegulatorTask
+{
+  public:
+    TYPEINFO("task/pinball/regulator", "Pinball regulator task")
+
+  public:
+    PinballRegulatorTask()
+    {
+      start_ = VectorConstructor(0.1, 0.1, 0., 0.);
+      goal_ = VectorConstructor(0.9, 0.9, 0., 0.);
+      stddev_ = VectorConstructor(0.01, 0.01, 0., 0.);
+      q_ = VectorConstructor(5, 1, 0, 0);
+      r_ = VectorConstructor(0.01, 0.01);
+    }
+  
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+
+    // From Task
+    virtual PinballRegulatorTask *clone() const;
+    virtual void observe(const Vector &state, Vector *obs, int *terminal) const;
+    virtual bool invert(const Vector &obs, Vector *state) const;
+};
+
 }
 
 #endif /* GRL_PINBALL_ENVIRONMENT_H_ */

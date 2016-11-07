@@ -31,6 +31,7 @@ using namespace grl;
 
 REGISTER_CONFIGURABLE(PinballModel)
 REGISTER_CONFIGURABLE(PinballMovementTask)
+REGISTER_CONFIGURABLE(PinballRegulatorTask)
 
 void PinballModel::request(ConfigurationRequest *config)
 {
@@ -128,7 +129,7 @@ PinballMovementTask *PinballMovementTask::clone() const
 
 void PinballMovementTask::start(int test, Vector *state) const
 {
-  *state = VectorConstructor(0.1, 0., 0.1, 0., 0.);
+  *state = VectorConstructor(0.1, 0.1, 0., 0., 0.);
 }
 
 void PinballMovementTask::observe(const Vector &state, Vector *obs, int *terminal) const
@@ -161,7 +162,7 @@ void PinballMovementTask::evaluate(const Vector &state, const Vector &action, co
 
 bool PinballMovementTask::invert(const Vector &obs, Vector *state) const
 {
-  state->resize(4);
+  state->resize(5);
   for (size_t ii=0; ii < 4; ++ii)
     (*state)[ii] = obs[ii];
   (*state)[PinballModel::siTime] = 0;
@@ -175,4 +176,55 @@ bool PinballMovementTask::succeeded(const Vector &state) const
     return true;
   else
     return false;
+}
+
+// Regulator
+
+void PinballRegulatorTask::request(ConfigurationRequest *config)
+{
+  RegulatorTask::request(config);
+}
+
+void PinballRegulatorTask::configure(Configuration &config)
+{
+  RegulatorTask::configure(config);
+  
+  if (q_.size() != 4)
+    throw bad_param("task/pinball/regulator:q");
+  if (r_.size() != 2)
+    throw bad_param("task/pinball/regulator:r");
+
+  config.set("observation_min", VectorConstructor(0, 0, -2, -2));
+  config.set("observation_max", VectorConstructor(1, 1,  2,  2));
+  config.set("action_min", VectorConstructor(-1, -1));
+  config.set("action_max", VectorConstructor(1, 1));
+}
+
+void PinballRegulatorTask::reconfigure(const Configuration &config)
+{
+  RegulatorTask::reconfigure(config);
+}
+
+PinballRegulatorTask *PinballRegulatorTask::clone() const
+{
+  return new PinballRegulatorTask(*this);
+}
+
+void PinballRegulatorTask::observe(const Vector &state, Vector *obs, int *terminal) const
+{
+  if (state.size() != 5)
+    throw Exception("task/pinball/regulator requires dynamics/pinball");
+    
+  obs->resize(4);
+  for (size_t ii=0; ii < 4; ++ii)
+    (*obs)[ii] = state[ii];
+
+  *terminal = state[4] > 20;
+}
+
+bool PinballRegulatorTask::invert(const Vector &obs, Vector *state) const
+{
+  *state = extend(obs, VectorConstructor(0.));
+  
+  return true;
 }
