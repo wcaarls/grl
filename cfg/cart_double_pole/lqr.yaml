@@ -12,14 +12,14 @@ experiment:
       control_step: 0.05
       integration_steps: 5
       dynamics: 
-        type: dynamics/cart_pole
+        type: dynamics/cart_double_pole
     task: 
-      type: task/cart_pole/regulator
-      start: [ 0, 0, 0, 0 ]
-      goal: [ 0, 0, 0, 0 ]
-      stddev: [ 0.1, 0.1, 0, 0 ]
-      q: [ 1, 1, 0, 0 ]
-      r: [ 0.001 ]
+      type: task/cart_double_pole/regulator
+      start: [0, 0, 0, 0, 0, 0]
+      goal: [0, 0, 0, 0, 0, 0]
+      stddev: [0.1, 0.1, 0.01, 0, 0, 0]
+      q: [1, 1, 1, 0, 0, 0]
+      r: [0.01]
       timeout: 9.99
   agent: 
     type: agent/solver
@@ -42,8 +42,9 @@ experiment:
         task: experiment/environment/task
       policy: experiment/agent/policy
   test_agent: experiment/agent
+  save_every: never
 visualizer: 
   type: visualizer/glut
 visualization: 
-  type: visualization/cart_pole
+  type: visualization/cart_double_pole
   state: experiment/environment/state

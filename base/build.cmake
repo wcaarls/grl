@@ -25,6 +25,7 @@ add_library(${TARGET} SHARED
             ${SRC}/environments/sandbox.cpp
             ${SRC}/environments/pendulum.cpp
             ${SRC}/environments/cart_pole.cpp
+            ${SRC}/environments/cart_double_pole.cpp
             ${SRC}/environments/pinball.cpp
             ${SRC}/environments/windy.cpp
             ${SRC}/environments/compass_walker/SWModel.cpp
@@ -84,6 +85,7 @@ add_library(${TARGET} SHARED
             ${SRC}/visualizations/acrobot.cpp
             ${SRC}/visualizations/pendulum.cpp
             ${SRC}/visualizations/cart_pole.cpp
+            ${SRC}/visualizations/cart_double_pole.cpp
             ${SRC}/visualizations/compass_walker.cpp
             ${SRC}/visualizations/pinball.cpp
             ${SRC}/visualizations/windy.cpp

@@ -1,0 +1,69 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 0
+  steps: 0
+  rate: 0
+  test_interval: 10
+  environment: 
+    type: environment/modeled
+    model: 
+      type: model/dynamical
+      control_step: 0.05
+      integration_steps: 5
+      dynamics: 
+        type: dynamics/cart_double_pole
+    task: 
+      type: task/cart_double_pole/balancing
+      timeout: 4.99
+  agent: 
+    type: agent/td
+    policy: 
+      type: policy/discrete/q
+      discretizer: 
+        type: discretizer/uniform
+        min: experiment/environment/task/action_min
+        max: experiment/environment/task/action_max
+        steps: [3]
+      projector: 
+        type: projector/tile_coding
+        tilings: 16
+        memory: 67108864
+        safe: 0
+        resolution: [2.5, 0.0785375, 0.0785375, 2.5, 0.785375, 0.785375, 20]
+        wrapping: [0, 0, 0, 0, 0, 0, 0]
+      representation: 
+        type: representation/parameterized/linear
+        init_min: [20]
+        init_max: [21]
+        memory: experiment/agent/policy/projector/memory
+        outputs: 1
+        output_min: []
+        output_max: []
+      sampler: 
+        type: sampler/epsilon_greedy
+        epsilon: 0.02
+    predictor: 
+      type: predictor/sarsa
+      alpha: 0.2
+      gamma: 0.99
+      lambda: 0.92
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+      trace: 
+        type: trace/enumerated/replacing
+  test_agent: 
+    type: agent/fixed
+    policy: 
+      type: policy/discrete/q
+      discretizer: experiment/agent/policy/discretizer
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+      sampler: 
+        type: sampler/greedy
+  save_every: never
+visualizer: 
+  type: visualizer/glut
+visualization: 
+  type: visualization/cart_double_pole
+  state: experiment/environment/state
