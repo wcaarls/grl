@@ -249,7 +249,7 @@ void CartDoublePoleBalancingTask::configure(Configuration &config)
   config.set("action_min", VectorConstructor(-20.));
   config.set("action_max", VectorConstructor( 20.));
   config.set("reward_min", 0);
-  config.set("reward_max", 1);
+  config.set("reward_max", 6.2);
 }
 
 void CartDoublePoleBalancingTask::reconfigure(const Configuration &config)
@@ -299,8 +299,11 @@ void CartDoublePoleBalancingTask::evaluate(const Vector &state, const Vector &ac
 {
   if (state.size() != 7 || action.size() != 1 || next.size() != 7)
     throw Exception("task/cart_double_pole/balancing requires dynamics/cart_double_pole");
-
-  *reward = 1 - failed(next);
+    
+  if (failed(next))
+    *reward = 0;
+  else
+    *reward = 6.2 - fabs(state[0]) - fabs(state[1]) - fabs(state[2]);
 }
 
 bool CartDoublePoleBalancingTask::invert(const Vector &obs, Vector *state) const
