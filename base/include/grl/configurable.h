@@ -208,9 +208,10 @@ class Configurator
     Configurator *parent_;
     std::string element_;
     ConfiguratorList children_;
+    bool provided_;
     
   public:
-    Configurator(const std::string &element=std::string(), Configurator *parent=NULL) : parent_(parent), element_(element)
+    Configurator(const std::string &element=std::string(), Configurator *parent=NULL, bool provided=false) : parent_(parent), element_(element), provided_(provided)
     {
       if (parent_)
       {
@@ -318,13 +319,16 @@ class Configurator
     
     virtual Configurator *instantiate(Configurator *parent=NULL) const
     {
+      if (provided_)
+        throw Exception(path() + ": tried to instantiate a provided configuration");
+    
       if (!parent)
         parent = parent_;
     
       Configurator *cfg = new Configurator(element_, parent);
     
       for (ConfiguratorList::const_iterator ii=children_.begin(); ii != children_.end(); ++ii)
-        if (!(*ii)->instantiate(cfg))
+        if (!(*ii)->provided_ && !(*ii)->instantiate(cfg))
           return NULL;
         
       return cfg;
@@ -356,7 +360,31 @@ class Configurator
         }
       }
     }
+    
+    virtual std::string yaml(size_t depth=0) const
+    {
+      std::string str;
+      if (!element_.empty())
+      {
+        str = std::string(2*depth, ' ') + element_ + ":\n";
+        depth++;
+      }
+      
+      for (ConfiguratorList::const_iterator ii=children_.begin(); ii != children_.end(); ++ii)
+        if (!(*ii)->provided_)
+          str = str + (*ii)->yaml(depth);
+        
+      return str;
+    }
+
+    friend std::ostream& operator<<(std::ostream& os, const Configurator& obj);
 };
+
+inline std::ostream& operator<<(std::ostream& os, const Configurator& obj)
+{
+  os << obj.yaml();
+  return os;
+}
 
 class ParameterConfigurator : public Configurator
 {
@@ -364,7 +392,7 @@ class ParameterConfigurator : public Configurator
     std::string value_;
     
   public:
-    ParameterConfigurator(const std::string &element, const std::string &value, Configurator *parent=NULL) : Configurator(element, parent), value_(value) { }
+    ParameterConfigurator(const std::string &element, const std::string &value, Configurator *parent=NULL, bool provided=false) : Configurator(element, parent, provided), value_(value) { }
     std::string localize(const std::string &id) const;
     Configurator *resolve(const std::string &id);
     const Configurator *resolve(const std::string &id) const
@@ -382,6 +410,13 @@ class ParameterConfigurator : public Configurator
     virtual ParameterConfigurator *instantiate(Configurator *parent=NULL) const;
     virtual bool validate(const CRP &crp) const;
     virtual void reconfigure(const Configuration &config, bool recursive=false);
+    virtual std::string yaml(size_t depth=0) const
+    {
+      if (!value_.empty())
+        return std::string(2*depth, ' ') + element_ + ": " + value_ + "\n";
+      else
+        return std::string(2*depth, ' ') + element_ + ": \"\"\n";
+    }
 };
 
 class ObjectConfigurator : public Configurator
@@ -391,7 +426,7 @@ class ObjectConfigurator : public Configurator
     Configurable *object_;
 
   public:
-    ObjectConfigurator(const std::string &element, const std::string &type, Configurator *parent=NULL) : Configurator(element, parent), type_(type), object_(NULL) { }
+    ObjectConfigurator(const std::string &element, const std::string &type, Configurator *parent=NULL, bool provided=false) : Configurator(element, parent, provided), type_(type), object_(NULL) { }
     virtual ~ObjectConfigurator();
     
     void attach(Configurable *object)
@@ -420,6 +455,12 @@ class ObjectConfigurator : public Configurator
     virtual ObjectConfigurator *instantiate(Configurator *parent=NULL) const;
     virtual bool validate(const CRP &crp) const;
     virtual void reconfigure(const Configuration &config, bool recursive=false);
+    virtual std::string yaml(size_t depth=0) const
+    {
+      return Configurator::yaml(depth) + 
+             std::string(2*depth+2, ' ') + "type: " + type_ + "\n";
+             
+    }
 };
 
 Configurator *loadYAML(const std::string &file, const std::string &element=std::string(), Configurator *parent=NULL);
@@ -447,6 +488,8 @@ class Configurable
         safe_delete(&configurator_);
       }
     }
+    
+    const ObjectConfigurator *configurator() { return configurator_; }
     
     void attach(ObjectConfigurator *configurator)
     {

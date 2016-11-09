@@ -101,6 +101,14 @@ OnlineLearningExperiment *OnlineLearningExperiment::clone() const
 void OnlineLearningExperiment::run()
 {
   std::ofstream ofs;
+  
+  // Store configuration with output
+  if (!output_.empty())
+  {
+    ofs.open(output_ + ".yaml");
+    ofs << configurator()->root()->yaml();
+    ofs.close();
+  }
 
   for (size_t rr=0; rr < runs_; ++rr)
   {

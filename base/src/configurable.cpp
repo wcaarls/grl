@@ -311,6 +311,9 @@ Configurator *ParameterConfigurator::find(const std::string &path)
 
 ParameterConfigurator *ParameterConfigurator::instantiate(Configurator *parent) const
 {
+  if (provided_)
+    throw Exception(path() + ": tried to instantiate a provided parameter");
+
   if (!parent)
     parent = parent_;
 
@@ -447,6 +450,9 @@ ObjectConfigurator::~ObjectConfigurator()
 
 ObjectConfigurator* ObjectConfigurator::instantiate(Configurator *parent) const
 {
+  if (provided_)
+    throw Exception(path() + ": tried to instantiate a provided object");
+
   if (!parent)
     parent = parent_;
     
@@ -532,11 +538,11 @@ ObjectConfigurator* ObjectConfigurator::instantiate(Configurator *parent) const
     
       if (type == "int" || type == "double" || type == "vector" || type == "string")
       {
-        new ParameterConfigurator(key, config[key].str(), oc);
+        new ParameterConfigurator(key, config[key].str(), oc, true);
       }
       else
       {
-        ObjectConfigurator *nc = new ObjectConfigurator(key, request[ii].type, oc);
+        ObjectConfigurator *nc = new ObjectConfigurator(key, request[ii].type, oc, true);
         nc->attach((Configurable*)config[key].ptr());
       }
     }
