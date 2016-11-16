@@ -64,5 +64,5 @@ experiment:
       sampler: 
         type: sampler/greedy
         rand_max: 0
-  load_file: leo_ou_test_leosim_sarsa_walk_greedy-mp2-run0
+  load_file: leo_ou_test_leosim_sarsa_walk_greedy-mp0-run0
   save_every: never

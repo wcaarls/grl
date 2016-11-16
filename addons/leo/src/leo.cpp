@@ -148,6 +148,7 @@ LeoBaseEnvironment::LeoBaseEnvironment() :
   time0_(0),
   test_(0),
   exporter_(NULL),
+  transition_type_(NULL),
   bh_(NULL)
 {
 }
@@ -252,7 +253,8 @@ void LeoBaseEnvironment::step(double tau, double reward, int terminal)
   {
     // transition type
     Vector tt;
-    transition_type_->get(&tt);
+    if (transition_type_)
+      transition_type_->get(&tt);
 
     std::vector<double> s0(bh_->getPreviousSTGState()->mJointAngles, bh_->getPreviousSTGState()->mJointAngles + ljNumJoints);
     std::vector<double> v0(bh_->getPreviousSTGState()->mJointSpeeds, bh_->getPreviousSTGState()->mJointSpeeds + ljNumJoints);

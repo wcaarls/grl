@@ -30,7 +30,7 @@
 using namespace grl;
 
 REGISTER_CONFIGURABLE(OrnsteinUhlenbeckSampler)
-REGISTER_CONFIGURABLE(OrnsteinUhlenbeckSampler2)
+REGISTER_CONFIGURABLE(ACOrnsteinUhlenbeckSampler)
 REGISTER_CONFIGURABLE(EpsilonOrnsteinUhlenbeckSampler)
 REGISTER_CONFIGURABLE(PadaOrnsteinUhlenbeckSampler)
 
@@ -59,11 +59,6 @@ void OrnsteinUhlenbeckSampler::configure(Configuration &config)
   if (theta_.size() != sigma_.size() || sigma_.size() != center_.size() || center_.size() == 0)
     throw bad_param("sampler/ornstein_ohlenbeck:{theta,sigma,center}");
 
-  IndexVector center_idx_v;
-  center_idx_v.resize(center_.size());
-  discretizer_->discretize(center_, &center_idx_v);
-  state_idx_ = discretizer_->convert(center_idx_v);
-
   env_event_ = (Signal*)config["contact_signal"].ptr();
 }
 
@@ -79,7 +74,99 @@ OrnsteinUhlenbeckSampler *OrnsteinUhlenbeckSampler::clone()
   return egs;
 }
 
+void OrnsteinUhlenbeckSampler::env_event_processor() const
+{
+  Vector data;
+  env_event_->get(&data);
+
+  // Calculate noise
+  if (data.size())
+  {
+    // start function (sig[5] == 1) => noise is zero
+    if (data[5])
+      noise_ = center_;
+
+    // mirror if needed
+    if (data[0])
+    {
+      int hipright, hipleft, kneeleft;
+      hipright = data[2];
+      hipleft  = data[3];
+      kneeleft = data[4];
+      TRACE(noise_);
+      double tmp = noise_[hipright];
+      noise_[hipright] = noise_[hipleft];
+      noise_[hipleft] = tmp;
+      noise_[kneeleft] = 0;
+      TRACE(noise_);
+    }
+  }
+}
+
+void OrnsteinUhlenbeckSampler::evolve_noise() const
+{
+  TRACE(noise_);
+  for (int i = 0; i < noise_.size(); i++)
+    noise_[i] = noise_[i] + theta_[i] * (center_[i] - noise_[i])+ sigma_[i] * rand_->getNormal(0, 1);
+  TRACE(noise_);
+}
+
+void OrnsteinUhlenbeckSampler::mix_signal_noise(const Vector &in, const Vector &noise, IndexVector &out) const
+{
+  // convert array index to values
+  TRACE(in);
+  Vector vec = in + 10.7*noise;
+  TRACE(vec);
+
+  // find nearest discretized sample (min-max bounds preserved automatically)
+  discretizer_->discretize(vec, &out);
+  TRACE(vec);
+  TRACE(out);
+}
+
 size_t OrnsteinUhlenbeckSampler::sample(const Vector &values, TransitionType &tt) const
+{
+  // Greedy action selection
+  size_t idx = GreedySampler::sample(values, tt);
+  TRACE(state_variants_[idx]);
+
+  // Supress noise at the start of an episode and beginning of the step (?)
+  env_event_processor();
+  TRACE(noise_);
+
+  // add noise to to signal
+  evolve_noise();
+  IndexVector state_idx_v;
+  state_idx_v.resize(noise_.size());
+  mix_signal_noise(state_variants_[idx], noise_, state_idx_v);
+
+  // find value index of the sample and keep it for nex run
+  idx = discretizer_->convert(state_idx_v);
+
+  tt = ttExploratory;
+  return idx;
+}
+
+//////////////////////////////////////////////////////////
+
+void ACOrnsteinUhlenbeckSampler::configure(Configuration &config)
+{
+  OrnsteinUhlenbeckSampler::configure(config);
+
+  IndexVector center_idx_v;
+  center_idx_v.resize(center_.size());
+  discretizer_->discretize(center_, &center_idx_v);
+  state_idx_ = discretizer_->convert(center_idx_v);
+}
+
+ACOrnsteinUhlenbeckSampler *ACOrnsteinUhlenbeckSampler::clone()
+{
+  ACOrnsteinUhlenbeckSampler *egs = new ACOrnsteinUhlenbeckSampler(*this);
+  egs->rand_ = rand_->clone();
+  return egs;
+}
+
+size_t ACOrnsteinUhlenbeckSampler::sample(const Vector &values, TransitionType &tt) const
 {
   Vector data;
   env_event_->get(&data);
@@ -131,99 +218,17 @@ size_t OrnsteinUhlenbeckSampler::sample(const Vector &values, TransitionType &tt
   return state_idx_;
 }
 
-/////////////////////////////
-
-OrnsteinUhlenbeckSampler2 *OrnsteinUhlenbeckSampler2::clone()
-{
-  OrnsteinUhlenbeckSampler2 *egs = new OrnsteinUhlenbeckSampler2(*this);
-  egs->rand_ = rand_->clone();
-  return egs;
-}
-
-void OrnsteinUhlenbeckSampler2::env_event_processor() const
-{
-  Vector data;
-  env_event_->get(&data);
-
-  // Calculate noise
-  if (data.size())
-  {
-    // start function (sig[5] == 1) => noise is zero
-    if (data[5])
-      noise_ = center_;
-
-    // mirror if needed
-    if (data[0])
-    {
-      int hipright, hipleft, kneeleft;
-      hipright = data[2];
-      hipleft  = data[3];
-      kneeleft = data[4];
-      TRACE(noise_);
-      double tmp = noise_[hipright];
-      noise_[hipright] = noise_[hipleft];
-      noise_[hipleft] = tmp;
-      noise_[kneeleft] = 0;
-      TRACE(noise_);
-    }
-  }
-}
-
-void OrnsteinUhlenbeckSampler2::evolve_noise() const
-{
-  TRACE(noise_);
-  for (int i = 0; i < noise_.size(); i++)
-    noise_[i] = noise_[i] + theta_[i] * (center_[i] - noise_[i])+ sigma_[i] * rand_->getNormal(0, 1);
-  TRACE(noise_);
-}
-
-void OrnsteinUhlenbeckSampler2::mix_signal_noise(const Vector &in, const Vector &noise, IndexVector &out) const
-{
-  // convert array index to values
-  TRACE(in);
-  Vector vec = in + 10.7*noise;
-  TRACE(vec);
-
-  // find nearest discretized sample (min-max bounds preserved automatically)
-  discretizer_->discretize(vec, &out);
-  TRACE(vec);
-  TRACE(out);
-}
-
-size_t OrnsteinUhlenbeckSampler2::sample(const Vector &values, TransitionType &tt) const
-{
-  // Greedy action selection
-  size_t idx = GreedySampler::sample(values, tt);
-  TRACE(state_variants_[idx]);
-
-  // Supress noise at the start of an episode and beginning of the step (?)
-  env_event_processor();
-  TRACE(noise_);
-
-  // add noise to to signal
-  evolve_noise();
-  IndexVector state_idx_v;
-  state_idx_v.resize(noise_.size());
-  mix_signal_noise(state_variants_[idx], noise_, state_idx_v);
-
-  // find value index of the sample and keep it for nex run
-  idx = discretizer_->convert(state_idx_v);
-
-  tt = ttExploratory;
-  return idx;
-}
-
-////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////
 
 void EpsilonOrnsteinUhlenbeckSampler::request(ConfigurationRequest *config)
 {
-  OrnsteinUhlenbeckSampler2::request(config);
+  OrnsteinUhlenbeckSampler::request(config);
   config->push_back(CRP("epsilon", "Exploration rate", epsilon_, CRP::Online));
 }
 
 void EpsilonOrnsteinUhlenbeckSampler::configure(Configuration &config)
 {
-  OrnsteinUhlenbeckSampler2::configure(config);
+  OrnsteinUhlenbeckSampler::configure(config);
   epsilon_ = config["epsilon"];
 }
 
@@ -268,17 +273,17 @@ size_t EpsilonOrnsteinUhlenbeckSampler::sample(const Vector &values, TransitionT
   return idx;
 }
 
-///////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////
 
 void PadaOrnsteinUhlenbeckSampler::request(ConfigurationRequest *config)
 {
-  OrnsteinUhlenbeckSampler2::request(config);
+  OrnsteinUhlenbeckSampler::request(config);
   pada_.request(config);
 }
 
 void PadaOrnsteinUhlenbeckSampler::configure(Configuration &config)
 {
-  OrnsteinUhlenbeckSampler2::configure(config);
+  OrnsteinUhlenbeckSampler::configure(config);
   pada_.configure(config);
 
   int state_dims = discretizer_->steps().size();

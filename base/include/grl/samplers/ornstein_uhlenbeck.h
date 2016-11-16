@@ -46,11 +46,11 @@ class OrnsteinUhlenbeckSampler : public EpsilonGreedySampler
     TYPEINFO("sampler/ornstein_ohlenbeck", "Maximum search with an Ornstein-Uhlenbeck random chance of non-maximums")
 
   protected:
+    mutable Vector noise_;
     Signal *env_event_;
+    Vector theta_, sigma_, center_;
     Discretizer *discretizer_;
     std::vector<Vector> state_variants_;
-    Vector theta_, sigma_, center_;
-    mutable size_t state_idx_;
 
   public:
     OrnsteinUhlenbeckSampler() { }
@@ -63,22 +63,6 @@ class OrnsteinUhlenbeckSampler : public EpsilonGreedySampler
     // From Sampler
     virtual OrnsteinUhlenbeckSampler *clone();
     virtual size_t sample(const Vector &values, TransitionType &tt) const;
-};
-
-class OrnsteinUhlenbeckSampler2 : public OrnsteinUhlenbeckSampler
-{
-  public:
-    TYPEINFO("sampler/ornstein_ohlenbeck2", "Maximum search with an Ornstein-Uhlenbeck random chance of non-maximums")
-
-  protected:
-    mutable Vector noise_;
-
-  public:
-    OrnsteinUhlenbeckSampler2() { }
-
-    // From Sampler
-    virtual OrnsteinUhlenbeckSampler2 *clone();
-    virtual size_t sample(const Vector &values, TransitionType &tt) const;
 
   protected:
     virtual void env_event_processor() const;
@@ -86,7 +70,28 @@ class OrnsteinUhlenbeckSampler2 : public OrnsteinUhlenbeckSampler
     virtual void mix_signal_noise(const Vector &in, const Vector &noise, IndexVector &out) const;
 };
 
-class EpsilonOrnsteinUhlenbeckSampler : public OrnsteinUhlenbeckSampler2
+
+class ACOrnsteinUhlenbeckSampler : public OrnsteinUhlenbeckSampler
+{
+  public:
+    TYPEINFO("sampler/ac_ornstein_ohlenbeck", "Action-correlated maximum search with an Ornstein-Uhlenbeck random chance of non-maximums")
+
+  protected:
+    mutable size_t state_idx_;
+
+  public:
+    ACOrnsteinUhlenbeckSampler() { }
+
+    // From Configurable
+    virtual void configure(Configuration &config);
+
+    // From Sampler
+    virtual ACOrnsteinUhlenbeckSampler *clone();
+    virtual size_t sample(const Vector &values, TransitionType &tt) const;
+};
+
+
+class EpsilonOrnsteinUhlenbeckSampler : public OrnsteinUhlenbeckSampler
 {
   public:
     TYPEINFO("sampler/epsilon_ornstein_ohlenbeck", "Exploitations are done by greedy action selection without constraints, as in e-greedy. Explorations are done with time-correlated noise, as it is in ou.")
@@ -106,7 +111,7 @@ class EpsilonOrnsteinUhlenbeckSampler : public OrnsteinUhlenbeckSampler2
     virtual size_t sample(const Vector &values, TransitionType &tt) const;
 };
 
-class PadaOrnsteinUhlenbeckSampler : public OrnsteinUhlenbeckSampler2
+class PadaOrnsteinUhlenbeckSampler : public OrnsteinUhlenbeckSampler
 {
   public:
     TYPEINFO("sampler/pada_ornstein_ohlenbeck", "Exploitations and exploitations are same as ou, but action is selected from a constrained set, as in pada. ")

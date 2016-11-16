@@ -1,11 +1,11 @@
 experiment: 
   type: experiment/online_learning
-  runs: 1
-  trials: 0
+  runs: 5
+  trials: 1
   steps: 0
-  rate: 10
+  rate: 0
   test_interval: 0
-  output: leosim_sarsa_walk_ou
+  output: leosim_sarsa_walk_ou_play
   environment: 
     type: environment/leo_walk
     xml: ../../leo/cfg/leo_walk.xml
@@ -16,6 +16,11 @@ experiment:
       visualize: 1
     observe: torso_boom, hipright, hipleft, kneeright, kneeleft
     actuate: hipright, hipleft, kneeleft
+    exporter: 
+      type: exporter/csv
+      file: leosim_sarsa_walk_ou_play
+      style: meshup
+      variant: all
     observation_dims: experiment/environment/target_env/observation_dims
     action_dims: experiment/environment/target_env/action_dims
     contact_signal: 
@@ -49,8 +54,8 @@ experiment:
         rand_max: 0
         epsilon: 0.05
         discretizer: experiment/agent/policy/discretizer
-        theta: [0.1, 0.1, 0.1]
-        sigma: [2.0, 2.0, 2.0]
+        theta: [0.001, 0.001, 0.001]
+        sigma: [0.02, 0.02, 0.02]
         center: [0.0, 0.0, 0.0]
         contact_signal: experiment/environment/contact_signal
     predictor: 
@@ -72,5 +77,5 @@ experiment:
       sampler: 
         type: sampler/greedy
         rand_max: 0
-  load_file: leo_ou_test_leosim_sarsa_walk_ou-mp3-run0
+  load_file: leo_ou_test_leosim_sarsa_walk_ou-mp$run-run0
   save_every: never

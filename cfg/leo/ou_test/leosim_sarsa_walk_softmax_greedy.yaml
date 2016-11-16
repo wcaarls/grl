@@ -5,7 +5,7 @@ experiment:
   steps: 1000000
   rate: 0
   test_interval: 10
-  output: leosim_sarsa_walk_softmax_test
+  output: leosim_sarsa_walk_softmax_greedy
   environment: 
     type: environment/leo_walk
     xml: ../../leo/cfg/leo_walk.xml

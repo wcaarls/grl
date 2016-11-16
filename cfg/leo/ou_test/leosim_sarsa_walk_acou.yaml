@@ -5,7 +5,7 @@ experiment:
   steps: 1000000
   rate: 0
   test_interval: 10
-  output: leosim_sarsa_walk_ou2
+  output: leosim_sarsa_walk_acou
   environment: 
     type: environment/leo_walk
     xml: ../../leo/cfg/leo_walk.xml
@@ -18,7 +18,7 @@ experiment:
     actuate: hipright, hipleft, kneeleft
     exporter: 
       type: exporter/csv
-      file: leosim_sarsa_walk_ou2
+      file: leosim_sarsa_walk_acou
       style: meshup
       variant: all
     observation_dims: experiment/environment/target_env/observation_dims
@@ -52,12 +52,12 @@ experiment:
         output_min: []
         output_max: []
       sampler: 
-        type: sampler/ornstein_ohlenbeck2
+        type: sampler/ac_ornstein_ohlenbeck
         rand_max: 0
         epsilon: 0.05
         discretizer: experiment/agent/policy/discretizer
-        theta: [0.001, 0.001, 0.001]
-        sigma: [0.02, 0.02, 0.02]
+        theta: [0.1, 0.1, 0.1]
+        sigma: [2.0, 2.0, 2.0]
         center: [0.0, 0.0, 0.0]
         contact_signal: experiment/environment/contact_signal
     predictor: 
