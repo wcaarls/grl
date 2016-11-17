@@ -111,8 +111,8 @@ class CLeoBhWalkSym: public CSTGAgentQLeo
 
     CLeoBhWalkSym(ISTGActuation *actuationInterface);
 
-    virtual bool    readConfig(const CConfigSection &xmlRoot);
-    virtual double  calculateReward();
+    bool            readConfig(const CConfigSection &xmlRoot);
+    double          calculateReward();
     bool            isDoomedToFall(CLeoState* state, bool report);
     std::string     getProgressReport(double trialTime);
 };

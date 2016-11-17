@@ -146,7 +146,7 @@ agent/master/sequential:
     type: exporter
     description: Optional exporter for transition log (supports time, state, observation, action, reward, terminal)
     mutability: configuration
-    default: 0x16669d0
+    default: 0x9b0750
     optional: 1
 agent/master/sequential/additive:
   description: Additive master agent that executes sub-agents sequentially and adds their outputs
@@ -264,6 +264,10 @@ agent/td:
     mutability: configuration
     default: 0
     optional: 1
+behavior/leo_switching_squat:
+  description: Leo squatting behavior with symmetrical switchers of observations
+behavior/leo_switching_walk:
+  description: Leo walking behavior with symmetrical switchers of observations
 communicator/zeromq:
   description: A zeromq class capable to establish a link by events and send messages asynchronously (publisher/subscriber)
   pub:
@@ -424,6 +428,12 @@ environment/communicator:
     max: 2147483647
 environment/leo_squat:
   description: Leo squatting environment
+  behavior:
+    type: behavior
+    description: Behavior type
+    mutability: configuration
+    default: 0
+    optional: 0
   xml:
     type: string
     description: XML configuration filename
@@ -478,6 +488,12 @@ environment/leo_squat:
     optional: 1
 environment/leo_walk:
   description: Leo walking environment
+  behavior:
+    type: behavior
+    description: Behavior type
+    mutability: configuration
+    default: 0
+    optional: 0
   xml:
     type: string
     description: XML configuration filename
@@ -512,7 +528,7 @@ environment/leo_walk:
     type: int.observation_dims
     description: Number of observation dimensions
     mutability: configuration
-    default: 0
+    default: 1600706488
     optional: 1
     min: 0
     max: 2147483647
@@ -520,7 +536,7 @@ environment/leo_walk:
     type: int.action_dims
     description: Number of action dimensions
     mutability: configuration
-    default: 0
+    default: 32684
     optional: 1
     min: 0
     max: 2147483647
@@ -1173,26 +1189,6 @@ policy/action:
     mutability: configuration
     default: "[  ]"
     optional: 1
-  use_ou:
-    type: int
-    description: Use Ornstein-Uhlenbeck process
-    mutability: configuration
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
-  theta:
-    type: vector
-    description: Theta parameter of Ornstein-Uhlenbeck
-    mutability: configuration
-    default: "[  ]"
-    optional: 1
-  center:
-    type: vector
-    description: Centering parameter of Ornstein-Uhlenbeck
-    mutability: configuration
-    default: "[  ]"
-    optional: 1
   output_min:
     type: vector.action_min
     description: Lower limit on outputs
@@ -1222,26 +1218,6 @@ policy/action/advised:
   sigma:
     type: vector
     description: Standard deviation of exploration distribution
-    mutability: configuration
-    default: "[  ]"
-    optional: 1
-  use_ou:
-    type: int
-    description: Use Ornstein-Uhlenbeck process
-    mutability: configuration
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
-  theta:
-    type: vector
-    description: Theta parameter of Ornstein-Uhlenbeck
-    mutability: configuration
-    default: "[  ]"
-    optional: 1
-  center:
-    type: vector
-    description: Centering parameter of Ornstein-Uhlenbeck
     mutability: configuration
     default: "[  ]"
     optional: 1
@@ -2988,7 +2964,7 @@ sampler/ac_ornstein_ohlenbeck:
     type: discretizer.action
     description: Action discretizer
     mutability: configuration
-    default: 0x7fffab29d3c0
+    default: 0x7ffdeff81120
     optional: 0
   theta:
     type: vector
@@ -3054,7 +3030,7 @@ sampler/epsilon_ornstein_ohlenbeck:
     type: discretizer.action
     description: Action discretizer
     mutability: configuration
-    default: 0x3ff0000000000000
+    default: 0x105a7e0
     optional: 0
   theta:
     type: vector
@@ -3078,7 +3054,7 @@ sampler/epsilon_ornstein_ohlenbeck:
     type: signal
     description: Signal
     mutability: configuration
-    default: 0x1
+    default: 0x105a510
     optional: 1
 sampler/epsilon_pada:
   description: exploitations are done by greedy action selection without constraints, as in e-greedy. Explorations are done with constrained set of actions, as it is in pada.
@@ -3148,7 +3124,7 @@ sampler/ornstein_ohlenbeck:
     type: discretizer.action
     description: Action discretizer
     mutability: configuration
-    default: 0
+    default: 0x1095450
     optional: 0
   theta:
     type: vector
@@ -3172,7 +3148,7 @@ sampler/ornstein_ohlenbeck:
     type: signal
     description: Signal
     mutability: configuration
-    default: 0
+    default: 0x1095180
     optional: 1
 sampler/pada:
   description: Maximum search with a PADA random chance of non-maximums
@@ -3256,7 +3232,7 @@ sampler/pada_ornstein_ohlenbeck:
     type: signal
     description: Signal
     mutability: configuration
-    default: 0x1d5b828
+    default: 0x1095d28
     optional: 1
   delta:
     type: vector

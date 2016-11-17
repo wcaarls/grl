@@ -58,7 +58,7 @@ class TDAgent : public Agent
     Signal *transition_type_;
 
   public:
-    TDAgent() : policy_(NULL), predictor_(NULL) { }
+    TDAgent() : policy_(NULL), predictor_(NULL), transition_type_(NULL) { }
   
     // From Configurable    
     virtual void request(ConfigurationRequest *config);

@@ -71,7 +71,8 @@ void TDAgent::start(const Vector &obs, Vector *action)
   
   state->prev_obs = obs;
   state->prev_action = *action;
-  transition_type_->set(VectorConstructor((double)tt));
+  if (transition_type_)
+    transition_type_->set(VectorConstructor((double)tt));
 }
 
 void TDAgent::step(double tau, const Vector &obs, double reward, Vector *action)
@@ -85,7 +86,8 @@ void TDAgent::step(double tau, const Vector &obs, double reward, Vector *action)
 
   state->prev_obs = obs;
   state->prev_action = *action;
-  transition_type_->set(VectorConstructor((double)tt));
+  if (transition_type_)
+    transition_type_->set(VectorConstructor((double)tt));
 }
 
 void TDAgent::end(double tau, const Vector &obs, double reward)

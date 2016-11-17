@@ -4,7 +4,7 @@
 
 using namespace grl;
 
-void CLeoBhBase::resetState()
+void CLeoBhBase::resetState(double time0)
 {
   mIsObserving          = false;
   mLastRewardedFoot     = lpFootLeft;
@@ -155,6 +155,8 @@ LeoBaseEnvironment::LeoBaseEnvironment() :
 
 void LeoBaseEnvironment::request(ConfigurationRequest *config)
 {
+  config->push_back(CRP("behavior", "behavior", "Behavior type", bh_));
+
   config->push_back(CRP("xml", "XML configuration filename", xml_));
   config->push_back(CRP("target_env", "environment", "Interaction environment", target_env_));
   config->push_back(CRP("observe", "string.observe", "Comma-separated list of state elements observed by an agent"));
@@ -169,6 +171,7 @@ void LeoBaseEnvironment::request(ConfigurationRequest *config)
 
 void LeoBaseEnvironment::configure(Configuration &config)
 {
+  bh_ = (CLeoBhBase*)config["behavior"].ptr();
   transition_type_ = (Signal*)config["transition_type"].ptr();
 
   // Setup path to a configuration file
@@ -197,7 +200,7 @@ void LeoBaseEnvironment::configure(Configuration &config)
 
   // Resolve expressions
   xmlConfig.resolveExpressions();
-  
+
   // Read rewards and preprogrammed angles
   bh_->readConfig(xmlConfig.root());
 
@@ -233,7 +236,7 @@ LeoBaseEnvironment *LeoBaseEnvironment::clone() const
 void LeoBaseEnvironment::start(int test)
 {
   test_ = test;
-  bh_->resetState();
+  bh_->resetState(0);
 
   if (exporter_)
     exporter_->open((test_?"test":"learn"), (test_?time_test_:time_learn_) != 0.0);
@@ -294,7 +297,7 @@ void LeoBaseEnvironment::configParseObservations(Configuration &config, const st
   const std::vector<std::string> observeList = cutLongStr( config["observe"].str() );
   std::vector<std::string> observe;
   fillObserve(sensors, observeList, observe);
-  EnvironmentAgentInterface::ObserverInterface observer;
+  TargetInterface::ObserverInterface observer;
   fillObserver(observe, observer);
   observation_dims_ = observe.size();
 
@@ -309,7 +312,7 @@ void LeoBaseEnvironment::configParseObservations(Configuration &config, const st
     if (idx != std::string::npos)
       observe_sym[i].replace(idx, 4, "right");
   }
-  EnvironmentAgentInterface::ObserverInterface observer_sym;
+  TargetInterface::ObserverInterface observer_sym;
   fillObserver(observe_sym, observer_sym);
 
   // mask observation min/max vectors
@@ -353,7 +356,7 @@ int LeoBaseEnvironment::findVarIdx(const std::vector<CGenericStateVar> &genericS
   return -1;
 }
 
-void LeoBaseEnvironment::fillObserver(const std::vector<std::string> &observer_names, EnvironmentAgentInterface::ObserverInterface &observer_interface) const
+void LeoBaseEnvironment::fillObserver(const std::vector<std::string> &observer_names, TargetInterface::ObserverInterface &observer_interface) const
 {
   for (int i = 0; i < observer_names.size(); i++)
   {
@@ -378,7 +381,7 @@ void LeoBaseEnvironment::fillObserver(const std::vector<std::string> &observer_n
 
 void LeoBaseEnvironment::configParseActions(Configuration &config, const std::vector<CGenericActionVar> &actuators)
 {
-  EnvironmentAgentInterface::ActuatorInterface actuator_interface;
+  TargetInterface::ActuatorInterface actuator_interface;
   std::vector<std::string> actuateList = cutLongStr(config["actuate"].str());
   fillActuate(actuators, actuateList, actuator_interface);
   TRACE("Actuate '" << actuator_interface.actions << "'"); // array which maps target_environment action vector to an agent action vector
@@ -462,7 +465,7 @@ void LeoBaseEnvironment::fillObserve(const std::vector<CGenericStateVar> &generi
 
 void LeoBaseEnvironment::fillActuate(const std::vector<CGenericActionVar> &genericAction,
                                      const std::vector<std::string> &actuateList,
-                                     EnvironmentAgentInterface::ActuatorInterface &out,
+                                     TargetInterface::ActuatorInterface &out,
                                      const std::string *req,
                                      std::vector<int>  *reqIdx) const
 {

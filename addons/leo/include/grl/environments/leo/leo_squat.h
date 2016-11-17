@@ -14,9 +14,16 @@ namespace grl
 class CLeoBhSquat: public CLeoBhBase
 {
   public:
-    CLeoBhSquat(ISTGActuation *actuationInterface) :
-      CLeoBhBase(actuationInterface), direction_(-1), prev_direction_(-1), squat_counter_(0), time_of_dir_change_(0),
+    TYPEINFO("behavior/leo_switching_squat", "Leo squatting behavior with symmetrical switchers of observations")
+
+//    CLeoBhSquat(ISTGActuation *actuationInterface) :
+//      CLeoBhBase(actuationInterface), direction_(-1), prev_direction_(-1), squat_counter_(0), time_of_dir_change_(0),
+//      min_hip_height_(0), max_hip_height_(0) {}
+
+    CLeoBhSquat() :
+      direction_(-1), prev_direction_(-1), squat_counter_(0), time_of_dir_change_(0),
       min_hip_height_(0), max_hip_height_(0) {}
+
     void resetState(double time0);
     double calculateReward();
     void parseLeoState(const CLeoState &leoState, Vector &obs);
@@ -62,7 +69,7 @@ class LeoSquatEnvironment: public LeoBaseEnvironment
     virtual void report(std::ostream &os) const;
 
   protected:
-    CLeoBhSquat *bh_;
+    //CLeoBhSquat *bh_;
     double      com_[3];
 
 };

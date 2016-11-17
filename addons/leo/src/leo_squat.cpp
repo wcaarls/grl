@@ -3,6 +3,7 @@
 
 using namespace grl;
 
+REGISTER_CONFIGURABLE(CLeoBhSquat)
 REGISTER_CONFIGURABLE(LeoSquatEnvironment)
 
 const double T = 0.36;
@@ -10,7 +11,7 @@ const double B = 0.28;
 
 void CLeoBhSquat::resetState(double time0)
 {
-  CLeoBhBase::resetState();
+  CLeoBhBase::resetState(time0);
 
   getHipHeight(getCurrentSTGState()->mJointAngles, hip_height_, hip_pos_);
 
@@ -328,8 +329,8 @@ std::string CLeoBhSquat::getProgressReport(double trialTime)
 
 LeoSquatEnvironment::LeoSquatEnvironment()
 {
-  bh_ = new CLeoBhSquat(&leoSim_);
-  set_bh(bh_);
+//  bh_ = new CLeoBhSquat(&leoSim_);
+//  set_bh(bh_);
 }
 
 void LeoSquatEnvironment::request(ConfigurationRequest *config)
@@ -342,7 +343,7 @@ void LeoSquatEnvironment::configure(Configuration &config)
   LeoBaseEnvironment::configure(config);
 
   // Augmenting state with a direction indicator variable: sit down or stand up
-  const EnvironmentAgentInterface &interface = bh_->getInterface();
+  const TargetInterface &interface = bh_->getInterface();
   Vector obs_min = config["observation_min"].v();
   Vector obs_max = config["observation_max"].v();
 
@@ -395,7 +396,7 @@ void LeoSquatEnvironment::start(int test, Vector *obs)
   // construct new obs from CLeoState
   obs->resize(observation_dims_);
   bh_->parseLeoState(leoState_, *obs);
-  bh_->updateDirection(test_?time_test_:time_learn_);
+  dynamic_cast<CLeoBhSquat*>(bh_)->updateDirection(test_?time_test_:time_learn_);
 
   bh_->setCurrentSTGState(NULL);
 }
@@ -442,7 +443,7 @@ double LeoSquatEnvironment::step(const Vector &action, Vector *obs, double *rewa
   LeoBaseEnvironment::step(tau, *reward, *terminal);
 
   // Update hip observations and squatting direction before the next timestep
-  bh_->updateDirection(test_?time_test_:time_learn_);
+  dynamic_cast<CLeoBhSquat*>(bh_)->updateDirection(test_?time_test_:time_learn_);
 
   return tau;
 }

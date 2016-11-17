@@ -8,6 +8,8 @@ experiment:
   output: leosim_sarsa_walk_ou
   environment: 
     type: environment/leo_walk
+    behavior: 
+      type: behavior/leo_switching_walk
     xml: ../../leo/cfg/leo_walk.xml
     target_env: 
       type: environment/ode

@@ -3,6 +3,8 @@
 
 using namespace grl;
 
+REGISTER_CONFIGURABLE(CLeoBhWalk)
+//REGISTER_CONFIGURABLE(CLeoBhWalkNoSwitch)
 REGISTER_CONFIGURABLE(LeoWalkEnvironment)
 
 double CLeoBhWalk::calculateReward()
@@ -13,7 +15,7 @@ double CLeoBhWalk::calculateReward()
 
 void CLeoBhWalk::parseLeoState(const CLeoState &leoState, Vector &obs)
 {
-  EnvironmentAgentInterface::ObserverInterface *observer;
+  TargetInterface::ObserverInterface *observer;
 
   if (stanceLegLeft())
     observer = &(interface_.observer);
@@ -123,8 +125,6 @@ std::string CLeoBhWalk::getProgressReport(double trialTime)
 LeoWalkEnvironment::LeoWalkEnvironment()
   : mirror_sig_(NULL)
 {
-  bh_ = new CLeoBhWalk(&leoSim_);
-  set_bh(bh_);
 }
 
 void LeoWalkEnvironment::request(ConfigurationRequest *config)
@@ -139,7 +139,7 @@ void LeoWalkEnvironment::configure(Configuration &config)
   mirror_sig_ = (Signal*)config["contact_signal"].ptr();
 
   // Augmenting state with a direction indicator variable: sit down or stand up
-  const EnvironmentAgentInterface &interface = bh_->getInterface();
+  const TargetInterface &interface = bh_->getInterface();
   Vector obs_min = config["observation_min"].v();
   Vector obs_max = config["observation_max"].v();
 
@@ -187,7 +187,7 @@ void LeoWalkEnvironment::start(int test, Vector *obs)
   bh_->fillLeoState(target_obs_, Vector(), leoState_);
   bh_->setCurrentSTGState(&leoState_);
   bh_->setPreviousSTGState(&leoState_);
-  bh_->resetState();
+  bh_->resetState(0);
 
   // update derived state variables
   bh_->updateDerivedStateVars(&leoState_); // swing-stance switching happens here

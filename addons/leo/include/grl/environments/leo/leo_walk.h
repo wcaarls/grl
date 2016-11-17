@@ -15,13 +15,27 @@ namespace grl
 class CLeoBhWalk: public CLeoBhBase
 {
   public:
-    CLeoBhWalk(ISTGActuation *actuationInterface) : CLeoBhBase(actuationInterface) {}
+    TYPEINFO("behavior/leo_switching_walk", "Leo walking behavior with symmetrical switchers of observations")
+
+    CLeoBhWalk() {}
     double calculateReward();
     void parseLeoState(const CLeoState &leoState, Vector &obs);
     void parseLeoAction(const Vector &action, Vector &target_action);
     std::string getProgressReport(double trialTime);
 };
+/*
+class CLeoBhWalkNoSwitch: public CLeoBhWalk
+{
+  public:
+    TYPEINFO("behavior/leo_walk", "Leo walking behavior without symmetrical switchers of observations")
 
+    CLeoBhWalkNoSwi//    CLeoBhWalk *bh_;
+tch() {}
+    CLeoBhWalkNoSwitch(ISTGActuation *actuationInterface) : CLeoBhWalk(actuationInterface) {}
+    void parseLeoState(const CLeoState &leoState, Vector &obs);
+    void parseLeoAction(const Vector &action, Vector &target_action);
+};
+*/
 /// Simulation of original Leo robot by Erik Schuitema.
 class LeoWalkEnvironment: public LeoBaseEnvironment
 {
@@ -45,8 +59,6 @@ class LeoWalkEnvironment: public LeoBaseEnvironment
     
   protected:
     int requested_action_dims_;
-    //int learn_stance_knee_;
-    CLeoBhWalk *bh_;
     Signal *mirror_sig_;
 };
 

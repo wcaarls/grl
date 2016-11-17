@@ -14,7 +14,7 @@ namespace grl
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
-struct EnvironmentAgentInterface
+struct TargetInterface
 {
   struct ObserverInterface
   {
@@ -34,7 +34,7 @@ struct EnvironmentAgentInterface
 };
 
 // Base classes for Leo
-class CLeoBhBase: public CLeoBhWalkSym
+class CLeoBhBase: public CLeoBhWalkSym, public Configurable
 {
   public:
     enum LeoStateVar
@@ -88,7 +88,7 @@ class CLeoBhBase: public CLeoBhWalkSym
     };
 
   public:
-    CLeoBhBase(ISTGActuation *actuationInterface) : CLeoBhWalkSym(actuationInterface) {}
+    CLeoBhBase() : CLeoBhWalkSym(&leoSim_) {}
 
     int getHipStance()   {return mHipStance;}
     int getHipSwing()    {return mHipSwing;}
@@ -99,14 +99,15 @@ class CLeoBhBase: public CLeoBhWalkSym
     bool stanceLegLeft() {return mLastStancelegWasLeft;}
 
   public:
-    void resetState();
+    void resetState(double time0);
 
-    void setObserverInterface(const EnvironmentAgentInterface::ObserverInterface oi, const EnvironmentAgentInterface::ObserverInterface oi_sym) { interface_.observer = oi; interface_.observer_sym = oi_sym; }
-    void setActuatorInterface(const EnvironmentAgentInterface::ActuatorInterface ai) { interface_.actuator = ai; }
-    const EnvironmentAgentInterface &getInterface() const { return interface_; }
+    void setObserverInterface(const TargetInterface::ObserverInterface oi, const TargetInterface::ObserverInterface oi_sym) { interface_.observer = oi; interface_.observer_sym = oi_sym; }
+    void setActuatorInterface(const TargetInterface::ActuatorInterface ai) { interface_.actuator = ai; }
+    const TargetInterface &getInterface() const { return interface_; }
 
     void fillLeoState(const Vector &obs, const Vector &action, CLeoState &leoState);
     void parseLeoState(const CLeoState &leoState, Vector &obs);
+    virtual void parseLeoAction(const Vector &action, Vector &target_action) = 0;
     void updateDerivedStateVars(CLeoState *currentSTGState);
     bool madeFootstep();
     void setCurrentSTGState(CLeoState *leoState);
@@ -136,7 +137,10 @@ class CLeoBhBase: public CLeoBhWalkSym
 
   protected:
     CButterworthFilter<1>	mJointSpeedFilter[ljNumJoints];
-    EnvironmentAgentInterface interface_;
+    TargetInterface interface_;
+
+  private:
+    CSTGLeoSim leoSim_;
 };
 
 /// Base class for simulated and real Leo
@@ -157,15 +161,13 @@ class LeoBaseEnvironment: public Environment
     virtual void start(int test);
     virtual void step(double tau, double reward, int terminal);
     virtual void report(std::ostream &os) const;
-
-    // Own
-    void set_bh(CLeoBhBase *bh) { bh_ = bh; }
     
   protected:
-    CSTGLeoSim leoSim_;
+    //CSTGLeoSim leoSim_;
     CLeoState leoState_;
     Environment *target_env_;
     std::string xml_;
+    CLeoBhBase *bh_;
 
     int observation_dims_, action_dims_;
     int target_observation_dims_, target_action_dims_;
@@ -177,7 +179,7 @@ class LeoBaseEnvironment: public Environment
     double time_test_, time_learn_, time0_;
 
   protected:
-    void fillObserver(const std::vector<std::string> &observed_names, EnvironmentAgentInterface::ObserverInterface &observer_interface) const;
+    void fillObserver(const std::vector<std::string> &observed_names, TargetInterface::ObserverInterface &observer_interface) const;
     int findVarIdx(const std::vector<CGenericStateVar> &genericStates, std::string query) const;
     void configParseObservations(Configuration &config, const std::vector<CGenericStateVar> &sensors);
     void configParseActions(Configuration &config, const std::vector<CGenericActionVar> &actuators);
@@ -188,12 +190,11 @@ class LeoBaseEnvironment: public Environment
 
     void fillActuate(const std::vector<CGenericActionVar> &genericAction,
                      const std::vector<std::string> &actuateList,
-                     EnvironmentAgentInterface::ActuatorInterface &out,
+                     TargetInterface::ActuatorInterface &out,
                      const std::string *req = NULL,
                      std::vector<int>  *reqIdx = NULL) const;
 
   private:
-    CLeoBhBase *bh_; // makes it invisible in derived classes
     Signal *transition_type_;
 };
 
