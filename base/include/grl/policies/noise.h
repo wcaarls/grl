@@ -43,6 +43,7 @@ class NoisePolicy : public Policy
     Policy *policy_;
     
     mutable Vector sigma_;
+    Vector theta_, n_;
 
   public:
     NoisePolicy() : policy_(NULL) { }
@@ -55,6 +56,7 @@ class NoisePolicy : public Policy
     // From Policy
     virtual NoisePolicy *clone() const;
     virtual void act(const Vector &in, Vector *out) const;
+    virtual void act(double time, const Vector &in, Vector *out);
 };
 
 }

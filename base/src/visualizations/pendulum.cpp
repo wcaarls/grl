@@ -33,7 +33,7 @@ REGISTER_CONFIGURABLE(PendulumVisualization)
 
 void PendulumVisualization::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("state", "state", "Pendulum state to visualize", state_));
+  config->push_back(CRP("state", "signal/vector", "Pendulum state to visualize", state_));
 }
 
 void PendulumVisualization::configure(Configuration &config)
@@ -41,7 +41,7 @@ void PendulumVisualization::configure(Configuration &config)
   if (!Visualizer::instance())
     throw Exception("visualization/pendulum requires a configured visualizer to run");
 
-  state_ = (State*)config["state"].ptr();
+  state_ = (VectorSignal*)config["state"].ptr();
 
   // Create window  
   create("Pendulum");

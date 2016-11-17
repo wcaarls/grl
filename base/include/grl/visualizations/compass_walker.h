@@ -28,7 +28,7 @@
 #ifndef GRL_COMPASS_WALKER_VISUALIZATION_H_
 #define GRL_COMPASS_WALKER_VISUALIZATION_H_
 
-#include <grl/state.h>
+#include <grl/signal.h>
 #include <grl/visualization.h>
 
 namespace grl
@@ -41,7 +41,7 @@ class CompassWalkerVisualization : public Visualization
     TYPEINFO("visualization/compass_walker", "Compass walker visualization")
 
   protected:
-    State *state_;
+    VectorSignal *state_;
   
   public:
     CompassWalkerVisualization() : state_(NULL) { }

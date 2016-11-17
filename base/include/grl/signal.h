@@ -1,8 +1,8 @@
-/** \file trajectory.h
- * \brief Transferrable trajectory object.
+/** \file signal.h
+ * \brief Inter-component signalling.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-10-16
+ * \date      2015-02-15
  *
  * \copyright \verbatim
  * Copyright (c) 2015, Wouter Caarls
@@ -25,8 +25,8 @@
  * \endverbatim
  */
 
-#ifndef GRL_TRAJECTORY_H_
-#define GRL_TRAJECTORY_H_
+#ifndef GRL_SIGNAL_H_
+#define GRL_SIGNAL_H_
 
 #include <itc/itc.h>
 
@@ -36,11 +36,46 @@
 namespace grl
 {
 
-/// Encapsulates a trajectory.
-class Trajectory : public Configurable
+/// Encapsulates a vector (e.g. system state).
+class VectorSignal : public Configurable
 {
   public:
-    TYPEINFO("trajectory", "Encapsulates a trajectory");
+    TYPEINFO("signal/vector", "Vector-based signal (state, observation, etc.)");
+    
+  protected:
+    itc::SharedVariable<LargeVector> var_;
+
+  public:
+    /// Returns current value.
+    virtual LargeVector get()
+    {
+      return var_.get();
+    }
+
+    /// Sets new value.    
+    virtual void set(const LargeVector &state)
+    {
+      var_.write(state);
+    }
+
+    /// Returns true if the value has changed.
+    virtual bool test()
+    {
+      return var_.test();
+    }
+
+    /// Reads a new value, waiting until it changes if necessary.    
+    virtual LargeVector read()
+    {
+      return var_.read();
+    }
+};
+
+/// Encapsulates a matrix (e.g. trajectory).
+class MatrixSignal : public Configurable
+{
+  public:
+    TYPEINFO("signal/matrix", "Matrix-based signal (trajectory, etc.)");
     
   protected:
     itc::SharedVariable<Matrix> var_;
@@ -73,4 +108,4 @@ class Trajectory : public Configurable
 
 }
 
-#endif /* GRL_TRAJECTORY_H_ */
+#endif /* GRL_SIGNAL_H_ */

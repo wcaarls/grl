@@ -42,7 +42,7 @@
 #include <grl/solver.h>
 #include <grl/environments/observation.h>
 #include <grl/policies/state_feedback.h>
-#include <grl/trajectory.h>
+#include <grl/signal.h>
 
 namespace grl {
 
@@ -58,7 +58,7 @@ class ILQGSolver : public Solver
   
     ObservationModel *model_;
     SampleFeedbackPolicy *policy_;
-    Trajectory *trajectory_;
+    MatrixSignal *trajectory_;
     size_t horizon_, maxiter_;
     double lambda_min_, lambda_max_, lambda_factor_, tolerance_;
     Vector stddev_;

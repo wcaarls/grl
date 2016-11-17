@@ -28,7 +28,7 @@
 #ifndef GRL_PINBALL_VISUALIZATION_H_
 #define GRL_PINBALL_VISUALIZATION_H_
 
-#include <grl/state.h>
+#include <grl/signal.h>
 #include <grl/visualization.h>
 
 namespace grl
@@ -41,7 +41,7 @@ class PinballVisualization : public Visualization
     TYPEINFO("visualization/pinball", "Pinball visualization")
 
   protected:
-    State *state_;
+    VectorSignal *state_;
   
   public:
     PinballVisualization() : state_(NULL) { }

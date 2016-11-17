@@ -28,7 +28,7 @@
 #ifndef GRL_WINDY_VISUALIZATION_H_
 #define GRL_WINDY_VISUALIZATION_H_
 
-#include <grl/state.h>
+#include <grl/signal.h>
 #include <grl/visualization.h>
 
 namespace grl
@@ -41,7 +41,7 @@ class WindyGridworldVisualization : public Visualization
     TYPEINFO("visualization/windy", "Windy gridworld visualization")
 
   protected:
-    State *state_;
+    VectorSignal *state_;
   
   public:
     WindyGridworldVisualization() : state_(NULL) { }

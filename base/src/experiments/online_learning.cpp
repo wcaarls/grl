@@ -48,8 +48,8 @@ void OnlineLearningExperiment::request(ConfigurationRequest *config)
   config->push_back(CRP("agent", "agent", "Agent", agent_));
   config->push_back(CRP("test_agent", "agent", "Agent to use in test trials", agent_, true));
   
-  config->push_back(CRP("state", "state", "Current observed state of the environment", CRP::Provided));
-  config->push_back(CRP("curve", "state", "Learning curve", CRP::Provided));
+  config->push_back(CRP("state", "signal/vector", "Current observed state of the environment", CRP::Provided));
+  config->push_back(CRP("curve", "signal/vector", "Learning curve", CRP::Provided));
 
   config->push_back(CRP("load_file", "Load policy filename", load_file_));
   config->push_back(CRP("save_every", "Save policy to 'output' at the end of event", save_every_, CRP::Configuration, {"never", "run", "test", "trail"}));
@@ -70,8 +70,8 @@ void OnlineLearningExperiment::configure(Configuration &config)
   load_file_ = config["load_file"].str();
   save_every_ = config["save_every"].str();
   
-  state_ = new State();
-  curve_ = new State();
+  state_ = new VectorSignal();
+  curve_ = new VectorSignal();
   
   config.set("state", state_);
   config.set("curve", curve_);

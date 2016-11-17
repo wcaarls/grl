@@ -28,7 +28,7 @@
 #ifndef GRL_TLM_ENVIRONMENT_H_
 #define GRL_TLM_ENVIRONMENT_H_
 
-#include <grl/state.h>
+#include <grl/signal.h>
 #include <grl/environment.h>
 #include <grl/visualization.h>
 
@@ -95,7 +95,7 @@ class TwoLinkManipulatorVisualization : public Visualization
     TYPEINFO("visualization/tlm", "Two-link manipulator visualization")
 
   protected:
-    State *state_;
+    VectorSignal *state_;
   
   public:
     TwoLinkManipulatorVisualization() : state_(NULL) { }

@@ -34,7 +34,7 @@ REGISTER_CONFIGURABLE(CompassWalkerVisualization)
 
 void CompassWalkerVisualization::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("state", "state", "Compass walker state to visualize", state_));
+  config->push_back(CRP("state", "signal/vector", "Compass walker state to visualize", state_));
 }
 
 void CompassWalkerVisualization::configure(Configuration &config)
@@ -42,7 +42,7 @@ void CompassWalkerVisualization::configure(Configuration &config)
   if (!Visualizer::instance())
     throw Exception("visualization/compass_walker requires a configured visualizer to run");
 
-  state_ = (State*)config["state"].ptr();
+  state_ = (VectorSignal*)config["state"].ptr();
 
   // Create window  
   create("Compass walker");

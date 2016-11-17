@@ -33,7 +33,7 @@ REGISTER_CONFIGURABLE(Flyer2DVisualization)
 
 void Flyer2DVisualization::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("state", "state", "2D flyer state to visualize", state_));
+  config->push_back(CRP("state", "signal/vector", "2D flyer state to visualize", state_));
 }
 
 void Flyer2DVisualization::configure(Configuration &config)
@@ -41,7 +41,7 @@ void Flyer2DVisualization::configure(Configuration &config)
   if (!Visualizer::instance())
     throw Exception("visualization/flyer2d requires a configured visualizer to run");
 
-  state_ = (State*)config["state"].ptr();
+  state_ = (VectorSignal*)config["state"].ptr();
 
   // Create window  
   create("2D flyer");

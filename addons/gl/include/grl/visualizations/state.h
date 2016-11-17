@@ -32,7 +32,7 @@
 #include <pthread.h>
 #include <deque>
 
-#include <grl/state.h>
+#include <grl/signal.h>
 #include <grl/visualization.h>
 
 namespace grl
@@ -45,7 +45,7 @@ class StateVisualization : public Visualization, public itc::Thread
     TYPEINFO("visualization/state", "Plots state values")
 
   protected:
-    State *state_;
+    VectorSignal *state_;
     std::deque<Vector> points_;
     Vector dims_, min_, max_;
     size_t memory_;

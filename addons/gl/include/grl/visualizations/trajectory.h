@@ -31,7 +31,7 @@
 #include <string.h>
 #include <pthread.h>
 
-#include <grl/trajectory.h>
+#include <grl/signal.h>
 #include <grl/visualization.h>
 
 namespace grl
@@ -44,7 +44,7 @@ class TrajectoryVisualization : public Visualization
     TYPEINFO("visualization/trajectory", "Plots trajectories")
 
   protected:
-    Trajectory *trajectory_;
+    MatrixSignal *trajectory_;
     Vector dims_, min_, max_;
   
   public:

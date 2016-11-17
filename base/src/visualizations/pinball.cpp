@@ -33,7 +33,7 @@ REGISTER_CONFIGURABLE(PinballVisualization)
 
 void PinballVisualization::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("state", "state", "Pinball state to visualize", state_));
+  config->push_back(CRP("state", "signal/vector", "Pinball state to visualize", state_));
 }
 
 void PinballVisualization::configure(Configuration &config)
@@ -41,7 +41,7 @@ void PinballVisualization::configure(Configuration &config)
   if (!Visualizer::instance())
     throw Exception("visualization/pinball requires a configured visualizer to run");
 
-  state_ = (State*)config["state"].ptr();
+  state_ = (VectorSignal*)config["state"].ptr();
 
   // Create window  
   create("Pinball");

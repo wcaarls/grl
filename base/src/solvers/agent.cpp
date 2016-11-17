@@ -54,7 +54,7 @@ void AgentSolver::configure(Configuration &config)
   model_ = (ObservationModel*)config["model"].ptr();
   agent_ = (Agent*)config["agent"].ptr();
   
-  state_ = new State();
+  state_ = new VectorSignal();
   
   config.set("state", state_);
 }
@@ -69,7 +69,7 @@ AgentSolver *AgentSolver::clone() const
   
   solver->model_ = model_->clone();
   solver->agent_= agent_->clone();
-  solver->state_ = new State();
+  solver->state_ = new VectorSignal();
   
   return solver;
 }

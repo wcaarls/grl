@@ -33,7 +33,7 @@ REGISTER_CONFIGURABLE(CartDoublePoleVisualization)
 
 void CartDoublePoleVisualization::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("state", "state", "Cart-double-pole state to visualize", state_));
+  config->push_back(CRP("state", "signal/vector", "Cart-double-pole state to visualize", state_));
 }
 
 void CartDoublePoleVisualization::configure(Configuration &config)
@@ -41,7 +41,7 @@ void CartDoublePoleVisualization::configure(Configuration &config)
   if (!Visualizer::instance())
     throw Exception("visualization/cart_double_pole requires a configured visualizer to run");
 
-  state_ = (State*)config["state"].ptr();
+  state_ = (VectorSignal*)config["state"].ptr();
 
   // Create window  
   create("CartDoublePole");

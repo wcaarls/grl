@@ -28,7 +28,7 @@
 #ifndef GRL_PENDULUM_VISUALIZATION_H_
 #define GRL_PENDULUM_VISUALIZATION_H_
 
-#include <grl/state.h>
+#include <grl/signal.h>
 #include <grl/visualization.h>
 
 namespace grl
@@ -41,7 +41,7 @@ class PendulumVisualization : public Visualization
     TYPEINFO("visualization/pendulum", "Pendulum visualization")
 
   protected:
-    State *state_;
+    VectorSignal *state_;
   
   public:
     PendulumVisualization() : state_(NULL) { }

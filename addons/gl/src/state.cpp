@@ -43,7 +43,7 @@ void StateVisualization::request(ConfigurationRequest *config)
   config->push_back(CRP("input_max", "Upper input dimension limit", max_, CRP::System));
   config->push_back(CRP("memory", "Number of data points to draw", (int)memory_, CRP::Online));
 
-  config->push_back(CRP("state", "state", "State to visualize", state_));
+  config->push_back(CRP("state", "signal/vector", "State to visualize", state_));
 }
 
 void StateVisualization::configure(Configuration &config)
@@ -51,7 +51,7 @@ void StateVisualization::configure(Configuration &config)
   if (!Visualizer::instance())
     throw Exception("visualization/state requires a configured visualizer to run");
 
-  state_ = (State*)config["state"].ptr();
+  state_ = (VectorSignal*)config["state"].ptr();
 
   dims_ = config["input_dims"].v();
   min_ = config["input_min"].v();

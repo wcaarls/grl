@@ -47,7 +47,7 @@ class BatchLearningExperiment : public Experiment
     Task *task_;
     Predictor *predictor_;
     Agent *test_agent_;
-    State *state_;
+    VectorSignal *state_;
 
     size_t runs_, batches_, batch_size_;
     double rate_;
