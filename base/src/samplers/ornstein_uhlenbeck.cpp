@@ -134,7 +134,7 @@ size_t OrnsteinUhlenbeckSampler::sample(const Vector &values, TransitionType &tt
   env_event_processor();
   TRACE(noise_);
 
-  // add noise to to signal
+  // add noise to a signal
   evolve_noise();
   IndexVector state_idx_v;
   state_idx_v.resize(noise_.size());
