@@ -47,11 +47,9 @@ class ActionPolicy : public Policy
     Representation *representation_;
     
     Vector min_, max_, sigma_;
-    Vector theta_, center_;
-    unsigned int use_ou_;
 
   public:
-    ActionPolicy() : projector_(NULL), representation_(NULL), use_ou_(0) { }
+    ActionPolicy() : projector_(NULL), representation_(NULL) { }
     
     // From Configurable  
     virtual void request(ConfigurationRequest *config);
