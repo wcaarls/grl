@@ -34,7 +34,7 @@ struct TargetInterface
 };
 
 // Base classes for Leo
-class CLeoBhBase: public CLeoBhWalkSym, public Configurable
+class CLeoBhBase: public CLeoBhWalkSym
 {
   public:
     enum LeoStateVar
@@ -99,15 +99,15 @@ class CLeoBhBase: public CLeoBhWalkSym, public Configurable
     bool stanceLegLeft() {return mLastStancelegWasLeft;}
 
   public:
-    void resetState(double time0);
+    virtual void resetState(double time0);
+    virtual void parseLeoState(const CLeoState &leoState, Vector &obs);
+    virtual void parseLeoAction(const Vector &action, Vector &target_action) = 0;
 
     void setObserverInterface(const TargetInterface::ObserverInterface oi, const TargetInterface::ObserverInterface oi_sym) { interface_.observer = oi; interface_.observer_sym = oi_sym; }
     void setActuatorInterface(const TargetInterface::ActuatorInterface ai) { interface_.actuator = ai; }
     const TargetInterface &getInterface() const { return interface_; }
 
     void fillLeoState(const Vector &obs, const Vector &action, CLeoState &leoState);
-    void parseLeoState(const CLeoState &leoState, Vector &obs);
-    virtual void parseLeoAction(const Vector &action, Vector &target_action) = 0;
     void updateDerivedStateVars(CLeoState *currentSTGState);
     bool madeFootstep();
     void setCurrentSTGState(CLeoState *leoState);

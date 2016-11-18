@@ -18,10 +18,10 @@ class CLeoBhWalk: public CLeoBhBase
     TYPEINFO("behavior/leo_switching_walk", "Leo walking behavior with symmetrical switchers of observations")
 
     CLeoBhWalk() {}
-    double calculateReward();
-    void parseLeoState(const CLeoState &leoState, Vector &obs);
-    void parseLeoAction(const Vector &action, Vector &target_action);
-    std::string getProgressReport(double trialTime);
+    virtual double calculateReward();
+    virtual void parseLeoState(const CLeoState &leoState, Vector &obs);
+    virtual void parseLeoAction(const Vector &action, Vector &target_action);
+    virtual std::string getProgressReport(double trialTime);
 };
 /*
 class CLeoBhWalkNoSwitch: public CLeoBhWalk

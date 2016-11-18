@@ -11,9 +11,10 @@
 #include "AgentInterface.h"
 #include "STGLeo.h"
 #include <Configuration.h>
+#include <grl/configurable.h>
 
 template<class STGStateType>
-class CSTGAgentQ
+class CSTGAgentQ : public grl::Configurable
 {
 public:
   CSTGAgentQ(ISTGActuation *actuationInterface):

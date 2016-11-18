@@ -16,29 +16,24 @@ class CLeoBhSquat: public CLeoBhBase
   public:
     TYPEINFO("behavior/leo_switching_squat", "Leo squatting behavior with symmetrical switchers of observations")
 
-//    CLeoBhSquat(ISTGActuation *actuationInterface) :
-//      CLeoBhBase(actuationInterface), direction_(-1), prev_direction_(-1), squat_counter_(0), time_of_dir_change_(0),
-//      min_hip_height_(0), max_hip_height_(0) {}
-
-    CLeoBhSquat() :
-      direction_(-1), prev_direction_(-1), squat_counter_(0), time_of_dir_change_(0),
+    CLeoBhSquat() : direction_(-1), prev_direction_(-1), squat_counter_(0), time_of_dir_change_(0),
       min_hip_height_(0), max_hip_height_(0) {}
 
-    void resetState(double time0);
-    double calculateReward();
-    void parseLeoState(const CLeoState &leoState, Vector &obs);
-    void parseLeoAction(const Vector &action, Vector &target_action);
+    virtual void resetState(double time0);
+    virtual double calculateReward();
+    virtual void parseLeoState(const CLeoState &leoState, Vector &obs);
+    virtual void parseLeoAction(const Vector &action, Vector &target_action);
+    virtual bool isDoomedToFall(CLeoState* state, bool report);
+    virtual std::string getProgressReport(double trialTime);
+
     void setDirection(int direction) { direction = direction_; }
-    bool isDoomedToFall(CLeoState* state, bool report);
     void updateDirection(double time);
-    std::string getProgressReport(double trialTime);
     void getCOM(const double *x, double &hipHeight, double &hipPos) const;
 
   protected:
     bool isSitting() const;
     bool isStanding() const;
     void getHipHeight(const double *x, double &hipHeight, double &hipPos) const;
-
 
   protected:
     int direction_, prev_direction_;
