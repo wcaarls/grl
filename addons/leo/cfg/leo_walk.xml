@@ -86,7 +86,7 @@
 		<rewardTorsoUpright>0.0</rewardTorsoUpright>
 		<rewardTorsoUprightAngle lastvalue="-0.15">-0.15</rewardTorsoUprightAngle>
 		<rewardTorsoUprightAngleMargin definition="angle deviation [rad] for which reward is 50%">0.1</rewardTorsoUprightAngleMargin>
-		<trialTimeoutSeconds>100</trialTimeoutSeconds>
+		<trialTimeoutSeconds>25</trialTimeoutSeconds>
 	
 		<!-- state space -->
 		<scaleFactTorsoAngle>2.0*3.58</scaleFactTorsoAngle>

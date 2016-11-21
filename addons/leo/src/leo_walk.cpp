@@ -78,16 +78,6 @@ void LeoBhWalk::parseGRLActionByActuator(const Vector &action, Vector &target_ac
     target_action << actionArm, actionRightHip, actionLeftHip, actionRightKnee, actionLeftKnee, actionRightAnkle, actionLeftAnkle;
 }
 
-void LeoBhWalk::parseLeoState(const CLeoState &leoState, Vector &obs)
-{
-  parseLeoStateByObserver(leoState, obs, &interface_.observer_sym);
-}
-
-void LeoBhWalk::parseLeoAction(const Vector &action, Vector &target_action)
-{
-  parseGRLActionByActuator(action, target_action, &interface_.actuator_sym);
-}
-
 std::string LeoBhWalk::getProgressReport(double trialTime)
 {
   const int pw = 15;
@@ -115,6 +105,16 @@ std::string LeoBhWalk::getProgressReport(double trialTime)
   return progressString.str();
 }
 
+void LeoBhWalk::parseLeoState(const CLeoState &leoState, Vector &obs)
+{
+  parseLeoStateByObserver(leoState, obs, &interface_.observer_sym);
+}
+
+void LeoBhWalk::parseLeoAction(const Vector &action, Vector &target_action)
+{
+  parseGRLActionByActuator(action, target_action, &interface_.actuator);
+}
+
 /////////////////////////////////
 
 void LeoBhWalkSym::parseLeoState(const CLeoState &leoState, Vector &obs)
@@ -131,18 +131,6 @@ void LeoBhWalkSym::parseLeoAction(const Vector &action, Vector &target_action)
     parseGRLActionByActuator(action, target_action, &interface_.actuator_sym);
   else
     parseGRLActionByActuator(action, target_action, &interface_.actuator);
-
-  /*
-  LeoBhWalk::parseLeoAction(action, target_action);
-
-  TRACE(target_action);
-  // Symmetrical environment operate by stance and swing legs
-  // Right leg is assumed to be a stance leg, therefore we symmetrcally map data if left leg is stance
-  if (stanceLegLeft())
-    target_action << VectorConstructor(target_action[0], target_action[2], target_action[1],
-        target_action[4], target_action[3], target_action[6], target_action[5]);
-  TRACE(target_action);
-  */
 }
 
 /////////////////////////////////
