@@ -12,30 +12,32 @@
 namespace grl
 {
 
-class CLeoBhWalk: public CLeoBhBase
-{
-  public:
-    TYPEINFO("behavior/leo_switching_walk", "Leo walking behavior with symmetrical switchers of observations")
-
-    CLeoBhWalk() {}
-    virtual double calculateReward();
-    virtual void parseLeoState(const CLeoState &leoState, Vector &obs);
-    virtual void parseLeoAction(const Vector &action, Vector &target_action);
-    virtual std::string getProgressReport(double trialTime);
-};
-/*
-class CLeoBhWalkNoSwitch: public CLeoBhWalk
+class LeoBhWalk: public CLeoBhBase
 {
   public:
     TYPEINFO("behavior/leo_walk", "Leo walking behavior without symmetrical switchers of observations")
 
-    CLeoBhWalkNoSwi//    CLeoBhWalk *bh_;
-tch() {}
-    CLeoBhWalkNoSwitch(ISTGActuation *actuationInterface) : CLeoBhWalk(actuationInterface) {}
-    void parseLeoState(const CLeoState &leoState, Vector &obs);
-    void parseLeoAction(const Vector &action, Vector &target_action);
+    LeoBhWalk() {}
+    virtual double calculateReward();
+    virtual void parseLeoState(const CLeoState &leoState, Vector &obs);
+    virtual void parseLeoAction(const Vector &action, Vector &target_action);
+    virtual std::string getProgressReport(double trialTime);
+
+  protected:
+    void parseLeoStateByObserver(const CLeoState &leoState, Vector &obs, const TargetInterface::ObserverInterface *observer) const;
+    void parseGRLActionByActuator(const Vector &action, Vector &target_action, const TargetInterface::ActuatorInterface *actuator);
 };
-*/
+
+class LeoBhWalkSym: public LeoBhWalk
+{
+  public:
+    TYPEINFO("behavior/leo_walk_sym", "Leo walking behavior with symmetrical switchers of observations")
+
+    LeoBhWalkSym() {}
+    virtual void parseLeoState(const CLeoState &leoState, Vector &obs);
+    virtual void parseLeoAction(const Vector &action, Vector &target_action);
+};
+
 /// Simulation of original Leo robot by Erik Schuitema.
 class LeoWalkEnvironment: public LeoBaseEnvironment
 {

@@ -14,7 +14,7 @@ namespace grl
 class CLeoBhSquat: public CLeoBhBase
 {
   public:
-    TYPEINFO("behavior/leo_switching_squat", "Leo squatting behavior with symmetrical switchers of observations")
+    TYPEINFO("behavior/leo_squat_sym", "Leo squatting behavior with symmetrical switchers of observations")
 
     CLeoBhSquat() : direction_(-1), prev_direction_(-1), squat_counter_(0), time_of_dir_change_(0),
       min_hip_height_(0), max_hip_height_(0) {}

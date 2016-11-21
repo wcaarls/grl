@@ -24,13 +24,14 @@ struct TargetInterface
   };
   struct ActuatorInterface
   {
-    std::vector<int> actions;               // mapping: target_action = agent_action(actions == i)
+    std::vector<int> voltage;               // mapping: target_action = agent_action(actions == i)
     std::vector<std::string> autoActuated;  // textual names of actions that should be automatically actuated, for them 'actions = -1'
   };
 
   ObserverInterface observer;     // used for stance leg being left
   ObserverInterface observer_sym; // used for stance leg being right
-  ActuatorInterface actuator;
+  ActuatorInterface actuator;     // used for stance leg being left
+  ActuatorInterface actuator_sym; // used for stance leg being right
 };
 
 // Base classes for Leo
@@ -104,7 +105,7 @@ class CLeoBhBase: public CLeoBhWalkSym
     virtual void parseLeoAction(const Vector &action, Vector &target_action) = 0;
 
     void setObserverInterface(const TargetInterface::ObserverInterface oi, const TargetInterface::ObserverInterface oi_sym) { interface_.observer = oi; interface_.observer_sym = oi_sym; }
-    void setActuatorInterface(const TargetInterface::ActuatorInterface ai) { interface_.actuator = ai; }
+    void setActuatorInterface(const TargetInterface::ActuatorInterface ai, const TargetInterface::ActuatorInterface ai_sym) { interface_.actuator = ai; interface_.actuator_sym = ai_sym; }
     const TargetInterface &getInterface() const { return interface_; }
 
     void fillLeoState(const Vector &obs, const Vector &action, CLeoState &leoState);
@@ -112,12 +113,17 @@ class CLeoBhBase: public CLeoBhWalkSym
     bool madeFootstep();
     void setCurrentSTGState(CLeoState *leoState);
     void setPreviousSTGState(CLeoState *leoState);
-    void grlAutoActuateAnkles(double &actionStanceAnkle, double &actionSwingAnkle)
+    void grlAutoActuateRightAnkle(double &actionRightAnkle)
     {
       CSTGLeoSim *leoSim = dynamic_cast<CSTGLeoSim*>(mActuationInterface);
       CLeoBhWalkSym::autoActuateAnkles_FixedPos(leoSim);
-      actionStanceAnkle = leoSim->getJointVoltage( getAnkleStance() );
-      actionSwingAnkle  = leoSim->getJointVoltage( getAnkleSwing() );
+      actionRightAnkle = leoSim->getJointVoltage(ljAnkleRight);
+    }
+    void grlAutoActuateLeftAnkle(double &actionLeftAnkle)
+    {
+      CSTGLeoSim *leoSim = dynamic_cast<CSTGLeoSim*>(mActuationInterface);
+      CLeoBhWalkSym::autoActuateAnkles_FixedPos(leoSim);
+      actionLeftAnkle = leoSim->getJointVoltage(ljAnkleLeft);
     }
     double grlAutoActuateArm()
     {
@@ -179,20 +185,20 @@ class LeoBaseEnvironment: public Environment
     double time_test_, time_learn_, time0_;
 
   protected:
-    void fillObserver(const std::vector<std::string> &observed_names, TargetInterface::ObserverInterface &observer_interface) const;
     int findVarIdx(const std::vector<CGenericStateVar> &genericStates, std::string query) const;
-    void configParseObservations(Configuration &config, const std::vector<CGenericStateVar> &sensors);
-    void configParseActions(Configuration &config, const std::vector<CGenericActionVar> &actuators);
 
+    // Observations
+    void configParseObservations(Configuration &config, const std::vector<CGenericStateVar> &sensors);
     void fillObserve(const std::vector<CGenericStateVar> &genericStates,
                      const std::vector<std::string> &observeList,
-                     std::vector<std::string> &observe) const;
+                     std::vector<std::string> &observed) const;
+    void fillObserver(const std::vector<std::string> &observed, TargetInterface::ObserverInterface &observer_interface) const;
 
+    // Actions
+    void configParseActions(Configuration &config, const std::vector<CGenericActionVar> &actuators);
     void fillActuate(const std::vector<CGenericActionVar> &genericAction,
                      const std::vector<std::string> &actuateList,
-                     TargetInterface::ActuatorInterface &out,
-                     const std::string *req = NULL,
-                     std::vector<int>  *reqIdx = NULL) const;
+                     TargetInterface::ActuatorInterface &int_actuator) const;
 
   private:
     Signal *transition_type_;

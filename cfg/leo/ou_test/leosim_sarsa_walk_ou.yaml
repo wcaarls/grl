@@ -9,15 +9,15 @@ experiment:
   environment: 
     type: environment/leo_walk
     behavior: 
-      type: behavior/leo_switching_walk
+      type: behavior/leo_walk_sym
     xml: ../../leo/cfg/leo_walk.xml
     target_env: 
       type: environment/ode
       xml: experiment/environment/xml
-      randomize: 1
+      randomize: 0
       visualize: 1
     observe: torso_boom, hipright, hipleft, kneeright, kneeleft
-    actuate: hipright, hipleft, kneeleft
+    actuate: hipright, hipleft, stanceknee
     exporter: 
       type: exporter/csv
       file: leosim_sarsa_walk_ou

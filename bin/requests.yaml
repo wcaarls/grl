@@ -146,7 +146,7 @@ agent/master/sequential:
     type: exporter
     description: Optional exporter for transition log (supports time, state, observation, action, reward, terminal)
     mutability: configuration
-    default: 0x9b0750
+    default: 0xdfa810
     optional: 1
 agent/master/sequential/additive:
   description: Additive master agent that executes sub-agents sequentially and adds their outputs
@@ -264,9 +264,11 @@ agent/td:
     mutability: configuration
     default: 0
     optional: 1
-behavior/leo_switching_squat:
+behavior/leo_squat_sym:
   description: Leo squatting behavior with symmetrical switchers of observations
-behavior/leo_switching_walk:
+behavior/leo_walk:
+  description: Leo walking behavior without symmetrical switchers of observations
+behavior/leo_walk_sym:
   description: Leo walking behavior with symmetrical switchers of observations
 communicator/zeromq:
   description: A zeromq class capable to establish a link by events and send messages asynchronously (publisher/subscriber)
@@ -528,7 +530,7 @@ environment/leo_walk:
     type: int.observation_dims
     description: Number of observation dimensions
     mutability: configuration
-    default: 1600706488
+    default: 368555960
     optional: 1
     min: 0
     max: 2147483647
@@ -536,7 +538,7 @@ environment/leo_walk:
     type: int.action_dims
     description: Number of action dimensions
     mutability: configuration
-    default: 32684
+    default: 32638
     optional: 1
     min: 0
     max: 2147483647
@@ -2964,7 +2966,7 @@ sampler/ac_ornstein_ohlenbeck:
     type: discretizer.action
     description: Action discretizer
     mutability: configuration
-    default: 0x7ffdeff81120
+    default: 0x7ffe7ffa0490
     optional: 0
   theta:
     type: vector
@@ -3030,7 +3032,7 @@ sampler/epsilon_ornstein_ohlenbeck:
     type: discretizer.action
     description: Action discretizer
     mutability: configuration
-    default: 0x105a7e0
+    default: 0x14a5c90
     optional: 0
   theta:
     type: vector
@@ -3054,7 +3056,7 @@ sampler/epsilon_ornstein_ohlenbeck:
     type: signal
     description: Signal
     mutability: configuration
-    default: 0x105a510
+    default: 0x14a59c0
     optional: 1
 sampler/epsilon_pada:
   description: exploitations are done by greedy action selection without constraints, as in e-greedy. Explorations are done with constrained set of actions, as it is in pada.
@@ -3124,7 +3126,7 @@ sampler/ornstein_ohlenbeck:
     type: discretizer.action
     description: Action discretizer
     mutability: configuration
-    default: 0x1095450
+    default: 0x14e0900
     optional: 0
   theta:
     type: vector
@@ -3148,7 +3150,7 @@ sampler/ornstein_ohlenbeck:
     type: signal
     description: Signal
     mutability: configuration
-    default: 0x1095180
+    default: 0x14e0630
     optional: 1
 sampler/pada:
   description: Maximum search with a PADA random chance of non-maximums
@@ -3232,7 +3234,7 @@ sampler/pada_ornstein_ohlenbeck:
     type: signal
     description: Signal
     mutability: configuration
-    default: 0x1095d28
+    default: 0x14e11d8
     optional: 1
   delta:
     type: vector

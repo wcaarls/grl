@@ -232,8 +232,8 @@ void CLeoBhSquat::parseLeoState(const CLeoState &leoState, Vector &obs)
 void CLeoBhSquat::parseLeoAction(const Vector &action, Vector &target_action)
 {
   for (int i = 0; i < target_action.size(); i++)
-    if (interface_.actuator.actions[i] != -1)
-      target_action[i] = action( interface_.actuator.actions[i] );
+    if (interface_.actuator.voltage[i] != -1)
+      target_action[i] = action( interface_.actuator.voltage[i] );
 
   for (int i = 0; i < interface_.actuator.autoActuated.size(); i++)
   {

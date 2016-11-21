@@ -1,13 +1,15 @@
 experiment: 
   type: experiment/online_learning
-  runs: 5
-  trials: 1
+  runs: 1
+  trials: 100
   steps: 0
   rate: 0
   test_interval: 0
   output: leosim_sarsa_walk_ou_play
   environment: 
     type: environment/leo_walk
+    behavior: 
+      type: behavior/leo_walk_sym
     xml: ../../leo/cfg/leo_walk.xml
     target_env: 
       type: environment/ode
@@ -15,7 +17,7 @@ experiment:
       randomize: 0
       visualize: 1
     observe: torso_boom, hipright, hipleft, kneeright, kneeleft
-    actuate: hipright, hipleft, kneeleft
+    actuate: hipright, hipleft, stanceknee
     exporter: 
       type: exporter/csv
       file: leosim_sarsa_walk_ou_play
@@ -23,6 +25,8 @@ experiment:
       variant: all
     observation_dims: experiment/environment/target_env/observation_dims
     action_dims: experiment/environment/target_env/action_dims
+    transition_type: 
+      type: signal/v
     contact_signal: 
       type: signal/v
   agent: 
@@ -67,6 +71,7 @@ experiment:
       representation: experiment/agent/policy/representation
       trace: 
         type: trace/enumerated/accumulating
+    transition_type: experiment/environment/transition_type
   test_agent: 
     type: agent/fixed
     policy: 
@@ -77,5 +82,5 @@ experiment:
       sampler: 
         type: sampler/greedy
         rand_max: 0
-  load_file: leo_ou_test_leosim_sarsa_walk_ou-mp$run-run0
+  load_file: leo_ou_test_leosim_sarsa_walk_ou-mp0-run0
   save_every: never

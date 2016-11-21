@@ -3,25 +3,18 @@
 
 using namespace grl;
 
-REGISTER_CONFIGURABLE(CLeoBhWalk)
-//REGISTER_CONFIGURABLE(CLeoBhWalkNoSwitch)
+REGISTER_CONFIGURABLE(LeoBhWalkSym)
+REGISTER_CONFIGURABLE(LeoBhWalk)
 REGISTER_CONFIGURABLE(LeoWalkEnvironment)
 
-double CLeoBhWalk::calculateReward()
+double LeoBhWalk::calculateReward()
 {
   // Original reward used by Erik
   return CLeoBhWalkSym::calculateReward();
 }
 
-void CLeoBhWalk::parseLeoState(const CLeoState &leoState, Vector &obs)
+void LeoBhWalk::parseLeoStateByObserver(const CLeoState &leoState, Vector &obs, const TargetInterface::ObserverInterface *observer) const
 {
-  TargetInterface::ObserverInterface *observer;
-
-  if (stanceLegLeft())
-    observer = &(interface_.observer);
-  else
-    observer = &(interface_.observer_sym);
-
   int i, j;
   for (i = 0; i < observer->angles.size(); i++)
     obs[i] = leoState.mJointAngles[ observer->angles[i] ];
@@ -47,53 +40,55 @@ void CLeoBhWalk::parseLeoState(const CLeoState &leoState, Vector &obs)
   }
 }
 
-void CLeoBhWalk::parseLeoAction(const Vector &action, Vector &target_action)
+void LeoBhWalk::parseGRLActionByActuator(const Vector &action, Vector &target_action, const TargetInterface::ActuatorInterface *actuator)
 {
-  double actionArm, actionStanceHip, actionSwingHip, actionStanceKnee, actionSwingKnee, actionStanceAnkle, actionSwingAnkle;
+    double actionArm, actionRightHip, actionLeftHip, actionRightKnee, actionLeftKnee, actionRightAnkle, actionLeftAnkle;
 
-  // Right leg is assumed to be a stance leg in the configuration file
-  if (interface_.actuator.actions[avRightHipTorque] != -1)
-    actionStanceHip = action[ interface_.actuator.actions[avRightHipTorque] ];
-  if (interface_.actuator.actions[avLeftHipTorque] != -1)
-    actionSwingHip = action[ interface_.actuator.actions[avLeftHipTorque] ];
-  if (interface_.actuator.actions[avRightKneeTorque] != -1)
-    actionStanceKnee = action[ interface_.actuator.actions[avRightKneeTorque] ];
-  if (interface_.actuator.actions[avLeftKneeTorque] != -1)
-    actionSwingKnee = action[ interface_.actuator.actions[avLeftKneeTorque] ];
-  if (interface_.actuator.actions[avRightAnkleTorque] != -1)
-    actionStanceAnkle = action[ interface_.actuator.actions[avRightAnkleTorque] ];
-  if (interface_.actuator.actions[avLeftAnkleTorque] != -1)
-    actionSwingAnkle = action[ interface_.actuator.actions[avLeftAnkleTorque] ];
+    if (actuator->voltage[avRightHipTorque] != -1)
+      actionRightHip = action[ actuator->voltage[avRightHipTorque] ];
+    if (actuator->voltage[avLeftHipTorque] != -1)
+      actionLeftHip = action[ actuator->voltage[avLeftHipTorque] ];
+    if (actuator->voltage[avRightKneeTorque] != -1)
+      actionRightKnee = action[ actuator->voltage[avRightKneeTorque] ];
+    if (actuator->voltage[avLeftKneeTorque] != -1)
+      actionLeftKnee = action[ actuator->voltage[avLeftKneeTorque] ];
+    if (actuator->voltage[avRightAnkleTorque] != -1)
+      actionRightAnkle = action[ actuator->voltage[avRightAnkleTorque] ];
+    if (actuator->voltage[avLeftAnkleTorque] != -1)
+      actionLeftAnkle = action[ actuator->voltage[avLeftAnkleTorque] ];
 
-  bool ankle_autoActuated = false;
-  for (int i = 0; i < interface_.actuator.autoActuated.size(); i++)
-  {
-    if (interface_.actuator.autoActuated[i] == "shoulder")
-      actionArm = grlAutoActuateArm();
-    if (interface_.actuator.autoActuated[i] == "kneeright") // refers to a stance leg
-      actionStanceKnee = grlAutoActuateKnee();
-    if ((interface_.actuator.autoActuated[i] == "ankleright") || (interface_.actuator.autoActuated[i] == "ankleleft"))
+    for (int i = 0; i < actuator->autoActuated.size(); i++)
     {
-      if (!ankle_autoActuated)
+      if (actuator->autoActuated[i] == "shoulder")
+        actionArm = grlAutoActuateArm();
+      if (actuator->autoActuated[i] == "stanceknee")
       {
-        grlAutoActuateAnkles(actionStanceAnkle, actionSwingAnkle);
-        ankle_autoActuated = true;
+        // refers to an auto-actuation of the stance leg knee
+        if (stanceLegLeft())
+          actionLeftKnee = grlAutoActuateKnee();
+        else
+          actionRightKnee = grlAutoActuateKnee();
       }
+       if (actuator->autoActuated[i] == "ankleright")
+         grlAutoActuateRightAnkle(actionRightAnkle);
+       if (actuator->autoActuated[i] == "ankleleft")
+        grlAutoActuateLeftAnkle(actionLeftAnkle);
     }
-  }
 
-  // concatenation happens in the order of <actionvar> definitions in an xml file
-  // shoulder, right hip, left hip, right knee, left knee, right ankle, left ankle
-  if (stanceLegLeft())
-    target_action << actionArm, actionSwingHip, actionStanceHip, actionSwingKnee, actionStanceKnee, actionSwingAnkle, actionStanceAnkle;
-  else
-    target_action << actionArm, actionStanceHip, actionSwingHip, actionStanceKnee, actionSwingKnee, actionStanceAnkle, actionSwingAnkle;
-
-  //ode_action_ << ConstantVector(7, 5.0); // #ivan
+    target_action << actionArm, actionRightHip, actionLeftHip, actionRightKnee, actionLeftKnee, actionRightAnkle, actionLeftAnkle;
 }
 
+void LeoBhWalk::parseLeoState(const CLeoState &leoState, Vector &obs)
+{
+  parseLeoStateByObserver(leoState, obs, &interface_.observer_sym);
+}
 
-std::string CLeoBhWalk::getProgressReport(double trialTime)
+void LeoBhWalk::parseLeoAction(const Vector &action, Vector &target_action)
+{
+  parseGRLActionByActuator(action, target_action, &interface_.actuator_sym);
+}
+
+std::string LeoBhWalk::getProgressReport(double trialTime)
 {
   const int pw = 15;
   std::stringstream progressString;
@@ -118,6 +113,36 @@ std::string CLeoBhWalk::getProgressReport(double trialTime)
     progressString << std::setw(pw) << 0.0;
 
   return progressString.str();
+}
+
+/////////////////////////////////
+
+void LeoBhWalkSym::parseLeoState(const CLeoState &leoState, Vector &obs)
+{
+  if (stanceLegLeft())
+    parseLeoStateByObserver(leoState, obs, &interface_.observer);
+  else
+    parseLeoStateByObserver(leoState, obs, &interface_.observer_sym);
+}
+
+void LeoBhWalkSym::parseLeoAction(const Vector &action, Vector &target_action)
+{
+  if (stanceLegLeft())
+    parseGRLActionByActuator(action, target_action, &interface_.actuator_sym);
+  else
+    parseGRLActionByActuator(action, target_action, &interface_.actuator);
+
+  /*
+  LeoBhWalk::parseLeoAction(action, target_action);
+
+  TRACE(target_action);
+  // Symmetrical environment operate by stance and swing legs
+  // Right leg is assumed to be a stance leg, therefore we symmetrcally map data if left leg is stance
+  if (stanceLegLeft())
+    target_action << VectorConstructor(target_action[0], target_action[2], target_action[1],
+        target_action[4], target_action[3], target_action[6], target_action[5]);
+  TRACE(target_action);
+  */
 }
 
 /////////////////////////////////
@@ -215,7 +240,9 @@ double LeoWalkEnvironment::step(const Vector &action, Vector *obs, double *rewar
 
   // Execute action
   bh_->setPreviousSTGState(&leoState_);
+  TRACE(target_action_);
   double tau = target_env_->step(target_action_, &target_obs_, reward, terminal);
+  TRACE(target_obs_);
 
   // Filter joint speeds
   // Parse obs into CLeoState
@@ -256,7 +283,6 @@ double LeoWalkEnvironment::step(const Vector &action, Vector *obs, double *rewar
 void LeoWalkEnvironment::report(std::ostream &os) const
 {
   double trialTime  = test_?time_test_:time_learn_ - time0_;
-//  LeoBaseEnvironment::report(os);
   os << bh_->getProgressReport(trialTime);
 }
 
