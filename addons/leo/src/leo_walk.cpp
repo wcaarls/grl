@@ -107,7 +107,7 @@ std::string LeoBhWalk::getProgressReport(double trialTime)
 
 void LeoBhWalk::parseLeoState(const CLeoState &leoState, Vector &obs)
 {
-  parseLeoStateByObserver(leoState, obs, &interface_.observer_sym);
+  parseLeoStateByObserver(leoState, obs, &interface_.observer);
 }
 
 void LeoBhWalk::parseLeoAction(const Vector &action, Vector &target_action)
@@ -128,9 +128,9 @@ void LeoBhWalkSym::parseLeoState(const CLeoState &leoState, Vector &obs)
 void LeoBhWalkSym::parseLeoAction(const Vector &action, Vector &target_action)
 {
   if (stanceLegLeft())
-    parseGRLActionByActuator(action, target_action, &interface_.actuator_sym);
-  else
     parseGRLActionByActuator(action, target_action, &interface_.actuator);
+  else
+    parseGRLActionByActuator(action, target_action, &interface_.actuator_sym);
 }
 
 /////////////////////////////////
