@@ -24,8 +24,8 @@ class LeoBhWalk: public CLeoBhBase
     virtual std::string getProgressReport(double trialTime);
 
   protected:
-    void parseLeoStateByObserver(const CLeoState &leoState, Vector &obs, const TargetInterface::ObserverInterface *observer) const;
-    void parseGRLActionByActuator(const Vector &action, Vector &target_action, const TargetInterface::ActuatorInterface *actuator);
+    void parseStateFromTarget(const CLeoState &leoState, Vector &obs, const TargetInterface::ObserverInterface *observer) const;
+    void parseActionForTarget(const Vector &action, Vector &target_action, const TargetInterface::ActuatorInterface *actuator);
 };
 
 class LeoBhWalkSym: public LeoBhWalk

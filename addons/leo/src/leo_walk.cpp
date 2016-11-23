@@ -13,7 +13,7 @@ double LeoBhWalk::calculateReward()
   return CLeoBhWalkSym::calculateReward();
 }
 
-void LeoBhWalk::parseLeoStateByObserver(const CLeoState &leoState, Vector &obs, const TargetInterface::ObserverInterface *observer) const
+void LeoBhWalk::parseStateFromTarget(const CLeoState &leoState, Vector &obs, const TargetInterface::ObserverInterface *observer) const
 {
   int i, j;
   for (i = 0; i < observer->angles.size(); i++)
@@ -40,7 +40,7 @@ void LeoBhWalk::parseLeoStateByObserver(const CLeoState &leoState, Vector &obs, 
   }
 }
 
-void LeoBhWalk::parseGRLActionByActuator(const Vector &action, Vector &target_action, const TargetInterface::ActuatorInterface *actuator)
+void LeoBhWalk::parseActionForTarget(const Vector &action, Vector &target_action, const TargetInterface::ActuatorInterface *actuator)
 {
     double actionArm, actionRightHip, actionLeftHip, actionRightKnee, actionLeftKnee, actionRightAnkle, actionLeftAnkle;
 
@@ -56,6 +56,8 @@ void LeoBhWalk::parseGRLActionByActuator(const Vector &action, Vector &target_ac
       actionRightAnkle = action[ actuator->voltage[avRightAnkleTorque] ];
     if (actuator->voltage[avLeftAnkleTorque] != -1)
       actionLeftAnkle = action[ actuator->voltage[avLeftAnkleTorque] ];
+    if (actuator->voltage[avLeftArmTorque] != -1)
+      actionArm = action[ actuator->voltage[avLeftArmTorque] ];
 
     for (int i = 0; i < actuator->autoActuated.size(); i++)
     {
@@ -107,12 +109,12 @@ std::string LeoBhWalk::getProgressReport(double trialTime)
 
 void LeoBhWalk::parseLeoState(const CLeoState &leoState, Vector &obs)
 {
-  parseLeoStateByObserver(leoState, obs, &interface_.observer);
+  parseStateFromTarget(leoState, obs, &interface_.observer);
 }
 
 void LeoBhWalk::parseLeoAction(const Vector &action, Vector &target_action)
 {
-  parseGRLActionByActuator(action, target_action, &interface_.actuator);
+  parseActionForTarget(action, target_action, &interface_.actuator);
 }
 
 /////////////////////////////////
@@ -120,17 +122,17 @@ void LeoBhWalk::parseLeoAction(const Vector &action, Vector &target_action)
 void LeoBhWalkSym::parseLeoState(const CLeoState &leoState, Vector &obs)
 {
   if (stanceLegLeft())
-    parseLeoStateByObserver(leoState, obs, &interface_.observer);
+    parseStateFromTarget(leoState, obs, &interface_.observer);
   else
-    parseLeoStateByObserver(leoState, obs, &interface_.observer_sym);
+    parseStateFromTarget(leoState, obs, &interface_.observer_sym);
 }
 
 void LeoBhWalkSym::parseLeoAction(const Vector &action, Vector &target_action)
 {
   if (stanceLegLeft())
-    parseGRLActionByActuator(action, target_action, &interface_.actuator);
+    parseActionForTarget(action, target_action, &interface_.actuator);
   else
-    parseGRLActionByActuator(action, target_action, &interface_.actuator_sym);
+    parseActionForTarget(action, target_action, &interface_.actuator_sym);
 }
 
 /////////////////////////////////

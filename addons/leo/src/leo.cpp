@@ -390,6 +390,7 @@ void LeoBaseEnvironment::configParseActions(Configuration &config, const std::ve
   action_dims_ = actuateList.size();
 
   // mirror left and right legs
+  INFO("Symmetrically map actuations");
   std::vector<std::string> actuateList_sym = actuateList;
   for (int i = 0; i < actuateList.size(); i++)
   {

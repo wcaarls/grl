@@ -2,43 +2,43 @@ experiment:
   type: experiment/online_learning
   runs: 1
   trials: 0
-  steps: 1000000
+  steps: 4000000
   rate: 0
   test_interval: 10
-  output: leosim_ac_tc_walk
+  output: leosim_ac_tc_walk_dkda
   environment: 
     type: environment/leo_walk
     behavior: 
-      type: behavior/leo_switching_walk
+      type: behavior/leo_walk
     xml: ../../leo/cfg/leo_walk.xml
     target_env: 
       type: environment/ode
       xml: experiment/environment/xml
       randomize: 0
       visualize: 1
-    observe: torso_boom, hipright, hipleft, kneeright, kneeleft
-    actuate: hipright, hipleft, kneeright, kneeleft
+    observe: torso_boom, hipright, hipleft, kneeright, kneeleft, ankleright, ankleleft
+    actuate: hipright, hipleft, kneeright, kneeleft, ankleright, ankleleft
     observation_dims: experiment/environment/target_env/observation_dims
     action_dims: experiment/environment/target_env/action_dims
   agent: 
     type: agent/td
     policy: 
       type: policy/action
-      sigma: [3.57, 3.57, 3.57, 3.57]
+      sigma: [3.57, 3.57, 3.57, 3.57, 3.57, 3.57]
       output_min: experiment/environment/action_min
       output_max: experiment/environment/action_max
       projector: 
         type: projector/pre/peaked
-        peaking: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        peaking: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         input_min: experiment/environment/observation_min
         input_max: experiment/environment/observation_max
         projector: 
           type: projector/tile_coding
           tilings: 16
-          memory: 33554432
+          memory: 67108864
           safe: 1
-          resolution: [0.14, 0.28, 0.28, 0.28, 0.28, 5, 10, 10, 10, 10]
-          wrapping: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+          resolution: [0.14, 0.28, 0.28, 0.28, 0.28, 0.28, 0.28, 5, 10, 10, 10, 10, 10, 10]
+          wrapping: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
       representation: 
         type: representation/parameterized/linear
         init_min: [0]
