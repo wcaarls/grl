@@ -252,7 +252,7 @@ void QACPredictor::request(ConfigurationRequest *config)
   config->push_back(CRP("update_method", "Actor update method", update_method_, CRP::Configuration, {"proportional", "cacla"}));
   config->push_back(CRP("step_limit", "Actor exploration step limit", step_limit_));
 
-  config->push_back(CRP("discretizer", "discretizer.action", "Action discretizer", discretizer_));
+  config->push_back(CRP("target", "mapping", "Target value at next state", target_));
 
   config->push_back(CRP("critic_projector", "projector.pair", "Projects observations onto critic representation space", critic_projector_));
   config->push_back(CRP("critic_representation", "representation.value/action", "Value function representation", critic_representation_));
@@ -267,7 +267,7 @@ void QACPredictor::configure(Configuration &config)
 {
   Predictor::configure(config);
   
-  discretizer_ = (Discretizer*)config["discretizer"].ptr();
+  target_ = (Mapping*)config["target"].ptr();
 
   critic_projector_ = (Projector*)config["critic_projector"].ptr();
   critic_representation_ = (Representation*)config["critic_representation"].ptr();
@@ -324,19 +324,7 @@ void QACPredictor::update(const Transition &transition)
   
   double target = transition.reward;
   if (transition.action.size())
-  {
-    // Add gamma * max_a Q(s', a) to target value
-    std::vector<Vector> variants;
-    std::vector<ProjectionPtr> actions;
-    discretizer_->options(transition.obs, &variants);
-    critic_projector_->project(transition.obs, variants, &actions);
-    
-    double value=-std::numeric_limits<double>::infinity();
-    for (size_t kk=0; kk < actions.size(); ++kk)
-      value = fmax(value, critic_representation_->read(actions[kk], &v));
-    
-    target += gamma_*value;
-  }
+    target += gamma_*target_->read(transition.obs, &v);
   
   // TD error between target and executed action
   double delta  = target - critic_representation_->read(cp, &v);
@@ -348,7 +336,7 @@ void QACPredictor::update(const Transition &transition)
   critic_representation_->write(cp, VectorConstructor(target), alpha_);
   critic_representation_->update(*critic_trace_, VectorConstructor(alpha_*delta), gamma_*lambda_);
   critic_trace_->add(cp, gamma_*lambda_);
-
+  
   // Update actor based on desired action TD error
   if (update_method_[0] == 'p' || deltau > 0)
   {

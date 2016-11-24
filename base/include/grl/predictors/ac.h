@@ -33,6 +33,7 @@
 #include <grl/representation.h>
 #include <grl/policy.h>
 #include <grl/discretizer.h>
+#include <grl/mapping.h>
 
 namespace grl
 {
@@ -116,7 +117,7 @@ class QACPredictor : public Predictor
     TYPEINFO("predictor/ac/q", "Actor-critic predictor for direct action policies with a Q-value based critic")
 
   protected:
-    Discretizer *discretizer_;
+    Mapping *target_;
 
     Projector *critic_projector_;
     Representation *critic_representation_;
@@ -134,7 +135,7 @@ class QACPredictor : public Predictor
     Vector min_, max_;
 
   public:  
-    QACPredictor() : discretizer_(NULL), critic_projector_(NULL), critic_representation_(NULL), critic_trace_(NULL),
+    QACPredictor() : target_(NULL), critic_projector_(NULL), critic_representation_(NULL), critic_trace_(NULL),
                      actor_projector_(NULL), actor_representation_(NULL), actor_trace_(NULL),
                      alpha_(0.2), beta_(0.01), gamma_(0.97), lambda_(0.65), update_method_("proportional") { }
 

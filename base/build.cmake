@@ -71,6 +71,7 @@ add_library(${TARGET} SHARED
             ${SRC}/projectors/scaling.cpp
             ${SRC}/projectors/tile_coding.cpp
             ${SRC}/projectors/fourier.cpp
+            ${SRC}/projectors/monomial.cpp
             ${SRC}/projectors/grid.cpp
             ${SRC}/representations/linear.cpp
             ${SRC}/representations/ann.cpp
