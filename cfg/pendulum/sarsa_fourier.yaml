@@ -44,7 +44,7 @@ experiment:
         epsilon: 0.05
     predictor: 
       type: predictor/sarsa
-      alpha: 0.001
+      alpha: 0.05
       gamma: 0.97
       lambda: 0
       projector: experiment/agent/policy/projector
@@ -63,12 +63,26 @@ experiment:
 visualizer: 
   type: visualizer/glut
 visualization: 
+  type: visualization/pendulum
+  state: experiment/environment/state
+visualization2: 
   type: visualization/field/policy/value
-  field_dims: [ 0, 1 ]
+  field_dims: [0, 1]
   input_min: experiment/environment/task/observation_min
   input_max: experiment/environment/task/observation_max
   points: 65536
+  savepoints: 1048576
   projection: mean
-  projector: experiment/agent/policy/projector
-  representation: experiment/agent/policy/representation
   policy: experiment/test_agent/policy
+  state: experiment/state
+visualization3:
+  type: visualization/field/policy/action
+  field_dims: [0, 1]
+  input_min: experiment/environment/task/observation_min
+  input_max: experiment/environment/task/observation_max
+  points: 65536
+  savepoints: 1048576
+  projection: mean
+  policy: experiment/test_agent/policy
+  state: experiment/state
+  

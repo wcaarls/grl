@@ -43,7 +43,9 @@ void MonomialProjector::request(const std::string &role, ConfigurationRequest *c
   else
     config->push_back(CRP("inputs", "Number of input dimensions", (int)inputs_, CRP::System));
 
-  config->push_back(CRP("degree", "Maximum degree of monomials", (int)degree_, CRP::Configuration, 0, 4));
+  config->push_back(CRP("operating_input", "Origin", operating_input_, CRP::Configuration));
+  
+  config->push_back(CRP("degree", "Maximum degree of monomials", (int)degree_, CRP::Configuration, 0, 10));
   
   config->push_back(CRP("memory", "int.memory", "Feature vector size", CRP::Provided));
 }
@@ -52,6 +54,8 @@ void MonomialProjector::configure(Configuration &config)
 {
   inputs_ = config["inputs"];
   degree_ = config["degree"];
+  operating_input_ = config["operating_input"].v();
+  
   memory_ = fact(degree_+inputs_)/(fact(degree_)*fact(inputs_));
   
   config.set("memory", memory_);
@@ -72,6 +76,8 @@ ProjectionPtr MonomialProjector::project(const Vector &in) const
   
   if (in.size() != inputs_)
     throw bad_param("projector/monomial:inputs");
+    
+  Vector oin = in-operating_input_;
 
   p->vector.resize(memory_);
   
@@ -84,7 +90,7 @@ ProjectionPtr MonomialProjector::project(const Vector &in) const
   {
     // Degree 1
     for (size_t dd=0; dd < inputs_; ++dd)
-      p->vector[ii++] = in[dd];
+      p->vector[ii++] = oin[dd];
   
     size_t last=1;
     IndexVector count = IndexVector::Ones(inputs_);
@@ -98,7 +104,7 @@ ProjectionPtr MonomialProjector::project(const Vector &in) const
       for (size_t dd=0; dd < inputs_; ++dd)
       {
         for (size_t jj=last-total; jj < last; ++jj)
-          p->vector[ii++] = p->vector[jj]*in[dd];
+          p->vector[ii++] = p->vector[jj]*oin[dd];
           
         total -= count[dd];
         count[dd] += total;

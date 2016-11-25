@@ -236,9 +236,18 @@ void LinearRepresentation::update(const ProjectionPtr projection, const Vector &
       if (vp->vector.size() != memory_)
         throw bad_param("representation/parameterized/linear:memory (or matching projector)");
 
+      // Calculate step size for one-step learning
+      double norm2 = 0;
+      for (size_t ii=0; ii != vp->vector.size(); ++ii)
+        norm2 += vp->vector[ii]*vp->vector[ii];
+
+      // Avoid division by zero
+      if (norm2 < 0.001)
+        norm2 = 0.001;
+
       for (size_t ii=0; ii != vp->vector.size(); ++ii)
         for (size_t jj=0; jj < outputs_; ++jj)
-          params_[ii*outputs_+jj] = fmin(fmax(params_[ii*outputs_+jj] + vp->vector[ii]*delta[jj], output_min_[jj]), output_max_[jj]);
+          params_[ii*outputs_+jj] = fmin(fmax(params_[ii*outputs_+jj] + vp->vector[ii]*delta[jj]/norm2, output_min_[jj]), output_max_[jj]);
     }
     else
       throw Exception("representation/parameterized/linear requires a projector returning IndexProjection or VectorProjection");

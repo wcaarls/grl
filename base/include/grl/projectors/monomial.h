@@ -41,6 +41,7 @@ class MonomialProjector : public Projector
     
   protected:
     size_t inputs_, degree_, memory_;
+    Vector operating_input_;
 
   public:
     MonomialProjector() : inputs_(1), degree_(1), memory_(0) { }
