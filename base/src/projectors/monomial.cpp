@@ -75,28 +75,36 @@ ProjectionPtr MonomialProjector::project(const Vector &in) const
 
   p->vector.resize(memory_);
   
-  IndexVector expv = IndexVector::Zero(inputs_);
-
-  size_t sum=0;
-  for (size_t ii=0; ii < memory_; ++ii)
+  size_t ii=0;
+  
+  // Degree 0
+  p->vector[ii++] = 1;
+  
+  if (degree_ > 0)
   {
-    double total=1;
+    // Degree 1
     for (size_t dd=0; dd < inputs_; ++dd)
-      total = total * pow(in[dd], expv[dd]);
-    p->vector[ii] = total;
+      p->vector[ii++] = in[dd];
+  
+    size_t last=1;
+    IndexVector count = IndexVector::Ones(inputs_);
     
-    for (size_t dd=0; dd < inputs_; ++dd)
+    // Other degrees
+    for (size_t oo=2; oo <= degree_; ++oo)
     {
-      sum++;
-      expv[dd]++;
+      size_t total=ii-last;
+      last = ii;
       
-      if (sum <= degree_)
-        break;
-      
-      sum = sum - expv[dd];
-      expv[dd] = 0;
+      for (size_t dd=0; dd < inputs_; ++dd)
+      {
+        for (size_t jj=last-total; jj < last; ++jj)
+          p->vector[ii++] = p->vector[jj]*in[dd];
+          
+        total -= count[dd];
+        count[dd] += total;
+      }
     }
-  };
-
+  }
+  
   return ProjectionPtr(p);
 }
