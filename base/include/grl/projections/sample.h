@@ -183,7 +183,7 @@ class SampleProjection : public Projection
     Sample *sample;
     Vector query;
     std::vector<Sample*> neighbors;
-    Vector weights;
+    LargeVector weights;
     
     SampleProjection() : sample(NULL) { }
     

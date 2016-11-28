@@ -29,7 +29,7 @@
 #define GRL_ENVIRONMENT_H_
 
 #include <grl/configurable.h>
-#include <grl/state.h>
+#include <grl/signal.h>
 #include <grl/policy.h>
 #include <grl/exporter.h>
 #include <grl/mapping.h>
@@ -199,7 +199,7 @@ class ModeledEnvironment : public Environment
     Model *model_;
     Task *task_;
     Vector state_, obs_;
-    State *state_obj_;
+    VectorSignal *state_obj_;
     Exporter *exporter_;
     
     int test_;
@@ -343,7 +343,7 @@ class SandboxEnvironment : public Environment
     Sandbox *sandbox_;
     Task *task_;
     Vector state_, obs_;
-    State *state_obj_;
+    VectorSignal *state_obj_;
     Exporter *exporter_;
 
     int test_;

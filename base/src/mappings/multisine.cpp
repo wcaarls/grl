@@ -30,6 +30,7 @@
 using namespace grl;
 
 REGISTER_CONFIGURABLE(MultisineMapping)
+REGISTER_CONFIGURABLE(RepresentedMapping)
 
 void MultisineMapping::request(ConfigurationRequest *config)
 {

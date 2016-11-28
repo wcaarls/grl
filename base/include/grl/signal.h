@@ -1,8 +1,8 @@
 /** \file signal.h
- * \brief Generic signal definition.
+ * \brief Inter-component signalling.
  *
- * \author    Ivan Koryakovskiy <i.koryakovskiy@tudelft.nl>
- * \date      2016-10-11
+ * \author    Wouter Caarls <wouter@caarls.org>
+ * \date      2015-02-15
  *
  * \copyright \verbatim
  * Copyright (c) 2015, Wouter Caarls
@@ -28,36 +28,6 @@
 #ifndef GRL_SIGNAL_H_
 #define GRL_SIGNAL_H_
 
-#include <grl/configurable.h>
-#include <grl/grl.h>
-
-namespace grl
-{
-/*
-/// Maps states to actions.
-template <class T>
-class Signal : public Configurable
-{
-  public:
-    virtual ~Signal() { }
-    virtual Signal *clone() const = 0;
-    
-    virtual void set(const T &in) = 0;
-    virtual void get(T *out) const = 0;
-};
-*/
-
-/// Maps states to actions.
-class Signal : public Configurable
-{
-  public:
-    virtual ~Signal() { }
-    virtual Signal *clone() const = 0;
-
-    virtual void set(const Vector &in) = 0;
-    virtual void get(Vector *out) const = 0;
-};
-
-}
+#include <grl/signals/signal.h>
 
 #endif /* GRL_SIGNAL_H_ */

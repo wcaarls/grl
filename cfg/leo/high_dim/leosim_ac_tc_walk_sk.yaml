@@ -18,8 +18,6 @@ experiment:
       visualize: 1
     observe: torso_boom, hipright, hipleft, kneeright, kneeleft
     actuate: hipright, hipleft, stanceknee
-    observation_dims: experiment/environment/target_env/observation_dims
-    action_dims: experiment/environment/target_env/action_dims
   agent: 
     type: agent/td
     policy: 
@@ -53,6 +51,8 @@ experiment:
       beta: 0.02
       gamma: 0.9962
       lambda: 0.8582
+      update_method: proportional
+      step_limit: []
       critic_projector: 
         type: projector/pre/peaked
         peaking: experiment/agent/policy/projector/peaking

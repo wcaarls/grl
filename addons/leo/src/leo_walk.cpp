@@ -151,9 +151,9 @@ void LeoWalkEnvironment::request(ConfigurationRequest *config)
 void LeoWalkEnvironment::configure(Configuration &config)
 {
   LeoBaseEnvironment::configure(config);
-  mirror_sig_ = (Signal*)config["contact_signal"].ptr();
+  mirror_sig_ = (VectorSignal*)config["contact_signal"].ptr();
 
-  // Augmenting state with a direction indicator variable: sit down or stand up
+  // Augmenting state with a direction indicator variable, e.g: sit down or stand up
   const TargetInterface &interface = bh_->getInterface();
   Vector obs_min = config["observation_min"].v();
   Vector obs_max = config["observation_max"].v();

@@ -61,6 +61,7 @@ class VoluntarySubAgent : public SubAgent
     double confidence(const Vector &obs) const
     {
       ERROR("Cannot determine confidence without executing agent");
+      return 0.;
     }
 };
 

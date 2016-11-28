@@ -72,7 +72,7 @@ void DynaAgent::configure(Configuration &config)
   model_predictor_ = (ModelPredictor*)config["model_predictor"].ptr();
   model_agent_ = (Agent*)config["model_agent"].ptr();
 
-  state_ = new State();
+  state_ = new VectorSignal();
   
   config.set("state", state_);
 }

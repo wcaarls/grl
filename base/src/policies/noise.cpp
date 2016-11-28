@@ -33,7 +33,8 @@ REGISTER_CONFIGURABLE(NoisePolicy)
 
 void NoisePolicy::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("sigma", "Standard deviation of exploration distribution", sigma_, CRP::Configuration));
+  config->push_back(CRP("sigma", "Standard deviation of Gaussian exploration distribution", sigma_, CRP::Configuration));
+  config->push_back(CRP("theta", "Ornstein-Uhlenbeck friction term (1=pure Gaussian noise)", theta_, CRP::Configuration));
 
   config->push_back(CRP("policy", "policy", "Policy to inject noise into", policy_));
 }
@@ -43,6 +44,7 @@ void NoisePolicy::configure(Configuration &config)
   policy_ = (Policy*)config["policy"].ptr();
   
   sigma_ = config["sigma"].v();
+  theta_ = config["theta"].v();
 }
 
 void NoisePolicy::reconfigure(const Configuration &config)
@@ -70,7 +72,38 @@ TransitionType NoisePolicy::act(const Vector &in, Vector *out) const
     throw bad_param("policy/noise:sigma");
   
   for (size_t ii=0; ii < out->size(); ++ii)
-    if (sigma_[ii])
-      (*out)[ii] += RandGen::getNormal(0., sigma_[ii]);
+    (*out)[ii] += RandGen::getNormal(0., sigma_[ii]);
+}
+
+void NoisePolicy::act(double time, const Vector &in, Vector *out)
+{
+  policy_->act(in, out);
+  
+  if (!sigma_.size())
+    sigma_ = ConstantVector(out->size(), 0.);
+    
+  if (sigma_.size() == 1 && out->size() != 1)
+    sigma_ = ConstantVector(out->size(), sigma_[0]);
+    
+  if (sigma_.size() != out->size())
+    throw bad_param("policy/noise:sigma");
+    
+  if (!theta_.size())
+    theta_ = ConstantVector(out->size(), 1.);
+    
+  if (theta_.size() == 1 && out->size() != 1)
+    theta_ = ConstantVector(out->size(), theta_[0]);
+    
+  if (theta_.size() != out->size())
+    throw bad_param("policy/noise:theta");
+    
+  if (time == 0 || n_.size() != out->size())
+    n_ = ConstantVector(out->size(), 0.);
+  
+  for (size_t ii=0; ii < out->size(); ++ii)
+  {
+    n_[ii] = (1-theta_[ii])*n_[ii] + RandGen::getNormal(0., sigma_[ii]);
+    (*out)[ii] += n_[ii];
+  }
   return ttExploratory;
 }

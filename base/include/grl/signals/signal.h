@@ -1,5 +1,5 @@
-/** \file state.h
- * \brief Transferrable state object.
+/** \file signal.h
+ * \brief Inter-component signalling.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
  * \date      2015-02-15
@@ -25,8 +25,8 @@
  * \endverbatim
  */
 
-#ifndef GRL_STATE_H_
-#define GRL_STATE_H_
+#ifndef GRL_SIGNAL_DEF_H_
+#define GRL_SIGNAL_DEF_H_
 
 #include <itc/itc.h>
 
@@ -36,24 +36,24 @@
 namespace grl
 {
 
-/// Encapsulates a system state.
-class State : public Configurable
+/// Encapsulates a vector (e.g. system state).
+class VectorSignal : public Configurable
 {
   public:
-    TYPEINFO("state", "Encapsulates a system state or observation");
+    TYPEINFO("signal/vector", "Vector-based signal (state, observation, etc.)");
     
   protected:
-    itc::SharedVariable<Vector> var_;
+    itc::SharedVariable<LargeVector> var_;
 
   public:
     /// Returns current value.
-    virtual Vector get()
+    virtual LargeVector get()
     {
       return var_.get();
     }
 
     /// Sets new value.    
-    virtual void set(const Vector &state)
+    virtual void set(const LargeVector &state)
     {
       var_.write(state);
     }
@@ -65,7 +65,42 @@ class State : public Configurable
     }
 
     /// Reads a new value, waiting until it changes if necessary.    
-    virtual Vector read()
+    virtual LargeVector read()
+    {
+      return var_.read();
+    }
+};
+
+/// Encapsulates a matrix (e.g. trajectory).
+class MatrixSignal : public Configurable
+{
+  public:
+    TYPEINFO("signal/matrix", "Matrix-based signal (trajectory, etc.)");
+    
+  protected:
+    itc::SharedVariable<Matrix> var_;
+
+  public:
+    /// Returns current value.
+    virtual Matrix get()
+    {
+      return var_.get();
+    }
+
+    /// Sets new value.    
+    virtual void set(const Matrix &trajectory)
+    {
+      var_.write(trajectory);
+    }
+
+    /// Returns true if the value has changed.
+    virtual bool test()
+    {
+      return var_.test();
+    }
+
+    /// Reads a new value, waiting until it changes if necessary.    
+    virtual Matrix read()
     {
       return var_.read();
     }
@@ -73,4 +108,4 @@ class State : public Configurable
 
 }
 
-#endif /* GRL_STATE_H_ */
+#endif /* GRL_SIGNAL_DEF_H_ */

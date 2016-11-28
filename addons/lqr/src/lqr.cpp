@@ -92,6 +92,7 @@ bool LQRSolver::solve()
 
     TRACE("State jacobian:\n" << A);
     TRACE("Action jacobian:\n" << B);
+    CRAWL("Cost hessian:\n" << -H);
 
     // Solve discrete-time algebraic Riccati equation
     Matrix X;

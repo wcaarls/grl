@@ -33,20 +33,18 @@ REGISTER_CONFIGURABLE(SplitDiscretizer)
 
 void SplitDiscretizer::request(const std::string &role, ConfigurationRequest *config)
 {
+  config->push_back(CRP("identify", "Identify active discretizer before (-1) or after (1) value", identify_, CRP::Configuration, -1, 1));
+
   config->push_back(CRP("discretizer1", "discretizer." + role, "First discretizer", discretizer_[0]));
   config->push_back(CRP("discretizer2", "discretizer." + role, "Second discretizer", discretizer_[1]));
 }
 
 void SplitDiscretizer::configure(Configuration &config)
 {
+  identify_ = config["identify"];
+
   discretizer_[0] = (Discretizer*)config["discretizer1"].ptr();
   discretizer_[1] = (Discretizer*)config["discretizer2"].ptr();
-  
-  iterator it1 = discretizer_[0]->begin(),
-           it2 = discretizer_[1]->begin();
-           
-  idxsize_ = std::max(it1.idx().size(), it2.idx().size())+1;
-  ressize_ = std::max((*it1).size(), (*it2).size())+1;
 }
 
 void SplitDiscretizer::reconfigure(const Configuration &config)
@@ -58,44 +56,87 @@ SplitDiscretizer* SplitDiscretizer::clone()
   SplitDiscretizer *sd = new SplitDiscretizer(*this);
   sd->discretizer_[0] = discretizer_[0]->clone();
   sd->discretizer_[1] = discretizer_[1]->clone();
+  return sd;
 }
 
-SplitDiscretizer::iterator SplitDiscretizer::begin() const
+SplitDiscretizer::iterator SplitDiscretizer::begin(const Vector &point) const
 {
-  return iterator(this, IndexVector(idxsize_, 0));
+  IndexVector idx = discretizer_[0]->begin(point).idx;
+  idx.conservativeResize(idx.size()+1);
+  idx[idx.size()-1] = 0;
+
+  return iterator(this, point, idx);
 }
 
-size_t SplitDiscretizer::size() const
+size_t SplitDiscretizer::size(const Vector &point) const
 {
-  return discretizer_[0]->size() + discretizer_[1]->size();
+  return discretizer_[0]->size(point) + discretizer_[1]->size(point);
 }
 
 // Note implicit assumption that downstream discretizers discard extra dimensions
-void SplitDiscretizer::inc(IndexVector *idx) const
+void SplitDiscretizer::inc(iterator *it) const
 {
-  if (idx->empty())
+  if (!it->idx.size())
     return;
-    
-  int dd = (*idx)[idxsize_-1];
-  discretizer_[dd]->inc(idx);
-  if (idx->empty() && dd < discretizer_.size()-1)
+  
+  int dd = it->idx[it->idx.size()-1];
+  discretizer_[dd]->inc(it);
+  if (!it->idx.size() && ++dd < discretizer_.size())
   {
     // Switch to next discretizer
-    *idx = IndexVector(idxsize_, 0);
-    (*idx)[idxsize_-1] = dd+1;
+    it->idx = discretizer_[dd]->begin(it->point).idx;
+    it->idx.conservativeResize(it->idx.size()+1);
+    it->idx[it->idx.size()-1] = dd;
   }
 }
 
 // Note implicit assumption that downstream discretizers discard extra dimensions
-Vector SplitDiscretizer::get(const IndexVector &idx) const
+Vector SplitDiscretizer::get(const iterator &it) const
 {
-  if (idx.empty())
+  if (!it.idx.size())
     return Vector();
 
-  int dd = idx[idxsize_-1];
+  int dd = it.idx[it.idx.size()-1];
   
-  Vector v(ressize_);
-  v << dd, discretizer_[dd]->get(idx);
+  Vector v = discretizer_[dd]->get(it);
+  
+  if (identify_)
+  {
+    Vector v2(v.size()+1);
+    
+    if (identify_ == -1)
+      v2 << dd, v;
+    else
+      v2 << v, dd;
+    
+    return v2;
+  }
+  else
+    return v;
+}
 
-  return v;
+Vector SplitDiscretizer::at(const Vector &point, size_t idx) const
+{
+  // Find active iterator
+  int ii=0, dd=0;
+  for (; ii <= idx; ii += discretizer_[dd++]->size(point));
+  
+  // Backtrack to start of active iterator
+  ii -= discretizer_[--dd]->size(point);
+
+  Vector v = discretizer_[dd]->at(point, idx-ii);
+  
+  if (identify_)
+  {
+    Vector v2(v.size()+1);
+    
+    if (identify_ == -1)
+      v2 << dd, v;
+    else
+      v2 << v, dd;
+    
+    return v2;
+  }
+  else
+    return v;
 }

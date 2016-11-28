@@ -33,7 +33,7 @@ REGISTER_CONFIGURABLE(AcrobotVisualization)
 
 void AcrobotVisualization::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("state", "state", "Acrobot state to visualize", state_));
+  config->push_back(CRP("state", "signal/vector", "Acrobot state to visualize", state_));
 }
 
 void AcrobotVisualization::configure(Configuration &config)
@@ -41,7 +41,7 @@ void AcrobotVisualization::configure(Configuration &config)
   if (!Visualizer::instance())
     throw Exception("visualization/acrobot requires a configured visualizer to run");
 
-  state_ = (State*)config["state"].ptr();
+  state_ = (VectorSignal*)config["state"].ptr();
 
   // Create window  
   create("Acrobot");

@@ -32,8 +32,8 @@
 #include <grl/utils.h>
 #include <grl/grl.h>
 #include <grl/discretizer.h>
+#include <grl/signal.h>
 #include <grl/samplers/greedy.h>
-#include <grl/signals/signal_v.h>
 
 namespace grl
 {
@@ -50,7 +50,7 @@ class PADASampler : public EpsilonGreedySampler
     Discretizer *discretizer_;
     mutable IndexVector state_idx_v_;
     Vector delta_;
-    Signal *env_event_;
+    VectorSignal *env_event_;
 
   public:
     PADASampler() { }
@@ -62,8 +62,8 @@ class PADASampler : public EpsilonGreedySampler
 
     // From Sampler
     virtual PADASampler *clone();
-    virtual size_t sample(const Vector &values, TransitionType &tt) const;
-    virtual size_t sample(const Vector &values, const IndexVector &state, TransitionType &tt) const;
+    virtual size_t sample(const LargeVector &values, TransitionType &tt) const;
+    virtual size_t sample(const LargeVector &values, const IndexVector &state, TransitionType &tt) const;
 
   protected:
     virtual void increment(IndexVector &idx_v, const IndexVector &lower_bound, const IndexVector &upper_bound) const;
@@ -84,7 +84,7 @@ class EpsilonPADASampler : public PADASampler
 
     // From Sampler
     virtual EpsilonPADASampler *clone();
-    virtual size_t sample(const Vector &values, TransitionType &tt) const;
+    virtual size_t sample(const LargeVector &values, TransitionType &tt) const;
 };
 
 }

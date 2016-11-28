@@ -33,246 +33,207 @@ using namespace grl;
 unsigned char grl::grl_log_verbosity__ = 3;
 const char *grl::grl_log_levels__[] = {"\x1B[31m\x1B[1m(ERR)\x1B[0m", "\x1B[33m\x1B[1m(WRN)\x1B[0m", "\x1B[34m\x1B[1m(NTC)\x1B[0m", "\x1B[32m\x1B[1m(INF)\x1B[0m", "\x1B[0m\x1B[1m(DBG)\x1B[0m", "\x1B[0m(CRL)"};
 
-Configurable *YAMLConfigurator::load(const YAML::Node &node, Configuration *config, const std::string &path)
+/// Write out YAML node as string. 
+std::string YAMLToString(const YAML::Node &node)
 {
-  Configurable *obj=NULL;
-  Configuration objconfig;
+  if (node.IsScalar())
+  {
+    return node.as<std::string>();
+  }
+  else if (node.IsSequence())
+  {
+    std::string value;
   
-  if (!node.IsMap())
-  {
-    ERROR("Can only load YAML maps");
-    return NULL;
-  }
-    
-  if (node["type"])
-  {
-    obj = ConfigurableFactory::create(node["type"].as<std::string>());
-    
-    if (!obj)
-    {
-      ERROR("Object " << path << " requested unknown type " << node["type"]);
-      return NULL;
-    }
-    
-    if (!path.empty())
-      obj->setPath(path.substr(0, path.size()-1));
-    objects_.push_back(obj);
-    
-    INFO(obj->path() << ": " << obj->d_type() << " (" << obj << ")");
-  }
-    
-  for (YAML::const_iterator it = node.begin(); it != node.end(); ++it)
-  {
-    std::string key, value;
-    key = it->first.as<std::string>();
-    
-    if (key == "type")
-      continue;
-      
-    if (it->second.IsMap())
-    {
-      Configuration subcfg(objconfig);
-      Configurable *subobj = load(it->second, &subcfg, path + key + "/");
-      
-      if (!subobj)
-      {
-        safe_delete(&obj);
-        return NULL;
-      }
-      
-      objconfig.set(key, subobj);
-      references_.set(path + key, subobj);
-    }
-    else
-    {
-      value = toString(it->second);
-      
-      if (value.size() >= 5 && value.substr(value.size()-5) == ".yaml")
-      {
-        Configuration subcfg(objconfig);
-        
-        if (!file_.empty())
-        {
-          size_t pathsep = file_.back().find_last_of('/');
-          if (pathsep != std::string::npos)
-            value = file_.back().substr(0, pathsep+1) + value;
-        }
-        
-        Configurable *subobj = load(value, &subcfg, path + key + "/");
-        
-        if (!subobj)
-        {
-          ERROR("Subconfiguration " << value << " did not yield an object");
-          safe_delete(&obj);
-          return NULL;
-        }
-            
-        objconfig.set(key, subobj);
-        references_.set(path + key, subobj);
-      }
-      else
-      {
-        value = parse(value);
-        INFO(path << key << ": " << value);
-      
-        objconfig.set(key, value);
-        references_.set(path + key, value);
-      }
-    }
-  }
-  
-  if (obj)
-  {
-    ConfigurationRequest request;
-    obj->request("", &request);
-    
-    // Check configuration against request
-    for (size_t ii=0; ii < request.size(); ++ii)
-    {
-      std::string key = request[ii].name;
-    
-      if (request[ii].mutability == CRP::Provided)
-      {
-        // Do nothing here. It's not really a request.
-      }
-      else if (objconfig.has(key))
-      {
-        std::string value = objconfig[key].str();
-        
-        if (!validate(obj, path + key, value, request[ii]))
-          return NULL;
-      }
-      else if (request[ii].optional)
-      {
-        INFO(path << key << ": " << request[ii].value << " (default)");
-        objconfig.set(key, request[ii].value);
-      }
-      else
-      {
-        ERROR("Required parameter " << path << key << " is undefined");
-        return NULL;
-      }
-    }
+    /* Ugly hack to convert sequence back to a string */
+    std::stringstream ss;
+    ss << "[ ";
 
-    // Check for unused variables
-    for (Configuration::MapType::const_iterator ii=objconfig.parameters().begin(); ii != objconfig.parameters().end(); ++ii)
+    for (size_t ii=0; ii < node.size(); ++ii)
     {
-      bool found=false;
+      value = node[ii].as<std::string>();
+      ss << value;
+      if (ii < node.size()-1)
+        ss << ", ";
+    }
+    ss << " ]";
+    value = ss.str();
 
-      for (size_t jj=0; jj < request.size(); ++jj)
-        if (ii->first == request[jj].name)
-        {
-          found = true;
-          break;
-        }
-
-      if (!found)
-        WARNING("Spurious parameter " << path << ii->first);
-    }
-  
-    TRACE("Configuring " << obj->d_type());
-    try
-    {
-      obj->configure(objconfig);
-    }
-    catch (std::exception &e)
-    {
-      ERROR(e.what());
-      return NULL;
-    }
-  }
-    
-  for (Configuration::MapType::const_iterator ii=objconfig.parameters().begin(); ii != objconfig.parameters().end(); ++ii)
-    references_.set(path + ii->first, ii->second->str());
-  
-  config->merge(objconfig);
-  return obj;
-}      
-
-void YAMLConfigurator::reconfigure(const Configuration &config, const std::string &path)
-{
-  if (path.empty())
-  {
-    // Global message
-    walk(config);
-  }
-  else if (references_.has(path))
-  {
-    // Object-specific message
-    Configurable *object = (Configurable*)references_[path].ptr();
-      
-    if (object)
-    {
-      if (!config.has("action"))
-      {
-        // Straight up reconfiguration, check parameters
-        ConfigurationRequest request;
-        object->request("", &request);
-        
-        for (Configuration::MapType::const_iterator ii=config.parameters().begin(); ii != config.parameters().end(); ++ii)
-        {
-          const std::string &key = ii->first;
-          const std::string &value = ii->second->str();
-          
-          bool requested = false;
-          for (size_t jj=0; jj < request.size(); ++jj)
-          {
-            if (request[jj].name == key)
-            {
-              if (request[jj].mutability == CRP::Online)
-              {
-                if (validate(object, key, value, request[jj]))
-                {
-                  INFO(path << "/" << key << ": " << request[jj].value << " -> " << value);
-                }
-              }
-              else
-                WARNING("Cannot reconfigure '" << key << "': not a reconfigurable parameter.");
-                
-              requested = true;
-              break;
-            }
-          }
-          
-          if (!requested)
-            WARNING("Cannot reconfigure '" << key << "': no such parameter.");
-        }
-      }
-      
-      object->reconfigure(config);
-    }
-    else
-      WARNING("Cannot reconfigure '" << path << "': not a configurable object.");
+    return value;
   }
   else
-    WARNING("Cannot reconfigure '" << path << "': no such object.");
+    throw Exception("Unsupported YAML node type");
 }
 
-std::string YAMLConfigurator::parse(const std::string &value) const
+Configurator *grl::loadYAML(const std::string &file, const std::string &element, Configurator *parent)
 {
-  std::string v = value, id, expv;
+  // Case 1: key:value pair
+  std::string key = file;
+  char *value = strchr((char*)key.c_str(), ':');
+  if (value)
+  {
+    *(value++) = '\0';
+    
+    if (!parent)
+      parent = new Configurator();
+    
+    loadYAML("", key.c_str(), parent, YAML::Load(value));
+    
+    return parent;
+  }
+  
+  // Case 2: merging
+  if (element.empty() && parent)
+  {
+    YAML::Node node = YAML::LoadFile(file.c_str());
+    
+    for (YAML::const_iterator it = node.begin(); it != node.end(); ++it)
+      loadYAML(file, it->first.as<std::string>(), parent, it->second);
+      
+    return parent;
+  }
+
+  // Case 3: loading
+  return loadYAML(file, element, parent, YAML::LoadFile(file.c_str()));
+}
+
+Configurator *grl::loadYAML(const std::string &file, const std::string &element, Configurator *parent, const YAML::Node &node)
+{
+  std::string path = element;
+  if (parent)
+    path = parent->path() + "/" + path;
+
+  if (node.IsMap())
+  {
+    Configurator *cfg;
+  
+    if (node["type"])
+    {
+      // Object
+      TRACE(path << ": object of type " << node["type"].as<std::string>());
+      cfg = new ObjectConfigurator(element, node["type"].as<std::string>(), parent);
+    }
+    else
+    {
+      // Subhierarchy
+      cfg = new Configurator(element, parent);
+    }
+    
+    for (YAML::const_iterator it = node.begin(); it != node.end(); ++it)
+    {
+      std::string key = it->first.as<std::string>();
+      
+      if (key == "type")
+        continue;
+        
+      loadYAML(file, key, cfg, it->second);
+    }
+    
+    return cfg;
+  }
+  else
+  {
+    std::string value = YAMLToString(node);
+    
+    if (value.size() >= 5 && value.substr(value.size()-5) == ".yaml")
+    {
+      // Subhierarchy from file
+      if (!file.empty())
+      {
+        size_t pathsep = file.find_last_of('/');
+        if (pathsep != std::string::npos)
+          value = file.substr(0, pathsep+1) + value;
+      }
+      
+      TRACE(path << ": reference to file " << value);
+      return loadYAML(value, element, parent);
+    }
+    else
+    {
+      // Parameter
+      TRACE(path << ": " << value);
+      return new ParameterConfigurator(element, value, parent);
+    }
+  }
+}      
+
+/// *** ParameterConfigurator ***
+
+Configurator *ParameterConfigurator::resolve(const std::string &id)
+{
+  Configurator *reference = Configurator::find(id);
+  if (!reference && parent_)
+    reference = Configurator::find("/" + id);
+  return reference;
+}
+ 
+std::string ParameterConfigurator::localize(const std::string &id) const
+{
+  if (id.empty())
+    return id;
+
+  const Configurator *reference = resolve(id);
+  if (reference)
+  {
+    std::string fullpath = reference->path(), ownpath = path(), newpath;
+    size_t ii;
+    
+    // Find first path difference
+    for (ii=0; ii < fullpath.size() && ii < ownpath.size() && ownpath[ii] == fullpath[ii]; ++ii);
+    
+    // Make sure we're on a full folder name
+    while (ownpath[ii] != '/')
+      ii--;
+      
+    // Localized path ends with other's path from this point onwards
+    if (ii < fullpath.size())
+      newpath = fullpath.substr(ii+1);
+
+    // Add ../ for every folder on our own path until the end
+    for (; ii < ownpath.size(); ++ii)
+      if (ownpath[ii] == '/')
+        newpath = "../" + newpath;
+        
+    return newpath;
+  }
+  else
+    return id;
+}
+
+std::string ParameterConfigurator::str() const
+{
+  std::string v = value_, id, expv;
   
   // Resolve references
   for (size_t ii=0; ii < v.size(); ++ii)
   {
-    if (!isalnum(v[ii]) && v[ii] != '/' && v[ii] != '_')
+    if (!isalnum(v[ii]) && v[ii] != '/' && v[ii] != '_' && v[ii] != '.')
     {
-      if (references_.has(id))
-        expv.insert(expv.size(), references_[id].str());
-      else
-        expv.insert(expv.size(), id);
-    
-      id.clear();
+      if (!id.empty())
+      {
+        const Configurator *reference = resolve(id);
+
+        if (reference)
+          expv.insert(expv.size(), reference->str());
+        else
+          expv.insert(expv.size(), id);
+
+        id.clear();
+      }
       expv.push_back(v[ii]);
     }
     else
       id.push_back(v[ii]);
   }
   
-  if (references_.has(id))
-    expv.insert(expv.size(), references_[id].str());
-  else
-    expv.insert(expv.size(), id);
+  if (!id.empty())
+  {
+    const Configurator *reference = resolve(id);
+
+    if (reference)
+      expv.insert(expv.size(), reference->str());
+    else
+      expv.insert(expv.size(), id);
+  }
 
   // Do some light math
   size_t c;
@@ -292,7 +253,7 @@ std::string YAMLConfigurator::parse(const std::string &value) const
     std::reverse(left.begin(), left.end());
     
     if (left.empty() || right.empty())
-      return value;
+      break;
       
     // Parse values
     std::istringstream issa, issb;
@@ -322,99 +283,340 @@ std::string YAMLConfigurator::parse(const std::string &value) const
   return expv;
 }
 
-bool YAMLConfigurator::validate(Configurable *obj, const std::string &key, const std::string &value, const CRP &crp)
+Configurable *ParameterConfigurator::ptr()
+{
+  if (!value_.empty())
+  {
+    Configurator *reference = resolve(value_);
+
+    if (reference)
+      return reference->ptr();
+  }
+  
+  return NULL;
+}
+
+Configurator *ParameterConfigurator::find(const std::string &path)
+{
+  if (!value_.empty())
+  {
+    Configurator *reference = resolve(value_);
+
+    if (reference)
+      return reference->find(path);
+  }
+
+  return Configurator::find(path);
+}
+
+ParameterConfigurator *ParameterConfigurator::instantiate(Configurator *parent) const
+{
+  if (provided_)
+    throw Exception(path() + ": tried to instantiate a provided parameter");
+
+  if (!parent)
+    parent = parent_;
+
+  std::string v = value_, id, expv;
+
+  // Make references local
+  for (size_t ii=0; ii < v.size(); ++ii)
+    if (!isalnum(v[ii]) && v[ii] != '/' && v[ii] != '_' && v[ii] != '.')
+    {
+      expv.insert(expv.size(), localize(id));
+      id.clear();
+      expv.push_back(v[ii]);
+    }
+    else
+      id.push_back(v[ii]);
+  
+  expv.insert(expv.size(), localize(id));
+  
+  return new ParameterConfigurator(element_, expv, parent);
+}
+
+bool ParameterConfigurator::validate(const CRP &crp) const
+{
+  const Configurator *reference;
+
+  if (!value_.empty() && (reference = resolve(value_)))
+  {
+    return reference->validate(crp);
+  }
+  else
+  {
+    std::string type, role, value = str();
+    CRP::split(crp.type, &type, &role);
+
+    if (type == "int")
+    {
+      int i;
+      if (convert(value, &i))
+      {
+        if (i < crp.min || i > crp.max)
+        {
+          ERROR("Parameter " << path() << " ('" << value << "') is out of range " << crp.min << " - " << crp.max);
+          return false;
+        }
+      }
+      else
+      {
+        ERROR("Parameter " << path() << " ('" << value << "') should be an integer");
+        return false;
+      }
+    }
+    else if (type == "double")
+    {
+      double d;
+      if (convert(value, &d))
+      {
+        if (d < crp.min || d > crp.max)
+        {
+          ERROR("Parameter " << path() << " ('" << value << "') is out of range " << crp.min << " - " << crp.max);
+          return false;
+        }
+      }
+      else
+      {
+        ERROR("Parameter " << path() << " ('" << value << "') should be a floating point value");
+        return false;
+      }
+    }
+    else if (type == "vector")
+    {
+      Vector v;
+      if (!convert(value, &v))
+      {
+        ERROR("Parameter " << path() << " ('" << value << "') should be a vector");
+        return false;
+      }
+    }
+    else if (type == "string")
+    {
+      if (!crp.options.empty())
+      {
+        bool found=false;
+        for (size_t jj=0; jj < crp.options.size(); ++jj)
+          if (value == crp.options[jj])
+            found = true;
+            
+        if (!found)
+        {
+          std::cerr << "Parameter " << path() << " ('" << value << "') should be one of {";
+          for (size_t jj=0; jj < crp.options.size(); ++jj)
+          {
+            std::cerr << crp.options[jj];
+            if (jj < crp.options.size() - 1)
+              std::cerr << ", ";
+          }
+          std::cerr << "}" << std::endl;                
+          return false;
+        }
+      }
+    }
+    else if (value != "0")
+    {
+      ERROR("Parameter " << path() << " ('" << value << "') should be an object");
+      return false;
+    }
+  }
+    
+  return true;
+}
+
+void ParameterConfigurator::reconfigure(const Configuration &config, bool recursive)
+{
+  Configurator *reference;
+
+  if (!value_.empty() && (reference = resolve(value_)))
+    reference->reconfigure(config, recursive);
+
+  return;
+}
+
+/// *** ObjectConfigurator ***
+
+ObjectConfigurator::~ObjectConfigurator()
+{
+  // Avoid double free by Configurable in turn.
+  if (object_)
+  {
+    CRAWL(path() << ": Deleting associated object " << object_ << " (type " << object_->d_type() << ")");
+  
+    object_->detach();
+    safe_delete(&object_);
+  }
+}
+
+ObjectConfigurator* ObjectConfigurator::instantiate(Configurator *parent) const
+{
+  if (provided_)
+    throw Exception(path() + ": tried to instantiate a provided object");
+
+  if (!parent)
+    parent = parent_;
+    
+  // Create object
+  ObjectConfigurator *oc = new ObjectConfigurator(element_, type_, parent);
+  oc->object_ = ConfigurableFactory::create(type_);
+  
+  if (!oc->object_)
+  {
+    ERROR("Unable to create object of type " << type_);
+    return NULL;
+  }
+
+  Configuration config;
+  ConfigurationRequest request;
+  oc->object_->attach(oc);
+  oc->object_->request("", &request);
+
+  // Instantiate and validate configuration parameters
+  for (ConfiguratorList::const_iterator cc=children_.begin(); cc != children_.end(); ++cc)
+  {
+    // Instantiate
+    Configurator *nc = (*cc)->instantiate(oc);
+    if (!nc)
+      return NULL;
+    
+    INFO(path() << "/" << (*cc)->element() << ": " << nc->str());
+
+    // Find matching parameter request
+    for (size_t ii=0; ii < request.size(); ++ii)
+    {
+      if (request[ii].mutability != CRP::Provided)
+      {
+        if ((*cc)->element() == request[ii].name)
+        {
+          // Validate against request
+          if (!nc->validate(request[ii]))
+            return NULL;
+
+          config.set(request[ii].name, nc->str());
+        }
+      }
+    }
+  }
+      
+  // Check for unspecified parameters
+  for (size_t ii=0; ii < request.size(); ++ii)
+  {
+    std::string key = request[ii].name;
+    
+    if (request[ii].mutability != CRP::Provided)
+    {
+      if (!config.has(key))
+      {
+        if (request[ii].optional)
+        {
+          new ParameterConfigurator(key, request[ii].value, oc);
+          
+          INFO(path() << "/" << key << ": " << request[ii].value << " (default)");
+          config.set(key, request[ii].value);
+        }
+        else
+        {
+          ERROR("Required parameter " << path() << "/" << key << " is undefined");
+          return NULL;
+        }
+      }
+    }
+  }
+
+  // Configure object
+  oc->object_->configure(config);
+  
+  // Add provided parameters to instantiated tree
+  for (size_t ii=0; ii < request.size(); ++ii)
+  {
+    std::string key = request[ii].name, type, role;
+    CRP::split(request[ii].type, &type, &role);
+  
+    if (request[ii].mutability == CRP::Provided)
+    {
+      INFO(path() << "/" << key << ": " << config[key].str() << " (provided)");
+    
+      if (type == "int" || type == "double" || type == "vector" || type == "string")
+      {
+        new ParameterConfigurator(key, config[key].str(), oc, true);
+      }
+      else
+      {
+        ObjectConfigurator *nc = new ObjectConfigurator(key, request[ii].type, oc, true);
+        nc->attach((Configurable*)config[key].ptr());
+      }
+    }
+  }
+  
+  return oc;
+}
+
+bool ObjectConfigurator::validate(const CRP &crp) const
 {
   std::string type, role;
   CRP::split(crp.type, &type, &role);
 
-  if (type == "int")
+  if (object_)
   {
-    int i;
-    if (convert(value, &i))
+    if (object_->d_type().substr(0, type.size()) != type)
     {
-      if (i < crp.min || i > crp.max)
-      {
-        ERROR("Parameter " << key << " ('" << value << "') is out of range " << crp.min << " - " << crp.max);
-        return false;
-      }
-    }
-    else
-    {
-      ERROR("Parameter " << key << " ('" << value << "') should be an integer");
+      ERROR("Parameter " << path() << " should subclass " << type);
       return false;
-    }
-  }
-  else if (type == "double")
-  {
-    double d;
-    if (convert(value, &d))
-    {
-      if (d < crp.min || d > crp.max)
-      {
-        ERROR("Parameter " << key << " ('" << value << "') is out of range " << crp.min << " - " << crp.max);
-        return false;
-      }
-    }
-    else
-    {
-      ERROR("Parameter " << key << " ('" << value << "') should be a floating point value");
-      return false;
-    }
-  }
-  else if (type == "vector")
-  {
-    Vector v;
-    if (!convert(value, &v))
-    {
-      ERROR("Parameter " << key << " ('" << value << "') should be a vector");
-      return false;
-    }
-  }
-  else if (type == "string")
-  {
-    if (!crp.options.empty())
-    {
-      bool found=false;
-      for (size_t jj=0; jj < crp.options.size(); ++jj)
-        if (value == crp.options[jj])
-          found = true;
-          
-      if (!found)
-      {
-        std::cerr << "Parameter " << key << " ('" << value << "') should be one of {";
-        for (size_t jj=0; jj < crp.options.size(); ++jj)
-        {
-          std::cerr << crp.options[jj];
-          if (jj < crp.options.size() - 1)
-            std::cerr << ", ";
-        }
-        std::cerr << "}" << std::endl;                
-        return false;
-      }
     }
   }
   else
   {
-    if (value.substr(0, 2) == "0x")
-    {
-      Configurable *subobj = (Configurable*)strtol(value.c_str(), NULL, 0);
-      
-      std::string t = subobj->d_type();
-  
-      if (subobj->d_type().substr(0, type.size()) != type)
-      {
-        ERROR("Parameter " << key << " should subclass " << type);
-        return false;
-      }
-      
-      obj->children_.push_back(subobj);
-    }
-    else
-    {
-      ERROR("Parameter " << key << " ('" << value << "') should be an object (of type " << type << ")");
-      return false;
-    }
+    ERROR("Parameter " << path() << " is not an instantiated object");
+    return false;
   }
   
   return true;
+}
+
+void ObjectConfigurator::reconfigure(const Configuration &config, bool recursive)
+{
+  if (recursive)
+    Configurator::reconfigure(config, recursive);
+
+  if (!config.has("action"))
+  {
+    // Straight up reconfiguration, check parameters
+    ConfigurationRequest request;
+    object_->request("", &request);
+    
+    for (Configuration::MapType::const_iterator ii=config.parameters().begin(); ii != config.parameters().end(); ++ii)
+    {
+      const std::string &key = ii->first;
+      const std::string &value = ii->second->str();
+      
+      bool requested = false;
+      for (size_t jj=0; jj < request.size(); ++jj)
+      {
+        if (request[jj].name == key)
+        {
+          if (request[jj].mutability == CRP::Online)
+          {
+            ParameterConfigurator pc(key, value);
+          
+            if (!pc.validate(request[jj]))
+              return;
+            
+            INFO(pc.path() << ": " << request[jj].value << " -> " << value);
+              
+            /// TODO: Update tree
+          }
+          else
+            WARNING("Cannot reconfigure '" << key << "': not a reconfigurable parameter.");
+            
+          requested = true;
+          break;
+        }
+      }
+      
+      if (!requested && !recursive)
+        WARNING("Cannot reconfigure '" << key << "': no such parameter.");
+    }
+  }
+  
+  object_->reconfigure(config);
 }

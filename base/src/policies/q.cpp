@@ -42,7 +42,6 @@ void QPolicy::request(ConfigurationRequest *config)
 void QPolicy::configure(Configuration &config)
 {
   discretizer_ = (Discretizer*)config["discretizer"].ptr();
-  discretizer_->options(&variants_);
   
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (Representation*)config["representation"].ptr();
@@ -66,7 +65,7 @@ QPolicy *QPolicy::clone() const
 
 double QPolicy::value(const Vector &in) const
 {
-  Vector qvalues, distribution;
+  LargeVector qvalues, distribution;
   double v=0;
   
   values(in, &qvalues);
@@ -84,29 +83,30 @@ double QPolicy::value(const Vector &in) const
  * @param in: state
  * @param out: each element containes an (e.g. LLR) approximation of a value function Q(s, a), whrere 'a' is an index of vector 'out'
  */
-void QPolicy::values(const Vector &in, Vector *out) const
+void QPolicy::values(const Vector &in, LargeVector *out) const
 {
   // 'projections' contains list of neighbours around state 'in' and any possible action. Number of projections is equal to number of possible actions.
+  std::vector<Vector> variants;
   std::vector<ProjectionPtr> projections;
-  projector_->project(in, variants_, &projections);
 
-  out->resize(variants_.size());
+  discretizer_->options(in, &variants);
+  projector_->project(in, variants, &projections);
+
+  out->resize(variants.size());
   Vector value;
-  for (size_t ii=0; ii < variants_.size(); ++ii)
+  for (size_t ii=0; ii < variants.size(); ++ii)
     (*out)[ii] = representation_->read(projections[ii], &value); // reading approximated values
 }
 
 TransitionType QPolicy::act(const Vector &in, Vector *out) const
 {
-  Vector qvalues;
+  LargeVector qvalues;
   TransitionType tt;
   
   values(in, &qvalues);
   size_t action = sampler_->sample(qvalues, tt);
   
-//  Vector prev_out = *out;
-//  TRACE(prev_out);
-  *out = variants_[action];
+  *out = discretizer_->at(in, action);
   TRACE(*out);
 /*
   // Neighbouring action in case of PADA

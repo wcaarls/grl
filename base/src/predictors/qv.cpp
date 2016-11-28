@@ -90,6 +90,7 @@ void QVPredictor::update(const Transition &transition)
   double target = transition.reward;
   if (transition.action.size())
     target += gamma_*vnext;
+  double delta = target - v_representation_->read(vp, &res);
 
   // Q update  
   q_representation_->write(qp, VectorConstructor(target), alpha_);
@@ -97,7 +98,6 @@ void QVPredictor::update(const Transition &transition)
   // V update
   v_representation_->write(vp, VectorConstructor(target), beta_);
   
-  double delta = target - v_representation_->read(vp, &res);
   v_representation_->update(*trace_, VectorConstructor(beta_*delta), gamma_*lambda_);
   trace_->add(vp, gamma_*lambda_);
   

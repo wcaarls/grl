@@ -212,8 +212,6 @@ void GLUTVisualizer::run()
 
       new_window_name_ = NULL;
       new_window_ptr_ = NULL;
-      
-      pthread_mutex_unlock(&mutex_);
     }
     
     pthread_mutex_unlock(&mutex_);

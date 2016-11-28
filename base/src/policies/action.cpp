@@ -131,14 +131,17 @@ ActionProbabilityPolicy *ActionProbabilityPolicy::clone() const
 
 TransitionType ActionProbabilityPolicy::act(const Vector &in, Vector *out) const
 {
+  std::vector<Vector> variants;
   std::vector<ProjectionPtr> projections;
-  projector_->project(in, variants_, &projections);
-
-  Vector dist(variants_.size()), v;
   
-  for (size_t ii=0; ii < variants_.size(); ++ii)
+  discretizer_->options(in, &variants);
+  projector_->project(in, variants, &projections);
+
+  Vector dist(variants.size()), v;
+  
+  for (size_t ii=0; ii < variants.size(); ++ii)
     dist[ii] = representation_->read(projections[ii], &v);
     
-  *out = variants_[sample(dist)];
+  *out = variants[sample(dist)];
   return ttExploratory;
 }

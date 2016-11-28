@@ -44,10 +44,10 @@ class Solver : public Configurable
     virtual bool solve() = 0;
 
     /// Solve MDP from a certain starting point.
-    virtual bool solve(const Vector &x0) { }
+    virtual bool solve(const Vector &x0) { return false; }
 
     /// Resolve MDP based on previous solution, but from a later starting point.
-    virtual bool resolve(double t, const Vector &xt) { }
+    virtual bool resolve(double t, const Vector &xt) { return false; }
 };
 
 }

@@ -32,7 +32,7 @@
 #include <grl/policy.h>
 #include <grl/predictor.h>
 #include <grl/mutex.h>
-#include <grl/signals/signal_v.h>
+#include <grl/signal.h>
 
 namespace grl
 {
@@ -55,7 +55,7 @@ class TDAgent : public Agent
     
     Instance<TDAgentState> agent_state_;
     
-    Signal *transition_type_;
+    VectorSignal *transition_type_;
 
   public:
     TDAgent() : policy_(NULL), predictor_(NULL), transition_type_(NULL) { }

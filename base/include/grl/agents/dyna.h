@@ -65,7 +65,7 @@ class DynaAgent : public Agent
     ObservationModel *model_;
     ModelPredictor *model_predictor_;
     Agent *model_agent_;
-    State *state_;
+    VectorSignal *state_;
     FIFOSampler<Vector> start_obs_;
     
     std::vector<DynaAgentThread*> agent_threads_;

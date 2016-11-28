@@ -1,11 +1,11 @@
-/** \file trajectory.h
- * \brief Transferrable trajectory object.
+/** \file multi.h
+ * \brief Multi predictor header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-10-16
+ * \date      2015-09-01
  *
  * \copyright \verbatim
- * Copyright (c) 2015, Wouter Caarls
+ * Copyright (c) 2016, Wouter Caarls
  * All rights reserved.
  *
  * This file is part of GRL, the Generic Reinforcement Learning library.
@@ -25,52 +25,41 @@
  * \endverbatim
  */
 
-#ifndef GRL_TRAJECTORY_H_
-#define GRL_TRAJECTORY_H_
+#ifndef GRL_MULTI_PREDICTOR_H_
+#define GRL_MULTI_PREDICTOR_H_
 
-#include <itc/itc.h>
-
-#include <grl/configurable.h>
-#include <grl/mutex.h>
+#include <grl/predictor.h>
 
 namespace grl
 {
 
-/// Encapsulates a trajectory.
-class Trajectory : public Configurable
+/// Multi predictor.
+class MultiPredictor : public Predictor
 {
   public:
-    TYPEINFO("trajectory", "Encapsulates a trajectory");
-    
+    TYPEINFO("predictor/multi", "Updates multiple predictors")
+
   protected:
-    itc::SharedVariable<Matrix> var_;
+    std::vector<Predictor*> predictor_;
 
   public:
-    /// Returns current value.
-    virtual Matrix get()
+    MultiPredictor() : predictor_(2)
     {
-      return var_.get();
+      predictor_[0] = NULL;
+      predictor_[1] = NULL;
     }
-
-    /// Sets new value.    
-    virtual void set(const Matrix &trajectory)
-    {
-      var_.write(trajectory);
-    }
-
-    /// Returns true if the value has changed.
-    virtual bool test()
-    {
-      return var_.test();
-    }
-
-    /// Reads a new value, waiting until it changes if necessary.    
-    virtual Matrix read()
-    {
-      return var_.read();
-    }
+  
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+    
+    // From Predictor
+    virtual MultiPredictor *clone() const;
+    virtual void update(const Transition &transition);
+    virtual void finalize();
 };
 
 }
 
-#endif /* GRL_TRAJECTORY_H_ */
+#endif /* GRL_MULTI_PREDICTOR_H_ */

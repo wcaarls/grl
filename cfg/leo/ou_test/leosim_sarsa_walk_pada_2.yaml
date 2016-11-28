@@ -8,6 +8,8 @@ experiment:
   output: leosim_sarsa_walk_pada_2
   environment: 
     type: environment/leo_walk
+    behavior: 
+      type: behavior/leo_walk_sym
     xml: ../../leo/cfg/leo_walk.xml
     target_env: 
       type: environment/ode
@@ -15,7 +17,7 @@ experiment:
       randomize: 1
       visualize: 1
     observe: torso_boom, hipright, hipleft, kneeright, kneeleft
-    actuate: hipright, hipleft, kneeleft
+    actuate: hipright, hipleft, stanceknee
     exporter: 
       type: exporter/csv
       file: leosim_sarsa_walk_pada_2
@@ -24,9 +26,9 @@ experiment:
     observation_dims: experiment/environment/target_env/observation_dims
     action_dims: experiment/environment/target_env/action_dims
     transition_type: 
-      type: signal/v
+      type: signal/vector
     contact_signal: 
-      type: signal/v
+      type: signal/vector
   agent: 
     type: agent/td
     policy: 

@@ -51,15 +51,16 @@ SoftmaxSampler *SoftmaxSampler::clone()
   return new SoftmaxSampler(*this);
 }
 
-size_t SoftmaxSampler::sample(const Vector &values, TransitionType &tt) const
+size_t SoftmaxSampler::sample(const LargeVector &values, TransitionType &tt) const
 {
-  Vector dist;
+  LargeVector dist;
   
   distribution(values, &dist);
   
   tt = ttExploratory;
   size_t idx = ::sample(dist, 1.);
 /*
+  // For testing purpose
   GreedySampler gs;
   TransitionType gtt;
   size_t gidx = gs.sample(values, gtt);
@@ -70,7 +71,7 @@ size_t SoftmaxSampler::sample(const Vector &values, TransitionType &tt) const
   return idx;
 }
 
-void SoftmaxSampler::distribution(const Vector &values, Vector *distribution) const
+void SoftmaxSampler::distribution(const LargeVector &values, LargeVector *distribution) const
 {
   Vector v(values);
   for (size_t ii=0; ii < values.size(); ++ii)

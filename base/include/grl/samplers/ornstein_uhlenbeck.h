@@ -32,8 +32,8 @@
 #include <grl/utils.h>
 #include <grl/grl.h>
 #include <grl/discretizer.h>
+#include <grl/signal.h>
 #include <grl/samplers/greedy.h>
-#include <grl/signals/signal_v.h>
 #include <grl/samplers/pada.h>
 
 namespace grl
@@ -47,7 +47,7 @@ class OrnsteinUhlenbeckSampler : public EpsilonGreedySampler
 
   protected:
     mutable Vector noise_;
-    Signal *env_event_;
+    VectorSignal *env_event_;
     Vector theta_, sigma_, center_;
     Discretizer *discretizer_;
     std::vector<Vector> state_variants_;
@@ -62,7 +62,7 @@ class OrnsteinUhlenbeckSampler : public EpsilonGreedySampler
 
     // From Sampler
     virtual OrnsteinUhlenbeckSampler *clone();
-    virtual size_t sample(const Vector &values, TransitionType &tt) const;
+    virtual size_t sample(const LargeVector &values, TransitionType &tt) const;
 
   protected:
     virtual void env_event_processor() const;
@@ -87,7 +87,7 @@ class ACOrnsteinUhlenbeckSampler : public OrnsteinUhlenbeckSampler
 
     // From Sampler
     virtual ACOrnsteinUhlenbeckSampler *clone();
-    virtual size_t sample(const Vector &values, TransitionType &tt) const;
+    virtual size_t sample(const LargeVector &values, TransitionType &tt) const;
 };
 
 
@@ -108,7 +108,7 @@ class EpsilonOrnsteinUhlenbeckSampler : public OrnsteinUhlenbeckSampler
 
     // From Sampler
     virtual EpsilonOrnsteinUhlenbeckSampler *clone();
-    virtual size_t sample(const Vector &values, TransitionType &tt) const;
+    virtual size_t sample(const LargeVector &values, TransitionType &tt) const;
 };
 
 class PadaOrnsteinUhlenbeckSampler : public OrnsteinUhlenbeckSampler
@@ -126,7 +126,7 @@ class PadaOrnsteinUhlenbeckSampler : public OrnsteinUhlenbeckSampler
 
     // From Sampler
     virtual PadaOrnsteinUhlenbeckSampler *clone();
-    virtual size_t sample(const Vector &values, TransitionType &tt) const;
+    virtual size_t sample(const LargeVector &values, TransitionType &tt) const;
 
   private:
     PADASampler pada_;

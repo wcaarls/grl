@@ -53,7 +53,7 @@ void BatchLearningExperiment::request(ConfigurationRequest *config)
   config->push_back(CRP("action_min", "vector.action_min", "Lower limit for actions", action_min_, CRP::System));
   config->push_back(CRP("action_max", "vector.action_max", "Upper limit for actions", action_max_, CRP::System));
   
-  config->push_back(CRP("state", "state", "Current observed state of the environment", CRP::Provided));  
+  config->push_back(CRP("state", "signal/vector", "Current observed state of the environment", CRP::Provided));  
 }
 
 void BatchLearningExperiment::configure(Configuration &config)
@@ -74,7 +74,7 @@ void BatchLearningExperiment::configure(Configuration &config)
   action_min_ = config["action_min"].v();
   action_max_ = config["action_max"].v();
   
-  state_ = new State();
+  state_ = new VectorSignal();
   
   config.set("state", state_);
 }

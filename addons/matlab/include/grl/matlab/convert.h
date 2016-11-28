@@ -29,12 +29,12 @@
 #define GRL_MATLAB_CONVERT_H_
 
 #include <mex.h>
-#include <grl/configuration.h>
+#include <grl/configurable.h>
 
 mxArray *vectorToArray(const grl::Vector &v);
 grl::Vector arrayToVector(const mxArray *pm);
 
 void structToConfig(const mxArray *pm, grl::Configuration &config);
-mxArray *taskSpecToStruct(const grl::Configuration &config);
+mxArray *taskSpecToStruct(const grl::Configurator &config);
 
 #endif /* GRL_MATLAB_CONVERT_H_ */

@@ -38,7 +38,7 @@
 
 using namespace grl;
 
-static YAMLConfigurator *g_configurator=NULL;
+static Configurator *g_configurator=NULL;
 static Environment *g_env=NULL;
 static int g_action_dims=0;
 static bool g_started=false;
@@ -68,14 +68,16 @@ void mexFunction(int nlhs, mxArray *plhs[ ],
     if (nrhs < 2 || !mxIsChar(prhs[1]) || !(file = mxArrayToString(prhs[1])))
       mexErrMsgTxt("Missing configuration file name.");
       
-    Configuration config;
-    g_configurator = new YAMLConfigurator;
-    g_configurator->load(file, &config);
-  
-    Configurable *obj=NULL;
-    if (config.has("environment"))
-      obj = (Configurable*)config["environment"].ptr();
-    g_env = dynamic_cast<Environment*>(obj);
+    Configurator *conf, *envconf;
+    if (!(conf = loadYAML(file)) || !(g_configurator = conf->instantiate()) || !(envconf = g_configurator->find("environment")))
+    {
+      safe_delete(&conf);
+      safe_delete(&g_configurator);
+      return;
+    }
+    
+    safe_delete(&conf);
+    g_env = dynamic_cast<Environment*>(envconf->ptr());
     
     if (!g_env)
     {
@@ -83,7 +85,7 @@ void mexFunction(int nlhs, mxArray *plhs[ ],
       mexErrMsgTxt("Configuration file does not specify a valid environment.");
     }
 
-    plhs[0] = taskSpecToStruct(g_configurator->references());
+    plhs[0] = taskSpecToStruct(*envconf);
     
     g_action_dims = mxGetPr(mxGetField(plhs[0], 0, "action_dims"))[0];
     g_started = false;

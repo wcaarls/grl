@@ -4,7 +4,7 @@ experiment:
   trials: 0
   steps: 0
   rate: 20
-  test_interval: 0
+  test_interval: -1
   environment: 
     type: environment/modeled
     model: 

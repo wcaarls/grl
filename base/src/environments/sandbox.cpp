@@ -37,7 +37,7 @@ void SandboxEnvironment::request(ConfigurationRequest *config)
   config->push_back(CRP("model", "sandbox_model", "Environment model", sandbox_));
   config->push_back(CRP("task", "task", "Task to perform in the environment (should match model)", task_));
   config->push_back(CRP("exporter", "exporter", "Optional exporter for transition log (supports time, state, observation, action, reward, terminal)", exporter_, true));
-  config->push_back(CRP("state", "state", "Current state of the model", CRP::Provided));
+  config->push_back(CRP("state", "signal/vector", "Current state of the model", CRP::Provided));
 }
 
 void SandboxEnvironment::configure(Configuration &config)
@@ -52,7 +52,7 @@ void SandboxEnvironment::configure(Configuration &config)
     exporter_->init({"time", "state", "observation", "action", "reward", "terminal"});
   }
 
-  state_obj_ = new State();
+  state_obj_ = new VectorSignal();
 
   config.set("state", state_obj_);
 }

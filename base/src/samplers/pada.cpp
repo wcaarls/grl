@@ -56,7 +56,7 @@ void PADASampler::configure(Configuration &config)
   Vector initial_state = ConstantVector(delta_.size(), 0.0); // default action = 0
   discretizer_->discretize(initial_state, &state_idx_v_);
 
-  env_event_ = (Signal*)config["contact_signal"].ptr();
+  env_event_ = (VectorSignal*)config["contact_signal"].ptr();
 }
 
 void PADASampler::reconfigure(const Configuration &config)
@@ -88,8 +88,7 @@ void PADASampler::increment(IndexVector &idx_v, const IndexVector &lower_bound, 
 Vector PADASampler::env_event_processor() const
 {
   Vector delta = delta_;
-  Vector data;
-  env_event_->get(&data);
+  LargeVector data = env_event_->get();
   if (data.size())
   {
     if (data[0])
@@ -153,7 +152,8 @@ size_t PADASampler::exploration_step(IndexVector &lower_bound, IndexVector &uppe
   // collect all variants of discretized vectors within bounds
   IndexVector idx_v = lower_bound;
   std::vector<IndexVector> idx_collection;
-  while (!std::equal(idx_v.begin(), idx_v.end(), upper_bound.begin()))
+//  while (!std::equal(idx_v.begin(), idx_v.end(), upper_bound.begin()))
+  while (idx_v.isApprox(upper_bound))
   {
     idx_collection.push_back(idx_v);
     TRACE(idx_v);
@@ -181,7 +181,8 @@ size_t PADASampler::exploitation_step(const Vector &values, IndexVector &lower_b
   max_idx = discretizer_->convert(idx_v);
   increment(idx_v, lower_bound, upper_bound);
   TRACE(idx_v);
-  while (!std::equal(idx_v.begin(), idx_v.end(), upper_bound.begin()))
+  //while (!std::equal(idx_v.begin(), idx_v.end(), upper_bound.begin()))
+  while (idx_v.isApprox(upper_bound))
   {
     loop_idx = discretizer_->convert(idx_v);
     if (values[loop_idx] > values[max_idx])
@@ -204,7 +205,7 @@ size_t PADASampler::exploitation_step(const Vector &values, IndexVector &lower_b
 }
 
 
-size_t PADASampler::sample(const Vector &values, TransitionType &tt) const
+size_t PADASampler::sample(const LargeVector &values, TransitionType &tt) const
 {
   IndexVector lower_bound, upper_bound;
   Vector delta = env_event_processor();
@@ -222,7 +223,7 @@ size_t PADASampler::sample(const Vector &values, TransitionType &tt) const
   }
 }
 
-size_t PADASampler::sample(const Vector &values, const IndexVector &state, TransitionType &tt) const
+size_t PADASampler::sample(const LargeVector &values, const IndexVector &state, TransitionType &tt) const
 {
   state_idx_v_ = state;
   return sample(values, tt);
@@ -237,14 +238,14 @@ EpsilonPADASampler *EpsilonPADASampler::clone()
   return egs;
 }
 
-size_t EpsilonPADASampler::sample(const Vector &values, TransitionType &tt) const
+size_t EpsilonPADASampler::sample(const LargeVector &values, TransitionType &tt) const
 {
   size_t idx;
 
   if (rand_->get() < epsilon_)
   {
     tt = ttExploratory;
-    std::vector<size_t> lower_bound, upper_bound;
+    IndexVector lower_bound, upper_bound;
     Vector delta = env_event_processor();
     get_bounds(delta, lower_bound, upper_bound);
     idx = exploration_step(lower_bound, upper_bound);

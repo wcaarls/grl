@@ -43,8 +43,13 @@ class Discretizer : public Configurable
     /// List of discrete points.
     virtual void options(std::vector<Vector> *out) const
     {
-      out->reserve(size());
-      for (iterator it=begin(); it != end(); ++it)
+      options(Vector(), out);
+    }
+    
+    virtual void options(const Vector &point, std::vector<Vector> *out) const
+    {
+      out->reserve(size(point));
+      for (iterator it=begin(point); it != end(); ++it)
         out->push_back(*it);
     }
     
@@ -53,28 +58,35 @@ class Discretizer : public Configurable
     {
       protected:
         const Discretizer *discretizer_;
-        IndexVector idx_;
+        
+      public:
+        Vector point;
+        IndexVector idx;
 
       public:
-        iterator(const Discretizer *discretizer=NULL, IndexVector idx=IndexVector()) : discretizer_(discretizer), idx_(idx) { }
-
-        bool operator==(const iterator &rhs) const { return idx_ == rhs.idx_; }
-        bool operator!=(const iterator &rhs) const { return idx_ != rhs.idx_; }
-        iterator &operator++() { discretizer_->inc(&idx_); return *this; }
-        Vector operator*() { return discretizer_->get(idx_); }
-        const IndexVector &idx() { return idx_; }
+        iterator(const Discretizer *discretizer=NULL, Vector _point=Vector(), IndexVector _idx=IndexVector()) : discretizer_(discretizer), point(_point), idx(_idx) { }
+        inline bool operator==(const iterator &rhs) const { return idx.size() == rhs.idx.size() && (idx == rhs.idx).all(); }
+        inline bool operator!=(const iterator &rhs) const { return idx.size() != rhs.idx.size() || (idx != rhs.idx).any(); }
+        inline iterator &operator++() { discretizer_->inc(this); return *this; }
+        inline Vector operator*() { return discretizer_->get(*this); }
     };
     
-    virtual size_t size() const = 0;
-    virtual iterator begin() const = 0;
+    virtual size_t size() const { return size(Vector()); }
+    virtual size_t size(const Vector &point) const { return size(); }
+    virtual iterator begin() const { return begin(Vector()); }
+    virtual iterator begin(const Vector &point) const { return begin(); }
     virtual iterator end() const
     {
       return iterator(this);
     }
     
-    virtual void   inc(IndexVector *idx) const = 0;
-    virtual Vector get(const IndexVector &idx) const = 0;
+    virtual void   inc(iterator *it) const = 0;
+    virtual Vector get(const iterator &it) const = 0;
+    virtual Vector at(size_t idx) const { return at(Vector(), idx); }
+    virtual Vector at(const Vector &point, size_t idx) const { return at(idx); }
 
+
+    // #ivan need to review these
     virtual Vector steps()  const = 0;
 
     /// Finds the most closest vector to 'vec' in L1 sense and satisfies discretization steps
@@ -84,7 +96,6 @@ class Discretizer : public Configurable
     /// Converts indexed vector to an linear offset of pointing to an indexed representation of the same input vector, and back
     virtual size_t convert(const IndexVector &idx_v) const = 0;
     virtual IndexVector convert(const size_t idx) const = 0;
-
 };
 
 }

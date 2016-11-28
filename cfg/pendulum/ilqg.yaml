@@ -1,0 +1,53 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 0
+  steps: 0
+  rate: 20
+  test_interval: 0
+  environment: 
+    type: environment/modeled
+    model: 
+      type: model/dynamical
+      control_step: 0.05
+      integration_steps: 5
+      dynamics: 
+        type: dynamics/pendulum
+    task: 
+      type: task/pendulum/regulator
+      start: [3.14159, 0]
+      goal: [0, 0]
+      stddev: [0, 0]
+      q: [1, 0.1]
+      r: [2]
+  agent: 
+    type: agent/solver
+    interval: 1
+    policy: 
+      type: policy/sample_feedback
+      output_min: experiment/environment/task/action_min
+      output_max: experiment/environment/task/action_max
+    solver: 
+      type: solver/ilqg
+      horizon: 50
+      iterations: 100
+      stddev: 10
+      regularization: controls
+      model: 
+        type: observation_model/fixed
+        jacobian_step: 0.001
+        model: experiment/environment/model
+        task: experiment/environment/task
+      policy: experiment/agent/policy
+  test_agent: experiment/agent
+visualizer: 
+  type: visualizer/glut
+visualization: 
+  type: visualization/pendulum
+  state: experiment/environment/state
+visualization2: 
+  type: visualization/trajectory
+  input_dims: [0, 1]
+  input_min: experiment/environment/task/observation_min
+  input_max: experiment/environment/task/observation_max
+  trajectory: experiment/agent/solver/trajectory

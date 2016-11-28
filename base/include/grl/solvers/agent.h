@@ -44,7 +44,7 @@ class AgentSolver : public Solver
   protected:
     ObservationModel *model_;
     Agent *agent_;
-    State *state_;
+    VectorSignal *state_;
     size_t steps_, horizon_;
     Vector start_;
     

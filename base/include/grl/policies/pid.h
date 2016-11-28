@@ -43,8 +43,10 @@ class PIDPolicy : public ParameterizedPolicy
   protected:
     Vector setpoint_;
     size_t outputs_;
+    
     Vector p_, i_, d_, il_;
-    Vector params_;
+    LargeVector params_;
+    
     Vector ival_, prev_in_;
     Vector action_min_, action_max_;
 
@@ -63,8 +65,8 @@ class PIDPolicy : public ParameterizedPolicy
     
     // From ParameterizedPolicy
     virtual size_t size() const { return params_.size(); }
-    virtual const Vector &params() const { return params_; }
-    virtual Vector &params() { return params_; }
+    virtual const LargeVector &params() const { return params_; }
+    virtual LargeVector &params() { return params_; }
 };
 
 /// PID trajectory policy
@@ -78,7 +80,7 @@ class PIDTrajectoryPolicy : public ParameterizedPolicy
     Vector setpoint_;     // the dynamic setpoint is taken from trajectory at the current time
     size_t inputs_, outputs_;
     Vector p_, i_, d_, il_;
-    Vector params_;
+    LargeVector params_;
     Vector ival_, prev_in_;
     Vector action_min_, action_max_;
 
@@ -97,8 +99,8 @@ class PIDTrajectoryPolicy : public ParameterizedPolicy
 
     // From ParameterizedPolicy
     virtual size_t size() const { return params_.size(); }
-    virtual const Vector &params() const { return params_; }
-    virtual Vector &params() { return params_; }
+    virtual const LargeVector &params() const { return params_; }
+    virtual LargeVector &params() { return params_; }
 };
 
 }

@@ -54,7 +54,7 @@ typedef std::shared_ptr<Projection> ProjectionPtr;
 /// Vector projection (e.g. basis function activations)
 struct VectorProjection : public Projection
 {
-  Vector vector;
+  LargeVector vector;
 
   virtual VectorProjection *clone() const
   {

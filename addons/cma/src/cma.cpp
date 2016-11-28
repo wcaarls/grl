@@ -51,7 +51,7 @@ void CMAOptimizer::configure(Configuration &config)
   sigma_ = config["sigma"].v();
   
   if (sigma_.size() == 1)
-    sigma_ = ConstantVector(params_, sigma_[0]);
+    sigma_ = LargeVector::Constant(params_, sigma_[0]);
     
   if (sigma_.size() != params_)
     throw bad_param("optimizer/cma:sigma");
@@ -72,7 +72,7 @@ void CMAOptimizer::reconfigure(const Configuration &config)
 {
   if (config.has("action") && config["action"].str() == "reset")
   {
-    Vector xstart = prototype_->params(), stddev;
+    LargeVector xstart = prototype_->params(), stddev;
     
     INFO("Initializing CMA-ES optimizer with population size " << population_ << " (" << params_ << " parameters)");
   

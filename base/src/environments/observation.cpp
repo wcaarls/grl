@@ -96,7 +96,6 @@ Matrix ObservationModel::rewardHessian(const Vector &obs, const Vector &action) 
   // Central differences 
   for (size_t ii=0; ii < obs.size()+action.size(); ++ii)
   {
-    double grad1, grad2;
     Vector obs1=obs, obs2=obs, action1=action, action2=action;
   
     if (ii < obs.size())

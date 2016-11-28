@@ -33,7 +33,7 @@ REGISTER_CONFIGURABLE(WindyGridworldVisualization)
 
 void WindyGridworldVisualization::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("state", "state", "Windy gridworld state to visualize", state_));
+  config->push_back(CRP("state", "signal/vector", "Windy gridworld state to visualize", state_));
 }
 
 void WindyGridworldVisualization::configure(Configuration &config)
@@ -41,7 +41,7 @@ void WindyGridworldVisualization::configure(Configuration &config)
   if (!Visualizer::instance())
     throw Exception("visualization/windy requires a configured visualizer to run");
 
-  state_ = (State*)config["state"].ptr();
+  state_ = (VectorSignal*)config["state"].ptr();
 
   // Create window  
   create("Windy gridworld");

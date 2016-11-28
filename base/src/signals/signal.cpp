@@ -1,8 +1,8 @@
-/** \file signal_v.h
- * \brief Vector-based signal header definition.
+/** \file greedy.cpp
+ * \brief Greedy and Epsilon-greedy samplers source file.
  *
- * \author    Ivan Koryakovskiy <i.koryakovskiy@tudelft.nl>
- * \date      2016-10-11
+ * \author    Wouter Caarls <wouter@caarls.org>
+ * \date      2015-01-22
  *
  * \copyright \verbatim
  * Copyright (c) 2015, Wouter Caarls
@@ -24,43 +24,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * \endverbatim
  */
-
-#ifndef GRL_SIGNAL_V_H_
-#define GRL_SIGNAL_V_H_
-
-#include <grl/configurable.h>
+#include <grl/signals/signal.h>
 #include <grl/grl.h>
-#include <grl/signal.h>
 
-namespace grl
-{
-/// Sends signals across different parts of GRL.
-class SignalV : public Signal//<Vector>
-{
-  public:
-    TYPEINFO("signal/v", "Vector-based signal")
+using namespace grl;
 
-  public:
-    ~SignalV() { }
-    virtual SignalV *clone() const
-    {
-      return new SignalV(*this);
-    }
-
-    virtual void set(const Vector &in)
-    {
-      signal_ = in;
-    }
-
-    virtual void get(Vector *out) const
-    {
-      *out = signal_;
-    }
-
-  private:
-      Vector signal_;
-};
-
-}
-
-#endif /* GRL_SIGNAL_V_H_ */
+REGISTER_CONFIGURABLE(VectorSignal)
+REGISTER_CONFIGURABLE(MatrixSignal)

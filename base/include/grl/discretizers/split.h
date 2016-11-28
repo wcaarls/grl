@@ -38,20 +38,21 @@ namespace grl
  * \brief Split discretizer
  *
  * Combines two discretizers by outputting the union of both discretizations.
- * An extra dimenion is added at position 0 to indicate which discretization is
- * active.
+ * When identify is set, an extra dimension is added at the start or end to
+ * indicate which discretization is active.
  */
 class SplitDiscretizer : public Discretizer
 {
   public:
-    TYPEINFO("discretizer/split", "Discretizer composition. Adds dimension indicating affiliation.")
+    TYPEINFO("discretizer/split", "Compound discretizer")
 
   protected:
     std::vector<Discretizer*> discretizer_;
     size_t idxsize_, ressize_;
+    int identify_;
 
   public:
-    SplitDiscretizer() : discretizer_(2), idxsize_(0), ressize_(0)
+    SplitDiscretizer() : discretizer_(2), idxsize_(0), ressize_(0), identify_(-1)
     {
       discretizer_[0] = discretizer_[1] = NULL;
     }
@@ -63,10 +64,11 @@ class SplitDiscretizer : public Discretizer
     
     // From Discretizer
     virtual SplitDiscretizer* clone();
-    virtual iterator begin() const;
-    virtual size_t size() const;
-    virtual void inc(IndexVector *idx) const;
-    virtual Vector get(const IndexVector &idx) const;
+    virtual iterator begin(const Vector &point) const;
+    virtual size_t size(const Vector &point) const;
+    virtual void inc(iterator *it) const;
+    virtual Vector get(const iterator &it) const;
+    virtual Vector at(const Vector &point, size_t idx) const;
 };
 
 }

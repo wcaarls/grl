@@ -361,7 +361,7 @@ ProjectionPtr ERTreeProjector::project(const Vector &in) const
   }
   
   // ERTree doesn't really have weights...
-  projection->weights = ConstantVector(projection->neighbors.size(), 1.);
+  projection->weights = LargeVector::Constant(projection->neighbors.size(), 1.);
 
   return ProjectionPtr(projection);
 }

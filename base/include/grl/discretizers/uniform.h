@@ -43,7 +43,7 @@ class UniformDiscretizer : public Discretizer
   protected:
     Vector min_, max_, delta_, steps_, mult_;
   
-    std::vector<Vector> values_;
+    std::vector<LargeVector> values_;
 
   public:
     // From Configurable
@@ -55,8 +55,9 @@ class UniformDiscretizer : public Discretizer
     virtual UniformDiscretizer* clone();
     virtual iterator begin() const;
     virtual size_t size() const;
-    virtual void inc(IndexVector *idx) const;
-    virtual Vector get(const IndexVector &idx) const;
+    virtual void inc(iterator *it) const;
+    virtual Vector get(const iterator &it) const;
+    virtual Vector at(size_t idx) const;
     virtual Vector steps() const { return steps_; }
 
     virtual void discretize(Vector &vec, IndexVector *idx_v = NULL) const;

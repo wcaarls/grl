@@ -48,8 +48,6 @@ class QPolicy : public Policy
     Projector *projector_;
     Representation *representation_;
     Sampler *sampler_;
-    
-    std::vector<Vector> variants_;
 
   public:
     QPolicy() : discretizer_(NULL), projector_(NULL), representation_(NULL), sampler_(NULL) { }
@@ -67,7 +65,7 @@ class QPolicy : public Policy
     virtual double value(const Vector &in) const;
     
   protected:
-    virtual void values(const Vector &in, Vector *out) const;
+    virtual void values(const Vector &in, LargeVector *out) const;
 };
 
 }

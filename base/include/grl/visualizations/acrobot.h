@@ -28,7 +28,7 @@
 #ifndef GRL_ACROBOT_VISUALIZATION_H_
 #define GRL_ACROBOT_VISUALIZATION_H_
 
-#include <grl/state.h>
+#include <grl/signal.h>
 #include <grl/visualization.h>
 
 namespace grl
@@ -41,7 +41,7 @@ class AcrobotVisualization : public Visualization
     TYPEINFO("visualization/acrobot", "Acrobot visualization")
 
   protected:
-    State *state_;
+    VectorSignal *state_;
   
   public:
     AcrobotVisualization() : state_(NULL) { }

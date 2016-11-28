@@ -31,6 +31,7 @@ using namespace grl;
 
 REGISTER_CONFIGURABLE(ActionACPredictor)
 REGISTER_CONFIGURABLE(ProbabilityACPredictor)
+REGISTER_CONFIGURABLE(QACPredictor)
 
 void ActionACPredictor::request(ConfigurationRequest *config)
 {
@@ -40,6 +41,9 @@ void ActionACPredictor::request(ConfigurationRequest *config)
   config->push_back(CRP("beta", "Actor learning rate", beta_));
   config->push_back(CRP("gamma", "Discount rate", gamma_));
   config->push_back(CRP("lambda", "Trace decay rate", lambda_));
+
+  config->push_back(CRP("update_method", "Actor update method", update_method_, CRP::Configuration, {"proportional", "cacla"}));
+  config->push_back(CRP("step_limit", "Actor exploration step limit", step_limit_));
 
   config->push_back(CRP("critic_projector", "projector.observation", "Projects observations onto critic representation space", critic_projector_));
   config->push_back(CRP("critic_representation", "representation.value/state", "Value function representation", critic_representation_));
@@ -66,6 +70,9 @@ void ActionACPredictor::configure(Configuration &config)
   beta_ = config["beta"];
   gamma_ = config["gamma"];
   lambda_ = config["lambda"];
+  
+  update_method_ = config["update_method"].str();
+  step_limit_ = config["step_limit"].v();
 }
 
 void ActionACPredictor::reconfigure(const Configuration &config)
@@ -92,6 +99,14 @@ ActionACPredictor *ActionACPredictor::clone() const
 void ActionACPredictor::update(const Transition &transition)
 {
   Predictor::update(transition);
+  
+  if (step_limit_.size() && step_limit_.size() != transition.prev_action.size())
+  {
+    if (step_limit_.size() == 1)
+      step_limit_ = ConstantVector(transition.prev_action.size(), step_limit_[0]);
+    else
+      throw bad_param("predictor/ac:step_limit");
+  }
 
   // (LLR)   obtain buckets with nearest neighbours
   // (SARSA) obtain tile indices that point to previous observations
@@ -110,21 +125,34 @@ void ActionACPredictor::update(const Transition &transition)
   critic_representation_->update(*critic_trace_, VectorConstructor(alpha_*delta), gamma_*lambda_);
   //
   critic_trace_->add(cp, gamma_*lambda_);
-  
-  actor_representation_->read(ap, &u);
-  if (!u.size())
-    u = ConstantVector(transition.prev_action.size(), 0.);
-  target_u = u + delta*(transition.prev_action - u);
 
-  actor_representation_->write(ap, target_u, beta_);
-  if (actor_trace_)
+  if (update_method_[0] == 'p' || delta > 0)
   {
-    actor_representation_->update(*actor_trace_, beta_*(target_u-u), gamma_*lambda_);
-    actor_trace_->add(ap, gamma_*lambda_);
+    actor_representation_->read(ap, &u);
+    if (!u.size())
+      u = ConstantVector(transition.prev_action.size(), 0.);
+    Vector Delta = (transition.prev_action - u);
+    
+    if (step_limit_.size())
+      for (size_t ii=0; ii < Delta.size(); ++ii)
+        Delta[ii] = fmin(fmax(Delta[ii], -step_limit_[ii]), step_limit_[ii]);
+
+    if (update_method_[0] == 'p')
+      Delta = delta * Delta;
+
+    target_u = u + Delta;
+
+    actor_representation_->write(ap, target_u, beta_);
+    if (actor_trace_)
+    {
+      actor_representation_->update(*actor_trace_, beta_*(target_u-u), gamma_*lambda_);
+      actor_trace_->add(ap, gamma_*lambda_);
+    }
+    
+    actor_representation_->finalize();
   }
   
   critic_representation_->finalize();
-  actor_representation_->finalize();
 }
 
 void ActionACPredictor::finalize()
@@ -205,6 +233,139 @@ void ProbabilityACPredictor::update(const Transition &transition)
 }
 
 void ProbabilityACPredictor::finalize()
+{
+  Predictor::finalize();
+
+  critic_trace_->clear();
+  if (actor_trace_)
+    actor_trace_->clear();
+}
+
+void QACPredictor::request(ConfigurationRequest *config)
+{
+  Predictor::request(config);
+
+  config->push_back(CRP("alpha", "Critic learning rate", alpha_));
+  config->push_back(CRP("beta", "Actor learning rate", beta_));
+  config->push_back(CRP("gamma", "Discount rate", gamma_));
+  config->push_back(CRP("lambda", "Trace decay rate", lambda_));
+
+  config->push_back(CRP("update_method", "Actor update method", update_method_, CRP::Configuration, {"proportional", "cacla"}));
+  config->push_back(CRP("step_limit", "Actor exploration step limit", step_limit_));
+
+  config->push_back(CRP("target", "mapping", "Target value at next state", target_));
+
+  config->push_back(CRP("critic_projector", "projector.pair", "Projects observations onto critic representation space", critic_projector_));
+  config->push_back(CRP("critic_representation", "representation.value/action", "Value function representation", critic_representation_));
+  config->push_back(CRP("critic_trace", "trace", "Trace of critic projections", critic_trace_));
+
+  config->push_back(CRP("actor_projector", "projector.observation", "Projects observations onto actor representation space", actor_projector_));
+  config->push_back(CRP("actor_representation", "representation.action", "Action representation", actor_representation_));
+  config->push_back(CRP("actor_trace", "trace", "Trace of actor projections", actor_trace_, true));
+}
+
+void QACPredictor::configure(Configuration &config)
+{
+  Predictor::configure(config);
+  
+  target_ = (Mapping*)config["target"].ptr();
+
+  critic_projector_ = (Projector*)config["critic_projector"].ptr();
+  critic_representation_ = (Representation*)config["critic_representation"].ptr();
+  critic_trace_ = (Trace*)config["critic_trace"].ptr();
+  
+  actor_projector_ = (Projector*)config["actor_projector"].ptr();
+  actor_representation_ = (Representation*)config["actor_representation"].ptr();
+  actor_trace_ = (Trace*)config["actor_trace"].ptr();
+  
+  alpha_ = config["alpha"];
+  beta_ = config["beta"];
+  gamma_ = config["gamma"];
+  lambda_ = config["lambda"];
+  
+  update_method_ = config["update_method"].str();
+  step_limit_ = config["step_limit"].v();
+}
+
+void QACPredictor::reconfigure(const Configuration &config)
+{
+  Predictor::reconfigure(config);
+
+  if (config.has("action") && config["action"].str() == "reset")
+    finalize();
+}
+
+QACPredictor *QACPredictor::clone() const
+{
+  QACPredictor *qap = new QACPredictor(*this);
+  qap->critic_projector_ = critic_projector_->clone();
+  qap->critic_representation_= critic_representation_->clone();
+  qap->critic_trace_ = critic_trace_->clone();
+  qap->actor_projector_ = actor_projector_->clone();
+  qap->actor_representation_= actor_representation_->clone();
+  if (actor_trace_)
+    qap->actor_trace_ = actor_trace_->clone();
+  return qap;
+}
+
+void QACPredictor::update(const Transition &transition)
+{
+  Predictor::update(transition);
+  
+  if (step_limit_.size() && step_limit_.size() != transition.prev_action.size())
+    throw bad_param("predictor/ac:step_limit");
+
+  Vector v, u, delta_u, target_u;
+  ProjectionPtr ap = actor_projector_->project(transition.prev_obs);
+  actor_representation_->read(ap, &u);
+  if (!u.size())
+    u = ConstantVector(transition.prev_action.size(), 0.);
+  ProjectionPtr cp  = critic_projector_->project(transition.prev_obs, transition.prev_action),
+                cpu = critic_projector_->project(transition.prev_obs, u);
+  
+  double target = transition.reward;
+  if (transition.action.size())
+    target += gamma_*target_->read(transition.obs, &v);
+  
+  // TD error between target and executed action
+  double delta  = target - critic_representation_->read(cp, &v);
+  
+  // TD error between target and desired action
+  double deltau = target - critic_representation_->read(cpu, &v);
+  
+  // Update critic based on executed action TD error
+  critic_representation_->write(cp, VectorConstructor(target), alpha_);
+  critic_representation_->update(*critic_trace_, VectorConstructor(alpha_*delta), gamma_*lambda_);
+  critic_trace_->add(cp, gamma_*lambda_);
+  
+  // Update actor based on desired action TD error
+  if (update_method_[0] == 'p' || deltau > 0)
+  {
+    Vector Delta = (transition.prev_action - u);
+    
+    if (step_limit_.size())
+      for (size_t ii=0; ii < Delta.size(); ++ii)
+        Delta[ii] = fmin(fmax(Delta[ii], -step_limit_[ii]), step_limit_[ii]);
+
+    if (update_method_[0] == 'p')
+      Delta = deltau * Delta;
+
+    target_u = u + Delta;
+
+    actor_representation_->write(ap, target_u, beta_);
+    if (actor_trace_)
+    {
+      actor_representation_->update(*actor_trace_, beta_*(target_u-u), gamma_*lambda_);
+      actor_trace_->add(ap, gamma_*lambda_);
+    }
+    
+    actor_representation_->finalize();
+  }
+  
+  critic_representation_->finalize();
+}
+
+void QACPredictor::finalize()
 {
   Predictor::finalize();
 

@@ -14,7 +14,7 @@ experiment:
     target_env: 
       type: environment/ode
       xml: experiment/environment/xml
-      randomize: 0
+      randomize: 1
       visualize: 1
     observe: torso_boom, hipright, hipleft, kneeright, kneeleft
     actuate: hipright, hipleft, stanceknee
@@ -26,9 +26,9 @@ experiment:
     observation_dims: experiment/environment/target_env/observation_dims
     action_dims: experiment/environment/target_env/action_dims
     transition_type: 
-      type: signal/v
+      type: signal/vector
     contact_signal: 
-      type: signal/v
+      type: signal/vector
   agent: 
     type: agent/td
     policy: 

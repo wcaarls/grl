@@ -80,6 +80,7 @@ double ShapingEnvironment::step(const Vector &action, Vector *obs, double *rewar
   *reward += gamma_*shaping_function_->read(*obs, &v) - shaping_function_->read(prev_obs_, &v);
   
   prev_obs_ = *obs;
+  return tau;
 }
 
 void ShapingEnvironment::report(std::ostream &os)

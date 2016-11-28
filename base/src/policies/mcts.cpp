@@ -47,7 +47,6 @@ void MCTSPolicy::configure(Configuration &config)
 {
   model_ = (ObservationModel*)config["model"].ptr();
   discretizer_ = (Discretizer*)config["discretizer"].ptr();
-  discretizer_->options(&actions_);
 
   gamma_ = config["gamma"];
   epsilon_ = config["epsilon"];
@@ -106,7 +105,7 @@ TransitionType MCTSPolicy::act(double time, const Vector &in, Vector *out)
   {
     allocate();
     root_->init(NULL, 0, in, 0, false);
-    root_->allocate(actions_.size());
+    root_->allocate(discretizer_->size(in));
     trunk_ = root_;
   }
   
@@ -146,13 +145,13 @@ TransitionType MCTSPolicy::act(double time, const Vector &in, Vector *out)
   if (trunk_->children())
   {
     MCTSNode *node = trunk_->select(0);
-    *out = actions_[node->action()];
+    *out = discretizer_->at(trunk_->state(), node->action());
 
     TRACE("Selected action " << *out << " (Q " << node->q()/node->visits() << ") after " << searches << " searches");
   }
   else
   {
-    *out = actions_[lrand48()%actions_.size()];
+    *out = discretizer_->at(in, lrand48()%discretizer_->size(in));
 
     TRACE("Selected random action " << *out);
   }

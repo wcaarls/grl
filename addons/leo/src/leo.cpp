@@ -162,17 +162,23 @@ void LeoBaseEnvironment::request(ConfigurationRequest *config)
   config->push_back(CRP("observe", "string.observe", "Comma-separated list of state elements observed by an agent"));
   config->push_back(CRP("actuate", "string.actuate", "Comma-separated list of action elements provided by an agent"));
   config->push_back(CRP("exporter", "exporter", "Optional exporter for transition log (supports time, state, observation, action, reward, terminal)", exporter_, true));
-
-  config->push_back(CRP("observation_dims", "int.observation_dims", "Number of observation dimensions", target_observation_dims_));
-  config->push_back(CRP("action_dims", "int.action_dims", "Number of action dimensions", target_action_dims_));
-
   config->push_back(CRP("transition_type", "signal", "Transition type", transition_type_, true));
+
+  config->push_back(CRP("observation_dims", "int.observation_dims", "Number of observation dimensions", CRP::Provided));
+  config->push_back(CRP("observation_min", "vector.observation_min", "Lower limit on observations", CRP::Provided));
+  config->push_back(CRP("observation_max", "vector.observation_max", "Upper limit on observations", CRP::Provided));
+  config->push_back(CRP("action_dims", "int.action_dims", "Number of action dimensions", CRP::Provided));
+  config->push_back(CRP("action_min", "vector.action_min", "Lower limit on actions", CRP::Provided));
+  config->push_back(CRP("action_max", "vector.action_max", "Upper limit on actions", CRP::Provided));
 }
 
 void LeoBaseEnvironment::configure(Configuration &config)
 {
+  // here we can select an actual Leo enviromnent (simulation/real)
+  target_env_ = (Environment*)config["target_env"].ptr();
+
   bh_ = (CLeoBhBase*)config["behavior"].ptr();
-  transition_type_ = (Signal*)config["transition_type"].ptr();
+  transition_type_ = (VectorSignal*)config["transition_type"].ptr();
 
   // Setup path to a configuration file
   xml_ = config["xml"].str();
@@ -180,11 +186,6 @@ void LeoBaseEnvironment::configure(Configuration &config)
   if (stat (xml_.c_str(), &buffer) != 0)
     xml_ = std::string(LEO_CONFIG_DIR) + "/" + config["xml"].str();
   std::cout << xml_ << std::endl;
-
-  target_env_ = (Environment*)config["target_env"].ptr(); // here we can select an actual Leo enviromnent (simulation/real)
-
-  target_observation_dims_ = config["observation_dims"];
-  target_action_dims_ = config["action_dims"];
 
   exporter_ = (Exporter*) config["exporter"].ptr();
   if (exporter_)
@@ -216,11 +217,10 @@ void LeoBaseEnvironment::configure(Configuration &config)
   configParseObservations(config, ode->getSensors());
   configParseActions(config, ode->getActuators());
 
-  delete ode;
+  target_obs_.resize(ode->getSensors().size());
+  target_action_.resize(ode->getActuators().size());
 
-  // reserve memory
-  target_obs_.resize(target_observation_dims_);
-  target_action_.resize(target_action_dims_);
+  delete ode;
 }
 
 void LeoBaseEnvironment::reconfigure(const Configuration &config)
@@ -255,9 +255,9 @@ void LeoBaseEnvironment::step(double tau, double reward, int terminal)
   if (exporter_)
   {
     // transition type
-    Vector tt;
+    LargeVector tt;
     if (transition_type_)
-      transition_type_->get(&tt);
+      tt = transition_type_->get();
 
     std::vector<double> s0(bh_->getPreviousSTGState()->mJointAngles, bh_->getPreviousSTGState()->mJointAngles + ljNumJoints);
     std::vector<double> v0(bh_->getPreviousSTGState()->mJointSpeeds, bh_->getPreviousSTGState()->mJointSpeeds + ljNumJoints);
@@ -316,9 +316,9 @@ void LeoBaseEnvironment::configParseObservations(Configuration &config, const st
   fillObserver(observed_sym, int_observer_sym);
 
   // mask observation min/max vectors
-  Vector ode_observation_min, ode_observation_max, observation_min, observation_max;
-  config.get("observation_min", ode_observation_min);
-  config.get("observation_max", ode_observation_max);
+  Vector target_observation_min, target_observation_max, observation_min, observation_max;
+  config.get("observation_min", target_observation_min);
+  config.get("observation_max", target_observation_max);
   observation_min.resize(observation_dims_);
   observation_max.resize(observation_dims_);
 
@@ -327,15 +327,15 @@ void LeoBaseEnvironment::configParseObservations(Configuration &config, const st
   {
     std::string name = "robot." + bh_->jointIndexToName(int_observer.angles[i]) + ".angle";
     int sensor_idx = findVarIdx(sensors, name);
-    observation_min[i] = ode_observation_min[sensor_idx];
-    observation_max[i] = ode_observation_max[sensor_idx];
+    observation_min[i] = target_observation_min[sensor_idx];
+    observation_max[i] = target_observation_max[sensor_idx];
   }
   for (j = 0; j < int_observer.angle_rates.size(); j++)
   {
     std::string name = "robot." + bh_->jointIndexToName(int_observer.angle_rates[j]) + ".anglerate";
     int sensor_idx = findVarIdx(sensors, name);
-    observation_min[i+j] = ode_observation_min[sensor_idx];
-    observation_max[i+j] = ode_observation_max[sensor_idx];
+    observation_min[i+j] = target_observation_min[sensor_idx];
+    observation_max[i+j] = target_observation_max[sensor_idx];
   }
 
   // Set parameters exported to an agent
@@ -385,8 +385,6 @@ void LeoBaseEnvironment::configParseActions(Configuration &config, const std::ve
   std::vector<std::string> actuateList = cutLongStr(config["actuate"].str());
   fillActuate(actuators, actuateList, int_actuator);
   TRACE("Actuate '" << int_actuator.voltage << "'"); // array which maps target_environment action vector to an agent action vector
-  if (int_actuator.voltage.size() != target_action_dims_)
-    throw bad_param("leobase:actuate");
   action_dims_ = actuateList.size();
 
   // mirror left and right legs

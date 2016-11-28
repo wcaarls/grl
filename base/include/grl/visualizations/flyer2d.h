@@ -28,7 +28,7 @@
 #ifndef GRL_FLYER2D_VISUALIZATION_H_
 #define GRL_FLYER2D_VISUALIZATION_H_
 
-#include <grl/state.h>
+#include <grl/signal.h>
 #include <grl/visualization.h>
 
 namespace grl
@@ -41,7 +41,7 @@ class Flyer2DVisualization : public Visualization
     TYPEINFO("visualization/flyer2d", "2D flyer visualization")
 
   protected:
-    State *state_;
+    VectorSignal *state_;
   
   public:
     Flyer2DVisualization() : state_(NULL) { }

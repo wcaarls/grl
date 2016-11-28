@@ -48,8 +48,6 @@ class UCBPolicy : public Policy
     Projector *projector_;
     Representation *representation_, *visit_representation_;
     double c_p_;
-    
-    std::vector<Vector> variants_;
 
   public:
     UCBPolicy() : discretizer_(NULL), projector_(NULL), representation_(NULL), visit_representation_(NULL), c_p_(sqrt(2)) { }
@@ -63,8 +61,6 @@ class UCBPolicy : public Policy
     virtual UCBPolicy *clone() const;
     virtual TransitionType act(const Vector &in, Vector *out) const;
     virtual TransitionType act(double time, const Vector &in, Vector *out);
-    
-    virtual void values(const Vector &in, Vector *out) const;
 };
 
 }

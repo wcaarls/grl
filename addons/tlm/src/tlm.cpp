@@ -164,7 +164,7 @@ bool TwoLinkManipulatorBalancingTask::invert(const Vector &obs, Vector *state) c
 
 void TwoLinkManipulatorVisualization::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("state", "state", "Two-link manipulator state to visualize", state_));
+  config->push_back(CRP("state", "signal/vector", "Two-link manipulator state to visualize", state_));
 }
 
 void TwoLinkManipulatorVisualization::configure(Configuration &config)
@@ -172,7 +172,7 @@ void TwoLinkManipulatorVisualization::configure(Configuration &config)
   if (!Visualizer::instance())
     throw Exception("visualization/tlm requires a configured visualizer to run");
 
-  state_ = (State*)config["state"].ptr();
+  state_ = (VectorSignal*)config["state"].ptr();
 
   // Create window  
   create("Two-link manipulator");

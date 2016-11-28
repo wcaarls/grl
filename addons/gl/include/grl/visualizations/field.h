@@ -32,7 +32,7 @@
 
 #include <itc/itc.h>
 #include <grl/visualization.h>
-#include <grl/state.h>
+#include <grl/signal.h>
 
 namespace grl
 {
@@ -43,7 +43,7 @@ class FieldVisualization : public Visualization, public itc::Thread
   protected:
     enum ValueProjection { vpMean, vpMin, vpMax };
   
-    State *state_;
+    VectorSignal *state_;
     int state_dims_;
     Vector state_min_, state_max_, dims_;
     int points_, savepoints_, dimpoints_, texpoints_;

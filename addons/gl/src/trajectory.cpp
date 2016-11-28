@@ -40,7 +40,7 @@ void TrajectoryVisualization::request(ConfigurationRequest *config)
   config->push_back(CRP("input_min", "Lower input dimension limit", min_, CRP::System));
   config->push_back(CRP("input_max", "Upper input dimension limit", max_, CRP::System));
 
-  config->push_back(CRP("trajectory", "trajectory", "Trajectory to visualize", trajectory_));
+  config->push_back(CRP("trajectory", "signal/matrix", "Trajectory to visualize", trajectory_));
 }
 
 void TrajectoryVisualization::configure(Configuration &config)
@@ -48,7 +48,7 @@ void TrajectoryVisualization::configure(Configuration &config)
   if (!Visualizer::instance())
     throw Exception("visualization/trajectory requires a configured visualizer to run");
 
-  trajectory_ = (Trajectory*)config["trajectory"].ptr();
+  trajectory_ = (MatrixSignal*)config["trajectory"].ptr();
 
   dims_ = config["input_dims"].v();
   min_ = config["input_min"].v();

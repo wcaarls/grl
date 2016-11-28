@@ -1,11 +1,11 @@
-/** \file advised_action.h
- * \brief Advised Action policy header file.
+/** \file cart_double_pole.h
+ * \brief Cart-double-pole visualization header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-02-11
+ * \date      2016-11-08
  *
  * \copyright \verbatim
- * Copyright (c) 2015, Wouter Caarls
+ * Copyright (c) 2016, Wouter Caarls
  * All rights reserved.
  *
  * This file is part of GRL, the Generic Reinforcement Learning library.
@@ -25,31 +25,38 @@
  * \endverbatim
  */
 
-#ifndef GRL_ADVISED_ACTION_POLICY_H_
-#define GRL_ADVISED_ACTION_POLICY_H_
+#ifndef GRL_CART_DOUBLE_POLE_VISUALIZATION_H_
+#define GRL_CART_DOUBLE_POLE_VISUALIZATION_H_
 
-#include <grl/policies/action.h>
+#include <grl/signal.h>
+#include <grl/visualization.h>
 
 namespace grl
 {
 
-/// Action Policy with advised action.
-class AdvisedActionPolicy : public ActionPolicy
+/// Cart-double-pole visualization.
+class CartDoublePoleVisualization : public Visualization
 {
   public:
-    TYPEINFO("policy/action/advised", "Action policy with an advised action")
+    TYPEINFO("visualization/cart_double_pole", "Cart-double-pole visualization")
 
+  protected:
+    VectorSignal *state_;
+  
   public:
+    CartDoublePoleVisualization() : state_(NULL) { }
+    
     // From Configurable
-    //virtual void request(ConfigurationRequest *config);
-    //virtual void configure(Configuration &config);
-    //virtual void reconfigure(const Configuration &config);
-
-    // From QPolicy
-    virtual AdvisedActionPolicy *clone() const;
-    virtual TransitionType act(const Vector &in, Vector *out) const;
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+  
+    // From Visualization
+    virtual void draw();
+    virtual void idle();
+    virtual void reshape(int width, int height);
 };
 
 }
 
-#endif /* GRL_ADVISED_ACTION_POLICY_H_ */
+#endif /* GRL_CART_DOUBLE_POLE_VISUALIZATION_H_ */

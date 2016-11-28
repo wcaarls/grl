@@ -28,7 +28,7 @@
 #ifndef GRL_CART_POLE_VISUALIZATION_H_
 #define GRL_CART_POLE_VISUALIZATION_H_
 
-#include <grl/state.h>
+#include <grl/signal.h>
 #include <grl/visualization.h>
 
 namespace grl
@@ -41,7 +41,7 @@ class CartPoleVisualization : public Visualization
     TYPEINFO("visualization/cart_pole", "Cart-pole visualization")
 
   protected:
-    State *state_;
+    VectorSignal *state_;
   
   public:
     CartPoleVisualization() : state_(NULL) { }

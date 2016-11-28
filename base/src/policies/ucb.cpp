@@ -44,7 +44,6 @@ void UCBPolicy::request(ConfigurationRequest *config)
 void UCBPolicy::configure(Configuration &config)
 {
   discretizer_ = (Discretizer*)config["discretizer"].ptr();
-  discretizer_->options(&variants_);
   
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (Representation*)config["representation"].ptr();
@@ -68,27 +67,19 @@ UCBPolicy *UCBPolicy::clone() const
   return qp;
 }
 
-void UCBPolicy::values(const Vector &in, Vector *out) const
-{
-  std::vector<ProjectionPtr> projections;
-  projector_->project(in, variants_, &projections);
-  
-  out->resize(variants_.size());
-  Vector value;
-  for (size_t ii=0; ii < variants_.size(); ++ii)
-    (*out)[ii] = representation_->read(projections[ii], &value);
-}
-
 TransitionType UCBPolicy::act(const Vector &in, Vector *out) const
 {
-  Vector qvalues(variants_.size()), visits(variants_.size());
+  std::vector<Vector> variants;
+  discretizer_->options(in, &variants);
+
+  LargeVector qvalues(variants.size()), visits(variants.size());
   double state_visits = 0;
   std::vector<ProjectionPtr> projections;
-  projector_->project(in, variants_, &projections);
+  projector_->project(in, variants, &projections);
   
   Vector value;
   
-  for (size_t ii=0; ii < variants_.size(); ++ii)
+  for (size_t ii=0; ii < variants.size(); ++ii)
   {
     qvalues[ii] = representation_->read(projections[ii], &value);
     visits[ii] = visit_representation_->read(projections[ii], &value);
@@ -98,16 +89,16 @@ TransitionType UCBPolicy::act(const Vector &in, Vector *out) const
   state_visits = std::log(state_visits);
   
   size_t action = 0;
-  for (size_t ii=0; ii < variants_.size(); ++ii)
+  for (size_t ii=0; ii < variants.size(); ++ii)
   {
     // UCB1 exploration term
-    qvalues[ii] += 2*c_p_*sqrt(state_visits/fmax(.001, visits[ii]));
+    qvalues[ii] += 2*c_p_*sqrt(state_visits/fmax(1, visits[ii]));
   
     if (qvalues[ii] > qvalues[action])
       action = ii;
   }
   
-  *out = variants_[action];
+  *out = variants[action];
   return ttGreedy;
 }
 

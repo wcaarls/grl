@@ -6,7 +6,7 @@
 #include <STGLeo.h>
 #include <STGLeoSim.h>
 #include <ThirdOrderButterworth.h>
-#include <grl/signals/signal_v.h>
+#include <grl/signal.h>
 
 namespace grl
 {
@@ -176,7 +176,7 @@ class LeoBaseEnvironment: public Environment
     CLeoBhBase *bh_;
 
     int observation_dims_, action_dims_;
-    int target_observation_dims_, target_action_dims_;
+//    int target_observation_dims_, target_action_dims_;
     Vector target_obs_, target_action_;
 
     // Exporter
@@ -201,7 +201,7 @@ class LeoBaseEnvironment: public Environment
                      TargetInterface::ActuatorInterface &int_actuator) const;
 
   private:
-    Signal *transition_type_;
+    VectorSignal *transition_type_;
 };
 
 }

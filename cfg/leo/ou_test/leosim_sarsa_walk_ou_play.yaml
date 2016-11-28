@@ -26,9 +26,9 @@ experiment:
     observation_dims: experiment/environment/target_env/observation_dims
     action_dims: experiment/environment/target_env/action_dims
     transition_type: 
-      type: signal/v
+      type: signal/vector
     contact_signal: 
-      type: signal/v
+      type: signal/vector
   agent: 
     type: agent/td
     policy: 

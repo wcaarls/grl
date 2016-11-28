@@ -59,7 +59,7 @@ void OrnsteinUhlenbeckSampler::configure(Configuration &config)
   if (theta_.size() != sigma_.size() || sigma_.size() != center_.size() || center_.size() == 0)
     throw bad_param("sampler/ornstein_ohlenbeck:{theta,sigma,center}");
 
-  env_event_ = (Signal*)config["contact_signal"].ptr();
+  env_event_ = (VectorSignal*)config["contact_signal"].ptr();
 }
 
 void OrnsteinUhlenbeckSampler::reconfigure(const Configuration &config)
@@ -76,8 +76,7 @@ OrnsteinUhlenbeckSampler *OrnsteinUhlenbeckSampler::clone()
 
 void OrnsteinUhlenbeckSampler::env_event_processor() const
 {
-  Vector data;
-  env_event_->get(&data);
+  LargeVector data = env_event_->get();
 
   // Calculate noise
   if (data.size())
@@ -124,7 +123,7 @@ void OrnsteinUhlenbeckSampler::mix_signal_noise(const Vector &in, const Vector &
   TRACE(out);
 }
 
-size_t OrnsteinUhlenbeckSampler::sample(const Vector &values, TransitionType &tt) const
+size_t OrnsteinUhlenbeckSampler::sample(const LargeVector &values, TransitionType &tt) const
 {
   // Greedy action selection
   size_t idx = GreedySampler::sample(values, tt);
@@ -166,10 +165,9 @@ ACOrnsteinUhlenbeckSampler *ACOrnsteinUhlenbeckSampler::clone()
   return egs;
 }
 
-size_t ACOrnsteinUhlenbeckSampler::sample(const Vector &values, TransitionType &tt) const
+size_t ACOrnsteinUhlenbeckSampler::sample(const LargeVector &values, TransitionType &tt) const
 {
-  Vector data;
-  env_event_->get(&data);
+  LargeVector data = env_event_->get();
 
   if (rand_->get() < epsilon_ && data[5] == 0) // start function (sig[5] == 1) => any action is possible
   {
@@ -244,7 +242,7 @@ EpsilonOrnsteinUhlenbeckSampler *EpsilonOrnsteinUhlenbeckSampler::clone()
   return egs;
 }
 
-size_t EpsilonOrnsteinUhlenbeckSampler::sample(const Vector &values, TransitionType &tt) const
+size_t EpsilonOrnsteinUhlenbeckSampler::sample(const LargeVector &values, TransitionType &tt) const
 {
   size_t idx = GreedySampler::sample(values, tt);
   TRACE(state_variants_[idx]);
@@ -304,7 +302,7 @@ PadaOrnsteinUhlenbeckSampler *PadaOrnsteinUhlenbeckSampler::clone()
   return egs;
 }
 
-size_t PadaOrnsteinUhlenbeckSampler::sample(const Vector &values, TransitionType &tt) const
+size_t PadaOrnsteinUhlenbeckSampler::sample(const LargeVector &values, TransitionType &tt) const
 {
   size_t idx = pada_.sample(values, state_idx_v_, tt);
   TRACE(state_variants_[idx]);

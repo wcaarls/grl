@@ -69,7 +69,7 @@ void IterativeRepresentation::write(const ProjectionPtr projection, const Vector
   if (prod(alpha) != 1)
     throw Exception("Iterative representation can not be written partially");
     
-  samples_.push_back(std::pair<const ProjectionPtr, const Vector>(projection, target));
+  samples_.push_back(Sample(projection, target));
 }
 
 void IterativeRepresentation::finalize()

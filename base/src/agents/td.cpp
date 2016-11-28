@@ -44,7 +44,7 @@ void TDAgent::configure(Configuration &config)
   policy_ = (Policy*)config["policy"].ptr();
   predictor_ = (Predictor*)config["predictor"].ptr();
 
-  transition_type_ = (Signal*)config["transition_type"].ptr();
+  transition_type_ = (VectorSignal*)config["transition_type"].ptr();
 }
 
 void TDAgent::reconfigure(const Configuration &config)

@@ -29,6 +29,7 @@
 #define GRL_SEQUENTIAL_MASTER_AGENT_H_
 
 #include <grl/agent.h>
+#include <grl/predictor.h>
 #include <grl/exporter.h>
 
 namespace grl
@@ -41,12 +42,14 @@ class SequentialMasterAgent : public Agent
     TYPEINFO("agent/master/sequential", "Master agent that executes sub-agents sequentially")
 
   protected:
+    Predictor *predictor_;
     std::vector<Agent*> agent_;
     Exporter *exporter_;
     double time_;
+    Vector prev_obs_, prev_action_;
     
   public:
-    SequentialMasterAgent() : agent_(2)
+    SequentialMasterAgent() : predictor_(0), agent_(2)
     {
       agent_[0] = agent_[1] = NULL;
     }
@@ -70,14 +73,9 @@ class SequentialAdditiveMasterAgent : public SequentialMasterAgent
     TYPEINFO("agent/master/sequential/additive", "Additive master agent that executes sub-agents sequentially and adds their outputs")
 
   protected:
-    //std::vector<Agent*> agent_;
     Vector min_, max_;
 
   public:
-    //SequentialAdditiveMasterAgent() : agent_(2)
-    //{
-    //  agent_[0] = agent_[1] = NULL;
-    //}
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);

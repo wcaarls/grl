@@ -47,7 +47,6 @@ void VPolicy::configure(Configuration &config)
   gamma_ = config["gamma"];
 
   discretizer_ = (Discretizer*)config["discretizer"].ptr();
-  discretizer_->options(&variants_);
   
   model_ = (ObservationModel*)config["model"].ptr();
   projector_ = (Projector*)config["projector"].ptr();
@@ -71,17 +70,18 @@ VPolicy *VPolicy::clone() const
   return vp;
 }
 
-void VPolicy::values(const Vector &in, Vector *out) const
+void VPolicy::values(const Vector &in, LargeVector *out) const
 {
-  out->resize(variants_.size());
-
-  for (size_t ii=0; ii < variants_.size(); ++ii)
+  out->resize(discretizer_->size(in));
+  
+  size_t aa=0;
+  for (Discretizer::iterator it = discretizer_->begin(in); it != discretizer_->end(); ++it, ++aa)
   {
     Vector next;
     double reward;
     int terminal;
     
-    model_->step(in, variants_[ii], &next, &reward, &terminal);
+    model_->step(in, *it, &next, &reward, &terminal);
     
     if (next.size())
     {
@@ -91,19 +91,19 @@ void VPolicy::values(const Vector &in, Vector *out) const
         reward += reward + gamma_*representation_->read(projector_->project(next), &value);
       }
       
-      (*out)[ii] = reward;
+      (*out)[aa] = reward;
     }
   }
 }
 
 TransitionType VPolicy::act(const Vector &in, Vector *out) const
 {
-  Vector v;
+  LargeVector v;
   TransitionType tt;
 
   values(in, &v);
   size_t action = sampler_->sample(v, tt);
   
-  *out = variants_[action];
+  *out = discretizer_->at(in, action);
   return tt;
 }

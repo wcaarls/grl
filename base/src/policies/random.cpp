@@ -74,7 +74,6 @@ void RandomDiscretePolicy::request(ConfigurationRequest *config)
 void RandomDiscretePolicy::configure(Configuration &config)
 {
   discretizer_ = (Discretizer*)config["discretizer"].ptr();
-  discretizer_->options(&options_);
 }
 
 void RandomDiscretePolicy::reconfigure(const Configuration &config)
@@ -88,6 +87,6 @@ RandomDiscretePolicy *RandomDiscretePolicy::clone() const
 
 TransitionType RandomDiscretePolicy::act(const Vector &in, Vector *out) const
 {
-  *out = options_[RandGen::getInteger(options_.size())];
+  *out = discretizer_->at(in, RandGen::getInteger(discretizer_->size(in)));
   return ttExploratory;
 }

@@ -33,7 +33,7 @@ REGISTER_CONFIGURABLE(SwimmerVisualization)
 
 void SwimmerVisualization::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("state", "state", "Swimmer state to visualize", state_));
+  config->push_back(CRP("state", "signal/vector", "Swimmer state to visualize", state_));
 }
 
 void SwimmerVisualization::configure(Configuration &config)
@@ -41,7 +41,7 @@ void SwimmerVisualization::configure(Configuration &config)
   if (!Visualizer::instance())
     throw Exception("visualization/swimmer requires a configured visualizer to run");
 
-  state_ = (State*)config["state"].ptr();
+  state_ = (VectorSignal*)config["state"].ptr();
 
   // Create window  
   create("Swimmer");

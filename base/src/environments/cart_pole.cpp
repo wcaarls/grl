@@ -290,7 +290,10 @@ void CartPoleBalancingTask::evaluate(const Vector &state, const Vector &action, 
   if (state.size() != 5 || action.size() != 1 || next.size() != 5)
     throw Exception("task/cart_pole/balancing requires dynamics/cart_pole");
 
-  *reward = 1 - failed(next);
+  if (failed(next))
+    *reward = 0;
+  else
+    *reward = 1 - (fabs(state[0]) + fabs(state[1]))/(2.4+12*M_PI/180);
 }
 
 bool CartPoleBalancingTask::invert(const Vector &obs, Vector *state) const

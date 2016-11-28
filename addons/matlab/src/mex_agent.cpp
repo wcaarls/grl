@@ -38,7 +38,7 @@
 
 using namespace grl;
 
-static YAMLConfigurator *g_configurator=NULL;
+static Configurator *g_configurator=NULL;
 static Agent *g_agent=NULL;
 
 void mexFunction(int nlhs, mxArray *plhs[ ],
@@ -66,14 +66,16 @@ void mexFunction(int nlhs, mxArray *plhs[ ],
     if (nrhs < 2 || !mxIsChar(prhs[1]) || !(file = mxArrayToString(prhs[1])))
       mexErrMsgTxt("Missing configuration file name.");
       
-    Configuration config;
-    g_configurator = new YAMLConfigurator;
-    g_configurator->load(file, &config);
-
-    Configurable *obj=NULL;
-    if (config.has("agent"))
-      obj = (Configurable*)config["agent"].ptr();
-    g_agent = dynamic_cast<Agent*>(obj);
+    Configurator *conf, *agentconf;
+    if (!(conf = loadYAML(file)) || !(g_configurator = conf->instantiate()) || !(agentconf = g_configurator->find("agent")))
+    {
+      safe_delete(&conf);
+      safe_delete(&g_configurator);
+      return;
+    }
+    
+    safe_delete(&conf);
+    g_agent = dynamic_cast<Agent*>(agentconf->ptr());
     
     if (!g_agent)
     {
