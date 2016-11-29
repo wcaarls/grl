@@ -76,6 +76,7 @@ struct VectorProjection : public Projection
 struct IndexProjection : public Projection
 {
   std::vector<size_t> indices;
+  std::vector<double> weights;
   
   static size_t invalid_index()
   {
@@ -88,26 +89,39 @@ struct IndexProjection : public Projection
     VectorProjection vp;
     vp.vector.resize(size);
 
-    for (size_t ii=0; ii < indices.size(); ++ii)
-      vp.vector[indices[ii]] = 1.0;
-
+    if (weights.empty())
+      for (size_t ii=0; ii < indices.size(); ++ii)
+        vp.vector[indices[ii]] = 1.0;
+    else
+      for (size_t ii=0; ii < indices.size(); ++ii)
+        vp.vector[indices[ii]] = weights[ii];
+        
     return vp;
   }
   
   virtual IndexProjection *clone() const
   {
-    IndexProjection *ip = new IndexProjection();
-    ip->indices = indices;
-    return ip;
+    return new IndexProjection(*this);
   }
 
   virtual void ssub(const Projection &rhs)
   {
     const IndexProjection &ip = dynamic_cast<const IndexProjection&>(rhs);
-    for (size_t ii=0; ii < indices.size(); ++ii)
-      for (size_t jj=0; jj < ip.indices.size(); ++jj)
-        if (indices[ii] == ip.indices[ii])
-          indices[ii] = invalid_index();
+    
+    if (weights.empty() || ip.weights.empty())
+    {
+      for (size_t ii=0; ii < indices.size(); ++ii)
+        for (size_t jj=0; jj < ip.indices.size(); ++jj)
+          if (indices[ii] == ip.indices[jj])
+            indices[ii] = invalid_index();
+    }
+    else
+    {
+      for (size_t ii=0; ii < indices.size(); ++ii)
+        for (size_t jj=0; jj < ip.indices.size(); ++jj)
+          if (indices[ii] == ip.indices[jj])
+            weights[ii] = std::max(0., weights[ii]-ip.weights[jj]);
+    }
   }
 };
 

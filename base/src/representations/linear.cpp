@@ -171,11 +171,20 @@ double LinearRepresentation::read(const ProjectionPtr &projection, Vector *resul
   {
     *result = ConstantVector(outputs_, 0);
     
-    for (size_t ii=0; ii < ip->indices.size(); ++ii)
+    if (ip->weights.empty())
+    {
+      for (size_t ii=0; ii < ip->indices.size(); ++ii)
+        for (size_t jj=0; jj < outputs_; ++jj)
+          (*result)[jj] += params_[ip->indices[ii]*outputs_+jj];
       for (size_t jj=0; jj < outputs_; ++jj)
-        (*result)[jj] += params_[ip->indices[ii]*outputs_+jj];
-    for (size_t jj=0; jj < outputs_; ++jj)
-      (*result)[jj] /= ip->indices.size();
+        (*result)[jj] /= ip->indices.size();
+    }
+    else
+    {
+      for (size_t ii=0; ii < ip->indices.size(); ++ii)
+        for (size_t jj=0; jj < outputs_; ++jj)
+          (*result)[jj] += params_[ip->indices[ii]*outputs_+jj]*ip->weights[ii];
+    }
   }
   else
   {
@@ -223,10 +232,29 @@ void LinearRepresentation::update(const ProjectionPtr projection, const Vector &
   IndexProjection *ip = dynamic_cast<IndexProjection*>(&p);
   if (ip)
   {
-    for (size_t ii=0; ii != ip->indices.size(); ++ii)
-      for (size_t jj=0; jj < outputs_; ++jj)
-        if (ip->indices[ii] != IndexProjection::invalid_index())
-          params_[ip->indices[ii]*outputs_+jj] = fmin(fmax(params_[ip->indices[ii]*outputs_+jj] + delta[jj], output_min_[jj]), output_max_[jj]);
+    if (ip->weights.empty())
+    {  
+      for (size_t ii=0; ii != ip->indices.size(); ++ii)
+        for (size_t jj=0; jj < outputs_; ++jj)
+          if (ip->indices[ii] != IndexProjection::invalid_index())
+            params_[ip->indices[ii]*outputs_+jj] = fmin(fmax(params_[ip->indices[ii]*outputs_+jj] + delta[jj], output_min_[jj]), output_max_[jj]);
+    }
+    else
+    {
+      // Calculate step size for one-step learning
+      double norm2 = 0;
+      for (size_t ii=0; ii != ip->weights.size(); ++ii)
+        norm2 += ip->weights[ii]*ip->weights[ii];
+
+      // Avoid division by zero
+      if (norm2 < 0.001)
+        norm2 = 0.001;
+
+      for (size_t ii=0; ii != ip->indices.size(); ++ii)
+        for (size_t jj=0; jj < outputs_; ++jj)
+          if (ip->indices[ii] != IndexProjection::invalid_index())
+            params_[ip->indices[ii]*outputs_+jj] = fmin(fmax(params_[ip->indices[ii]*outputs_+jj] + ip->weights[ii]*delta[jj]/norm2, output_min_[jj]), output_max_[jj]);
+    }
   }
   else
   {

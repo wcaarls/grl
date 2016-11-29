@@ -73,6 +73,7 @@ add_library(${TARGET} SHARED
             ${SRC}/projectors/fourier.cpp
             ${SRC}/projectors/monomial.cpp
             ${SRC}/projectors/grid.cpp
+            ${SRC}/projectors/rbf.cpp
             ${SRC}/representations/linear.cpp
             ${SRC}/representations/ann.cpp
 #            ${SRC}/representations/dmp.cpp
