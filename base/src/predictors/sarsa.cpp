@@ -42,7 +42,7 @@ void SARSAPredictor::request(ConfigurationRequest *config)
 
   config->push_back(CRP("projector", "projector.pair", "Projects observation-action pairs onto representation space", projector_));
   config->push_back(CRP("representation", "representation.value/action", "Q-value representation", representation_));
-  config->push_back(CRP("trace", "trace", "Trace of projections", trace_));
+  config->push_back(CRP("trace", "trace", "Trace of projections", trace_, true));
 }
 
 void SARSAPredictor::configure(Configuration &config)
@@ -71,7 +71,8 @@ SARSAPredictor *SARSAPredictor::clone() const
   SARSAPredictor *sp = new SARSAPredictor();
   sp->projector_ = projector_->clone();
   sp->representation_= representation_->clone();
-  sp->trace_ = trace_->clone();
+  if (trace_)
+    sp->trace_ = trace_->clone();
   return sp;
 }
 
@@ -89,9 +90,11 @@ void SARSAPredictor::update(const Transition &transition)
   
   representation_->write(p, VectorConstructor(target), alpha_);
 
-  // TODO: recently added point is not in trace
-  representation_->update(*trace_, VectorConstructor(alpha_*delta), gamma_*lambda_);
-  trace_->add(p, gamma_*lambda_);
+  if (trace_)
+  {
+    representation_->update(*trace_, VectorConstructor(alpha_*delta), gamma_*lambda_);
+    trace_->add(p, gamma_*lambda_);
+  }
   
   representation_->finalize();
 }
@@ -100,7 +103,8 @@ void SARSAPredictor::finalize()
 {
   Predictor::finalize();
   
-  trace_->clear();
+  if (trace_)
+    trace_->clear();
 }
 
 void ExpectedSARSAPredictor::request(ConfigurationRequest *config)
@@ -114,7 +118,7 @@ void ExpectedSARSAPredictor::request(ConfigurationRequest *config)
   config->push_back(CRP("projector", "projector.pair", "Projects observation-action pairs onto representation space", projector_));
   config->push_back(CRP("representation", "representation.value/action", "Q-value representation", representation_));
   config->push_back(CRP("policy", "policy/discrete/q", "Q-value based target policy", policy_));
-  config->push_back(CRP("trace", "trace", "Trace of projections", trace_));
+  config->push_back(CRP("trace", "trace", "Trace of projections", trace_, true));
 }
 
 void ExpectedSARSAPredictor::configure(Configuration &config)
@@ -143,7 +147,8 @@ ExpectedSARSAPredictor *ExpectedSARSAPredictor::clone() const
   sp->projector_ = projector_->clone();
   sp->representation_= representation_->clone();
   sp->policy_ = policy_->clone();
-  sp->trace_ = trace_->clone();
+  if (trace_)
+    sp->trace_ = trace_->clone();
   return sp;
 }
 
@@ -162,8 +167,11 @@ void ExpectedSARSAPredictor::update(const Transition &transition)
   double delta = target - representation_->read(p, &q);
 
   representation_->write(p, VectorConstructor(target), alpha_);
-  representation_->update(*trace_, VectorConstructor(alpha_*delta), gamma_*lambda_);
-  trace_->add(p, gamma_*lambda_);
+  if (trace_)
+  {
+    representation_->update(*trace_, VectorConstructor(alpha_*delta), gamma_*lambda_);
+    trace_->add(p, gamma_*lambda_);
+  }
   
   representation_->finalize();
 }
@@ -172,5 +180,6 @@ void ExpectedSARSAPredictor::finalize()
 {
   Predictor::finalize();
   
-  trace_->clear();
+  if (trace_)
+    trace_->clear();
 }

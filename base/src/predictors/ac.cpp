@@ -47,7 +47,7 @@ void ActionACPredictor::request(ConfigurationRequest *config)
 
   config->push_back(CRP("critic_projector", "projector.observation", "Projects observations onto critic representation space", critic_projector_));
   config->push_back(CRP("critic_representation", "representation.value/state", "Value function representation", critic_representation_));
-  config->push_back(CRP("critic_trace", "trace", "Trace of critic projections", critic_trace_));
+  config->push_back(CRP("critic_trace", "trace", "Trace of critic projections", critic_trace_, true));
 
   config->push_back(CRP("actor_projector", "projector.observation", "Projects observations onto actor representation space", actor_projector_));
   config->push_back(CRP("actor_representation", "representation.action", "Action representation", actor_representation_));
@@ -88,7 +88,8 @@ ActionACPredictor *ActionACPredictor::clone() const
   ActionACPredictor *aap = new ActionACPredictor(*this);
   aap->critic_projector_ = critic_projector_->clone();
   aap->critic_representation_= critic_representation_->clone();
-  aap->critic_trace_ = critic_trace_->clone();
+  if (critic_trace_)
+    aap->critic_trace_ = critic_trace_->clone();
   aap->actor_projector_ = actor_projector_->clone();
   aap->actor_representation_= actor_representation_->clone();
   if (actor_trace_)
@@ -120,10 +121,11 @@ void ActionACPredictor::update(const Transition &transition)
   
   // Add LLR sample to DB of samples
   critic_representation_->write(cp, VectorConstructor(target), alpha_);
-  // ???
-  critic_representation_->update(*critic_trace_, VectorConstructor(alpha_*delta), gamma_*lambda_);
-  //
-  critic_trace_->add(cp, gamma_*lambda_);
+  if (critic_trace_)
+  {
+    critic_representation_->update(*critic_trace_, VectorConstructor(alpha_*delta), gamma_*lambda_);
+    critic_trace_->add(cp, gamma_*lambda_);
+  }
 
   if (update_method_[0] == 'p' || delta > 0)
   {
@@ -158,7 +160,8 @@ void ActionACPredictor::finalize()
 {
   Predictor::finalize();
 
-  critic_trace_->clear();
+  if (critic_trace_)
+    critic_trace_->clear();
   if (actor_trace_)
     actor_trace_->clear();
 }
@@ -174,7 +177,7 @@ void ProbabilityACPredictor::request(ConfigurationRequest *config)
 
   config->push_back(CRP("critic_projector", "projector.observation", "Projects observations onto critic representation space", critic_projector_));
   config->push_back(CRP("critic_representation", "representation.value/state", "Value function representation", critic_representation_));
-  config->push_back(CRP("critic_trace", "trace", "Trace of critic projections", critic_trace_));
+  config->push_back(CRP("critic_trace", "trace", "Trace of critic projections", critic_trace_, true));
 
   config->push_back(CRP("actor_projector", "projector.pair", "Projects observation-action pairs onto actor representation space", actor_projector_));
   config->push_back(CRP("actor_representation", "representation.value/action", "Action-probability representation", actor_representation_));
@@ -216,7 +219,8 @@ ProbabilityACPredictor *ProbabilityACPredictor::clone() const
   ProbabilityACPredictor *pap = new ProbabilityACPredictor(*this);
   pap->critic_projector_ = critic_projector_->clone();
   pap->critic_representation_= critic_representation_->clone();
-  pap->critic_trace_ = critic_trace_->clone();
+  if (critic_trace_)
+    pap->critic_trace_ = critic_trace_->clone();
   pap->actor_projector_ = actor_projector_->clone();
   pap->actor_representation_= actor_representation_->clone();
   if (actor_trace_)
@@ -235,7 +239,8 @@ void ProbabilityACPredictor::finalize()
 {
   Predictor::finalize();
 
-  critic_trace_->clear();
+  if (critic_trace_)
+    critic_trace_->clear();
   if (actor_trace_)
     actor_trace_->clear();
 }
@@ -256,7 +261,7 @@ void QACPredictor::request(ConfigurationRequest *config)
 
   config->push_back(CRP("critic_projector", "projector.pair", "Projects observations onto critic representation space", critic_projector_));
   config->push_back(CRP("critic_representation", "representation.value/action", "Value function representation", critic_representation_));
-  config->push_back(CRP("critic_trace", "trace", "Trace of critic projections", critic_trace_));
+  config->push_back(CRP("critic_trace", "trace", "Trace of critic projections", critic_trace_, true));
 
   config->push_back(CRP("actor_projector", "projector.observation", "Projects observations onto actor representation space", actor_projector_));
   config->push_back(CRP("actor_representation", "representation.action", "Action representation", actor_representation_));
@@ -299,7 +304,8 @@ QACPredictor *QACPredictor::clone() const
   QACPredictor *qap = new QACPredictor(*this);
   qap->critic_projector_ = critic_projector_->clone();
   qap->critic_representation_= critic_representation_->clone();
-  qap->critic_trace_ = critic_trace_->clone();
+  if (critic_trace_)
+    qap->critic_trace_ = critic_trace_->clone();
   qap->actor_projector_ = actor_projector_->clone();
   qap->actor_representation_= actor_representation_->clone();
   if (actor_trace_)
@@ -334,9 +340,12 @@ void QACPredictor::update(const Transition &transition)
   
   // Update critic based on executed action TD error
   critic_representation_->write(cp, VectorConstructor(target), alpha_);
-  critic_representation_->update(*critic_trace_, VectorConstructor(alpha_*delta), gamma_*lambda_);
-  critic_trace_->add(cp, gamma_*lambda_);
-  
+  if (critic_trace_)
+  {
+    critic_representation_->update(*critic_trace_, VectorConstructor(alpha_*delta), gamma_*lambda_);
+    critic_trace_->add(cp, gamma_*lambda_);
+  }
+    
   // Update actor based on desired action TD error
   if (update_method_[0] == 'p' || deltau > 0)
   {
@@ -368,7 +377,8 @@ void QACPredictor::finalize()
 {
   Predictor::finalize();
 
-  critic_trace_->clear();
+  if (critic_trace_)
+    critic_trace_->clear();
   if (actor_trace_)
     actor_trace_->clear();
 }

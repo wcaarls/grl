@@ -44,7 +44,7 @@ class OnlineLearningExperiment : public Experiment
   protected:
     Agent *agent_, *test_agent_;
     Environment *environment_;
-    VectorSignal *state_, *curve_;
+    VectorSignal *state_, *action_, *curve_;
 
     size_t runs_, trials_, steps_;
     int test_interval_;
@@ -54,7 +54,7 @@ class OnlineLearningExperiment : public Experiment
 
 
   public:
-    OnlineLearningExperiment() : agent_(NULL), test_agent_(NULL), environment_(NULL), state_(NULL), curve_(NULL), runs_(1), trials_(0), steps_(0), test_interval_(-1), rate_(0), save_every_("never")  { }
+    OnlineLearningExperiment() : agent_(NULL), test_agent_(NULL), environment_(NULL), state_(NULL), action_(NULL), curve_(NULL), runs_(1), trials_(0), steps_(0), test_interval_(-1), rate_(0), save_every_("never")  { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
