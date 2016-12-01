@@ -50,7 +50,6 @@ void OrnsteinUhlenbeckSampler::configure(Configuration &config)
   EpsilonGreedySampler::configure(config);
 
   discretizer_ = (Discretizer*)config["discretizer"].ptr();
-  discretizer_->options(&state_variants_);
 
   theta_ = config["theta"].v();
   sigma_ = config["sigma"].v();
@@ -58,6 +57,13 @@ void OrnsteinUhlenbeckSampler::configure(Configuration &config)
 
   if (theta_.size() != sigma_.size() || sigma_.size() != center_.size() || center_.size() == 0)
     throw bad_param("sampler/ornstein_ohlenbeck:{theta,sigma,center}");
+
+  Vector neg_part = discretizer_->at(discretizer_->size()-1) - center_;
+  Vector pos_part = center_ - discretizer_->at(0);
+
+  noise_scale_.resize(center_.size());
+  for (int i = 0; i < center_.size(); i++)
+    noise_scale_[i] = std::max(pos_part[i], neg_part[i]);
 
   env_event_ = (VectorSignal*)config["contact_signal"].ptr();
 }
@@ -114,7 +120,7 @@ void OrnsteinUhlenbeckSampler::mix_signal_noise(const Vector &in, const Vector &
 {
   // convert array index to values
   TRACE(in);
-  Vector vec = in + 10.7*noise;
+  Vector vec = in + noise_scale_*noise; // coefficient-wise product and summation
   TRACE(vec);
 
   // find nearest discretized sample (min-max bounds preserved automatically)
@@ -126,8 +132,8 @@ void OrnsteinUhlenbeckSampler::mix_signal_noise(const Vector &in, const Vector &
 size_t OrnsteinUhlenbeckSampler::sample(const LargeVector &values, TransitionType &tt) const
 {
   // Greedy action selection
-  size_t idx = GreedySampler::sample(values, tt);
-  TRACE(state_variants_[idx]);
+  size_t offset = GreedySampler::sample(values, tt);
+  TRACE(discretizer_->at(offset));
 
   // Supress noise at the start of an episode and beginning of the step (?)
   env_event_processor();
@@ -135,15 +141,15 @@ size_t OrnsteinUhlenbeckSampler::sample(const LargeVector &values, TransitionTyp
 
   // add noise to a signal
   evolve_noise();
-  IndexVector state_idx_v;
-  state_idx_v.resize(noise_.size());
-  mix_signal_noise(state_variants_[idx], noise_, state_idx_v);
+  IndexVector state_idx;
+  state_idx.resize(noise_.size());
+  mix_signal_noise(discretizer_->at(offset), noise_, state_idx);
 
   // find value index of the sample and keep it for nex run
-  idx = discretizer_->convert(state_idx_v);
+  offset = discretizer_->offset(state_idx);
 
   tt = ttExploratory;
-  return idx;
+  return offset;
 }
 
 //////////////////////////////////////////////////////////
@@ -152,10 +158,10 @@ void ACOrnsteinUhlenbeckSampler::configure(Configuration &config)
 {
   OrnsteinUhlenbeckSampler::configure(config);
 
-  IndexVector center_idx_v;
-  center_idx_v.resize(center_.size());
-  discretizer_->discretize(center_, &center_idx_v);
-  state_idx_ = discretizer_->convert(center_idx_v);
+  IndexVector center_idx;
+  center_idx.resize(center_.size());
+  discretizer_->discretize(center_, &center_idx);
+  offset_ = discretizer_->offset(center_idx);
 }
 
 ACOrnsteinUhlenbeckSampler *ACOrnsteinUhlenbeckSampler::clone()
@@ -174,7 +180,7 @@ size_t ACOrnsteinUhlenbeckSampler::sample(const LargeVector &values, TransitionT
     tt = ttExploratory;
 
     // convert array index to values
-    Vector smp_vec = state_variants_[state_idx_];
+    Vector smp_vec = discretizer_->at(offset_);//state_variants_[offset_];
 
     // mirror if needed
     if (data.size() && data[0])
@@ -201,19 +207,19 @@ size_t ACOrnsteinUhlenbeckSampler::sample(const LargeVector &values, TransitionT
     TRACE(smp_vec);
 
     // find nearest discretized sample (min-max bounds preserved automatically)
-    IndexVector idx_v;
-    idx_v.resize(center_.size());
-    discretizer_->discretize(smp_vec, &idx_v);
+    IndexVector state_idx;
+    state_idx.resize(center_.size());
+    discretizer_->discretize(smp_vec, &state_idx);
     TRACE(smp_vec);
-    TRACE(idx_v);
+    TRACE(state_idx);
 
     // find value index of the sample and keep it for nex run
-    state_idx_ = discretizer_->convert(idx_v);
+    offset_ = discretizer_->offset(state_idx);
   }
   else
-    state_idx_ = GreedySampler::sample(values, tt);
+    offset_ = GreedySampler::sample(values, tt);
 
-  return state_idx_;
+  return offset_;
 }
 
 //////////////////////////////////////////////////////////
@@ -244,8 +250,8 @@ EpsilonOrnsteinUhlenbeckSampler *EpsilonOrnsteinUhlenbeckSampler::clone()
 
 size_t EpsilonOrnsteinUhlenbeckSampler::sample(const LargeVector &values, TransitionType &tt) const
 {
-  size_t idx = GreedySampler::sample(values, tt);
-  TRACE(state_variants_[idx]);
+  size_t offset = GreedySampler::sample(values, tt);
+  TRACE(discretizer_->at(offset));
 
   // Supress noise at the start of an episode
   env_event_processor();
@@ -259,16 +265,16 @@ size_t EpsilonOrnsteinUhlenbeckSampler::sample(const LargeVector &values, Transi
   {
     // add noise to to signal
     tt = ttExploratory;
-    IndexVector state_idx_v;
-    state_idx_v.resize(noise_.size());
-    mix_signal_noise(state_variants_[idx], noise_, state_idx_v);
-    TRACE(state_idx_v);
+    IndexVector state_idx;
+    state_idx.resize(noise_.size());
+    mix_signal_noise(discretizer_->at(offset), noise_, state_idx);
+    TRACE(state_idx);
 
-    idx = discretizer_->convert(state_idx_v);
-    TRACE(state_variants_[idx]);
+    offset = discretizer_->offset(state_idx);
+    TRACE(discretizer_->at(offset));
   }
 
-  return idx;
+  return offset;
 }
 
 //////////////////////////////////////////////////////////
@@ -285,9 +291,10 @@ void PadaOrnsteinUhlenbeckSampler::configure(Configuration &config)
   pada_.configure(config);
 
   int state_dims = discretizer_->steps().size();
-  state_idx_v_.resize(state_dims);
-  Vector initial_state = ConstantVector(state_dims, 0.0); // default action = 0
-  discretizer_->discretize(initial_state, &state_idx_v_);
+  IndexVector center_idx;
+  center_idx.resize(state_dims);
+  discretizer_->discretize(center_, &center_idx);
+  offset_ = discretizer_->offset(center_idx);
 }
 
 void PadaOrnsteinUhlenbeckSampler::reconfigure(const Configuration &config)
@@ -304,8 +311,9 @@ PadaOrnsteinUhlenbeckSampler *PadaOrnsteinUhlenbeckSampler::clone()
 
 size_t PadaOrnsteinUhlenbeckSampler::sample(const LargeVector &values, TransitionType &tt) const
 {
-  size_t idx = pada_.sample(values, state_idx_v_, tt);
-  TRACE(state_variants_[idx]);
+  pada_.set_offset(offset_);
+  offset_ = pada_.sample(values, tt);
+  TRACE(discretizer_->at(offset_));
 
   // Supress noise at the start of an episode
   env_event_processor();
@@ -316,13 +324,14 @@ size_t PadaOrnsteinUhlenbeckSampler::sample(const LargeVector &values, Transitio
   TRACE(noise_);
 
   // add noise to to signal
+  IndexVector state_idx;
+  mix_signal_noise(discretizer_->at(offset_), noise_, state_idx);
+  TRACE(state_idx);
+
+  offset_ = discretizer_->offset(state_idx);
+  TRACE(discretizer_->at(offset_));
+
   tt = ttExploratory;
-  mix_signal_noise(state_variants_[idx], noise_, state_idx_v_);
-  TRACE(state_idx_v_);
-
-  idx = discretizer_->convert(state_idx_v_);
-  TRACE(state_variants_[idx]);
-
-  return idx;
+  return offset_;
 }
 

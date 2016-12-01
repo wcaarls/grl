@@ -68,8 +68,8 @@ class PolicyDiscretizer : public Discretizer
     virtual void discretize(Vector &vec, IndexVector *idx_v = NULL) const {}
 
     /// Converts indexed vector to an linear offset of pointing to an indexed representation of the same input vector, and back
-    virtual size_t convert(const IndexVector &idx_v) const { return 0; }
-    virtual IndexVector convert(const size_t idx) const {return IndexVector(); }
+    virtual size_t offset(const IndexVector &idx) const { return 0; }
+    //virtual IndexVector convert(const size_t idx) const {return IndexVector(); }
 };
 
 }

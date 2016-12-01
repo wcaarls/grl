@@ -48,7 +48,7 @@ class PADASampler : public EpsilonGreedySampler
 
   protected:
     Discretizer *discretizer_;
-    mutable IndexVector state_idx_v_;
+    mutable size_t offset_;
     Vector delta_;
     VectorSignal *env_event_;
 
@@ -63,14 +63,15 @@ class PADASampler : public EpsilonGreedySampler
     // From Sampler
     virtual PADASampler *clone();
     virtual size_t sample(const LargeVector &values, TransitionType &tt) const;
-    virtual size_t sample(const LargeVector &values, const IndexVector &state, TransitionType &tt) const;
+
+  public:
+    virtual void set_offset(size_t offset) const { offset_ = offset; }
 
   protected:
-    virtual void increment(IndexVector &idx_v, const IndexVector &lower_bound, const IndexVector &upper_bound) const;
     virtual Vector env_event_processor() const;
-    virtual void get_bounds(Vector &delta, IndexVector &lower_bound, IndexVector &upper_bound) const;
-    virtual size_t exploration_step(IndexVector &lower_bound, IndexVector &upper_bound) const;
-    virtual size_t exploitation_step(const Vector &values, IndexVector &lower_bound, IndexVector &upper_bound) const;
+    virtual void get_bounds(size_t offset, Vector &delta, IndexVector &lower_bound, IndexVector &upper_bound) const;
+    virtual size_t exploration_step(Discretizer::bounded_iterator &bit) const;
+    virtual size_t exploitation_step(const LargeVector &values, Discretizer::bounded_iterator &bit) const;
 };
 
 

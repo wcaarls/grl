@@ -52,9 +52,10 @@ void PADASampler::configure(Configuration &config)
     if (delta_[i] < 0)
       throw bad_param("sampler/pada:delta");
 
-  state_idx_v_.resize(delta_.size());
   Vector initial_state = ConstantVector(delta_.size(), 0.0); // default action = 0
-  discretizer_->discretize(initial_state, &state_idx_v_);
+  IndexVector state_idx;
+  discretizer_->discretize(initial_state, &state_idx);
+  offset_ = discretizer_->offset(state_idx);
 
   env_event_ = (VectorSignal*)config["contact_signal"].ptr();
 }
@@ -71,20 +72,6 @@ PADASampler *PADASampler::clone()
   return egs;
 }
 
-void PADASampler::increment(IndexVector &idx_v, const IndexVector &lower_bound, const IndexVector &upper_bound) const
-{
-  for (int ii = 0; ii < lower_bound.size(); ii++)
-  {
-    if (idx_v[ii] < upper_bound[ii])
-    {
-      idx_v[ii]++;
-      break;
-    }
-    else
-      idx_v[ii] = lower_bound[ii];
-  }
-}
-
 Vector PADASampler::env_event_processor() const
 {
   Vector delta = delta_;
@@ -99,10 +86,12 @@ Vector PADASampler::env_event_processor() const
       hipleft  = data[3];
       kneeleft = data[4];
 
-      TRACE(state_idx_v_);
-      size_t tmp = state_idx_v_[hipright];
-      state_idx_v_[hipright] = state_idx_v_[hipleft];
-      state_idx_v_[hipleft] = tmp;
+      TRACE(offset_);
+      IndexVector state_idx;
+      discretizer_->at(offset_, &state_idx);
+      size_t tmp = state_idx[hipright];
+      state_idx[hipright] = state_idx[hipleft];
+      state_idx[hipleft] = tmp;
 
       const double prev_knee_auto_actuated = data[1];
       double nearest = DBL_MAX;
@@ -112,15 +101,16 @@ Vector PADASampler::env_event_processor() const
         if (fabs(prev_knee_auto_actuated - nearest) > fabs(prev_knee_auto_actuated - v))
         {
           nearest = v;
-          state_idx_v_[kneeleft] = i;
+          state_idx[kneeleft] = i;
         }
       }
-      TRACE(state_idx_v_);
+      offset_ = discretizer_->offset(state_idx);
+      TRACE(offset_);
     }
 
     if (data[5]) // start function => any action is possible
     {
-      for (int ii = 0; ii < state_idx_v_.size(); ii++)
+      for (int ii = 0; ii < delta.size(); ii++)
         delta[ii] = INT_MAX;
     }
   }
@@ -133,100 +123,75 @@ Vector PADASampler::env_event_processor() const
   return delta;
 }
 
-void PADASampler::get_bounds(Vector &delta, IndexVector &lower_bound, IndexVector &upper_bound) const
+void PADASampler::get_bounds(size_t offset, Vector &delta, IndexVector &lower_bound, IndexVector &upper_bound) const
 {
   // select indexes of upper and lower bounds
-  lower_bound.resize(state_idx_v_.size());
-  upper_bound.resize(state_idx_v_.size());
-  for (int ii = 0; ii < state_idx_v_.size(); ii++)
+  IndexVector state_idx;
+  discretizer_->at(offset, &state_idx);
+  lower_bound.resize(state_idx.size());
+  upper_bound.resize(state_idx.size());
+  for (int ii = 0; ii < state_idx.size(); ii++)
   {
-    lower_bound[ii] = fmax(state_idx_v_[ii]-delta[ii], 0);
-    upper_bound[ii] = fmin(state_idx_v_[ii]+delta[ii], discretizer_->steps()[ii]-1);
+    lower_bound[ii] = fmax(state_idx[ii]-delta[ii], 0);
+    upper_bound[ii] = fmin(state_idx[ii]+delta[ii], discretizer_->steps()[ii]-1);
   }
   TRACE(lower_bound);
   TRACE(upper_bound);
 }
 
-size_t PADASampler::exploration_step(IndexVector &lower_bound, IndexVector &upper_bound) const
+size_t PADASampler::exploration_step(Discretizer::bounded_iterator &bit) const
 {
-  // collect all variants of discretized vectors within bounds
-  IndexVector idx_v = lower_bound;
-  std::vector<IndexVector> idx_collection;
-//  while (!std::equal(idx_v.begin(), idx_v.end(), upper_bound.begin()))
-  while (idx_v.isApprox(upper_bound))
-  {
-    idx_collection.push_back(idx_v);
-    TRACE(idx_v);
-    increment(idx_v, lower_bound, upper_bound);
-  }
-  idx_collection.push_back(idx_v);
-  TRACE(idx_v);
+  IndexVector rnd_idx = IndexVector::Constant(delta_.size(), 0);
+  for (int i = 0; i < delta_.size(); i++)
+    rnd_idx[i] = round(rand_->getUniform(bit.lower_bound[i], bit.upper_bound[i]));
+  TRACE(rnd_idx);
 
-  // select random sample
-  int r = rand_->getInteger(idx_collection.size());
-  state_idx_v_ = idx_collection[r];
-  TRACE(state_idx_v_);
-
-  // convert to an index
-  return discretizer_->convert(state_idx_v_);
+  return discretizer_->offset(rnd_idx);
 }
 
-size_t PADASampler::exploitation_step(const Vector &values, IndexVector &lower_bound, IndexVector &upper_bound) const
+size_t PADASampler::exploitation_step(const LargeVector &values, Discretizer::bounded_iterator &bit) const
 {
-  IndexVector idx_v;
-  size_t max_idx, loop_idx;
-
-  // select the best value within bounds
-  state_idx_v_ = idx_v = lower_bound;
-  max_idx = discretizer_->convert(idx_v);
-  increment(idx_v, lower_bound, upper_bound);
-  TRACE(idx_v);
-  //while (!std::equal(idx_v.begin(), idx_v.end(), upper_bound.begin()))
-  while (idx_v.isApprox(upper_bound))
+  size_t loop_offset, max_offset = bit.offset();
+  TRACE(*bit);
+  while (bit != bit.end())
   {
-    loop_idx = discretizer_->convert(idx_v);
-    if (values[loop_idx] > values[max_idx])
+    ++bit;
+    TRACE(*bit);
+    loop_offset = bit.offset();
+    if (values[loop_offset] > values[max_offset])
     {
-      max_idx = loop_idx;
-      state_idx_v_ = idx_v;
-      TRACE(values[max_idx]);
+      max_offset = loop_offset;
+      TRACE(values[max_offset]);
     }
-    increment(idx_v, lower_bound, upper_bound);
-    TRACE(idx_v);
   }
-
-  // Verification test: best action with no bounds
 /*
+  // Verification test: best action with no bounds
+  TransitionType tt;
   size_t greedy_idx = GreedySampler::sample(values, tt);
   if (greedy_idx != max_idx)
     std::cout << "Not correct action" << std::endl;
 */
-  return max_idx;
+  return max_offset;
 }
-
 
 size_t PADASampler::sample(const LargeVector &values, TransitionType &tt) const
 {
   IndexVector lower_bound, upper_bound;
   Vector delta = env_event_processor();
-  get_bounds(delta, lower_bound, upper_bound);
+  get_bounds(offset_, delta, lower_bound, upper_bound);
 
+  Discretizer::bounded_iterator bit = Discretizer::bounded_iterator(discretizer_, Vector(), lower_bound, lower_bound, upper_bound);
   if (rand_->get() < epsilon_)
   {
     tt = ttExploratory;
-    return exploration_step(lower_bound, upper_bound);
+    offset_ = exploration_step(bit);
   }
   else
   {
     tt = ttGreedy;
-    return exploitation_step(values, lower_bound, upper_bound);
+    offset_ = exploitation_step(values, bit);
   }
-}
-
-size_t PADASampler::sample(const LargeVector &values, const IndexVector &state, TransitionType &tt) const
-{
-  state_idx_v_ = state;
-  return sample(values, tt);
+  return offset_;
 }
 
 //////////////////////////////////////////////////////////
@@ -240,28 +205,26 @@ EpsilonPADASampler *EpsilonPADASampler::clone()
 
 size_t EpsilonPADASampler::sample(const LargeVector &values, TransitionType &tt) const
 {
-  size_t idx;
-
   if (rand_->get() < epsilon_)
   {
     tt = ttExploratory;
     IndexVector lower_bound, upper_bound;
     Vector delta = env_event_processor();
-    get_bounds(delta, lower_bound, upper_bound);
-    idx = exploration_step(lower_bound, upper_bound);
+    get_bounds(offset_, delta, lower_bound, upper_bound);
+    Discretizer::bounded_iterator bit = Discretizer::bounded_iterator(discretizer_, Vector(), lower_bound, lower_bound, upper_bound);
+    offset_ = exploration_step(bit);
   }
   else
   {
     tt = ttGreedy;
-    idx = GreedySampler::sample(values, tt);
-    state_idx_v_ = discretizer_->convert(idx);
-    TRACE(state_idx_v_);
+    offset_ = GreedySampler::sample(values, tt);
   }
+  TRACE(offset_);
 /*
   size_t idx_test = discretizer_->convert(state_idx_v_);
   if (idx_test != idx)
     std::cout << "Not correct action" << std::endl;
 */
-  return idx;
+  return offset_;
 }
 

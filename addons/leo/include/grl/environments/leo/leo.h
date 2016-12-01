@@ -169,14 +169,12 @@ class LeoBaseEnvironment: public Environment
     virtual void report(std::ostream &os) const;
     
   protected:
-    //CSTGLeoSim leoSim_;
     CLeoState leoState_;
     Environment *target_env_;
     std::string xml_;
     CLeoBhBase *bh_;
 
     int observation_dims_, action_dims_;
-//    int target_observation_dims_, target_action_dims_;
     Vector target_obs_, target_action_;
 
     // Exporter

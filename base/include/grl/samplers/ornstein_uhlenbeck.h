@@ -49,8 +49,8 @@ class OrnsteinUhlenbeckSampler : public EpsilonGreedySampler
     mutable Vector noise_;
     VectorSignal *env_event_;
     Vector theta_, sigma_, center_;
+    Vector noise_scale_;
     Discretizer *discretizer_;
-    std::vector<Vector> state_variants_;
 
   public:
     OrnsteinUhlenbeckSampler() { }
@@ -77,7 +77,7 @@ class ACOrnsteinUhlenbeckSampler : public OrnsteinUhlenbeckSampler
     TYPEINFO("sampler/ac_ornstein_ohlenbeck", "Action-correlated maximum search with an Ornstein-Uhlenbeck random chance of non-maximums")
 
   protected:
-    mutable size_t state_idx_;
+    mutable size_t offset_;
 
   public:
     ACOrnsteinUhlenbeckSampler() { }
@@ -117,7 +117,7 @@ class PadaOrnsteinUhlenbeckSampler : public OrnsteinUhlenbeckSampler
     TYPEINFO("sampler/pada_ornstein_ohlenbeck", "Exploitations and exploitations are same as ou, but action is selected from a constrained set, as in pada. ")
 
   public:
-    PadaOrnsteinUhlenbeckSampler() { }
+    PadaOrnsteinUhlenbeckSampler() : offset_(0) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -130,7 +130,8 @@ class PadaOrnsteinUhlenbeckSampler : public OrnsteinUhlenbeckSampler
 
   private:
     PADASampler pada_;
-    mutable IndexVector state_idx_v_;
+    //mutable IndexVector state_idx_;
+    mutable size_t offset_;
 };
 
 

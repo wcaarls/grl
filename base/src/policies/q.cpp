@@ -98,6 +98,8 @@ void QPolicy::values(const Vector &in, LargeVector *out) const
     (*out)[ii] = representation_->read(projections[ii], &value); // reading approximated values
 }
 
+//Vector prev_out;
+
 TransitionType QPolicy::act(const Vector &in, Vector *out) const
 {
   LargeVector qvalues;
@@ -109,10 +111,13 @@ TransitionType QPolicy::act(const Vector &in, Vector *out) const
   *out = discretizer_->at(in, action);
   TRACE(*out);
 /*
-  // Neighbouring action in case of PADA
-  for (int i = 0; i < prev_out.size(); i++)
-    if (fabs((*out)[i] - prev_out[i]) > 5.35)
-      std::cout << "Something is wrong!" << std::endl;
+  // Verifying neighbouring action in case of PADA
+  if (prev_out.size())
+  {
+    for (int i = 0; i < prev_out.size(); i++)
+      if (fabs((*out)[i] - prev_out[i]) > 5.35)
+        std::cout << "Something is wrong!" << std::endl;
+  }
   prev_out = *out;
 */
   return tt;
