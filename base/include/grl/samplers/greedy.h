@@ -57,8 +57,8 @@ class GreedySampler : public Sampler
   
     // From Sampler
     virtual GreedySampler *clone();
-    virtual size_t sample(const LargeVector &values, TransitionType &tt) const;
-    virtual void distribution(const LargeVector &values, LargeVector *distribution) const;
+    virtual size_t sample(const LargeVector &values, TransitionType &tt);
+    virtual void distribution(const LargeVector &values, LargeVector *distribution);
 };
 
 /// Maximum search with a uniform random chance of non-maximums.
@@ -80,8 +80,8 @@ class EpsilonGreedySampler : public GreedySampler
   
     // From Sampler
     virtual EpsilonGreedySampler *clone();
-    virtual size_t sample(const LargeVector &values, TransitionType &tt) const;
-    virtual void distribution(const LargeVector &values, LargeVector *distribution) const;
+    virtual size_t sample(const LargeVector &values, TransitionType &tt);
+    virtual void distribution(const LargeVector &values, LargeVector *distribution);
 };
 
 }

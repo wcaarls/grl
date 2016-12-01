@@ -54,7 +54,7 @@ class Discretizer : public Configurable
     }
     
     /// Iterates over discrete points.
-    class iterator// : public std::iterator<std::input_iterator_tag, IndexVector>
+    class iterator
     {
       protected:
         const Discretizer *discretizer_;
@@ -102,12 +102,12 @@ class Discretizer : public Configurable
     // #ivan need to review these
     virtual Vector steps()  const = 0;
 
-    /// Finds the most closest vector to 'vec' in L1 sense and satisfies discretization steps
-    /// As an optiona parmater (2) returns index of the discretized vector
-    virtual void discretize(Vector &vec, IndexVector *vec_idx = NULL) const = 0;
+    /// Finds the most closest discrete vector to 'vec' in L1 sense per element
+    /// An optional parmater 'idx' returns index of the discretized vector
+    virtual void discretize(Vector &vec, IndexVector *idx = NULL) const = 0;
 
-    /// Converts indexed vector to an linear offset of pointing to an indexed representation of the same input vector, and back
-    virtual size_t offset(const IndexVector &vec_idx) const = 0;
+    /// Converts indexed vector to an linear offset which points to an indexed representation of the same input vector
+    virtual size_t offset(const IndexVector &idx) const = 0;
 };
 
 }

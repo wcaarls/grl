@@ -51,7 +51,7 @@ SoftmaxSampler *SoftmaxSampler::clone()
   return new SoftmaxSampler(*this);
 }
 
-size_t SoftmaxSampler::sample(const LargeVector &values, TransitionType &tt) const
+size_t SoftmaxSampler::sample(const LargeVector &values, TransitionType &tt)
 {
   LargeVector dist;
   
@@ -66,17 +66,17 @@ size_t SoftmaxSampler::sample(const LargeVector &values, TransitionType &tt) con
   size_t gidx = gs.sample(values, gtt);
 
   if (idx != gidx)
-    std::cout << "Non-greedy action selected" << std::endl;
+    TRACE("Non-greedy action selected");
 */
   return idx;
 }
 
-void SoftmaxSampler::distribution(const LargeVector &values, LargeVector *distribution) const
+void SoftmaxSampler::distribution(const LargeVector &values, LargeVector *distribution)
 {
   Vector v(values);
   for (size_t ii=0; ii < values.size(); ++ii)
     if (std::isnan(v[ii]) || std::isnan(values[ii]))
-      std::cout << "NaN value in Boltzmann distribution 1" << std::endl;
+      ERROR("SoftmaxSampler: NaN value in Boltzmann distribution 1");
 
   distribution->resize(v.size());
   const double threshold = -100;
@@ -104,29 +104,20 @@ void SoftmaxSampler::distribution(const LargeVector &values, LargeVector *distri
       (*distribution)[ii] = 1;
 
       if (std::isnan(v[ii]))
-        std::cout << "NaN value in Boltzmann distribution 2" << std::endl;
-/*
-      if (min_ > p)
-        min_ = p;
-      if (max_ < p)
-        max_ = p;
-      */
+        ERROR("SoftmaxSampler: NaN value in Boltzmann distribution 2");
     }
     else
     {
       (*distribution)[ii] = 0;
       if (std::isnan(v[ii]))
-        std::cout << "NaN value in Boltzmann distribution 3" << std::endl;
+        ERROR("SoftmaxSampler: NaN value in Boltzmann distribution 3");
     }
   }
-
-//  std::cout << "Q " << sum << ", " << min_ << ", " << max_ << std::endl;
 
   for (size_t ii=0; ii < values.size(); ++ii)
   {
     (*distribution)[ii] *= v[ii]/sum;
     if (std::isnan((*distribution)[ii]))
-      std::cout << "NaN value in Boltzmann distribution 4" << std::endl;
-      //ERROR("NaN value in Boltzmann distribution");
+      ERROR("SoftmaxSampler: NaN value in Boltzmann distribution 4");
   }
 }

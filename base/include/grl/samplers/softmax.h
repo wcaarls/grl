@@ -42,10 +42,9 @@ class SoftmaxSampler : public Sampler
 
   protected:
     double tau_;
-    mutable double min_, max_;
 
   public:
-    SoftmaxSampler() : tau_(1.), min_(DBL_MAX), max_(DBL_MIN) { }
+    SoftmaxSampler() : tau_(1.) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -54,8 +53,8 @@ class SoftmaxSampler : public Sampler
   
     // From Sampler
     virtual SoftmaxSampler *clone();
-    virtual size_t sample(const LargeVector &values, TransitionType &tt) const;
-    virtual void distribution(const LargeVector &values, LargeVector *distribution) const;
+    virtual size_t sample(const LargeVector &values, TransitionType &tt);
+    virtual void distribution(const LargeVector &values, LargeVector *distribution);
 };
 
 }

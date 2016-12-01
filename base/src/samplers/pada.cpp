@@ -72,7 +72,7 @@ PADASampler *PADASampler::clone()
   return egs;
 }
 
-Vector PADASampler::env_event_processor() const
+Vector PADASampler::env_event_processor()
 {
   Vector delta = delta_;
   LargeVector data = env_event_->get();
@@ -174,7 +174,7 @@ size_t PADASampler::exploitation_step(const LargeVector &values, Discretizer::bo
   return max_offset;
 }
 
-size_t PADASampler::sample(const LargeVector &values, TransitionType &tt) const
+size_t PADASampler::sample(const LargeVector &values, TransitionType &tt)
 {
   IndexVector lower_bound, upper_bound;
   Vector delta = env_event_processor();
@@ -203,7 +203,7 @@ EpsilonPADASampler *EpsilonPADASampler::clone()
   return egs;
 }
 
-size_t EpsilonPADASampler::sample(const LargeVector &values, TransitionType &tt) const
+size_t EpsilonPADASampler::sample(const LargeVector &values, TransitionType &tt)
 {
   if (rand_->get() < epsilon_)
   {

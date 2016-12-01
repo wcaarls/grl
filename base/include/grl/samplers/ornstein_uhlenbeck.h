@@ -46,7 +46,7 @@ class OrnsteinUhlenbeckSampler : public EpsilonGreedySampler
     TYPEINFO("sampler/ornstein_ohlenbeck", "Maximum search with an Ornstein-Uhlenbeck random chance of non-maximums")
 
   protected:
-    mutable Vector noise_;
+    Vector noise_;
     VectorSignal *env_event_;
     Vector theta_, sigma_, center_;
     Vector noise_scale_;
@@ -62,11 +62,11 @@ class OrnsteinUhlenbeckSampler : public EpsilonGreedySampler
 
     // From Sampler
     virtual OrnsteinUhlenbeckSampler *clone();
-    virtual size_t sample(const LargeVector &values, TransitionType &tt) const;
+    virtual size_t sample(const LargeVector &values, TransitionType &tt);
 
   protected:
-    virtual void env_event_processor() const;
-    virtual void evolve_noise() const;
+    virtual void env_event_processor();
+    virtual void evolve_noise();
     virtual void mix_signal_noise(const Vector &in, const Vector &noise, IndexVector &out) const;
 };
 
@@ -77,17 +77,17 @@ class ACOrnsteinUhlenbeckSampler : public OrnsteinUhlenbeckSampler
     TYPEINFO("sampler/ac_ornstein_ohlenbeck", "Action-correlated maximum search with an Ornstein-Uhlenbeck random chance of non-maximums")
 
   protected:
-    mutable size_t offset_;
+    size_t offset_;
 
   public:
-    ACOrnsteinUhlenbeckSampler() { }
+    ACOrnsteinUhlenbeckSampler() : offset_(0) { }
 
     // From Configurable
     virtual void configure(Configuration &config);
 
     // From Sampler
     virtual ACOrnsteinUhlenbeckSampler *clone();
-    virtual size_t sample(const LargeVector &values, TransitionType &tt) const;
+    virtual size_t sample(const LargeVector &values, TransitionType &tt);
 };
 
 
@@ -108,7 +108,7 @@ class EpsilonOrnsteinUhlenbeckSampler : public OrnsteinUhlenbeckSampler
 
     // From Sampler
     virtual EpsilonOrnsteinUhlenbeckSampler *clone();
-    virtual size_t sample(const LargeVector &values, TransitionType &tt) const;
+    virtual size_t sample(const LargeVector &values, TransitionType &tt);
 };
 
 class PadaOrnsteinUhlenbeckSampler : public OrnsteinUhlenbeckSampler
@@ -126,14 +126,12 @@ class PadaOrnsteinUhlenbeckSampler : public OrnsteinUhlenbeckSampler
 
     // From Sampler
     virtual PadaOrnsteinUhlenbeckSampler *clone();
-    virtual size_t sample(const LargeVector &values, TransitionType &tt) const;
+    virtual size_t sample(const LargeVector &values, TransitionType &tt);
 
   private:
     PADASampler pada_;
-    //mutable IndexVector state_idx_;
-    mutable size_t offset_;
+    size_t offset_;
 };
-
 
 }
 

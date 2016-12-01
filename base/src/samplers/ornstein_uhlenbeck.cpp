@@ -80,7 +80,7 @@ OrnsteinUhlenbeckSampler *OrnsteinUhlenbeckSampler::clone()
   return egs;
 }
 
-void OrnsteinUhlenbeckSampler::env_event_processor() const
+void OrnsteinUhlenbeckSampler::env_event_processor()
 {
   LargeVector data = env_event_->get();
 
@@ -108,7 +108,7 @@ void OrnsteinUhlenbeckSampler::env_event_processor() const
   }
 }
 
-void OrnsteinUhlenbeckSampler::evolve_noise() const
+void OrnsteinUhlenbeckSampler::evolve_noise()
 {
   TRACE(noise_);
   for (int i = 0; i < noise_.size(); i++)
@@ -129,7 +129,7 @@ void OrnsteinUhlenbeckSampler::mix_signal_noise(const Vector &in, const Vector &
   TRACE(out);
 }
 
-size_t OrnsteinUhlenbeckSampler::sample(const LargeVector &values, TransitionType &tt) const
+size_t OrnsteinUhlenbeckSampler::sample(const LargeVector &values, TransitionType &tt)
 {
   // Greedy action selection
   size_t offset = GreedySampler::sample(values, tt);
@@ -171,7 +171,7 @@ ACOrnsteinUhlenbeckSampler *ACOrnsteinUhlenbeckSampler::clone()
   return egs;
 }
 
-size_t ACOrnsteinUhlenbeckSampler::sample(const LargeVector &values, TransitionType &tt) const
+size_t ACOrnsteinUhlenbeckSampler::sample(const LargeVector &values, TransitionType &tt)
 {
   LargeVector data = env_event_->get();
 
@@ -248,7 +248,7 @@ EpsilonOrnsteinUhlenbeckSampler *EpsilonOrnsteinUhlenbeckSampler::clone()
   return egs;
 }
 
-size_t EpsilonOrnsteinUhlenbeckSampler::sample(const LargeVector &values, TransitionType &tt) const
+size_t EpsilonOrnsteinUhlenbeckSampler::sample(const LargeVector &values, TransitionType &tt)
 {
   size_t offset = GreedySampler::sample(values, tt);
   TRACE(discretizer_->at(offset));
@@ -290,9 +290,8 @@ void PadaOrnsteinUhlenbeckSampler::configure(Configuration &config)
   OrnsteinUhlenbeckSampler::configure(config);
   pada_.configure(config);
 
-  int state_dims = discretizer_->steps().size();
   IndexVector center_idx;
-  center_idx.resize(state_dims);
+  center_idx.resize(center_.size());
   discretizer_->discretize(center_, &center_idx);
   offset_ = discretizer_->offset(center_idx);
 }
@@ -309,7 +308,7 @@ PadaOrnsteinUhlenbeckSampler *PadaOrnsteinUhlenbeckSampler::clone()
   return egs;
 }
 
-size_t PadaOrnsteinUhlenbeckSampler::sample(const LargeVector &values, TransitionType &tt) const
+size_t PadaOrnsteinUhlenbeckSampler::sample(const LargeVector &values, TransitionType &tt)
 {
   pada_.set_offset(offset_);
   offset_ = pada_.sample(values, tt);

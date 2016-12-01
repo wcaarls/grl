@@ -48,12 +48,12 @@ class PADASampler : public EpsilonGreedySampler
 
   protected:
     Discretizer *discretizer_;
-    mutable size_t offset_;
+    size_t offset_;
     Vector delta_;
     VectorSignal *env_event_;
 
   public:
-    PADASampler() { }
+    PADASampler() : offset_(0) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -62,13 +62,13 @@ class PADASampler : public EpsilonGreedySampler
 
     // From Sampler
     virtual PADASampler *clone();
-    virtual size_t sample(const LargeVector &values, TransitionType &tt) const;
+    virtual size_t sample(const LargeVector &values, TransitionType &tt);
 
   public:
-    virtual void set_offset(size_t offset) const { offset_ = offset; }
+    virtual void set_offset(size_t offset) { offset_ = offset; }
 
   protected:
-    virtual Vector env_event_processor() const;
+    virtual Vector env_event_processor();
     virtual void get_bounds(size_t offset, Vector &delta, IndexVector &lower_bound, IndexVector &upper_bound) const;
     virtual size_t exploration_step(Discretizer::bounded_iterator &bit) const;
     virtual size_t exploitation_step(const LargeVector &values, Discretizer::bounded_iterator &bit) const;
@@ -85,7 +85,7 @@ class EpsilonPADASampler : public PADASampler
 
     // From Sampler
     virtual EpsilonPADASampler *clone();
-    virtual size_t sample(const LargeVector &values, TransitionType &tt) const;
+    virtual size_t sample(const LargeVector &values, TransitionType &tt);
 };
 
 }

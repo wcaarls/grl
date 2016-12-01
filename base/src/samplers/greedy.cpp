@@ -55,7 +55,7 @@ GreedySampler *GreedySampler::clone()
   return gs;
 }
 
-size_t GreedySampler::sample(const LargeVector &values, TransitionType &tt) const
+size_t GreedySampler::sample(const LargeVector &values, TransitionType &tt)
 {
   size_t mai = 0;
 
@@ -79,7 +79,7 @@ size_t GreedySampler::sample(const LargeVector &values, TransitionType &tt) cons
   return mai;
 }
 
-void GreedySampler::distribution(const LargeVector &values, LargeVector *distribution) const
+void GreedySampler::distribution(const LargeVector &values, LargeVector *distribution)
 {
   TransitionType tt;
   *distribution = LargeVector::Constant(values.size(), 0.);
@@ -112,7 +112,7 @@ EpsilonGreedySampler *EpsilonGreedySampler::clone()
   return egs;
 }
 
-size_t EpsilonGreedySampler::sample(const LargeVector &values, TransitionType &tt) const
+size_t EpsilonGreedySampler::sample(const LargeVector &values, TransitionType &tt)
 {
   if (rand_->get() < epsilon_)
   {
@@ -123,7 +123,7 @@ size_t EpsilonGreedySampler::sample(const LargeVector &values, TransitionType &t
   return GreedySampler::sample(values, tt);
 }
 
-void EpsilonGreedySampler::distribution(const LargeVector &values, LargeVector *distribution) const
+void EpsilonGreedySampler::distribution(const LargeVector &values, LargeVector *distribution)
 {
   GreedySampler::distribution(values, distribution);
 

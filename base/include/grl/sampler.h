@@ -42,11 +42,24 @@ class Sampler : public Configurable
     virtual ~Sampler() { }
     virtual Sampler *clone() = 0;
     
-    /// Sample an action from a value vector.
-    virtual size_t sample(const LargeVector &values, TransitionType &tt) const = 0;
+    /**
+    * \brief Sample an action from a value vector.
+    *
+    * Called once per timestep. Time is 0. at the start of a new episode.
+    * \param tt - type of action which can be used in Q-learning, for example.
+    * \return offset in the vector of possible discretized actions.
+    * \note Sampler can have internal memory for implementation of OrnsteinUhlenbeck or PADA samplers.
+    */
+    virtual size_t sample(const LargeVector &values, TransitionType &tt) = 0;
     
-    /// Returns the sampling distribution for a value vector.
-    virtual void distribution(const LargeVector &values, LargeVector *distribution) const = 0;
+    /**
+    * \brief Returns the sampling distribution for a value vector.
+    *
+    * Called once per timestep. Time is 0. at the start of a new episode.
+    * \param out - distribution output.
+    * \note possible implementation may use "sample" method which may use memory (e.g. GreedySampler)
+    */
+    virtual void distribution(const LargeVector &values, LargeVector *distribution) = 0;
 };
 
 }
