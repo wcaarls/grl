@@ -29,12 +29,13 @@
 #define GRL_POLICY_H_
 
 #include <grl/configurable.h>
+#include <grl/mapping.h>
 
 namespace grl
 {
 
 /// Maps states to actions.
-class Policy : public Configurable
+class Policy : public Mapping
 {
   public:
     virtual ~Policy() { }
@@ -59,6 +60,16 @@ class Policy : public Configurable
     virtual void act(double time, const Vector &in, Vector *out)
     {
       act(in, out);
+    }
+    
+    // From Mapping
+    virtual double read(const Vector &in, Vector *result) const
+    {
+      act(in, result);
+      if (result->size())
+        return (*result)[0];
+      else
+        return 0;
     }
 };
 

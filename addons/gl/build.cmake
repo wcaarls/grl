@@ -16,6 +16,7 @@ if (OPENGL_FOUND AND ZLIB_FOUND)
               ${SRC}/policy.cpp
               ${SRC}/state.cpp
               ${SRC}/trajectory.cpp
+              ${SRC}/slice.cpp
              )
 
   # Add dependencies

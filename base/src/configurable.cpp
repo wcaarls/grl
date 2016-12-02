@@ -601,7 +601,7 @@ void ObjectConfigurator::reconfigure(const Configuration &config, bool recursive
             if (!pc.validate(request[jj]))
               return;
             
-            INFO(pc.path() << ": " << request[jj].value << " -> " << value);
+            INFO(path() << "/" << pc.path() << ": " << request[jj].value << " -> " << value);
               
             /// TODO: Update tree
           }
