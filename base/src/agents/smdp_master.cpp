@@ -31,6 +31,7 @@ using namespace grl;
 
 REGISTER_CONFIGURABLE(ExclusiveMasterAgent)
 REGISTER_CONFIGURABLE(PredicatedMasterAgent)
+REGISTER_CONFIGURABLE(RandomMasterAgent)
 
 // *** SMDPMasterAgent ***
 
@@ -175,4 +176,13 @@ void PredicatedMasterAgent::runSubAgents(double time, const Vector &obs, Vector 
   for (size_t ii=0; ii < agent_.size(); ++ii)
     if (runSubAgent(ii, time, obs, action) > 0.5)
       break;
+}
+
+// *** RandomMasterAgent ***
+
+void RandomMasterAgent::runSubAgents(double time, const Vector &obs, Vector *action)
+{
+  // Run agents until we find a confident one
+  size_t idx = RandGen::getInteger(agent_.size());
+  runSubAgent(idx, time, obs, action);
 }

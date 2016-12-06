@@ -82,19 +82,37 @@ void GreedySampler::distribution(const LargeVector &values, LargeVector *distrib
 
 void EpsilonGreedySampler::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("epsilon", "Exploration rate", epsilon_, CRP::Online));
+  config->push_back(CRP("epsilon", "Exploration rate (can be defined per action)", epsilon_, CRP::Online));
 }
 
 void EpsilonGreedySampler::configure(Configuration &config)
 {
   GreedySampler::configure(config);
   
-  epsilon_ = config["epsilon"];
+  epsilon_ = config["epsilon"].v();
+  
+  if (epsilon_.size() < 1)
+    throw bad_param("sampler/epsilon_greedy:epsilon");
+    
+  if (epsilon_.size() > 1)
+  {
+    distribution_ = calculateBaseDistribution(epsilon_);
+    distribution_sum_ = sum(distribution_);
+  }
 }
 
 void EpsilonGreedySampler::reconfigure(const Configuration &config)
 {
   config.get("epsilon", epsilon_);
+  
+  if (epsilon_.size() < 1)
+    throw bad_param("sampler/epsilon_greedy:epsilon");
+    
+  if (epsilon_.size() > 1)
+  {
+    distribution_ = calculateBaseDistribution(epsilon_);
+    distribution_sum_ = sum(distribution_);
+  }
 }
 
 EpsilonGreedySampler *EpsilonGreedySampler::clone()
@@ -107,20 +125,80 @@ EpsilonGreedySampler *EpsilonGreedySampler::clone()
 
 size_t EpsilonGreedySampler::sample(const LargeVector &values) const
 {
-  if (rand_->get() < epsilon_)
-    return rand_->getInteger(values.size());
+  double r = rand_->get();
+  
+  if (epsilon_.size() > 1)
+  {
+    if (epsilon_.size() != values.size())
+      throw bad_param("sampler/epsilon_greedy:epsilon");
+      
+    // Find number of eligible actions
+    size_t eligible=0;
+    for (size_t ii=0; ii < epsilon_.size(); ++ii)
+      if (r < epsilon_[ii])
+        eligible++;
+        
+    if (eligible > 0)
+    {
+      // Chose one randomly
+      size_t ri = rand_->getInteger(eligible);
+      for (size_t ii=0; ii < epsilon_.size(); ++ii)
+        if (r < epsilon_[ii])
+          if (!ri--)
+            return ii;
+    }
+  }
+  else
+    if (r < epsilon_[0])
+      return rand_->getInteger(values.size());
 
   return GreedySampler::sample(values);
 }
 
 void EpsilonGreedySampler::distribution(const LargeVector &values, LargeVector *distribution) const
 {
-  GreedySampler::distribution(values, distribution);
-
-  for (size_t ii=0; ii < values.size(); ++ii)
+  if (epsilon_.size() > 1)
   {
-    if ((*distribution)[ii] == 1)
-      (*distribution)[ii] = 1-epsilon_;
-    (*distribution)[ii] += epsilon_/values.size();
+    *distribution = distribution_;
+    (*distribution)[GreedySampler::sample(values)] += 1 - distribution_sum_;
   }
+  else
+  {
+    GreedySampler::distribution(values, distribution);
+    
+    for (size_t ii=0; ii < values.size(); ++ii)
+    {
+      if ((*distribution)[ii] == 1)
+        (*distribution)[ii] = 1-epsilon_[0];
+      (*distribution)[ii] += epsilon_[0]/values.size();
+    }
+  }
+}
+
+Vector EpsilonGreedySampler::calculateBaseDistribution(const Vector &epsilon) const
+{
+  // Calculate base distribution
+  Vector distribution = Vector::Constant(epsilon.size(), 0.);
+  
+  std::vector<double> e;
+  fromVector(epsilon, e);
+  e.push_back(0.); // So we can start at ii=1.
+  std::sort(e.begin(), e.end());
+  
+  for (size_t ii=1; ii < e.size(); ++ii)
+  {
+    if (e[ii] != e[ii-1])
+    {
+      // Divvy up difference in probability among eligible actions.
+      size_t eligible = 0;
+      for (size_t jj=0; jj < epsilon.size(); ++jj)
+        if (e[ii] < epsilon[jj])
+          eligible++;
+      for (size_t jj=0; jj < epsilon.size(); ++jj)
+        if (e[ii] < epsilon[jj])
+          distribution[jj] += (e[ii]-e[ii-1])/eligible;
+    }
+  }
+  
+  return distribution;
 }

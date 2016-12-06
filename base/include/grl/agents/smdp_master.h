@@ -88,6 +88,15 @@ class PredicatedMasterAgent : public SMDPMasterAgent
     virtual void runSubAgents(double time, const Vector &obs, Vector *action);
 };
 
+class RandomMasterAgent : public SMDPMasterAgent
+{
+  public:
+    TYPEINFO("agent/master/random", "Master agent that chooses sub-agents randomly")
+    
+  protected:
+    virtual void runSubAgents(double time, const Vector &obs, Vector *action);
+};
+
 }
 
 #endif /* GRL_SMDP_MASTER_AGENT_H_ */
