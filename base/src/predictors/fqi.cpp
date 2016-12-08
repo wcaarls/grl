@@ -176,13 +176,14 @@ void FQIPredictor::reconfigure(const Configuration &config)
   }
 }
 
-FQIPredictor *FQIPredictor::clone() const
+FQIPredictor &FQIPredictor::copy(const Configurable &obj)
 {
-  FQIPredictor *fqp = new FQIPredictor(*this);
-  fqp->discretizer_ = discretizer_->clone();
-  fqp->projector_ = projector_->clone();
-  fqp->representation_ = representation_->clone();
-  return fqp;
+  const FQIPredictor& fp = dynamic_cast<const FQIPredictor&>(obj);
+  
+  transitions_ = fp.transitions_;
+  macro_batch_counter_ = fp.macro_batch_counter_;
+
+  return *this;
 }
 
 void FQIPredictor::update(const Transition &transition)

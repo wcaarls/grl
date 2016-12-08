@@ -69,14 +69,6 @@ void ActionPolicy::reconfigure(const Configuration &config)
 {
 }
 
-ActionPolicy *ActionPolicy::clone() const
-{
-  ActionPolicy *cpp = new ActionPolicy(*this);
-  cpp->projector_ = projector_->clone();
-  cpp->representation_ = representation_->clone();
-  return cpp;
-}
-
 void ActionPolicy::act(const Vector &in, Vector *out) const
 {
   ProjectionPtr p = projector_->project(in);
@@ -112,15 +104,6 @@ void ActionProbabilityPolicy::configure(Configuration &config)
 
 void ActionProbabilityPolicy::reconfigure(const Configuration &config)
 {
-}
-
-ActionProbabilityPolicy *ActionProbabilityPolicy::clone() const
-{
-  ActionProbabilityPolicy *dpp = new ActionProbabilityPolicy(*this);
-  dpp->discretizer_ = discretizer_->clone();
-  dpp->projector_ = projector_->clone();
-  dpp->representation_ = representation_->clone();
-  return dpp;
 }
 
 void ActionProbabilityPolicy::act(const Vector &in, Vector *out) const

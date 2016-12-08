@@ -84,17 +84,14 @@ void TileCodingProjector::reconfigure(const Configuration &config)
           indices_[ii] = -1;
 }
 
-TileCodingProjector *TileCodingProjector::clone() const
+TileCodingProjector &TileCodingProjector::copy(const Configurable &obj)
 {
-  TileCodingProjector *tc = new TileCodingProjector(*this);
-  
+  const TileCodingProjector &tc = dynamic_cast<const TileCodingProjector&>(obj);
+
   if (indices_)
-  {
-    tc->indices_ = new int32_t[memory_];
-    memcpy(tc->indices_, indices_, memory_*sizeof(int32_t));
-  }
+    memcpy(indices_, tc.indices_, memory_*sizeof(int32_t));
   
-  return tc;
+  return *this;
 }
 
 #define MAX_NUM_VARS 32

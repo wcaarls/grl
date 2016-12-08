@@ -55,7 +55,6 @@ class MultiProjector : public Projector
     virtual void reconfigure(const Configuration &config);
 
     // From Projector
-    virtual MultiProjector *clone() const;
     virtual ProjectionLifetime lifetime() const { return std::max(projector_[0]->lifetime(), projector_[1]->lifetime()); }
     virtual ProjectionPtr project(const Vector &in) const;
 };

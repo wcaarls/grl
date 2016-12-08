@@ -71,11 +71,6 @@ void QVPredictor::reconfigure(const Configuration &config)
     finalize();
 }
 
-QVPredictor *QVPredictor::clone() const
-{
-  return NULL;
-}
-
 void QVPredictor::update(const Transition &transition)
 {
   Predictor::update(transition);

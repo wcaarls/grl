@@ -57,8 +57,3 @@ void PeakedDiscretizer::configure(Configuration &config)
     values_[dd] = (squash(values_[dd], -peaking_[dd])+1.)*(max_[dd]-min_[dd])/2+min_[dd];
   }
 }
-
-PeakedDiscretizer* PeakedDiscretizer::clone()
-{
-  return new PeakedDiscretizer(*this);
-}

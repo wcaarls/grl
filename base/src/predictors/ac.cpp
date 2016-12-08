@@ -83,20 +83,6 @@ void ActionACPredictor::reconfigure(const Configuration &config)
     finalize();
 }
 
-ActionACPredictor *ActionACPredictor::clone() const
-{
-  ActionACPredictor *aap = new ActionACPredictor(*this);
-  aap->critic_projector_ = critic_projector_->clone();
-  aap->critic_representation_= critic_representation_->clone();
-  if (critic_trace_)
-    aap->critic_trace_ = critic_trace_->clone();
-  aap->actor_projector_ = actor_projector_->clone();
-  aap->actor_representation_= actor_representation_->clone();
-  if (actor_trace_)
-    aap->actor_trace_ = actor_trace_->clone();
-  return aap;
-}
-
 void ActionACPredictor::update(const Transition &transition)
 {
   Predictor::update(transition);
@@ -214,20 +200,6 @@ void ProbabilityACPredictor::reconfigure(const Configuration &config)
     finalize();
 }
 
-ProbabilityACPredictor *ProbabilityACPredictor::clone() const
-{
-  ProbabilityACPredictor *pap = new ProbabilityACPredictor(*this);
-  pap->critic_projector_ = critic_projector_->clone();
-  pap->critic_representation_= critic_representation_->clone();
-  if (critic_trace_)
-    pap->critic_trace_ = critic_trace_->clone();
-  pap->actor_projector_ = actor_projector_->clone();
-  pap->actor_representation_= actor_representation_->clone();
-  if (actor_trace_)
-    pap->actor_trace_ = actor_trace_->clone();
-  return pap;
-}
-
 void ProbabilityACPredictor::update(const Transition &transition)
 {
   Predictor::update(transition);
@@ -297,20 +269,6 @@ void QACPredictor::reconfigure(const Configuration &config)
 
   if (config.has("action") && config["action"].str() == "reset")
     finalize();
-}
-
-QACPredictor *QACPredictor::clone() const
-{
-  QACPredictor *qap = new QACPredictor(*this);
-  qap->critic_projector_ = critic_projector_->clone();
-  qap->critic_representation_= critic_representation_->clone();
-  if (critic_trace_)
-    qap->critic_trace_ = critic_trace_->clone();
-  qap->actor_projector_ = actor_projector_->clone();
-  qap->actor_representation_= actor_representation_->clone();
-  if (actor_trace_)
-    qap->actor_trace_ = actor_trace_->clone();
-  return qap;
 }
 
 void QACPredictor::update(const Transition &transition)

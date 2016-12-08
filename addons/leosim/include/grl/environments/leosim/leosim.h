@@ -105,9 +105,6 @@ class LeoSimEnvironment : public ODEEnvironment
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
     
-    // From ODEEnvironment
-    virtual LeoSimEnvironment *clone();
-    
     // From Environment
     virtual void start(int test, Vector *obs);
     virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal);

@@ -52,11 +52,6 @@ void PendulumDynamics::reconfigure(const Configuration &config)
 {
 }
 
-PendulumDynamics *PendulumDynamics::clone() const
-{
-  return new PendulumDynamics(*this);
-}
-
 void PendulumDynamics::eom(const Vector &state, const Vector &action, Vector *xd) const
 {
   if (state.size() != 3 || action.size() != 1)
@@ -97,11 +92,6 @@ void PendulumSwingupTask::configure(Configuration &config)
 
 void PendulumSwingupTask::reconfigure(const Configuration &config)
 {
-}
-
-PendulumSwingupTask *PendulumSwingupTask::clone() const
-{
-  return new PendulumSwingupTask(*this);
 }
 
 void PendulumSwingupTask::start(int test, Vector *state) const
@@ -174,11 +164,6 @@ void PendulumRegulatorTask::configure(Configuration &config)
 void PendulumRegulatorTask::reconfigure(const Configuration &config)
 {
   RegulatorTask::reconfigure(config);
-}
-
-PendulumRegulatorTask *PendulumRegulatorTask::clone() const
-{
-  return new PendulumRegulatorTask(*this);
 }
 
 void PendulumRegulatorTask::observe(const Vector &state, Vector *obs, int *terminal) const

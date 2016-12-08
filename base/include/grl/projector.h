@@ -47,7 +47,6 @@ class Projector : public Configurable
 
   public:
     virtual ~Projector() { }
-    virtual Projector *clone() const = 0;
     
     /// Retrieves the lifetime of Projections made by this Projector.
     virtual ProjectionLifetime lifetime() const = 0;
@@ -83,11 +82,6 @@ class IdentityProjector : public Projector
     TYPEINFO("projector/identity", "Simply returns the input vector")
 
   public:
-    virtual IdentityProjector *clone() const
-    {
-      return new IdentityProjector();
-    }
-
     virtual ProjectionLifetime lifetime() const
     {
       return plIndefinite;

@@ -39,8 +39,6 @@ namespace grl
 class Representation : public Configurable
 {
   public:
-    virtual Representation *clone() const = 0;
-
     /// Read out the approximation.
     virtual double read(const ProjectionPtr &projection, Vector *result) const
     {
@@ -90,8 +88,6 @@ class Representation : public Configurable
 class ParameterizedRepresentation : public Representation
 {
   public:
-    virtual ParameterizedRepresentation *clone() const = 0;
-    
     /// Returns number of parameters.
     virtual size_t size() const = 0;
     

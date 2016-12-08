@@ -71,7 +71,6 @@ class ActionACPredictor : public Predictor
     virtual void reconfigure(const Configuration &config);
     
     // From Predictor
-    virtual ActionACPredictor *clone() const;
     virtual void update(const Transition &transition);
     virtual void finalize();
 };
@@ -105,7 +104,6 @@ class ProbabilityACPredictor : public Predictor
     virtual void reconfigure(const Configuration &config);
     
     // From Predictor
-    virtual ProbabilityACPredictor *clone() const;
     virtual void update(const Transition &transition);
     virtual void finalize();
 };
@@ -145,7 +143,6 @@ class QACPredictor : public Predictor
     virtual void reconfigure(const Configuration &config);
     
     // From Predictor
-    virtual QACPredictor *clone() const;
     virtual void update(const Transition &transition);
     virtual void finalize();
 };

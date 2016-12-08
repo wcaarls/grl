@@ -51,11 +51,6 @@ void RandomPolicy::reconfigure(const Configuration &config)
 {
 }
 
-RandomPolicy *RandomPolicy::clone() const
-{
-  return new RandomPolicy(*this);
-}
-
 void RandomPolicy::act(const Vector &in, Vector *out) const
 {
   out->resize(min_.size());
@@ -77,11 +72,6 @@ void RandomDiscretePolicy::configure(Configuration &config)
 
 void RandomDiscretePolicy::reconfigure(const Configuration &config)
 {
-}
-
-RandomDiscretePolicy *RandomDiscretePolicy::clone() const
-{
-  return new RandomDiscretePolicy(*this);
 }
 
 void RandomDiscretePolicy::act(const Vector &in, Vector *out) const

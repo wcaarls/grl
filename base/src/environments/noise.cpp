@@ -50,15 +50,6 @@ void NoiseEnvironment::reconfigure(const Configuration &config)
 {
 }
     
-NoiseEnvironment *NoiseEnvironment::clone() const
-{
-  NoiseEnvironment* ne = new NoiseEnvironment(*this);
-  
-  ne->environment_ = environment_->clone();
-  
-  return ne;
-}
-
 void NoiseEnvironment::start(int test, Vector *obs)
 {
   Rand *rand = RandGen::instance();

@@ -250,6 +250,16 @@ class Configurator
       return element_;
     }
     
+    bool provided() const
+    {
+      return provided_;
+    }
+    
+    virtual const Configurable *ptr() const
+    {
+      return const_cast<Configurator*>(this)->ptr();
+    }
+
     std::string path() const
     {
       if (parent_)
@@ -278,7 +288,7 @@ class Configurator
     {
       return NULL;
     }
-
+    
     // Find object in hierarchy.
     virtual Configurator *find(const std::string &path)
     {
@@ -332,6 +342,21 @@ class Configurator
           return NULL;
         
       return cfg;
+    }
+    
+    virtual Configurator &deepcopy(const Configurator &c)
+    {
+      ConfiguratorList::const_iterator jj = c.children_.begin();
+    
+      for (ConfiguratorList::iterator ii=children_.begin(); ii != children_.end() && jj != c.children_.end(); ++ii, ++jj)
+      {
+        if ((*ii)->element() != (*jj)->element())
+          throw Exception("Deep copy requires similar configuration trees at " + path() + "/{" + (*ii)->element() + "," + (*jj)->element() + "}");
+          
+        (*ii)->deepcopy(**jj);
+      }
+      
+      return *this;
     }
     
     virtual bool validate(const CRP &crp) const
@@ -408,6 +433,7 @@ class ParameterConfigurator : public Configurator
       return const_cast<ParameterConfigurator*>(this)->find(path);
     }
     virtual ParameterConfigurator *instantiate(Configurator *parent=NULL) const;
+    virtual ParameterConfigurator &deepcopy(const Configurator &c) { return *this; }
     virtual bool validate(const CRP &crp) const;
     virtual void reconfigure(const Configuration &config, bool recursive=false);
     virtual std::string yaml(size_t depth=0) const
@@ -453,6 +479,7 @@ class ObjectConfigurator : public Configurator
     }
     
     virtual ObjectConfigurator *instantiate(Configurator *parent=NULL) const;
+    virtual ObjectConfigurator &deepcopy(const Configurator &c);
     virtual bool validate(const CRP &crp) const;
     virtual void reconfigure(const Configuration &config, bool recursive=false);
     virtual std::string yaml(size_t depth=0) const
@@ -540,7 +567,32 @@ class Configurable
       config.set("action", "reset");
       walk(config);
     }
+    
+    Configurable &deepcopy(const Configurable &obj)
+    {
+      configurator_->deepcopy(*obj.configurator_);
+      return *this;
+    }
 
+    /// This function should be reimplemented in derived classes with
+    /// variable internal state (i.e. representations).
+    virtual Configurable &copy(const Configurable &obj)
+    {
+      return *this;
+    }
+
+    Configurable *reinstantiate() const
+    {
+      return configurator_->instantiate()->ptr();
+    }
+    
+    Configurable *clone() const
+    {
+      Configurable *c = reinstantiate();
+      c->deepcopy(*this);
+      return c;
+    }
+    
   protected:
     /// Configurable-specific log writer (also logs class name).
     inline void log(unsigned char level, const std::ostringstream &oss) const

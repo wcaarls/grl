@@ -66,16 +66,6 @@ void SARSAPredictor::reconfigure(const Configuration &config)
     finalize();
 }
 
-SARSAPredictor *SARSAPredictor::clone() const
-{
-  SARSAPredictor *sp = new SARSAPredictor();
-  sp->projector_ = projector_->clone();
-  sp->representation_= representation_->clone();
-  if (trace_)
-    sp->trace_ = trace_->clone();
-  return sp;
-}
-
 void SARSAPredictor::update(const Transition &transition)
 {
   Predictor::update(transition);
@@ -139,17 +129,6 @@ void ExpectedSARSAPredictor::reconfigure(const Configuration &config)
 {
   Predictor::reconfigure(config);
   
-}
-
-ExpectedSARSAPredictor *ExpectedSARSAPredictor::clone() const
-{
-  ExpectedSARSAPredictor *sp = new ExpectedSARSAPredictor();
-  sp->projector_ = projector_->clone();
-  sp->representation_= representation_->clone();
-  sp->policy_ = policy_->clone();
-  if (trace_)
-    sp->trace_ = trace_->clone();
-  return sp;
 }
 
 void ExpectedSARSAPredictor::update(const Transition &transition)

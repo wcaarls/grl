@@ -45,14 +45,6 @@ void QPolicyMapping::reconfigure(const Configuration &config)
 {
 }
 
-QPolicyMapping *QPolicyMapping::clone() const
-{
-  QPolicyMapping *qpm = new QPolicyMapping();
-  qpm->policy_ = policy_->clone();
-  
-  return qpm;
-}
-
 double QPolicyMapping::read(const Vector &in, Vector *result) const
 {
   *result = VectorConstructor(policy_->value(in));

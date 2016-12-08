@@ -55,7 +55,6 @@ class FeedForwardPolicy : public Policy
     virtual void reconfigure(const Configuration &config);
 
     // From Policy
-    virtual FeedForwardPolicy *clone() const;
     virtual void act(double time, const Vector &in, Vector *out);
 };
 

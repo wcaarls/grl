@@ -39,7 +39,6 @@ class Policy : public Mapping
 {
   public:
     virtual ~Policy() { }
-    virtual Policy *clone() const = 0;
     
     /**
      * \brief Returns an action based on the current state.
@@ -77,8 +76,6 @@ class Policy : public Mapping
 class ParameterizedPolicy : public Policy
 {
   public:
-    virtual ParameterizedPolicy *clone() const = 0;
-    
     /// Returns number of policy parameters.
     virtual size_t size() const = 0;
     

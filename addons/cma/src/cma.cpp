@@ -44,7 +44,7 @@ void CMAOptimizer::request(ConfigurationRequest *config)
 void CMAOptimizer::configure(Configuration &config)
 {
   policy_ = (ParameterizedPolicy*)config["policy"].ptr();
-  prototype_ = policy_->clone();
+  prototype_ = (ParameterizedPolicy*)policy_->clone();
   params_ = prototype_->size();
   
   population_ = config["population"];
@@ -63,7 +63,7 @@ void CMAOptimizer::configure(Configuration &config)
   fitness_.resize(population_);
   
   for (size_t ii=0; ii < population_; ++ii)
-    policies_[ii] = prototype_->clone();
+    policies_[ii] = (ParameterizedPolicy*)prototype_->clone();
     
   reset();
 }
@@ -87,11 +87,6 @@ void CMAOptimizer::reconfigure(const Configuration &config)
       
     best_reward_ = -std::numeric_limits<double>::infinity();
   }
-}
-
-CMAOptimizer *CMAOptimizer::clone() const
-{
-  return NULL;
 }
 
 void CMAOptimizer::report(size_t ii, double reward)

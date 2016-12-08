@@ -53,7 +53,6 @@ class GreedySampler : public Sampler
     virtual void reconfigure(const Configuration &config);
   
     // From Sampler
-    virtual GreedySampler *clone();
     virtual size_t sample(const LargeVector &values) const;
     virtual void distribution(const LargeVector &values, LargeVector *distribution) const;
 };
@@ -80,7 +79,6 @@ class EpsilonGreedySampler : public GreedySampler
     virtual void reconfigure(const Configuration &config);
   
     // From Sampler
-    virtual EpsilonGreedySampler *clone();
     virtual size_t sample(const LargeVector &values) const;
     virtual void distribution(const LargeVector &values, LargeVector *distribution) const;
     

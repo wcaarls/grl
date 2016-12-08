@@ -44,14 +44,6 @@ void GreedySampler::reconfigure(const Configuration &config)
 {
 }
 
-GreedySampler *GreedySampler::clone()
-{
-  GreedySampler *gs = new GreedySampler(*this);
-  gs->rand_ = rand_->clone();
-
-  return gs;
-}
-
 size_t GreedySampler::sample(const LargeVector &values) const
 {
   size_t mai = 0;
@@ -113,14 +105,6 @@ void EpsilonGreedySampler::reconfigure(const Configuration &config)
     distribution_ = calculateBaseDistribution(epsilon_);
     distribution_sum_ = sum(distribution_);
   }
-}
-
-EpsilonGreedySampler *EpsilonGreedySampler::clone()
-{
-  EpsilonGreedySampler *egs = new EpsilonGreedySampler(*this);
-  egs->rand_ = rand_->clone();
-  
-  return egs;
 }
 
 size_t EpsilonGreedySampler::sample(const LargeVector &values) const

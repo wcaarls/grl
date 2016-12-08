@@ -48,13 +48,6 @@ void ScalingProjector::reconfigure(const Configuration &config)
 {
 }
 
-ScalingProjector *ScalingProjector::clone() const
-{
-  ScalingProjector *projector = new ScalingProjector(*this);
-  projector->projector_ = projector_->clone();
-  return projector;
-}
-
 ProjectionPtr ScalingProjector::project(const Vector &in) const
 {
   if (in.size() != scaling_.size())

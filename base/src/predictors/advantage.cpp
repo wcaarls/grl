@@ -70,17 +70,6 @@ void AdvantagePredictor::reconfigure(const Configuration &config)
     finalize();
 }
 
-AdvantagePredictor *AdvantagePredictor::clone() const
-{
-  AdvantagePredictor *ap = new AdvantagePredictor();
-  ap->discretizer_ = discretizer_->clone();
-  ap->projector_ = projector_->clone();
-  ap->representation_= representation_->clone();
-  if (trace_)
-    ap->trace_ = trace_->clone();
-  return ap;
-}
-
 void AdvantagePredictor::update(const Transition &transition)
 {
   Predictor::update(transition);

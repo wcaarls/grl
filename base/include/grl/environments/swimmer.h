@@ -58,7 +58,6 @@ class SwimmerDynamics : public Dynamics
     virtual void reconfigure(const Configuration &config);
 
     // From Dynamics
-    virtual SwimmerDynamics *clone() const;
     virtual void eom(const Vector &state, const Vector &action, Vector *xd) const;
     
   protected:
@@ -86,7 +85,6 @@ class SwimmerReachingTask : public Task
     virtual void reconfigure(const Configuration &config);
 
     // From Task
-    virtual SwimmerReachingTask *clone() const;
     virtual void start(int test, Vector *state) const;
     virtual void observe(const Vector &state, Vector *obs, int *terminal) const;
     virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const;

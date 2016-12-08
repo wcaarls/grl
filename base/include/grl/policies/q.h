@@ -58,7 +58,6 @@ class QPolicy : public Policy
     virtual void reconfigure(const Configuration &config);
 
     // From DiscretePolicy
-    virtual QPolicy *clone() const;
     virtual void act(const Vector &in, Vector *out) const;
     
     /// Returns the expected value of the action taken in state 'in'

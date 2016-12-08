@@ -57,7 +57,6 @@ class ActionPolicy : public Policy
     virtual void reconfigure(const Configuration &config);
 
     // From Policy
-    virtual ActionPolicy *clone() const;
     virtual void act(const Vector &in, Vector *out) const;
 };
 
@@ -83,7 +82,6 @@ class ActionProbabilityPolicy : public Policy
     virtual void reconfigure(const Configuration &config);
   
     // From Policy
-    virtual ActionProbabilityPolicy *clone() const;
     virtual void act(const Vector &in, Vector *out) const;
 };
 

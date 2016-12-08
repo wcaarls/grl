@@ -63,11 +63,6 @@ void GGQPredictor::reconfigure(const Configuration &config)
   
 }
 
-GGQPredictor *GGQPredictor::clone() const
-{
-  return NULL;
-}
-
 void GGQPredictor::update(const Transition &transition)
 {
   Predictor::update(transition);

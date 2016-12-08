@@ -65,11 +65,6 @@ void TDPredictor::reconfigure(const Configuration &config)
     finalize();
 }
 
-TDPredictor *TDPredictor::clone() const
-{
-  return NULL;
-}
-
 void TDPredictor::update(const Transition &transition)
 {
   Predictor::update(transition);

@@ -72,11 +72,6 @@ void FeedForwardPolicy::reconfigure(const Configuration &config)
 
 }
 
-FeedForwardPolicy *FeedForwardPolicy::clone() const
-{
-  return new FeedForwardPolicy(*this);
-}
-
 void FeedForwardPolicy::act(double time, const Vector &in, Vector *out)
 {
   if (time == 0)

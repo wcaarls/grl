@@ -45,11 +45,6 @@ void SoftmaxSampler::reconfigure(const Configuration &config)
   config.get("tau", tau_);
 }
 
-SoftmaxSampler *SoftmaxSampler::clone()
-{
-  return new SoftmaxSampler(*this);
-}
-
 size_t SoftmaxSampler::sample(const LargeVector &values) const
 {
   LargeVector dist;

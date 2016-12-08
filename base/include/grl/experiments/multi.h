@@ -1,8 +1,8 @@
-/** \file mapping.h
- * \brief Q-policy mapping definition.
+/** \file multi.h
+ * \brief Multi experiment header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2016-06-01
+ * \date      2016-12-08
  *
  * \copyright \verbatim
  * Copyright (c) 2016, Wouter Caarls
@@ -25,37 +25,63 @@
  * \endverbatim
  */
 
-#ifndef GRL_Q_POLICY_MAPPING_H_
-#define GRL_Q_POLICY_MAPPING_H_
+#ifndef GRL_MULTI_EXPERIMENT_H_
+#define GRL_MULTI_EXPERIMENT_H_
 
-#include <grl/mapping.h>
-#include <grl/policies/q.h>
+#include <grl/agent.h>
+#include <grl/environment.h>
+#include <grl/experiment.h>
+#include <itc/itc.h>
 
 namespace grl
 {
 
-class QPolicyMapping : public Mapping
+class MultiExperimentInstance: public itc::Thread
+{
+  protected:
+    Experiment *experiment_;
+    
+  public:
+    MultiExperimentInstance(Experiment *experiment) : experiment_(experiment) {}
+  
+  protected:
+    // From itc::Thread
+    virtual void run()
+    {
+      experiment_->run();
+      safe_delete(&experiment_);
+    }
+};
+
+/// Run multiple experiments in parallel.
+class MultiExperiment : public Experiment
 {
   public:
-    TYPEINFO("mapping/q_policy", "Mapping that returns the value of a q-policy")
+    TYPEINFO("experiment/multi", "Run multiple experiments in parallel")
 
   protected:
-    QPolicy *policy_;
-  
+    int instances_;
+    Experiment *prototype_;
+    std::vector<MultiExperimentInstance*> experiments_;
+
   public:
-    QPolicyMapping() : policy_(NULL)
+    MultiExperiment() : instances_(4), prototype_(NULL) { }
+    ~MultiExperiment()
     {
+      for (size_t ii=0; ii < instances_; ++ii)
+        safe_delete(&experiments_[ii]);
+      experiments_.clear();
     }
-  
+
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
 
-    // From Mapping
-    virtual double read(const Vector &in, Vector *result) const;
+    // From Experiment
+    virtual void run();
 };
 
 }
 
-#endif /* GRL_Q_POLICY_MAPPING_H_ */
+#endif /* GRL_MULTI_EXPERIMENT_H_ */

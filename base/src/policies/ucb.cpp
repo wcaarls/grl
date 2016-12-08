@@ -56,17 +56,6 @@ void UCBPolicy::reconfigure(const Configuration &config)
 {
 }
 
-UCBPolicy *UCBPolicy::clone() const
-{
-  UCBPolicy *qp = new UCBPolicy();
-  qp->discretizer_ = discretizer_->clone();
-  qp->projector_ = projector_->clone();
-  qp->representation_ = representation_->clone();
-  qp->visit_representation_ = visit_representation_->clone();
-  
-  return qp;
-}
-
 void UCBPolicy::act(const Vector &in, Vector *out) const
 {
   std::vector<Vector> variants;

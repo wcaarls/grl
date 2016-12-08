@@ -56,7 +56,6 @@ class ParameterizedActionPolicy : public ParameterizedPolicy
     virtual void reconfigure(const Configuration &config);
 
     // From Policy
-    virtual ParameterizedActionPolicy *clone() const;
     virtual void act(const Vector &in, Vector *out) const;
     
     // From ParameterizedPolicy

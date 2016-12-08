@@ -47,15 +47,6 @@ void TDAgent::reconfigure(const Configuration &config)
 {
 }
 
-TDAgent *TDAgent::clone() const
-{
-  TDAgent *agent = new TDAgent();
-  agent->policy_ = policy_->clone();
-  agent->predictor_= predictor_->clone();
-  
-  return agent;
-}
-
 void TDAgent::start(const Vector &obs, Vector *action)
 {
   TDAgentState *state = agent_state_.instance();

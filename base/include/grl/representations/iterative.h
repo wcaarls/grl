@@ -56,7 +56,6 @@ class IterativeRepresentation : public Representation
     virtual void reconfigure(const Configuration &config);
   
     // From Representation
-    virtual IterativeRepresentation *clone() const;
     virtual double read(const ProjectionPtr &projection, Vector *result, Vector *stddev) const
     {
       return representation_->read(projection, result, stddev);

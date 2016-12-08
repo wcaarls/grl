@@ -61,7 +61,6 @@ class GGQPredictor : public Predictor
     virtual void reconfigure(const Configuration &config);
     
     // From Predictor
-    virtual GGQPredictor *clone() const;
     virtual void update(const Transition &transition);
     virtual void finalize();
 };

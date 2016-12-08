@@ -49,7 +49,6 @@ class BoundedQPolicy : public QPolicy
     virtual void reconfigure(const Configuration &config);
 
     // From QPolicy
-    virtual BoundedQPolicy *clone() const;
     virtual void act(double time, const Vector &in, Vector *out);
     
   protected:

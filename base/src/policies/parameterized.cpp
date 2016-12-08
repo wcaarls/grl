@@ -62,14 +62,6 @@ void ParameterizedActionPolicy::reconfigure(const Configuration &config)
 {
 }
 
-ParameterizedActionPolicy *ParameterizedActionPolicy::clone() const
-{
-  ParameterizedActionPolicy *cpp = new ParameterizedActionPolicy(*this);
-  cpp->projector_ = projector_->clone();
-  cpp->representation_ = representation_->clone();
-  return cpp;
-}
-
 void ParameterizedActionPolicy::act(const Vector &in, Vector *out) const
 {
   ProjectionPtr p = projector_->project(in);

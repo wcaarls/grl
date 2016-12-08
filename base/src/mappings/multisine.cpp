@@ -58,11 +58,6 @@ void MultisineMapping::reconfigure(const Configuration &config)
 {
 }
 
-MultisineMapping *MultisineMapping::clone() const
-{
-  return new MultisineMapping(*this);
-}
-
 double MultisineMapping::read(const Vector &in, Vector *result) const
 {
   if (in.size() != inputs_)

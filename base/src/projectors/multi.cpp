@@ -55,11 +55,6 @@ void MultiProjector::reconfigure(const Configuration &config)
 {
 }
 
-MultiProjector *MultiProjector::clone() const
-{
-  return NULL;
-}
-
 ProjectionPtr MultiProjector::project(const Vector &in) const
 {
   ProjectionPtr p = projector_[0]->project(in);

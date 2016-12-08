@@ -56,10 +56,10 @@ class TileCodingProjector : public Projector
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
+    virtual TileCodingProjector &copy(const Configurable &obj);
 
     // From Projector
-    virtual TileCodingProjector *clone() const;
-    virtual ProjectionLifetime lifetime() const { return safe_==1?plWrite:plIndefinite; }
+    virtual ProjectionLifetime lifetime() const { return safe_>0?plUpdate:plIndefinite; }
     virtual ProjectionPtr project(const Vector &in) const
     {
       return _project(in, true);

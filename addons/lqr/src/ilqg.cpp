@@ -80,9 +80,17 @@ void ILQGSolver::reconfigure(const Configuration &config)
 {
 }
 
-ILQGSolver *ILQGSolver::clone() const
+ILQGSolver &ILQGSolver::copy(const Configurable &obj)
 {
-  return new ILQGSolver(*this);
+  const ILQGSolver &is = dynamic_cast<const ILQGSolver&>(obj);
+  
+  t0_ = is.t0_;
+  step_ = is.step_;
+  x_ = is.x_;
+  u_ = is.u_;
+  L_ = is.L_;
+
+  return *this;
 }
 
 bool ILQGSolver::solve(const Vector &x0)

@@ -39,8 +39,6 @@ namespace grl
 class Mapping : public Configurable
 {
   public:
-    virtual Mapping *clone() const = 0;
-
     /**
      * \brief Read out the mapping.
      *
@@ -63,14 +61,6 @@ class RepresentedMapping : public Mapping
     {
     }
     
-    virtual RepresentedMapping *clone() const
-    {
-      RepresentedMapping *rm = new RepresentedMapping(*this);
-      rm->projector_ = projector_->clone();
-      rm->representation_ = representation_->clone();
-      return rm;
-    }
-  
     // From Configurable
     virtual void request(ConfigurationRequest *config)
     {

@@ -53,11 +53,6 @@ void TwoLinkManipulatorDynamics::reconfigure(const Configuration &config)
 {
 }
 
-TwoLinkManipulatorDynamics *TwoLinkManipulatorDynamics::clone() const
-{
-  return new TwoLinkManipulatorDynamics(*this);
-}
-
 void TwoLinkManipulatorDynamics::eom(const Vector &state, const Vector &action, Vector *xd) const
 {
   if (state.size() != 5 || action.size() != 2)
@@ -102,11 +97,6 @@ void TwoLinkManipulatorBalancingTask::configure(Configuration &config)
 
 void TwoLinkManipulatorBalancingTask::reconfigure(const Configuration &config)
 {
-}
-
-TwoLinkManipulatorBalancingTask *TwoLinkManipulatorBalancingTask::clone() const
-{
-  return new TwoLinkManipulatorBalancingTask(*this);
 }
 
 void TwoLinkManipulatorBalancingTask::start(int test, Vector *state) const

@@ -58,16 +58,6 @@ void ValueIterationSolver::reconfigure(const Configuration &config)
 {
 }
 
-ValueIterationSolver *ValueIterationSolver::clone() const
-{
-  ValueIterationSolver *solver = new ValueIterationSolver(*this);
-  
-  solver->discretizer_ = discretizer_->clone();
-  solver->predictor_ = predictor_->clone();
-  
-  return solver;
-}
-
 bool ValueIterationSolver::solve()
 {
   for (size_t ii=0; ii < sweeps_; ++ii)

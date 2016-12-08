@@ -61,12 +61,6 @@ void SMDPMasterAgent::reconfigure(const Configuration &config)
     time_[0] = time_[1] = -1;
 }
 
-SMDPMasterAgent *SMDPMasterAgent::clone() const
-{
-  return NULL;
-}
-
-
 void SMDPMasterAgent::start(const Vector &obs, Vector *action)
 {
   // Treat a terminal, non-absorbing state as absorbing for

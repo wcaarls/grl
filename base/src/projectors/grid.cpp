@@ -84,11 +84,6 @@ void GridProjector::reconfigure(const Configuration &config)
 {
 }
 
-GridProjector *GridProjector::clone() const
-{
-  return new GridProjector(*this);
-}
-
 ProjectionPtr GridProjector::project(const Vector &in) const
 {
   if (in.size() != min_.size())

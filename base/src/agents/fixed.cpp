@@ -45,14 +45,6 @@ void FixedAgent::reconfigure(const Configuration &config)
 {
 }
 
-FixedAgent *FixedAgent::clone() const
-{
-  FixedAgent *agent = new FixedAgent();
-  agent->policy_ = policy_->clone();
-  
-  return agent;
-}
-
 void FixedAgent::start(const Vector &obs, Vector *action)
 {
   time_ = 0.;

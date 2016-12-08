@@ -111,19 +111,14 @@ void ANNRepresentation::reconfigure(const Configuration &config)
   }
 }
 
-ANNRepresentation *ANNRepresentation::clone() const
+ANNRepresentation &ANNRepresentation::copy(const Configurable &obj)
 {
-  ANNRepresentation *ann = new ANNRepresentation(*this);
+  const ANNRepresentation &ar = dynamic_cast<const ANNRepresentation&>(obj);
   
-  // Remap parameter vector to weight matrices
-  size_t sz = 0;
-  for (size_t ii=1; ii < ann->layers_.size(); ++ii)
-  {
-    new (&ann->layers_[ii].W) Eigen::Map<Eigen::MatrixXd>(&ann->params_.data()[sz], ann->layers_[ii-1].size+1, ann->layers_[ii].size);
-    sz += (ann->layers_[ii-1].size+1)*ann->layers_[ii].size;
-  }
+  for (size_t ii=0; ii < params_.size(); ++ii)
+    params_[ii] = ar.params_[ii];
 
-  return ann;
+  return *this;
 }
 
 double ANNRepresentation::read(const ProjectionPtr &projection, Vector *result, Vector *stddev) const

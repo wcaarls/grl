@@ -74,13 +74,11 @@ class FQIPredictor : public Predictor
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
+    virtual FQIPredictor &copy(const Configurable &obj);
     
     // From Predictor
     virtual void update(const Transition &transition);
     virtual void finalize();
-    
-    // From BatchPredictor
-    virtual FQIPredictor *clone() const;
 
   protected:
     virtual void rebuild();

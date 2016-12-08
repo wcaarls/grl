@@ -58,7 +58,6 @@ class UCBPolicy : public Policy
     virtual void reconfigure(const Configuration &config);
 
     // From DiscretePolicy
-    virtual UCBPolicy *clone() const;
     virtual void act(const Vector &in, Vector *out) const;
     virtual void act(double time, const Vector &in, Vector *out);
 };

@@ -68,7 +68,6 @@ class CompassWalkerModel : public Model
     virtual void reconfigure(const Configuration &config);
     
     // From Model
-    virtual CompassWalkerModel *clone() const;
     virtual double step(const Vector &state, const Vector &action, Vector *next) const;
 };
 
@@ -98,9 +97,9 @@ class CompassWalkerSandbox : public Sandbox
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
+    virtual CompassWalkerSandbox &copy(const Configurable &obj);
 
     // From Model
-    virtual CompassWalkerSandbox *clone() const;
     virtual void start(const Vector &hint, Vector *state);
     virtual double step(const Vector &action, Vector *next);
 };
@@ -131,7 +130,6 @@ class CompassWalkerWalkTask : public Task
     virtual void reconfigure(const Configuration &config);
     
     // From Task
-    virtual CompassWalkerWalkTask *clone() const;
     virtual void start(int test, Vector *state) const;
     virtual void observe(const Vector &state, Vector *obs, int *terminal) const;
     virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const;

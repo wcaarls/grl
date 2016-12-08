@@ -51,13 +51,6 @@ void NoisePolicy::reconfigure(const Configuration &config)
 {
 }
 
-NoisePolicy *NoisePolicy::clone() const
-{
-  NoisePolicy *np = new NoisePolicy(*this);
-  np->policy_ = policy_->clone();
-  return np;
-}
-
 void NoisePolicy::act(const Vector &in, Vector *out) const
 {
   policy_->act(in, out);

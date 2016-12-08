@@ -61,7 +61,6 @@ class RPCEnvExperiment : public Experiment
     virtual void reconfigure(const Configuration &config);
 
     // From Experiment
-    virtual RPCEnvExperiment *clone() const;
     virtual void run();
 
   protected:

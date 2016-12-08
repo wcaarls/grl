@@ -65,11 +65,6 @@ void MonomialProjector::reconfigure(const Configuration &config)
 {
 }
 
-MonomialProjector *MonomialProjector::clone() const
-{
-  return new MonomialProjector(*this);
-}
-
 ProjectionPtr MonomialProjector::project(const Vector &in) const
 {
   VectorProjection *p = new VectorProjection();

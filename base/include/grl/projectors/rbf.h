@@ -52,7 +52,6 @@ class RBFProjector : public Projector
     virtual void reconfigure(const Configuration &config);
 
     // From Projector
-    virtual RBFProjector *clone() const;
     virtual ProjectionLifetime lifetime() const { return plIndefinite; }
     virtual ProjectionPtr project(const Vector &in) const;
 };

@@ -92,11 +92,6 @@ void PIDPolicy::reconfigure(const Configuration &config)
   }
 }
 
-PIDPolicy *PIDPolicy::clone() const
-{
-  return new PIDPolicy(*this);
-}
-
 void PIDPolicy::act(const Vector &in, Vector *out) const
 {
   out->resize(outputs_); 

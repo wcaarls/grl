@@ -43,7 +43,6 @@ class Projection
 {
   public:
     virtual ~Projection() { }
-    virtual Projection *clone() const = 0;
     
     /// Saturated subtraction, used for replacing traces.
     virtual void ssub(const Projection &rhs) = 0;
@@ -55,13 +54,6 @@ typedef std::shared_ptr<Projection> ProjectionPtr;
 struct VectorProjection : public Projection
 {
   LargeVector vector;
-
-  virtual VectorProjection *clone() const
-  {
-    VectorProjection *vp = new VectorProjection();
-    vp->vector = vector;
-    return vp;
-  }
 
   virtual void ssub(const Projection &rhs)
   {
@@ -99,11 +91,6 @@ struct IndexProjection : public Projection
     return vp;
   }
   
-  virtual IndexProjection *clone() const
-  {
-    return new IndexProjection(*this);
-  }
-
   virtual void ssub(const Projection &rhs)
   {
     const IndexProjection &ip = dynamic_cast<const IndexProjection&>(rhs);

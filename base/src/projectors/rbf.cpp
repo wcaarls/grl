@@ -93,11 +93,6 @@ void RBFProjector::reconfigure(const Configuration &config)
 {
 }
 
-RBFProjector *RBFProjector::clone() const
-{
-  return new RBFProjector(*this);
-}
-
 ProjectionPtr RBFProjector::project(const Vector &in) const
 {
   if (in.size() != min_.size())

@@ -88,19 +88,6 @@ void OnlineLearningExperiment::reconfigure(const Configuration &config)
   config.get("rate", rate_);
 }
 
-OnlineLearningExperiment *OnlineLearningExperiment::clone() const
-{
-  OnlineLearningExperiment *ole = new OnlineLearningExperiment();
-  
-  ole->agent_ = agent_->clone();
-  ole->environment_ = environment_->clone();
-  ole->runs_ = runs_;
-  ole->trials_ = trials_;
-  ole->steps_ = steps_;
-  
-  return ole;
-}
-
 void OnlineLearningExperiment::run()
 {
   std::ofstream ofs;

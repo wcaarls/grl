@@ -84,6 +84,16 @@ void ANNProjector::reconfigure(const Configuration &config)
   }
 }
 
+ANNProjector &ANNProjector::copy(const Configurable &obj)
+{
+  const ANNProjector &ap = dynamic_cast<const ANNProjector&>(obj);
+  
+  store_ = StorePtr(ap.store_->clone());
+  reindex();
+
+  return *this;
+}
+
 void ANNProjector::push(Sample *sample)
 {
   WriteGuard guard(rwlock_);
@@ -109,11 +119,6 @@ void ANNProjector::reindex()
     index_ = newindex;
     indexed_samples_ = store_->size();
   }
-}
-
-ANNProjector *ANNProjector::clone() const
-{
-  return NULL;
 }
 
 ProjectionPtr ANNProjector::project(const Vector &in) const

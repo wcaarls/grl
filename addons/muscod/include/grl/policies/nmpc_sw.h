@@ -63,7 +63,6 @@ class NMPC_SWPolicy : public Policy
     virtual void muscod_reset(const Vector &initial_obs, double time);
 
     // From Policy
-    virtual NMPC_SWPolicy *clone() const;
     virtual void act(double time, const Vector &in, Vector *out);
 
     // Own

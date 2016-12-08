@@ -87,11 +87,6 @@ void FourierProjector::reconfigure(const Configuration &config)
 {
 }
 
-FourierProjector *FourierProjector::clone() const
-{
-  return new FourierProjector(*this);
-}
-
 ProjectionPtr FourierProjector::project(const Vector &in) const
 {
   VectorProjection *p = new VectorProjection();

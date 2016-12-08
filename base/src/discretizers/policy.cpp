@@ -45,11 +45,6 @@ void PolicyDiscretizer::reconfigure(const Configuration &config)
 {
 }
 
-PolicyDiscretizer* PolicyDiscretizer::clone()
-{
-  return new PolicyDiscretizer(*this);
-}
-
 PolicyDiscretizer::iterator PolicyDiscretizer::begin(const Vector &point) const
 {
   return iterator(this, point, IndexVector::Constant(1, 0));

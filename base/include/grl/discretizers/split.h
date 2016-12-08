@@ -63,7 +63,6 @@ class SplitDiscretizer : public Discretizer
     virtual void reconfigure(const Configuration &config);
     
     // From Discretizer
-    virtual SplitDiscretizer* clone();
     virtual iterator begin(const Vector &point) const;
     virtual size_t size(const Vector &point) const;
     virtual void inc(iterator *it) const;

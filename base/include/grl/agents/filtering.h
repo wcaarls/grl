@@ -54,7 +54,6 @@ class FilteringAgent : public Agent
     virtual void reconfigure(const Configuration &config);
 
     // From Agent
-    virtual FilteringAgent *clone() const;
     virtual void start(const Vector &obs, Vector *action);
     virtual void step(double tau, const Vector &obs, double reward, Vector *action);
     virtual void end(double tau, const Vector &obs, double reward);
@@ -80,7 +79,6 @@ class FilteringSubAgent : public SubAgent
     virtual void reconfigure(const Configuration &config);
 
     // From SubAgent
-    virtual FilteringSubAgent *clone() const;
     virtual void start(const Vector &obs, Vector *action, double *conf);
     virtual void step(double tau, const Vector &obs, double reward, Vector *action, double *conf);
     virtual void end(double tau, const Vector &obs, double reward);

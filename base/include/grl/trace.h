@@ -101,7 +101,6 @@ class Trace : public Configurable
 
   public:
     virtual ~Trace() { }
-    virtual Trace *clone() const = 0;
 
     /// Returns trace length.
     virtual size_t size() const = 0;
@@ -143,11 +142,6 @@ class EnumeratedTrace : public Trace
       double decay;
 
       ProjectionDecay(ProjectionPtr _projection, double _decay) : projection(_projection), decay(_decay) { }
-
-      ProjectionDecay clone() const
-      {
-        return ProjectionDecay(ProjectionPtr(projection->clone()), decay);
-      }
     };
 
     mutable Instance<std::deque<ProjectionDecay> > projections_;
@@ -218,11 +212,6 @@ class ReplacingEnumeratedTrace : public EnumeratedTrace
     TYPEINFO("trace/enumerated/replacing", "Replacing eligibility trace using a queue of projections")
     
   public:
-    virtual ReplacingEnumeratedTrace *clone() const
-    {
-      return new ReplacingEnumeratedTrace();
-   }
-
     virtual void add(ProjectionPtr projection, double decay=1.0)
     {
       std::deque<ProjectionDecay> *p = projections_.instance();
@@ -252,11 +241,6 @@ class AccumulatingEnumeratedTrace : public EnumeratedTrace
     TYPEINFO("trace/enumerated/accumulating", "Accumulating eligibility trace using a queue of projections")
 
   public:
-    virtual AccumulatingEnumeratedTrace *clone() const
-    {
-      return new AccumulatingEnumeratedTrace();
-    }
-
     virtual void add(ProjectionPtr projection, double decay=1.0)
     {
       std::deque<ProjectionDecay> *p = projections_.instance();

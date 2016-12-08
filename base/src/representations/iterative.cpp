@@ -58,11 +58,6 @@ void IterativeRepresentation::reconfigure(const Configuration &config)
   }
 }
 
-IterativeRepresentation *IterativeRepresentation::clone() const
-{
-  return new IterativeRepresentation(*this);
-}
-
 // TODO: should really make a different write() for alpha=1
 void IterativeRepresentation::write(const ProjectionPtr projection, const Vector &target, const Vector &alpha)
 {

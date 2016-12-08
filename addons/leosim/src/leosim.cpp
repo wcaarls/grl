@@ -218,11 +218,6 @@ void LeoSimEnvironment::reconfigure(const Configuration &config)
   time_test_ = time_learn_ = time0_ = 0;
 }
 
-LeoSimEnvironment *LeoSimEnvironment::clone()
-{
-  return new LeoSimEnvironment(*this);
-}
-
 void LeoSimEnvironment::start(int test, Vector *obs)
 {
   test_ = test;

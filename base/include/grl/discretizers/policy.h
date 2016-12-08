@@ -53,7 +53,6 @@ class PolicyDiscretizer : public Discretizer
     virtual void reconfigure(const Configuration &config);
     
     // From Discretizer
-    virtual PolicyDiscretizer* clone();
     virtual iterator begin(const Vector &point) const;
     virtual size_t size() const;
     virtual void inc(iterator *it) const;

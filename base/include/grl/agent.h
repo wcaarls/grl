@@ -38,7 +38,6 @@ class Agent : public Configurable
 {
   public:
     virtual ~Agent() { }
-    virtual Agent *clone() const = 0;
     
     /// Start the agent, returning the action for the first observation in an episode.
     virtual void start(const Vector &obs, Vector *action) = 0;
@@ -63,7 +62,6 @@ class SubAgent : public Agent
   // TODO: SUB AGENTS SHOULD ALLOW FOR ACTIONS THAT ARE DIFFERENT FROM CHOSEN ACTION.
   public:
     virtual ~SubAgent() { }
-    virtual SubAgent *clone() const = 0;
 
     // From Agent
     virtual void start(const Vector &obs, Vector *action)

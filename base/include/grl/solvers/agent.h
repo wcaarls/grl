@@ -57,7 +57,6 @@ class AgentSolver : public Solver
     virtual void reconfigure(const Configuration &config);
 
     // From Solver
-    virtual AgentSolver *clone() const;
     virtual bool solve();
 };
 

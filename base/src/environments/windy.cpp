@@ -46,11 +46,6 @@ void WindyGridworldModel::reconfigure(const Configuration &config)
 {
 }
 
-WindyGridworldModel *WindyGridworldModel::clone() const
-{
-  return new WindyGridworldModel(*this);
-}
-
 double WindyGridworldModel::step(const Vector &state, const Vector &action, Vector *next) const
 {
   int a = action[0];
@@ -101,11 +96,6 @@ void WindyGridworldMovementTask::configure(Configuration &config)
 
 void WindyGridworldMovementTask::reconfigure(const Configuration &config)
 {
-}
-
-WindyGridworldMovementTask *WindyGridworldMovementTask::clone() const
-{
-  return new WindyGridworldMovementTask(*this);
 }
 
 void WindyGridworldMovementTask::start(int test, Vector *state) const

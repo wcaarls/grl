@@ -51,14 +51,6 @@ void SplitDiscretizer::reconfigure(const Configuration &config)
 {
 }
 
-SplitDiscretizer* SplitDiscretizer::clone()
-{
-  SplitDiscretizer *sd = new SplitDiscretizer(*this);
-  sd->discretizer_[0] = discretizer_[0]->clone();
-  sd->discretizer_[1] = discretizer_[1]->clone();
-  return sd;
-}
-
 SplitDiscretizer::iterator SplitDiscretizer::begin(const Vector &point) const
 {
   IndexVector idx = discretizer_[0]->begin(point).idx;

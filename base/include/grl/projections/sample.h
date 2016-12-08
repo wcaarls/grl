@@ -187,11 +187,6 @@ class SampleProjection : public Projection
     
     SampleProjection() : sample(NULL) { }
     
-    virtual SampleProjection *clone() const
-    {
-      return new SampleProjection(*this);
-    }
-
     virtual void ssub(const Projection &rhs)
     {
       const SampleProjection &np = dynamic_cast<const SampleProjection&>(rhs);

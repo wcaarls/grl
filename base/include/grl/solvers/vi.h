@@ -57,7 +57,6 @@ class ValueIterationSolver : public Solver
     virtual void reconfigure(const Configuration &config);
 
     // From Solver
-    virtual ValueIterationSolver *clone() const;
     virtual bool solve();
 };
 

@@ -62,7 +62,6 @@ class AdvantagePredictor : public Predictor
     virtual void reconfigure(const Configuration &config);
     
     // From Predictor
-    virtual AdvantagePredictor *clone() const;
     virtual void update(const Transition &transition);
     virtual void finalize();
 };

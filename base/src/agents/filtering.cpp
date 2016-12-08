@@ -95,14 +95,6 @@ void FilteringAgent::reconfigure(const Configuration &config)
 {
 }
 
-FilteringAgent *FilteringAgent::clone() const
-{
-  FilteringAgent *agent = new FilteringAgent();
-  agent->agent_ = agent_->clone();
-  
-  return agent;
-}
-
 void FilteringAgent::start(const Vector &obs, Vector *action)
 {
   Vector downstream_obs = reindex(obs, observation_idx_), downstream_action;
@@ -157,14 +149,6 @@ void FilteringSubAgent::configure(Configuration &config)
 
 void FilteringSubAgent::reconfigure(const Configuration &config)
 {
-}
-
-FilteringSubAgent *FilteringSubAgent::clone() const
-{
-  FilteringSubAgent *agent = new FilteringSubAgent();
-  agent->agent_ = agent_->clone();
-  
-  return agent;
 }
 
 void FilteringSubAgent::start(const Vector &obs, Vector *action, double *conf)

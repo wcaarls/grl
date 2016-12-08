@@ -60,7 +60,6 @@ class ApproxTestExperiment : public Experiment
     virtual void reconfigure(const Configuration &config);
 
     // From Experiment
-    virtual ApproxTestExperiment *clone() const;
     virtual void run();
 };
 

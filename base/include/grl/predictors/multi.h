@@ -55,7 +55,6 @@ class MultiPredictor : public Predictor
     virtual void reconfigure(const Configuration &config);
     
     // From Predictor
-    virtual MultiPredictor *clone() const;
     virtual void update(const Transition &transition);
     virtual void finalize();
 };

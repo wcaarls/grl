@@ -89,19 +89,6 @@ void DynaAgent::reconfigure(const Configuration &config)
   config.get("planning_steps", planning_steps_);
 }
 
-DynaAgent *DynaAgent::clone() const
-{
-  DynaAgent *agent = new DynaAgent(*this);
-  
-  agent->policy_ = policy_->clone();
-  agent->predictor_= predictor_->clone();
-  agent->model_ = model_->clone();
-  agent->model_predictor_= model_predictor_->clone();
-  agent->model_agent_= model_agent_->clone();
-  
-  return agent;
-}
-
 void DynaAgent::start(const Vector &obs, Vector *action)
 {
   predictor_->finalize();

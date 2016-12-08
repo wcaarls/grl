@@ -62,7 +62,6 @@ class VPolicy : public Policy
     virtual void reconfigure(const Configuration &config);
 
     // From DiscretePolicy
-    virtual VPolicy *clone() const;
     virtual void act(const Vector &in, Vector *out) const;
     
     virtual void values(const Vector &in, LargeVector *out) const;

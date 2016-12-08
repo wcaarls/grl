@@ -75,9 +75,9 @@ class ILQGSolver : public Solver
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
+    virtual ILQGSolver &copy(const Configurable &obj);
 
     // From Solver
-    ILQGSolver *clone() const;
     virtual bool solve() { return false; }
     virtual bool solve(const Vector &x0);
     virtual bool resolve(double t, const Vector &xt);

@@ -53,11 +53,6 @@ void CompartmentalizedSubAgent::reconfigure(const Configuration &config)
 {
 }
 
-CompartmentalizedSubAgent *CompartmentalizedSubAgent::clone() const
-{
-  return NULL;
-}
-
 void CompartmentalizedSubAgent::start(const Vector &obs, Vector *action)
 {
   agent_->start(obs, action);

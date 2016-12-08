@@ -49,11 +49,6 @@ void SequentialMasterAgent::reconfigure(const Configuration &config)
 {
 }
 
-SequentialMasterAgent *SequentialMasterAgent::clone() const
-{
-  return NULL;
-}
-
 void SequentialMasterAgent::start(const Vector &obs, Vector *action)
 {
   agent_[0]->start(obs, action);

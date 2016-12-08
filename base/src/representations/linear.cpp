@@ -157,9 +157,13 @@ void LinearRepresentation::reconfigure(const Configuration &config)
   }  
 }
 
-LinearRepresentation *LinearRepresentation::clone() const
+LinearRepresentation &LinearRepresentation::copy(const Configurable &obj)
 {
-  return new LinearRepresentation(*this);
+  const LinearRepresentation &lr = dynamic_cast<const LinearRepresentation&>(obj);
+  
+  params_ = lr.params_;
+
+  return *this;
 }
 
 double LinearRepresentation::read(const ProjectionPtr &projection, Vector *result, Vector *stddev) const

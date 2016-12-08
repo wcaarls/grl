@@ -38,8 +38,6 @@ namespace grl
 class Optimizer : public Configurable
 {
   public:
-    virtual Optimizer *clone() const = 0;
-    
     /// Returns the number of policies to evaluate.
     virtual size_t size() const = 0;
     

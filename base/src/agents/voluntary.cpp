@@ -48,11 +48,6 @@ void VoluntarySubAgent::reconfigure(const Configuration &config)
 {
 }
 
-VoluntarySubAgent *VoluntarySubAgent::clone() const
-{
-  return NULL;
-}
-
 void VoluntarySubAgent::start(const Vector &obs, Vector *action, double *confidence)
 {
   Vector a;

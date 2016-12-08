@@ -62,7 +62,6 @@ class OnlineLearningExperiment : public Experiment
     virtual void reconfigure(const Configuration &config);
 
     // From Experiment
-    virtual OnlineLearningExperiment *clone() const;
     virtual void run();
 };
 

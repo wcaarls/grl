@@ -56,13 +56,6 @@ void PeakedProjector::reconfigure(const Configuration &config)
 {
 }
 
-PeakedProjector *PeakedProjector::clone() const
-{
-  PeakedProjector *projector = new PeakedProjector(*this);
-  projector->projector_ = projector_->clone();
-  return projector;
-}
-
 ProjectionPtr PeakedProjector::project(const Vector &in) const
 {
   // Scale input to [-1, 1], apply squashing, and rescale back

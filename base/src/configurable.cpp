@@ -474,6 +474,9 @@ ObjectConfigurator* ObjectConfigurator::instantiate(Configurator *parent) const
   // Instantiate and validate configuration parameters
   for (ConfiguratorList::const_iterator cc=children_.begin(); cc != children_.end(); ++cc)
   {
+    if ((*cc)->provided())
+      continue;
+  
     // Instantiate
     Configurator *nc = (*cc)->instantiate(oc);
     if (!nc)
@@ -549,6 +552,21 @@ ObjectConfigurator* ObjectConfigurator::instantiate(Configurator *parent) const
   }
   
   return oc;
+}
+
+ObjectConfigurator &ObjectConfigurator::deepcopy(const Configurator &c)
+{
+  Configurator::deepcopy(c);
+
+  if (!ptr() != !c.ptr())
+    throw Exception("Deep copy requires similarly instantiated configuration trees at " + path());
+
+  if (ptr() != c.ptr())
+    ptr()->copy(*c.ptr());
+  else
+    ERROR("Deep copy encountered identical object at " + path());
+  
+  return *this;
 }
 
 bool ObjectConfigurator::validate(const CRP &crp) const

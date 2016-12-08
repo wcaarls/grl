@@ -42,7 +42,6 @@ class Environment : public Configurable
 {
   public:
     virtual ~Environment() { }
-    virtual Environment *clone() const = 0;
 
     /// Start the environment, returning the first observation.
     virtual void start(int test, Vector *obs) = 0;
@@ -59,7 +58,6 @@ class Model : public Configurable
 {
   public:
     virtual ~Model() { }
-    virtual Model *clone() const = 0;
     virtual double step(const Vector &state, const Vector &action, Vector *next) const = 0;
 };
 
@@ -67,7 +65,6 @@ class Task : public Configurable
 {
   public:
     virtual ~Task() { }
-    virtual Task *clone() const = 0;
 
   public:
     virtual void request(ConfigurationRequest *config)
@@ -206,9 +203,9 @@ class ModeledEnvironment : public Environment
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
+    virtual ModeledEnvironment &copy(const Configurable &obj);
     
     // From Environment
-    virtual ModeledEnvironment *clone() const;
     virtual void start(int test, Vector *obs);
     virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal);
 };
@@ -218,7 +215,6 @@ class Dynamics : public Configurable
 {
   public:
     virtual ~Dynamics() { }
-    virtual Dynamics *clone() const = 0;
 
     /// Compute equations of motion, returning accelerations.
     virtual void eom(const Vector &state, const Vector &action, Vector *xdd) const = 0;
@@ -243,7 +239,6 @@ class DynamicalModel : public Model
     virtual void reconfigure(const Configuration &config);
     
     // From Model
-    virtual DynamicalModel *clone() const;
     virtual double step(const Vector &state, const Vector &action, Vector *next) const;
 };
 
@@ -271,7 +266,6 @@ class NoiseEnvironment : public Environment
     virtual void reconfigure(const Configuration &config);
     
     // From Environment
-    virtual NoiseEnvironment *clone() const;
     virtual void start(int test, Vector *obs);
     virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal);
 };
@@ -299,9 +293,9 @@ class ShapingEnvironment : public Environment
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
+    virtual ShapingEnvironment &copy(const Configurable &obj);
     
     // From Environment
-    virtual ShapingEnvironment *clone() const;
     virtual void start(int test, Vector *obs);
     virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal);
     virtual void report(std::ostream &os);
@@ -312,7 +306,6 @@ class Sandbox : public Configurable
 {
   public:
     virtual ~Sandbox() { }
-    virtual Sandbox *clone() const = 0;
 
     virtual void start(const Vector &hint, Vector *state) = 0;
     virtual double step(const Vector &action, Vector *next) = 0;
@@ -341,9 +334,9 @@ class SandboxEnvironment : public Environment
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
+    virtual SandboxEnvironment &copy(const Configurable &obj);
 
     // From Environment
-    virtual SandboxEnvironment *clone() const;
     virtual void start(int test, Vector *obs);
     virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal);
 };

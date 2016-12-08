@@ -61,11 +61,6 @@ void MCTSPolicy::reconfigure(const Configuration &config)
   config.get("budget", budget_);
 }
 
-MCTSPolicy *MCTSPolicy::clone() const
-{
-  return NULL;
-}
-
 void MCTSPolicy::act(double time, const Vector &in, Vector *out)
 {
   // Clear tree at start of episode

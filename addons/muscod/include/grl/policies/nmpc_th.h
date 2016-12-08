@@ -55,7 +55,6 @@ class NMPCPolicyTh: public Policy
     virtual void reconfigure(const Configuration &config);
 
     // From Policy
-    virtual NMPCPolicyTh *clone() const;
     virtual void act(double time, const Vector &in, Vector *out);
 };
 

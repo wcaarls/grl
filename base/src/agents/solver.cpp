@@ -59,17 +59,6 @@ void SolverAgent::reconfigure(const Configuration &config)
   episodes_ = 0;
 }
 
-SolverAgent *SolverAgent::clone() const
-{
-  SolverAgent *agent = new SolverAgent(*this);
-  
-  agent->policy_ = policy_->clone();
-  agent->predictor_= predictor_->clone();
-  agent->solver_= solver_->clone();
-  
-  return agent;
-}
-
 void SolverAgent::start(const Vector &obs, Vector *action)
 {
   if (predictor_)
