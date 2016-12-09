@@ -482,7 +482,7 @@ ObjectConfigurator* ObjectConfigurator::instantiate(Configurator *parent) const
     if (!nc)
       return NULL;
     
-    INFO(path() << "/" << (*cc)->element() << ": " << nc->str());
+    TRACE(path() << "/" << (*cc)->element() << ": " << nc->str());
 
     // Find matching parameter request
     for (size_t ii=0; ii < request.size(); ++ii)
@@ -514,7 +514,7 @@ ObjectConfigurator* ObjectConfigurator::instantiate(Configurator *parent) const
         {
           new ParameterConfigurator(key, request[ii].value, oc);
           
-          INFO(path() << "/" << key << ": " << request[ii].value << " (default)");
+          TRACE(path() << "/" << key << ": " << request[ii].value << " (default)");
           config.set(key, request[ii].value);
         }
         else
@@ -537,7 +537,7 @@ ObjectConfigurator* ObjectConfigurator::instantiate(Configurator *parent) const
   
     if (request[ii].mutability == CRP::Provided)
     {
-      INFO(path() << "/" << key << ": " << config[key].str() << " (provided)");
+      TRACE(path() << "/" << key << ": " << config[key].str() << " (provided)");
     
       if (type == "int" || type == "double" || type == "vector" || type == "string")
       {
