@@ -37,7 +37,7 @@ namespace grl
 class NoisePolicy : public Policy
 {
   public:
-    TYPEINFO("policy/post/noise", "Postprocesses policy output by injecting noise")
+    TYPEINFO("mapping/policy/post/noise", "Postprocesses policy output by injecting noise")
 
   protected:
     Policy *policy_;

@@ -41,7 +41,7 @@ namespace grl
 class UCBPolicy : public Policy
 {
   public:
-    TYPEINFO("policy/discrete/q/ucb", "UCB1 policy")
+    TYPEINFO("mapping/policy/discrete/q/ucb", "UCB1 policy")
 
   protected:
     Discretizer *discretizer_;

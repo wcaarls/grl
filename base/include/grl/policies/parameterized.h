@@ -39,7 +39,7 @@ namespace grl
 class ParameterizedActionPolicy : public ParameterizedPolicy
 {
   public:
-    TYPEINFO("policy/parameterized/action", "Parameterized policy based on a direct action representation")
+    TYPEINFO("mapping/policy/parameterized/action", "Parameterized policy based on a direct action representation")
 
   protected:
     Projector *projector_;

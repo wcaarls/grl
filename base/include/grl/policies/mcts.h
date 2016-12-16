@@ -145,7 +145,7 @@ class MCTSNode
 class MCTSPolicy : public Policy
 {
   public:
-    TYPEINFO("policy/mcts", "Monte-Carlo Tree Search policy")
+    TYPEINFO("mapping/policy/mcts", "Monte-Carlo Tree Search policy")
     
   protected:
     ObservationModel *model_;
@@ -314,7 +314,7 @@ class UCTNode : public MCTSNode
 class UCTPolicy : public MCTSPolicy
 {
   public:
-    TYPEINFO("policy/uct", "Monte-Carlo Tree Search policy using UCB1 action selection")
+    TYPEINFO("mapping/policy/uct", "Monte-Carlo Tree Search policy using UCB1 action selection")
     
   protected:
     virtual void allocate() const

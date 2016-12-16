@@ -41,7 +41,7 @@ void GGQPredictor::request(ConfigurationRequest *config)
 
   config->push_back(CRP("projector", "projector.pair", "Projects observation-action pairs onto representation space", projector_));
   config->push_back(CRP("representation", "representation.value/action", "(Q, w) representation", representation_));
-  config->push_back(CRP("policy", "policy/discrete/q", "Greedy target policy", policy_));
+  config->push_back(CRP("policy", "mapping/policy/discrete/q", "Greedy target policy", policy_));
 }
 
 void GGQPredictor::configure(Configuration &config)

@@ -33,7 +33,7 @@ REGISTER_CONFIGURABLE(PolicyDiscretizer)
 
 void PolicyDiscretizer::request(const std::string &role, ConfigurationRequest *config)
 {
-  config->push_back(CRP("policy", "policy", "Policy whose action to return", policy_));
+  config->push_back(CRP("policy", "mapping/policy", "Policy whose action to return", policy_));
 }
 
 void PolicyDiscretizer::configure(Configuration &config)

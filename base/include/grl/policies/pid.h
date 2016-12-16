@@ -37,7 +37,7 @@ namespace grl
 class PIDPolicy : public ParameterizedPolicy
 {
   public:
-    TYPEINFO("policy/parameterized/pid", "Parameterized policy based on a proportional-integral-derivative controller")
+    TYPEINFO("mapping/policy/parameterized/pid", "Parameterized policy based on a proportional-integral-derivative controller")
 
   protected:
     Vector setpoint_;

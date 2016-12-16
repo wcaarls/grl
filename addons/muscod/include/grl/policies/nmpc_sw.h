@@ -40,7 +40,7 @@ namespace grl
 class NMPC_SWPolicy : public Policy
 {
   public:
-    TYPEINFO("policy/nmpc_sw", "Nonlinear model predictive control policy for the simplest walker using the MUSCOD library")
+    TYPEINFO("mapping/policy/nmpc_sw", "Nonlinear model predictive control policy for the simplest walker using the MUSCOD library")
 
   protected:
     int verbose_;

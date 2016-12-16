@@ -41,7 +41,7 @@ namespace grl
 class MHE_NMPC_SWPolicy : public Policy
 {
   public:
-    TYPEINFO("policy/mhe_nmpc_sw", "Nonlinear model predictive control policy for the simplest walker with moving horizon estimator using the MUSCOD library")
+    TYPEINFO("mapping/policy/mhe_nmpc_sw", "Nonlinear model predictive control policy for the simplest walker with moving horizon estimator using the MUSCOD library")
 
   protected:
     int verbose_;

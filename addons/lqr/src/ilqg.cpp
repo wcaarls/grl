@@ -54,7 +54,7 @@ void ILQGSolver::request(ConfigurationRequest *config)
   config->push_back(CRP("regularization", "Regularization method", regularization_, CRP::Configuration, options));
 
   config->push_back(CRP("model", "observation_model", "Observation model", model_));
-  config->push_back(CRP("policy", "policy/sample_feedback", "Sample feedback policy to adjust", policy_));
+  config->push_back(CRP("policy", "mapping/policy/sample_feedback", "Sample feedback policy to adjust", policy_));
 
   config->push_back(CRP("trajectory", "signal/matrix", "Predicted trajectory", CRP::Provided));
 }

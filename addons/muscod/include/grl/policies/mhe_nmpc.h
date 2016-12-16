@@ -41,7 +41,7 @@ namespace grl
 class MHE_NMPCPolicy : public Policy
 {
   public:
-    TYPEINFO("policy/mhe_nmpc", "Nonlinear model predictive control policy with moving horizon estimator using the MUSCOD library")
+    TYPEINFO("mapping/policy/mhe_nmpc", "Nonlinear model predictive control policy with moving horizon estimator using the MUSCOD library")
 
   protected:
     int verbose_;

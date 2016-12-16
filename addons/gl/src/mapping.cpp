@@ -1,5 +1,5 @@
-/** \file policy.cpp
- * \brief Policy visualization source file.
+/** \file mapping.cpp
+ * \brief Mapping visualization source file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
  * \date      2015-02-14
@@ -28,47 +28,47 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 
-#include <grl/visualizations/policy.h>
+#include <grl/visualizations/mapping.h>
 
 #define EPS 0.001
 
 using namespace grl;
 
-REGISTER_CONFIGURABLE(PolicyVisualization) 
+REGISTER_CONFIGURABLE(MappingVisualization) 
 
-void PolicyVisualization::request(ConfigurationRequest *config)
+void MappingVisualization::request(ConfigurationRequest *config)
 {
   FieldVisualization::request(config);
 
-  config->push_back(CRP("policy", "policy", "Control policy", policy_));
+  config->push_back(CRP("mapping", "mapping", "Mapping", mapping_));
   
-  config->push_back(CRP("output_dim", "Action dimension to visualize", (int)dim_, CRP::Online, 0));
+  config->push_back(CRP("output_dim", "Output dimension to visualize", (int)dim_, CRP::Online, 0));
 }
 
-void PolicyVisualization::configure(Configuration &config)
+void MappingVisualization::configure(Configuration &config)
 {
   FieldVisualization::configure(config);
   
-  policy_ = (Policy*)config["policy"].ptr();
+  mapping_ = (Mapping*)config["mapping"].ptr();
   
   dim_ = config["output_dim"];
   
   // Create window  
-  create("Policy");
+  create("Mapping");
   
   // Let's get this show on the road
   start();
 }
 
-void PolicyVisualization::reconfigure(const Configuration &config)
+void MappingVisualization::reconfigure(const Configuration &config)
 {
   FieldVisualization::reconfigure(config);
 }
 
-double PolicyVisualization::value(const Vector &in) const
+double MappingVisualization::value(const Vector &in) const
 {
-  Vector action, q;
-  policy_->act(in, &action);
+  Vector output;
+  mapping_->read(in, &output);
   
-  return action[dim_];
+  return output[dim_];
 }

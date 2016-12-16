@@ -38,7 +38,7 @@ void RWAOptimizer::request(ConfigurationRequest *config)
   config->push_back(CRP("lambda", "Offspring population size", lambda_, CRP::Configuration, 0));
   config->push_back(CRP("sigma", "Standard deviation of exploration", sigma_, CRP::Configuration));
 
-  config->push_back(CRP("policy", "policy/parameterized", "Control policy prototype", policy_));
+  config->push_back(CRP("policy", "mapping/policy/parameterized", "Control policy prototype", policy_));
 }
 
 void RWAOptimizer::configure(Configuration &config)

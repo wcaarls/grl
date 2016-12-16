@@ -33,7 +33,7 @@ REGISTER_CONFIGURABLE(TDAgent)
 
 void TDAgent::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("policy", "policy", "Control policy", policy_));
+  config->push_back(CRP("policy", "mapping/policy", "Control policy", policy_));
   config->push_back(CRP("predictor", "predictor", "Value function predictor", predictor_));
 }
 

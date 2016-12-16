@@ -36,7 +36,7 @@ void NoisePolicy::request(ConfigurationRequest *config)
   config->push_back(CRP("sigma", "Standard deviation of Gaussian exploration distribution", sigma_, CRP::Configuration));
   config->push_back(CRP("theta", "Ornstein-Uhlenbeck friction term (1=pure Gaussian noise)", theta_, CRP::Configuration));
 
-  config->push_back(CRP("policy", "policy", "Policy to inject noise into", policy_));
+  config->push_back(CRP("policy", "mapping/policy", "Policy to inject noise into", policy_));
 }
 
 void NoisePolicy::configure(Configuration &config)

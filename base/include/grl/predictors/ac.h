@@ -125,7 +125,7 @@ class QACPredictor : public Predictor
     Representation *actor_representation_;
     Trace *actor_trace_;
     
-    double alpha_, beta_, gamma_, lambda_;
+    double alpha_, beta_, gamma_, lambda_, kappa_;
     
     std::string update_method_;
     Vector step_limit_;
@@ -135,7 +135,48 @@ class QACPredictor : public Predictor
   public:  
     QACPredictor() : target_(NULL), critic_projector_(NULL), critic_representation_(NULL), critic_trace_(NULL),
                      actor_projector_(NULL), actor_representation_(NULL), actor_trace_(NULL),
-                     alpha_(0.2), beta_(0.01), gamma_(0.97), lambda_(0.65), update_method_("proportional") { }
+                     alpha_(0.2), beta_(0.01), gamma_(0.97), lambda_(0.65), kappa_(1.), update_method_("proportional") { }
+
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+    
+    // From Predictor
+    virtual void update(const Transition &transition);
+    virtual void finalize();
+};
+
+/// QV-based actor-critic predictor.
+class QVACPredictor : public Predictor
+{
+  public:
+    TYPEINFO("predictor/ac/qv", "Actor-critic predictor for direct action policies with a Q critic storing advantages over a V critic")
+
+  protected:
+    Projector *critic_q_projector_;
+    Representation *critic_q_representation_;
+    
+    Projector *critic_v_projector_;
+    Representation *critic_v_representation_;
+    Trace *critic_v_trace_;
+    
+    Projector *actor_projector_;
+    Representation *actor_representation_;
+    Trace *actor_trace_;
+    
+    double alpha_, beta_v_, beta_a_, gamma_, lambda_;
+    
+    std::string update_method_;
+    Vector step_limit_;
+    
+    Vector min_, max_;
+
+  public:  
+    QVACPredictor() : critic_q_projector_(NULL), critic_q_representation_(NULL), 
+                      critic_v_projector_(NULL), critic_v_representation_(NULL), critic_v_trace_(NULL),
+                      actor_projector_(NULL), actor_representation_(NULL), actor_trace_(NULL),
+                      alpha_(0.2), beta_v_(0.05), beta_a_(0.2), gamma_(0.97), lambda_(0.65), update_method_("proportional") { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);

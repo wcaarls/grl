@@ -42,7 +42,7 @@ namespace grl
 class VPolicy : public Policy
 {
   public:
-    TYPEINFO("policy/discrete/v", "State-value based policy")
+    TYPEINFO("mapping/policy/discrete/v", "State-value based policy")
 
   protected:
     Discretizer *discretizer_;

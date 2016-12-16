@@ -31,7 +31,7 @@ experiment:
         type: projector/rbf
         input_min: experiment/environment/task/observation_min+experiment/environment/task/action_min
         input_max: experiment/environment/task/observation_max+experiment/environment/task/action_max
-        steps: [ 101, 101, 3 ]
+        steps: [101, 101, 3]
       representation: 
         type: representation/parameterized/linear
         init_min: [0]
@@ -72,6 +72,7 @@ visualization:
   input_max: experiment/environment/task/observation_max
   points: 65536
   savepoints: 1048576
+  state: experiment/state
   projection: mean
   policy: 
     type: policy/discrete/q
@@ -80,3 +81,6 @@ visualization:
     representation: experiment/agent/policy/representation
     sampler: 
       type: sampler/greedy
+vispend: 
+  type: visualization/pendulum
+  state: experiment/state

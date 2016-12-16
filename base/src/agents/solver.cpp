@@ -37,7 +37,7 @@ void SolverAgent::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("interval", "Episodes between successive solutions (0=asynchronous)", interval_, CRP::Configuration, 1, INT_MAX));
  
-  config->push_back(CRP("policy", "policy", "Control policy", policy_));
+  config->push_back(CRP("policy", "mapping/policy", "Control policy", policy_));
   config->push_back(CRP("predictor", "predictor", "Optional (model) predictor", predictor_, true));
   config->push_back(CRP("solver", "solver", "Model-based solver", solver_));
 }

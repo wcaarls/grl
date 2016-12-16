@@ -38,7 +38,7 @@ namespace grl
 class RandomPolicy : public Policy
 {
   public:
-    TYPEINFO("policy/random", "Policy that chooses continuous random actions")
+    TYPEINFO("mapping/policy/random", "Policy that chooses continuous random actions")
 
   protected:
     Vector min_, max_;
@@ -57,7 +57,7 @@ class RandomPolicy : public Policy
 class RandomDiscretePolicy : public Policy
 {
   public:
-    TYPEINFO("policy/discrete/random", "Policy that chooses discrete random actions")
+    TYPEINFO("mapping/policy/discrete/random", "Policy that chooses discrete random actions")
 
   protected:
     Discretizer *discretizer_;

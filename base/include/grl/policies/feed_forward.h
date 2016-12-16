@@ -37,7 +37,7 @@ namespace grl
 class FeedForwardPolicy : public Policy
 {
   public:
-    TYPEINFO("policy/feed_forward", "Feed-forward policy")
+    TYPEINFO("mapping/policy/feed_forward", "Feed-forward policy")
 
   protected:
     Vector time_control_;

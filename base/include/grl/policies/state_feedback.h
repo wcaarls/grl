@@ -37,7 +37,7 @@ namespace grl
 class StateFeedbackPolicy : public ParameterizedPolicy
 {
   public:
-    TYPEINFO("policy/parameterized/state_feedback", "Parameterized policy based on a state feedback controller")
+    TYPEINFO("mapping/policy/parameterized/state_feedback", "Parameterized policy based on a state feedback controller")
 
   protected:
     Vector operating_state_, operating_action_;
@@ -66,7 +66,7 @@ class StateFeedbackPolicy : public ParameterizedPolicy
 class SampleFeedbackPolicy : public Policy
 {
   public:
-    TYPEINFO("policy/sample_feedback", "Policy based on state feedback controller defined over samples")
+    TYPEINFO("mapping/policy/sample_feedback", "Policy based on state feedback controller defined over samples")
     
     struct Sample
     {

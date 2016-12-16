@@ -13,7 +13,7 @@ if (OPENGL_FOUND AND ZLIB_FOUND)
               ${SRC}/random_sample.cpp
               ${SRC}/field.cpp
               ${SRC}/value.cpp
-              ${SRC}/policy.cpp
+              ${SRC}/mapping.cpp
               ${SRC}/state.cpp
               ${SRC}/trajectory.cpp
               ${SRC}/slice.cpp

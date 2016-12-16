@@ -109,8 +109,31 @@ Configurator *grl::loadYAML(const std::string &file, const std::string &element,
     if (node["type"])
     {
       // Object
-      TRACE(path << ": object of type " << node["type"].as<std::string>());
-      cfg = new ObjectConfigurator(element, node["type"].as<std::string>(), parent);
+      std::string type = node["type"].as<std::string>(), newtype;
+      
+      // Normalize type
+      ConfigurableFactory::Map factories = ConfigurableFactory::factories();
+      if (!factories.count(type))
+      {
+        size_t count=0;
+        for (ConfigurableFactory::Map::iterator ii=factories.begin(); ii != factories.end(); ++ii)
+          if (ii->first.size() > type.size())
+            if (!ii->first.compare(ii->first.size()-type.size(), std::string::npos, type))
+            {
+              CRAWL(path << ": " << type << " expands to " << ii->first);
+              newtype = ii->first;
+              count++;
+            }
+            
+        if (count > 1)
+          WARNING(path << ": " << type << " does not specify a unique type. Expanded to " << newtype);
+          
+        if (newtype.size())
+          type = newtype;
+      }
+      
+      TRACE(path << ": object of type " << type);
+      cfg = new ObjectConfigurator(element, type, parent);
     }
     else
     {

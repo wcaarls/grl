@@ -18,7 +18,7 @@ namespace grl {
 class NMPCPolicyTh: public Policy
 {
   public:
-    TYPEINFO("policy/nmpc_th", "Nonlinear multistep (thread-based) model predictive control policy using the MUSCOD library")
+    TYPEINFO("mapping/policy/nmpc_th", "Nonlinear multistep (thread-based) model predictive control policy using the MUSCOD library")
 
   protected:
     int verbose_, single_step_;

@@ -1,5 +1,5 @@
-/** \file policy.h
- * \brief Policy visualization header file.
+/** \file mapping.h
+ * \brief Mapping visualization header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
  * \date      2015-02-14
@@ -25,31 +25,31 @@
  * \endverbatim
  */
 
-#ifndef GRL_POLICY_VISUALIZATION_H_
-#define GRL_POLICY_VISUALIZATION_H_
+#ifndef GRL_MAPPING_VISUALIZATION_H_
+#define GRL_MAPPING_VISUALIZATION_H_
 
 #include <string.h>
 #include <pthread.h>
 
-#include <grl/policy.h>
+#include <grl/mapping.h>
 #include <grl/visualizations/field.h>
 
 namespace grl
 {
 
-/// Policy visualization.
-class PolicyVisualization : public FieldVisualization
+/// Mapping visualization.
+class MappingVisualization : public FieldVisualization
 {
   public:
-    TYPEINFO("visualization/field/policy/action", "Visualizes a policy over a field of states")
+    TYPEINFO("visualization/field/mapping", "Visualizes a mapping over a field of states")
 
   protected:
-    Policy *policy_;
+    Mapping *mapping_;
     size_t dim_;
   
   public:
-    PolicyVisualization() : policy_(NULL), dim_(0) { }
-    ~PolicyVisualization()
+    MappingVisualization() : mapping_(NULL), dim_(0) { }
+    ~MappingVisualization()
     {
       stopAndJoin();
     }
@@ -65,4 +65,4 @@ class PolicyVisualization : public FieldVisualization
 
 }
 
-#endif /* GRL_POLICY_VISUALIZATION_H_ */
+#endif /* GRL_MAPPING_VISUALIZATION_H_ */

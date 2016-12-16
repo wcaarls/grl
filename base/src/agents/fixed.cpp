@@ -33,7 +33,7 @@ REGISTER_CONFIGURABLE(FixedAgent)
 
 void FixedAgent::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("policy", "policy", "Control policy", policy_));
+  config->push_back(CRP("policy", "mapping/policy", "Control policy", policy_));
 }
 
 void FixedAgent::configure(Configuration &config)

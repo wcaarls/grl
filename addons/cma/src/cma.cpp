@@ -38,7 +38,7 @@ void CMAOptimizer::request(ConfigurationRequest *config)
   config->push_back(CRP("population", "Population size", population_, CRP::Configuration, 0));
   config->push_back(CRP("sigma", "Initial standard deviation (a single-element vector will be replicated for all parameters)", sigma_, CRP::Configuration));
 
-  config->push_back(CRP("policy", "policy/parameterized", "Control policy prototype", policy_));
+  config->push_back(CRP("policy", "mapping/policy/parameterized", "Control policy prototype", policy_));
 }
 
 void CMAOptimizer::configure(Configuration &config)

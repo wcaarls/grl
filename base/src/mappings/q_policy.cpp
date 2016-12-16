@@ -33,7 +33,7 @@ REGISTER_CONFIGURABLE(QPolicyMapping)
 
 void QPolicyMapping::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("policy", "policy/discrete/q", "Q-value based policy", policy_));
+  config->push_back(CRP("policy", "mapping/policy/discrete/q", "Q-value based policy", policy_));
 }
 
 void QPolicyMapping::configure(Configuration &config)

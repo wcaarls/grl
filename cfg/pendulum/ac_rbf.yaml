@@ -39,10 +39,9 @@ experiment:
         output_max: experiment/environment/task/action_max
     predictor: 
       type: predictor/ac/action
-      alpha: 0.02
-      beta: 0.001
+      alpha: 0.2
+      beta: 0.01
       gamma: 0.97
-      lambda: 0
       update_method: proportional
       step_limit: []
       critic_projector: experiment/agent/policy/projector
@@ -54,12 +53,8 @@ experiment:
         outputs: 1
         output_min: []
         output_max: []
-      critic_trace: 
-        type: trace/enumerated/replacing
       actor_projector: experiment/agent/policy/projector
       actor_representation: experiment/agent/policy/representation
-      actor_trace: 
-        type: trace/enumerated/replacing
   test_agent: 
     type: agent/fixed
     policy: 
@@ -73,7 +68,7 @@ experiment:
 visualizer: 
   type: visualizer/glut
 visualization: 
-  type: visualization/field/policy/action
+  type: visualization/field/mapping
   field_dims: [0, 1]
   input_min: experiment/environment/task/observation_min
   input_max: experiment/environment/task/observation_max
@@ -81,7 +76,7 @@ visualization:
   savepoints: 1048576
   state: experiment/state
   projection: mean
-  policy: experiment/test_agent/policy
+  mapping: experiment/test_agent/policy
   output_dim: 0
 visualization2: 
   type: visualization/field/value
