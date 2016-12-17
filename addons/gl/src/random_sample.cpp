@@ -74,7 +74,7 @@ void RandomSampleVisualization::configure(Configuration &config)
   data_ = (unsigned char*) malloc(points_*3*sizeof(unsigned char));
   
   // Create window  
-  create("Samples");
+  create(path().c_str());
 }
 
 void RandomSampleVisualization::reconfigure(const Configuration &config)

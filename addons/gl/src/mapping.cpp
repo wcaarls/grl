@@ -54,7 +54,7 @@ void MappingVisualization::configure(Configuration &config)
   dim_ = config["output_dim"];
   
   // Create window  
-  create("Mapping");
+  create(path().c_str());
   
   // Let's get this show on the road
   start();

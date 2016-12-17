@@ -78,7 +78,7 @@ void SliceVisualization::configure(Configuration &config)
   data_ = (unsigned char*) malloc(points_*3*sizeof(unsigned char));
 
   // Create window  
-  create("Slice");
+  create(path().c_str());
   
   // Let's get this show on the road
   start();

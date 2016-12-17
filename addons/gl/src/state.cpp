@@ -66,7 +66,7 @@ void StateVisualization::configure(Configuration &config)
   memory_ = config["memory"];
 
   // Create window  
-  create("State");
+  create(path().c_str());
 
   // Let's get this show on the road
   start();
