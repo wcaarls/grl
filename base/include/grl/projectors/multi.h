@@ -40,11 +40,12 @@ class MultiProjector : public Projector
     TYPEINFO("projector/multi", "Combines multiple projections")
     
   protected:
+    int dim_;
     Vector memory_;
     std::vector<Projector*> projector_;
 
   public:
-    MultiProjector()
+    MultiProjector() : dim_(-1)
     {
       projector_.resize(2, NULL);
     }

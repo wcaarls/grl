@@ -36,15 +36,19 @@ void SplitDiscretizer::request(const std::string &role, ConfigurationRequest *co
   config->push_back(CRP("identify", "Identify active discretizer before (-1) or after (1) value", identify_, CRP::Configuration, -1, 1));
 
   config->push_back(CRP("discretizer1", "discretizer." + role, "First discretizer", discretizer_[0]));
-  config->push_back(CRP("discretizer2", "discretizer." + role, "Second discretizer", discretizer_[1]));
+  config->push_back(CRP("discretizer2", "discretizer." + role, "Second discretizer", discretizer_[1], true));
 }
 
 void SplitDiscretizer::configure(Configuration &config)
 {
   identify_ = config["identify"];
-
-  discretizer_[0] = (Discretizer*)config["discretizer1"].ptr();
-  discretizer_[1] = (Discretizer*)config["discretizer2"].ptr();
+  
+  Discretizer *d;
+  
+  d = (Discretizer*)config["discretizer1"].ptr();
+  discretizer_.push_back(d);
+  d = (Discretizer*)config["discretizer2"].ptr();
+  if (d) discretizer_.push_back(d);
 }
 
 void SplitDiscretizer::reconfigure(const Configuration &config)
@@ -62,7 +66,11 @@ SplitDiscretizer::iterator SplitDiscretizer::begin(const Vector &point) const
 
 size_t SplitDiscretizer::size(const Vector &point) const
 {
-  return discretizer_[0]->size(point) + discretizer_[1]->size(point);
+  size_t sz = 0;
+  for (size_t dd=0; dd < discretizer_.size(); ++dd)
+    sz += discretizer_[dd]->size(point);
+
+  return sz;
 }
 
 // Note implicit assumption that downstream discretizers discard extra dimensions

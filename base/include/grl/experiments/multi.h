@@ -68,7 +68,7 @@ class MultiExperiment : public Experiment
     MultiExperiment() : instances_(4), prototype_(NULL) { }
     ~MultiExperiment()
     {
-      for (size_t ii=0; ii < instances_; ++ii)
+      for (size_t ii=0; ii < experiments_.size(); ++ii)
         safe_delete(&experiments_[ii]);
       experiments_.clear();
     }

@@ -279,8 +279,13 @@ void QACPredictor::update(const Transition &transition)
   Predictor::update(transition);
   
   if (step_limit_.size() && step_limit_.size() != transition.prev_action.size())
-    throw bad_param("predictor/ac:step_limit");
-
+  {
+    if (step_limit_.size() == 1)
+      step_limit_ = ConstantVector(transition.prev_action.size(), step_limit_[0]);
+    else
+      throw bad_param("predictor/ac/q:step_limit");
+  }
+  
   Vector v, u, delta_u, target_u;
   ProjectionPtr ap = actor_projector_->project(transition.prev_obs);
   actor_representation_->read(ap, &u);
@@ -411,7 +416,12 @@ void QVACPredictor::update(const Transition &transition)
   Predictor::update(transition);
   
   if (step_limit_.size() && step_limit_.size() != transition.prev_action.size())
-    throw bad_param("predictor/ac:step_limit");
+  {
+    if (step_limit_.size() == 1)
+      step_limit_ = ConstantVector(transition.prev_action.size(), step_limit_[0]);
+    else
+      throw bad_param("predictor/ac/qv:step_limit");
+  }
 
   Vector v, u, delta_u, target_u;
   ProjectionPtr ap = actor_projector_->project(transition.prev_obs);

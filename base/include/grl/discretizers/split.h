@@ -52,8 +52,9 @@ class SplitDiscretizer : public Discretizer
     int identify_;
 
   public:
-    SplitDiscretizer() : discretizer_(2), idxsize_(0), ressize_(0), identify_(-1)
+    SplitDiscretizer() : idxsize_(0), ressize_(0), identify_(-1)
     {
+      discretizer_.reserve(2);
       discretizer_[0] = discretizer_[1] = NULL;
     }
   

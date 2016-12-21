@@ -264,13 +264,21 @@ std::string ParameterConfigurator::str() const
   {
     std::string left, right;
     size_t start=c, end=c+1;
+    char vector_add = 0;
+    
+    if (c+1 < expv.size() && expv[c+1] == '+')
+    {
+      vector_add = 1;
+      end++;
+      c++;
+    }
     
     // Right
     for (size_t ii=c+1; ii < expv.size() && expv[ii] != '+'; ++ii, ++end)
       right.push_back(expv[ii]);
 
     // Left
-    for (int ii=c-1; ii >= 0 && expv[ii] != '+'; --ii, --start)
+    for (int ii=c-1-vector_add; ii >= 0 && expv[ii] != '+'; --ii, --start)
       left.push_back(expv[ii]);
 
     std::reverse(left.begin(), left.end());
@@ -290,8 +298,8 @@ std::string ParameterConfigurator::str() const
     toVector(b_in, b);
     
     // Perform operation
-    if (a.size() == 1 && b.size() == 1) c = a + b;
-    else                                c = extend(a, b);
+    if (a.size() == 1 && b.size() == 1 && !vector_add) c = a + b;
+    else                                               c = extend(a, b);
     
     fromVector(c, c_out);
     

@@ -34,6 +34,7 @@ REGISTER_CONFIGURABLE(MultiProjector)
 
 void MultiProjector::request(const std::string &role, ConfigurationRequest *config)
 {
+  config->push_back(CRP("dim", "int", "Indicator dimension (-1=union)", dim_));
   config->push_back(CRP("projector1", "projector." + role, "First downstream projector", projector_[0]));
   config->push_back(CRP("projector2", "projector." + role, "Second downstream projector", projector_[1]));
 
@@ -43,6 +44,7 @@ void MultiProjector::request(const std::string &role, ConfigurationRequest *conf
 
 void MultiProjector::configure(Configuration &config)
 {
+  dim_ = config["dim"];
   memory_ = config["memories"].v();
 
   projector_[0] = (Projector*) config["projector1"].ptr();
@@ -57,6 +59,52 @@ void MultiProjector::reconfigure(const Configuration &config)
 
 ProjectionPtr MultiProjector::project(const Vector &in) const
 {
+  if (dim_ >= 0)
+  {
+    int dd = in[dim_];
+    
+    if (dd < 0 || dd >= projector_.size())
+      throw Exception("Indicator dimension exceeds projector vector");
+      
+    ProjectionPtr p = projector_[dd]->project(in);
+    IndexProjection *ip = dynamic_cast<IndexProjection*>(p.get());
+    VectorProjection *vp = dynamic_cast<VectorProjection*>(p.get());
+    if (ip)
+    {
+      // Calculate offset
+      size_t memory = 0;
+      for (size_t ii=0; ii < dd; ++ii)
+        memory += memory_[ii];
+        
+      // Add offset
+      for (size_t ii=0; ii < ip->indices.size(); ++ii)
+        ip->indices[ii] += memory;
+        
+      return p;
+    }
+    else if (vp)
+    {
+      vp = new VectorProjection;
+    
+      for (size_t ii=0; ii < projector_.size(); ++ii)
+      {
+        ProjectionPtr p2 = projector_[ii]->project(in);
+        VectorProjection *vp2 = dynamic_cast<VectorProjection*>(p2.get());
+        if (!vp2)
+          throw Exception("projector/multi requires consistent downstream projectors");
+          
+        if (ii==dd)
+          vp->vector = extend(vp->vector, vp2->vector);
+        else
+          vp->vector = extend(vp->vector, ConstantVector(vp2->vector.size(), 0.));
+      }
+    
+      return ProjectionPtr(vp);
+    }
+    else
+      throw Exception("projector/multi requires a downstream projectors returning IndexProjection or VectorProjection");
+  }
+
   ProjectionPtr p = projector_[0]->project(in);
   IndexProjection *ip = dynamic_cast<IndexProjection*>(p.get());
   
