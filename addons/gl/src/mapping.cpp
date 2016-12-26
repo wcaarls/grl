@@ -63,6 +63,8 @@ void MappingVisualization::configure(Configuration &config)
 void MappingVisualization::reconfigure(const Configuration &config)
 {
   FieldVisualization::reconfigure(config);
+  
+  config.get("output_dim", dim_);
 }
 
 double MappingVisualization::value(const Vector &in) const

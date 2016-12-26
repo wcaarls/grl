@@ -47,7 +47,16 @@ void MultiExperiment::configure(Configuration &config)
   prototype_ = (Experiment*)config["experiment"].ptr();
   
   for (size_t ii=0; ii < instances_; ++ii)
-    experiments_.push_back(new MultiExperimentInstance((Experiment*)prototype_->clone()));
+  {
+    Experiment *exp = (Experiment*)prototype_->clone();
+    Configuration config;
+    std::ostringstream oss;
+    oss << "@" << ii;
+    config.set("identity", oss.str());
+    exp->reconfigure(config);
+  
+    experiments_.push_back(new MultiExperimentInstance(exp));
+  }
 }
 
 void MultiExperiment::reconfigure(const Configuration &config)

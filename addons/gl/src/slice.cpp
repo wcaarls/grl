@@ -130,7 +130,10 @@ void SliceVisualization::key(unsigned char k, int x, int y)
       break;
   }
   
-  INFO("Now visualizing " << dims_);
+  if (k >= '0' && k <= '9')
+    dim_ = k-'0';
+  
+  INFO("Now visualizing " << dims_ << " -> " << dim_);
 }
 
 void SliceVisualization::click(int button, int state, int x, int y)

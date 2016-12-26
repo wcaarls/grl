@@ -1,11 +1,11 @@
-/** \file online_learning.h
- * \brief Online learning experiment header file.
+/** \file dpg.h
+ * \brief Deterministic policy gradient predictor header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-01-22
+ * \date      2016-12-26 
  *
  * \copyright \verbatim
- * Copyright (c) 2015, Wouter Caarls
+ * Copyright (c) 2016, Wouter Caarls
  * All rights reserved.
  *
  * This file is part of GRL, the Generic Reinforcement Learning library.
@@ -25,46 +25,42 @@
  * \endverbatim
  */
 
-#ifndef GRL_ONLINE_LEARNING_EXPERIMENT_H_
-#define GRL_ONLINE_LEARNING_EXPERIMENT_H_
+#ifndef GRL_DPG_PREDICTOR_H_
+#define GRL_DPG_PREDICTOR_H_
 
-#include <grl/agent.h>
-#include <grl/environment.h>
-#include <grl/experiment.h>
+#include <grl/configurable.h>
+#include <grl/predictor.h>
+#include <grl/projector.h>
+#include <grl/representation.h>
 
 namespace grl
 {
 
-/// Standard Agent-Environment interaction experiment.
-class OnlineLearningExperiment : public Experiment
+/// Silver et al., "Deterministic Policy Gradient Algorithms", ICML 2014
+class DPGPredictor : public Predictor
 {
   public:
-    TYPEINFO("experiment/online_learning", "Interactive learning experiment")
+    TYPEINFO("predictor/dpg", "Deterministic policy gradient predictor")
 
   protected:
-    Agent *agent_, *test_agent_;
-    Environment *environment_;
-    VectorSignal *state_, *action_, *curve_;
-
-    size_t runs_, trials_, steps_;
-    int test_interval_;
-    double rate_;
-    std::string identity_, output_, load_file_;
-    std::string save_every_;
-
+    double alpha_, beta_v_, beta_a_, gamma_, lambda_;
+    Projector *projector_;
+    Representation *advantage_representation_, *critic_representation_, *actor_representation_;
+    Trace *critic_trace_;
 
   public:
-    OnlineLearningExperiment() : agent_(NULL), test_agent_(NULL), environment_(NULL), state_(NULL), action_(NULL), curve_(NULL), runs_(1), trials_(0), steps_(0), test_interval_(-1), rate_(0), save_every_("never")  { }
-
+    DPGPredictor() : alpha_(0.2), beta_v_(0.1), beta_a_(0.01), gamma_(0.97), lambda_(0.65), projector_(NULL), advantage_representation_(NULL), critic_representation_(NULL), actor_representation_(NULL), critic_trace_(NULL) { }
+  
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
-
-    // From Experiment
-    virtual void run();
+    
+    // From Predictor
+    virtual void update(const Transition &transition);
+    virtual void finalize();
 };
 
 }
 
-#endif /* GRL_ONLINE_LEARNING_EXPERIMENT_H_ */
+#endif /* GRL_DPG_PREDICTOR_H_ */

@@ -86,6 +86,7 @@ void OnlineLearningExperiment::configure(Configuration &config)
 void OnlineLearningExperiment::reconfigure(const Configuration &config)
 {
   config.get("rate", rate_);
+  config.get("identity", identity_);
 }
 
 void OnlineLearningExperiment::run()
@@ -95,7 +96,7 @@ void OnlineLearningExperiment::run()
   // Store configuration with output
   if (!output_.empty())
   {
-    ofs.open(output_ + ".yaml");
+    ofs.open(output_ + identity_ + ".yaml");
     ofs << configurator()->root()->yaml();
     ofs.close();
   }
@@ -105,7 +106,7 @@ void OnlineLearningExperiment::run()
     if (!output_.empty())
     {
       std::ostringstream oss;
-      oss << output_ << "-" << rr << ".txt";
+      oss << output_ << "-" << rr << identity_ << ".txt";
       ofs.open(oss.str().c_str());
     }
 
@@ -187,7 +188,7 @@ void OnlineLearningExperiment::run()
       else
       {
         std::ostringstream oss;
-        oss << std::setw(15) << tt << std::setw(15) << ss << std::setw(15) << total_reward;
+        oss << std::setw(15) << tt << std::setw(15) << ss << std::setw(15) << std::setprecision(3) << std::fixed << total_reward;
         agent_->report(oss);
         environment_->report(oss);
         curve_->set(VectorConstructor(total_reward));
