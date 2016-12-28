@@ -27,8 +27,6 @@ experiment:
     action_dims: experiment/environment/target_env/action_dims
     transition_type: 
       type: signal/vector
-    contact_signal: 
-      type: signal/vector
   agent: 
     type: agent/td
     policy: 

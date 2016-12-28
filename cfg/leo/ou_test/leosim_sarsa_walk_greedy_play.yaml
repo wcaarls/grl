@@ -20,6 +20,8 @@ experiment:
     actuate: hipright, hipleft, stanceknee
     observation_dims: experiment/environment/target_env/observation_dims
     action_dims: experiment/environment/target_env/action_dims
+    transition_type: 
+      type: signal/vector
   agent: 
     type: agent/td
     policy: 
@@ -56,6 +58,7 @@ experiment:
       representation: experiment/agent/policy/representation
       trace: 
         type: trace/enumerated/accumulating
+    transition_type: experiment/environment/transition_type
   test_agent: 
     type: agent/fixed
     policy: 
