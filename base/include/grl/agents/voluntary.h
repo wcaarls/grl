@@ -56,8 +56,8 @@ class VoluntarySubAgent : public SubAgent
     virtual void end(double tau, const Vector &obs, double reward);
     
     // From SubAgent
-    virtual void start(const Vector &obs, Vector *action, double *confidence);
-    virtual void step(double tau, const Vector &obs, double reward, Vector *action, double *confidence);
+    virtual TransitionType start(const Vector &obs, Vector *action, double *confidence);
+    virtual TransitionType step(double tau, const Vector &obs, double reward, Vector *action, double *confidence);
     double confidence(const Vector &obs) const
     {
       ERROR("Cannot determine confidence without executing agent");

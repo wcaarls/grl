@@ -86,17 +86,19 @@ LeoPreprogrammedAgent *LeoPreprogrammedAgent::clone() const
   return agent;
 }
 
-void LeoPreprogrammedAgent::start(const Vector &obs, Vector *action)
+TransitionType LeoPreprogrammedAgent::start(const Vector &obs, Vector *action)
 {
   time_ = mSwingTime = 0.;
   auto_actuate(obs, action);
+  return ttGreedy;
 }
 
-void LeoPreprogrammedAgent::step(double tau, const Vector &obs, double reward, Vector *action)
+TransitionType LeoPreprogrammedAgent::step(double tau, const Vector &obs, double reward, Vector *action)
 {
   time_ += tau;
   mSwingTime += tau;
   auto_actuate(obs, action);
+  return ttGreedy;
 }
 
 void LeoPreprogrammedAgent::end(double tau, const Vector &obs, double reward)

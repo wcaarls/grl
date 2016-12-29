@@ -53,16 +53,16 @@ FixedAgent *FixedAgent::clone() const
   return agent;
 }
 
-void FixedAgent::start(const Vector &obs, Vector *action)
+TransitionType FixedAgent::start(const Vector &obs, Vector *action)
 {
   time_ = 0.;
-  policy_->act(time_, obs, action);
+  return policy_->act(time_, obs, action);
 }
 
-void FixedAgent::step(double tau, const Vector &obs, double reward, Vector *action)
+TransitionType FixedAgent::step(double tau, const Vector &obs, double reward, Vector *action)
 {
   time_ += tau;
-  policy_->act(time_, obs, action);
+  return policy_->act(time_, obs, action);
 }
 
 void FixedAgent::end(double tau, const Vector &obs, double reward)

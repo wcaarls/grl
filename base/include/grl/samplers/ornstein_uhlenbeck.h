@@ -40,19 +40,19 @@ namespace grl
 {
 
 /// Maximum search with an Ornstein-Uhlenbeck random chance of non-maximums.
-class OrnsteinUhlenbeckSampler : public EpsilonGreedySampler
+class OrnsteinUhlenbeckSampler : public GreedySampler
 {
   public:
     TYPEINFO("sampler/ornstein_ohlenbeck", "Maximum search with an Ornstein-Uhlenbeck random chance of non-maximums")
 
   protected:
     Vector noise_;
-    VectorSignal *env_event_;
+    VectorSignal *sub_ic_signal_;
     Vector theta_, sigma_, center_;
     Vector noise_scale_;
     Discretizer *discretizer_;
 
-    VectorSignal *memory_;
+    VectorSignal *pub_sub_sampler_state_;
 
   public:
     OrnsteinUhlenbeckSampler() { }
@@ -67,7 +67,7 @@ class OrnsteinUhlenbeckSampler : public EpsilonGreedySampler
     virtual size_t sample(const LargeVector &values, TransitionType &tt);
 
   protected:
-    virtual void env_event_processor();
+    virtual void env_signal_processor();
     virtual void evolve_noise();
     virtual void mix_signal_noise(const Vector &in, const Vector &noise, IndexVector &out) const;
 };
@@ -80,12 +80,15 @@ class ACOrnsteinUhlenbeckSampler : public OrnsteinUhlenbeckSampler
 
   protected:
     size_t offset_;
+    double epsilon_;
 
   public:
-    ACOrnsteinUhlenbeckSampler() : offset_(0) { }
+    ACOrnsteinUhlenbeckSampler() : offset_(0), epsilon_(0.05) { }
 
     // From Configurable
+    virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
 
     // From Sampler
     virtual ACOrnsteinUhlenbeckSampler *clone();
@@ -97,8 +100,9 @@ class EpsilonOrnsteinUhlenbeckSampler : public OrnsteinUhlenbeckSampler
 {
   public:
     TYPEINFO("sampler/epsilon_ornstein_ohlenbeck", "Exploitations are done by greedy action selection without constraints, as in e-greedy. Explorations are done with time-correlated noise, as it is in ou.")
+
   private:
-      double epsilon_;
+    double epsilon_;
 
   public:
     EpsilonOrnsteinUhlenbeckSampler() : epsilon_(0.05) { }

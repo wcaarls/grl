@@ -31,7 +31,7 @@ struct TargetInterface
 };
 
 enum LeoSignalType {lstNone = sigEnvNone, lstInit = sigEnvInit, lstContact}; // Leo has the additional to default signal type
-enum LeoInitSignalData {lisdTypeInit, lisdSwingKnee};
+//enum LeoInitSignalData {lisdTypeInit, lisdSwingKnee};
 
 // Base classes for Leo
 class CLeoBhBase: public CLeoBhWalkSym

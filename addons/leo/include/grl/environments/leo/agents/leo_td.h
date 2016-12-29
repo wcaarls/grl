@@ -1,8 +1,8 @@
-/** \file black_box.h
- * \brief Black box optimization agent header file.
+/** \file leo_td.h
+ * \brief Leo temporal difference agent header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-02-13
+ * \date      2015-01-22
  *
  * \copyright \verbatim
  * Copyright (c) 2015, Wouter Caarls
@@ -25,43 +25,43 @@
  * \endverbatim
  */
 
-#ifndef GRL_BLACK_BOX_AGENT_H_
-#define GRL_BLACK_BOX_AGENT_H_
+#ifndef GRL_LEO_TD_AGENT_H_
+#define GRL_LEO_TD_AGENT_H_
 
-#include <grl/agent.h>
-#include <grl/policy.h>
-#include <grl/optimizer.h>
+#include <grl/agents/td.h>
+//#include <grl/policy.h>
+//#include <grl/predictor.h>
+//#include <grl/mutex.h>
+#include <grl/signal.h>
 
 namespace grl
 {
 
-/// Black-box learning agent.
-class BlackBoxAgent : public Agent
+/// Temporal difference learning agent for leo.
+class LeoTDAgent : public TDAgent
 {
   public:
-    TYPEINFO("agent/black_box", "Agent that learns from the cumulative reward of complete rollouts")
+    TYPEINFO("agent/td/leo", "Leo agent that learns from observed state transitions")
 
-  protected:
-    Policy *policy_;
-    Optimizer *optimizer_;
-    size_t index_, episode_, episodes_;
-    double reward_, time_;
-    
-   public:
-     BlackBoxAgent() : policy_(NULL), optimizer_(NULL), index_(0), episode_(0), episodes_(1), reward_(0), time_(0.) { }
-     
+  protected: 
+    VectorSignal *pub_transition_type_;
+
+  public:
+    LeoTDAgent() : pub_transition_type_(NULL) { }
+
     // From Configurable    
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
 
     // From Agent
-    virtual BlackBoxAgent *clone() const;
+    virtual LeoTDAgent *clone() const;
     virtual TransitionType start(const Vector &obs, Vector *action);
     virtual TransitionType step(double tau, const Vector &obs, double reward, Vector *action);
-    virtual void end(double tau, const Vector &obs, double reward);
+//    virtual void end(double tau, const Vector &obs, double reward);
+
 };
 
 }
 
-#endif /* GRL_BLACK_BOX_AGENT_H_ */
+#endif /* GRL_LEO_TD_AGENT_H_ */

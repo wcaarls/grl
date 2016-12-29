@@ -70,7 +70,7 @@ SolverAgent *SolverAgent::clone() const
   return agent;
 }
 
-void SolverAgent::start(const Vector &obs, Vector *action)
+TransitionType SolverAgent::start(const Vector &obs, Vector *action)
 {
   if (predictor_)
     predictor_->finalize();
@@ -82,17 +82,19 @@ void SolverAgent::start(const Vector &obs, Vector *action)
     solver_->solve();
   solver_->solve(obs);
 
-  policy_->act(time_, obs, action);
+  TransitionType tt = policy_->act(time_, obs, action);
   
   prev_obs_ = obs;
   prev_action_ = *action;
+
+  return tt;
 }
 
-void SolverAgent::step(double tau, const Vector &obs, double reward, Vector *action)
+TransitionType SolverAgent::step(double tau, const Vector &obs, double reward, Vector *action)
 {
   time_ += tau;
   solver_->resolve(time_, obs);
-  policy_->act(time_, obs, action);
+  TransitionType tt = policy_->act(time_, obs, action);
   
   if (predictor_)
   {
@@ -101,7 +103,9 @@ void SolverAgent::step(double tau, const Vector &obs, double reward, Vector *act
   }
 
   prev_obs_ = obs;
-  prev_action_ = *action;  
+  prev_action_ = *action;
+
+  return tt;
 }
 
 void SolverAgent::end(double tau, const Vector &obs, double reward)

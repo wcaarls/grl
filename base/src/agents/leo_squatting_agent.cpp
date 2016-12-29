@@ -55,14 +55,14 @@ LeoSquattingAgent *LeoSquattingAgent::clone() const
   return agent;
 }
 
-void LeoSquattingAgent::start(const Vector &obs, Vector *action)
+TransitionType LeoSquattingAgent::start(const Vector &obs, Vector *action)
 {
   time_ = 0.;
   agent_ = agent_standup_;
-  agent_->start(obs, action);
+  return agent_->start(obs, action);
 }
 
-void LeoSquattingAgent::step(double tau, const Vector &obs, double reward, Vector *action)
+TransitionType LeoSquattingAgent::step(double tau, const Vector &obs, double reward, Vector *action)
 {
   time_ += tau;
 
@@ -70,11 +70,10 @@ void LeoSquattingAgent::step(double tau, const Vector &obs, double reward, Vecto
     if (trigger_.check(time_, obs))
     {
       agent_ = agent_learn_;
-      agent_->start(obs, action);
-      return;
+      return agent_->start(obs, action);
     }
 
-  agent_->step(tau, obs, reward, action);
+  return agent_->step(tau, obs, reward, action);
 }
 
 void LeoSquattingAgent::end(double tau, const Vector &obs, double reward)

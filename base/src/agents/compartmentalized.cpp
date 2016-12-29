@@ -58,14 +58,14 @@ CompartmentalizedSubAgent *CompartmentalizedSubAgent::clone() const
   return NULL;
 }
 
-void CompartmentalizedSubAgent::start(const Vector &obs, Vector *action)
+TransitionType CompartmentalizedSubAgent::start(const Vector &obs, Vector *action)
 {
-  agent_->start(obs, action);
+  return agent_->start(obs, action);
 }
 
-void CompartmentalizedSubAgent::step(double tau, const Vector &obs, double reward, Vector *action)
+TransitionType CompartmentalizedSubAgent::step(double tau, const Vector &obs, double reward, Vector *action)
 {
-  agent_->step(tau, obs, reward, action);
+  return agent_->step(tau, obs, reward, action);
 }
 
 void CompartmentalizedSubAgent::end(double tau, const Vector &obs, double reward)

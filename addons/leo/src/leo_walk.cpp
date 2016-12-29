@@ -226,7 +226,7 @@ double LeoWalkEnvironment::step(const Vector &action, Vector *obs, double *rewar
 
   // Reconstruct a Leo action from a possibly reduced agent action
   bh_->parseLeoAction(action, target_action_);
-  double auto_actuated_knee_voltage = bh_->grlAutoActuateKnee();
+//  double auto_actuated_knee_voltage = bh_->grlAutoActuateKnee();
 
   // Execute action
   bh_->setPreviousSTGState(&leoState_);
@@ -259,10 +259,22 @@ double LeoWalkEnvironment::step(const Vector &action, Vector *obs, double *rewar
   // signal contact (agent may use this signal to tackle discontinuities)
   if (pub_ic_signal_)
   {
-    pub_ic_signal_->set(VectorConstructor(bh_->madeFootstep()?lstContact:lstNone, auto_actuated_knee_voltage));
-    TRACE(auto_actuated_knee_voltage);
-    //if (bh_->madeFootstep())
-    //  std::cout << "contact happened" << std::endl;
+    if (!bh_->madeFootstep())
+      pub_ic_signal_->set(VectorConstructor(lstNone));
+    else
+    {
+      const TargetInterface ti = bh_->getInterface();
+      Vector ti_actuator, ti_actuator_sym, signal;
+      toVector(ti.actuator.voltage, ti_actuator);
+      toVector(ti.actuator_sym.voltage, ti_actuator_sym);
+      signal.resize(1+2*CLeoBhBase::svNumActions);
+      // pack into a single vector
+      if (bh_->stanceLegLeft())
+        signal << VectorConstructor(lstContact), ti_actuator, ti_actuator_sym;
+      else
+        signal << VectorConstructor(lstContact), ti_actuator_sym, ti_actuator;
+      pub_ic_signal_->set(signal);
+    }
   }
 
   LeoBaseEnvironment::step(tau, *reward, *terminal);

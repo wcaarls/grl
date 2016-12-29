@@ -53,10 +53,10 @@ VoluntarySubAgent *VoluntarySubAgent::clone() const
   return NULL;
 }
 
-void VoluntarySubAgent::start(const Vector &obs, Vector *action, double *confidence)
+TransitionType VoluntarySubAgent::start(const Vector &obs, Vector *action, double *confidence)
 {
   Vector a;
-  agent_->start(obs, &a);
+  TransitionType tt = agent_->start(obs, &a);
   
   if (dim_ >= a.size())
     throw bad_param("agent/sub/voluntary:dim");
@@ -66,12 +66,14 @@ void VoluntarySubAgent::start(const Vector &obs, Vector *action, double *confide
   // Remove indicator dimension
   *action = Vector(a.size()-1);
   *action << a.leftCols(dim_), a.rightCols(a.size()-dim_-1);
+
+  return tt;
 }
 
-void VoluntarySubAgent::step(double tau, const Vector &obs, double reward, Vector *action, double *confidence)
+TransitionType VoluntarySubAgent::step(double tau, const Vector &obs, double reward, Vector *action, double *confidence)
 {
   Vector a;
-  agent_->step(tau, obs, reward, &a);
+  TransitionType tt = agent_->step(tau, obs, reward, &a);
 
   if (dim_ >= a.size())
     throw bad_param("agent/sub/voluntary:dim");
@@ -81,6 +83,8 @@ void VoluntarySubAgent::step(double tau, const Vector &obs, double reward, Vecto
   // Remove indicator dimension
   *action = Vector(a.size()-1);
   *action << a.leftCols(dim_), a.rightCols(a.size()-dim_-1);
+
+  return tt;
 }
 
 void VoluntarySubAgent::end(double tau, const Vector &obs, double reward)

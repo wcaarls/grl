@@ -61,8 +61,8 @@ class SequentialMasterAgent : public Agent
 
     // From Agent
     virtual SequentialMasterAgent *clone() const;
-    virtual void start(const Vector &obs, Vector *action);
-    virtual void step(double tau, const Vector &obs, double reward, Vector *action);
+    virtual TransitionType start(const Vector &obs, Vector *action);
+    virtual TransitionType step(double tau, const Vector &obs, double reward, Vector *action);
     virtual void end(double tau, const Vector &obs, double reward);
 };
 
@@ -84,8 +84,8 @@ class SequentialAdditiveMasterAgent : public SequentialMasterAgent
 
     // From Agent
     virtual SequentialAdditiveMasterAgent *clone() const;
-    virtual void start(const Vector &obs, Vector *action);
-    virtual void step(double tau, const Vector &obs, double reward, Vector *action);
+    virtual TransitionType start(const Vector &obs, Vector *action);
+    virtual TransitionType step(double tau, const Vector &obs, double reward, Vector *action);
     virtual void end(double tau, const Vector &obs, double reward);
 };
 

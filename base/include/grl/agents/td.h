@@ -54,11 +54,9 @@ class TDAgent : public Agent
     Predictor *predictor_;
     
     Instance<TDAgentState> agent_state_;
-    
-    VectorSignal *pub_transition_type_;
 
   public:
-    TDAgent() : policy_(NULL), predictor_(NULL), pub_transition_type_(NULL) { }
+    TDAgent() : policy_(NULL), predictor_(NULL) { }
   
     // From Configurable    
     virtual void request(ConfigurationRequest *config);
@@ -67,8 +65,8 @@ class TDAgent : public Agent
 
     // From Agent
     virtual TDAgent *clone() const;
-    virtual void start(const Vector &obs, Vector *action);
-    virtual void step(double tau, const Vector &obs, double reward, Vector *action);
+    virtual TransitionType start(const Vector &obs, Vector *action);
+    virtual TransitionType step(double tau, const Vector &obs, double reward, Vector *action);
     virtual void end(double tau, const Vector &obs, double reward);
 };
 

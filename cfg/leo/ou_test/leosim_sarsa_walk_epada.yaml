@@ -23,14 +23,12 @@ experiment:
       file: leosim_sarsa_walk_epada
       style: meshup
       variant: all
-    observation_dims: experiment/environment/target_env/observation_dims
-    action_dims: experiment/environment/target_env/action_dims
-    transition_type: 
+    sub_transition_type: 
       type: signal/vector
-    contact_signal: 
+    pub_ic_signal: 
       type: signal/vector
   agent: 
-    type: agent/td
+    type: agent/td/leo
     policy: 
       type: policy/discrete/q
       discretizer: 
@@ -54,12 +52,18 @@ experiment:
         output_min: []
         output_max: []
       sampler: 
-        type: sampler/epsilon_pada
-        rand_max: 0
-        epsilon: 0.05
-        discretizer: experiment/agent/policy/discretizer
-        delta: [1, 1, 1]
-        contact_signal: experiment/environment/contact_signal
+        type: sampler/leo/action
+        sampler: 
+          type: sampler/epsilon_pada
+          rand_max: 0
+          epsilon: 0.05
+          discretizer: experiment/agent/policy/discretizer
+          delta: [1, 1, 1]
+          sub_ic_signal: experiment/environment/pub_ic_signal
+          pub_sub_sampler_state: 
+            type: signal/vector
+        sub_ic_signal: experiment/environment/pub_ic_signal
+        pub_sub_sampler_state: experiment/agent/policy/sampler/sampler/pub_sub_sampler_state
     predictor: 
       type: predictor/sarsa
       alpha: 0.2
@@ -69,7 +73,7 @@ experiment:
       representation: experiment/agent/policy/representation
       trace: 
         type: trace/enumerated/accumulating
-    transition_type: experiment/environment/transition_type
+    pub_transition_type: experiment/environment/sub_transition_type
   test_agent: 
     type: agent/fixed
     policy: 

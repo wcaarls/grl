@@ -55,8 +55,8 @@ class FilteringAgent : public Agent
 
     // From Agent
     virtual FilteringAgent *clone() const;
-    virtual void start(const Vector &obs, Vector *action);
-    virtual void step(double tau, const Vector &obs, double reward, Vector *action);
+    virtual TransitionType start(const Vector &obs, Vector *action);
+    virtual TransitionType step(double tau, const Vector &obs, double reward, Vector *action);
     virtual void end(double tau, const Vector &obs, double reward);
 };
 
@@ -81,8 +81,8 @@ class FilteringSubAgent : public SubAgent
 
     // From SubAgent
     virtual FilteringSubAgent *clone() const;
-    virtual void start(const Vector &obs, Vector *action, double *conf);
-    virtual void step(double tau, const Vector &obs, double reward, Vector *action, double *conf);
+    virtual TransitionType start(const Vector &obs, Vector *action, double *conf);
+    virtual TransitionType step(double tau, const Vector &obs, double reward, Vector *action, double *conf);
     virtual void end(double tau, const Vector &obs, double reward);
     virtual double confidence(const Vector &obs) const;
 };

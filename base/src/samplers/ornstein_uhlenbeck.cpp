@@ -36,20 +36,20 @@ REGISTER_CONFIGURABLE(PadaOrnsteinUhlenbeckSampler)
 
 void OrnsteinUhlenbeckSampler::request(ConfigurationRequest *config)
 {
-  EpsilonGreedySampler::request(config);
+  GreedySampler::request(config);
 
   config->push_back(CRP("discretizer", "discretizer.action", "Action discretizer", discretizer_));
   config->push_back(CRP("theta", "Theta parameter of Ornstein-Uhlenbeck", theta_, CRP::Configuration));
   config->push_back(CRP("sigma", "Sigma parameter of Ornstein-Uhlenbeck", sigma_, CRP::Configuration));
   config->push_back(CRP("center", "Centering parameter of Ornstein-Uhlenbeck", center_, CRP::Configuration));
-  config->push_back(CRP("contact_signal", "signal", "Signal", env_event_, true));
+  config->push_back(CRP("sub_ic_signal", "signal/vector", "Subscriber to the initialization and contact signal from environment", sub_ic_signal_, true));
+  config->push_back(CRP("pub_sub_sampler_state", "signal/vector", "Publisher and subscriber of the sampler state with memory such as previous action, noise, etc.", pub_sub_sampler_state_, true));
 
-  config->push_back(CRP("memory", "vector/signal", "Pointer to the vector of the previous action", CRP::Provided));
 }
 
 void OrnsteinUhlenbeckSampler::configure(Configuration &config)
 {
-  EpsilonGreedySampler::configure(config);
+  GreedySampler::configure(config);
 
   discretizer_ = (Discretizer*)config["discretizer"].ptr();
 
@@ -67,14 +67,17 @@ void OrnsteinUhlenbeckSampler::configure(Configuration &config)
   for (int i = 0; i < center_.size(); i++)
     noise_scale_[i] = std::max(pos_part[i], neg_part[i]);
 
-  env_event_ = (VectorSignal*)config["contact_signal"].ptr();
+  sub_ic_signal_ = (VectorSignal*)config["sub_ic_signal"].ptr();
+  pub_sub_sampler_state_ = (VectorSignal*)config["pub_sub_sampler_state"].ptr();
 
-  config.set("memory", noise_);
+  noise_ = center_;
+  if (pub_sub_sampler_state_)
+    pub_sub_sampler_state_->set(noise_);
 }
 
 void OrnsteinUhlenbeckSampler::reconfigure(const Configuration &config)
 {
-  EpsilonGreedySampler::reconfigure(config);
+  GreedySampler::reconfigure(config);
 }
 
 OrnsteinUhlenbeckSampler *OrnsteinUhlenbeckSampler::clone()
@@ -84,31 +87,13 @@ OrnsteinUhlenbeckSampler *OrnsteinUhlenbeckSampler::clone()
   return egs;
 }
 
-void OrnsteinUhlenbeckSampler::env_event_processor()
+void OrnsteinUhlenbeckSampler::env_signal_processor()
 {
-  LargeVector data = env_event_->get();
-
-  // Calculate noise
-  if (data.size())
+  if (sub_ic_signal_)
   {
-    // start function (sig[5] == 1) => noise is zero
-    if (data[5])
+    LargeVector signal = sub_ic_signal_->get();
+    if (signal[0] == sigEnvInit)
       noise_ = center_;
-
-    // mirror if needed
-    if (data[0])
-    {
-      int hipright, hipleft, kneeleft;
-      hipright = data[2];
-      hipleft  = data[3];
-      kneeleft = data[4];
-      TRACE(noise_);
-      double tmp = noise_[hipright];
-      noise_[hipright] = noise_[hipleft];
-      noise_[hipleft] = tmp;
-      noise_[kneeleft] = 0;
-      TRACE(noise_);
-    }
   }
 }
 
@@ -118,7 +103,6 @@ void OrnsteinUhlenbeckSampler::evolve_noise()
   for (int i = 0; i < noise_.size(); i++)
     noise_[i] = noise_[i] + theta_[i] * (center_[i] - noise_[i])+ sigma_[i] * rand_->getNormal(0, 1);
   TRACE(noise_);
-  memory_->set(noise_);
 }
 
 void OrnsteinUhlenbeckSampler::mix_signal_noise(const Vector &in, const Vector &noise, IndexVector &out) const
@@ -136,12 +120,15 @@ void OrnsteinUhlenbeckSampler::mix_signal_noise(const Vector &in, const Vector &
 
 size_t OrnsteinUhlenbeckSampler::sample(const LargeVector &values, TransitionType &tt)
 {
+  if (pub_sub_sampler_state_)
+    noise_ = pub_sub_sampler_state_->get();
+
   // Greedy action selection
   size_t offset = GreedySampler::sample(values, tt);
   TRACE(discretizer_->at(offset));
 
   // Supress noise at the start of an episode and beginning of the step (?)
-  env_event_processor();
+  env_signal_processor();
   TRACE(noise_);
 
   // add noise to a signal
@@ -153,23 +140,37 @@ size_t OrnsteinUhlenbeckSampler::sample(const LargeVector &values, TransitionTyp
   // find value index of the sample and keep it for nex run
   offset = discretizer_->offset(state_idx);
 
+  if (pub_sub_sampler_state_)
+    pub_sub_sampler_state_->set(noise_);
+
   tt = ttExploratory;
   return offset;
 }
 
 //////////////////////////////////////////////////////////
+void ACOrnsteinUhlenbeckSampler::request(ConfigurationRequest *config)
+{
+  OrnsteinUhlenbeckSampler::request(config);
+  config->push_back(CRP("epsilon", "Exploration rate", epsilon_, CRP::Online));
+}
 
 void ACOrnsteinUhlenbeckSampler::configure(Configuration &config)
 {
   OrnsteinUhlenbeckSampler::configure(config);
+  epsilon_ = config["epsilon"];
 
   IndexVector center_idx;
   center_idx.resize(center_.size());
   discretizer_->discretize(center_, &center_idx);
   offset_ = discretizer_->offset(center_idx);
 
-  Vector smp_vec = discretizer_->at(offset_);
-  config.set("memory", smp_vec);
+  if (pub_sub_sampler_state_)
+    pub_sub_sampler_state_->set(center_);
+}
+
+void ACOrnsteinUhlenbeckSampler::reconfigure(const Configuration &config)
+{
+  config.get("epsilon", epsilon_);
 }
 
 ACOrnsteinUhlenbeckSampler *ACOrnsteinUhlenbeckSampler::clone()
@@ -181,32 +182,18 @@ ACOrnsteinUhlenbeckSampler *ACOrnsteinUhlenbeckSampler::clone()
 
 size_t ACOrnsteinUhlenbeckSampler::sample(const LargeVector &values, TransitionType &tt)
 {
-  LargeVector data = env_event_->get();
+  LargeVector signal = sub_ic_signal_->get();
 
-  if (rand_->get() < epsilon_ && data[5] == 0) // start function (sig[5] == 1) => any action is possible
+  if (rand_->get() < epsilon_ && signal[0] != sigEnvInit)
   {
     tt = ttExploratory;
 
-    // convert array index to values
-    Vector smp_vec = discretizer_->at(offset_);//state_variants_[offset_];
-
-    // mirror if needed
-    if (data.size() && data[0])
-    {
-      int hipright, hipleft, kneeleft;
-      hipright = data[2];
-      hipleft  = data[3];
-      kneeleft = data[4];
-
-      TRACE(smp_vec);
-      double tmp = smp_vec[hipright];
-      smp_vec[hipright] = smp_vec[hipleft];
-      smp_vec[hipleft] = tmp;
-
-      smp_vec[kneeleft] = data[1];
-    }
-    if (data.size() && data[5])
-      TRACE("Error: No OU at start");
+    // read previous action values
+    Vector smp_vec;
+    if (pub_sub_sampler_state_)
+      smp_vec = pub_sub_sampler_state_->get();
+    else
+      smp_vec = discretizer_->at(offset_);
     TRACE(smp_vec);
 
     // pertub action according to Ornstein-Uhlenbeck
@@ -227,8 +214,11 @@ size_t ACOrnsteinUhlenbeckSampler::sample(const LargeVector &values, TransitionT
   else
     offset_ = GreedySampler::sample(values, tt);
 
-  Vector smp_vec = discretizer_->at(offset_);
-  memory_->set(smp_vec);
+  if (pub_sub_sampler_state_)
+  {
+    Vector smp_vec = discretizer_->at(offset_);
+    pub_sub_sampler_state_->set(smp_vec);
+  }
 
   return offset_;
 }
@@ -261,11 +251,14 @@ EpsilonOrnsteinUhlenbeckSampler *EpsilonOrnsteinUhlenbeckSampler::clone()
 
 size_t EpsilonOrnsteinUhlenbeckSampler::sample(const LargeVector &values, TransitionType &tt)
 {
+  if (pub_sub_sampler_state_)
+    noise_ = pub_sub_sampler_state_->get();
+
   size_t offset = GreedySampler::sample(values, tt);
   TRACE(discretizer_->at(offset));
 
   // Supress noise at the start of an episode
-  env_event_processor();
+  env_signal_processor();
   TRACE(noise_);
 
   // Take next noise value
@@ -285,6 +278,9 @@ size_t EpsilonOrnsteinUhlenbeckSampler::sample(const LargeVector &values, Transi
     TRACE(discretizer_->at(offset));
   }
 
+  if (pub_sub_sampler_state_)
+    pub_sub_sampler_state_->set(noise_);
+
   return offset;
 }
 
@@ -299,7 +295,12 @@ void PadaOrnsteinUhlenbeckSampler::request(ConfigurationRequest *config)
 void PadaOrnsteinUhlenbeckSampler::configure(Configuration &config)
 {
   OrnsteinUhlenbeckSampler::configure(config);
-  pada_.configure(config);
+
+  // Since we prescribe the offset, the default implementation of PADA should work
+  // (pub_sub_sampler_state_ should not be used inside)
+  Configuration config_copy = config;
+  config_copy.set("pub_sub_sampler_state", NULL);
+  pada_.configure(config_copy);
 
   IndexVector center_idx;
   center_idx.resize(center_.size());
@@ -321,12 +322,15 @@ PadaOrnsteinUhlenbeckSampler *PadaOrnsteinUhlenbeckSampler::clone()
 
 size_t PadaOrnsteinUhlenbeckSampler::sample(const LargeVector &values, TransitionType &tt)
 {
+  if (pub_sub_sampler_state_)
+    noise_ = pub_sub_sampler_state_->get();
+
   pada_.set_offset(offset_);
   offset_ = pada_.sample(values, tt);
   TRACE(discretizer_->at(offset_));
 
   // Supress noise at the start of an episode
-  env_event_processor();
+  env_signal_processor();
   TRACE(noise_);
 
   // Take next noise value
@@ -340,6 +344,9 @@ size_t PadaOrnsteinUhlenbeckSampler::sample(const LargeVector &values, Transitio
 
   offset_ = discretizer_->offset(state_idx);
   TRACE(discretizer_->at(offset_));
+
+  if (pub_sub_sampler_state_)
+     pub_sub_sampler_state_->set(noise_);
 
   tt = ttExploratory;
   return offset_;

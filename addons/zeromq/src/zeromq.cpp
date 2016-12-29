@@ -195,16 +195,20 @@ ZeromqAgent *ZeromqAgent::clone() const
   return new ZeromqAgent(*this);
 }
 
-void ZeromqAgent::start(const Vector &obs, Vector *action)
+TransitionType ZeromqAgent::start(const Vector &obs, Vector *action)
 {
   action->resize(action_dims_);
   communicate(obs, 0, 0, action);
+
+  return ttUndefined;
 }
 
-void ZeromqAgent::step(double tau, const Vector &obs, double reward, Vector *action)
+TransitionType ZeromqAgent::step(double tau, const Vector &obs, double reward, Vector *action)
 {
   action->resize(action_dims_);
   communicate(obs, reward, 0, action);
+
+  return ttUndefined;
 }
 
 void ZeromqAgent::end(double tau, const Vector &obs, double reward)

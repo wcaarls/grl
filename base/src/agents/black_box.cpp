@@ -66,7 +66,7 @@ BlackBoxAgent *BlackBoxAgent::clone() const
   return agent;
 }
 
-void BlackBoxAgent::start(const Vector &obs, Vector *action)
+TransitionType BlackBoxAgent::start(const Vector &obs, Vector *action)
 {
   if (++episode_ == episodes_)
   {
@@ -82,15 +82,15 @@ void BlackBoxAgent::start(const Vector &obs, Vector *action)
   }
 
   time_ = 0.;
-  policy_->act(time_, obs, action);
+  return policy_->act(time_, obs, action);
 }
 
-void BlackBoxAgent::step(double tau, const Vector &obs, double reward, Vector *action)
+TransitionType BlackBoxAgent::step(double tau, const Vector &obs, double reward, Vector *action)
 {
   reward_ += reward;
   time_ += tau;
 
-  policy_->act(time_, obs, action);
+  return policy_->act(time_, obs, action);
 }
 
 void BlackBoxAgent::end(double tau, const Vector &obs, double reward)

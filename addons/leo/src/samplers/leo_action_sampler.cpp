@@ -68,19 +68,37 @@ size_t LeoActionSampler::sample(const LargeVector &values, TransitionType &tt)
   if (sub_ic_signal_)
   {
     LargeVector signal = sub_ic_signal_->get();
-    LargeVector memory = pub_sub_sampler_state_->get(); // must hold either actual values of action or noise (not indexed arrays)
-    if (signal[lisdTypeInit] == lstContact)
+    LargeVector sampler_state = pub_sub_sampler_state_->get(); // must hold either actual values of action or noise (not indexed arrays)
+    if (signal[0] == lstContact)
     {
-      // Takes care of Leo body symmetry
-      TRACE (memory);
-      double tmp = memory[0];
-      memory[0] = memory[1];              // hipright
-      memory[1] = tmp;                    // hipleft
-      memory[2] = signal[lisdSwingKnee];  // kneeleft
-      TRACE (memory);
+      // Take care of Leo body symmetry, if required!
+      TRACE (sampler_state);
+      LargeVector sampler_state_new = sampler_state;
+      LargeVector ti_actuator_to = signal.block(0, 1, 1, CLeoBhBase::svNumActions);
+      TRACE(ti_actuator_to);
+      LargeVector ti_actuator_from = signal.block(0, 1+CLeoBhBase::svNumActions, 1, CLeoBhBase::svNumActions);
+      TRACE(ti_actuator_from);
+
+      // Weak point of the implementation: auto-actuated knee is not supported properly.
+      // A simplification is made: if knee is autoactuated, then at the moment of contact
+      // knee action or noise is set to 0 (iven if noise is centered not around 0)
+      // Good thing to know is that auto-actuated knee action is usually small, around 0,
+      // therefore if PADA selects a new action, 0 is a good choice.
+      for (int i = 0; i < CLeoBhBase::svNumActions; i++)
+      {
+        if (ti_actuator_from[i] != -1)
+        {
+          if (i > 0 && ti_actuator_from[i] == ti_actuator_from[i-1])
+            sampler_state_new[ti_actuator_to[i]] = 0; // two same consecutive indexies mean that knee is autoactuated
+          else
+            sampler_state_new[ti_actuator_to[i]] = sampler_state[ti_actuator_from[i]];
+        }
+      }
+
+      TRACE (sampler_state_new);
 
       // update memory which will be used in the sample() call below
-      pub_sub_sampler_state_->set(memory);
+      pub_sub_sampler_state_->set(sampler_state_new);
     }
   }
 

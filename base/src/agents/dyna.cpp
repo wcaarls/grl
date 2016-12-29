@@ -102,12 +102,12 @@ DynaAgent *DynaAgent::clone() const
   return agent;
 }
 
-void DynaAgent::start(const Vector &obs, Vector *action)
+TransitionType DynaAgent::start(const Vector &obs, Vector *action)
 {
   predictor_->finalize();
   
   time_= 0.;
-  policy_->act(time_, obs, action);
+  TransitionType tt = policy_->act(time_, obs, action);
   
   prev_obs_ = obs;
   prev_action_ = *action;
@@ -115,12 +115,14 @@ void DynaAgent::start(const Vector &obs, Vector *action)
 
   if (threads_ && agent_threads_.empty())
     startThreads();
+
+  return tt;
 }
 
-void DynaAgent::step(double tau, const Vector &obs, double reward, Vector *action)
+TransitionType DynaAgent::step(double tau, const Vector &obs, double reward, Vector *action)
 {
   time_ += tau;
-  policy_->act(time_, obs, action);
+  TransitionType tt = policy_->act(time_, obs, action);
   
   Transition t(prev_obs_, prev_action_, reward, obs, *action);
   predictor_->update(t);
@@ -136,6 +138,8 @@ void DynaAgent::step(double tau, const Vector &obs, double reward, Vector *actio
   actual_reward_ += reward;  
   control_steps_++;
   total_control_steps_++;
+
+  return tt;
 }
 
 void DynaAgent::end(double tau, const Vector &obs, double reward)

@@ -103,28 +103,32 @@ FilteringAgent *FilteringAgent::clone() const
   return agent;
 }
 
-void FilteringAgent::start(const Vector &obs, Vector *action)
+TransitionType FilteringAgent::start(const Vector &obs, Vector *action)
 {
   Vector downstream_obs = reindex(obs, observation_idx_), downstream_action;
   
   if (action->size())
     downstream_action = reindex(*action, inv_action_idx_);
   
-  agent_->start(downstream_obs, &downstream_action);
+  TransitionType tt = agent_->start(downstream_obs, &downstream_action);
   
   *action = reindex(downstream_action, action_idx_);
+
+  return tt;
 }
 
-void FilteringAgent::step(double tau, const Vector &obs, double reward, Vector *action)
+TransitionType FilteringAgent::step(double tau, const Vector &obs, double reward, Vector *action)
 {
   Vector downstream_obs = reindex(obs, observation_idx_), downstream_action;
   
   if (action->size())
     downstream_action = reindex(*action, inv_action_idx_);
   
-  agent_->step(tau, downstream_obs, reward, &downstream_action);
+  TransitionType tt = agent_->step(tau, downstream_obs, reward, &downstream_action);
   
   *action = reindex(downstream_action, action_idx_);
+
+  return tt;
 }
 
 void FilteringAgent::end(double tau, const Vector &obs, double reward)
@@ -167,28 +171,32 @@ FilteringSubAgent *FilteringSubAgent::clone() const
   return agent;
 }
 
-void FilteringSubAgent::start(const Vector &obs, Vector *action, double *conf)
+TransitionType FilteringSubAgent::start(const Vector &obs, Vector *action, double *conf)
 {
   Vector downstream_obs = reindex(obs, observation_idx_), downstream_action;
   
   if (action->size())
     downstream_action = reindex(*action, inv_action_idx_);
   
-  agent_->start(downstream_obs, &downstream_action, conf);
+  TransitionType tt = agent_->start(downstream_obs, &downstream_action, conf);
   
   *action = reindex(downstream_action, action_idx_);
+
+  return tt;
 }
 
-void FilteringSubAgent::step(double tau, const Vector &obs, double reward, Vector *action, double *conf)
+TransitionType FilteringSubAgent::step(double tau, const Vector &obs, double reward, Vector *action, double *conf)
 {
   Vector downstream_obs = reindex(obs, observation_idx_), downstream_action;
   
   if (action->size())
     downstream_action = reindex(*action, inv_action_idx_);
   
-  agent_->step(tau, downstream_obs, reward, &downstream_action, conf);
+  TransitionType tt = agent_->step(tau, downstream_obs, reward, &downstream_action, conf);
   
   *action = reindex(downstream_action, action_idx_);
+
+  return tt;
 }
 
 void FilteringSubAgent::end(double tau, const Vector &obs, double reward)

@@ -129,8 +129,8 @@ class ZeromqAgent : public Agent
 
     // From Policy
     virtual ZeromqAgent *clone() const;
-    virtual void start(const Vector &obs, Vector *action);
-    virtual void step(double tau, const Vector &obs, double reward, Vector *action);
+    virtual TransitionType start(const Vector &obs, Vector *action);
+    virtual TransitionType step(double tau, const Vector &obs, double reward, Vector *action);
     virtual void end(double tau, const Vector &obs, double reward);
 
     //virtual void act(double time, const Vector &in, Vector *out);

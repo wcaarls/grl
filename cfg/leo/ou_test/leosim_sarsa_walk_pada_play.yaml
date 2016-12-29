@@ -18,12 +18,10 @@ experiment:
       visualize: 1
     observe: torso_boom, hipright, hipleft, kneeright, kneeleft
     actuate: hipright, hipleft, stanceknee
-    observation_dims: experiment/environment/target_env/observation_dims
-    action_dims: experiment/environment/target_env/action_dims
-    contact_signal: 
+    pub_ic_signal: 
       type: signal/vector
   agent: 
-    type: agent/td
+    type: agent/td/leo
     policy: 
       type: policy/discrete/q
       discretizer: 
@@ -47,13 +45,18 @@ experiment:
         output_min: []
         output_max: []
       sampler: 
-        type: sampler/pada
-        rand_max: 0
-        epsilon: 0.05
-        discretizer: experiment/agent/policy/discretizer
-        steps: experiment/agent/policy/discretizer/steps
-        delta: [1, 1, 1]
-        contact_signal: experiment/environment/contact_signal
+        type: sampler/leo/action
+        sampler: 
+          type: sampler/pada
+          rand_max: 0
+          epsilon: 0.05
+          discretizer: experiment/agent/policy/discretizer
+          delta: [1, 1, 1]
+          sub_ic_signal: experiment/environment/pub_ic_signal
+          pub_sub_sampler_state: 
+            type: signal/vector
+        sub_ic_signal: experiment/environment/pub_ic_signal
+        pub_sub_sampler_state: experiment/agent/policy/sampler/sampler/pub_sub_sampler_state
     predictor: 
       type: predictor/sarsa
       alpha: 0.2
@@ -63,6 +66,7 @@ experiment:
       representation: experiment/agent/policy/representation
       trace: 
         type: trace/enumerated/accumulating
+    pub_transition_type: experiment/environment/sub_transition_type
   test_agent: 
     type: agent/fixed
     policy: 
@@ -71,12 +75,15 @@ experiment:
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
       sampler: 
-        type: sampler/pada
-        rand_max: 0
-        epsilon: 0.0
-        discretizer: experiment/agent/policy/discretizer
-        steps: experiment/agent/policy/discretizer/steps
-        delta: experiment/agent/policy/sampler/delta
-        contact_signal: experiment/environment/contact_signal
-  load_file: leo_ou_test_leosim_sarsa_walk_pada-mp4-run0
+        type: sampler/leo/action
+        sampler: 
+          type: sampler/pada
+          rand_max: 0
+          epsilon: 0.0
+          discretizer: experiment/agent/policy/discretizer
+          delta: experiment/agent/policy/sampler/sampler/delta
+          sub_ic_signal: experiment/environment/pub_ic_signal
+          pub_sub_sampler_state: experiment/agent/policy/sampler/sampler/pub_sub_sampler_state
+        sub_ic_signal: experiment/environment/pub_ic_signal
+        pub_sub_sampler_state: experiment/agent/policy/sampler/sampler/pub_sub_sampler_state
   save_every: never
