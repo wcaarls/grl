@@ -41,7 +41,7 @@ namespace grl
 /// Maximum search with a PADA random chance of non-maximums.
 /// For details see "Learning while preventing mechanical failure due to random motions"
 /// by H. J. Meijdam, M. C. Plooij and W. Caarls
-class PADASampler : public EpsilonGreedySampler
+class PadaSampler : public EpsilonGreedySampler
 {
   public:
     TYPEINFO("sampler/pada", "Maximum search with a PADA random chance of non-maximums")
@@ -50,10 +50,12 @@ class PADASampler : public EpsilonGreedySampler
     Discretizer *discretizer_;
     size_t offset_;
     Vector delta_;
-    VectorSignal *env_event_;
+    VectorSignal *sub_ic_signal_;
+
+    VectorSignal *pub_sub_sampler_state_;
 
   public:
-    PADASampler() : offset_(0) { }
+    PadaSampler() : offset_(0) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -61,30 +63,30 @@ class PADASampler : public EpsilonGreedySampler
     virtual void reconfigure(const Configuration &config);
 
     // From Sampler
-    virtual PADASampler *clone();
+    virtual PadaSampler *clone();
     virtual size_t sample(const LargeVector &values, TransitionType &tt);
 
   public:
     virtual void set_offset(size_t offset) { offset_ = offset; }
 
   protected:
-    virtual Vector env_event_processor();
+    virtual Vector env_signal_processor();
     virtual void get_bounds(size_t offset, Vector &delta, IndexVector &lower_bound, IndexVector &upper_bound) const;
     virtual size_t exploration_step(Discretizer::bounded_iterator &bit) const;
     virtual size_t exploitation_step(const LargeVector &values, Discretizer::bounded_iterator &bit) const;
 };
 
 
-class EpsilonPADASampler : public PADASampler
+class EpsilonPadaSampler : public PadaSampler
 {
   public:
     TYPEINFO("sampler/epsilon_pada", "exploitations are done by greedy action selection without constraints, as in e-greedy. Explorations are done with constrained set of actions, as it is in pada.")
 
   public:
-    EpsilonPADASampler() { }
+    EpsilonPadaSampler() { }
 
     // From Sampler
-    virtual EpsilonPADASampler *clone();
+    virtual EpsilonPadaSampler *clone();
     virtual size_t sample(const LargeVector &values, TransitionType &tt);
 };
 

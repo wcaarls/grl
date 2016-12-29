@@ -1,8 +1,8 @@
-/** \file greedy.h
- * \brief Greedy and Epsilon-greedy samplers header file.
+/** \file leo_action_sampler.h
+ * \brief Wrapper for an action sampler for Leo which supports contact signals (header file).
  *
- * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-01-22
+ * \author    Ivan Koryakovskiy <i.koryakovskiy@tudelft.nl>
+ * \date      2016-09-30
  *
  * \copyright \verbatim
  * Copyright (c) 2015, Wouter Caarls
@@ -25,63 +25,44 @@
  * \endverbatim
  */
 
-#ifndef GRL_GREEDY_SAMPLER_H_
-#define GRL_GREEDY_SAMPLER_H_
+#ifndef GRL_LEO_ACTION_SAMPLER_H_
+#define GRL_LEO_ACTION_SAMPLER_H_
 
 #include <grl/sampler.h>
 #include <grl/utils.h>
+#include <grl/grl.h>
+#include <grl/discretizer.h>
+#include <grl/signal.h>
 
 namespace grl
 {
 
-/// Maximum search.
-class GreedySampler : public Sampler
+class LeoActionSampler : public Sampler
 {
   public:
-    TYPEINFO("sampler/greedy", "Maximum search")
+    TYPEINFO("sampler/leo/action", "Wrapper for an action sampler for Leo (can modify memory of samplers with memory at contact events)")
 
   protected:
-    Rand *rand_;
-    int rand_max_;
+    Sampler *sampler_;
+    VectorSignal *sub_ic_signal_;
+    VectorSignal *pub_sub_sampler_state_;
+
+//    Discretizer *discretizer_;
 
   public:
-    GreedySampler() : rand_(NULL), rand_max_(0) { }
-    ~GreedySampler() { if (rand_) { delete rand_; rand_ = NULL;} }
+    LeoActionSampler() { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
-  
+
     // From Sampler
-    virtual GreedySampler *clone();
-    virtual size_t sample(const LargeVector &values, TransitionType &tt);
-    virtual void distribution(const LargeVector &values, LargeVector *distribution);
-};
-
-/// Maximum search with a uniform random chance of non-maximums.
-class EpsilonGreedySampler : public GreedySampler
-{
-  public:
-    TYPEINFO("sampler/epsilon_greedy", "Maximum search with a uniform random chance of non-maximums")
-
-  protected:
-    double epsilon_;
-
-  public:
-    EpsilonGreedySampler() : epsilon_(0.05) { }
-  
-    // From Configurable
-    virtual void request(ConfigurationRequest *config);
-    virtual void configure(Configuration &config);
-    virtual void reconfigure(const Configuration &config);
-  
-    // From Sampler
-    virtual EpsilonGreedySampler *clone();
+    virtual LeoActionSampler *clone();
     virtual size_t sample(const LargeVector &values, TransitionType &tt);
     virtual void distribution(const LargeVector &values, LargeVector *distribution);
 };
 
 }
 
-#endif /* GRL_GREEDY_SAMPLER_H_ */
+#endif /* GRL_LEO_ACTION_SAMPLER_H_ */

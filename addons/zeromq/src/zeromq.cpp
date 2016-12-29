@@ -115,8 +115,8 @@ void CommunicatorEnvironment::configure(Configuration &config)
       throw bad_param("environment/communicator:target_action_dims_");
   }
 
-  obs_conv.resize(target_obs_dims_);
-  action_conv.resize(target_action_dims_);
+  obs_conv_.resize(target_obs_dims_);
+  action_conv_.resize(target_action_dims_);
 }
 
 void CommunicatorEnvironment::reconfigure(const Configuration &config)
@@ -131,19 +131,19 @@ CommunicatorEnvironment *CommunicatorEnvironment::clone() const
 
 void CommunicatorEnvironment::start(int test, Vector *obs)
 {
-  communicator_->recv(obs_conv);
+  communicator_->recv(obs_conv_);
   clock_gettime(CLOCK_MONOTONIC, &time_begin_);
-  converter_->convert_state(obs_conv, *obs);
+  converter_->convert_state(obs_conv_, *obs);
 }
 
 double CommunicatorEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)
 {
   timespec time_end;
-  converter_->convert_action(action, action_conv);
-  communicator_->send(action_conv);
-  communicator_->recv(obs_conv);  // Non-blocking, therefore it gets the most recently transmitted state
+  converter_->convert_action(action, action_conv_);
+  communicator_->send(action_conv_);
+  communicator_->recv(obs_conv_);  // Non-blocking, therefore it gets the most recently transmitted state
   clock_gettime(CLOCK_MONOTONIC, &time_end);
-  converter_->convert_state(obs_conv, *obs);
+  converter_->convert_state(obs_conv_, *obs);
 
   double tau = (time_end.tv_sec - time_begin_.tv_sec) + (static_cast<double>(time_end.tv_nsec - time_begin_.tv_nsec))/1.0e9;
   time_begin_ = time_end;

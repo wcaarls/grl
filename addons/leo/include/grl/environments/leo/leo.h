@@ -10,10 +10,6 @@
 
 namespace grl
 {
-
-#define MAX(x, y) (((x) > (y)) ? (x) : (y))
-#define MIN(x, y) (((x) < (y)) ? (x) : (y))
-
 struct TargetInterface
 {
   struct ObserverInterface
@@ -33,6 +29,9 @@ struct TargetInterface
   ActuatorInterface actuator;     // used for stance leg being left
   ActuatorInterface actuator_sym; // used for stance leg being right
 };
+
+enum LeoSignalType {lstNone = sigEnvNone, lstInit = sigEnvInit, lstContact}; // Leo has the additional to default signal type
+enum LeoInitSignalData {lisdTypeInit, lisdSwingKnee};
 
 // Base classes for Leo
 class CLeoBhBase: public CLeoBhWalkSym
@@ -199,7 +198,7 @@ class LeoBaseEnvironment: public Environment
                      TargetInterface::ActuatorInterface &int_actuator) const;
 
   private:
-    VectorSignal *transition_type_;
+    VectorSignal *sub_transition_type_;
 };
 
 }

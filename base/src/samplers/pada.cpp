@@ -1,4 +1,4 @@
-/** \file pada.h
+/** \file pada.cpp
  * \brief PADA samplers source file.
  *
  * \author    Ivan Koryakovskiy <i.koryakovskiy@tudelft.nl>
@@ -29,24 +29,27 @@
 
 using namespace grl;
 
-REGISTER_CONFIGURABLE(PADASampler)
-REGISTER_CONFIGURABLE(EpsilonPADASampler)
+REGISTER_CONFIGURABLE(PadaSampler)
+REGISTER_CONFIGURABLE(EpsilonPadaSampler)
 
-void PADASampler::request(ConfigurationRequest *config)
+void PadaSampler::request(ConfigurationRequest *config)
 {
   EpsilonGreedySampler::request(config);
 
   config->push_back(CRP("discretizer", "discretizer.action", "Action discretizer", discretizer_));
   config->push_back(CRP("delta", "Delta of PADA", delta_, CRP::Configuration));
-  config->push_back(CRP("contact_signal", "signal", "Signal", env_event_, true));
+  config->push_back(CRP("sub_ic_signal", "signal/vector", "Subscriber to the initialization and contact signal from environment", sub_ic_signal_, true));
+  config->push_back(CRP("pub_sub_sampler_state", "signal/vector", "Publisher and subscriber of the sampler state with memory such as previous action, noise, etc.", pub_sub_sampler_state_, true));
 }
 
-void PADASampler::configure(Configuration &config)
+void PadaSampler::configure(Configuration &config)
 {
   EpsilonGreedySampler::configure(config);
 
   discretizer_ = (Discretizer*)config["discretizer"].ptr();
   delta_ = config["delta"].v();
+  sub_ic_signal_ = (VectorSignal*)config["sub_ic_signal"].ptr();
+  pub_sub_sampler_state_ = (VectorSignal*)config["pub_sub_sampler_state"].ptr();
 
   for (int i = 0; i < delta_.size(); i++)
     if (delta_[i] < 0)
@@ -57,58 +60,30 @@ void PADASampler::configure(Configuration &config)
   discretizer_->discretize(initial_state, &state_idx);
   offset_ = discretizer_->offset(state_idx);
 
-  env_event_ = (VectorSignal*)config["contact_signal"].ptr();
+  if (pub_sub_sampler_state_)
+    pub_sub_sampler_state_->set(initial_state);
 }
 
-void PADASampler::reconfigure(const Configuration &config)
+void PadaSampler::reconfigure(const Configuration &config)
 {
   EpsilonGreedySampler::reconfigure(config);
 }
 
-PADASampler *PADASampler::clone()
+PadaSampler *PadaSampler::clone()
 {
-  PADASampler *egs = new PADASampler(*this);
+  PadaSampler *egs = new PadaSampler(*this);
   egs->rand_ = rand_->clone();
   return egs;
 }
 
-Vector PADASampler::env_event_processor()
+Vector PadaSampler::env_signal_processor()
 {
   Vector delta = delta_;
-  LargeVector data = env_event_->get();
-  if (data.size())
+
+  if (sub_ic_signal_)
   {
-    if (data[0])
-    {
-      // contact happened
-      int hipright, hipleft, kneeleft;
-      hipright = data[2];
-      hipleft  = data[3];
-      kneeleft = data[4];
-
-      TRACE(offset_);
-      IndexVector state_idx;
-      discretizer_->at(offset_, &state_idx);
-      size_t tmp = state_idx[hipright];
-      state_idx[hipright] = state_idx[hipleft];
-      state_idx[hipleft] = tmp;
-
-      const double prev_knee_auto_actuated = data[1];
-      double nearest = DBL_MAX;
-      for (int i = 0; i < discretizer_->steps()[kneeleft]; i++)
-      {
-        double v = (i-3)*(10.7/3);
-        if (fabs(prev_knee_auto_actuated - nearest) > fabs(prev_knee_auto_actuated - v))
-        {
-          nearest = v;
-          state_idx[kneeleft] = i;
-        }
-      }
-      offset_ = discretizer_->offset(state_idx);
-      TRACE(offset_);
-    }
-
-    if (data[5]) // start function => any action is possible
+    LargeVector signal = sub_ic_signal_->get();
+    if (signal[0] == sigEnvInit)
     {
       for (int ii = 0; ii < delta.size(); ii++)
         delta[ii] = INT_MAX;
@@ -116,14 +91,14 @@ Vector PADASampler::env_event_processor()
   }
 
   //--------------------------------------
-  // Uncomment for any signal for the knee
+  // Uncomment for any signal for the knee (debug)
   // delta[0] = delta[1] = delta[2] = INT_MAX;
   //--------------------------------------
 
   return delta;
 }
 
-void PADASampler::get_bounds(size_t offset, Vector &delta, IndexVector &lower_bound, IndexVector &upper_bound) const
+void PadaSampler::get_bounds(size_t offset, Vector &delta, IndexVector &lower_bound, IndexVector &upper_bound) const
 {
   // select indexes of upper and lower bounds
   IndexVector state_idx;
@@ -139,7 +114,7 @@ void PADASampler::get_bounds(size_t offset, Vector &delta, IndexVector &lower_bo
   TRACE(upper_bound);
 }
 
-size_t PADASampler::exploration_step(Discretizer::bounded_iterator &bit) const
+size_t PadaSampler::exploration_step(Discretizer::bounded_iterator &bit) const
 {
   IndexVector rnd_idx = IndexVector::Constant(delta_.size(), 0);
   for (int i = 0; i < delta_.size(); i++)
@@ -149,35 +124,47 @@ size_t PADASampler::exploration_step(Discretizer::bounded_iterator &bit) const
   return discretizer_->offset(rnd_idx);
 }
 
-size_t PADASampler::exploitation_step(const LargeVector &values, Discretizer::bounded_iterator &bit) const
+size_t PadaSampler::exploitation_step(const LargeVector &values, Discretizer::bounded_iterator &bit) const
 {
   size_t loop_offset, max_offset = bit.offset();
-  TRACE(*bit);
+  CRAWL(*bit);
   while (bit != bit.end())
   {
     ++bit;
-    TRACE(*bit);
+    CRAWL(*bit);
     loop_offset = bit.offset();
     if (values[loop_offset] > values[max_offset])
     {
       max_offset = loop_offset;
-      TRACE(values[max_offset]);
+      CRAWL(values[max_offset]);
     }
   }
 /*
   // Verification test: best action with no bounds
   TransitionType tt;
-  size_t greedy_idx = GreedySampler::sample(values, tt);
-  if (greedy_idx != max_idx)
+  GreedySampler gs;
+  size_t greedy_offset = const_cast<GreedySampler*>(&gs)->sample(values, tt);
+  if (greedy_offset != max_offset)
     std::cout << "Not correct action" << std::endl;
 */
   return max_offset;
 }
 
-size_t PADASampler::sample(const LargeVector &values, TransitionType &tt)
+size_t PadaSampler::sample(const LargeVector &values, TransitionType &tt)
 {
+  if (pub_sub_sampler_state_)
+  {
+    // offset is updated only if sampler_state is modified, i.e. contact happend for Leo
+    IndexVector action_idx;
+    Vector action = pub_sub_sampler_state_->get();
+    TRACE(action);
+    discretizer_->discretize(action, &action_idx);
+    TRACE(action_idx);
+    offset_ = discretizer_->offset(action_idx);
+  }
+
   IndexVector lower_bound, upper_bound;
-  Vector delta = env_event_processor();
+  Vector delta = env_signal_processor();
   get_bounds(offset_, delta, lower_bound, upper_bound);
 
   Discretizer::bounded_iterator bit = Discretizer::bounded_iterator(discretizer_, Vector(), lower_bound, lower_bound, upper_bound);
@@ -191,25 +178,40 @@ size_t PADASampler::sample(const LargeVector &values, TransitionType &tt)
     tt = ttGreedy;
     offset_ = exploitation_step(values, bit);
   }
+
+  if (pub_sub_sampler_state_)
+    pub_sub_sampler_state_->set(discretizer_->at(offset_));
+
   return offset_;
 }
 
 //////////////////////////////////////////////////////////
 
-EpsilonPADASampler *EpsilonPADASampler::clone()
+EpsilonPadaSampler *EpsilonPadaSampler::clone()
 {
-  EpsilonPADASampler *egs = new EpsilonPADASampler(*this);
+  EpsilonPadaSampler *egs = new EpsilonPadaSampler(*this);
   egs->rand_ = rand_->clone();
   return egs;
 }
 
-size_t EpsilonPADASampler::sample(const LargeVector &values, TransitionType &tt)
+size_t EpsilonPadaSampler::sample(const LargeVector &values, TransitionType &tt)
 {
   if (rand_->get() < epsilon_)
   {
+    if (pub_sub_sampler_state_)
+    {
+      // offset is updated only if sampler_state is modified, i.e. contact happend for Leo
+      IndexVector action_idx;
+      Vector action = pub_sub_sampler_state_->get();
+      TRACE(action);
+      discretizer_->discretize(action, &action_idx);
+      TRACE(action_idx);
+      offset_ = discretizer_->offset(action_idx);
+    }
+
     tt = ttExploratory;
     IndexVector lower_bound, upper_bound;
-    Vector delta = env_event_processor();
+    Vector delta = env_signal_processor();
     get_bounds(offset_, delta, lower_bound, upper_bound);
     Discretizer::bounded_iterator bit = Discretizer::bounded_iterator(discretizer_, Vector(), lower_bound, lower_bound, upper_bound);
     offset_ = exploration_step(bit);
@@ -225,6 +227,11 @@ size_t EpsilonPADASampler::sample(const LargeVector &values, TransitionType &tt)
   if (idx_test != idx)
     std::cout << "Not correct action" << std::endl;
 */
+
+  Vector smp_vec = discretizer_->at(offset_);
+  if (pub_sub_sampler_state_)
+    pub_sub_sampler_state_->set(smp_vec);
+
   return offset_;
 }
 

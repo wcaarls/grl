@@ -36,6 +36,8 @@
 namespace grl
 {
 
+enum EnvSignal {sigEnvNone, sigEnvInit};
+
 /// Encapsulates a vector (e.g. system state).
 class VectorSignal : public Configurable
 {

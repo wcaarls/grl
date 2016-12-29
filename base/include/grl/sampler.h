@@ -43,15 +43,35 @@ class Sampler : public Configurable
     virtual Sampler *clone() = 0;
     
     /**
-    * \brief Sample an action from a value vector.
-    *
-    * Called once per timestep. Time is 0. at the start of a new episode.
+    * \brief Sample an action based on the values of actions.
+    * \param values - values of fasible discretized actions.
     * \param tt - type of action which can be used in Q-learning, for example.
-    * \return offset in the vector of possible discretized actions.
-    * \note Sampler can have internal memory for implementation of OrnsteinUhlenbeck or PADA samplers.
+    * \return offset in the vector which can be used for fining the corresponding action.
+    * \note Sampler does not have an internal memory.
     */
     virtual size_t sample(const LargeVector &values, TransitionType &tt) = 0;
-    
+//    virtual size_t sample(const LargeVector &values, TransitionType &tt) const
+//    {
+//      throw Exception("Default implementation of sampler");
+//      return 0;
+//    }
+
+    /**
+    * \brief Sample an action based on the current time and values of actions.
+    *
+    * Called once per timestep. Time is 0. at the start of a new episode.
+    * \param time - current time
+    * \param values - values of fasible discretized actions.
+    * \param tt - type of action which can be used in Q-learning, for example.
+    * \return offset in the vector which can be used for fining the corresponding action.
+    * \note Sampler has an internal memory for implementation of OrnsteinUhlenbeck or PADA samplers.
+    */
+//    virtual size_t sample(double time, const LargeVector &values, TransitionType &tt)
+//    {
+//      throw Exception("Default implementation of sampler");
+//      return 0;
+//    }
+
     /**
     * \brief Returns the sampling distribution for a value vector.
     *

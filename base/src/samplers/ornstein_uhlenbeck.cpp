@@ -43,6 +43,8 @@ void OrnsteinUhlenbeckSampler::request(ConfigurationRequest *config)
   config->push_back(CRP("sigma", "Sigma parameter of Ornstein-Uhlenbeck", sigma_, CRP::Configuration));
   config->push_back(CRP("center", "Centering parameter of Ornstein-Uhlenbeck", center_, CRP::Configuration));
   config->push_back(CRP("contact_signal", "signal", "Signal", env_event_, true));
+
+  config->push_back(CRP("memory", "vector/signal", "Pointer to the vector of the previous action", CRP::Provided));
 }
 
 void OrnsteinUhlenbeckSampler::configure(Configuration &config)
@@ -66,6 +68,8 @@ void OrnsteinUhlenbeckSampler::configure(Configuration &config)
     noise_scale_[i] = std::max(pos_part[i], neg_part[i]);
 
   env_event_ = (VectorSignal*)config["contact_signal"].ptr();
+
+  config.set("memory", noise_);
 }
 
 void OrnsteinUhlenbeckSampler::reconfigure(const Configuration &config)
@@ -114,6 +118,7 @@ void OrnsteinUhlenbeckSampler::evolve_noise()
   for (int i = 0; i < noise_.size(); i++)
     noise_[i] = noise_[i] + theta_[i] * (center_[i] - noise_[i])+ sigma_[i] * rand_->getNormal(0, 1);
   TRACE(noise_);
+  memory_->set(noise_);
 }
 
 void OrnsteinUhlenbeckSampler::mix_signal_noise(const Vector &in, const Vector &noise, IndexVector &out) const
@@ -162,6 +167,9 @@ void ACOrnsteinUhlenbeckSampler::configure(Configuration &config)
   center_idx.resize(center_.size());
   discretizer_->discretize(center_, &center_idx);
   offset_ = discretizer_->offset(center_idx);
+
+  Vector smp_vec = discretizer_->at(offset_);
+  config.set("memory", smp_vec);
 }
 
 ACOrnsteinUhlenbeckSampler *ACOrnsteinUhlenbeckSampler::clone()
@@ -218,6 +226,9 @@ size_t ACOrnsteinUhlenbeckSampler::sample(const LargeVector &values, TransitionT
   }
   else
     offset_ = GreedySampler::sample(values, tt);
+
+  Vector smp_vec = discretizer_->at(offset_);
+  memory_->set(smp_vec);
 
   return offset_;
 }

@@ -52,6 +52,8 @@ class OrnsteinUhlenbeckSampler : public EpsilonGreedySampler
     Vector noise_scale_;
     Discretizer *discretizer_;
 
+    VectorSignal *memory_;
+
   public:
     OrnsteinUhlenbeckSampler() { }
 
@@ -129,7 +131,7 @@ class PadaOrnsteinUhlenbeckSampler : public OrnsteinUhlenbeckSampler
     virtual size_t sample(const LargeVector &values, TransitionType &tt);
 
   private:
-    PADASampler pada_;
+    PadaSampler pada_;
     size_t offset_;
 };
 

@@ -94,7 +94,7 @@ class CommunicatorEnvironment: public Environment
     virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal);
 
   protected:
-    Vector obs_conv, action_conv;
+    Vector obs_conv_, action_conv_;
     StateActionConverter *converter_;
     Communicator *communicator_;
     timespec time_begin_;

@@ -25,7 +25,8 @@ if (PKG_CONFIG_FOUND AND QT4_FOUND)
                           ${SRC}/leo_squat.cpp
                           ${SRC}/LeoBhWalkSym.cpp
                           ${SRC}/STGLeoSim.cpp
-                          ${SRC}/ThirdOrderButterworth.cpp)
+                          ${SRC}/ThirdOrderButterworth.cpp
+                          ${SRC}/samplers/leo_action_sampler.cpp)
 
     include_directories(${SRC}/../include/grl/environments/leo)
 

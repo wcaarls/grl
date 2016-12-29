@@ -138,20 +138,20 @@ void LeoBhWalkSym::parseLeoAction(const Vector &action, Vector &target_action)
 /////////////////////////////////
 
 LeoWalkEnvironment::LeoWalkEnvironment()
-  : mirror_sig_(NULL)
+  : pub_ic_signal_(NULL)
 {
 }
 
 void LeoWalkEnvironment::request(ConfigurationRequest *config)
 {
   LeoBaseEnvironment::request(config);
-  config->push_back(CRP("contact_signal", "signal", "Contact signal", mirror_sig_, true));
+  config->push_back(CRP("pub_ic_signal", "signal/vector", "Publisher of the initialization and contact signal", pub_ic_signal_, true));
 }
 
 void LeoWalkEnvironment::configure(Configuration &config)
 {
   LeoBaseEnvironment::configure(config);
-  mirror_sig_ = (VectorSignal*)config["contact_signal"].ptr();
+  pub_ic_signal_ = (VectorSignal*)config["pub_ic_signal"].ptr();
 
   // Augmenting state with a direction indicator variable, e.g: sit down or stand up
   const TargetInterface &interface = bh_->getInterface();
@@ -214,8 +214,8 @@ void LeoWalkEnvironment::start(int test, Vector *obs)
   bh_->setCurrentSTGState(NULL);
 
   // signal contact (agent may use this signal to tackle discontinuities)
-  if (mirror_sig_)
-    mirror_sig_->set(VectorConstructor(0, 0, 0, 0, 0, 1)); // last '1' means start => any action is possible
+  if (pub_ic_signal_)
+    pub_ic_signal_->set(VectorConstructor(lstInit));
 }
 
 double LeoWalkEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)
@@ -257,9 +257,9 @@ double LeoWalkEnvironment::step(const Vector &action, Vector *obs, double *rewar
     *terminal = 0;
 
   // signal contact (agent may use this signal to tackle discontinuities)
-  if (mirror_sig_)
+  if (pub_ic_signal_)
   {
-    mirror_sig_->set(VectorConstructor(bh_->madeFootstep(), auto_actuated_knee_voltage, 0, 1, 2, 0)); // last '0' means step
+    pub_ic_signal_->set(VectorConstructor(bh_->madeFootstep()?lstContact:lstNone, auto_actuated_knee_voltage));
     TRACE(auto_actuated_knee_voltage);
     //if (bh_->madeFootstep())
     //  std::cout << "contact happened" << std::endl;

@@ -223,8 +223,8 @@ void CLeoBhSquat::parseLeoState(const CLeoState &leoState, Vector &obs)
   prev_hip_height_ = hip_height_;
   prev_hip_pos_ = hip_pos_;
   getHipHeight(getCurrentSTGState()->mJointAngles, hip_height_, hip_pos_);
-  min_hip_height_ = MIN(min_hip_height_, hip_height_);
-  max_hip_height_ = MAX(max_hip_height_, hip_height_);
+  min_hip_height_ = fmin(min_hip_height_, hip_height_);
+  max_hip_height_ = fmax(max_hip_height_, hip_height_);
 
   //std::cout << "Hip height: " << hip_height_ << std::endl;
 }

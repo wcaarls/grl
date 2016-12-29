@@ -61,7 +61,7 @@ class LeoWalkEnvironment: public LeoBaseEnvironment
     
   protected:
     int requested_action_dims_;
-    VectorSignal *mirror_sig_;
+    VectorSignal *pub_ic_signal_;
 };
 
 }

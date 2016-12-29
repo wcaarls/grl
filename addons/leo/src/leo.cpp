@@ -148,7 +148,7 @@ LeoBaseEnvironment::LeoBaseEnvironment() :
   time0_(0),
   test_(0),
   exporter_(NULL),
-  transition_type_(NULL),
+  sub_transition_type_(NULL),
   bh_(NULL)
 {
 }
@@ -162,7 +162,7 @@ void LeoBaseEnvironment::request(ConfigurationRequest *config)
   config->push_back(CRP("observe", "string.observe", "Comma-separated list of state elements observed by an agent"));
   config->push_back(CRP("actuate", "string.actuate", "Comma-separated list of action elements provided by an agent"));
   config->push_back(CRP("exporter", "exporter", "Optional exporter for transition log (supports time, state, observation, action, reward, terminal)", exporter_, true));
-  config->push_back(CRP("transition_type", "signal", "Transition type", transition_type_, true));
+  config->push_back(CRP("sub_transition_type", "signal", "Subscriber to the transition type", sub_transition_type_, true));
 
   config->push_back(CRP("observation_dims", "int.observation_dims", "Number of observation dimensions", CRP::Provided));
   config->push_back(CRP("observation_min", "vector.observation_min", "Lower limit on observations", CRP::Provided));
@@ -178,7 +178,7 @@ void LeoBaseEnvironment::configure(Configuration &config)
   target_env_ = (Environment*)config["target_env"].ptr();
 
   bh_ = (CLeoBhBase*)config["behavior"].ptr();
-  transition_type_ = (VectorSignal*)config["transition_type"].ptr();
+  sub_transition_type_ = (VectorSignal*)config["sub_transition_type"].ptr();
 
   // Setup path to a configuration file
   xml_ = config["xml"].str();
@@ -256,8 +256,8 @@ void LeoBaseEnvironment::step(double tau, double reward, int terminal)
   {
     // transition type
     LargeVector tt;
-    if (transition_type_)
-      tt = transition_type_->get();
+    if (sub_transition_type_)
+      tt = sub_transition_type_->get();
 
     std::vector<double> s0(bh_->getPreviousSTGState()->mJointAngles, bh_->getPreviousSTGState()->mJointAngles + ljNumJoints);
     std::vector<double> v0(bh_->getPreviousSTGState()->mJointSpeeds, bh_->getPreviousSTGState()->mJointSpeeds + ljNumJoints);
@@ -417,8 +417,8 @@ void LeoBaseEnvironment::configParseActions(Configuration &config, const std::ve
     {
       if (int_actuator.voltage[i] == j)
       {
-        max = MIN(target_action_max[i], max);
-        min = MAX(target_action_min[i], min);
+        max = fmin(target_action_max[i], max);
+        min = fmax(target_action_min[i], min);
       }
     }
 

@@ -55,10 +55,10 @@ class TDAgent : public Agent
     
     Instance<TDAgentState> agent_state_;
     
-    VectorSignal *transition_type_;
+    VectorSignal *pub_transition_type_;
 
   public:
-    TDAgent() : policy_(NULL), predictor_(NULL), transition_type_(NULL) { }
+    TDAgent() : policy_(NULL), predictor_(NULL), pub_transition_type_(NULL) { }
   
     // From Configurable    
     virtual void request(ConfigurationRequest *config);

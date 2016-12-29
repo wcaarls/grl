@@ -36,7 +36,7 @@ void TDAgent::request(ConfigurationRequest *config)
   config->push_back(CRP("policy", "policy", "Control policy", policy_));
   config->push_back(CRP("predictor", "predictor", "Value function predictor", predictor_));
 
-  config->push_back(CRP("transition_type", "signal", "Transition type", transition_type_, true));
+  config->push_back(CRP("pub_transition_type", "signal", "Publisher of the transition type", pub_transition_type_, true));
 }
 
 void TDAgent::configure(Configuration &config)
@@ -44,7 +44,7 @@ void TDAgent::configure(Configuration &config)
   policy_ = (Policy*)config["policy"].ptr();
   predictor_ = (Predictor*)config["predictor"].ptr();
 
-  transition_type_ = (VectorSignal*)config["transition_type"].ptr();
+  pub_transition_type_ = (VectorSignal*)config["pub_transition_type"].ptr();
 }
 
 void TDAgent::reconfigure(const Configuration &config)
@@ -71,8 +71,8 @@ void TDAgent::start(const Vector &obs, Vector *action)
   
   state->prev_obs = obs;
   state->prev_action = *action;
-  if (transition_type_)
-    transition_type_->set(VectorConstructor((double)tt));
+  if (pub_transition_type_)
+    pub_transition_type_->set(VectorConstructor((double)tt));
 }
 
 void TDAgent::step(double tau, const Vector &obs, double reward, Vector *action)
@@ -86,8 +86,8 @@ void TDAgent::step(double tau, const Vector &obs, double reward, Vector *action)
 
   state->prev_obs = obs;
   state->prev_action = *action;
-  if (transition_type_)
-    transition_type_->set(VectorConstructor((double)tt));
+  if (pub_transition_type_)
+    pub_transition_type_->set(VectorConstructor((double)tt));
 }
 
 void TDAgent::end(double tau, const Vector &obs, double reward)
