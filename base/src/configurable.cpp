@@ -196,28 +196,7 @@ std::string ParameterConfigurator::localize(const std::string &id) const
 
   const Configurator *reference = resolve(id);
   if (reference)
-  {
-    std::string fullpath = reference->path(), ownpath = path(), newpath;
-    size_t ii;
-    
-    // Find first path difference
-    for (ii=0; ii < fullpath.size() && ii < ownpath.size() && ownpath[ii] == fullpath[ii]; ++ii);
-    
-    // Make sure we're on a full folder name
-    while (ownpath[ii] != '/')
-      ii--;
-      
-    // Localized path ends with other's path from this point onwards
-    if (ii < fullpath.size())
-      newpath = fullpath.substr(ii+1);
-
-    // Add ../ for every folder on our own path until the end
-    for (; ii < ownpath.size(); ++ii)
-      if (ownpath[ii] == '/')
-        newpath = "../" + newpath;
-        
-    return newpath;
-  }
+    return relative_path(reference->path());
   else
     return id;
 }

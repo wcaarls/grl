@@ -37,7 +37,6 @@ using namespace std;
 
 static int yaml(lua_State *L);
 static int instantiate(lua_State *L);
-static int str(lua_State *L);
 static int run(lua_State *L);
 
 Configurator *lua_toconfigurator(lua_State *L, int index)
@@ -47,12 +46,12 @@ Configurator *lua_toconfigurator(lua_State *L, int index)
   lua_rawget(L, index);
   
   if (!lua_islightuserdata(L, -1))
-    luaL_error(L, "Invalid argument");
+    luaL_error(L, "Argument #%d is not an object", index);
     
   Configurator *conf = (Configurator*)lua_touserdata(L, -1);
   
   if (!conf)
-    luaL_error(L, "Invalid object pointer");
+    luaL_error(L, "Argument #%d points to an invalid object", index);
     
   lua_pop(L, 1); // conf
   
@@ -94,10 +93,22 @@ static int _new(lua_State *L)
   return 1;
 }
 
+static int ref(lua_State *L)
+{
+  if (lua_gettop(L) != 1)
+    luaL_error(L, "ref() expected 1 argument, %d given", lua_gettop(L));
+  
+  std::string path = luaL_checkstring(L, 1);
+  Configurator *conf = new ParameterConfigurator("", path);
+  lua_newgrl(L, conf);
+  
+  return 1;
+}
+
 static int index(lua_State *L)
 {
   if (lua_gettop(L) != 2)
-    luaL_error(L, "Expected 2 arguments");
+    luaL_error(L, "__index() expected 2 arguments, %d given", lua_gettop(L));
   
   Configurator *conf = lua_toconfigurator(L, 1);
   std::string key = luaL_checkstring(L, 2);
@@ -110,7 +121,7 @@ static int index(lua_State *L)
 static int newindex(lua_State *L)
 {
   if (lua_gettop(L) != 3)
-    luaL_error(L, "Expected 3 arguments");
+    luaL_error(L, "__newindex() expected 3 arguments, %d given", lua_gettop(L));
     
   Configurator *conf = lua_toconfigurator(L, 1);
   std::string key = luaL_checkstring(L, 2);
@@ -161,7 +172,7 @@ static int newindex(lua_State *L)
 static int yaml(lua_State *L)
 {
   if (lua_gettop(L) != 1)
-    luaL_error(L, "Expected 1 argument");
+    luaL_error(L, "yaml() expected 1 argument, %d given", lua_gettop(L));
     
   Configurator *conf = lua_toconfigurator(L, 1);
 
@@ -173,7 +184,7 @@ static int yaml(lua_State *L)
 static int instantiate(lua_State *L)
 {
   if (lua_gettop(L) != 1)
-    luaL_error(L, "Expected 1 argument");
+    luaL_error(L, "instantiate() expected 1 argument, %d given", lua_gettop(L));
     
   Configurator *conf = lua_toconfigurator(L, 1);
   
@@ -185,7 +196,7 @@ static int instantiate(lua_State *L)
 static int tostring(lua_State *L)
 {
   if (lua_gettop(L) != 1)
-    luaL_error(L, "Expected 1 argument");
+    luaL_error(L, "__tostring() expected 1 argument, %d given", lua_gettop(L));
     
   Configurator *conf = lua_toconfigurator(L, 1);
   lua_pushstring(L, conf->str().c_str());
@@ -193,20 +204,51 @@ static int tostring(lua_State *L)
   return 1;
 }
 
+static int call(lua_State *L)
+{
+  if (lua_gettop(L) != 2)
+    luaL_error(L, "__call() expected 2 arguments, %d given", lua_gettop(L));
+
+  lua_toconfigurator(L, 1);
+  luaL_checktype(L, 2, LUA_TTABLE);
+    
+  // Start configuration table iteration
+  lua_getmetatable(L, 1);
+  lua_pushvalue(L, 2);
+  lua_pushnil(L);
+  while (lua_next(L, -2))
+  {
+    lua_pushstring(L, "__newindex");
+    lua_gettable(L, -5);  //__newindex
+    lua_pushvalue(L, 1);  //configurator
+    lua_pushvalue(L, -4); //key
+    lua_pushvalue(L, -4); //value
+    lua_call(L, 3, 0);
+
+    lua_pop(L, 1); // Pop value
+  }
+
+  // Pop key, table and metatable
+  lua_pop(L, 3);
+  
+  return 1;
+}
+
 static int run(lua_State *L)
 {
   if (lua_gettop(L) != 1)
-    luaL_error(L, "Expected 1 argument");
+    luaL_error(L, "run() expected 1 argument, %d given", lua_gettop(L));
     
   Configurator *conf = lua_toconfigurator(L, 1);
   
   if (!conf->ptr())
-    luaL_error(L, "Object is not instantiated");
+    luaL_error(L, "run() requires an instantiated object");
     
   Experiment *experiment = dynamic_cast<Experiment*>(conf->ptr());
   if (!experiment)
-    luaL_error(L, "Object must be of type experiment");
+    luaL_error(L, "run() requires an object of type experiment, got %s", conf->ptr()->d_type().c_str());
     
+  configurator_ = conf->root();
   experiment->run();
   
   return 0;
@@ -214,6 +256,7 @@ static int run(lua_State *L)
 
 static const struct luaL_reg grllib [] = {
   {"new", _new},
+  {"ref", ref},
   {NULL, NULL}
 };
 
@@ -275,6 +318,9 @@ int main(int argc, char **argv)
   lua_pushstring(L, "__tostring");
   lua_pushcfunction(L, tostring);
   lua_settable(L, -3);
+  lua_pushstring(L, "__call");
+  lua_pushcfunction(L, call);
+  lua_settable(L, -3);
   
   for (; optind < argc; ++optind)
   {
@@ -286,10 +332,8 @@ int main(int argc, char **argv)
     ls = ls + dirname(buf) + "/?.lua'";
     luaL_dostring(L, ls.c_str()); 
     if (luaL_dofile(L, argv[optind]))
-      ERROR("Error loading configuration " << lua_tostring(L, -1));
+      ERROR("Error loading configuration: " << lua_tostring(L, -1));
   }
-  
-  delete configurator_;
   
   NOTICE("Exiting");
 

@@ -283,6 +283,30 @@ class Configurator
       else
         return element_;
     }
+    
+    std::string relative_path(const std::string &fullpath) const
+    {
+      std::string ownpath = path(), newpath;
+      size_t ii;
+      
+      // Find first path difference
+      for (ii=0; ii < fullpath.size() && ii < ownpath.size() && ownpath[ii] == fullpath[ii]; ++ii);
+      
+      // Make sure we're on a full folder name
+      while (ownpath[ii] != '/')
+        ii--;
+        
+      // Localized path ends with other's path from this point onwards
+      if (ii < fullpath.size())
+        newpath = fullpath.substr(ii+1);
+
+      // Add ../ for every folder on our own path until the end
+      for (; ii < ownpath.size(); ++ii)
+        if (ownpath[ii] == '/')
+          newpath = "../" + newpath;
+          
+      return newpath;
+    }
 
     ConfigurationParameter operator[](const std::string &path) const
     {
@@ -441,13 +465,23 @@ class ReferenceConfigurator : public Configurator
     {
       return const_cast<ReferenceConfigurator*>(this)->find(path);
     }
-    virtual ReferenceConfigurator *instantiate(Configurator *parent=NULL) const { return new ReferenceConfigurator(element_, reference_, parent); }
+    virtual ReferenceConfigurator *instantiate(Configurator *parent=NULL) const
+    {
+      if (!parent)
+      {
+        ERROR(path() << ": Reference configurator must be instantiated as part of an object hierarchy");
+        return NULL;
+      }
+      
+      // Rebase
+      return new ReferenceConfigurator(element_, parent->find(relative_path(reference_->path()).substr(3)), parent);
+    }
     virtual ReferenceConfigurator &deepcopy(const Configurator &c) { return *this; }
     virtual bool validate(const CRP &crp) const { return reference_->validate(crp); }
     virtual void reconfigure(const Configuration &config, bool recursive=false) { reference_->reconfigure(config, recursive); }
     virtual std::string yaml(size_t depth=0) const
     {
-      return std::string(2*depth, ' ') + element_ + ": " + reference_->path() + "\n";
+      return std::string(2*depth, ' ') + element_ + ": " + relative_path(reference_->path()) + "\n";
     }
 };
 
