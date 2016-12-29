@@ -111,6 +111,20 @@ add_executable(${TARGET} ${SRC}/deployer.cpp)
 grl_link_libraries(${TARGET} base)
 install(TARGETS ${TARGET} DESTINATION ${GRL_BIN_DESTINATION})
 
+FIND_PACKAGE (Lua51)
+
+if (LUA51_FOUND)
+  message("-- Building Lua deployer")
+  include_directories(${LUA_INCLUDE_DIR})
+
+  # Lua deployer
+  set (TARGET grll)
+  add_executable(${TARGET} ${SRC}/lua_deployer.cpp)
+  target_link_libraries(${TARGET} ${LUA_LIBRARIES})
+  grl_link_libraries(${TARGET} base)
+  install(TARGETS ${TARGET} DESTINATION ${GRL_BIN_DESTINATION})
+endif()
+
 # Requestgen
 set (TARGET grlg)
 add_executable(${TARGET} ${SRC}/requestgen.cpp)

@@ -66,6 +66,15 @@ std::string getLibraryPath();
 /// Load addons.
 void loadPlugins();
 
+extern class Configurator *configurator_;
+extern struct sigaction act_, oldact_;
+
+void reconfigure();
+void iSIGINT();
+void iSIGSEGV();
+void hSIGINT(int sig);
+void hSIGSEGV(int sig);
+
 }
 
 #endif /* GRL_H_ */

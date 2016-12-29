@@ -28,6 +28,9 @@
 #include <glob.h>
 #include <dlfcn.h>
 #include <libgen.h>
+#include <unistd.h>
+#include <signal.h>
+#include <string.h>
 
 #include <grl/configurable.h>
 #include <grl/projections/sample.h>
@@ -60,6 +63,9 @@ Visualizer *Visualizer::instance_ = NULL;
 pthread_once_t RandGen::once_ = PTHREAD_ONCE_INIT;
 pthread_mutex_t RandGen::mutex_;
 pthread_key_t RandGen::key_;
+
+Configurator *grl::configurator_ = NULL;
+struct sigaction grl::act_, grl::oldact_;
 
 static void loadPlugins1(const std::string &pattern)
 {
@@ -99,4 +105,127 @@ void grl::loadPlugins()
 
   pattern = getLibraryPath() + "/grl/libaddon*.so";
   loadPlugins1(pattern);
+}
+
+void grl::reconfigure()
+{
+  NOTICE("Awaiting reconfiguration. Use [action] [object] [parameter=value]...");
+
+  while (1)
+  {
+    Configuration config;
+    std::string line;
+    std::vector<std::string> words;
+    getline(std::cin, line);
+    if (line.empty())
+      break;
+      
+    size_t seppos = 0, newpos;
+    do
+    {
+      // Split into commands
+      newpos = line.find(' ', seppos);
+      std::string command = line.substr(seppos, newpos-seppos);
+      
+      if (!command.empty())
+      {
+        size_t eqpos = command.find('=');
+        if (eqpos != std::string::npos)
+        {
+          // key=value
+          std::string key = command.substr(0, eqpos);
+          std::string value = command.substr(eqpos+1);
+          
+          config.set(key, value);
+        }
+        else
+        {
+          // action or object
+          words.push_back(command);
+        }
+      }
+      seppos = newpos+1;
+    }
+    while (newpos != std::string::npos);
+    
+    if (words.empty())
+    {
+      // <key=value...>
+      configurator_->reconfigure(config, true);
+
+      if (config.has("verbose"))
+        grl_log_verbosity__ = config["verbose"].i();
+    }
+    else if (words.size() == 1)
+    {
+      Configurator *cfg = configurator_->find(words[0]);
+      if (cfg)
+      {
+        ObjectConfigurator *oc = dynamic_cast<ObjectConfigurator*>(cfg);
+        
+        if (oc)
+        {
+          // object <key=value...>
+          oc->reconfigure(config);
+        }
+        else
+          WARNING("Cannot reconfigure '" << words[0] << "': not a configurable object.");
+      }
+      else
+      {
+        // action <key=value...>
+        config.set("action", words[0]);
+        configurator_->reconfigure(config);
+      }
+    }
+    else
+    {
+      // action object <key=value...>
+      config.set("action", words[0]);
+      
+      Configurator *cfg = configurator_->find(words[1]);
+      if (cfg)
+      {
+        ObjectConfigurator *oc = dynamic_cast<ObjectConfigurator*>(cfg);
+        
+        if (oc)
+          oc->reconfigure(config);
+        else
+          WARNING("Cannot reconfigure '" << words[1] << "': not a configurable object.");
+      }
+      else
+        WARNING("Cannot reconfigure '" << words[1] << "': no such object.");
+    }
+  }
+  
+  NOTICE("Reconfiguration complete");
+}
+
+void grl::iSIGINT()
+{
+  bzero(&act_, sizeof(struct sigaction));
+  act_.sa_handler = hSIGINT;
+  act_.sa_flags = SA_NODEFER;
+  sigaction(SIGINT, &act_, &oldact_);
+}
+
+void grl::iSIGSEGV()
+{
+  signal(SIGSEGV, hSIGSEGV);
+}
+
+void grl::hSIGINT(int sig)
+{
+  sigaction(SIGINT, &oldact_, NULL);
+
+  reconfigure();
+  
+  sigaction(SIGINT, &act_, NULL);
+}
+
+void grl::hSIGSEGV(int sig)
+{
+  ERROR("Caught SIGSEGV");
+  ERROR("Stack trace:\n" << stacktrace());
+  exit(1);
 }

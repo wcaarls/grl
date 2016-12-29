@@ -214,22 +214,38 @@ class Configurator
     Configurator(const std::string &element=std::string(), Configurator *parent=NULL, bool provided=false) : parent_(parent), element_(element), provided_(provided)
     {
       if (parent_)
-      {
-        for (ConfiguratorList::iterator ii=parent_->children_.begin(); ii != parent_->children_.end(); ++ii)
-          if ((*ii)->element_ == element_)
-          {
-            CRAWL(path() << ": Cowardly refusing to overwrite parent's existing child");
-            return;
-          }
-          
-        parent_->children_.push_back(this);
-      }
+        graft(element, parent_);
     }
     
     virtual ~Configurator()
     {
       for (ConfiguratorList::reverse_iterator ii=children_.rbegin(); ii != children_.rend(); ++ii)
         delete *ii;
+    }
+    
+    const Configurator *parent() const
+    {
+      return parent_;
+    }
+    
+    Configurator *parent()
+    {
+      return parent_;
+    }
+    
+    void graft(const std::string &element, Configurator *parent)
+    {
+      element_ = element;
+      parent_ = parent;
+
+      for (ConfiguratorList::iterator ii=parent_->children_.begin(); ii != parent_->children_.end(); ++ii)
+        if ((*ii)->element_ == element_)
+        {
+          CRAWL(path() << ": Cowardly refusing to overwrite parent's existing child");
+          return;
+        }
+        
+      parent_->children_.push_back(this);
     }
 
     Configurator *root()
@@ -410,6 +426,30 @@ inline std::ostream& operator<<(std::ostream& os, const Configurator& obj)
   os << obj.yaml();
   return os;
 }
+
+class ReferenceConfigurator : public Configurator
+{
+  protected:
+    Configurator *reference_;
+    
+  public:
+    ReferenceConfigurator(const std::string &element, Configurator *reference, Configurator *parent=NULL) : Configurator(element, parent), reference_(reference) { }
+    virtual std::string str() { return reference_->str(); }
+    virtual Configurable *ptr() { return reference_->ptr(); }
+    virtual Configurator *find(const std::string &path) { return reference_->find(path); }
+    virtual const Configurator *find(const std::string &path) const
+    {
+      return const_cast<ReferenceConfigurator*>(this)->find(path);
+    }
+    virtual ReferenceConfigurator *instantiate(Configurator *parent=NULL) const { return new ReferenceConfigurator(element_, reference_, parent); }
+    virtual ReferenceConfigurator &deepcopy(const Configurator &c) { return *this; }
+    virtual bool validate(const CRP &crp) const { return reference_->validate(crp); }
+    virtual void reconfigure(const Configuration &config, bool recursive=false) { reference_->reconfigure(config, recursive); }
+    virtual std::string yaml(size_t depth=0) const
+    {
+      return std::string(2*depth, ' ') + element_ + ": " + reference_->path() + "\n";
+    }
+};
 
 class ParameterConfigurator : public Configurator
 {

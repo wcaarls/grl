@@ -25,10 +25,6 @@
  * \endverbatim
  */
 
-#include <unistd.h>
-#include <signal.h>
-#include <string.h>
-
 #include <grl/grl.h>
 #include <grl/configurable.h>
 #include <grl/experiment.h>
@@ -36,122 +32,9 @@
 using namespace grl;
 using namespace std;
 
-static Configurator *configurator = NULL;
-static struct sigaction act, oldact;
-
-void reconfigure()
-{
-  NOTICE("Awaiting reconfiguration. Use [action] [object] [parameter=value]...");
-
-  while (1)
-  {
-    Configuration config;
-    std::string line;
-    std::vector<std::string> words;
-    getline(cin, line);
-    if (line.empty())
-      break;
-      
-    size_t seppos = 0, newpos;
-    do
-    {
-      // Split into commands
-      newpos = line.find(' ', seppos);
-      std::string command = line.substr(seppos, newpos-seppos);
-      
-      if (!command.empty())
-      {
-        size_t eqpos = command.find('=');
-        if (eqpos != std::string::npos)
-        {
-          // key=value
-          std::string key = command.substr(0, eqpos);
-          std::string value = command.substr(eqpos+1);
-          
-          config.set(key, value);
-        }
-        else
-        {
-          // action or object
-          words.push_back(command);
-        }
-      }
-      seppos = newpos+1;
-    }
-    while (newpos != std::string::npos);
-    
-    if (words.empty())
-    {
-      // <key=value...>
-      configurator->reconfigure(config, true);
-
-      if (config.has("verbose"))
-        grl_log_verbosity__ = config["verbose"].i();
-    }
-    else if (words.size() == 1)
-    {
-      Configurator *cfg = configurator->find(words[0]);
-      if (cfg)
-      {
-        ObjectConfigurator *oc = dynamic_cast<ObjectConfigurator*>(cfg);
-        
-        if (oc)
-        {
-          // object <key=value...>
-          oc->reconfigure(config);
-        }
-        else
-          WARNING("Cannot reconfigure '" << words[0] << "': not a configurable object.");
-      }
-      else
-      {
-        // action <key=value...>
-        config.set("action", words[0]);
-        configurator->reconfigure(config);
-      }
-    }
-    else
-    {
-      // action object <key=value...>
-      config.set("action", words[0]);
-      
-      Configurator *cfg = configurator->find(words[1]);
-      if (cfg)
-      {
-        ObjectConfigurator *oc = dynamic_cast<ObjectConfigurator*>(cfg);
-        
-        if (oc)
-          oc->reconfigure(config);
-        else
-          WARNING("Cannot reconfigure '" << words[1] << "': not a configurable object.");
-      }
-      else
-        WARNING("Cannot reconfigure '" << words[1] << "': no such object.");
-    }
-  }
-  
-  NOTICE("Reconfiguration complete");
-}
-
-void sighandler(int signum)
-{
-  sigaction(SIGINT, &oldact, NULL);
-
-  reconfigure();
-  
-  sigaction(SIGINT, &act, NULL);
-}
-
-void hSIGSEGV(int sig)
-{
-  ERROR("Caught SIGSEGV");
-  ERROR("Stack trace:\n" << stacktrace());
-  exit(1);
-}
-
 int main(int argc, char **argv)
 {
-  signal(SIGSEGV, hSIGSEGV);
+  iSIGSEGV();
 
   int seed = 0;
   bool user_config = false;
@@ -209,16 +92,16 @@ int main(int argc, char **argv)
   }
   
   NOTICE("Instantiating configuration");
-  configurator = temp->instantiate();
+  configurator_ = temp->instantiate();
   delete temp;
   
-  if (!configurator)
+  if (!configurator_)
   {
     ERROR("Could not instantiate configuration");
     return 1;
   }
 
-  Configurator *expconf = configurator->find("experiment");
+  Configurator *expconf = configurator_->find("experiment");
   
   if (!expconf)
   {
@@ -237,11 +120,8 @@ int main(int argc, char **argv)
   
   if (user_config)
     reconfigure();
-  
-  bzero(&act, sizeof(struct sigaction));
-  act.sa_handler = sighandler;
-  act.sa_flags = SA_NODEFER;
-  sigaction(SIGINT, &act, &oldact);
+
+  iSIGINT();
 
   NOTICE("Starting experiment");
 
@@ -257,7 +137,7 @@ int main(int argc, char **argv)
   
   NOTICE("Cleaning up");
   
-  delete configurator;
+  delete configurator_;
   
   NOTICE("Exiting");
 
