@@ -43,8 +43,7 @@ void OrnsteinUhlenbeckSampler::request(ConfigurationRequest *config)
   config->push_back(CRP("sigma", "Sigma parameter of Ornstein-Uhlenbeck", sigma_, CRP::Configuration));
   config->push_back(CRP("center", "Centering parameter of Ornstein-Uhlenbeck", center_, CRP::Configuration));
   config->push_back(CRP("sub_ic_signal", "signal/vector", "Subscriber to the initialization and contact signal from environment", sub_ic_signal_, true));
-  config->push_back(CRP("pub_sub_sampler_state", "signal/vector", "Publisher and subscriber of the sampler state with memory such as previous action, noise, etc.", pub_sub_sampler_state_, true));
-
+  config->push_back(CRP("pub_sub_ou", "signal/vector", "Publisher and subscriber to the value of noise (or action in the ACOU case) of the Ornstein Uhlenbeck familiy of samplers", pub_sub_sampler_state_, true));
 }
 
 void OrnsteinUhlenbeckSampler::configure(Configuration &config)
@@ -68,7 +67,7 @@ void OrnsteinUhlenbeckSampler::configure(Configuration &config)
     noise_scale_[i] = std::max(pos_part[i], neg_part[i]);
 
   sub_ic_signal_ = (VectorSignal*)config["sub_ic_signal"].ptr();
-  pub_sub_sampler_state_ = (VectorSignal*)config["pub_sub_sampler_state"].ptr();
+  pub_sub_sampler_state_ = (VectorSignal*)config["pub_sub_ou"].ptr();
 
   noise_ = center_;
   if (pub_sub_sampler_state_)
@@ -91,7 +90,7 @@ void OrnsteinUhlenbeckSampler::env_signal_processor()
 {
   if (sub_ic_signal_)
   {
-    LargeVector signal = sub_ic_signal_->get();
+    Vector signal = sub_ic_signal_->get();
     if (signal[0] == sigEnvInit)
       noise_ = center_;
   }
@@ -289,28 +288,18 @@ size_t EpsilonOrnsteinUhlenbeckSampler::sample(const LargeVector &values, Transi
 void PadaOrnsteinUhlenbeckSampler::request(ConfigurationRequest *config)
 {
   OrnsteinUhlenbeckSampler::request(config);
-  pada_.request(config);
+  config->push_back(CRP("pada", "sampler", "Pada sampler", pada_));
 }
 
 void PadaOrnsteinUhlenbeckSampler::configure(Configuration &config)
 {
   OrnsteinUhlenbeckSampler::configure(config);
-
-  // Since we prescribe the offset, the default implementation of PADA should work
-  // (pub_sub_sampler_state_ should not be used inside)
-  Configuration config_copy = config;
-  config_copy.set("pub_sub_sampler_state", NULL);
-  pada_.configure(config_copy);
-
-  IndexVector center_idx;
-  center_idx.resize(center_.size());
-  discretizer_->discretize(center_, &center_idx);
-  offset_ = discretizer_->offset(center_idx);
+  pada_ = (Sampler*)config["pada"].ptr();
 }
 
 void PadaOrnsteinUhlenbeckSampler::reconfigure(const Configuration &config)
 {
-  pada_.reconfigure(config);
+  pada_->reconfigure(config);
 }
 
 PadaOrnsteinUhlenbeckSampler *PadaOrnsteinUhlenbeckSampler::clone()
@@ -325,9 +314,8 @@ size_t PadaOrnsteinUhlenbeckSampler::sample(const LargeVector &values, Transitio
   if (pub_sub_sampler_state_)
     noise_ = pub_sub_sampler_state_->get();
 
-  pada_.set_offset(offset_);
-  offset_ = pada_.sample(values, tt);
-  TRACE(discretizer_->at(offset_));
+  size_t offset = pada_->sample(values, tt);
+  TRACE(discretizer_->at(offset));
 
   // Supress noise at the start of an episode
   env_signal_processor();
@@ -339,16 +327,24 @@ size_t PadaOrnsteinUhlenbeckSampler::sample(const LargeVector &values, Transitio
 
   // add noise to to signal
   IndexVector state_idx;
-  mix_signal_noise(discretizer_->at(offset_), noise_, state_idx);
+  mix_signal_noise(discretizer_->at(offset), noise_, state_idx);
   TRACE(state_idx);
-
-  offset_ = discretizer_->offset(state_idx);
-  TRACE(discretizer_->at(offset_));
+/*
+  /////////////////
+  // Testing
+  size_t offset_orig = offset;
+  offset = discretizer_->offset(state_idx);
+  if (offset_orig != offset)
+    INFO("OU noise affected PADA choise. This is correct if it happens once in a while.");
+  /////////////////
+*/
+  offset = discretizer_->offset(state_idx);
+  TRACE(discretizer_->at(offset));
 
   if (pub_sub_sampler_state_)
      pub_sub_sampler_state_->set(noise_);
 
   tt = ttExploratory;
-  return offset_;
+  return offset;
 }
 

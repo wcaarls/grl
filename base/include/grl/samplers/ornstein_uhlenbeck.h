@@ -123,7 +123,7 @@ class PadaOrnsteinUhlenbeckSampler : public OrnsteinUhlenbeckSampler
     TYPEINFO("sampler/pada_ornstein_ohlenbeck", "Exploitations and exploitations are same as ou, but action is selected from a constrained set, as in pada. ")
 
   public:
-    PadaOrnsteinUhlenbeckSampler() : offset_(0) { }
+    PadaOrnsteinUhlenbeckSampler(){ }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -134,9 +134,8 @@ class PadaOrnsteinUhlenbeckSampler : public OrnsteinUhlenbeckSampler
     virtual PadaOrnsteinUhlenbeckSampler *clone();
     virtual size_t sample(const LargeVector &values, TransitionType &tt);
 
-  private:
-    PadaSampler pada_;
-    size_t offset_;
+  protected:
+    Sampler *pada_;
 };
 
 }

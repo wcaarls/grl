@@ -39,7 +39,6 @@ void LeoActionSampler::request(ConfigurationRequest *config)
   config->push_back(CRP("sampler", "sampler", "Samples actions from action-values", sampler_));
   config->push_back(CRP("sub_ic_signal", "signal/vector", "Subscrider to the initialization and contact signal", sub_ic_signal_, true));
   config->push_back(CRP("pub_sub_sampler_state", "signal/vector", "Publisher and subscriber of the sampler state with memory such as previous action, noise, etc.", pub_sub_sampler_state_, true));
-//  config->push_back(CRP("discretizer", "discretizer.action", "Action discretizer", discretizer_));
 }
 
 void LeoActionSampler::configure(Configuration &config)
@@ -49,7 +48,6 @@ void LeoActionSampler::configure(Configuration &config)
   sampler_ = (Sampler*)config["sampler"].ptr();
   pub_sub_sampler_state_ = (VectorSignal*)config["pub_sub_sampler_state"].ptr();
   sub_ic_signal_ = (VectorSignal*)config["sub_ic_signal"].ptr();
-//  discretizer_ = (Discretizer*)config["discretizer"].ptr();
 }
 
 void LeoActionSampler::reconfigure(const Configuration &config)
@@ -67,16 +65,16 @@ size_t LeoActionSampler::sample(const LargeVector &values, TransitionType &tt)
 {
   if (sub_ic_signal_)
   {
-    LargeVector signal = sub_ic_signal_->get();
-    LargeVector sampler_state = pub_sub_sampler_state_->get(); // must hold either actual values of action or noise (not indexed arrays)
+    Vector signal = sub_ic_signal_->get();
+    Vector sampler_state = pub_sub_sampler_state_->get(); // must hold either actual values of action or noise (not indexed arrays)
     if (signal[0] == lstContact)
     {
       // Take care of Leo body symmetry, if required!
       TRACE (sampler_state);
-      LargeVector sampler_state_new = sampler_state;
-      LargeVector ti_actuator_to = signal.block(0, 1, 1, CLeoBhBase::svNumActions);
+      Vector sampler_state_new = sampler_state;
+      Vector ti_actuator_to = signal.block(0, 1, 1, CLeoBhBase::svNumActions);
       TRACE(ti_actuator_to);
-      LargeVector ti_actuator_from = signal.block(0, 1+CLeoBhBase::svNumActions, 1, CLeoBhBase::svNumActions);
+      Vector ti_actuator_from = signal.block(0, 1+CLeoBhBase::svNumActions, 1, CLeoBhBase::svNumActions);
       TRACE(ti_actuator_from);
 
       // Weak point of the implementation: auto-actuated knee is not supported properly.

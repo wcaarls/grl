@@ -39,7 +39,7 @@ void PadaSampler::request(ConfigurationRequest *config)
   config->push_back(CRP("discretizer", "discretizer.action", "Action discretizer", discretizer_));
   config->push_back(CRP("delta", "Delta of PADA", delta_, CRP::Configuration));
   config->push_back(CRP("sub_ic_signal", "signal/vector", "Subscriber to the initialization and contact signal from environment", sub_ic_signal_, true));
-  config->push_back(CRP("pub_sub_sampler_state", "signal/vector", "Publisher and subscriber of the sampler state with memory such as previous action, noise, etc.", pub_sub_sampler_state_, true));
+  config->push_back(CRP("pub_sub_pada", "signal/vector", "Publisher and subscriber to the value of action of the PADA familiy of samplers", pub_sub_sampler_state_, true));
 }
 
 void PadaSampler::configure(Configuration &config)
@@ -49,7 +49,7 @@ void PadaSampler::configure(Configuration &config)
   discretizer_ = (Discretizer*)config["discretizer"].ptr();
   delta_ = config["delta"].v();
   sub_ic_signal_ = (VectorSignal*)config["sub_ic_signal"].ptr();
-  pub_sub_sampler_state_ = (VectorSignal*)config["pub_sub_sampler_state"].ptr();
+  pub_sub_sampler_state_ = (VectorSignal*)config["pub_sub_pada"].ptr();
 
   for (int i = 0; i < delta_.size(); i++)
     if (delta_[i] < 0)
@@ -82,7 +82,7 @@ Vector PadaSampler::env_signal_processor()
 
   if (sub_ic_signal_)
   {
-    LargeVector signal = sub_ic_signal_->get();
+    Vector signal = sub_ic_signal_->get();
     if (signal[0] == sigEnvInit)
     {
       for (int ii = 0; ii < delta.size(); ii++)

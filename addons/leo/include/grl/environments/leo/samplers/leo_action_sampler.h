@@ -47,8 +47,6 @@ class LeoActionSampler : public Sampler
     VectorSignal *sub_ic_signal_;
     VectorSignal *pub_sub_sampler_state_;
 
-//    Discretizer *discretizer_;
-
   public:
     LeoActionSampler() { }
 

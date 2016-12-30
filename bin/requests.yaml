@@ -116,7 +116,7 @@ agent/master/sequential:
     type: exporter
     description: Optional exporter for transition log (supports time, state, observation, action, reward, terminal)
     mutability: configuration
-    default: 0x7f06d50a52f0
+    default: 0x7feda3fa92f0
     optional: 1
 agent/master/sequential/additive:
   description: Additive master agent that executes sub-agents sequentially and adds their outputs
@@ -3084,9 +3084,9 @@ sampler/ac_ornstein_ohlenbeck:
     mutability: configuration
     default: 0
     optional: 1
-  pub_sub_sampler_state:
+  pub_sub_ou:
     type: signal/vector
-    description: Publisher and subscriber of the sampler state with memory such as previous action, noise, etc.
+    description: Publisher and subscriber to the value of noise (or action in the ACOU case) of the Ornstein Uhlenbeck familiy of samplers
     mutability: configuration
     default: 0
     optional: 1
@@ -3156,9 +3156,9 @@ sampler/epsilon_ornstein_ohlenbeck:
     mutability: configuration
     default: 0
     optional: 1
-  pub_sub_sampler_state:
+  pub_sub_ou:
     type: signal/vector
-    description: Publisher and subscriber of the sampler state with memory such as previous action, noise, etc.
+    description: Publisher and subscriber to the value of noise (or action in the ACOU case) of the Ornstein Uhlenbeck familiy of samplers
     mutability: configuration
     default: 0
     optional: 1
@@ -3204,13 +3204,13 @@ sampler/epsilon_pada:
     type: signal/vector
     description: Subscriber to the initialization and contact signal from environment
     mutability: configuration
-    default: 0xe5fd78
+    default: 0x29e6da8
     optional: 1
-  pub_sub_sampler_state:
+  pub_sub_pada:
     type: signal/vector
-    description: Publisher and subscriber of the sampler state with memory such as previous action, noise, etc.
+    description: Publisher and subscriber to the value of action of the PADA familiy of samplers
     mutability: configuration
-    default: 0xe69c48
+    default: 0x29ca818
     optional: 1
 sampler/greedy:
   description: Maximum search
@@ -3282,9 +3282,9 @@ sampler/ornstein_ohlenbeck:
     mutability: configuration
     default: 0
     optional: 1
-  pub_sub_sampler_state:
+  pub_sub_ou:
     type: signal/vector
-    description: Publisher and subscriber of the sampler state with memory such as previous action, noise, etc.
+    description: Publisher and subscriber to the value of noise (or action in the ACOU case) of the Ornstein Uhlenbeck familiy of samplers
     mutability: configuration
     default: 0
     optional: 1
@@ -3324,9 +3324,9 @@ sampler/pada:
     mutability: configuration
     default: 0
     optional: 1
-  pub_sub_sampler_state:
+  pub_sub_pada:
     type: signal/vector
-    description: Publisher and subscriber of the sampler state with memory such as previous action, noise, etc.
+    description: Publisher and subscriber to the value of action of the PADA familiy of samplers
     mutability: configuration
     default: 0
     optional: 1
@@ -3370,26 +3370,18 @@ sampler/pada_ornstein_ohlenbeck:
     mutability: configuration
     default: 0
     optional: 1
-  pub_sub_sampler_state:
+  pub_sub_ou:
     type: signal/vector
-    description: Publisher and subscriber of the sampler state with memory such as previous action, noise, etc.
+    description: Publisher and subscriber to the value of noise (or action in the ACOU case) of the Ornstein Uhlenbeck familiy of samplers
     mutability: configuration
     default: 0
     optional: 1
-  epsilon:
-    type: double
-    description: Exploration rate
-    mutability: online
-    default: 0.05
-    optional: 1
-    min: 0
-    max: 1
-  delta:
-    type: vector
-    description: Delta of PADA
+  pada:
+    type: sampler
+    description: Pada sampler
     mutability: configuration
-    default: "[  ]"
-    optional: 1
+    default: 0
+    optional: 0
 sampler/softmax:
   description: Softmax (Gibbs/Boltzmann) sampler
   tau:
