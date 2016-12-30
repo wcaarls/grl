@@ -43,7 +43,7 @@ void OrnsteinUhlenbeckSampler::request(ConfigurationRequest *config)
   config->push_back(CRP("sigma", "Sigma parameter of Ornstein-Uhlenbeck", sigma_, CRP::Configuration));
   config->push_back(CRP("center", "Centering parameter of Ornstein-Uhlenbeck", center_, CRP::Configuration));
   config->push_back(CRP("sub_ic_signal", "signal/vector", "Subscriber to the initialization and contact signal from environment", sub_ic_signal_, true));
-  config->push_back(CRP("pub_sub_ou", "signal/vector", "Publisher and subscriber to the value of noise (or action in the ACOU case) of the Ornstein Uhlenbeck familiy of samplers", pub_sub_sampler_state_, true));
+  config->push_back(CRP("pub_sub_ou_state", "signal/vector", "Publisher and subscriber to the value of noise (or action in the ACOU case) of the Ornstein Uhlenbeck familiy of samplers", pub_sub_ou_state_, true));
 }
 
 void OrnsteinUhlenbeckSampler::configure(Configuration &config)
@@ -67,11 +67,11 @@ void OrnsteinUhlenbeckSampler::configure(Configuration &config)
     noise_scale_[i] = std::max(pos_part[i], neg_part[i]);
 
   sub_ic_signal_ = (VectorSignal*)config["sub_ic_signal"].ptr();
-  pub_sub_sampler_state_ = (VectorSignal*)config["pub_sub_ou"].ptr();
+  pub_sub_ou_state_ = (VectorSignal*)config["pub_sub_ou_state"].ptr();
 
   noise_ = center_;
-  if (pub_sub_sampler_state_)
-    pub_sub_sampler_state_->set(noise_);
+  if (pub_sub_ou_state_)
+    pub_sub_ou_state_->set(noise_);
 }
 
 void OrnsteinUhlenbeckSampler::reconfigure(const Configuration &config)
@@ -119,8 +119,8 @@ void OrnsteinUhlenbeckSampler::mix_signal_noise(const Vector &in, const Vector &
 
 size_t OrnsteinUhlenbeckSampler::sample(const LargeVector &values, TransitionType &tt)
 {
-  if (pub_sub_sampler_state_)
-    noise_ = pub_sub_sampler_state_->get();
+  if (pub_sub_ou_state_)
+    noise_ = pub_sub_ou_state_->get();
 
   // Greedy action selection
   size_t offset = GreedySampler::sample(values, tt);
@@ -139,8 +139,8 @@ size_t OrnsteinUhlenbeckSampler::sample(const LargeVector &values, TransitionTyp
   // find value index of the sample and keep it for nex run
   offset = discretizer_->offset(state_idx);
 
-  if (pub_sub_sampler_state_)
-    pub_sub_sampler_state_->set(noise_);
+  if (pub_sub_ou_state_)
+    pub_sub_ou_state_->set(noise_);
 
   tt = ttExploratory;
   return offset;
@@ -163,8 +163,8 @@ void ACOrnsteinUhlenbeckSampler::configure(Configuration &config)
   discretizer_->discretize(center_, &center_idx);
   offset_ = discretizer_->offset(center_idx);
 
-  if (pub_sub_sampler_state_)
-    pub_sub_sampler_state_->set(center_);
+  if (pub_sub_ou_state_)
+    pub_sub_ou_state_->set(center_);
 }
 
 void ACOrnsteinUhlenbeckSampler::reconfigure(const Configuration &config)
@@ -189,8 +189,8 @@ size_t ACOrnsteinUhlenbeckSampler::sample(const LargeVector &values, TransitionT
 
     // read previous action values
     Vector smp_vec;
-    if (pub_sub_sampler_state_)
-      smp_vec = pub_sub_sampler_state_->get();
+    if (pub_sub_ou_state_)
+      smp_vec = pub_sub_ou_state_->get();
     else
       smp_vec = discretizer_->at(offset_);
     TRACE(smp_vec);
@@ -213,10 +213,10 @@ size_t ACOrnsteinUhlenbeckSampler::sample(const LargeVector &values, TransitionT
   else
     offset_ = GreedySampler::sample(values, tt);
 
-  if (pub_sub_sampler_state_)
+  if (pub_sub_ou_state_)
   {
     Vector smp_vec = discretizer_->at(offset_);
-    pub_sub_sampler_state_->set(smp_vec);
+    pub_sub_ou_state_->set(smp_vec);
   }
 
   return offset_;
@@ -250,8 +250,8 @@ EpsilonOrnsteinUhlenbeckSampler *EpsilonOrnsteinUhlenbeckSampler::clone()
 
 size_t EpsilonOrnsteinUhlenbeckSampler::sample(const LargeVector &values, TransitionType &tt)
 {
-  if (pub_sub_sampler_state_)
-    noise_ = pub_sub_sampler_state_->get();
+  if (pub_sub_ou_state_)
+    noise_ = pub_sub_ou_state_->get();
 
   size_t offset = GreedySampler::sample(values, tt);
   TRACE(discretizer_->at(offset));
@@ -277,8 +277,8 @@ size_t EpsilonOrnsteinUhlenbeckSampler::sample(const LargeVector &values, Transi
     TRACE(discretizer_->at(offset));
   }
 
-  if (pub_sub_sampler_state_)
-    pub_sub_sampler_state_->set(noise_);
+  if (pub_sub_ou_state_)
+    pub_sub_ou_state_->set(noise_);
 
   return offset;
 }
@@ -311,8 +311,8 @@ PadaOrnsteinUhlenbeckSampler *PadaOrnsteinUhlenbeckSampler::clone()
 
 size_t PadaOrnsteinUhlenbeckSampler::sample(const LargeVector &values, TransitionType &tt)
 {
-  if (pub_sub_sampler_state_)
-    noise_ = pub_sub_sampler_state_->get();
+  if (pub_sub_ou_state_)
+    noise_ = pub_sub_ou_state_->get();
 
   size_t offset = pada_->sample(values, tt);
   TRACE(discretizer_->at(offset));
@@ -341,8 +341,8 @@ size_t PadaOrnsteinUhlenbeckSampler::sample(const LargeVector &values, Transitio
   offset = discretizer_->offset(state_idx);
   TRACE(discretizer_->at(offset));
 
-  if (pub_sub_sampler_state_)
-     pub_sub_sampler_state_->set(noise_);
+  if (pub_sub_ou_state_)
+     pub_sub_ou_state_->set(noise_);
 
   tt = ttExploratory;
   return offset;

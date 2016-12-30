@@ -39,7 +39,7 @@ void PadaSampler::request(ConfigurationRequest *config)
   config->push_back(CRP("discretizer", "discretizer.action", "Action discretizer", discretizer_));
   config->push_back(CRP("delta", "Delta of PADA", delta_, CRP::Configuration));
   config->push_back(CRP("sub_ic_signal", "signal/vector", "Subscriber to the initialization and contact signal from environment", sub_ic_signal_, true));
-  config->push_back(CRP("pub_sub_pada", "signal/vector", "Publisher and subscriber to the value of action of the PADA familiy of samplers", pub_sub_sampler_state_, true));
+  config->push_back(CRP("pub_sub_pada_state", "signal/vector", "Publisher and subscriber to the value of action of the PADA familiy of samplers", pub_sub_pada_state_, true));
 }
 
 void PadaSampler::configure(Configuration &config)
@@ -49,7 +49,7 @@ void PadaSampler::configure(Configuration &config)
   discretizer_ = (Discretizer*)config["discretizer"].ptr();
   delta_ = config["delta"].v();
   sub_ic_signal_ = (VectorSignal*)config["sub_ic_signal"].ptr();
-  pub_sub_sampler_state_ = (VectorSignal*)config["pub_sub_pada"].ptr();
+  pub_sub_pada_state_ = (VectorSignal*)config["pub_sub_pada_state"].ptr();
 
   for (int i = 0; i < delta_.size(); i++)
     if (delta_[i] < 0)
@@ -60,8 +60,8 @@ void PadaSampler::configure(Configuration &config)
   discretizer_->discretize(initial_state, &state_idx);
   offset_ = discretizer_->offset(state_idx);
 
-  if (pub_sub_sampler_state_)
-    pub_sub_sampler_state_->set(initial_state);
+  if (pub_sub_pada_state_)
+    pub_sub_pada_state_->set(initial_state);
 }
 
 void PadaSampler::reconfigure(const Configuration &config)
@@ -152,11 +152,11 @@ size_t PadaSampler::exploitation_step(const LargeVector &values, Discretizer::bo
 
 size_t PadaSampler::sample(const LargeVector &values, TransitionType &tt)
 {
-  if (pub_sub_sampler_state_)
+  if (pub_sub_pada_state_)
   {
     // offset is updated only if sampler_state is modified, i.e. contact happend for Leo
     IndexVector action_idx;
-    Vector action = pub_sub_sampler_state_->get();
+    Vector action = pub_sub_pada_state_->get();
     TRACE(action);
     discretizer_->discretize(action, &action_idx);
     TRACE(action_idx);
@@ -179,8 +179,8 @@ size_t PadaSampler::sample(const LargeVector &values, TransitionType &tt)
     offset_ = exploitation_step(values, bit);
   }
 
-  if (pub_sub_sampler_state_)
-    pub_sub_sampler_state_->set(discretizer_->at(offset_));
+  if (pub_sub_pada_state_)
+    pub_sub_pada_state_->set(discretizer_->at(offset_));
 
   return offset_;
 }
@@ -198,11 +198,11 @@ size_t EpsilonPadaSampler::sample(const LargeVector &values, TransitionType &tt)
 {
   if (rand_->get() < epsilon_)
   {
-    if (pub_sub_sampler_state_)
+    if (pub_sub_pada_state_)
     {
       // offset is updated only if sampler_state is modified, i.e. contact happend for Leo
       IndexVector action_idx;
-      Vector action = pub_sub_sampler_state_->get();
+      Vector action = pub_sub_pada_state_->get();
       TRACE(action);
       discretizer_->discretize(action, &action_idx);
       TRACE(action_idx);
@@ -229,8 +229,8 @@ size_t EpsilonPadaSampler::sample(const LargeVector &values, TransitionType &tt)
 */
 
   Vector smp_vec = discretizer_->at(offset_);
-  if (pub_sub_sampler_state_)
-    pub_sub_sampler_state_->set(smp_vec);
+  if (pub_sub_pada_state_)
+    pub_sub_pada_state_->set(smp_vec);
 
   return offset_;
 }

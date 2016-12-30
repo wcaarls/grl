@@ -52,7 +52,7 @@ class PadaSampler : public EpsilonGreedySampler
     Vector delta_;
     VectorSignal *sub_ic_signal_;
 
-    VectorSignal *pub_sub_sampler_state_;
+    VectorSignal *pub_sub_pada_state_;
 
   public:
     PadaSampler() : offset_(0) { }

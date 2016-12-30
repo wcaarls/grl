@@ -116,7 +116,7 @@ agent/master/sequential:
     type: exporter
     description: Optional exporter for transition log (supports time, state, observation, action, reward, terminal)
     mutability: configuration
-    default: 0x7feda3fa92f0
+    default: 0x7f22e8ed72f0
     optional: 1
 agent/master/sequential/additive:
   description: Additive master agent that executes sub-agents sequentially and adds their outputs
@@ -3084,7 +3084,7 @@ sampler/ac_ornstein_ohlenbeck:
     mutability: configuration
     default: 0
     optional: 1
-  pub_sub_ou:
+  pub_sub_ou_state:
     type: signal/vector
     description: Publisher and subscriber to the value of noise (or action in the ACOU case) of the Ornstein Uhlenbeck familiy of samplers
     mutability: configuration
@@ -3156,7 +3156,7 @@ sampler/epsilon_ornstein_ohlenbeck:
     mutability: configuration
     default: 0
     optional: 1
-  pub_sub_ou:
+  pub_sub_ou_state:
     type: signal/vector
     description: Publisher and subscriber to the value of noise (or action in the ACOU case) of the Ornstein Uhlenbeck familiy of samplers
     mutability: configuration
@@ -3204,13 +3204,13 @@ sampler/epsilon_pada:
     type: signal/vector
     description: Subscriber to the initialization and contact signal from environment
     mutability: configuration
-    default: 0x29e6da8
+    default: 0x2517da8
     optional: 1
-  pub_sub_pada:
+  pub_sub_pada_state:
     type: signal/vector
     description: Publisher and subscriber to the value of action of the PADA familiy of samplers
     mutability: configuration
-    default: 0x29ca818
+    default: 0x24fb818
     optional: 1
 sampler/greedy:
   description: Maximum search
@@ -3282,7 +3282,7 @@ sampler/ornstein_ohlenbeck:
     mutability: configuration
     default: 0
     optional: 1
-  pub_sub_ou:
+  pub_sub_ou_state:
     type: signal/vector
     description: Publisher and subscriber to the value of noise (or action in the ACOU case) of the Ornstein Uhlenbeck familiy of samplers
     mutability: configuration
@@ -3324,7 +3324,7 @@ sampler/pada:
     mutability: configuration
     default: 0
     optional: 1
-  pub_sub_pada:
+  pub_sub_pada_state:
     type: signal/vector
     description: Publisher and subscriber to the value of action of the PADA familiy of samplers
     mutability: configuration
@@ -3370,7 +3370,7 @@ sampler/pada_ornstein_ohlenbeck:
     mutability: configuration
     default: 0
     optional: 1
-  pub_sub_ou:
+  pub_sub_ou_state:
     type: signal/vector
     description: Publisher and subscriber to the value of noise (or action in the ACOU case) of the Ornstein Uhlenbeck familiy of samplers
     mutability: configuration

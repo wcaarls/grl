@@ -60,10 +60,10 @@ experiment:
           discretizer: experiment/agent/policy/discretizer
           delta: [1, 1, 1]
           sub_ic_signal: experiment/environment/pub_ic_signal
-          pub_sub_sampler_state: 
+          pub_sub_pada_state: 
             type: signal/vector
         sub_ic_signal: experiment/environment/pub_ic_signal
-        pub_sub_sampler_state: experiment/agent/policy/sampler/sampler/pub_sub_sampler_state
+        pub_sub_sampler_state: experiment/agent/policy/sampler/sampler/pub_sub_pada_state
     predictor: 
       type: predictor/sarsa
       alpha: 0.2

@@ -52,7 +52,7 @@ class OrnsteinUhlenbeckSampler : public GreedySampler
     Vector noise_scale_;
     Discretizer *discretizer_;
 
-    VectorSignal *pub_sub_sampler_state_;
+    VectorSignal *pub_sub_ou_state_;
 
   public:
     OrnsteinUhlenbeckSampler() { }

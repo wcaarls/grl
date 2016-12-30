@@ -56,16 +56,16 @@ experiment:
         sampler: 
           type: sampler/ac_ornstein_ohlenbeck
           rand_max: 0
-          epsilon: 0.05
           discretizer: experiment/agent/policy/discretizer
           theta: [0.1, 0.1, 0.1]
           sigma: [2.0, 2.0, 2.0]
           center: [0.0, 0.0, 0.0]
           sub_ic_signal: experiment/environment/pub_ic_signal
-          pub_sub_sampler_state: 
+          pub_sub_ou_state: 
             type: signal/vector
+          epsilon: 0.05
         sub_ic_signal: experiment/environment/pub_ic_signal
-        pub_sub_sampler_state: experiment/agent/policy/sampler/sampler/pub_sub_sampler_state
+        pub_sub_sampler_state: experiment/agent/policy/sampler/sampler/pub_sub_ou_state
     predictor: 
       type: predictor/sarsa
       alpha: 0.2
