@@ -65,7 +65,7 @@ experiment:
       trace: 
         type: trace/enumerated/accumulating
   test_agent: 
-    type: agent/fixed
+    type: agent/leo/fixed
     policy: 
       type: policy/discrete/q
       discretizer: experiment/agent/policy/discretizer

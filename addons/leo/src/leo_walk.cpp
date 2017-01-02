@@ -86,6 +86,9 @@ std::string LeoBhWalk::getProgressReport(double trialTime)
   std::stringstream progressString;
   progressString << std::fixed << std::setprecision(3) << std::right;
 
+  // Report from the base class
+  progressString << CLeoBhWalkSym::getProgressReport(trialTime);
+
   // Number of footsteps in this trial
   progressString << std::setw(pw) << mNumFootsteps;
 

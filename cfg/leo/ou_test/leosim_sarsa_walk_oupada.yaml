@@ -28,7 +28,7 @@ experiment:
     pub_ic_signal: 
       type: signal/vector
   agent: 
-    type: agent/td/leo
+    type: agent/leo/td
     policy: 
       type: policy/discrete/q
       discretizer: 
@@ -89,7 +89,7 @@ experiment:
         type: trace/enumerated/accumulating
     pub_transition_type: experiment/environment/sub_transition_type
   test_agent: 
-    type: agent/fixed
+    type: agent/leo/fixed
     policy: 
       type: policy/discrete/q
       discretizer: experiment/agent/policy/discretizer
@@ -100,11 +100,12 @@ experiment:
         sampler: 
           type: sampler/pada
           rand_max: 0
-          epsilon: 0.05
+          epsilon: 0.0
           discretizer: experiment/agent/policy/discretizer
           delta: experiment/agent/policy/sampler/sampler/pada/sampler/delta
           sub_ic_signal: experiment/environment/pub_ic_signal
           pub_sub_pada_state: experiment/agent/policy/sampler/sampler/pada/sampler/pub_sub_pada_state
         sub_ic_signal: experiment/environment/pub_ic_signal
         pub_sub_sampler_state: experiment/agent/policy/sampler/sampler/pada/sampler/pub_sub_pada_state
+    pub_transition_type: experiment/environment/sub_transition_type
   save_every: never

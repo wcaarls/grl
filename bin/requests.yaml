@@ -50,6 +50,40 @@ agent/fixed:
     mutability: configuration
     default: 0
     optional: 0
+agent/leo/fixed:
+  description: Leo fixed agent
+  policy:
+    type: policy
+    description: Control policy
+    mutability: configuration
+    default: 0
+    optional: 0
+  pub_transition_type:
+    type: signal/vector
+    description: Publisher of the transition type
+    mutability: configuration
+    default: 0
+    optional: 1
+agent/leo/td:
+  description: Leo agent that learns from observed state transitions
+  policy:
+    type: policy
+    description: Control policy
+    mutability: configuration
+    default: 0
+    optional: 0
+  predictor:
+    type: predictor
+    description: Value function predictor
+    mutability: configuration
+    default: 0
+    optional: 0
+  pub_transition_type:
+    type: signal/vector
+    description: Publisher of the transition type
+    mutability: configuration
+    default: 0
+    optional: 1
 agent/leo_preprogrammed:
   description: Leo preprogrammed agent
   rand_gen:
@@ -116,7 +150,7 @@ agent/master/sequential:
     type: exporter
     description: Optional exporter for transition log (supports time, state, observation, action, reward, terminal)
     mutability: configuration
-    default: 0x7f22e8ed72f0
+    default: 0x7fe97a1732f0
     optional: 1
 agent/master/sequential/additive:
   description: Additive master agent that executes sub-agents sequentially and adds their outputs
@@ -262,26 +296,6 @@ agent/td:
     mutability: configuration
     default: 0
     optional: 0
-agent/td/leo:
-  description: Leo agent that learns from observed state transitions
-  policy:
-    type: policy
-    description: Control policy
-    mutability: configuration
-    default: 0
-    optional: 0
-  predictor:
-    type: predictor
-    description: Value function predictor
-    mutability: configuration
-    default: 0
-    optional: 0
-  pub_transition_type:
-    type: signal/vector
-    description: Publisher of the transition type
-    mutability: configuration
-    default: 0
-    optional: 1
 behavior/leo_squat_sym:
   description: Leo squatting behavior with symmetrical switchers of observations
 behavior/leo_walk:
@@ -1748,7 +1762,7 @@ policy/parameterized/pidt:
     type: policy
     description: Control policy
     mutability: configuration
-    default: 0
+    default: 0x1569b70
     optional: 0
   inputs:
     type: int.observation_dims
@@ -3204,13 +3218,13 @@ sampler/epsilon_pada:
     type: signal/vector
     description: Subscriber to the initialization and contact signal from environment
     mutability: configuration
-    default: 0x2517da8
+    default: 0x1885778
     optional: 1
   pub_sub_pada_state:
     type: signal/vector
     description: Publisher and subscriber to the value of action of the PADA familiy of samplers
     mutability: configuration
-    default: 0x24fb818
+    default: 0x1882208
     optional: 1
 sampler/greedy:
   description: Maximum search

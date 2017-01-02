@@ -1,5 +1,5 @@
-/** \file leo_td.h
- * \brief Leo temporal difference agent header file.
+/** \file leo_fixed.h
+ * \brief Leo fixed agent header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
  * \date      2015-01-22
@@ -25,26 +25,27 @@
  * \endverbatim
  */
 
-#ifndef GRL_LEO_TD_AGENT_H_
-#define GRL_LEO_TD_AGENT_H_
+#ifndef GRL_LEO_FIXED_AGENT_H_
+#define GRL_LEO_FIXED_AGENT_H_
 
-#include <grl/agents/td.h>
+#include <grl/agents/fixed.h>
 #include <grl/signal.h>
 
 namespace grl
 {
 
+
 /// Temporal difference learning agent for leo.
-class LeoTDAgent : public TDAgent
+class LeoFixedAgent : public FixedAgent
 {
   public:
-    TYPEINFO("agent/leo/td", "Leo agent that learns from observed state transitions")
+    TYPEINFO("agent/leo/fixed", "Leo fixed agent")
 
   protected: 
     VectorSignal *pub_transition_type_;
 
   public:
-    LeoTDAgent() : pub_transition_type_(NULL) { }
+    LeoFixedAgent() : pub_transition_type_(NULL) { }
 
     // From Configurable    
     virtual void request(ConfigurationRequest *config);
@@ -52,11 +53,11 @@ class LeoTDAgent : public TDAgent
     virtual void reconfigure(const Configuration &config);
 
     // From Agent
-    virtual LeoTDAgent *clone() const;
+    virtual LeoFixedAgent *clone() const;
     virtual TransitionType start(const Vector &obs, Vector *action);
     virtual TransitionType step(double tau, const Vector &obs, double reward, Vector *action);
 };
 
 }
 
-#endif /* GRL_LEO_TD_AGENT_H_ */
+#endif /* GRL_LEO_FIXED_AGENT_H_ */

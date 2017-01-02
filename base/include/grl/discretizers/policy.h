@@ -62,7 +62,6 @@ class PolicyDiscretizer : public Discretizer
 
 
     virtual Vector steps()  const { return Vector(); }
-
     virtual void discretize(Vector &vec, IndexVector *idx_v = NULL) const {}
     virtual size_t offset(const IndexVector &idx) const { return 0; }
 };

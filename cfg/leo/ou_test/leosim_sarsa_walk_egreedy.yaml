@@ -23,12 +23,10 @@ experiment:
       file: leosim_sarsa_walk_egreedy
       style: meshup
       variant: all
-    observation_dims: experiment/environment/target_env/observation_dims
-    action_dims: experiment/environment/target_env/action_dims
-    transition_type: 
+    sub_transition_type: 
       type: signal/vector
   agent: 
-    type: agent/td
+    type: agent/leo/td
     policy: 
       type: policy/discrete/q
       discretizer: 
@@ -64,9 +62,9 @@ experiment:
       representation: experiment/agent/policy/representation
       trace: 
         type: trace/enumerated/accumulating
-    transition_type: experiment/environment/transition_type
+    pub_transition_type: experiment/environment/sub_transition_type
   test_agent: 
-    type: agent/fixed
+    type: agent/leo/fixed
     policy: 
       type: policy/discrete/q
       discretizer: experiment/agent/policy/discretizer
@@ -75,4 +73,5 @@ experiment:
       sampler: 
         type: sampler/greedy
         rand_max: 0
+    pub_transition_type: experiment/environment/sub_transition_type
   save_every: never

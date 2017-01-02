@@ -60,7 +60,7 @@ experiment:
         type: trace/enumerated/accumulating
     transition_type: experiment/environment/transition_type
   test_agent: 
-    type: agent/fixed
+    type: agent/leo/fixed
     policy: 
       type: policy/discrete/q
       discretizer: experiment/agent/policy/discretizer
