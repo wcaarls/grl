@@ -38,6 +38,7 @@ using namespace std;
 static int yaml(lua_State *L);
 static int instantiate(lua_State *L);
 static int run(lua_State *L);
+static int reload(lua_State *L);
 
 Configurator *lua_toconfigurator(lua_State *L, int index)
 {
@@ -75,6 +76,9 @@ void lua_newgrl(lua_State *L, Configurator *conf)
   lua_pushstring(L, "run");
   lua_pushcfunction(L, run);
   lua_rawset(L, -3);
+  lua_pushstring(L, "load");
+  lua_pushcfunction(L, reload);
+  lua_rawset(L, -3);
 }
 
 static int _new(lua_State *L)
@@ -101,6 +105,43 @@ static int ref(lua_State *L)
   std::string path = luaL_checkstring(L, 1);
   Configurator *conf = new ParameterConfigurator("", path);
   lua_newgrl(L, conf);
+  
+  return 1;
+}
+
+static int load(lua_State *L)
+{
+  if (lua_gettop(L) != 1)
+    luaL_error(L, "load() expected 1 argument, %d given", lua_gettop(L));
+  
+  std::string file = luaL_checkstring(L, 1);
+  
+  INFO("Loading configuration from '" << file << "'");
+  
+  Configurator *conf = loadYAML(file);
+  if (!conf)
+    luaL_error(L, "Could not load configuration from %s", file.c_str());
+
+  lua_newgrl(L, conf);
+  
+  return 1;
+}
+
+static int reload(lua_State *L)
+{
+  if (lua_gettop(L) != 2)
+    luaL_error(L, "load() expected 2 arguments, %d given", lua_gettop(L));
+  
+  Configurator *conf = lua_toconfigurator(L, 1);
+  std::string file = luaL_checkstring(L, 2);
+  
+  INFO("Loading configuration from '" << file << "'");
+  
+  conf = loadYAML(file, "", conf);
+  if (!conf)
+    luaL_error(L, "Could not load configuration from %s", file.c_str());
+    
+  lua_pushvalue(L, 1);
   
   return 1;
 }
@@ -143,7 +184,7 @@ static int newindex(lua_State *L)
     else
     {
       // Vector
-      Vector v = lua_tovector(L, -2);
+      LargeVector v = lua_tovector(L, -2);
       std::ostringstream oss;
       std::vector<double> v_out;
       fromVector(v, v_out);
@@ -257,6 +298,7 @@ static int run(lua_State *L)
 static const struct luaL_reg grllib [] = {
   {"new", _new},
   {"ref", ref},
+  {"load", load},
   {NULL, NULL}
 };
 

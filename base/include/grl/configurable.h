@@ -91,7 +91,7 @@ struct CRP
   
   /// Request for a Vector value.
   CRP(std::string _name, std::string _description,
-      Vector _value, Mutability _mutability=Configuration) :
+      LargeVector _value, Mutability _mutability=Configuration) :
     name(_name), type("vector"), description(_description), mutability(_mutability), optional(true)
   {
     setValue(_value);
@@ -99,7 +99,7 @@ struct CRP
 
   /// Request for a Vector value with explicit type specification to set role.
   CRP(std::string _name, std::string _type, std::string _description,
-      Vector _value, Mutability _mutability=Configuration) :
+      LargeVector _value, Mutability _mutability=Configuration) :
     name(_name), type(_type), description(_description), mutability(_mutability), optional(true)
   {
     setValue(_value);
@@ -152,6 +152,16 @@ struct CRP
 
     /// Sets the value member to a string description of the given vector parameter.
     void setValue(const Vector& v)
+    {
+      std::ostringstream oss;
+      std::vector<double> v_out;
+      fromVector(v, v_out);
+      oss << v_out;
+      value = oss.str();
+    }
+    
+    /// Sets the value member to a string description of the given vector parameter.
+    void setValue(const LargeVector& v)
     {
       std::ostringstream oss;
       std::vector<double> v_out;

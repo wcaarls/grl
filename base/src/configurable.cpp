@@ -272,7 +272,7 @@ std::string ParameterConfigurator::str() const
     issa.str(left);  issa >> a_in;
     issb.str(right); issb >> b_in;
     
-    Vector a, b, c;
+    LargeVector a, b, c;
     toVector(a_in, a);
     toVector(b_in, b);
     
@@ -394,7 +394,7 @@ bool ParameterConfigurator::validate(const CRP &crp) const
     }
     else if (type == "vector")
     {
-      Vector v;
+      LargeVector v;
       if (!convert(value, &v))
       {
         ERROR("Parameter " << path() << " ('" << value << "') should be a vector");

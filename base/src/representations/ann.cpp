@@ -56,7 +56,7 @@ void ANNRepresentation::request(const std::string &role, ConfigurationRequest *c
   
   config->push_back(CRP("hiddens", "Number of hidden nodes per layer", hiddens_, CRP::Configuration));
 
-  config->push_back(CRP("eta", "Learning rate (0=RPROP)", eta_, CRP::Configuration, 0., 2.));
+  config->push_back(CRP("eta", "Learning rate (0=RPROP, <0=RMSPROP)", eta_, CRP::Configuration, -2., 2.));
 }
 
 void ANNRepresentation::configure(Configuration &config)
@@ -99,8 +99,11 @@ void ANNRepresentation::reconfigure(const Configuration &config)
       
       layers_[ii].delta = layers_[ii].activation = Matrix();
       layers_[ii].Delta = Matrix::Zero(layers_[ii-1].size+1, layers_[ii].size);
-
-      layers_[ii].eta = Matrix::Ones(layers_[ii-1].size+1, layers_[ii].size)*0.1;
+      layers_[ii].eta = Matrix::Ones(layers_[ii-1].size+1, layers_[ii].size);
+      
+      if (eta_ == 0)
+        layers_[ii].eta *= 0.1;
+       
       layers_[ii].prev_Delta = Matrix::Zero(layers_[ii-1].size+1, layers_[ii].size);
 
       sz += (layers_[ii-1].size+1)*layers_[ii].size;
@@ -190,17 +193,23 @@ void ANNRepresentation::finalize()
 {
   for (int ii=1; ii < layers_.size(); ++ii)
   {
-    if (eta_)
+    if (eta_ > 0)
     {
-      // Gradient descent
+      // Stochastic gradient descent
       layers_[ii].W -= eta_*layers_[ii].Delta/samples_;
     }
-    else
+    else if (eta_ == 0)
     {
       // RPROP
       layers_[ii].eta = ((layers_[ii].Delta.array()*layers_[ii].prev_Delta.array())>0).select(layers_[ii].eta*1.2, layers_[ii].eta*0.5);
       layers_[ii].W -= (layers_[ii].Delta.array()>0).select(layers_[ii].eta, -layers_[ii].eta);
       layers_[ii].prev_Delta = layers_[ii].Delta;
+    }
+    else
+    {
+      // RMSPROP
+      layers_[ii].eta = 0.9 * layers_[ii].eta.array() + 0.1 * (layers_[ii].Delta/samples_).array().square();
+      layers_[ii].W += eta_*(layers_[ii].Delta.array()/layers_[ii].eta.array().sqrt()).matrix();
     }
     
     layers_[ii].Delta = Matrix::Zero(layers_[ii-1].size+1, layers_[ii].size);

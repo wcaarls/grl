@@ -64,7 +64,7 @@ class EpsilonGreedySampler : public GreedySampler
     TYPEINFO("sampler/epsilon_greedy", "Maximum search with a uniform random chance of non-maximums")
 
   protected:
-    Vector epsilon_, distribution_;
+    LargeVector epsilon_, distribution_;
     double distribution_sum_;
 
   public:
@@ -83,7 +83,7 @@ class EpsilonGreedySampler : public GreedySampler
     virtual void distribution(const LargeVector &values, LargeVector *distribution) const;
     
   protected:
-    Vector calculateBaseDistribution(const Vector &epsilon) const;
+    LargeVector calculateBaseDistribution(const LargeVector &epsilon) const;
 };
 
 }

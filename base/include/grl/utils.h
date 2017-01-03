@@ -202,6 +202,18 @@ inline bool convert(const std::string& str, Vector *obj)
   return iss.eof();
 }
 
+/// Read a string as a vector.
+inline bool convert(const std::string& str, LargeVector *obj)
+{
+  std::istringstream iss(str);
+
+  std::vector<double> v;
+  iss >> std::ws >> v >> std::ws;
+  toVector(v, *obj);
+  
+  return iss.eof();
+}
+
 /// Sample from distribution
 inline size_t sample(const Vector &dist, double sum)
 {

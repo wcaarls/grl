@@ -89,7 +89,7 @@ void EpsilonGreedySampler::configure(Configuration &config)
   if (epsilon_.size() > 1)
   {
     distribution_ = calculateBaseDistribution(epsilon_);
-    distribution_sum_ = sum(distribution_);
+    distribution_sum_ = distribution_.sum();
   }
 }
 
@@ -103,7 +103,7 @@ void EpsilonGreedySampler::reconfigure(const Configuration &config)
   if (epsilon_.size() > 1)
   {
     distribution_ = calculateBaseDistribution(epsilon_);
-    distribution_sum_ = sum(distribution_);
+    distribution_sum_ = distribution_.sum();
   }
 }
 
@@ -159,10 +159,10 @@ void EpsilonGreedySampler::distribution(const LargeVector &values, LargeVector *
   }
 }
 
-Vector EpsilonGreedySampler::calculateBaseDistribution(const Vector &epsilon) const
+LargeVector EpsilonGreedySampler::calculateBaseDistribution(const LargeVector &epsilon) const
 {
   // Calculate base distribution
-  Vector distribution = Vector::Constant(epsilon.size(), 0.);
+  LargeVector distribution = LargeVector::Constant(epsilon.size(), 0.);
   
   std::vector<double> e;
   fromVector(epsilon, e);

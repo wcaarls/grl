@@ -49,7 +49,7 @@ inline void lua_pushvector(lua_State *L, const Vector &v)
   }
 }
 
-inline Vector lua_tovector(lua_State *L, int index)
+inline LargeVector lua_tovector(lua_State *L, int index)
 {
   if (!lua_istable(L, index))
   {
@@ -57,7 +57,7 @@ inline Vector lua_tovector(lua_State *L, int index)
     return Vector();
   }
 
-  Vector v = ConstantVector(lua_objlen(L, index), 0.);
+  LargeVector v = LargeVector::Constant(lua_objlen(L, index), 0.);
 
   for (size_t ii=0; ii < v.size(); ++ii)
   {
