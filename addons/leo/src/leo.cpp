@@ -274,11 +274,11 @@ void LeoBaseEnvironment::step(double tau, double reward, int terminal)
                      });
   }
 
-  TRACE("State angles: " << s1);
-  TRACE("State velocities: " << v1);
-  TRACE("Contacts: " << (int)leoState_.mFootContacts);
-  TRACE("Full action: " << a);
-  TRACE("Reward: " << reward);
+  CRAWL("State angles: " << s1);
+  CRAWL("State velocities: " << v1);
+  CRAWL("Contacts: " << (int)leoState_.mFootContacts);
+  CRAWL("Full action: " << a);
+  CRAWL("Reward: " << reward);
 
   time += tau;
 }

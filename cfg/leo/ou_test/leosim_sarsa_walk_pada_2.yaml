@@ -58,7 +58,7 @@ experiment:
           rand_max: 0
           epsilon: 0.05
           discretizer: experiment/agent/policy/discretizer
-          delta: [2, 2, 2]
+          delta: [7.14, 7.14, 7.14]
           sub_ic_signal: experiment/environment/pub_ic_signal
           pub_sub_pada_state: 
             type: signal/vector

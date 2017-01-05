@@ -69,7 +69,7 @@ class OrnsteinUhlenbeckSampler : public GreedySampler
   protected:
     virtual void env_signal_processor();
     virtual void evolve_noise();
-    virtual void mix_signal_noise(const Vector &in, const Vector &noise, IndexVector &out) const;
+    virtual Vector mix_signal_noise(const Vector &in, const Vector &noise) const;
 };
 
 
@@ -136,6 +136,7 @@ class PadaOrnsteinUhlenbeckSampler : public OrnsteinUhlenbeckSampler
 
   protected:
     Sampler *pada_;
+    VectorSignal *pub_new_action_;
 };
 
 }

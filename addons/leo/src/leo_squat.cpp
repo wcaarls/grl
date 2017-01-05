@@ -403,7 +403,7 @@ void LeoSquatEnvironment::start(int test, Vector *obs)
 
 double LeoSquatEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)
 {
-  TRACE("RL action: " << action);
+  CRAWL("RL action: " << action);
 
   Vector a = action;
   //a << -4, 5, -4;

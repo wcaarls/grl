@@ -169,7 +169,7 @@ bool ODESTGEnvironment::configure(Configuration &config)
 void ODESTGEnvironment::start(int test, Vector *obs)
 {
   simulator_.setInitialCondition(randomize_?time(NULL):0);
-  double com[3];
+  //double com[3];
   //simulator_.read("robot.com", com);
   simulator_.resetActuationValues();
   simulator_.activateActions(listener_.getState()->mStateID);

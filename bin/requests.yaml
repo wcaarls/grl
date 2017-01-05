@@ -150,7 +150,7 @@ agent/master/sequential:
     type: exporter
     description: Optional exporter for transition log (supports time, state, observation, action, reward, terminal)
     mutability: configuration
-    default: 0x7fe97a1732f0
+    default: 0x7f2fb4baf3b0
     optional: 1
 agent/master/sequential/additive:
   description: Additive master agent that executes sub-agents sequentially and adds their outputs
@@ -1762,7 +1762,7 @@ policy/parameterized/pidt:
     type: policy
     description: Control policy
     mutability: configuration
-    default: 0x1569b70
+    default: 0x2623b40
     optional: 0
   inputs:
     type: int.observation_dims
@@ -3206,7 +3206,7 @@ sampler/epsilon_pada:
     type: discretizer.action
     description: Action discretizer
     mutability: configuration
-    default: 0x73203a656c626172
+    default: 0x705f6e6f6c697370
     optional: 0
   delta:
     type: vector
@@ -3218,13 +3218,13 @@ sampler/epsilon_pada:
     type: signal/vector
     description: Subscriber to the initialization and contact signal from environment
     mutability: configuration
-    default: 0x1885778
+    default: 0x73203a656c626172
     optional: 1
   pub_sub_pada_state:
     type: signal/vector
     description: Publisher and subscriber to the value of action of the PADA familiy of samplers
     mutability: configuration
-    default: 0x1882208
+    default: 0x652f72656c706d61
     optional: 1
 sampler/greedy:
   description: Maximum search
@@ -3324,7 +3324,7 @@ sampler/pada:
     type: discretizer.action
     description: Action discretizer
     mutability: configuration
-    default: 0x73203a656c626172
+    default: 0x5f6e696574616461
     optional: 0
   delta:
     type: vector
@@ -3336,13 +3336,13 @@ sampler/pada:
     type: signal/vector
     description: Subscriber to the initialization and contact signal from environment
     mutability: configuration
-    default: 0
+    default: 0x73203a656c626172
     optional: 1
   pub_sub_pada_state:
     type: signal/vector
     description: Publisher and subscriber to the value of action of the PADA familiy of samplers
     mutability: configuration
-    default: 0
+    default: 0x702f72656c706d61
     optional: 1
 sampler/pada_ornstein_ohlenbeck:
   description: "Exploitations and exploitations are same as ou, but action is selected from a constrained set, as in pada. "
@@ -3393,6 +3393,12 @@ sampler/pada_ornstein_ohlenbeck:
   pada:
     type: sampler
     description: Pada sampler
+    mutability: configuration
+    default: 0
+    optional: 0
+  pub_new_action:
+    type: signal/vector
+    description: Publisher of the signal with noise
     mutability: configuration
     default: 0
     optional: 0

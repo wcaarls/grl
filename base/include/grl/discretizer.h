@@ -71,18 +71,6 @@ class Discretizer : public Configurable
         inline Vector operator*() { return discretizer_->get(*this); }
     };
 
-    class bounded_iterator : public iterator
-    {
-      public:
-        IndexVector lower_bound, upper_bound;
-      public:
-        bounded_iterator(const Discretizer *discretizer=NULL, Vector _point=Vector(), IndexVector _idx=IndexVector(), IndexVector _lower_bound=IndexVector(), IndexVector _upper_bound=IndexVector()) : iterator(discretizer, _point, _idx), lower_bound(_lower_bound), upper_bound(_upper_bound) { }
-        inline bounded_iterator &operator++() { discretizer_->inc(this); return *this; }
-        inline bounded_iterator begin() { return bounded_iterator(discretizer_, point, lower_bound); }
-        inline bounded_iterator end() { return bounded_iterator(discretizer_, point, upper_bound); }
-        inline size_t offset() { return discretizer_->offset(idx); }
-    };
-    
     virtual size_t size() const { return size(Vector()); }
     virtual size_t size(const Vector &point) const { return size(); }
     virtual iterator begin() const { return begin(Vector()); }
@@ -93,21 +81,13 @@ class Discretizer : public Configurable
     }
     
     virtual void   inc(iterator *it) const = 0;
-    virtual void   inc(bounded_iterator *it) const { return inc(it); }
     virtual Vector get(const iterator &it) const = 0;
-    virtual Vector at(size_t idx, IndexVector *idx_vec = NULL) const { return at(Vector(), idx); }
+    virtual Vector at(size_t idx) const { return at(Vector(), idx); }
     virtual Vector at(const Vector &point, size_t idx) const { return at(idx); }
 
-
-    // #ivan need to review these
-    virtual Vector steps()  const = 0;
-
     /// Finds the most closest discrete vector to 'vec' in L1 sense per element
-    /// An optional parmater 'idx' returns index of the discretized vector
-    virtual void discretize(Vector &vec, IndexVector *idx = NULL) const = 0;
-
-    /// Converts indexed vector to an linear offset which points to an indexed representation of the same input vector
-    virtual size_t offset(const IndexVector &idx) const = 0;
+    /// Returns an offset and a discretized vector
+    virtual size_t discretize(Vector &vec) const = 0;
 };
 
 }

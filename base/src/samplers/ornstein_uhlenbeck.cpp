@@ -98,23 +98,15 @@ void OrnsteinUhlenbeckSampler::env_signal_processor()
 
 void OrnsteinUhlenbeckSampler::evolve_noise()
 {
-  TRACE(noise_);
+  CRAWL(noise_);
   for (int i = 0; i < noise_.size(); i++)
     noise_[i] = noise_[i] + theta_[i] * (center_[i] - noise_[i])+ sigma_[i] * rand_->getNormal(0, 1);
-  TRACE(noise_);
+  CRAWL(noise_);
 }
 
-void OrnsteinUhlenbeckSampler::mix_signal_noise(const Vector &in, const Vector &noise, IndexVector &out) const
+Vector OrnsteinUhlenbeckSampler::mix_signal_noise(const Vector &in, const Vector &noise) const
 {
-  // convert array index to values
-  TRACE(in);
-  Vector vec = in + noise_scale_*noise; // coefficient-wise product and summation
-  TRACE(vec);
-
-  // find nearest discretized sample (min-max bounds preserved automatically)
-  discretizer_->discretize(vec, &out);
-  TRACE(vec);
-  TRACE(out);
+  return in + noise_scale_*noise;
 }
 
 size_t OrnsteinUhlenbeckSampler::sample(const LargeVector &values, TransitionType &tt)
@@ -124,20 +116,16 @@ size_t OrnsteinUhlenbeckSampler::sample(const LargeVector &values, TransitionTyp
 
   // Greedy action selection
   size_t offset = GreedySampler::sample(values, tt);
-  TRACE(discretizer_->at(offset));
+  CRAWL(discretizer_->at(offset));
 
   // Supress noise at the start of an episode and beginning of the step (?)
   env_signal_processor();
-  TRACE(noise_);
+  CRAWL(noise_);
 
   // add noise to a signal
   evolve_noise();
-  IndexVector state_idx;
-  state_idx.resize(noise_.size());
-  mix_signal_noise(discretizer_->at(offset), noise_, state_idx);
-
-  // find value index of the sample and keep it for nex run
-  offset = discretizer_->offset(state_idx);
+  Vector action_new = mix_signal_noise(discretizer_->at(offset), noise_);
+  offset = discretizer_->discretize(action_new);
 
   if (pub_sub_ou_state_)
     pub_sub_ou_state_->set(noise_);
@@ -158,10 +146,7 @@ void ACOrnsteinUhlenbeckSampler::configure(Configuration &config)
   OrnsteinUhlenbeckSampler::configure(config);
   epsilon_ = config["epsilon"];
 
-  IndexVector center_idx;
-  center_idx.resize(center_.size());
-  discretizer_->discretize(center_, &center_idx);
-  offset_ = discretizer_->offset(center_idx);
+  offset_ = discretizer_->discretize(center_);
 
   if (pub_sub_ou_state_)
     pub_sub_ou_state_->set(center_);
@@ -200,15 +185,7 @@ size_t ACOrnsteinUhlenbeckSampler::sample(const LargeVector &values, TransitionT
       smp_vec[i] = smp_vec[i] + theta_[i] * (center_[i] - smp_vec[i])+ sigma_[i] * rand_->getNormal(0, 1);
     TRACE(smp_vec);
 
-    // find nearest discretized sample (min-max bounds preserved automatically)
-    IndexVector state_idx;
-    state_idx.resize(center_.size());
-    discretizer_->discretize(smp_vec, &state_idx);
-    TRACE(smp_vec);
-    TRACE(state_idx);
-
-    // find value index of the sample and keep it for nex run
-    offset_ = discretizer_->offset(state_idx);
+    offset_ = discretizer_->discretize(smp_vec);
   }
   else
     offset_ = GreedySampler::sample(values, tt);
@@ -254,27 +231,24 @@ size_t EpsilonOrnsteinUhlenbeckSampler::sample(const LargeVector &values, Transi
     noise_ = pub_sub_ou_state_->get();
 
   size_t offset = GreedySampler::sample(values, tt);
-  TRACE(discretizer_->at(offset));
+  CRAWL(discretizer_->at(offset));
 
   // Supress noise at the start of an episode
   env_signal_processor();
-  TRACE(noise_);
+  CRAWL(noise_);
 
   // Take next noise value
   evolve_noise();
-  TRACE(noise_);
+  CRAWL(noise_);
 
   if (rand_->get() < epsilon_)
   {
     // add noise to to signal
     tt = ttExploratory;
-    IndexVector state_idx;
-    state_idx.resize(noise_.size());
-    mix_signal_noise(discretizer_->at(offset), noise_, state_idx);
-    TRACE(state_idx);
+    Vector action_new = mix_signal_noise(discretizer_->at(offset), noise_);
+    TRACE(action_new);
 
-    offset = discretizer_->offset(state_idx);
-    TRACE(discretizer_->at(offset));
+    offset = discretizer_->discretize(action_new);
   }
 
   if (pub_sub_ou_state_)
@@ -289,12 +263,17 @@ void PadaOrnsteinUhlenbeckSampler::request(ConfigurationRequest *config)
 {
   OrnsteinUhlenbeckSampler::request(config);
   config->push_back(CRP("pada", "sampler", "Pada sampler", pada_));
+  config->push_back(CRP("pub_new_action", "signal/vector", "Publisher of the signal with noise", pub_new_action_));
 }
 
 void PadaOrnsteinUhlenbeckSampler::configure(Configuration &config)
 {
   OrnsteinUhlenbeckSampler::configure(config);
   pada_ = (Sampler*)config["pada"].ptr();
+  pub_new_action_ = (VectorSignal*)config["pub_new_action"].ptr();
+
+//  if (!pub_new_action_)
+//    throw bad_param("sampler/pada_ornstein_ohlenbeck:pub_new_action");
 }
 
 void PadaOrnsteinUhlenbeckSampler::reconfigure(const Configuration &config)
@@ -315,31 +294,37 @@ size_t PadaOrnsteinUhlenbeckSampler::sample(const LargeVector &values, Transitio
     noise_ = pub_sub_ou_state_->get();
 
   size_t offset = pada_->sample(values, tt);
-  TRACE(discretizer_->at(offset));
+  CRAWL(discretizer_->at(offset));
 
   // Supress noise at the start of an episode
   env_signal_processor();
-  TRACE(noise_);
+  CRAWL(noise_);
 
   // Take next noise value
   evolve_noise();
-  TRACE(noise_);
+  CRAWL(noise_);
 
   // add noise to to signal
-  IndexVector state_idx;
-  mix_signal_noise(discretizer_->at(offset), noise_, state_idx);
-  TRACE(state_idx);
-/*
+  Vector action_new = mix_signal_noise(discretizer_->at(offset), noise_);
+  CRAWL(action_new);
+
   /////////////////
   // Testing
   size_t offset_orig = offset;
-  offset = discretizer_->offset(state_idx);
+  offset = discretizer_->discretize(action_new);
   if (offset_orig != offset)
-    INFO("OU noise affected PADA choise. This is correct if it happens once in a while.");
+  {
+    TRACE("OU noise affected PADA choise. This is correct if it happens once in a while.");
+    TRACE(discretizer_->at(offset_orig));
+    TRACE(discretizer_->at(offset));
+  }
   /////////////////
-*/
-  offset = discretizer_->offset(state_idx);
-  TRACE(discretizer_->at(offset));
+
+  offset = discretizer_->discretize(action_new);
+  CRAWL(offset);
+
+  // Inform pada sampler about the previous action (discretized)
+  pub_new_action_->set(discretizer_->at(offset));
 
   if (pub_sub_ou_state_)
      pub_sub_ou_state_->set(noise_);

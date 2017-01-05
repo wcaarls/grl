@@ -223,7 +223,7 @@ void LeoWalkEnvironment::start(int test, Vector *obs)
 
 double LeoWalkEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)
 {
-  TRACE("RL action: " << action);
+  CRAWL("RL action: " << action);
 
   bh_->setCurrentSTGState(&leoState_);
 
@@ -233,9 +233,9 @@ double LeoWalkEnvironment::step(const Vector &action, Vector *obs, double *rewar
 
   // Execute action
   bh_->setPreviousSTGState(&leoState_);
-  TRACE(target_action_);
+  CRAWL(target_action_);
   double tau = target_env_->step(target_action_, &target_obs_, reward, terminal);
-  TRACE(target_obs_);
+  CRAWL(target_obs_);
 
   // Filter joint speeds
   // Parse obs into CLeoState

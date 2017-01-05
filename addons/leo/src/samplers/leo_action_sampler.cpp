@@ -70,7 +70,7 @@ size_t LeoActionSampler::sample(const LargeVector &values, TransitionType &tt)
     if (signal[0] == lstContact)
     {
       // Take care of Leo body symmetry, if required!
-      TRACE (sampler_state);
+      TRACE(sampler_state);
       Vector sampler_state_new = sampler_state;
       Vector ti_actuator_to = signal.block(0, 1, 1, CLeoBhBase::svNumActions);
       TRACE(ti_actuator_to);
@@ -92,8 +92,7 @@ size_t LeoActionSampler::sample(const LargeVector &values, TransitionType &tt)
             sampler_state_new[ti_actuator_to[i]] = sampler_state[ti_actuator_from[i]];
         }
       }
-
-      TRACE (sampler_state_new);
+      TRACE(sampler_state_new);
 
       // update memory which will be used in the sample() call below
       pub_sub_sampler_state_->set(sampler_state_new);

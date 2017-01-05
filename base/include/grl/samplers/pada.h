@@ -47,15 +47,14 @@ class PadaSampler : public EpsilonGreedySampler
     TYPEINFO("sampler/pada", "Maximum search with a PADA random chance of non-maximums")
 
   protected:
-    Discretizer *discretizer_;
-    size_t offset_;
-    Vector delta_;
     VectorSignal *sub_ic_signal_;
-
     VectorSignal *pub_sub_pada_state_;
+    Discretizer *discretizer_;
+    Vector delta_;
+    Vector prev_action_;
 
   public:
-    PadaSampler() : offset_(0) { }
+    PadaSampler() { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -67,13 +66,11 @@ class PadaSampler : public EpsilonGreedySampler
     virtual size_t sample(const LargeVector &values, TransitionType &tt);
 
   public:
-    virtual void set_offset(size_t offset) { offset_ = offset; }
+    virtual void set_prev_action(Vector prev_action) { prev_action_ = prev_action; }
 
   protected:
     virtual Vector env_signal_processor();
-    virtual void get_bounds(size_t offset, Vector &delta, IndexVector &lower_bound, IndexVector &upper_bound) const;
-    virtual size_t exploration_step(Discretizer::bounded_iterator &bit) const;
-    virtual size_t exploitation_step(const LargeVector &values, Discretizer::bounded_iterator &bit) const;
+    virtual void filter(const Vector &delta, const Vector &prev_out, const LargeVector &qvalues, LargeVector *filtered, std::vector<size_t> *idx) const;
 };
 
 

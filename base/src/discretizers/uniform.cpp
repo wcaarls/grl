@@ -123,22 +123,6 @@ void UniformDiscretizer::inc(iterator *it) const
     it->idx = IndexVector();
 }
 
-void UniformDiscretizer::inc(bounded_iterator *it) const
-{
-  if (!it->idx.size())
-    return;
-
-  size_t dd;
-  for (dd=0; dd < steps_.size(); ++dd)
-    if (++it->idx[dd] == it->upper_bound[dd]+1)
-      it->idx[dd] = it->lower_bound[dd];
-    else
-      break;
-
-  if (dd == steps_.size())
-    it->idx = IndexVector();
-}
-
 Vector UniformDiscretizer::get(const iterator &it) const
 {
   if (!it.idx.size())
@@ -151,50 +135,25 @@ Vector UniformDiscretizer::get(const iterator &it) const
   return out;
 }
 
-///
-/// \brief UniformDiscretizer::at
-/// \param idx:     input linear index
-/// \param idx_vec: (optional) output vector with indexies corresponding to the input idx
-/// \return vector of control corresponding to the input idx
-///
-Vector UniformDiscretizer::at(size_t offset, IndexVector *idx) const
+Vector UniformDiscretizer::at(size_t idx) const
 {
   Vector out(steps_.size());
-
-  if (idx)
-    idx->resize(steps_.size());
 
   for (size_t dd=0; dd < steps_.size(); ++dd)
   {
     size_t ss = steps_[dd];
-  
-    out[dd] = values_[dd][offset % ss];
-    if (idx)
-      (*idx)[dd] = offset % ss;
-    offset /= ss;
+
+    out[dd] = values_[dd][idx % ss];
+    idx /= ss;
   }
-  
+
   return out;
 }
 
-size_t UniformDiscretizer::offset(const IndexVector &idx) const
+size_t UniformDiscretizer::discretize(Vector &vec) const
 {
   double steps = 1;
-  double offset = idx[0];
-
-  for (int dd = 1; dd < steps_.size(); ++dd)
-  {
-    steps *= steps_[dd-1];
-    offset += idx[dd]*steps;
-  }
-  // offset = sample_[0] + sample_[1]*steps_[0] + sample_[2]*steps_[0]*steps_[1];
-  return static_cast<size_t>(round(offset));
-}
-
-void UniformDiscretizer::discretize(Vector &vec, IndexVector *idx) const
-{
-  if (idx)
-    idx->resize(steps_.size());
+  double offset = 0;
 
   for (int dd=0; dd < steps_.size(); ++dd)
   {
@@ -209,9 +168,14 @@ void UniformDiscretizer::discretize(Vector &vec, IndexVector *idx) const
       }
     }
     vec[dd] = nearest;
-    if (idx)
-      (*idx)[dd] = nearest_vv;
+
+    // calculating offset
+    offset += nearest_vv*steps;
+    steps *= steps_[dd];
   }
+
+  // offset = sample_[0] + sample_[1]*steps_[0] + sample_[2]*steps_[0]*steps_[1];
+  return static_cast<size_t>(round(offset));
 }
 
 

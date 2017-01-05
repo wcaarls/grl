@@ -69,10 +69,7 @@ class SplitDiscretizer : public Discretizer
     virtual void inc(iterator *it) const;
     virtual Vector get(const iterator &it) const;
     virtual Vector at(const Vector &point, size_t idx) const;
-
-    virtual Vector steps()  const { return Vector(); }
-    virtual void discretize(Vector &vec, IndexVector *idx_v = NULL) const {}
-    virtual size_t offset(const IndexVector &idx) const { return 0; }
+    virtual size_t discretize(Vector &vec) const { return 0; }
 };
 
 }
