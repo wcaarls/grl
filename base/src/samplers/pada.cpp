@@ -38,7 +38,6 @@ void PadaSampler::request(ConfigurationRequest *config)
 
   config->push_back(CRP("discretizer", "discretizer.action", "Action discretizer", discretizer_));
   config->push_back(CRP("delta", "Delta of PADA", delta_, CRP::Configuration));
-  config->push_back(CRP("sub_ic_signal", "signal/vector", "Subscriber to the initialization and contact signal from environment", sub_ic_signal_, true));
   config->push_back(CRP("pub_sub_pada_state", "signal/vector", "Publisher and subscriber to the value of action of the PADA familiy of samplers", pub_sub_pada_state_, true));
 }
 
@@ -48,7 +47,6 @@ void PadaSampler::configure(Configuration &config)
 
   discretizer_ = (Discretizer*)config["discretizer"].ptr();
   delta_ = config["delta"].v();
-  sub_ic_signal_ = (VectorSignal*)config["sub_ic_signal"].ptr();
   pub_sub_pada_state_ = (VectorSignal*)config["pub_sub_pada_state"].ptr();
 
   for (int i = 0; i < delta_.size(); i++)
@@ -73,28 +71,6 @@ PadaSampler *PadaSampler::clone()
   return egs;
 }
 
-Vector PadaSampler::env_signal_processor()
-{
-  Vector delta = delta_;
-
-  if (sub_ic_signal_)
-  {
-    Vector signal = sub_ic_signal_->get();
-    if (signal[0] == sigEnvInit)
-    {
-      for (int ii = 0; ii < delta.size(); ii++)
-        delta[ii] = INT_MAX;
-    }
-  }
-
-  //--------------------------------------
-  // Uncomment for any signal for the knee (debug)
-  // delta[0] = delta[1] = delta[2] = INT_MAX;
-  //--------------------------------------
-
-  return delta;
-}
-
 size_t PadaSampler::sample(double time, const LargeVector &values, TransitionType &tt)
 {
   // offset is updated only if sampler_state is modified, i.e. contact happend for Leo
@@ -104,10 +80,17 @@ size_t PadaSampler::sample(double time, const LargeVector &values, TransitionTyp
     CRAWL(prev_action_);
   }
 
+  // any action at start
+  Vector delta = delta_;
+  if (time == 0.0)
+  {
+    for (int ii = 0; ii < delta.size(); ii++)
+      delta[ii] = INT_MAX;
+  }
+
   // bound possible actions
   LargeVector filtered;
   std::vector<size_t> idx;
-  Vector delta = env_signal_processor();
   filter(delta, prev_action_, values, &filtered, &idx);
 
   size_t filtered_offset = EpsilonGreedySampler::sample(filtered, tt); // PadaSampler is derived from EpsilonGreedySampler => they share same epsilon
@@ -180,10 +163,17 @@ size_t EpsilonPadaSampler::sample(double time, const LargeVector &values, Transi
       TRACE(prev_action_);
     }
 
+    // any action at start
+    Vector delta = delta_;
+    if (time == 0.0)
+    {
+      for (int ii = 0; ii < delta.size(); ii++)
+        delta[ii] = INT_MAX;
+    }
+
     // bound possible actions
     LargeVector filtered;
     std::vector<size_t> idx;
-    Vector delta = env_signal_processor();
     filter(delta, prev_action_, values, &filtered, &idx);
 
     tt = ttExploratory;

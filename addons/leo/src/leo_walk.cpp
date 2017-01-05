@@ -215,10 +215,6 @@ void LeoWalkEnvironment::start(int test, Vector *obs)
   bh_->parseLeoState(leoState_, *obs);
 
   bh_->setCurrentSTGState(NULL);
-
-  // signal contact (agent may use this signal to tackle discontinuities)
-  if (pub_ic_signal_)
-    pub_ic_signal_->set(VectorConstructor(lstInit));
 }
 
 double LeoWalkEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)

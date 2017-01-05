@@ -30,8 +30,7 @@ struct TargetInterface
   ActuatorInterface actuator_sym; // used for stance leg being right
 };
 
-enum LeoSignalType {lstNone = sigEnvNone, lstInit = sigEnvInit, lstContact}; // Leo has the additional to default signal type
-//enum LeoInitSignalData {lisdTypeInit, lisdSwingKnee};
+enum LeoSignalType {lstNone, lstContact}; // Leo has the additional to default signal type
 
 // Base classes for Leo
 class CLeoBhBase: public CLeoBhWalkSym

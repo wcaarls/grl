@@ -42,7 +42,6 @@ void OrnsteinUhlenbeckSampler::request(ConfigurationRequest *config)
   config->push_back(CRP("theta", "Theta parameter of Ornstein-Uhlenbeck", theta_, CRP::Configuration));
   config->push_back(CRP("sigma", "Sigma parameter of Ornstein-Uhlenbeck", sigma_, CRP::Configuration));
   config->push_back(CRP("center", "Centering parameter of Ornstein-Uhlenbeck", center_, CRP::Configuration));
-  config->push_back(CRP("sub_ic_signal", "signal/vector", "Subscriber to the initialization and contact signal from environment", sub_ic_signal_, true));
   config->push_back(CRP("pub_sub_ou_state", "signal/vector", "Publisher and subscriber to the value of noise (or action in the ACOU case) of the Ornstein Uhlenbeck familiy of samplers", pub_sub_ou_state_, true));
 }
 
@@ -66,7 +65,6 @@ void OrnsteinUhlenbeckSampler::configure(Configuration &config)
   for (int i = 0; i < center_.size(); i++)
     noise_scale_[i] = std::max(pos_part[i], neg_part[i]);
 
-  sub_ic_signal_ = (VectorSignal*)config["sub_ic_signal"].ptr();
   pub_sub_ou_state_ = (VectorSignal*)config["pub_sub_ou_state"].ptr();
 
   noise_ = center_;
@@ -84,16 +82,6 @@ OrnsteinUhlenbeckSampler *OrnsteinUhlenbeckSampler::clone()
   OrnsteinUhlenbeckSampler *egs = new OrnsteinUhlenbeckSampler(*this);
   egs->rand_ = rand_->clone();
   return egs;
-}
-
-void OrnsteinUhlenbeckSampler::env_signal_processor()
-{
-  if (sub_ic_signal_)
-  {
-    Vector signal = sub_ic_signal_->get();
-    if (signal[0] == sigEnvInit)
-      noise_ = center_;
-  }
 }
 
 void OrnsteinUhlenbeckSampler::evolve_noise()
@@ -118,8 +106,9 @@ size_t OrnsteinUhlenbeckSampler::sample(double time, const LargeVector &values, 
   size_t offset = GreedySampler::sample(values, tt);
   CRAWL(discretizer_->at(offset));
 
-  // Supress noise at the start of an episode and beginning of the step (?)
-  env_signal_processor();
+  // Supress noise at the start of an episode
+  if (time == 0.0)
+    noise_ = center_;
   CRAWL(noise_);
 
   // add noise to a signal
@@ -166,9 +155,7 @@ ACOrnsteinUhlenbeckSampler *ACOrnsteinUhlenbeckSampler::clone()
 
 size_t ACOrnsteinUhlenbeckSampler::sample(double time, const LargeVector &values, TransitionType &tt)
 {
-  LargeVector signal = sub_ic_signal_->get();
-
-  if (rand_->get() < epsilon_ && signal[0] != sigEnvInit)
+  if (rand_->get() < epsilon_ && time != 0.0)
   {
     tt = ttExploratory;
 
@@ -232,7 +219,8 @@ size_t EpsilonOrnsteinUhlenbeckSampler::sample(double time, const LargeVector &v
   CRAWL(discretizer_->at(offset));
 
   // Supress noise at the start of an episode
-  env_signal_processor();
+  if (time == 0.0)
+    noise_ = center_;
   CRAWL(noise_);
 
   // Take next noise value
@@ -288,11 +276,12 @@ size_t PadaOrnsteinUhlenbeckSampler::sample(double time, const LargeVector &valu
   if (pub_sub_ou_state_)
     noise_ = pub_sub_ou_state_->get();
 
-  size_t offset = pada_->sample(values, tt);
+  size_t offset = pada_->sample(time, values, tt);
   CRAWL(discretizer_->at(offset));
 
   // Supress noise at the start of an episode
-  env_signal_processor();
+  if (time == 0.0)
+    noise_ = center_;
   CRAWL(noise_);
 
   // Take next noise value

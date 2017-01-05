@@ -47,7 +47,6 @@ class OrnsteinUhlenbeckSampler : public GreedySampler
 
   protected:
     Vector noise_;
-    VectorSignal *sub_ic_signal_;
     Vector theta_, sigma_, center_;
     Vector noise_scale_;
     Discretizer *discretizer_;
@@ -67,7 +66,6 @@ class OrnsteinUhlenbeckSampler : public GreedySampler
     virtual size_t sample(double time, const LargeVector &values, TransitionType &tt);
 
   protected:
-    virtual void env_signal_processor();
     virtual void evolve_noise();
     virtual Vector mix_signal_noise(const Vector &in, const Vector &noise) const;
 };

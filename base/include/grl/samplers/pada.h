@@ -47,7 +47,6 @@ class PadaSampler : public EpsilonGreedySampler
     TYPEINFO("sampler/pada", "Maximum search with a PADA random chance of non-maximums")
 
   protected:
-    VectorSignal *sub_ic_signal_;
     VectorSignal *pub_sub_pada_state_;
     Discretizer *discretizer_;
     Vector delta_;
@@ -69,7 +68,6 @@ class PadaSampler : public EpsilonGreedySampler
     virtual void set_prev_action(Vector prev_action) { prev_action_ = prev_action; }
 
   protected:
-    virtual Vector env_signal_processor();
     virtual void filter(const Vector &delta, const Vector &prev_out, const LargeVector &qvalues, LargeVector *filtered, std::vector<size_t> *idx) const;
 };
 
