@@ -98,8 +98,6 @@ void QPolicy::values(const Vector &in, LargeVector *out) const
     (*out)[ii] = representation_->read(projections[ii], &value); // reading approximated values
 }
 
-//Vector prev_out;
-
 TransitionType QPolicy::act(const Vector &in, Vector *out) const
 {
   LargeVector qvalues;
@@ -108,6 +106,21 @@ TransitionType QPolicy::act(const Vector &in, Vector *out) const
   values(in, &qvalues);
   size_t action = sampler_->sample(qvalues, tt);
   
+  *out = discretizer_->at(in, action);
+  TRACE(*out);
+
+  return tt;
+}
+
+//Vector prev_out;
+TransitionType QPolicy::act(double time, const Vector &in, Vector *out)
+{
+  LargeVector qvalues;
+  TransitionType tt;
+
+  values(in, &qvalues);
+  size_t action = sampler_->sample(time, qvalues, tt);
+
   *out = discretizer_->at(in, action);
   TRACE(*out);
 /*

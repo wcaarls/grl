@@ -150,7 +150,7 @@ Vector UniformDiscretizer::at(size_t idx) const
   return out;
 }
 
-size_t UniformDiscretizer::discretize(Vector &vec) const
+size_t UniformDiscretizer::discretize(Vector *vec) const
 {
   double steps = 1;
   double offset = 0;
@@ -161,13 +161,13 @@ size_t UniformDiscretizer::discretize(Vector &vec) const
     size_t nearest_vv = 0;
     for (size_t vv=1; vv < steps_[dd]; ++vv)
     {
-      if (fabs(nearest-vec[dd]) > fabs(values_[dd][vv]-vec[dd]))
+      if (fabs(nearest-(*vec)[dd]) > fabs(values_[dd][vv]-(*vec)[dd]))
       {
         nearest = values_[dd][vv];
         nearest_vv = vv;
       }
     }
-    vec[dd] = nearest;
+    (*vec)[dd] = nearest;
 
     // calculating offset
     offset += nearest_vv*steps;

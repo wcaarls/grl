@@ -109,7 +109,7 @@ Vector OrnsteinUhlenbeckSampler::mix_signal_noise(const Vector &in, const Vector
   return in + noise_scale_*noise;
 }
 
-size_t OrnsteinUhlenbeckSampler::sample(const LargeVector &values, TransitionType &tt)
+size_t OrnsteinUhlenbeckSampler::sample(double time, const LargeVector &values, TransitionType &tt)
 {
   if (pub_sub_ou_state_)
     noise_ = pub_sub_ou_state_->get();
@@ -125,7 +125,7 @@ size_t OrnsteinUhlenbeckSampler::sample(const LargeVector &values, TransitionTyp
   // add noise to a signal
   evolve_noise();
   Vector action_new = mix_signal_noise(discretizer_->at(offset), noise_);
-  offset = discretizer_->discretize(action_new);
+  offset = discretizer_->discretize(&action_new);
 
   if (pub_sub_ou_state_)
     pub_sub_ou_state_->set(noise_);
@@ -146,7 +146,7 @@ void ACOrnsteinUhlenbeckSampler::configure(Configuration &config)
   OrnsteinUhlenbeckSampler::configure(config);
   epsilon_ = config["epsilon"];
 
-  offset_ = discretizer_->discretize(center_);
+  offset_ = discretizer_->discretize(&center_);
 
   if (pub_sub_ou_state_)
     pub_sub_ou_state_->set(center_);
@@ -164,7 +164,7 @@ ACOrnsteinUhlenbeckSampler *ACOrnsteinUhlenbeckSampler::clone()
   return egs;
 }
 
-size_t ACOrnsteinUhlenbeckSampler::sample(const LargeVector &values, TransitionType &tt)
+size_t ACOrnsteinUhlenbeckSampler::sample(double time, const LargeVector &values, TransitionType &tt)
 {
   LargeVector signal = sub_ic_signal_->get();
 
@@ -185,16 +185,14 @@ size_t ACOrnsteinUhlenbeckSampler::sample(const LargeVector &values, TransitionT
       smp_vec[i] = smp_vec[i] + theta_[i] * (center_[i] - smp_vec[i])+ sigma_[i] * rand_->getNormal(0, 1);
     TRACE(smp_vec);
 
-    offset_ = discretizer_->discretize(smp_vec);
+    offset_ = discretizer_->discretize(&smp_vec);
+    TRACE(offset_);
   }
   else
     offset_ = GreedySampler::sample(values, tt);
 
   if (pub_sub_ou_state_)
-  {
-    Vector smp_vec = discretizer_->at(offset_);
-    pub_sub_ou_state_->set(smp_vec);
-  }
+    pub_sub_ou_state_->set(discretizer_->at(offset_));
 
   return offset_;
 }
@@ -225,7 +223,7 @@ EpsilonOrnsteinUhlenbeckSampler *EpsilonOrnsteinUhlenbeckSampler::clone()
   return egs;
 }
 
-size_t EpsilonOrnsteinUhlenbeckSampler::sample(const LargeVector &values, TransitionType &tt)
+size_t EpsilonOrnsteinUhlenbeckSampler::sample(double time, const LargeVector &values, TransitionType &tt)
 {
   if (pub_sub_ou_state_)
     noise_ = pub_sub_ou_state_->get();
@@ -248,7 +246,7 @@ size_t EpsilonOrnsteinUhlenbeckSampler::sample(const LargeVector &values, Transi
     Vector action_new = mix_signal_noise(discretizer_->at(offset), noise_);
     TRACE(action_new);
 
-    offset = discretizer_->discretize(action_new);
+    offset = discretizer_->discretize(&action_new);
   }
 
   if (pub_sub_ou_state_)
@@ -271,9 +269,6 @@ void PadaOrnsteinUhlenbeckSampler::configure(Configuration &config)
   OrnsteinUhlenbeckSampler::configure(config);
   pada_ = (Sampler*)config["pada"].ptr();
   pub_new_action_ = (VectorSignal*)config["pub_new_action"].ptr();
-
-//  if (!pub_new_action_)
-//    throw bad_param("sampler/pada_ornstein_ohlenbeck:pub_new_action");
 }
 
 void PadaOrnsteinUhlenbeckSampler::reconfigure(const Configuration &config)
@@ -288,7 +283,7 @@ PadaOrnsteinUhlenbeckSampler *PadaOrnsteinUhlenbeckSampler::clone()
   return egs;
 }
 
-size_t PadaOrnsteinUhlenbeckSampler::sample(const LargeVector &values, TransitionType &tt)
+size_t PadaOrnsteinUhlenbeckSampler::sample(double time, const LargeVector &values, TransitionType &tt)
 {
   if (pub_sub_ou_state_)
     noise_ = pub_sub_ou_state_->get();
@@ -311,7 +306,7 @@ size_t PadaOrnsteinUhlenbeckSampler::sample(const LargeVector &values, Transitio
   /////////////////
   // Testing
   size_t offset_orig = offset;
-  offset = discretizer_->discretize(action_new);
+  offset = discretizer_->discretize(&action_new);
   if (offset_orig != offset)
   {
     TRACE("OU noise affected PADA choise. This is correct if it happens once in a while.");
@@ -320,7 +315,7 @@ size_t PadaOrnsteinUhlenbeckSampler::sample(const LargeVector &values, Transitio
   }
   /////////////////
 
-  offset = discretizer_->discretize(action_new);
+  offset = discretizer_->discretize(&action_new);
   CRAWL(offset);
 
   // Inform pada sampler about the previous action (discretized)

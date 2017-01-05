@@ -64,7 +64,7 @@ class OrnsteinUhlenbeckSampler : public GreedySampler
 
     // From Sampler
     virtual OrnsteinUhlenbeckSampler *clone();
-    virtual size_t sample(const LargeVector &values, TransitionType &tt);
+    virtual size_t sample(double time, const LargeVector &values, TransitionType &tt);
 
   protected:
     virtual void env_signal_processor();
@@ -92,7 +92,7 @@ class ACOrnsteinUhlenbeckSampler : public OrnsteinUhlenbeckSampler
 
     // From Sampler
     virtual ACOrnsteinUhlenbeckSampler *clone();
-    virtual size_t sample(const LargeVector &values, TransitionType &tt);
+    virtual size_t sample(double time, const LargeVector &values, TransitionType &tt);
 };
 
 
@@ -114,7 +114,7 @@ class EpsilonOrnsteinUhlenbeckSampler : public OrnsteinUhlenbeckSampler
 
     // From Sampler
     virtual EpsilonOrnsteinUhlenbeckSampler *clone();
-    virtual size_t sample(const LargeVector &values, TransitionType &tt);
+    virtual size_t sample(double time, const LargeVector &values, TransitionType &tt);
 };
 
 class PadaOrnsteinUhlenbeckSampler : public OrnsteinUhlenbeckSampler
@@ -132,7 +132,7 @@ class PadaOrnsteinUhlenbeckSampler : public OrnsteinUhlenbeckSampler
 
     // From Sampler
     virtual PadaOrnsteinUhlenbeckSampler *clone();
-    virtual size_t sample(const LargeVector &values, TransitionType &tt);
+    virtual size_t sample(double time, const LargeVector &values, TransitionType &tt);
 
   protected:
     Sampler *pada_;

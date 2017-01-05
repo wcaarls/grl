@@ -63,7 +63,7 @@ class PadaSampler : public EpsilonGreedySampler
 
     // From Sampler
     virtual PadaSampler *clone();
-    virtual size_t sample(const LargeVector &values, TransitionType &tt);
+    virtual size_t sample(double time, const LargeVector &values, TransitionType &tt);
 
   public:
     virtual void set_prev_action(Vector prev_action) { prev_action_ = prev_action; }
@@ -84,7 +84,7 @@ class EpsilonPadaSampler : public PadaSampler
 
     // From Sampler
     virtual EpsilonPadaSampler *clone();
-    virtual size_t sample(const LargeVector &values, TransitionType &tt);
+    virtual size_t sample(double time, const LargeVector &values, TransitionType &tt);
 };
 
 }

@@ -87,7 +87,7 @@ class Discretizer : public Configurable
 
     /// Finds the most closest discrete vector to 'vec' in L1 sense per element
     /// Returns an offset and a discretized vector
-    virtual size_t discretize(Vector &vec) const = 0;
+    virtual size_t discretize(Vector *vec) const = 0;
 };
 
 }

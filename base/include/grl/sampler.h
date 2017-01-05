@@ -49,12 +49,12 @@ class Sampler : public Configurable
     * \return offset in the vector which can be used for fining the corresponding action.
     * \note Sampler does not have an internal memory.
     */
-    virtual size_t sample(const LargeVector &values, TransitionType &tt) = 0;
-//    virtual size_t sample(const LargeVector &values, TransitionType &tt) const
-//    {
-//      throw Exception("Default implementation of sampler");
-//      return 0;
-//    }
+    virtual size_t sample(const LargeVector &values, TransitionType &tt) const
+    {
+      throw Exception("sample method is not implemented");
+      tt = ttUndefined;
+      return 0;
+    }
 
     /**
     * \brief Sample an action based on the current time and values of actions.
@@ -66,11 +66,10 @@ class Sampler : public Configurable
     * \return offset in the vector which can be used for fining the corresponding action.
     * \note Sampler has an internal memory for implementation of OrnsteinUhlenbeck or PADA samplers.
     */
-//    virtual size_t sample(double time, const LargeVector &values, TransitionType &tt)
-//    {
-//      throw Exception("Default implementation of sampler");
-//      return 0;
-//    }
+    virtual size_t sample(double time, const LargeVector &values, TransitionType &tt)
+    {
+      return sample(values, tt);
+    }
 
     /**
     * \brief Returns the sampling distribution for a value vector.

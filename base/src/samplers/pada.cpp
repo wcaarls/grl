@@ -95,7 +95,7 @@ Vector PadaSampler::env_signal_processor()
   return delta;
 }
 
-size_t PadaSampler::sample(const LargeVector &values, TransitionType &tt)
+size_t PadaSampler::sample(double time, const LargeVector &values, TransitionType &tt)
 {
   // offset is updated only if sampler_state is modified, i.e. contact happend for Leo
   if (pub_sub_pada_state_)
@@ -168,7 +168,7 @@ EpsilonPadaSampler *EpsilonPadaSampler::clone()
   return egs;
 }
 
-size_t EpsilonPadaSampler::sample(const LargeVector &values, TransitionType &tt)
+size_t EpsilonPadaSampler::sample(double time, const LargeVector &values, TransitionType &tt)
 {
   size_t offset;
   if (rand_->get() < epsilon_)

@@ -59,7 +59,10 @@ class QPolicy : public Policy
 
     // From DiscretePolicy
     virtual QPolicy *clone() const;
+    // memoryless sampler
     virtual TransitionType act(const Vector &in, Vector *out) const;
+    // sampler with memory
+    virtual TransitionType act(double time, const Vector &in, Vector *out);
     
     /// Returns the expected value of the action taken in state 'in'
     virtual double value(const Vector &in) const;

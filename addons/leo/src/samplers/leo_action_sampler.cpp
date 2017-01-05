@@ -61,7 +61,7 @@ LeoActionSampler *LeoActionSampler::clone()
   return egs;
 }
 
-size_t LeoActionSampler::sample(const LargeVector &values, TransitionType &tt)
+size_t LeoActionSampler::sample(double time, const LargeVector &values, TransitionType &tt)
 {
   if (sub_ic_signal_)
   {
@@ -99,7 +99,7 @@ size_t LeoActionSampler::sample(const LargeVector &values, TransitionType &tt)
     }
   }
 
-  return sampler_->sample(values, tt);
+  return sampler_->sample(time, values, tt);
 }
 
 void LeoActionSampler::distribution(const LargeVector &values, LargeVector *distribution)
