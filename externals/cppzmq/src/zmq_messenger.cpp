@@ -32,7 +32,7 @@ void *worker_routine (void *context)
   return NULL;
 }
 
-void ZeromqMessenger::init(const char* pubAddress, const char* subAddress, const char* syncAddress, int flags)
+void ZeromqMessenger::start(const char* pubAddress, const char* subAddress, const char* syncAddress, int flags)
 {
   flags_ = flags;
   int confl = 1;
@@ -46,7 +46,7 @@ void ZeromqMessenger::init(const char* pubAddress, const char* subAddress, const
   publisher_->setsockopt(ZMQ_CONFLATE, &confl, sizeof(confl)); // Keep only last message
 
   gSubAddress = std::string(subAddress);
-  pthread_create (&subscriber_worker_, NULL, worker_routine, context_);
+  pthread_create (&worker_, NULL, worker_routine, context_);
 
   if (flags_ & ZMQ_SYNC_PUB)
   {
@@ -72,36 +72,6 @@ void ZeromqMessenger::init(const char* pubAddress, const char* subAddress, const
 
     // Third, get our updates and report how many we got
     //std::cout << "Ready to receive" << std::endl;
-  }
-}
-
-void ZeromqMessenger::sync()
-{
-  //std::cout << "sync" << std::endl;
-  if (connected_)
-    return;
-
-  if (flags_ & ZMQ_SYNC_PUB)
-  {
-    //std::cout << "Waiting for subscribers" << std::endl;
-    if (subscribers_ < subscribers_expected_)
-    {
-      // - wait for synchronization request
-      zmq::message_t update;
-      if (syncService_->recv(&update, ZMQ_DONTWAIT))
-      {
-        // - send synchronization reply
-        zmq::message_t message(0);
-        syncService_->send(message);
-
-        subscribers_++;
-      }
-    }
-
-    if (subscribers_ == subscribers_expected_)
-      connected_ = true;
-
-    //std::cout << subscribers_ << " subscriber(s) connected" << std::endl;
   }
 }
 

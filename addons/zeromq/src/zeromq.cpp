@@ -31,46 +31,25 @@
 
 using namespace grl;
 
-REGISTER_CONFIGURABLE(ZeromqCommunicator)
+REGISTER_CONFIGURABLE(ZeromqPubSubCommunicator)
 REGISTER_CONFIGURABLE(CommunicatorEnvironment)
 
 void ZeromqCommunicator::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("pub", "Publisher address", pub_));
-  config->push_back(CRP("sub", "subscriber address", sub_));
-  config->push_back(CRP("event", "Event address", event_));
-  config->push_back(CRP("event_mode", "Event mode", event_mode_));
+  config->push_back(CRP("type", "Type of the zeromq implementation", "", CRP::Configuration, {"NONE", "ZMQ_SYNC_SUB", "ZMQ_SYNC_PUB"}));// @Divyam, add your client-server here
+  config->push_back(CRP("sync", "Syncronization ip address", sync_));
 }
 
 void ZeromqCommunicator::configure(Configuration &config)
 {
-  //  zmq_.init("tcp://*:5561", "tcp://192.168.2.210:5562", "tcp://192.168.2.210:5560", ZMQ_SYNC_SUB); // wifi
-  //zmq_.init("tcp://*:5561",  "tcp://192.168.1.10:5562",  "tcp://192.168.1.10:5560", ZMQ_SYNC_SUB); // ethernet
+  std::string type = config["type"].str();
+  sync_ = config["sync"].str();
 
-  pub_ = config["pub"].str();
-  sub_ = config["sub"].str();
-  event_ = config["event"].str();
-  event_mode_ = config["event_mode"].str();
-
-  // find event mode
-  int mode = 0;
-  if (event_mode_ == "ZMQ_SYNC_SUB")
-    mode |= ZMQ_SYNC_SUB;
-  if (event_mode_ == "ZMQ_SYNC_PUB")
-    mode |= ZMQ_SYNC_PUB;
-
-  // initialize zmq
-  zmq_messenger_.init(pub_.c_str(), sub_.c_str(), event_.c_str(), mode);
-}
-
-void ZeromqCommunicator::reconfigure(const Configuration &config)
-{
-}
-
-ZeromqCommunicator *ZeromqCommunicator::clone() const
-{
-  ZeromqCommunicator* me = new ZeromqCommunicator();
-  return me;
+  if (type == "ZMQ_SYNC_SUB")
+    type_ |= ZMQ_SYNC_SUB;
+  if (type == "ZMQ_SYNC_PUB")
+    type_ |= ZMQ_SYNC_PUB;
+  // @Divyam, add your client-server here
 }
 
 void ZeromqCommunicator::send(const Vector v) const
@@ -88,6 +67,36 @@ bool ZeromqCommunicator::recv(Vector &v) const
     //std::cout << std::fixed << std::setprecision(2) << std::right << std::setw(7) << v << std::endl << std::endl;
   }
   return rc;
+}
+
+/////////////////////////////////////////////////////////
+
+void ZeromqPubSubCommunicator::request(ConfigurationRequest *config)
+{
+  ZeromqCommunicator::request(config);
+  config->push_back(CRP("pub", "Publisher address", pub_));
+  config->push_back(CRP("sub", "subscriber address", sub_));
+}
+
+void ZeromqPubSubCommunicator::configure(Configuration &config)
+{
+  ZeromqCommunicator::configure(config);
+
+  // possible addresses
+  // zmq_.init("tcp://*:5561", "tcp://192.168.2.210:5562", "tcp://192.168.2.210:5560", ZMQ_SYNC_SUB); // wifi
+  // zmq_.init("tcp://*:5561",  "tcp://192.168.1.10:5562",  "tcp://192.168.1.10:5560", ZMQ_SYNC_SUB); // ethernet
+
+  pub_ = config["pub"].str();
+  sub_ = config["sub"].str();
+
+  // initialize zmq
+  zmq_messenger_.start(pub_.c_str(), sub_.c_str(), sync_.c_str(), type_);
+}
+
+ZeromqPubSubCommunicator *ZeromqPubSubCommunicator::clone() const
+{
+  ZeromqPubSubCommunicator* me = new ZeromqPubSubCommunicator();
+  return me;
 }
 
 //////////////////////////////////////////////////////////

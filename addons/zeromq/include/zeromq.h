@@ -52,28 +52,45 @@ public:
   virtual bool recv(Vector &v) const = 0;
 };
 
-// ZeroMQ configurable communication class
+// ZeroMQ generic communication class
 class ZeromqCommunicator: public Communicator
 {
   public:
-    TYPEINFO("communicator/zeromq", "A zeromq class capable to establish a link by events and send messages asynchronously (publisher/subscriber)")
-    ZeromqCommunicator() : pub_("tcp://*:5561"), sub_("tcp://192.168.1.10:5562"), event_(""), event_mode_("") {}
+    ZeromqCommunicator() : sync_("") { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
-    virtual void reconfigure(const Configuration &config);
 
-    // From Environment
-    virtual ZeromqCommunicator *clone() const;
-
+    // From Communicator
     virtual void send(const Vector v) const;
     virtual bool recv(Vector &v) const;
 
   protected:
-    std::string pub_, sub_, event_, event_mode_;
     ZeromqMessenger zmq_messenger_;
+    std::string sync_;
+    int type_;
 };
+
+// ZeroMQ publisher-subscriber communication class
+class ZeromqPubSubCommunicator: public ZeromqCommunicator
+{
+  public:
+    TYPEINFO("communicator/zeromq", "A zeromq class capable to establish a link by events and send messages asynchronously (publisher/subscriber)")
+    ZeromqPubSubCommunicator() : pub_("tcp://*:5561"), sub_("tcp://192.168.1.10:5562") {}
+
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+
+    // From Environment
+    virtual ZeromqPubSubCommunicator *clone() const;
+
+  protected:
+    std::string pub_, sub_;
+};
+
+// @Divyam, derive your communicator class from ZeromqCommunicator
 
 /// An environment which bridges actual environment with a middle layer environment by converting states and actions, and then sending and receiving messages
 class CommunicatorEnvironment: public Environment
