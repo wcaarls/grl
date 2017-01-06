@@ -49,7 +49,7 @@ class SequentialMasterAgent : public Agent
     Vector prev_obs_, prev_action_;
     
   public:
-    SequentialMasterAgent() : predictor_(0), agent_(2)
+    SequentialMasterAgent() : predictor_(0), agent_(2), exporter_(NULL)
     {
       agent_[0] = agent_[1] = NULL;
     }

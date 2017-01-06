@@ -53,7 +53,7 @@ class PadaSampler : public EpsilonGreedySampler
     Vector prev_action_;
 
   public:
-    PadaSampler() { }
+    PadaSampler() : pub_sub_pada_state_(NULL), discretizer_(NULL) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);

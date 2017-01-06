@@ -48,7 +48,7 @@ class LeoActionSampler : public Sampler
     VectorSignal *pub_sub_sampler_state_;
 
   public:
-    LeoActionSampler() { }
+    LeoActionSampler() : sampler_(NULL), sub_ic_signal_(NULL), pub_sub_sampler_state_(NULL) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);

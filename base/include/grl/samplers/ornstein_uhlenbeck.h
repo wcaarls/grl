@@ -49,12 +49,11 @@ class OrnsteinUhlenbeckSampler : public GreedySampler
     Vector noise_;
     Vector theta_, sigma_, center_;
     Vector noise_scale_;
+    VectorSignal *pub_sub_ou_state_;
     Discretizer *discretizer_;
 
-    VectorSignal *pub_sub_ou_state_;
-
   public:
-    OrnsteinUhlenbeckSampler() { }
+    OrnsteinUhlenbeckSampler() : pub_sub_ou_state_(NULL), discretizer_(NULL) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -99,7 +98,7 @@ class EpsilonOrnsteinUhlenbeckSampler : public OrnsteinUhlenbeckSampler
   public:
     TYPEINFO("sampler/epsilon_ornstein_ohlenbeck", "Exploitations are done by greedy action selection without constraints, as in e-greedy. Explorations are done with time-correlated noise, as it is in ou.")
 
-  private:
+  protected:
     double epsilon_;
 
   public:
@@ -120,8 +119,12 @@ class PadaOrnsteinUhlenbeckSampler : public OrnsteinUhlenbeckSampler
   public:
     TYPEINFO("sampler/pada_ornstein_ohlenbeck", "Exploitations and exploitations are same as ou, but action is selected from a constrained set, as in pada. ")
 
+    protected:
+      Sampler *pada_;
+      VectorSignal *pub_new_action_;
+
   public:
-    PadaOrnsteinUhlenbeckSampler(){ }
+    PadaOrnsteinUhlenbeckSampler() : pada_(NULL), pub_new_action_(NULL) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -131,10 +134,6 @@ class PadaOrnsteinUhlenbeckSampler : public OrnsteinUhlenbeckSampler
     // From Sampler
     virtual PadaOrnsteinUhlenbeckSampler *clone();
     virtual size_t sample(double time, const LargeVector &values, TransitionType &tt);
-
-  protected:
-    Sampler *pada_;
-    VectorSignal *pub_new_action_;
 };
 
 }

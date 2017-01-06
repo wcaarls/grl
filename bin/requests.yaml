@@ -150,7 +150,7 @@ agent/master/sequential:
     type: exporter
     description: Optional exporter for transition log (supports time, state, observation, action, reward, terminal)
     mutability: configuration
-    default: 0x73616d2f746e6567
+    default: 0
     optional: 1
 agent/master/sequential/additive:
   description: Additive master agent that executes sub-agents sequentially and adds their outputs
@@ -3198,7 +3198,7 @@ sampler/epsilon_pada:
     type: discretizer.action
     description: Action discretizer
     mutability: configuration
-    default: 0x652f72656c706d61
+    default: 0
     optional: 0
   delta:
     type: vector
@@ -3210,7 +3210,7 @@ sampler/epsilon_pada:
     type: signal/vector
     description: Publisher and subscriber to the value of action of the PADA familiy of samplers
     mutability: configuration
-    default: 0x73203a656c626172
+    default: 0
     optional: 1
 sampler/greedy:
   description: Maximum search
@@ -3234,13 +3234,13 @@ sampler/leo/action:
     type: signal/vector
     description: Subscrider to the initialization and contact signal
     mutability: configuration
-    default: 0x2f72656c00000000
+    default: 0
     optional: 1
   pub_sub_sampler_state:
     type: signal/vector
     description: Publisher and subscriber of the sampler state with memory such as previous action, noise, etc.
     mutability: configuration
-    default: 0x30
+    default: 0
     optional: 1
 sampler/ornstein_ohlenbeck:
   description: Maximum search with an Ornstein-Uhlenbeck random chance of non-maximums
@@ -3304,7 +3304,7 @@ sampler/pada:
     type: discretizer.action
     description: Action discretizer
     mutability: configuration
-    default: 0x702f72656c706d61
+    default: 0
     optional: 0
   delta:
     type: vector
@@ -3316,7 +3316,7 @@ sampler/pada:
     type: signal/vector
     description: Publisher and subscriber to the value of action of the PADA familiy of samplers
     mutability: configuration
-    default: 0x73203a656c626172
+    default: 0
     optional: 1
 sampler/pada_ornstein_ohlenbeck:
   description: "Exploitations and exploitations are same as ou, but action is selected from a constrained set, as in pada. "
