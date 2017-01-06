@@ -176,13 +176,15 @@ LargeVector EpsilonGreedySampler::calculateBaseDistribution(const LargeVector &e
       // Divvy up difference in probability among eligible actions.
       size_t eligible = 0;
       for (size_t jj=0; jj < epsilon.size(); ++jj)
-        if (e[ii] < epsilon[jj])
+        if (e[ii] <= epsilon[jj])
           eligible++;
       for (size_t jj=0; jj < epsilon.size(); ++jj)
-        if (e[ii] < epsilon[jj])
+        if (e[ii] <= epsilon[jj])
           distribution[jj] += (e[ii]-e[ii-1])/eligible;
     }
   }
+  
+  TRACE("Base distribution is " << distribution);
   
   return distribution;
 }

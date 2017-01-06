@@ -71,8 +71,8 @@ void CartDoublePoleVisualization::draw()
   {
     double phi1, phi2, x;
     
-    phi1 = state[1]+M_PI/2;
-    phi2 = state[2]+M_PI/2;
+    phi1 = -state[1]+M_PI/2;
+    phi2 = -state[2]+M_PI/2;
     x = state[0]/2.4;
     
     drawLink(x, 0., x+0.5*cos(phi1), 0.5*sin(phi1));

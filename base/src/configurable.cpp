@@ -181,6 +181,11 @@ Configurator *grl::loadYAML(const std::string &file, const std::string &element,
 
 /// *** ParameterConfigurator ***
 
+bool isseparator(char c)
+{
+  return c == ' ' || c == '\t' || c == '[' || c == ']' || c == '+' || c == ',';
+}
+
 Configurator *ParameterConfigurator::resolve(const std::string &id)
 {
   Configurator *reference = Configurator::find(id);
@@ -208,7 +213,7 @@ std::string ParameterConfigurator::str() const
   // Resolve references
   for (size_t ii=0; ii < v.size(); ++ii)
   {
-    if (!isalnum(v[ii]) && v[ii] != '/' && v[ii] != '_' && v[ii] != '.')
+    if (isseparator(v[ii]))
     {
       if (!id.empty())
       {
@@ -331,7 +336,7 @@ ParameterConfigurator *ParameterConfigurator::instantiate(Configurator *parent) 
 
   // Make references local
   for (size_t ii=0; ii < v.size(); ++ii)
-    if (!isalnum(v[ii]) && v[ii] != '/' && v[ii] != '_' && v[ii] != '.')
+    if (isseparator(v[ii]))
     {
       expv.insert(expv.size(), localize(id));
       id.clear();
