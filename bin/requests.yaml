@@ -150,7 +150,7 @@ agent/master/sequential:
     type: exporter
     description: Optional exporter for transition log (supports time, state, observation, action, reward, terminal)
     mutability: configuration
-    default: 0x7f7007fef2f0
+    default: 0x73616d2f746e6567
     optional: 1
 agent/master/sequential/additive:
   description: Additive master agent that executes sub-agents sequentially and adds their outputs
@@ -302,11 +302,11 @@ behavior/leo_walk:
   description: Leo walking behavior without symmetrical switchers of observations
 behavior/leo_walk_sym:
   description: Leo walking behavior with symmetrical switchers of observations
-communicator/zeromq:
+communicator/zeromq/pub_sub:
   description: A zeromq class capable to establish a link by events and send messages asynchronously (publisher/subscriber)
-  type:
+  pattern:
     type: string
-    description: Type of the zeromq implementation
+    description: Pattern of the zeromq implementation (Pub/Sub, Request/Reply)
     mutability: configuration
     default: ""
     optional: 1
@@ -1766,7 +1766,7 @@ policy/parameterized/pidt:
     type: policy
     description: Control policy
     mutability: configuration
-    default: 0xdcb330
+    default: 0
     optional: 0
   inputs:
     type: int.observation_dims
@@ -3240,7 +3240,7 @@ sampler/leo/action:
     type: signal/vector
     description: Publisher and subscriber of the sampler state with memory such as previous action, noise, etc.
     mutability: configuration
-    default: 0x796465657267
+    default: 0x30
     optional: 1
 sampler/ornstein_ohlenbeck:
   description: Maximum search with an Ornstein-Uhlenbeck random chance of non-maximums

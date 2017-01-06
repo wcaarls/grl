@@ -5,7 +5,7 @@ experiment:
   steps: 70000
   rate: 1
   test_interval: 0
-  output: leo_nmpc_ac_tc_squat_fb_sl_fa
+  output: leo_nmpc_squat_fb_sl
   environment: 
     type: environment/sandbox
     model: 
@@ -14,7 +14,7 @@ experiment:
       integration_steps: 25
       dynamics: 
         type: dynamics/rbdl
-        file: leo_fb_sl_fa.lua
+        file: leo_fb_sl.lua
         points: tip_left, heel_left, root
         auxiliary: mm, com, comv, am
       target_dof: 4
@@ -28,11 +28,11 @@ experiment:
           action_in: avRightAnkleTorque, avRightKneeTorque, avRightHipTorque, avLeftArmTorque
           action_out: avLeftArmTorque, avRightHipTorque, avRightHipTorque, avRightKneeTorque, avRightKneeTorque, avRightAnkleTorque, avRightAnkleTorque
         communicator: 
-          type: communicator/zeromq
-          type: ZMQ_SYNC_SUB
-          sync: tcp://192.168.1.10:5560
+          type: communicator/zeromq/pub_sub
+          pattern: ZMQ_SYNC_SUB
+          sync: tcp://127.0.0.1:5560
           pub: tcp://*:5561
-          sub: tcp://192.168.1.10:5562
+          sub: tcp://127.0.0.1:5562
         target_obs_dims: 20
         target_action_dims: 7
       lower_height: 0.28
@@ -43,7 +43,7 @@ experiment:
       rand_init: 0
     exporter: 
       type: exporter/csv
-      file: leo_nmpc_ac_tc_squat_fb_sl_fa
+      file: leo_nmpc_squat_fb_sl
       fields: time, state, observation, action, reward, terminal
       style: meshup
       variant: test
@@ -58,6 +58,7 @@ experiment:
       lua_model: leo_fb_sl_fa.lua
       model_name: nmpc_leo_squat_fb_sl_fa
       nmpc_model_name: nmpc_leo_squat_fb_sl_fa
+      feedback: threaded
       n_iter: 1
   test_agent: experiment/agent
   save_every: never

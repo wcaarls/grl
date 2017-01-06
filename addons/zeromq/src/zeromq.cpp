@@ -36,19 +36,19 @@ REGISTER_CONFIGURABLE(CommunicatorEnvironment)
 
 void ZeromqCommunicator::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("type", "Type of the zeromq implementation", "", CRP::Configuration, {"NONE", "ZMQ_SYNC_SUB", "ZMQ_SYNC_PUB"}));// @Divyam, add your client-server here
+  config->push_back(CRP("pattern", "Pattern of the zeromq implementation (Pub/Sub, Request/Reply)", "", CRP::Configuration, {"NONE", "ZMQ_SYNC_SUB", "ZMQ_SYNC_PUB"}));// @Divyam, add your client-server here
   config->push_back(CRP("sync", "Syncronization ip address", sync_));
 }
 
 void ZeromqCommunicator::configure(Configuration &config)
 {
-  std::string type = config["type"].str();
+  std::string type = config["pattern"].str();
   sync_ = config["sync"].str();
 
   if (type == "ZMQ_SYNC_SUB")
-    type_ |= ZMQ_SYNC_SUB;
+    pattern_ |= ZMQ_SYNC_SUB;
   if (type == "ZMQ_SYNC_PUB")
-    type_ |= ZMQ_SYNC_PUB;
+    pattern_ |= ZMQ_SYNC_PUB;
   // @Divyam, add your client-server here
 }
 
@@ -90,7 +90,7 @@ void ZeromqPubSubCommunicator::configure(Configuration &config)
   sub_ = config["sub"].str();
 
   // initialize zmq
-  zmq_messenger_.start(pub_.c_str(), sub_.c_str(), sync_.c_str(), type_);
+  zmq_messenger_.start(pub_.c_str(), sub_.c_str(), sync_.c_str(), pattern_);
 }
 
 ZeromqPubSubCommunicator *ZeromqPubSubCommunicator::clone() const

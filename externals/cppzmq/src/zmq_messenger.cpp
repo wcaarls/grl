@@ -1,19 +1,21 @@
 #include <zmq_messenger.h>
-#include <iostream>
-#include <thread>         // std::thread
-#include <mutex>          // std::mutex
+#include <thread>
 
-std::string gSubAddress;
-std::mutex gMtx;
-const int gSize = 20*sizeof(double);
-char gData[gSize];
+struct worker_args {
+    zmq::context_t* context;
+    const char*     subAddress;
+    std::mutex*     mtx;
+    char*           buffer;
+    int             buffer_size;
+};
 
-void *worker_routine (void *context)
+void *worker_routine(void *param)
 {
   // Prepare ZMQ subscriber
   int confl = 1;
-  zmq::socket_t* subscriber = new zmq::socket_t(*(zmq::context_t*)context, ZMQ_SUB);
-  subscriber->connect(gSubAddress.c_str());
+  worker_args *args = (worker_args*) param;
+  zmq::socket_t* subscriber = new zmq::socket_t(*(args->context), ZMQ_SUB);
+  subscriber->connect(args->subAddress);
   subscriber->setsockopt(ZMQ_CONFLATE, &confl, sizeof(confl)); // Keep only last message
   subscriber->setsockopt(ZMQ_SUBSCRIBE, "", 0);
 
@@ -23,9 +25,14 @@ void *worker_routine (void *context)
     bool received = subscriber->recv(&update, ZMQ_DONTWAIT);
     if(received)
     {
-      gMtx.lock();
-      memcpy(gData, update.data(), gSize);
-      gMtx.unlock();
+      if (args->buffer_size < update.size())
+      {
+        std::cout << "Error: (ZeromqMessenger) Incomming message is too large" << std::endl;
+        continue;
+      }
+      args->mtx->lock();
+      memcpy(args->buffer, update.data(), update.size());
+      args->mtx->unlock();
     }
   }
   zmq_close(subscriber);
@@ -42,11 +49,14 @@ void ZeromqMessenger::start(const char* pubAddress, const char* subAddress, cons
 
   // Prepare ZMQ publisher
   publisher_ = new zmq::socket_t(*context_, ZMQ_PUB);
-  publisher_->bind(pubAddress);
+  publisher_->bind("tcp://*:5561");//pubAddress);
   publisher_->setsockopt(ZMQ_CONFLATE, &confl, sizeof(confl)); // Keep only last message
 
-  gSubAddress = std::string(subAddress);
-  pthread_create (&worker_, NULL, worker_routine, context_);
+  // Prepare ZMQ subscriber
+  mtx_ = new std::mutex();
+  buffer_ = new char(buffer_size_);
+  worker_args args = {context_, subAddress, mtx_, buffer_, buffer_size_};
+  pthread_create(&worker_, NULL, worker_routine, (void*)&args);
 
   if (flags_ & ZMQ_SYNC_PUB)
   {
@@ -72,6 +82,7 @@ void ZeromqMessenger::start(const char* pubAddress, const char* subAddress, cons
 
     // Third, get our updates and report how many we got
     //std::cout << "Ready to receive" << std::endl;
+    zmq_close(syncService_);
   }
 }
 
@@ -84,9 +95,22 @@ void ZeromqMessenger::send(const void* data, int size) const
 
 bool ZeromqMessenger::recv(void *data, int size, int flags) const
 {
-  assert(gSize == size);
-  gMtx.lock();
-  memcpy(data, gData, size);
-  gMtx.unlock();
+  if (buffer_size_ < size)
+  {
+    std::cout << "Error: (ZeromqMessenger) Buffer size is too small" << std::endl;
+    return false;
+  }
+
+  mtx_->lock();
+  memcpy(data, buffer_, size);
+  mtx_->unlock();
   return true;
+}
+
+ZeromqMessenger::~ZeromqMessenger()
+{
+  if (mtx_)
+    delete mtx_;
+  if (buffer_)
+    delete[] buffer_;
 }

@@ -69,14 +69,14 @@ class ZeromqCommunicator: public Communicator
   protected:
     ZeromqMessenger zmq_messenger_;
     std::string sync_;
-    int type_;
+    int pattern_;
 };
 
 // ZeroMQ publisher-subscriber communication class
 class ZeromqPubSubCommunicator: public ZeromqCommunicator
 {
   public:
-    TYPEINFO("communicator/zeromq", "A zeromq class capable to establish a link by events and send messages asynchronously (publisher/subscriber)")
+    TYPEINFO("communicator/zeromq/pub_sub", "A zeromq class capable to establish a link by events and send messages asynchronously (publisher/subscriber)")
     ZeromqPubSubCommunicator() : pub_("tcp://*:5561"), sub_("tcp://192.168.1.10:5562") {}
 
     // From Configurable
