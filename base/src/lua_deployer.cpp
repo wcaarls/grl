@@ -177,8 +177,13 @@ static int newindex(lua_State *L)
   Configurator *conf = lua_toconfigurator(L, 1);
   if (dynamic_cast<ParameterConfigurator*>(conf))
     luaL_error(L, "Cannot index a parameter");
+    
   if (dynamic_cast<ReferenceConfigurator*>(conf))
-    luaL_error(L, "Cannot assign to a reference");
+  {
+    conf = conf->find("");
+    if (!conf)
+      luaL_error(L, "Cannot assign to an invalid reference");
+  }
 
   std::string key = luaL_checkstring(L, 2);
 
@@ -198,7 +203,7 @@ static int newindex(lua_State *L)
       if (conf2->parent())
         new ReferenceConfigurator(key, conf2, "", conf);
       else
-        conf2->graft(key, conf);
+        conf2->graft(key, conf, true);
     }
     else
     {
@@ -208,7 +213,8 @@ static int newindex(lua_State *L)
       std::vector<double> v_out;
       fromVector(v, v_out);
       oss << v_out;
-      new ParameterConfigurator(key, oss.str(), conf);
+      Configurator *conf2 = new ParameterConfigurator("", oss.str());
+      conf2->graft(key, conf, true);
     }
     lua_pop(L, 1);
   }
@@ -223,7 +229,10 @@ static int newindex(lua_State *L)
       oss << lua_tostring(L, 3);
       
     if (!oss.str().empty())
-      new ParameterConfigurator(key, oss.str(), conf);
+    {
+      Configurator *conf2 = new ParameterConfigurator("", oss.str());
+      conf2->graft(key, conf, true);
+    }
   }
 
   return 0;

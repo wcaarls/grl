@@ -243,7 +243,7 @@ class Configurator
       return parent_;
     }
     
-    void graft(const std::string &element, Configurator *parent)
+    void graft(const std::string &element, Configurator *parent, bool overwrite=false)
     {
       element_ = element;
       parent_ = parent;
@@ -251,7 +251,11 @@ class Configurator
       for (ConfiguratorList::iterator ii=parent_->children_.begin(); ii != parent_->children_.end(); ++ii)
         if ((*ii)->element_ == element_)
         {
-          CRAWL(path() << ": Cowardly refusing to overwrite parent's existing child");
+          if (overwrite)
+            *ii = this;
+          else
+            CRAWL(path() << ": Cowardly refusing to overwrite parent's existing child");
+            
           return;
         }
         
@@ -529,11 +533,11 @@ class ParameterConfigurator : public Configurator
     
   protected:
     bool isseparator(char c) const;
-    std::string localize(const std::string &id) const;
-    Configurator *resolve(const std::string &id);
-    const Configurator *resolve(const std::string &id) const
+    std::string localize(const std::string &id, const Configurator *parent=NULL) const;
+    Configurator *resolve(const std::string &id, Configurator *parent=NULL);
+    const Configurator *resolve(const std::string &id, const Configurator *parent=NULL) const
     {
-      return const_cast<ParameterConfigurator*>(this)->resolve(id);
+      return const_cast<ParameterConfigurator*>(this)->resolve(id, const_cast<Configurator*>(parent));
     }
 };
 

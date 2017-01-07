@@ -35,7 +35,7 @@ config = o(){
 config{
   visualizer = o('visualizer/glut'),
   visualization = o('visualization/pendulum'){
-    state = r('/experiment/environment/state')
+    state = config.experiment.environment.state
   }
 }
 

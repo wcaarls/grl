@@ -258,20 +258,31 @@ bool ParameterConfigurator::isseparator(char c) const
   return c == ' ' || c == '\t' || c == '[' || c == ']' || c == '+' || c == ',';
 }
 
-Configurator *ParameterConfigurator::resolve(const std::string &id)
+Configurator *ParameterConfigurator::resolve(const std::string &id, Configurator *parent)
 {
-  Configurator *reference = Configurator::find(id);
-  if (!reference && parent_)
-    reference = Configurator::find("/" + id);
-  return reference;
+  if (parent)
+  {
+    Configurator *reference = parent->find(element_ + "/" + id);
+    if (!reference)
+      reference = parent->find("/" + id);
+    return reference;
+  }
+  else
+  {
+    Configurator *reference = Configurator::find(id);
+    if (!reference && parent_)
+      reference = Configurator::find("/" + id);
+    return reference;
+  }
 }
  
-std::string ParameterConfigurator::localize(const std::string &id) const
+std::string ParameterConfigurator::localize(const std::string &id, const Configurator *parent) const
 {
   if (id.empty())
     return id;
-
-  const Configurator *reference = resolve(id);
+    
+  const Configurator *reference = resolve(id, parent);
+  
   if (reference)
     return relative_path(reference->path());
   else
@@ -410,14 +421,14 @@ ParameterConfigurator *ParameterConfigurator::instantiate(Configurator *parent) 
   for (size_t ii=0; ii < v.size(); ++ii)
     if (isseparator(v[ii]))
     {
-      expv.insert(expv.size(), localize(id));
+      expv.insert(expv.size(), localize(id, parent));
       id.clear();
       expv.push_back(v[ii]);
     }
     else
       id.push_back(v[ii]);
   
-  expv.insert(expv.size(), localize(id));
+  expv.insert(expv.size(), localize(id, parent));
   
   return new ParameterConfigurator(element_, expv, parent);
 }
