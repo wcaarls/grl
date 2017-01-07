@@ -179,9 +179,81 @@ Configurator *grl::loadYAML(const std::string &file, const std::string &element,
   }
 }      
 
+/// *** ReferenceConfigurator ***
+
+std::string ReferenceConfigurator::reference_path() const
+{
+  std::string path = reference_->reference_path();
+  if (!path_.empty())
+    path = path + "/" + path_;
+  return path;
+}
+
+std::string ReferenceConfigurator::str() const
+{
+  Configurator *ref = reference_->find(path_);
+  if (ref)
+    return ref->str();
+  else
+    return "";
+}
+
+Configurable *ReferenceConfigurator::ptr()
+{
+  Configurator *ref = reference_->find(path_);
+  if (ref)
+    return ref->ptr();
+  else
+    return NULL;
+}
+
+Configurator *ReferenceConfigurator::find(const std::string &path)
+{
+  if (!path_.empty())
+    return reference_->find(path_ + "/" + path);
+  else 
+    return reference_->find(path);
+}
+
+ReferenceConfigurator *ReferenceConfigurator::instantiate(Configurator *parent) const
+{
+  if (!parent)
+  {
+    ERROR(path() << ": Reference configurator must be instantiated as part of an object hierarchy");
+    return NULL;
+  }
+  
+  Configurator *ref = parent->find(relative_path(reference_path()).substr(3));
+  
+  if (!ref)
+  {
+    ERROR(path() << ": Reference configurator does not point to a valid object in the new hierarchy");
+    return NULL;
+  }
+  
+  // Rebase
+  return new ReferenceConfigurator(element_, ref, "", parent);
+}
+
+bool ReferenceConfigurator::validate(const CRP &crp) const
+{
+  Configurator *ref = reference_->find(path_);
+  if (ref)
+    return ref->validate(crp);
+  else
+    return false;
+}
+
+void ReferenceConfigurator::reconfigure(const Configuration &config, bool recursive)
+{
+  Configurator *ref = reference_->find(path_);
+  if (ref)
+    ref->reconfigure(config, recursive);
+}
+
 /// *** ParameterConfigurator ***
 
-bool isseparator(char c)
+bool ParameterConfigurator::isseparator(char c) const
 {
   return c == ' ' || c == '\t' || c == '[' || c == ']' || c == '+' || c == ',';
 }
