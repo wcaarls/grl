@@ -55,12 +55,6 @@ void LeoActionSampler::reconfigure(const Configuration &config)
   Sampler::reconfigure(config);
 }
 
-LeoActionSampler *LeoActionSampler::clone()
-{
-  LeoActionSampler *egs = new LeoActionSampler(*this);
-  return egs;
-}
-
 size_t LeoActionSampler::sample(double time, const LargeVector &values, TransitionType &tt)
 {
   if (sub_ic_signal_)

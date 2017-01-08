@@ -41,11 +41,11 @@ class TileCodingProjector : public Projector
     
   protected:
     int tilings_, memory_, safe_;
-    mutable int32_t *indices_;
+    mutable int32_t *indices_, pressure_;
     Vector resolution_, scaling_, wrapping_;
     
   public:
-    TileCodingProjector() : tilings_(16), memory_(8*1024*1024), safe_(0), indices_(NULL) { }
+    TileCodingProjector() : tilings_(16), memory_(8*1024*1024), safe_(0), indices_(NULL), pressure_(0) { }
     
     ~TileCodingProjector()
     {
@@ -56,10 +56,10 @@ class TileCodingProjector : public Projector
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
+    virtual TileCodingProjector &copy(const Configurable &obj);
 
     // From Projector
-    virtual TileCodingProjector *clone() const;
-    virtual ProjectionLifetime lifetime() const { return safe_==1?plWrite:plIndefinite; }
+    virtual ProjectionLifetime lifetime() const { return safe_>0?plUpdate:plIndefinite; }
     virtual ProjectionPtr project(const Vector &in) const
     {
       return _project(in, true);
@@ -128,8 +128,12 @@ class TileCodingProjector : public Projector
             ii = 0;
         }
         
-        if (collisions > 8)
-          WARNING("Memory pressure is high. Increase hash table size");
+        if (collisions > pressure_)
+        {
+          pressure_ = collisions;
+          if (pressure_ > 7)
+            WARNING("Memory pressure is high (" << pressure_ << "). Increase hash table size");
+        }
             
         if (claim)
         {

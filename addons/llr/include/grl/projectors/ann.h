@@ -65,9 +65,9 @@ class ANNProjector : public SampleProjector
     virtual void request(const std::string &role, ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
+    virtual ANNProjector &copy(const Configurable &obj);
     
     // From SampleProjector
-    virtual ANNProjector *clone() const;
     virtual ProjectionLifetime lifetime() const { return plWrite; }
     virtual void push(Sample *sample);
     virtual StorePtr store() { ReadGuard guard(rwlock_); return store_; }

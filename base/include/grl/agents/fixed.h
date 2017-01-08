@@ -53,7 +53,6 @@ class FixedAgent : public Agent
     virtual void reconfigure(const Configuration &config);
 
     // From Agent
-    virtual FixedAgent *clone() const;
     virtual TransitionType start(const Vector &obs, Vector *action);
     virtual TransitionType step(double tau, const Vector &obs, double reward, Vector *action);
     virtual void end(double tau, const Vector &obs, double reward);

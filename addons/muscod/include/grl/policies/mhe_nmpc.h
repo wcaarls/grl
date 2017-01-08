@@ -43,7 +43,7 @@ namespace grl
 class MHE_NMPCPolicy : public NMPCBase
 {
   public:
-    TYPEINFO("policy/mhe_nmpc", "Nonlinear model predictive control policy with moving horizon estimator using the MUSCOD library")
+    TYPEINFO("mapping/policy/mhe_nmpc", "Nonlinear model predictive control policy with moving horizon estimator using the MUSCOD library")
 
   protected:
     MUSCOD *muscod_mhe_, *muscod_nmpc_;
@@ -79,7 +79,6 @@ class MHE_NMPCPolicy : public NMPCBase
     virtual void muscod_reset(const Vector &initial_obs, const Vector &initial_pf, Vector &initial_qc);
 
     // From Policy
-    virtual MHE_NMPCPolicy *clone() const;
     virtual TransitionType act(double time, const Vector &in, Vector *out);
 };
 

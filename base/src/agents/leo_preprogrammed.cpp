@@ -80,12 +80,6 @@ void LeoPreprogrammedAgent::reconfigure(const Configuration &config)
 {
 }
 
-LeoPreprogrammedAgent *LeoPreprogrammedAgent::clone() const
-{
-  LeoPreprogrammedAgent *agent = new LeoPreprogrammedAgent();
-  return agent;
-}
-
 TransitionType LeoPreprogrammedAgent::start(const Vector &obs, Vector *action)
 {
   time_ = mSwingTime = 0.;

@@ -77,9 +77,13 @@ void StateFeedbackPolicy::reconfigure(const Configuration &config)
 {
 }
 
-StateFeedbackPolicy *StateFeedbackPolicy::clone() const
+StateFeedbackPolicy &StateFeedbackPolicy::copy(const Configurable &obj)
 {
-  return new StateFeedbackPolicy(*this);
+  const StateFeedbackPolicy& sfp = dynamic_cast<const StateFeedbackPolicy&>(obj);
+  
+  gains_ = sfp.gains_;
+
+  return *this;
 }
 
 TransitionType StateFeedbackPolicy::act(const Vector &in, Vector *out) const
@@ -133,9 +137,13 @@ void SampleFeedbackPolicy::reconfigure(const Configuration &config)
 {
 }
 
-SampleFeedbackPolicy *SampleFeedbackPolicy::clone() const
+SampleFeedbackPolicy &SampleFeedbackPolicy::copy(const Configurable &obj)
 {
-  return new SampleFeedbackPolicy(*this);
+  const SampleFeedbackPolicy& sfp = dynamic_cast<const SampleFeedbackPolicy&>(obj);
+  
+  samples_ = sfp.samples_;
+
+  return *this;
 }
 
 TransitionType SampleFeedbackPolicy::act(const Vector &in, Vector *out) const

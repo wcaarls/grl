@@ -51,8 +51,6 @@ class Predictor : public Configurable
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
     
-    virtual Predictor *clone() const = 0;
-    
     /// Update the estimation.
     virtual void update(const Transition &transition);
     

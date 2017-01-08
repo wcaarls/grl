@@ -92,11 +92,6 @@ void UniformDiscretizer::reconfigure(const Configuration &config)
 {
 }
 
-UniformDiscretizer* UniformDiscretizer::clone()
-{
-  return new UniformDiscretizer(*this);
-}
-
 UniformDiscretizer::iterator UniformDiscretizer::begin() const
 {
   return iterator(this, Vector(), IndexVector::Constant(steps_.size(), 0));

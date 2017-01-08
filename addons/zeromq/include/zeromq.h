@@ -43,7 +43,6 @@ class Communicator: public Configurable
 {
 public:
   virtual ~Communicator() { }
-  virtual Communicator *clone() const = 0;
 
   /// Send data.
   virtual void send(const Vector v) const = 0;
@@ -83,9 +82,6 @@ class ZeromqPubSubCommunicator: public ZeromqCommunicator
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
 
-    // From Environment
-    virtual ZeromqPubSubCommunicator *clone() const;
-
   protected:
     std::string pub_, sub_;
 };
@@ -105,8 +101,6 @@ class CommunicatorEnvironment: public Environment
     virtual void reconfigure(const Configuration &config);
 
     // From Environment
-    virtual CommunicatorEnvironment *clone() const;
-
     virtual void start(int test, Vector *obs);
     virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal);
 
@@ -145,12 +139,9 @@ class ZeromqAgent : public Agent
     virtual void reconfigure(const Configuration &config);
 
     // From Policy
-    virtual ZeromqAgent *clone() const;
     virtual TransitionType start(const Vector &obs, Vector *action);
     virtual TransitionType step(double tau, const Vector &obs, double reward, Vector *action);
     virtual void end(double tau, const Vector &obs, double reward);
-
-    //virtual void act(double time, const Vector &in, Vector *out);
 
   protected:
     void init();

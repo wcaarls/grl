@@ -38,7 +38,7 @@ namespace grl
 class PIDPolicy : public ParameterizedPolicy
 {
   public:
-    TYPEINFO("policy/parameterized/pid", "Parameterized policy based on a proportional-integral-derivative controller")
+    TYPEINFO("mapping/policy/parameterized/pid", "Parameterized policy based on a proportional-integral-derivative controller")
 
   protected:
     Vector setpoint_;
@@ -59,7 +59,6 @@ class PIDPolicy : public ParameterizedPolicy
     virtual void reconfigure(const Configuration &config);
 
     // From Policy
-    virtual PIDPolicy *clone() const;
     virtual TransitionType act(const Vector &in, Vector *out) const;
     virtual TransitionType act(double time, const Vector &in, Vector *out);
     
@@ -93,7 +92,6 @@ class PIDTrajectoryPolicy : public ParameterizedPolicy
     virtual void reconfigure(const Configuration &config);
 
     // From Policy
-    virtual PIDTrajectoryPolicy *clone() const;
     virtual TransitionType act(const Vector &in, Vector *out) const;
     virtual TransitionType act(double time, const Vector &in, Vector *out);
 

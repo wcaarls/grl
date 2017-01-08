@@ -58,7 +58,6 @@ class LeoSquatEnvironment: public LeoBaseEnvironment
     virtual void configure(Configuration &config);
 
     // From Environment
-    virtual LeoSquatEnvironment *clone() const;
     virtual void start(int test, Vector *obs);
     virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal);
     virtual void report(std::ostream &os) const;

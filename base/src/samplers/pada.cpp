@@ -64,13 +64,6 @@ void PadaSampler::reconfigure(const Configuration &config)
   EpsilonGreedySampler::reconfigure(config);
 }
 
-PadaSampler *PadaSampler::clone()
-{
-  PadaSampler *egs = new PadaSampler(*this);
-  egs->rand_ = rand_->clone();
-  return egs;
-}
-
 size_t PadaSampler::sample(double time, const LargeVector &values, TransitionType &tt)
 {
   // offset is updated only if sampler_state is modified, i.e. contact happend for Leo
@@ -85,7 +78,7 @@ size_t PadaSampler::sample(double time, const LargeVector &values, TransitionTyp
   if (time == 0.0)
   {
     for (int ii = 0; ii < delta.size(); ii++)
-      delta[ii] = INT_MAX;
+      delta[ii] = DBL_MAX;
   }
 
   // bound possible actions
@@ -144,17 +137,10 @@ void PadaSampler::filter(const Vector &delta, const Vector &prev_out, const Larg
 
 //////////////////////////////////////////////////////////
 
-EpsilonPadaSampler *EpsilonPadaSampler::clone()
-{
-  EpsilonPadaSampler *egs = new EpsilonPadaSampler(*this);
-  egs->rand_ = rand_->clone();
-  return egs;
-}
-
 size_t EpsilonPadaSampler::sample(double time, const LargeVector &values, TransitionType &tt)
 {
   size_t offset;
-  if (rand_->get() < epsilon_)
+  if (rand_->get() < epsilon_[0])
   {
     if (pub_sub_pada_state_)
     {

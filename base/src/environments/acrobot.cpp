@@ -45,11 +45,6 @@ void AcrobotDynamics::reconfigure(const Configuration &config)
 {
 }
 
-AcrobotDynamics *AcrobotDynamics::clone() const
-{
-  return new AcrobotDynamics(*this);
-}
-
 void AcrobotDynamics::eom(const Vector &state, const Vector &action, Vector *xd) const
 {
   if (state.size() != 5 || action.size() != 1)
@@ -102,11 +97,6 @@ void AcrobotBalancingTask::configure(Configuration &config)
 
 void AcrobotBalancingTask::reconfigure(const Configuration &config)
 {
-}
-
-AcrobotBalancingTask *AcrobotBalancingTask::clone() const
-{
-  return new AcrobotBalancingTask(*this);
 }
 
 void AcrobotBalancingTask::start(int test, Vector *state) const
@@ -181,11 +171,6 @@ void AcrobotRegulatorTask::configure(Configuration &config)
 void AcrobotRegulatorTask::reconfigure(const Configuration &config)
 {
   RegulatorTask::reconfigure(config);
-}
-
-AcrobotRegulatorTask *AcrobotRegulatorTask::clone() const
-{
-  return new AcrobotRegulatorTask(*this);
 }
 
 void AcrobotRegulatorTask::observe(const Vector &state, Vector *obs, int *terminal) const

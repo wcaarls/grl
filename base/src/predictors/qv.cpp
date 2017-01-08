@@ -44,7 +44,7 @@ void QVPredictor::request(ConfigurationRequest *config)
   config->push_back(CRP("q_representation", "representation.value/action", "State-action value representation (Q)", q_representation_));
   config->push_back(CRP("v_projector", "projector.observation", "Projects observations onto representation space", v_projector_));
   config->push_back(CRP("v_representation", "representation.value/state", "State value representation (V)", v_representation_));
-  config->push_back(CRP("trace", "trace", "Trace of projections", trace_));
+  config->push_back(CRP("trace", "trace", "Trace of projections", trace_, true));
 }
 
 void QVPredictor::configure(Configuration &config)
@@ -71,11 +71,6 @@ void QVPredictor::reconfigure(const Configuration &config)
     finalize();
 }
 
-QVPredictor *QVPredictor::clone() const
-{
-  return NULL;
-}
-
 void QVPredictor::update(const Transition &transition)
 {
   Predictor::update(transition);
@@ -98,8 +93,11 @@ void QVPredictor::update(const Transition &transition)
   // V update
   v_representation_->write(vp, VectorConstructor(target), beta_);
   
-  v_representation_->update(*trace_, VectorConstructor(beta_*delta), gamma_*lambda_);
-  trace_->add(vp, gamma_*lambda_);
+  if (trace_)
+  {
+    v_representation_->update(*trace_, VectorConstructor(beta_*delta), gamma_*lambda_);
+    trace_->add(vp, gamma_*lambda_);
+  }
   
   q_representation_->finalize();
   v_representation_->finalize();
@@ -109,5 +107,6 @@ void QVPredictor::finalize()
 {
   Predictor::finalize();
   
-  trace_->clear();
+  if (trace_)
+    trace_->clear();
 }

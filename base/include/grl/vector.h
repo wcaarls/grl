@@ -352,6 +352,22 @@ inline void toVector(const T &from, Vector &vector)
     vector[ii] = from[ii];
 }
 
+template <class T>
+inline void fromVector(const LargeVector &vector, T &to)
+{
+  to.resize(vector.size());
+  for (size_t ii = 0; ii < vector.size(); ++ii)
+    to[ii] = vector[ii];
+}
+
+template <class T>
+inline void toVector(const T &from, LargeVector &vector)
+{
+  vector.resize(from.size());
+  for (size_t ii = 0; ii < from.size(); ++ii)
+    vector[ii] = from[ii];
+}
+
 #ifdef GRL_EIGEN_VECTOR
 typedef Eigen::MatrixXd Matrix;
 

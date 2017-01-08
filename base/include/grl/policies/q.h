@@ -41,7 +41,7 @@ namespace grl
 class QPolicy : public Policy
 {
   public:
-    TYPEINFO("policy/discrete/q", "Q-value based policy")
+    TYPEINFO("mapping/policy/discrete/q", "Q-value based policy")
 
   protected:
     Discretizer *discretizer_;
@@ -58,7 +58,6 @@ class QPolicy : public Policy
     virtual void reconfigure(const Configuration &config);
 
     // From DiscretePolicy
-    virtual QPolicy *clone() const;
     // memoryless sampler
     virtual TransitionType act(const Vector &in, Vector *out) const;
     // sampler with memory

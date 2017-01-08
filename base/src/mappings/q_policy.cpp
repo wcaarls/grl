@@ -33,7 +33,7 @@ REGISTER_CONFIGURABLE(QPolicyMapping)
 
 void QPolicyMapping::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("policy", "policy/discrete/q", "Q-value based policy", policy_));
+  config->push_back(CRP("policy", "mapping/policy/discrete/q", "Q-value based policy", policy_));
 }
 
 void QPolicyMapping::configure(Configuration &config)
@@ -43,14 +43,6 @@ void QPolicyMapping::configure(Configuration &config)
 
 void QPolicyMapping::reconfigure(const Configuration &config)
 {
-}
-
-QPolicyMapping *QPolicyMapping::clone() const
-{
-  QPolicyMapping *qpm = new QPolicyMapping();
-  qpm->policy_ = policy_->clone();
-  
-  return qpm;
 }
 
 double QPolicyMapping::read(const Vector &in, Vector *result) const

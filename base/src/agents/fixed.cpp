@@ -33,7 +33,7 @@ REGISTER_CONFIGURABLE(FixedAgent)
 
 void FixedAgent::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("policy", "policy", "Control policy", policy_));
+  config->push_back(CRP("policy", "mapping/policy", "Control policy", policy_));
 }
 
 void FixedAgent::configure(Configuration &config)
@@ -43,14 +43,6 @@ void FixedAgent::configure(Configuration &config)
 
 void FixedAgent::reconfigure(const Configuration &config)
 {
-}
-
-FixedAgent *FixedAgent::clone() const
-{
-  FixedAgent *agent = new FixedAgent();
-  agent->policy_ = policy_->clone();
-  
-  return agent;
 }
 
 TransitionType FixedAgent::start(const Vector &obs, Vector *action)

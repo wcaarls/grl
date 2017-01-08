@@ -144,14 +144,6 @@ void FixedObservationModel::reconfigure(const Configuration &config)
   ObservationModel::reconfigure(config);
 }
 
-FixedObservationModel *FixedObservationModel::clone() const
-{
-  FixedObservationModel *om = new FixedObservationModel(*this);
-  om->model_ = model_->clone();
-  om->task_ = task_->clone();
-  return om;
-}
-
 double FixedObservationModel::step(const Vector &obs, const Vector &action, Vector *next, double *reward, int *terminal) const
 {
   Vector state, next_state;
@@ -238,14 +230,6 @@ void ApproximatedObservationModel::configure(Configuration &config)
 void ApproximatedObservationModel::reconfigure(const Configuration &config)
 {
   ObservationModel::reconfigure(config);
-}
-
-ApproximatedObservationModel *ApproximatedObservationModel::clone() const
-{
-  ApproximatedObservationModel *om = new ApproximatedObservationModel(*this);
-  om->projector_ = projector_->clone();
-  om->representation_ = representation_->clone();
-  return om;
 }
 
 double ApproximatedObservationModel::step(const Vector &obs, const Vector &action, Vector *next, double *reward, int *terminal) const
@@ -344,15 +328,6 @@ void FixedRewardObservationModel::configure(Configuration &config)
 void FixedRewardObservationModel::reconfigure(const Configuration &config)
 {
   ApproximatedObservationModel::reconfigure(config);
-}
-
-FixedRewardObservationModel *FixedRewardObservationModel::clone() const
-{
-  FixedRewardObservationModel *om = new FixedRewardObservationModel(*this);
-  om->projector_ = projector_->clone();
-  om->representation_ = representation_->clone();
-  om->task_ = task_->clone();
-  return om;
 }
 
 double FixedRewardObservationModel::step(const Vector &obs, const Vector &action, Vector *next, double *reward, int *terminal) const

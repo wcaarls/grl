@@ -47,11 +47,6 @@ void MultiPredictor::reconfigure(const Configuration &config)
 {
 }
 
-MultiPredictor *MultiPredictor::clone() const
-{
-  return new MultiPredictor(*this);
-}
-
 void MultiPredictor::update(const Transition &transition)
 {
   for (size_t ii=0; ii < predictor_.size(); ++ii)

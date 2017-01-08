@@ -64,7 +64,6 @@ class TwoLinkManipulatorDynamics : public Dynamics
     virtual void reconfigure(const Configuration &config);
 
     // From Dynamics
-    virtual TwoLinkManipulatorDynamics *clone() const;
     virtual void eom(const Vector &state, const Vector &action, Vector *xd) const;
 };
 
@@ -81,7 +80,6 @@ class TwoLinkManipulatorBalancingTask : public Task
     virtual void reconfigure(const Configuration &config);
 
     // From Task
-    virtual TwoLinkManipulatorBalancingTask *clone() const;
     virtual void start(int test, Vector *state) const;
     virtual void observe(const Vector &state, Vector *obs, int *terminal) const;
     virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const;

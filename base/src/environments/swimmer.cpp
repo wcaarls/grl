@@ -71,11 +71,6 @@ void SwimmerDynamics::reconfigure(const Configuration &config)
 {
 }
 
-SwimmerDynamics *SwimmerDynamics::clone() const
-{
-  return new SwimmerDynamics(*this);
-}
-
 template<int d>
 void SwimmerDynamics::staticEOM(Eigen::Matrix<double,2*(d+2)+1,1> state, Eigen::Matrix<double,d-1,1> action, Vector *xd) const
 {
@@ -191,11 +186,6 @@ void SwimmerReachingTask::configure(Configuration &config)
 
 void SwimmerReachingTask::reconfigure(const Configuration &config)
 {
-}
-
-SwimmerReachingTask *SwimmerReachingTask::clone() const
-{
-  return new SwimmerReachingTask(*this);
 }
 
 void SwimmerReachingTask::start(int test, Vector *state) const

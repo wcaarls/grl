@@ -69,19 +69,15 @@ void ActionPolicy::reconfigure(const Configuration &config)
 {
 }
 
-ActionPolicy *ActionPolicy::clone() const
-{
-  ActionPolicy *cpp = new ActionPolicy(*this);
-  cpp->projector_ = projector_->clone();
-  cpp->representation_ = representation_->clone();
-  return cpp;
-}
-
 TransitionType ActionPolicy::act(const Vector &in, Vector *out) const
 {
   ProjectionPtr p = projector_->project(in);
   representation_->read(p, out);
-
+  
+  // Some representations may not always return a value.
+  if (!out->size())
+    *out = (min_+max_)/2;
+  
   for (size_t ii=0; ii < out->size(); ++ii)
   {
     if (sigma_[ii])
@@ -90,14 +86,7 @@ TransitionType ActionPolicy::act(const Vector &in, Vector *out) const
     (*out)[ii] = fmin(fmax((*out)[ii], min_[ii]), max_[ii]);
   }
 
-  // Some representations may not always return a value.
-  if (!out->size())
-  {
-    *out = (min_+max_)/2;
-    return ttGreedy;
-  }
-  else
-    return ttExploratory;
+  return ttExploratory;
 }
 
 void ActionProbabilityPolicy::request(ConfigurationRequest *config)
@@ -110,7 +99,6 @@ void ActionProbabilityPolicy::request(ConfigurationRequest *config)
 void ActionProbabilityPolicy::configure(Configuration &config)
 {
   discretizer_ = (Discretizer*)config["discretizer"].ptr();
-  discretizer_->options(&variants_);
   
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (Representation*)config["representation"].ptr();
@@ -118,15 +106,6 @@ void ActionProbabilityPolicy::configure(Configuration &config)
 
 void ActionProbabilityPolicy::reconfigure(const Configuration &config)
 {
-}
-
-ActionProbabilityPolicy *ActionProbabilityPolicy::clone() const
-{
-  ActionProbabilityPolicy *dpp = new ActionProbabilityPolicy(*this);
-  dpp->discretizer_ = discretizer_->clone();
-  dpp->projector_ = projector_->clone();
-  dpp->representation_ = representation_->clone();
-  return dpp;
 }
 
 TransitionType ActionProbabilityPolicy::act(const Vector &in, Vector *out) const

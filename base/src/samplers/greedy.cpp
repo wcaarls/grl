@@ -25,7 +25,6 @@
  * \endverbatim
  */
 #include <grl/samplers/greedy.h>
-//#include <grl/grl.h> // #merge
 
 using namespace grl;
 
@@ -47,14 +46,6 @@ void GreedySampler::reconfigure(const Configuration &config)
 {
 }
 
-GreedySampler *GreedySampler::clone()
-{
-  GreedySampler *gs = new GreedySampler(*this);
-  gs->rand_ = rand_->clone();
-
-  return gs;
-}
-
 size_t GreedySampler::sample(const LargeVector &values, TransitionType &tt)
 {
   size_t mai = 0;
@@ -65,7 +56,7 @@ size_t GreedySampler::sample(const LargeVector &values, TransitionType &tt)
 
   if (rand_max_)
   {
-    Vector same_values = ConstantVector(values.size(), 0);
+    LargeVector same_values = ConstantVector(values.size(), 0);
     size_t jj = 0;
     for (size_t ii=0; ii < values.size(); ++ii)
       if (values[ii] == values[mai])
@@ -96,41 +87,114 @@ void EpsilonGreedySampler::configure(Configuration &config)
 {
   GreedySampler::configure(config);
   
-  epsilon_ = config["epsilon"];
+  epsilon_ = config["epsilon"].v();
+  
+  if (epsilon_.size() < 1)
+    throw bad_param("sampler/epsilon_greedy:epsilon");
+    
+  if (epsilon_.size() > 1)
+  {
+    distribution_ = calculateBaseDistribution(epsilon_);
+    distribution_sum_ = distribution_.sum();
+  }
 }
 
 void EpsilonGreedySampler::reconfigure(const Configuration &config)
 {
   config.get("epsilon", epsilon_);
-}
-
-EpsilonGreedySampler *EpsilonGreedySampler::clone()
-{
-  EpsilonGreedySampler *egs = new EpsilonGreedySampler(*this);
-  egs->rand_ = rand_->clone();
   
-  return egs;
+  if (epsilon_.size() < 1)
+    throw bad_param("sampler/epsilon_greedy:epsilon");
+    
+  if (epsilon_.size() > 1)
+  {
+    distribution_ = calculateBaseDistribution(epsilon_);
+    distribution_sum_ = distribution_.sum();
+  }
 }
 
 size_t EpsilonGreedySampler::sample(const LargeVector &values, TransitionType &tt)
 {
-  if (rand_->get() < epsilon_)
+  double r = rand_->get();
+  
+  if (epsilon_.size() > 1)
   {
-    tt = ttExploratory;
-    return rand_->getInteger(values.size());
+    if (epsilon_.size() != values.size())
+      throw bad_param("sampler/epsilon_greedy:epsilon");
+      
+    // Find number of eligible actions
+    size_t eligible=0;
+    for (size_t ii=0; ii < epsilon_.size(); ++ii)
+      if (r < epsilon_[ii])
+        eligible++;
+        
+    if (eligible > 0)
+    {
+      // Chose one randomly
+      size_t ri = rand_->getInteger(eligible);
+      for (size_t ii=0; ii < epsilon_.size(); ++ii)
+        if (r < epsilon_[ii])
+          if (!ri--)
+            return ii;
+    }
   }
+  else
+    if (r < epsilon_[0])
+     {
+      tt = ttExploratory;
+      return rand_->getInteger(values.size());
+     }
 
   return GreedySampler::sample(values, tt);
 }
 
 void EpsilonGreedySampler::distribution(const LargeVector &values, LargeVector *distribution)
 {
-  GreedySampler::distribution(values, distribution);
-
-  for (size_t ii=0; ii < values.size(); ++ii)
+  if (epsilon_.size() > 1)
   {
-    if ((*distribution)[ii] == 1)
-      (*distribution)[ii] = 1-epsilon_;
-    (*distribution)[ii] += epsilon_/values.size();
+    *distribution = distribution_;
+    TransitionType tt;
+    (*distribution)[GreedySampler::sample(values, tt)] += 1 - distribution_sum_;
   }
+  else
+  {
+    GreedySampler::distribution(values, distribution);
+    
+    for (size_t ii=0; ii < values.size(); ++ii)
+    {
+      if ((*distribution)[ii] == 1)
+        (*distribution)[ii] = 1-epsilon_[0];
+      (*distribution)[ii] += epsilon_[0]/values.size();
+    }
+  }
+}
+
+LargeVector EpsilonGreedySampler::calculateBaseDistribution(const LargeVector &epsilon) const
+{
+  // Calculate base distribution
+  LargeVector distribution = LargeVector::Constant(epsilon.size(), 0.);
+  
+  std::vector<double> e;
+  fromVector(epsilon, e);
+  e.push_back(0.); // So we can start at ii=1.
+  std::sort(e.begin(), e.end());
+  
+  for (size_t ii=1; ii < e.size(); ++ii)
+  {
+    if (e[ii] != e[ii-1])
+    {
+      // Divvy up difference in probability among eligible actions.
+      size_t eligible = 0;
+      for (size_t jj=0; jj < epsilon.size(); ++jj)
+        if (e[ii] <= epsilon[jj])
+          eligible++;
+      for (size_t jj=0; jj < epsilon.size(); ++jj)
+        if (e[ii] <= epsilon[jj])
+          distribution[jj] += (e[ii]-e[ii-1])/eligible;
+    }
+  }
+  
+  TRACE("Base distribution is " << distribution);
+  
+  return distribution;
 }

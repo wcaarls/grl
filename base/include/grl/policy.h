@@ -28,18 +28,18 @@
 #ifndef GRL_POLICY_H_
 #define GRL_POLICY_H_
 
-#include <grl/configurable.h>
 #include <grl/grl.h>
+#include <grl/configurable.h>
+#include <grl/mapping.h>
 
 namespace grl
 {
 
 /// Maps states to actions.
-class Policy : public Configurable
+class Policy : public Mapping
 {
   public:
     virtual ~Policy() { }
-    virtual Policy *clone() const = 0;
     
     /**
      * \brief Returns an action based on the current state.
@@ -62,14 +62,22 @@ class Policy : public Configurable
     {
       return act(in, out);
     }
+    
+    // From Mapping
+    virtual double read(const Vector &in, Vector *result) const
+    {
+      act(in, result);
+      if (result->size())
+        return (*result)[0];
+      else
+        return 0;
+    }
 };
 
 /// A parameterized Policy.
 class ParameterizedPolicy : public Policy
 {
   public:
-    virtual ParameterizedPolicy *clone() const = 0;
-    
     /// Returns number of policy parameters.
     virtual size_t size() const = 0;
     

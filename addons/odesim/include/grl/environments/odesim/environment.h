@@ -69,12 +69,6 @@ class ODEEnvironment: public grl::Environment, public itc::Thread
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
-    
-    // From Environment
-    virtual ODEEnvironment *clone() const
-    {
-      return NULL;
-    }
 
     virtual void start(int test, Vector *obs)
     {

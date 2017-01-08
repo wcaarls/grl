@@ -209,11 +209,6 @@ void MHE_NMPCPolicy::muscod_reset(const Vector &initial_obs, const Vector &initi
     std::cout << "MUSCOD is reseted!" << std::endl;
 }
 
-MHE_NMPCPolicy *MHE_NMPCPolicy::clone() const
-{
-  return NULL;
-}
-
 TransitionType MHE_NMPCPolicy::act(double time, const Vector &in, Vector *out)
 {
   grl_assert((in.size() == nmpc_->NXD() + nmpc_->NP()) || (in.size() == nmpc_->NXD()));

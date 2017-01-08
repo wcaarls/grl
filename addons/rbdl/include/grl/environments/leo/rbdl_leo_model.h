@@ -69,7 +69,6 @@ class LeoSquattingSandboxModel : public LeoSandboxModel
     virtual void configure(Configuration &config);
 
     // From Model
-    virtual LeoSquattingSandboxModel *clone() const;
     virtual void start(const Vector &hint, Vector *state);
     virtual double step(const Vector &action, Vector *next);
 

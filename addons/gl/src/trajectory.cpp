@@ -61,7 +61,7 @@ void TrajectoryVisualization::configure(Configuration &config)
       throw bad_param("visualization/trajectory:{input_dims,input_min,input_max}");
       
   // Create window  
-  create("Trajectory");
+  create(path().c_str());
 }
 
 void TrajectoryVisualization::reconfigure(const Configuration &config)

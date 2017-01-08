@@ -52,17 +52,6 @@ void QPolicy::reconfigure(const Configuration &config)
 {
 }
 
-QPolicy *QPolicy::clone() const
-{
-  QPolicy *qp = new QPolicy();
-  qp->discretizer_ = discretizer_->clone();
-  qp->projector_ = projector_->clone();
-  qp->representation_ = representation_->clone();
-  qp->sampler_ = sampler_->clone();
-  
-  return qp;
-}
-
 double QPolicy::value(const Vector &in) const
 {
   LargeVector qvalues, distribution;

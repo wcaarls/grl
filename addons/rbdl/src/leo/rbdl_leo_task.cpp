@@ -80,11 +80,6 @@ void LeoSquattingTask::configure(Configuration &config)
   std::cout << observation_max << std::endl;
 }
 
-LeoSquattingTask *LeoSquattingTask::clone() const
-{
-  return new LeoSquattingTask(*this);
-}
-
 void LeoSquattingTask::start(int test, Vector *state) const
 {
   *state = ConstantVector(2*rlsDofDim+1, 0);

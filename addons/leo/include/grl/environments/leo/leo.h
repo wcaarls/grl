@@ -161,7 +161,6 @@ class LeoBaseEnvironment: public Environment
     virtual void reconfigure(const Configuration &config);
 
     // From Environment
-    virtual LeoBaseEnvironment *clone() const;
     virtual void start(int test);
     virtual void step(double tau, double reward, int terminal);
     virtual void report(std::ostream &os) const;

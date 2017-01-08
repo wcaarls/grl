@@ -62,19 +62,15 @@ void ParameterizedActionPolicy::reconfigure(const Configuration &config)
 {
 }
 
-ParameterizedActionPolicy *ParameterizedActionPolicy::clone() const
-{
-  ParameterizedActionPolicy *cpp = new ParameterizedActionPolicy(*this);
-  cpp->projector_ = projector_->clone();
-  cpp->representation_ = representation_->clone();
-  return cpp;
-}
-
 TransitionType ParameterizedActionPolicy::act(const Vector &in, Vector *out) const
 {
   ProjectionPtr p = projector_->project(in);
   representation_->read(p, out);
-
+  
+  // Some representations may not always return a value.
+  if (!out->size())
+    *out = (min_+max_)/2;
+  
   for (size_t ii=0; ii < out->size(); ++ii)
   {
     if (sigma_[ii])
@@ -83,12 +79,5 @@ TransitionType ParameterizedActionPolicy::act(const Vector &in, Vector *out) con
     (*out)[ii] = fmin(fmax((*out)[ii], min_[ii]), max_[ii]);
   }
 
-  // Some representations may not always return a value.
-  if (!out->size())
-  {
-    *out = (min_+max_)/2;
-    return ttGreedy;
-  }
-  else
-    return ttExploratory;
+  return ttExploratory;
 }

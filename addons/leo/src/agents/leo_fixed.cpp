@@ -48,13 +48,6 @@ void LeoFixedAgent::reconfigure(const Configuration &config)
   FixedAgent::reconfigure(config);
 }
 
-LeoFixedAgent *LeoFixedAgent::clone() const
-{
-  LeoFixedAgent *agent = new LeoFixedAgent();
-  agent->policy_ = policy_->clone();
-  return agent;
-}
-
 TransitionType LeoFixedAgent::start(const Vector &obs, Vector *action)
 {
   TransitionType tt = FixedAgent::start(obs, action);

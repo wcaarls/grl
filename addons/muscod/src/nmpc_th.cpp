@@ -375,13 +375,6 @@ TransitionType NMPCPolicyTh::act(double time, const Vector &in, Vector *out)
   return ttGreedy;
 }
 
-NMPCPolicyTh *NMPCPolicyTh::clone() const
-{
-  NMPCPolicyTh* obj = new NMPCPolicyTh(*this);
-  obj->reset();
-  return obj;
-}
-
 void NMPCPolicyTh::print_array(const double* arr, const unsigned int len)
 {
   std::cout << " [";

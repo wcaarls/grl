@@ -41,7 +41,7 @@ void TDPredictor::request(ConfigurationRequest *config)
 
   config->push_back(CRP("projector", "projector.observation", "Projects observations onto representation space", projector_));
   config->push_back(CRP("representation", "representation.value/state", "State value representation", representation_));
-  config->push_back(CRP("trace", "trace", "Trace of projections", trace_));
+  config->push_back(CRP("trace", "trace", "Trace of projections", trace_, true));
 }
 
 void TDPredictor::configure(Configuration &config)
@@ -65,11 +65,6 @@ void TDPredictor::reconfigure(const Configuration &config)
     finalize();
 }
 
-TDPredictor *TDPredictor::clone() const
-{
-  return NULL;
-}
-
 void TDPredictor::update(const Transition &transition)
 {
   Predictor::update(transition);
@@ -84,9 +79,11 @@ void TDPredictor::update(const Transition &transition)
 
   representation_->write(p, VectorConstructor(target), alpha_);
   
-  // TODO: recently added point is not in trace
-  representation_->update(*trace_, VectorConstructor(alpha_*delta), gamma_*lambda_);
-  trace_->add(p, gamma_*lambda_);
+  if (trace_)
+  {
+    representation_->update(*trace_, VectorConstructor(alpha_*delta), gamma_*lambda_);
+    trace_->add(p, gamma_*lambda_);
+  }
   
   representation_->finalize();
 }
@@ -95,5 +92,6 @@ void TDPredictor::finalize()
 {
   Predictor::finalize();
   
-  trace_->clear();
+  if (trace_)
+    trace_->clear();
 }

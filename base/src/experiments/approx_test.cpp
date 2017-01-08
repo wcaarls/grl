@@ -66,15 +66,6 @@ void ApproxTestExperiment::reconfigure(const Configuration &config)
 {
 }
 
-ApproxTestExperiment *ApproxTestExperiment::clone() const
-{
-  ApproxTestExperiment *ate = new ApproxTestExperiment(*this);
-  ate->projector_ = projector_->clone();
-  ate->representation_ = representation_->clone();
-  
-  return ate;
-}
-
 void ApproxTestExperiment::run()
 {
   for (size_t ii=0; ii < train_samples_; ++ii)

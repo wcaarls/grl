@@ -1,0 +1,49 @@
+experiment:
+  runs: 1
+  trials: 10000
+  steps: 0
+  rate: 0
+  test_interval: 10
+  output: cart_pole_balancing-cma-ann
+  environment:
+    model:
+      control_step: 0.05
+      integration_steps: 5
+      dynamics:
+        type: dynamics/cart_pole
+      type: model/dynamical
+    task:
+      timeout: 9.99
+      type: task/cart_pole/balancing
+    exporter: 0
+    type: environment/modeled
+  agent:
+    episodes: 10
+    optimizer:
+      population: 0
+      sigma: [ 1 ]
+      policy:
+        sigma: [ 0 ]
+        output_min: experiment/environment/task/action_min
+        output_max: experiment/environment/task/action_max
+        projector:
+          input_min: experiment/environment/task/observation_min
+          input_max: experiment/environment/task/observation_max
+          projector:
+            type: projector/identity
+          type: projector/pre/normalizing
+        representation:
+          inputs: experiment/environment/task/observation_dims
+          outputs: experiment/environment/task/action_dims
+          hiddens: [ 5 ]
+          eta: 0.7
+          type: representation/parameterized/ann
+        type: policy/parameterized/action
+      type: optimizer/cma
+    type: agent/black_box
+  test_agent:
+    policy: ../../agent/optimizer/policy
+    type: agent/fixed
+  save_every: never
+  load_file: ""
+  type: experiment/online_learning

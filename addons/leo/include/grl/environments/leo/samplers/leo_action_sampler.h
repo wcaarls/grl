@@ -56,7 +56,6 @@ class LeoActionSampler : public Sampler
     virtual void reconfigure(const Configuration &config);
 
     // From Sampler
-    virtual LeoActionSampler *clone();
     virtual size_t sample(double time, const LargeVector &values, TransitionType &tt);
     virtual void distribution(const LargeVector &values, LargeVector *distribution);
 };

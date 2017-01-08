@@ -58,11 +58,6 @@ void RPCEnvExperiment::reconfigure(const Configuration &config)
   config.get("port", port_);
 }
 
-RPCEnvExperiment *RPCEnvExperiment::clone() const
-{
-  return NULL;
-}
-
 void RPCEnvExperiment::run()
 {
   struct sockaddr_in myaddr, agentaddr;

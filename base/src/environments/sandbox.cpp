@@ -63,15 +63,16 @@ void SandboxEnvironment::reconfigure(const Configuration &config)
     time_learn_ = time_test_ = 0.;
 }
 
-SandboxEnvironment *SandboxEnvironment::clone() const
+SandboxEnvironment &SandboxEnvironment::copy(const Configurable &obj)
 {
-  SandboxEnvironment* me = new SandboxEnvironment();
+  const SandboxEnvironment& se = dynamic_cast<const SandboxEnvironment&>(obj);
 
-  me->sandbox_ = sandbox_;
-  me->task_ = task_;
-
-  return me;
+  obs_ = se.obs_;
+  test_ = se.test_;
+  
+  return *this;
 }
+
 
 void SandboxEnvironment::start(int test, Vector *obs)
 {

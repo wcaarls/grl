@@ -62,7 +62,6 @@ class TDPredictor : public Predictor
     virtual void reconfigure(const Configuration &config);
     
     // From Predictor
-    virtual TDPredictor *clone() const;
     virtual void update(const Transition &transition);
     virtual void finalize();
 };

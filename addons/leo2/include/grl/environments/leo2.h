@@ -59,7 +59,6 @@ class LEO2Environment : public Environment
     virtual void reconfigure(const Configuration &config);
     
     // From Environment
-    virtual LEO2Environment *clone() const;
     virtual void start(int test, Vector *obs);
     virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal);
     

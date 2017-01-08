@@ -60,7 +60,6 @@ class CMAOptimizer : public Optimizer
     virtual void reconfigure(const Configuration &config);
     
     // From Optimizer  
-    virtual CMAOptimizer *clone() const;
     virtual size_t size() const { return population_; }
     virtual Policy *request(size_t ii) const { return policies_[ii]; }
     virtual void report(size_t ii, double reward);

@@ -228,7 +228,6 @@ class PinballModel : public Model
     virtual void reconfigure(const Configuration &config);
     
     // From Model
-    virtual PinballModel *clone() const;
     virtual double step(const Vector &state, const Vector &action, Vector *next) const;
 };
 
@@ -250,7 +249,6 @@ class PinballMovementTask : public Task
     virtual void reconfigure(const Configuration &config);
 
     // From Task
-    virtual PinballMovementTask *clone() const;
     virtual void start(int test, Vector *state) const;
     virtual void observe(const Vector &state, Vector *obs, int *terminal) const;
     virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const;
@@ -282,7 +280,6 @@ class PinballRegulatorTask : public RegulatorTask
     virtual void reconfigure(const Configuration &config);
 
     // From Task
-    virtual PinballRegulatorTask *clone() const;
     virtual void observe(const Vector &state, Vector *obs, int *terminal) const;
     virtual bool invert(const Vector &obs, Vector *state) const;
 };

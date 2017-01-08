@@ -373,11 +373,6 @@ void LeoSquatEnvironment::configure(Configuration &config)
   TRACE("Observation max: " << obs_max);
 }
 
-LeoSquatEnvironment *LeoSquatEnvironment::clone() const
-{
-  return NULL;
-}
-
 void LeoSquatEnvironment::start(int test, Vector *obs)
 {
   LeoBaseEnvironment::start(test);

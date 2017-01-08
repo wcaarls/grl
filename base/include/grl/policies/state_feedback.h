@@ -37,7 +37,7 @@ namespace grl
 class StateFeedbackPolicy : public ParameterizedPolicy
 {
   public:
-    TYPEINFO("policy/parameterized/state_feedback", "Parameterized policy based on a state feedback controller")
+    TYPEINFO("mapping/policy/parameterized/state_feedback", "Parameterized policy based on a state feedback controller")
 
   protected:
     Vector operating_state_, operating_action_;
@@ -51,9 +51,9 @@ class StateFeedbackPolicy : public ParameterizedPolicy
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
+    virtual StateFeedbackPolicy &copy(const Configurable &obj);
 
     // From Policy
-    virtual StateFeedbackPolicy *clone() const;
     virtual TransitionType act(const Vector &in, Vector *out) const;
     
     // From ParameterizedPolicy
@@ -66,7 +66,7 @@ class StateFeedbackPolicy : public ParameterizedPolicy
 class SampleFeedbackPolicy : public Policy
 {
   public:
-    TYPEINFO("policy/sample_feedback", "Policy based on state feedback controller defined over samples")
+    TYPEINFO("mapping/policy/sample_feedback", "Policy based on state feedback controller defined over samples")
     
     struct Sample
     {
@@ -87,9 +87,9 @@ class SampleFeedbackPolicy : public Policy
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
+    virtual SampleFeedbackPolicy &copy(const Configurable &obj);
 
     // From Policy
-    virtual SampleFeedbackPolicy *clone() const;
     virtual TransitionType act(const Vector &in, Vector *out) const;
 
     virtual void clear();

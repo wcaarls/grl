@@ -1,0 +1,80 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 0
+  steps: 0
+  rate: 0
+  test_interval: 10
+  environment: 
+    type: environment/modeled
+    model: 
+      type: model/dynamical
+      control_step: 0.03
+      integration_steps: 5
+      dynamics: 
+        type: dynamics/pendulum
+    task: 
+      type: task/pendulum/swingup
+      timeout: 2.99
+      randomization: 0
+  agent: 
+    type: agent/td
+    policy: 
+      type: mapping/policy/discrete/q
+      discretizer: 
+        type: discretizer/uniform
+        min: experiment/environment/task/action_min
+        max: experiment/environment/task/action_max
+        steps: [3]
+      projector: 
+        type: projector/pre/normalizing
+        input_min: experiment/environment/task/observation_min+experiment/environment/task/action_min
+        input_max: experiment/environment/task/observation_max+experiment/environment/task/action_max
+        projector: 
+          type: projector/identity
+      representation: 
+        type: representation/parameterized/ann
+        inputs: experiment/environment/task/observation_dims+experiment/environment/task/action_dims
+        outputs: 1
+        hiddens: [100]
+        eta: -0.001
+      sampler: 
+        type: sampler/epsilon_greedy
+        epsilon: [0.5]
+    predictor: 
+      type: predictor/mbfqi
+      alpha: 1
+      gamma: 0.97
+      transitions: 100000
+      minibatch_size: 64
+      update_interval: 1000
+      target: 
+        type: mapping/q_policy
+        policy: 
+          type: mapping/policy/discrete/q
+          discretizer: experiment/agent/policy/discretizer
+          projector: experiment/agent/policy/projector
+          representation: experiment/agent/policy/representation
+          sampler: 
+            type: sampler/greedy
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+  test_agent: 
+    type: agent/fixed
+    policy: experiment/agent/predictor/target/policy
+  save_every: never
+visualizer: 
+  type: visualizer/glut
+visualization: 
+  type: visualization/field/policy/value
+  field_dims: [0, 1]
+  input_min: experiment/environment/task/observation_min
+  input_max: experiment/environment/task/observation_max
+  points: 65536
+  savepoints: 1048576
+  state: experiment/state
+  projection: mean
+  policy: experiment/test_agent/policy
+visualization2: 
+  type: visualization/pendulum
+  state: experiment/environment/state

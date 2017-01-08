@@ -54,7 +54,7 @@ void ILQGSolver::request(ConfigurationRequest *config)
   config->push_back(CRP("regularization", "Regularization method", regularization_, CRP::Configuration, options));
 
   config->push_back(CRP("model", "observation_model", "Observation model", model_));
-  config->push_back(CRP("policy", "policy/sample_feedback", "Sample feedback policy to adjust", policy_));
+  config->push_back(CRP("policy", "mapping/policy/sample_feedback", "Sample feedback policy to adjust", policy_));
 
   config->push_back(CRP("trajectory", "signal/matrix", "Predicted trajectory", CRP::Provided));
 }
@@ -80,9 +80,17 @@ void ILQGSolver::reconfigure(const Configuration &config)
 {
 }
 
-ILQGSolver *ILQGSolver::clone() const
+ILQGSolver &ILQGSolver::copy(const Configurable &obj)
 {
-  return new ILQGSolver(*this);
+  const ILQGSolver &is = dynamic_cast<const ILQGSolver&>(obj);
+  
+  t0_ = is.t0_;
+  step_ = is.step_;
+  x_ = is.x_;
+  u_ = is.u_;
+  L_ = is.L_;
+
+  return *this;
 }
 
 bool ILQGSolver::solve(const Vector &x0)

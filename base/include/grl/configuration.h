@@ -103,6 +103,15 @@ class ConfigurationParameter
       value_ = oss.str();
     }
     
+    ConfigurationParameter(LargeVector value)
+    {
+      std::ostringstream oss;
+      std::vector<double> v_out;
+      fromVector(value, v_out);
+      oss << v_out;
+      value_ = oss.str();
+    }
+    
     ConfigurationParameter(const ConfigurationParameter &other)
     {
       value_ = other.str();
@@ -142,13 +151,31 @@ class ConfigurationParameter
       }
     }
 
+    // Specialization for LargeVector that goes through a std::vector<double>
+    bool get(LargeVector &value) const
+    {
+      if (value_.empty())
+      {
+        value = LargeVector();
+        return true;
+      }
+      else
+      {
+        std::istringstream iss(value_);
+        std::vector<double> v_in;
+        iss >> v_in;
+        toVector(v_in, value);
+        return !iss.fail();
+      }
+    }
+    
     template<class T>
     operator T() const { return as<T>(); }
     
     double d() const { return as<double>(); }
     int i()    const { return as<int>(); }
     size_t u() const { return as<size_t>(); }
-    Vector v() const { return as<Vector>(); }
+    LargeVector v() const { return as<LargeVector>(); }
 
     template<class T>
     T as() const

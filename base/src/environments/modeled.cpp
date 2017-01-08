@@ -61,17 +61,17 @@ void ModeledEnvironment::reconfigure(const Configuration &config)
   if (config.has("action") && config["action"].str() == "reset")
     time_learn_ = time_test_ = 0.;
 }
-    
-ModeledEnvironment *ModeledEnvironment::clone() const
-{
-  ModeledEnvironment* me = new ModeledEnvironment();
-  
-  me->model_ = model_;
-  me->task_ = task_;
-  
-  return me;
-}
 
+ModeledEnvironment &ModeledEnvironment::copy(const Configurable &obj)
+{
+  const ModeledEnvironment& me = dynamic_cast<const ModeledEnvironment&>(obj);
+  
+  obs_ = me.obs_;
+  test_ = me.test_;
+  
+  return *this;
+}
+    
 void ModeledEnvironment::start(int test, Vector *obs)
 {
   int terminal;
@@ -134,13 +134,6 @@ void DynamicalModel::configure(Configuration &config)
 
 void DynamicalModel::reconfigure(const Configuration &config)
 {
-}
-
-DynamicalModel *DynamicalModel::clone() const
-{
-  DynamicalModel *dm = new DynamicalModel();
-  dm->dynamics_ = dynamics_;
-  return dm;
 }
 
 double DynamicalModel::step(const Vector &state, const Vector &action, Vector *next) const

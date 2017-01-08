@@ -49,7 +49,6 @@ class ObservationModel : public Configurable
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
     
-    virtual ObservationModel *clone() const = 0;
     virtual double step(const Vector &obs, const Vector &action, Vector *next, double *reward, int *terminal) const = 0;
     virtual Matrix jacobian(const Vector &obs, const Vector &action) const;
     virtual Matrix rewardHessian(const Vector &obs, const Vector &action) const;
@@ -74,7 +73,6 @@ class FixedObservationModel : public ObservationModel
     virtual void reconfigure(const Configuration &config);
 
     // From ObservationModel
-    virtual FixedObservationModel *clone() const;
     virtual double step(const Vector &obs, const Vector &action, Vector *next, double *reward, int *terminal) const;
     virtual Matrix rewardHessian(const Vector &obs, const Vector &action) const;
 };
@@ -103,7 +101,6 @@ class ApproximatedObservationModel : public ObservationModel
     virtual void reconfigure(const Configuration &config);
 
     // From ObservationModel
-    virtual ApproximatedObservationModel *clone() const;
     virtual double step(const Vector &obs, const Vector &action, Vector *next, double *reward, int *terminal) const;
     virtual Matrix jacobian(const Vector &obs, const Vector &action) const;
 };
@@ -126,7 +123,6 @@ class FixedRewardObservationModel : public ApproximatedObservationModel
     virtual void reconfigure(const Configuration &config);
 
     // From ObservationModel
-    virtual FixedRewardObservationModel *clone() const;
     virtual double step(const Vector &obs, const Vector &action, Vector *next, double *reward, int *terminal) const;
     virtual Matrix rewardHessian(const Vector &obs, const Vector &action) const;
 };

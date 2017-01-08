@@ -75,13 +75,13 @@ class CSVExporter : public Exporter
     std::vector<size_t> order_;
     std::vector<std::string> headers_;
     std::vector<Vector> append_vec_;
-    bool write_header_;
+    bool write_header_, enabled_;
     std::map<std::string, int> run_counter_;
 
     void write(std::vector<Vector> vars);
 
   public:
-    CSVExporter() : style_("line"), variant_("all"), write_header_(true) { }
+    CSVExporter() : style_("line"), variant_("all"), write_header_(true), enabled_(true) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);

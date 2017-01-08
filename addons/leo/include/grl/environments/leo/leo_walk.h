@@ -53,7 +53,6 @@ class LeoWalkEnvironment: public LeoBaseEnvironment
     virtual void configure(Configuration &config);
     
     // From Environment
-    virtual LeoWalkEnvironment *clone() const;
     virtual void start(int test, Vector *obs);
     virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal);
 

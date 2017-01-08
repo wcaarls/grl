@@ -84,11 +84,6 @@ void BatchLearningExperiment::reconfigure(const Configuration &config)
   config.get("rate", rate_);
 }
 
-BatchLearningExperiment *BatchLearningExperiment::clone() const
-{
-  return NULL;
-}
-
 void BatchLearningExperiment::run()
 {
   std::ofstream ofs;

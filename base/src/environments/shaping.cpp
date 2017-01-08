@@ -52,17 +52,17 @@ void ShapingEnvironment::configure(Configuration &config)
 void ShapingEnvironment::reconfigure(const Configuration &config)
 {
 }
-    
-ShapingEnvironment *ShapingEnvironment::clone() const
-{
-  ShapingEnvironment* se = new ShapingEnvironment(*this);
-  
-  se->environment_ = environment_->clone();
-  se->shaping_function_ = shaping_function_->clone();
-  
-  return se;
-}
 
+ShapingEnvironment &ShapingEnvironment::copy(const Configurable &obj)
+{
+  const ShapingEnvironment& se = dynamic_cast<const ShapingEnvironment&>(obj);
+
+  prev_obs_ = se.prev_obs_;
+  total_reward_ = se.total_reward_;
+  
+  return *this;
+}
+    
 void ShapingEnvironment::start(int test, Vector *obs)
 {
   environment_->start(test, obs);

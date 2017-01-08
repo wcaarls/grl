@@ -45,7 +45,7 @@ agent/filtering:
 agent/fixed:
   description: Fixed-policy agent
   policy:
-    type: policy
+    type: mapping/policy
     description: Control policy
     mutability: configuration
     default: 0
@@ -53,7 +53,7 @@ agent/fixed:
 agent/leo/fixed:
   description: Leo fixed agent
   policy:
-    type: policy
+    type: mapping/policy
     description: Control policy
     mutability: configuration
     default: 0
@@ -67,7 +67,7 @@ agent/leo/fixed:
 agent/leo/td:
   description: Leo agent that learns from observed state transitions
   policy:
-    type: policy
+    type: mapping/policy
     description: Control policy
     mutability: configuration
     default: 0
@@ -112,20 +112,6 @@ agent/leo_preprogrammed:
     mutability: system
     default: "[  ]"
     optional: 1
-agent/leo_squatting_agent:
-  description: Fixed-policy agent
-  agent_standup:
-    type: agent
-    description: Safe standup agent
-    mutability: configuration
-    default: 0
-    optional: 0
-  agent_learn:
-    type: agent
-    description: Learning agent
-    mutability: configuration
-    default: 0
-    optional: 0
 agent/master/sequential:
   description: Master agent that executes sub-agents sequentially
   predictor:
@@ -201,7 +187,7 @@ agent/solver:
     min: 1
     max: 2147483647
   policy:
-    type: policy
+    type: mapping/policy
     description: Control policy
     mutability: configuration
     default: 0
@@ -285,7 +271,7 @@ agent/sub/voluntary:
 agent/td:
   description: Agent that learns from observed state transitions
   policy:
-    type: policy
+    type: mapping/policy
     description: Control policy
     mutability: configuration
     default: 0
@@ -387,7 +373,7 @@ discretizer/peaked:
 discretizer/policy:
   description: Returns the action suggested by a policy
   policy:
-    type: policy
+    type: mapping/policy
     description: Policy whose action to return
     mutability: configuration
     default: 0
@@ -880,6 +866,10 @@ experiment/online_learning:
     type: signal/vector
     description: Current observed state of the environment
     mutability: provided
+  action:
+    type: signal/vector
+    description: Current action applied to the environment
+    mutability: provided
   curve:
     type: signal/vector
     description: Learning curve
@@ -935,6 +925,14 @@ exporter/csv:
       - test
       - learn
       - all
+  enabled:
+    type: int
+    description: Enable writing to output file
+    mutability: online
+    default: 1
+    optional: 1
+    min: 0
+    max: 1
 importer/csv:
   description: Comma-separated values importer
   file:
@@ -969,10 +967,470 @@ mapping/multisine:
     optional: 1
     min: 0
     max: 2147483647
+mapping/policy/action:
+  description: Policy based on a direct action representation
+  sigma:
+    type: vector
+    description: Standard deviation of exploration distribution
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  output_min:
+    type: vector.action_min
+    description: Lower limit on outputs
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  output_max:
+    type: vector.action_max
+    description: Upper limit on outputs
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  projector:
+    type: projector.observation
+    description: Projects observations onto representation space
+    mutability: configuration
+    default: 0
+    optional: 0
+  representation:
+    type: representation.action
+    description: Action representation
+    mutability: configuration
+    default: 0
+    optional: 0
+mapping/policy/action_probability:
+  description: Policy based on an action-probability representation
+  discretizer:
+    type: discretizer
+    description: Action discretizer
+    mutability: configuration
+    default: 0
+    optional: 0
+  projector:
+    type: projector
+    description: Projects observation-action pairs onto representation space
+    mutability: configuration
+    default: 0
+    optional: 0
+  representation:
+    type: representation
+    description: Action-probability representation
+    mutability: configuration
+    default: 0
+    optional: 0
+mapping/policy/discrete/q:
+  description: Q-value based policy
+  discretizer:
+    type: discretizer.action
+    description: Action discretizer
+    mutability: configuration
+    default: 0
+    optional: 0
+  projector:
+    type: projector.pair
+    description: Projects observation-action pairs onto representation space
+    mutability: configuration
+    default: 0
+    optional: 0
+  representation:
+    type: representation.value/action
+    description: Action-value representation
+    mutability: configuration
+    default: 0
+    optional: 0
+  sampler:
+    type: sampler
+    description: Samples actions from action-values
+    mutability: configuration
+    default: 0
+    optional: 0
+mapping/policy/discrete/q/bounded:
+  description: Q-value based policy with bounded action deltas
+  bound:
+    type: vector
+    description: Maximum action delta
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  discretizer:
+    type: discretizer.action
+    description: Action discretizer
+    mutability: configuration
+    default: 0
+    optional: 0
+  projector:
+    type: projector.pair
+    description: Projects observation-action pairs onto representation space
+    mutability: configuration
+    default: 0
+    optional: 0
+  representation:
+    type: representation.value/action
+    description: Action-value representation
+    mutability: configuration
+    default: 0
+    optional: 0
+  sampler:
+    type: sampler
+    description: Samples actions from action-values
+    mutability: configuration
+    default: 0
+    optional: 0
+mapping/policy/discrete/random:
+  description: Policy that chooses discrete random actions
+  discretizer:
+    type: discretizer.action
+    description: Action discretizer
+    mutability: configuration
+    default: 0
+    optional: 0
+mapping/policy/discrete/v:
+  description: State-value based policy
+  gamma:
+    type: double
+    description: Discount rate
+    mutability: configuration
+    default: 0.97
+    optional: 1
+    min: 0
+    max: 1
+  discretizer:
+    type: discretizer.action
+    description: Action discretizer
+    mutability: configuration
+    default: 0
+    optional: 0
+  model:
+    type: observation_model
+    description: Observation model
+    mutability: configuration
+    default: 0
+    optional: 0
+  projector:
+    type: projector.observation
+    description: Projects observations onto representation space
+    mutability: configuration
+    default: 0
+    optional: 0
+  representation:
+    type: representation.value/state
+    description: State-value representation
+    mutability: configuration
+    default: 0
+    optional: 0
+  sampler:
+    type: sampler
+    description: Samples actions from state-values
+    mutability: configuration
+    default: 0
+    optional: 0
+mapping/policy/feed_forward:
+  description: Feed-forward policy
+  input:
+    type: string
+    description: CSV file with timestep and controls
+    mutability: configuration
+    default: ""
+    optional: 1
+mapping/policy/mhe_nmpc:
+  description: Nonlinear model predictive control policy with moving horizon estimator using the MUSCOD library
+  verbose:
+    type: int
+    description: Verbose mode
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
+  initFeedback:
+    type: int
+    description: Initialize feedback
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
+  action_min:
+    type: vector.action_min
+    description: Lower limit on actions
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  action_max:
+    type: vector.action_max
+    description: Upper limit on actions
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  lua_model:
+    type: string
+    description: Lua model used by MUSCOD
+    mutability: configuration
+    default: ""
+    optional: 1
+  model_name:
+    type: string
+    description: Name of the model in grl
+    mutability: configuration
+    default: ""
+    optional: 1
+  nmpc_model_name:
+    type: string
+    description: Name of MUSCOD NMPC model library
+    mutability: configuration
+    default: ""
+    optional: 1
+  mhe_model_name:
+    type: string
+    description: Name of MUSCOD MHE model library
+    mutability: configuration
+    default: ""
+    optional: 1
+  feedback:
+    type: string
+    description: Choose between a non-treaded and a threaded feedback of NMPC
+    mutability: configuration
+    default: ""
+    optional: 1
+    options:
+      - non-threaded
+      - threaded
+  n_iter:
+    type: int
+    description: Number of iteration
+    mutability: system
+    default: 1
+    optional: 1
+    min: 0
+    max: 2147483647
+mapping/policy/nmpc:
+  description: Nonlinear model predictive control policy using the MUSCOD library
+  verbose:
+    type: int
+    description: Verbose mode
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
+  initFeedback:
+    type: int
+    description: Initialize feedback
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
+  action_min:
+    type: vector.action_min
+    description: Lower limit on actions
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  action_max:
+    type: vector.action_max
+    description: Upper limit on actions
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  lua_model:
+    type: string
+    description: Lua model used by MUSCOD
+    mutability: configuration
+    default: ""
+    optional: 1
+  model_name:
+    type: string
+    description: Name of the model in grl
+    mutability: configuration
+    default: ""
+    optional: 1
+  nmpc_model_name:
+    type: string
+    description: Name of MUSCOD NMPC model library
+    mutability: configuration
+    default: ""
+    optional: 1
+  feedback:
+    type: string
+    description: Choose between a non-treaded and a threaded feedback of NMPC
+    mutability: configuration
+    default: ""
+    optional: 1
+    options:
+      - non-threaded
+      - threaded
+  n_iter:
+    type: int
+    description: Number of iteration
+    mutability: system
+    default: 1
+    optional: 1
+    min: 0
+    max: 2147483647
+mapping/policy/nmpc_sw:
+  description: Nonlinear model predictive control policy for the simplest walker using the MUSCOD library
+  agent_standup:
+    type: agent
+    description: Safe standup agent
+    mutability: configuration
+    default: 0
+    optional: 0
+  agent_learn:
+    type: agent
+    description: Learning agent
+    mutability: configuration
+    default: 0
+    optional: 0
+mapping/policy/nmpc_th:
+  description: Nonlinear multistep (thread-based) model predictive control policy using the MUSCOD library
+  model_name:
+    type: string
+    description: Name of MUSCOD model library
+    mutability: configuration
+    default: ""
+    optional: 1
+  lua_model:
+    type: string
+    description: Lua model used by MUSCOD
+    mutability: configuration
+    default: ""
+    optional: 1
+  inputs:
+    type: int.observation_dims
+    description: Number of inputs
+    mutability: system
+    default: 0
+    optional: 1
+    min: 1
+    max: 2147483647
+  outputs:
+    type: int.action_dims
+    description: Number of outputs
+    mutability: system
+    default: 0
+    optional: 1
+    min: 1
+    max: 2147483647
+  single_step:
+    type: int
+    description: Run NMPC in single-step mode
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
+  verbose:
+    type: int
+    description: Verbose mode
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
+mapping/policy/parameterized/action:
+  description: Parameterized policy based on a direct action representation
+  sigma:
+    type: vector
+    description: Standard deviation of exploration distribution
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  output_min:
+    type: vector.action_min
+    description: Lower limit on outputs
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  output_max:
+    type: vector.action_max
+    description: Upper limit on outputs
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  projector:
+    type: projector.observation
+    description: Projects observations onto representation space
+    mutability: configuration
+    default: 0
+    optional: 0
+  representation:
+    type: representation/parameterized.action
+    description: Action representation
+    mutability: configuration
+    default: 0
+    optional: 0
+mapping/policy/parameterized/pid:
+  description: Parameterized policy based on a proportional-integral-derivative controller
+  setpoint:
+    type: vector
+    description: Setpoint
+    mutability: online
+    default: "[  ]"
+    optional: 1
+  outputs:
+    type: int.action_dims
+    description: Number of outputs
+    mutability: system
+    default: 1
+    optional: 1
+    min: 1
+    max: 2147483647
+  p:
+    type: vector
+    description: P gains ([in1_out1, ..., in1_outN, ..., inN_out1, ..., inN_outN])
+    mutability: online
+    default: "[  ]"
+    optional: 1
+  i:
+    type: vector
+    description: I gains
+    mutability: online
+    default: "[  ]"
+    optional: 1
+  d:
+    type: vector
+    description: D gains (use P gain on velocity instead, if available)
+    mutability: online
+    default: "[  ]"
+    optional: 1
+  il:
+    type: vector
+    description: Integration limits
+    mutability: online
+    default: "[  ]"
+    optional: 1
+  action_min:
+    type: vector.action_min
+    description: Lower limit on actions
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  action_max:
+    type: vector.action_max
+    description: Upper limit on actions
+    mutability: system
+    default: "[  ]"
+    optional: 1
+mapping/policy/random:
+  description: Policy that chooses continuous random actions
+  output_min:
+    type: vector.action_min
+    description: Lower action limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  output_max:
+    type: vector.action_max
+    description: Upper action limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
 mapping/q_policy:
   description: Mapping that returns the value of a q-policy
   policy:
-    type: policy/discrete/q
+    type: mapping/policy/discrete/q
     description: Q-value based policy
     mutability: configuration
     default: 0
@@ -1210,313 +1668,11 @@ optimizer/cma:
     default: "[ 1 ]"
     optional: 1
   policy:
-    type: policy/parameterized
+    type: mapping/policy/parameterized
     description: Control policy prototype
     mutability: configuration
     default: 0
     optional: 0
-policy/action:
-  description: Policy based on a direct action representation
-  sigma:
-    type: vector
-    description: Standard deviation of exploration distribution
-    mutability: configuration
-    default: "[  ]"
-    optional: 1
-  output_min:
-    type: vector.action_min
-    description: Lower limit on outputs
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  output_max:
-    type: vector.action_max
-    description: Upper limit on outputs
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  projector:
-    type: projector.observation
-    description: Projects observations onto representation space
-    mutability: configuration
-    default: 0
-    optional: 0
-  representation:
-    type: representation.action
-    description: Action representation
-    mutability: configuration
-    default: 0
-    optional: 0
-policy/action_probability:
-  description: Policy based on an action-probability representation
-  discretizer:
-    type: discretizer
-    description: Action discretizer
-    mutability: configuration
-    default: 0
-    optional: 0
-  projector:
-    type: projector
-    description: Projects observation-action pairs onto representation space
-    mutability: configuration
-    default: 0
-    optional: 0
-  representation:
-    type: representation
-    description: Action-probability representation
-    mutability: configuration
-    default: 0
-    optional: 0
-policy/discrete/q:
-  description: Q-value based policy
-  discretizer:
-    type: discretizer.action
-    description: Action discretizer
-    mutability: configuration
-    default: 0
-    optional: 0
-  projector:
-    type: projector.pair
-    description: Projects observation-action pairs onto representation space
-    mutability: configuration
-    default: 0
-    optional: 0
-  representation:
-    type: representation.value/action
-    description: Action-value representation
-    mutability: configuration
-    default: 0
-    optional: 0
-  sampler:
-    type: sampler
-    description: Samples actions from action-values
-    mutability: configuration
-    default: 0
-    optional: 0
-policy/discrete/q/bounded:
-  description: Q-value based policy with bounded action deltas
-  bound:
-    type: vector
-    description: Maximum action delta
-    mutability: configuration
-    default: "[  ]"
-    optional: 1
-  discretizer:
-    type: discretizer.action
-    description: Action discretizer
-    mutability: configuration
-    default: 0
-    optional: 0
-  projector:
-    type: projector.pair
-    description: Projects observation-action pairs onto representation space
-    mutability: configuration
-    default: 0
-    optional: 0
-  representation:
-    type: representation.value/action
-    description: Action-value representation
-    mutability: configuration
-    default: 0
-    optional: 0
-  sampler:
-    type: sampler
-    description: Samples actions from action-values
-    mutability: configuration
-    default: 0
-    optional: 0
-policy/discrete/random:
-  description: Policy that chooses discrete random actions
-  discretizer:
-    type: discretizer.action
-    description: Action discretizer
-    mutability: configuration
-    default: 0
-    optional: 0
-policy/discrete/v:
-  description: State-value based policy
-  gamma:
-    type: double
-    description: Discount rate
-    mutability: configuration
-    default: 0.97
-    optional: 1
-    min: 0
-    max: 1
-  discretizer:
-    type: discretizer.action
-    description: Action discretizer
-    mutability: configuration
-    default: 0
-    optional: 0
-  model:
-    type: observation_model
-    description: Observation model
-    mutability: configuration
-    default: 0
-    optional: 0
-  projector:
-    type: projector.observation
-    description: Projects observations onto representation space
-    mutability: configuration
-    default: 0
-    optional: 0
-  representation:
-    type: representation.value/state
-    description: State-value representation
-    mutability: configuration
-    default: 0
-    optional: 0
-  sampler:
-    type: sampler
-    description: Samples actions from state-values
-    mutability: configuration
-    default: 0
-    optional: 0
-policy/feed_forward:
-  description: Feed-forward policy
-  input:
-    type: string
-    description: CSV file with timestep and controls
-    mutability: configuration
-    default: ""
-    optional: 1
-policy/mhe_nmpc:
-  description: Nonlinear model predictive control policy with moving horizon estimator using the MUSCOD library
-  verbose:
-    type: int
-    description: Verbose mode
-    mutability: system
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
-  initFeedback:
-    type: int
-    description: Initialize feedback
-    mutability: system
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
-  action_min:
-    type: vector.action_min
-    description: Lower limit on actions
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  action_max:
-    type: vector.action_max
-    description: Upper limit on actions
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  lua_model:
-    type: string
-    description: Lua model used by MUSCOD
-    mutability: configuration
-    default: ""
-    optional: 1
-  model_name:
-    type: string
-    description: Name of the model in grl
-    mutability: configuration
-    default: ""
-    optional: 1
-  nmpc_model_name:
-    type: string
-    description: Name of MUSCOD NMPC model library
-    mutability: configuration
-    default: ""
-    optional: 1
-  mhe_model_name:
-    type: string
-    description: Name of MUSCOD MHE model library
-    mutability: configuration
-    default: ""
-    optional: 1
-  feedback:
-    type: string
-    description: Choose between a non-treaded and a threaded feedback of NMPC
-    mutability: configuration
-    default: ""
-    optional: 1
-    options:
-      - non-threaded
-      - threaded
-  n_iter:
-    type: int
-    description: Number of iteration
-    mutability: system
-    default: 1
-    optional: 1
-    min: 0
-    max: 2147483647
-policy/nmpc:
-  description: Nonlinear model predictive control policy using the MUSCOD library
-  verbose:
-    type: int
-    description: Verbose mode
-    mutability: system
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
-  initFeedback:
-    type: int
-    description: Initialize feedback
-    mutability: system
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
-  action_min:
-    type: vector.action_min
-    description: Lower limit on actions
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  action_max:
-    type: vector.action_max
-    description: Upper limit on actions
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  lua_model:
-    type: string
-    description: Lua model used by MUSCOD
-    mutability: configuration
-    default: ""
-    optional: 1
-  model_name:
-    type: string
-    description: Name of the model in grl
-    mutability: configuration
-    default: ""
-    optional: 1
-  nmpc_model_name:
-    type: string
-    description: Name of MUSCOD NMPC model library
-    mutability: configuration
-    default: ""
-    optional: 1
-  feedback:
-    type: string
-    description: Choose between a non-treaded and a threaded feedback of NMPC
-    mutability: configuration
-    default: ""
-    optional: 1
-    options:
-      - non-threaded
-      - threaded
-  n_iter:
-    type: int
-    description: Number of iteration
-    mutability: system
-    default: 1
-    optional: 1
-    min: 0
-    max: 2147483647
 policy/nmpc_mlrti:
   description: "Thread-based nonlinear model predictive control policy using the MUSCOD library and implementing a multi-level real-time iteration "
   verbose:
@@ -1630,143 +1786,13 @@ policy/nmpc_stages:
     optional: 1
     min: 0
     max: 2147483647
-policy/nmpc_th:
-  description: Nonlinear multistep (thread-based) model predictive control policy using the MUSCOD library
-  model_name:
-    type: string
-    description: Name of MUSCOD model library
-    mutability: configuration
-    default: ""
-    optional: 1
-  lua_model:
-    type: string
-    description: Lua model used by MUSCOD
-    mutability: configuration
-    default: ""
-    optional: 1
-  inputs:
-    type: int.observation_dims
-    description: Number of inputs
-    mutability: system
-    default: 0
-    optional: 1
-    min: 1
-    max: 2147483647
-  outputs:
-    type: int.action_dims
-    description: Number of outputs
-    mutability: system
-    default: 0
-    optional: 1
-    min: 1
-    max: 2147483647
-  single_step:
-    type: int
-    description: Run NMPC in single-step mode
-    mutability: system
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
-  verbose:
-    type: int
-    description: Verbose mode
-    mutability: system
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
-policy/parameterized/action:
-  description: Parameterized policy based on a direct action representation
-  sigma:
-    type: vector
-    description: Standard deviation of exploration distribution
-    mutability: configuration
-    default: "[  ]"
-    optional: 1
-  output_min:
-    type: vector.action_min
-    description: Lower limit on outputs
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  output_max:
-    type: vector.action_max
-    description: Upper limit on outputs
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  projector:
-    type: projector.observation
-    description: Projects observations onto representation space
-    mutability: configuration
-    default: 0
-    optional: 0
-  representation:
-    type: representation/parameterized.action
-    description: Action representation
-    mutability: configuration
-    default: 0
-    optional: 0
-policy/parameterized/pid:
-  description: Parameterized policy based on a proportional-integral-derivative controller
-  setpoint:
-    type: vector
-    description: Setpoint
-    mutability: online
-    default: "[  ]"
-    optional: 1
-  outputs:
-    type: int.action_dims
-    description: Number of outputs
-    mutability: system
-    default: 1
-    optional: 1
-    min: 1
-    max: 2147483647
-  p:
-    type: vector
-    description: P gains ([in1_out1, ..., in1_outN, ..., inN_out1, ..., inN_outN])
-    mutability: online
-    default: "[  ]"
-    optional: 1
-  i:
-    type: vector
-    description: I gains
-    mutability: online
-    default: "[  ]"
-    optional: 1
-  d:
-    type: vector
-    description: D gains (use P gain on velocity instead, if available)
-    mutability: online
-    default: "[  ]"
-    optional: 1
-  il:
-    type: vector
-    description: Integration limits
-    mutability: online
-    default: "[  ]"
-    optional: 1
-  action_min:
-    type: vector.action_min
-    description: Lower limit on actions
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  action_max:
-    type: vector.action_max
-    description: Upper limit on actions
-    mutability: system
-    default: "[  ]"
-    optional: 1
 policy/parameterized/pidt:
   description: Parameterized policy based on a proportional-integral-derivative controller for tranjectory tracking
   policy:
     type: policy
     description: Control policy
     mutability: configuration
-    default: 0
+    default: 0xe529c0
     optional: 0
   inputs:
     type: int.observation_dims
@@ -1817,20 +1843,6 @@ policy/parameterized/pidt:
   action_max:
     type: vector.action_max
     description: Upper limit on actions
-    mutability: system
-    default: "[  ]"
-    optional: 1
-policy/random:
-  description: Policy that chooses continuous random actions
-  output_min:
-    type: vector.action_min
-    description: Lower action limit
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  output_max:
-    type: vector.action_max
-    description: Upper action limit
     mutability: system
     default: "[  ]"
     optional: 1
@@ -1912,7 +1924,7 @@ predictor/ac/action:
     description: Trace of critic projections
     mutability: configuration
     default: 0
-    optional: 0
+    optional: 1
   actor_projector:
     type: projector.observation
     description: Projects observations onto actor representation space
@@ -1994,7 +2006,7 @@ predictor/ac/probability:
     description: Trace of critic projections
     mutability: configuration
     default: 0
-    optional: 0
+    optional: 1
   actor_projector:
     type: projector.pair
     description: Projects observation-action pairs onto actor representation space
@@ -2065,6 +2077,14 @@ predictor/ac/q:
     optional: 1
     min: 0
     max: 1
+  kappa:
+    type: double
+    description: Advantage scaling factor
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 0
+    max: 1
   update_method:
     type: string
     description: Actor update method
@@ -2103,7 +2123,124 @@ predictor/ac/q:
     description: Trace of critic projections
     mutability: configuration
     default: 0
+    optional: 1
+  actor_projector:
+    type: projector.observation
+    description: Projects observations onto actor representation space
+    mutability: configuration
+    default: 0
     optional: 0
+  actor_representation:
+    type: representation.action
+    description: Action representation
+    mutability: configuration
+    default: 0
+    optional: 0
+  actor_trace:
+    type: trace
+    description: Trace of actor projections
+    mutability: configuration
+    default: 0
+    optional: 1
+predictor/ac/qv:
+  description: Actor-critic predictor for direct action policies with a Q critic storing advantages over a V critic
+  importer:
+    type: importer
+    description: Optional importer for pre-training
+    mutability: configuration
+    default: 0
+    optional: 1
+  exporter:
+    type: exporter
+    description: Optional exporter for transition log (supports observation, action, reward, next_observation, next_action)
+    mutability: configuration
+    default: 0
+    optional: 1
+  alpha:
+    type: double
+    description: Critic Q learning rate
+    mutability: configuration
+    default: 0.2
+    optional: 1
+    min: 0
+    max: 1
+  beta_v:
+    type: double
+    description: Critic V learning rate
+    mutability: configuration
+    default: 0.05
+    optional: 1
+    min: 0
+    max: 1
+  beta_a:
+    type: double
+    description: Actor learning rate
+    mutability: configuration
+    default: 0.2
+    optional: 1
+    min: 0
+    max: 1
+  gamma:
+    type: double
+    description: Discount rate
+    mutability: configuration
+    default: 0.97
+    optional: 1
+    min: 0
+    max: 1
+  lambda:
+    type: double
+    description: Trace decay rate
+    mutability: configuration
+    default: 0.65
+    optional: 1
+    min: 0
+    max: 1
+  update_method:
+    type: string
+    description: Actor update method
+    mutability: configuration
+    default: proportional
+    optional: 1
+    options:
+      - proportional
+      - cacla
+  step_limit:
+    type: vector
+    description: Actor exploration step limit
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  critic_q_projector:
+    type: projector.pair
+    description: Projects observations onto critic Q representation space
+    mutability: configuration
+    default: 0
+    optional: 0
+  critic_q_representation:
+    type: representation.value/action
+    description: Q Value function representation
+    mutability: configuration
+    default: 0
+    optional: 0
+  critic_v_projector:
+    type: projector.observation
+    description: Projects observations onto critic V representation space
+    mutability: configuration
+    default: 0
+    optional: 0
+  critic_v_representation:
+    type: representation.value/state
+    description: V Value function representation
+    mutability: configuration
+    default: 0
+    optional: 0
+  critic_v_trace:
+    type: trace
+    description: Trace of critic V projections
+    mutability: configuration
+    default: 0
+    optional: 1
   actor_projector:
     type: projector.observation
     description: Projects observations onto actor representation space
@@ -2191,6 +2328,90 @@ predictor/advantage:
     description: Trace of projections
     mutability: configuration
     default: 0
+    optional: 1
+predictor/dpg:
+  description: Deterministic policy gradient predictor
+  importer:
+    type: importer
+    description: Optional importer for pre-training
+    mutability: configuration
+    default: 0
+    optional: 1
+  exporter:
+    type: exporter
+    description: Optional exporter for transition log (supports observation, action, reward, next_observation, next_action)
+    mutability: configuration
+    default: 0
+    optional: 1
+  alpha:
+    type: double
+    description: Advantage model learning rate
+    mutability: configuration
+    default: 0.2
+    optional: 1
+    min: 0
+    max: 1
+  beta_v:
+    type: double
+    description: Critic learning rate
+    mutability: configuration
+    default: 0.1
+    optional: 1
+    min: 0
+    max: 1
+  beta_a:
+    type: double
+    description: Actor learning rate
+    mutability: configuration
+    default: 0.01
+    optional: 1
+    min: 0
+    max: 1
+  gamma:
+    type: double
+    description: Discount rate
+    mutability: configuration
+    default: 0.97
+    optional: 1
+    min: 0
+    max: 1
+  lambda:
+    type: double
+    description: Trace decay rate
+    mutability: configuration
+    default: 0.65
+    optional: 1
+    min: 0
+    max: 1
+  projector:
+    type: projector.state
+    description: Projects observations onto representation spaces
+    mutability: configuration
+    default: 0
+    optional: 0
+  critic_representation:
+    type: representation.value/state
+    description: State value function representation
+    mutability: configuration
+    default: 0
+    optional: 0
+  critic_trace:
+    type: trace
+    description: Trace of critic projections
+    mutability: configuration
+    default: 0
+    optional: 1
+  advantage_representation:
+    type: representation
+    description: Local advantage model representation (one output per action dimension)
+    mutability: configuration
+    default: 0
+    optional: 0
+  actor_representation:
+    type: representation.action
+    description: Action representation
+    mutability: configuration
+    default: 0
     optional: 0
 predictor/expected_sarsa:
   description: Expected SARSA low-variance on-policy value function predictor
@@ -2243,7 +2464,7 @@ predictor/expected_sarsa:
     default: 0
     optional: 0
   policy:
-    type: policy/discrete/q
+    type: mapping/policy/discrete/q
     description: Q-value based target policy
     mutability: configuration
     default: 0
@@ -2253,7 +2474,7 @@ predictor/expected_sarsa:
     description: Trace of projections
     mutability: configuration
     default: 0
-    optional: 0
+    optional: 1
 predictor/fqi:
   description: Fitted Q-iteration predictor
   importer:
@@ -2533,7 +2754,7 @@ predictor/qv:
     description: Trace of projections
     mutability: configuration
     default: 0
-    optional: 0
+    optional: 1
 predictor/sarsa:
   description: SARSA on-policy value function predictor
   importer:
@@ -2589,7 +2810,7 @@ predictor/sarsa:
     description: Trace of projections
     mutability: configuration
     default: 0
-    optional: 0
+    optional: 1
 predictor/td:
   description: TD value function predictor
   importer:
@@ -2645,7 +2866,7 @@ predictor/td:
     description: Trace of projections
     mutability: configuration
     default: 0
-    optional: 0
+    optional: 1
 projector/pre/normalizing:
   description: Preprocesses projection onto a normalized [0, 1] vector
   input_min:
@@ -3014,11 +3235,11 @@ representation/parameterized/ann:
     optional: 1
   eta:
     type: double
-    description: Learning rate (0=RPROP)
+    description: Learning rate (0=RPROP, <0=RMSPROP)
     mutability: configuration
     default: 0.7
     optional: 1
-    min: 0
+    min: -2
     max: 2
 representation/parameterized/linear:
   description: Linear-in-parameters representation
@@ -3121,13 +3342,11 @@ sampler/epsilon_greedy:
     min: 0
     max: 1
   epsilon:
-    type: double
+    type: vector
     description: Exploration rate
     mutability: online
-    default: 0.05
+    default: "[ 0.05 ]"
     optional: 1
-    min: 0
-    max: 1
 sampler/epsilon_ornstein_ohlenbeck:
   description: Exploitations are done by greedy action selection without constraints, as in e-greedy. Explorations are done with time-correlated noise, as it is in ou.
   rand_max:
@@ -3187,13 +3406,11 @@ sampler/epsilon_pada:
     min: 0
     max: 1
   epsilon:
-    type: double
+    type: vector
     description: Exploration rate
     mutability: online
-    default: 0.05
+    default: "[ 0.05 ]"
     optional: 1
-    min: 0
-    max: 1
   discretizer:
     type: discretizer.action
     description: Action discretizer
@@ -3293,13 +3510,11 @@ sampler/pada:
     min: 0
     max: 1
   epsilon:
-    type: double
+    type: vector
     description: Exploration rate
     mutability: online
-    default: 0.05
+    default: "[ 0.05 ]"
     optional: 1
-    min: 0
-    max: 1
   discretizer:
     type: discretizer.action
     description: Action discretizer
@@ -4248,8 +4463,8 @@ visualization/compass_walker:
     mutability: configuration
     default: 0
     optional: 0
-visualization/field/policy/action:
-  description: Visualizes a policy over a field of states
+visualization/field/mapping:
+  description: Visualizes a mapping over a field of states
   field_dims:
     type: vector
     description: Dimensions to visualize
@@ -4300,15 +4515,15 @@ visualization/field/policy/action:
       - mean
       - min
       - max
-  policy:
-    type: policy
-    description: Control policy
+  mapping:
+    type: mapping
+    description: Mapping
     mutability: configuration
     default: 0
     optional: 0
   output_dim:
     type: int
-    description: Action dimension to visualize
+    description: Output dimension to visualize
     mutability: online
     default: 0
     optional: 1
@@ -4367,7 +4582,7 @@ visualization/field/policy/value:
       - min
       - max
   policy:
-    type: policy/discrete/q
+    type: mapping/policy/discrete/q
     description: Q-value based control policy
     mutability: configuration
     default: 0
@@ -4542,6 +4757,66 @@ visualization/sample/random:
     mutability: configuration
     default: 0
     optional: 0
+visualization/slice:
+  description: Visualizes a slice from a mapping
+  field_dims:
+    type: vector
+    description: Dimensions to visualize
+    mutability: online
+    default: "[ 0, 1 ]"
+    optional: 1
+  input_min:
+    type: vector
+    description: Lower input dimension limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  input_max:
+    type: vector
+    description: Upper input dimension limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  operating_point:
+    type: vector
+    description: Fixed values for non-visualized dimensions
+    mutability: online
+    default: "[  ]"
+    optional: 1
+  output_dim:
+    type: int
+    description: Output dimension to visualize
+    mutability: online
+    default: 0
+    optional: 1
+    min: 0
+    max: 2147483647
+  points:
+    type: int
+    description: Number of points to evaluate
+    mutability: configuration
+    default: 65536
+    optional: 1
+    min: 0
+    max: 2147483647
+  state:
+    type: signal/vector
+    description: Optional current state to overlay
+    mutability: configuration
+    default: 0
+    optional: 1
+  action:
+    type: signal/vector
+    description: Optional current action to overlay
+    mutability: configuration
+    default: 0
+    optional: 1
+  mapping:
+    type: mapping
+    description: Mapping to visualize
+    mutability: configuration
+    default: 0
+    optional: 0
 visualization/state:
   description: Plots state values
   input_dims:
@@ -4604,350 +4879,6 @@ visualization/trajectory:
     optional: 0
 visualizer/glut:
   description: Visualizer based on the GLUT library
-projector/pre/normalizing.pair:
-  description: Preprocesses projection onto a normalized [0, 1] vector
-  input_min:
-    type: vector.observation_min+vector.action_min
-    description: Lower input dimension limit (for scaling)
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  input_max:
-    type: vector.observation_max+vector.action_max
-    description: Upper input dimension limit (for scaling)
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  projector:
-    type: projector.pair
-    description: Downstream projector
-    mutability: configuration
-    default: 0
-    optional: 0
-projector/pre/peaked.pair:
-  description: Preprocesses projection for more resolution around center
-  peaking:
-    type: vector
-    description: Extra resolution factor around center (offset by 1/factor at edges)
-    mutability: configuration
-    default: "[  ]"
-    optional: 1
-  input_min:
-    type: vector.observation_min+vector.action_min
-    description: Lower input dimension limit (for scaling)
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  input_max:
-    type: vector.observation_max+vector.action_max
-    description: Upper input dimension limit (for scaling)
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  projector:
-    type: projector.pair
-    description: Downstream projector
-    mutability: configuration
-    default: 0
-    optional: 0
-projector/pre/scaling.pair:
-  description: Preprocesses projection onto a scaled vector
-  scaling:
-    type: vector
-    description: Scaling vector
-    mutability: configuration
-    default: "[  ]"
-    optional: 1
-  projector:
-    type: projector.pair
-    description: Downstream projector
-    mutability: configuration
-    default: 0
-    optional: 0
-projector/sample/ann.pair:
-  description: Projects onto samples found through approximate nearest-neighbor search
-  samples:
-    type: int
-    description: Maximum number of samples to store
-    mutability: configuration
-    default: 1000
-    optional: 1
-    min: 100
-    max: 2147483647
-  neighbors:
-    type: int
-    description: Number of neighbors to return
-    mutability: configuration
-    default: 20
-    optional: 1
-    min: 1
-    max: 64
-  locality:
-    type: double
-    description: Locality of weighing function
-    mutability: configuration
-    default: 1
-    optional: 1
-    min: 0
-    max: 1.797693134862316e+308
-  interval:
-    type: int
-    description: Samples to accumulate before rebuilding kd-tree
-    mutability: online
-    default: 10
-    optional: 1
-    min: 1
-    max: 2147483647
-  incremental:
-    type: int
-    description: Search samples that haven't been indexed yet
-    mutability: online
-    default: 1
-    optional: 1
-    min: 0
-    max: 1
-  bucket_size:
-    type: int
-    description: "?"
-    mutability: configuration
-    default: 10
-    optional: 1
-    min: 1
-    max: 2147483647
-  error_bound:
-    type: double
-    description: "?"
-    mutability: configuration
-    default: 0.01
-    optional: 1
-    min: 0
-    max: 1.797693134862316e+308
-  inputs:
-    type: int.observation_dims+int.action_dims
-    description: Number of input dimensions
-    mutability: system
-    default: 1
-    optional: 1
-    min: 1
-    max: 16
-projector/sample/ertree.pair:
-  description: Projects onto samples found through the Extra-trees algorithm by Geurts et al.
-  samples:
-    type: int
-    description: Maximum number of samples to store
-    mutability: configuration
-    default: 100000
-    optional: 1
-    min: 100
-    max: 2147483647
-  trees:
-    type: int
-    description: Number of trees in the forest
-    mutability: configuration
-    default: 20
-    optional: 1
-    min: 1
-    max: 2147483647
-  splits:
-    type: int
-    description: Number of candidate splits
-    mutability: configuration
-    default: 5
-    optional: 1
-    min: 1
-    max: 2147483647
-  leaf_size:
-    type: int
-    description: Maximum number of samples in a leaf
-    mutability: configuration
-    default: 10
-    optional: 1
-    min: 1
-    max: 2147483647
-  inputs:
-    type: int.observation_dims+int.action_dims
-    description: Number of input dimensions
-    mutability: system
-    default: 1
-    optional: 1
-    min: 1
-    max: 16
-  outputs:
-    type: int
-    description: Number of output dimensions
-    mutability: system
-    default: 1
-    optional: 1
-    min: 1
-    max: 16
-projector/tile_coding.pair:
-  description: Hashed tile coding projector
-  tilings:
-    type: int
-    description: Number of tilings
-    mutability: configuration
-    default: 16
-    optional: 1
-    min: 0
-    max: 2147483647
-  memory:
-    type: int.memory
-    description: Hash table size
-    mutability: configuration
-    default: 8388608
-    optional: 1
-    min: 0
-    max: 2147483647
-  safe:
-    type: int
-    description: Collision detection (0=off, 1=claim on write, 2=claim always)
-    mutability: configuration
-    default: 0
-    optional: 1
-    min: 0
-    max: 2
-  resolution:
-    type: vector
-    description: Size of a single tile
-    mutability: configuration
-    default: "[  ]"
-    optional: 1
-  wrapping:
-    type: vector.wrapping
-    description: Wrapping boundaries (must be multiple of resolution)
-    mutability: configuration
-    default: "[  ]"
-    optional: 1
-representation/llr.transition:
-  description: Performs locally linear regression through samples
-  ridge:
-    type: double
-    description: Ridge regression (Tikhonov) factor
-    mutability: configuration
-    default: 1e-05
-    optional: 1
-    min: 0
-    max: 1
-  order:
-    type: int
-    description: Order of regression model
-    mutability: configuration
-    default: 1
-    optional: 1
-    min: 0
-    max: 1
-  input_nominals:
-    type: vector
-    description: Vector indicating which input dimensions are nominal
-    mutability: configuration
-    default: "[  ]"
-    optional: 1
-  output_nominals:
-    type: vector
-    description: Vector indicating which output dimensions are nominal
-    mutability: configuration
-    default: "[  ]"
-    optional: 1
-  outputs:
-    type: int.observation_dims+2
-    description: Number of output dimensions
-    mutability: system
-    default: 1
-    optional: 1
-    min: 1
-    max: 2147483647
-  output_min:
-    type: vector
-    description: Lower output limit
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  output_max:
-    type: vector
-    description: Upper output limit
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  projector:
-    type: projector/sample.pair
-    description: Projector used to generate input for this representation
-    mutability: configuration
-    default: 0
-    optional: 0
-representation/parameterized/ann.transition:
-  description: Parameterized artificial neural network representation
-  inputs:
-    type: int.observation_dims+int.action_dims
-    description: Number of input dimensions
-    mutability: system
-    default: 1
-    optional: 1
-    min: 1
-    max: 2147483647
-  outputs:
-    type: int.observation_dims+2
-    description: Number of output dimensions
-    mutability: system
-    default: 1
-    optional: 1
-    min: 1
-    max: 2147483647
-  hiddens:
-    type: vector
-    description: Number of hidden nodes per layer
-    mutability: configuration
-    default: "[ 5 ]"
-    optional: 1
-  eta:
-    type: double
-    description: Learning rate (0=RPROP)
-    mutability: configuration
-    default: 0.7
-    optional: 1
-    min: 0
-    max: 2
-representation/parameterized/linear.transition:
-  description: Linear-in-parameters representation
-  init_min:
-    type: vector
-    description: Lower initial value limit
-    mutability: configuration
-    default: "[ 0 ]"
-    optional: 1
-  init_max:
-    type: vector
-    description: Upper initial value limit
-    mutability: configuration
-    default: "[ 1 ]"
-    optional: 1
-  memory:
-    type: int.memory
-    description: Feature vector size
-    mutability: system
-    default: 8388608
-    optional: 1
-    min: 0
-    max: 2147483647
-  outputs:
-    type: int.observation_dims+2
-    description: Number of outputs
-    mutability: system
-    default: 1
-    optional: 1
-    min: 0
-    max: 2147483647
-  output_min:
-    type: vector
-    description: Lower output limit
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  output_max:
-    type: vector
-    description: Upper output limit
-    mutability: system
-    default: "[  ]"
-    optional: 1
 projector/pre/normalizing.observation:
   description: Preprocesses projection onto a normalized [0, 1] vector
   input_min:
@@ -5244,11 +5175,11 @@ representation/parameterized/ann.action:
     optional: 1
   eta:
     type: double
-    description: Learning rate (0=RPROP)
+    description: Learning rate (0=RPROP, <0=RMSPROP)
     mutability: configuration
     default: 0.7
     optional: 1
-    min: 0
+    min: -2
     max: 2
 representation/parameterized/linear.action:
   description: Linear-in-parameters representation
@@ -5321,7 +5252,7 @@ discretizer/peaked.action:
 discretizer/policy.action:
   description: Returns the action suggested by a policy
   policy:
-    type: policy
+    type: mapping/policy
     description: Policy whose action to return
     mutability: configuration
     default: 0
@@ -5343,6 +5274,220 @@ discretizer/uniform.action:
   steps:
     type: vector
     description: Discretization steps per dimension
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+projector/pre/normalizing.pair:
+  description: Preprocesses projection onto a normalized [0, 1] vector
+  input_min:
+    type: vector.observation_min+vector.action_min
+    description: Lower input dimension limit (for scaling)
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  input_max:
+    type: vector.observation_max+vector.action_max
+    description: Upper input dimension limit (for scaling)
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  projector:
+    type: projector.pair
+    description: Downstream projector
+    mutability: configuration
+    default: 0
+    optional: 0
+projector/pre/peaked.pair:
+  description: Preprocesses projection for more resolution around center
+  peaking:
+    type: vector
+    description: Extra resolution factor around center (offset by 1/factor at edges)
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  input_min:
+    type: vector.observation_min+vector.action_min
+    description: Lower input dimension limit (for scaling)
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  input_max:
+    type: vector.observation_max+vector.action_max
+    description: Upper input dimension limit (for scaling)
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  projector:
+    type: projector.pair
+    description: Downstream projector
+    mutability: configuration
+    default: 0
+    optional: 0
+projector/pre/scaling.pair:
+  description: Preprocesses projection onto a scaled vector
+  scaling:
+    type: vector
+    description: Scaling vector
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  projector:
+    type: projector.pair
+    description: Downstream projector
+    mutability: configuration
+    default: 0
+    optional: 0
+projector/sample/ann.pair:
+  description: Projects onto samples found through approximate nearest-neighbor search
+  samples:
+    type: int
+    description: Maximum number of samples to store
+    mutability: configuration
+    default: 1000
+    optional: 1
+    min: 100
+    max: 2147483647
+  neighbors:
+    type: int
+    description: Number of neighbors to return
+    mutability: configuration
+    default: 20
+    optional: 1
+    min: 1
+    max: 64
+  locality:
+    type: double
+    description: Locality of weighing function
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
+  interval:
+    type: int
+    description: Samples to accumulate before rebuilding kd-tree
+    mutability: online
+    default: 10
+    optional: 1
+    min: 1
+    max: 2147483647
+  incremental:
+    type: int
+    description: Search samples that haven't been indexed yet
+    mutability: online
+    default: 1
+    optional: 1
+    min: 0
+    max: 1
+  bucket_size:
+    type: int
+    description: "?"
+    mutability: configuration
+    default: 10
+    optional: 1
+    min: 1
+    max: 2147483647
+  error_bound:
+    type: double
+    description: "?"
+    mutability: configuration
+    default: 0.01
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
+  inputs:
+    type: int.observation_dims+int.action_dims
+    description: Number of input dimensions
+    mutability: system
+    default: 1
+    optional: 1
+    min: 1
+    max: 16
+projector/sample/ertree.pair:
+  description: Projects onto samples found through the Extra-trees algorithm by Geurts et al.
+  samples:
+    type: int
+    description: Maximum number of samples to store
+    mutability: configuration
+    default: 100000
+    optional: 1
+    min: 100
+    max: 2147483647
+  trees:
+    type: int
+    description: Number of trees in the forest
+    mutability: configuration
+    default: 20
+    optional: 1
+    min: 1
+    max: 2147483647
+  splits:
+    type: int
+    description: Number of candidate splits
+    mutability: configuration
+    default: 5
+    optional: 1
+    min: 1
+    max: 2147483647
+  leaf_size:
+    type: int
+    description: Maximum number of samples in a leaf
+    mutability: configuration
+    default: 10
+    optional: 1
+    min: 1
+    max: 2147483647
+  inputs:
+    type: int.observation_dims+int.action_dims
+    description: Number of input dimensions
+    mutability: system
+    default: 1
+    optional: 1
+    min: 1
+    max: 16
+  outputs:
+    type: int
+    description: Number of output dimensions
+    mutability: system
+    default: 1
+    optional: 1
+    min: 1
+    max: 16
+projector/tile_coding.pair:
+  description: Hashed tile coding projector
+  tilings:
+    type: int
+    description: Number of tilings
+    mutability: configuration
+    default: 16
+    optional: 1
+    min: 0
+    max: 2147483647
+  memory:
+    type: int.memory
+    description: Hash table size
+    mutability: configuration
+    default: 8388608
+    optional: 1
+    min: 0
+    max: 2147483647
+  safe:
+    type: int
+    description: Collision detection (0=off, 1=claim on write, 2=claim always)
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 2
+  resolution:
+    type: vector
+    description: Size of a single tile
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  wrapping:
+    type: vector.wrapping
+    description: Wrapping boundaries (must be multiple of resolution)
     mutability: configuration
     default: "[  ]"
     optional: 1
@@ -5428,11 +5573,11 @@ representation/parameterized/ann.value/action:
     optional: 1
   eta:
     type: double
-    description: Learning rate (0=RPROP)
+    description: Learning rate (0=RPROP, <0=RMSPROP)
     mutability: configuration
     default: 0.7
     optional: 1
-    min: 0
+    min: -2
     max: 2
 representation/parameterized/linear.value/action:
   description: Linear-in-parameters representation
@@ -5558,11 +5703,11 @@ representation/parameterized/ann.value/state:
     optional: 1
   eta:
     type: double
-    description: Learning rate (0=RPROP)
+    description: Learning rate (0=RPROP, <0=RMSPROP)
     mutability: configuration
     default: 0.7
     optional: 1
-    min: 0
+    min: -2
     max: 2
 representation/parameterized/linear.value/state:
   description: Linear-in-parameters representation
@@ -5606,6 +5751,350 @@ representation/parameterized/linear.value/state:
     mutability: system
     default: "[  ]"
     optional: 1
+representation/llr.transition:
+  description: Performs locally linear regression through samples
+  ridge:
+    type: double
+    description: Ridge regression (Tikhonov) factor
+    mutability: configuration
+    default: 1e-05
+    optional: 1
+    min: 0
+    max: 1
+  order:
+    type: int
+    description: Order of regression model
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 0
+    max: 1
+  input_nominals:
+    type: vector
+    description: Vector indicating which input dimensions are nominal
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  output_nominals:
+    type: vector
+    description: Vector indicating which output dimensions are nominal
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  outputs:
+    type: int.observation_dims+2
+    description: Number of output dimensions
+    mutability: system
+    default: 1
+    optional: 1
+    min: 1
+    max: 2147483647
+  output_min:
+    type: vector
+    description: Lower output limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  output_max:
+    type: vector
+    description: Upper output limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  projector:
+    type: projector/sample.pair
+    description: Projector used to generate input for this representation
+    mutability: configuration
+    default: 0
+    optional: 0
+representation/parameterized/ann.transition:
+  description: Parameterized artificial neural network representation
+  inputs:
+    type: int.observation_dims+int.action_dims
+    description: Number of input dimensions
+    mutability: system
+    default: 1
+    optional: 1
+    min: 1
+    max: 2147483647
+  outputs:
+    type: int.observation_dims+2
+    description: Number of output dimensions
+    mutability: system
+    default: 1
+    optional: 1
+    min: 1
+    max: 2147483647
+  hiddens:
+    type: vector
+    description: Number of hidden nodes per layer
+    mutability: configuration
+    default: "[ 5 ]"
+    optional: 1
+  eta:
+    type: double
+    description: Learning rate (0=RPROP, <0=RMSPROP)
+    mutability: configuration
+    default: 0.7
+    optional: 1
+    min: -2
+    max: 2
+representation/parameterized/linear.transition:
+  description: Linear-in-parameters representation
+  init_min:
+    type: vector
+    description: Lower initial value limit
+    mutability: configuration
+    default: "[ 0 ]"
+    optional: 1
+  init_max:
+    type: vector
+    description: Upper initial value limit
+    mutability: configuration
+    default: "[ 1 ]"
+    optional: 1
+  memory:
+    type: int.memory
+    description: Feature vector size
+    mutability: system
+    default: 8388608
+    optional: 1
+    min: 0
+    max: 2147483647
+  outputs:
+    type: int.observation_dims+2
+    description: Number of outputs
+    mutability: system
+    default: 1
+    optional: 1
+    min: 0
+    max: 2147483647
+  output_min:
+    type: vector
+    description: Lower output limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  output_max:
+    type: vector
+    description: Upper output limit
+    mutability: system
+    default: "[  ]"
+    optional: 1
+projector/pre/normalizing.state:
+  description: Preprocesses projection onto a normalized [0, 1] vector
+  input_min:
+    type: vector
+    description: Lower input dimension limit (for scaling)
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  input_max:
+    type: vector
+    description: Upper input dimension limit (for scaling)
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  projector:
+    type: projector.state
+    description: Downstream projector
+    mutability: configuration
+    default: 0
+    optional: 0
+projector/pre/peaked.state:
+  description: Preprocesses projection for more resolution around center
+  peaking:
+    type: vector
+    description: Extra resolution factor around center (offset by 1/factor at edges)
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  input_min:
+    type: vector
+    description: Lower input dimension limit (for scaling)
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  input_max:
+    type: vector
+    description: Upper input dimension limit (for scaling)
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  projector:
+    type: projector.state
+    description: Downstream projector
+    mutability: configuration
+    default: 0
+    optional: 0
+projector/pre/scaling.state:
+  description: Preprocesses projection onto a scaled vector
+  scaling:
+    type: vector
+    description: Scaling vector
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  projector:
+    type: projector.state
+    description: Downstream projector
+    mutability: configuration
+    default: 0
+    optional: 0
+projector/sample/ann.state:
+  description: Projects onto samples found through approximate nearest-neighbor search
+  samples:
+    type: int
+    description: Maximum number of samples to store
+    mutability: configuration
+    default: 1000
+    optional: 1
+    min: 100
+    max: 2147483647
+  neighbors:
+    type: int
+    description: Number of neighbors to return
+    mutability: configuration
+    default: 20
+    optional: 1
+    min: 1
+    max: 64
+  locality:
+    type: double
+    description: Locality of weighing function
+    mutability: configuration
+    default: 1
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
+  interval:
+    type: int
+    description: Samples to accumulate before rebuilding kd-tree
+    mutability: online
+    default: 10
+    optional: 1
+    min: 1
+    max: 2147483647
+  incremental:
+    type: int
+    description: Search samples that haven't been indexed yet
+    mutability: online
+    default: 1
+    optional: 1
+    min: 0
+    max: 1
+  bucket_size:
+    type: int
+    description: "?"
+    mutability: configuration
+    default: 10
+    optional: 1
+    min: 1
+    max: 2147483647
+  error_bound:
+    type: double
+    description: "?"
+    mutability: configuration
+    default: 0.01
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
+  inputs:
+    type: int
+    description: Number of input dimensions
+    mutability: system
+    default: 1
+    optional: 1
+    min: 1
+    max: 16
+projector/sample/ertree.state:
+  description: Projects onto samples found through the Extra-trees algorithm by Geurts et al.
+  samples:
+    type: int
+    description: Maximum number of samples to store
+    mutability: configuration
+    default: 100000
+    optional: 1
+    min: 100
+    max: 2147483647
+  trees:
+    type: int
+    description: Number of trees in the forest
+    mutability: configuration
+    default: 20
+    optional: 1
+    min: 1
+    max: 2147483647
+  splits:
+    type: int
+    description: Number of candidate splits
+    mutability: configuration
+    default: 5
+    optional: 1
+    min: 1
+    max: 2147483647
+  leaf_size:
+    type: int
+    description: Maximum number of samples in a leaf
+    mutability: configuration
+    default: 10
+    optional: 1
+    min: 1
+    max: 2147483647
+  inputs:
+    type: int
+    description: Number of input dimensions
+    mutability: system
+    default: 1
+    optional: 1
+    min: 1
+    max: 16
+  outputs:
+    type: int
+    description: Number of output dimensions
+    mutability: system
+    default: 1
+    optional: 1
+    min: 1
+    max: 16
+projector/tile_coding.state:
+  description: Hashed tile coding projector
+  tilings:
+    type: int
+    description: Number of tilings
+    mutability: configuration
+    default: 16
+    optional: 1
+    min: 0
+    max: 2147483647
+  memory:
+    type: int.memory
+    description: Hash table size
+    mutability: configuration
+    default: 8388608
+    optional: 1
+    min: 0
+    max: 2147483647
+  safe:
+    type: int
+    description: Collision detection (0=off, 1=claim on write, 2=claim always)
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 2
+  resolution:
+    type: vector
+    description: Size of a single tile
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  wrapping:
+    type: vector.wrapping
+    description: Wrapping boundaries (must be multiple of resolution)
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
 discretizer/peaked.observation:
   description: Peaked discretizer, with more resolution around center
   min:
@@ -5635,7 +6124,7 @@ discretizer/peaked.observation:
 discretizer/policy.observation:
   description: Returns the action suggested by a policy
   policy:
-    type: policy
+    type: mapping/policy
     description: Policy whose action to return
     mutability: configuration
     default: 0

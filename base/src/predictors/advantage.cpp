@@ -43,7 +43,7 @@ void AdvantagePredictor::request(ConfigurationRequest *config)
   config->push_back(CRP("discretizer", "discretizer.action", "Action discretizer", discretizer_));
   config->push_back(CRP("projector", "projector.pair", "Projects observation-action pairs onto representation space", projector_));
   config->push_back(CRP("representation", "representation.value/action", "A-value representation", representation_));
-  config->push_back(CRP("trace", "trace", "Trace of projections", trace_));
+  config->push_back(CRP("trace", "trace", "Trace of projections", trace_, true));
 }
 
 void AdvantagePredictor::configure(Configuration &config)
@@ -68,16 +68,6 @@ void AdvantagePredictor::reconfigure(const Configuration &config)
   
   if (config.has("action") && config["action"].str() == "reset")
     finalize();
-}
-
-AdvantagePredictor *AdvantagePredictor::clone() const
-{
-  AdvantagePredictor *ap = new AdvantagePredictor();
-  ap->discretizer_ = discretizer_->clone();
-  ap->projector_ = projector_->clone();
-  ap->representation_= representation_->clone();
-  ap->trace_ = trace_->clone();
-  return ap;
 }
 
 void AdvantagePredictor::update(const Transition &transition)
@@ -117,10 +107,8 @@ void AdvantagePredictor::update(const Transition &transition)
   
   representation_->write(p, VectorConstructor(target), alpha_);
   
-  // Should clear trace on exploration
-  if (transition.tt == ttExploratory)
-    trace_->clear();
-  else
+  // TODO: Should clear trace on exploration
+  if (trace_)
   {
     representation_->update(*trace_, VectorConstructor(alpha_*delta), gamma_*lambda_);
     trace_->add(p, gamma_*lambda_);

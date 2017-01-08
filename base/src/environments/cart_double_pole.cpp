@@ -74,11 +74,6 @@ void CartDoublePoleDynamics::reconfigure(const Configuration &config)
 {
 }
 
-CartDoublePoleDynamics *CartDoublePoleDynamics::clone() const
-{
-  return new CartDoublePoleDynamics(*this);
-}
-
 /* Pole angles are relative to vertical */
 void CartDoublePoleDynamics::eom(const Vector &state, const Vector &action, Vector *xd) const
 {
@@ -155,11 +150,6 @@ void CartDoublePoleSwingupTask::configure(Configuration &config)
 
 void CartDoublePoleSwingupTask::reconfigure(const Configuration &config)
 {
-}
-
-CartDoublePoleSwingupTask *CartDoublePoleSwingupTask::clone() const
-{
-  return new CartDoublePoleSwingupTask(*this);
 }
 
 void CartDoublePoleSwingupTask::start(int test, Vector *state) const
@@ -256,11 +246,6 @@ void CartDoublePoleBalancingTask::reconfigure(const Configuration &config)
 {
 }
 
-CartDoublePoleBalancingTask *CartDoublePoleBalancingTask::clone() const
-{
-  return new CartDoublePoleBalancingTask(*this);
-}
-
 void CartDoublePoleBalancingTask::start(int test, Vector *state) const
 {
   state->resize(7);
@@ -343,11 +328,6 @@ void CartDoublePoleRegulatorTask::configure(Configuration &config)
 void CartDoublePoleRegulatorTask::reconfigure(const Configuration &config)
 {
   RegulatorTask::reconfigure(config);
-}
-
-CartDoublePoleRegulatorTask *CartDoublePoleRegulatorTask::clone() const
-{
-  return new CartDoublePoleRegulatorTask(*this);
 }
 
 void CartDoublePoleRegulatorTask::observe(const Vector &state, Vector *obs, int *terminal) const

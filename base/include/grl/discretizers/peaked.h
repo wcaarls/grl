@@ -47,9 +47,6 @@ class PeakedDiscretizer : public UniformDiscretizer
     // From Configurable
     virtual void request(const std::string &role, ConfigurationRequest *config);
     virtual void configure(Configuration &config);
-    
-    // From Discretizer
-    virtual PeakedDiscretizer* clone();
 };
 
 }

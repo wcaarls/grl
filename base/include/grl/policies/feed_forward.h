@@ -37,7 +37,7 @@ namespace grl
 class FeedForwardPolicy : public Policy
 {
   public:
-    TYPEINFO("policy/feed_forward", "Feed-forward policy")
+    TYPEINFO("mapping/policy/feed_forward", "Feed-forward policy")
 
   protected:
     Vector time_control_;
@@ -54,7 +54,6 @@ class FeedForwardPolicy : public Policy
     virtual void reconfigure(const Configuration &config);
 
     // From Policy
-    virtual FeedForwardPolicy *clone() const;
     virtual TransitionType act(double time, const Vector &in, Vector *out);
 };
 

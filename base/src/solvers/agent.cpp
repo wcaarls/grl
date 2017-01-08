@@ -63,17 +63,6 @@ void AgentSolver::reconfigure(const Configuration &config)
 {
 }
 
-AgentSolver *AgentSolver::clone() const
-{
-  AgentSolver *solver = new AgentSolver(*this);
-  
-  solver->model_ = model_->clone();
-  solver->agent_= agent_->clone();
-  solver->state_ = new VectorSignal();
-  
-  return solver;
-}
-
 bool AgentSolver::solve()
 {
   Vector obs, action;

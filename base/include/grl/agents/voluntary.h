@@ -52,7 +52,6 @@ class VoluntarySubAgent : public SubAgent
     virtual void reconfigure(const Configuration &config);
 
     // From Agent
-    virtual VoluntarySubAgent *clone() const;
     virtual void end(double tau, const Vector &obs, double reward);
     
     // From SubAgent

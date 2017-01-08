@@ -39,7 +39,7 @@ namespace grl
 class LeoSquattingAgent : public Agent
 {
   public:
-    TYPEINFO("agent/leo_squatting_agent", "Fixed-policy agent")
+    TYPEINFO("mapping/policy/nmpc_sw", "Nonlinear model predictive control policy for the simplest walker using the MUSCOD library")
 
   protected:
     Agent *agent_standup_, *agent_learn_, *agent_;
@@ -55,7 +55,6 @@ class LeoSquattingAgent : public Agent
     virtual void reconfigure(const Configuration &config);
 
     // From Agent
-    virtual LeoSquattingAgent *clone() const;
     virtual TransitionType start(const Vector &obs, Vector *action);
     virtual TransitionType step(double tau, const Vector &obs, double reward, Vector *action);
     virtual void end(double tau, const Vector &obs, double reward);

@@ -64,7 +64,6 @@ class BatchLearningExperiment : public Experiment
     virtual void reconfigure(const Configuration &config);
 
     // From Experiment
-    virtual BatchLearningExperiment *clone() const;
     virtual void run();
 };
 

@@ -67,11 +67,6 @@ void RBDLDynamics::reconfigure(const Configuration &config)
 {
 }
 
-RBDLDynamics *RBDLDynamics::clone() const
-{
-  return NULL;
-}
-
 void RBDLDynamics::eom(const Vector &state, const Vector &action, Vector *xd) const
 {
   RBDLState *rbdl = rbdl_state_.instance();
@@ -431,11 +426,6 @@ void LuaTask::configure(Configuration &config)
 
 void LuaTask::reconfigure(const Configuration &config)
 {
-}
- 
-LuaTask *LuaTask::clone() const
-{
-  return new LuaTask(*this);
 }
  
 void LuaTask::start(int test, Vector *state) const

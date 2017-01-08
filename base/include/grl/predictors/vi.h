@@ -62,7 +62,6 @@ class ValueIterationPredictor : public Predictor
     virtual void reconfigure(const Configuration &config);
 
     // From Predictor
-    virtual ValueIterationPredictor *clone() const;
     virtual void update(const Transition &transition);
     virtual void finalize() { }
 };
@@ -75,7 +74,6 @@ class QIterationPredictor : public ValueIterationPredictor
     
   public:
     virtual void request(ConfigurationRequest *config);
-    virtual QIterationPredictor *clone() const;
     virtual void update(const Transition &transition);
 };
 

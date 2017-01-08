@@ -55,9 +55,9 @@ class LinearRepresentation : public ParameterizedRepresentation
     virtual void request(const std::string &role, ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
+    virtual LinearRepresentation &copy(const Configurable &obj);
   
     // From ParameterizedRepresentation
-    virtual LinearRepresentation *clone() const;
     virtual double read(const ProjectionPtr &projection, Vector *result, Vector *stddev) const;
     virtual void write(const ProjectionPtr projection, const Vector &target, const Vector &alpha);
     virtual void update(const ProjectionPtr projection, const Vector &delta);

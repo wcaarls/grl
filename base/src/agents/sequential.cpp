@@ -60,23 +60,20 @@ void SequentialMasterAgent::reconfigure(const Configuration &config)
 {
 }
 
-SequentialMasterAgent *SequentialMasterAgent::clone() const
-{
-  return NULL;
-}
-
 TransitionType SequentialMasterAgent::start(const Vector &obs, Vector *action)
 {
   time_ = 0;
+
   TransitionType tt0 = agent_[0]->start(obs, action);
   if (exporter_)
     exporter_->append({grl::VectorConstructor(time_), *action});
+
   TransitionType tt1 = agent_[1]->start(obs, action);
+  if (exporter_)
+    exporter_->append({*action});
 
   prev_obs_ = obs;
   prev_action_ = *action;
-  if (exporter_)
-    exporter_->append({*action});
 
   if (tt0 == ttGreedy && tt1 == ttGreedy)
     return ttGreedy;
@@ -92,24 +89,28 @@ TransitionType SequentialMasterAgent::step(double tau, const Vector &obs, double
   TransitionType tt0 = agent_[0]->step(tau, obs, reward, action);
   if (exporter_)
     exporter_->append({grl::VectorConstructor(time_), *action});
-  TransitionType tt1 = agent_[1]->step(tau, obs, reward, action);
 
-  if (predictor_)
-  {
-    Transition t(prev_obs_, prev_action_, reward, obs, *action);
-    predictor_->update(t);
-  }
-  
-  prev_obs_ = obs;
-  prev_action_ = *action;
+  TransitionType tt1 = agent_[1]->step(tau, obs, reward, action);
   if (exporter_)
     exporter_->append({*action});
 
+  TransitionType tt = ttExploratory;
+
   if (tt0 == ttGreedy && tt1 == ttGreedy)
-    return ttGreedy;
+    tt = ttGreedy;
   if (tt0 == ttUndefined || tt1 == ttUndefined)
-    return ttUndefined;
-  return ttExploratory;
+    tt = ttUndefined;
+
+  if (predictor_)
+  {
+    Transition t(prev_obs_, prev_action_, reward, obs, *action, tt);
+    predictor_->update(t);
+  }
+
+  prev_obs_ = obs;
+  prev_action_ = *action;
+
+  return tt;
 }
 
 void SequentialMasterAgent::end(double tau, const Vector &obs, double reward)
@@ -143,11 +144,6 @@ void SequentialAdditiveMasterAgent::reconfigure(const Configuration &config)
 {
 }
 
-SequentialAdditiveMasterAgent *SequentialAdditiveMasterAgent::clone() const
-{
-  return NULL;
-}
-
 TransitionType SequentialAdditiveMasterAgent::start(const Vector &obs, Vector *action)
 {
   time_ = 0;
@@ -168,6 +164,9 @@ TransitionType SequentialAdditiveMasterAgent::start(const Vector &obs, Vector *a
   *action += action1;
   for (size_t ii=0; ii < action->size(); ++ii)
     (*action)[ii] = fmin(fmax((*action)[ii], min_[ii]), max_[ii]);
+
+  prev_obs_ = obs;
+  prev_action_ = *action;
 
   if (tt0 == ttGreedy && tt1 == ttGreedy)
     return ttGreedy;
@@ -201,16 +200,34 @@ TransitionType SequentialAdditiveMasterAgent::step(double tau, const Vector &obs
   for (size_t ii=0; ii < action->size(); ++ii)
     (*action)[ii] = fmin(fmax((*action)[ii], min_[ii]), max_[ii]);
 
+  TransitionType tt = ttExploratory;
+
   if (tt0 == ttGreedy && tt1 == ttGreedy)
-    return ttGreedy;
+    tt = ttGreedy;
   if (tt0 == ttUndefined || tt1 == ttUndefined)
-    return ttUndefined;
-  return ttExploratory;
+    tt = ttUndefined;
+
+  if (predictor_)
+  {
+    Transition t(prev_obs_, prev_action_, reward, obs, *action, tt);
+    predictor_->update(t);
+  }
+
+  prev_obs_ = obs;
+  prev_action_ = *action;
+
+  return tt;
 }
 
 void SequentialAdditiveMasterAgent::end(double tau, const Vector &obs, double reward)
 {
   agent_[0]->end(tau, obs, reward);
   agent_[1]->end(tau, obs, reward);
+
+  if (predictor_)
+  {
+    Transition t(prev_obs_, prev_action_, reward, obs);
+    predictor_->update(t);
+  }
 }
 

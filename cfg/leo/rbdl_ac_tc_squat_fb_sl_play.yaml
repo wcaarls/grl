@@ -1,0 +1,101 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 1
+  steps: 0
+  rate: 0
+  test_interval: 0
+  output: rbdl_ac_tc_squat_fb_sl_play
+  environment: 
+    type: environment/sandbox
+    model: 
+      type: sandbox_model/leo_squatting
+      control_step: 0.03
+      integration_steps: 25
+      dynamics: 
+        type: dynamics/rbdl
+        file: leo_fb_sl.lua
+        points: tip_left, heel_left, root
+        auxiliary: mm, com, comv, am
+      target_dof: 4
+      animation: immediate
+      lower_height: 0.28
+      upper_height: 0.35
+    task: 
+      type: task/leo_squatting
+      timeout: 10
+      rand_init: 0
+  agent: 
+    type: agent/td
+    policy: 
+      type: mapping/policy/action
+      sigma: [ 3, 3, 3 ]
+      use_ou: 0
+      theta: [  ]
+      center: [  ]
+      output_min: experiment/environment/task/action_min
+      output_max: experiment/environment/task/action_max
+      projector: 
+        type: projector/pre/peaked
+        peaking: [ 0, 0, 0, 0, 0, 0, 0 ]
+        input_min: experiment/environment/task/observation_min
+        input_max: experiment/environment/task/observation_max
+        projector: 
+          type: projector/tile_coding
+          tilings: 16
+          memory: 25165824
+          safe: 1
+          resolution: [ 0.28, 0.28, 0.28, 10, 10, 10, 0.01 ]
+          wrapping: [ 0, 0, 0, 0, 0, 0, 0 ]
+      representation: 
+        type: representation/parameterized/linear
+        init_min: [ 0 ]
+        init_max: [ 1 ]
+        memory: experiment/agent/policy/projector/projector/memory
+        outputs: experiment/environment/task/action_dims
+        output_min: experiment/environment/task/action_min
+        output_max: experiment/environment/task/action_max
+    predictor: 
+      type: predictor/ac/action
+      alpha: 0.2
+      beta: 0.02
+      gamma: 0.9962
+      lambda: 0.8582
+      critic_projector: 
+        type: projector/pre/peaked
+        peaking: experiment/agent/policy/projector/peaking
+        input_min: experiment/environment/task/observation_min
+        input_max: experiment/environment/task/observation_max
+        projector: 
+          type: projector/tile_coding
+          tilings: experiment/agent/policy/projector/projector/tilings
+          memory: experiment/agent/policy/projector/projector/memory
+          safe: experiment/agent/policy/projector/projector/safe
+          resolution: experiment/agent/policy/projector/projector/resolution
+          wrapping: experiment/agent/policy/projector/projector/wrapping
+      critic_representation: 
+        type: representation/parameterized/linear
+        init_min: [ 0 ]
+        init_max: [ 1 ]
+        memory: experiment/agent/policy/projector/projector/memory
+        outputs: 1
+        output_min: [  ]
+        output_max: [  ]
+      critic_trace: 
+        type: trace/enumerated/replacing
+      actor_projector: experiment/agent/policy/projector
+      actor_representation: experiment/agent/policy/representation
+  test_agent: 
+    type: agent/fixed
+    policy: 
+      type: mapping/policy/action
+      sigma: [  ]
+      use_ou: 0
+      theta: [  ]
+      center: [  ]
+      output_min: experiment/environment/task/action_min
+      output_max: experiment/environment/task/action_max
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+  load_file: rbdl_ac_tc_squat_fb_sl-run0
+  save_every: never

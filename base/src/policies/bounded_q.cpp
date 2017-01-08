@@ -40,22 +40,12 @@ void BoundedQPolicy::request(ConfigurationRequest *config)
 void BoundedQPolicy::configure(Configuration &config)
 {
   QPolicy::configure(config);
+  
   bound_ = config["bound"].v();
 }
 
 void BoundedQPolicy::reconfigure(const Configuration &config)
 {
-}
-
-BoundedQPolicy *BoundedQPolicy::clone() const
-{
-  BoundedQPolicy *qp = new BoundedQPolicy(*this);
-  qp->discretizer_ = discretizer_->clone();
-  qp->projector_ = projector_->clone();
-  qp->representation_ = representation_->clone();
-  qp->sampler_ = sampler_->clone();
-  
-  return qp;
 }
 
 TransitionType BoundedQPolicy::act(double time, const Vector &in, Vector *out)

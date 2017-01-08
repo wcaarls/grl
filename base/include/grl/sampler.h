@@ -40,7 +40,6 @@ class Sampler : public Configurable
 {
   public:
     virtual ~Sampler() { }
-    virtual Sampler *clone() = 0;
     
     /**
     * \brief Sample an action based on the values of actions.

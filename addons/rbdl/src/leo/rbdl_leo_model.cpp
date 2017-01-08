@@ -101,13 +101,6 @@ void LeoSquattingSandboxModel::configure(Configuration &config)
   upper_height_ = config["upper_height"];
 }
 
-LeoSquattingSandboxModel *LeoSquattingSandboxModel::clone() const
-{
-  LeoSquattingSandboxModel *model = new LeoSquattingSandboxModel();
-  model->dm_ = dm_;
-  return model;
-}
-
 void LeoSquattingSandboxModel::start(const Vector &hint, Vector *state)
 {
   // Obtain an actual state from a target environment, not from task

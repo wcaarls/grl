@@ -51,7 +51,6 @@ class GridProjector : public Projector
     virtual void reconfigure(const Configuration &config);
 
     // From Projector
-    virtual GridProjector *clone() const;
     virtual ProjectionLifetime lifetime() const { return plIndefinite; }
     virtual ProjectionPtr project(const Vector &in) const;
 };

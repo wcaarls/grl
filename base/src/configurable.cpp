@@ -109,8 +109,31 @@ Configurator *grl::loadYAML(const std::string &file, const std::string &element,
     if (node["type"])
     {
       // Object
-      TRACE(path << ": object of type " << node["type"].as<std::string>());
-      cfg = new ObjectConfigurator(element, node["type"].as<std::string>(), parent);
+      std::string type = node["type"].as<std::string>(), newtype;
+      
+      // Normalize type
+      ConfigurableFactory::Map factories = ConfigurableFactory::factories();
+      if (!factories.count(type))
+      {
+        size_t count=0;
+        for (ConfigurableFactory::Map::iterator ii=factories.begin(); ii != factories.end(); ++ii)
+          if (ii->first.size() > type.size())
+            if (!ii->first.compare(ii->first.size()-type.size(), std::string::npos, type))
+            {
+              CRAWL(path << ": " << type << " expands to " << ii->first);
+              newtype = ii->first;
+              count++;
+            }
+            
+        if (count > 1)
+          WARNING(path << ": " << type << " does not specify a unique type. Expanded to " << newtype);
+          
+        if (newtype.size())
+          type = newtype;
+      }
+      
+      TRACE(path << ": object of type " << type);
+      cfg = new ObjectConfigurator(element, type, parent);
     }
     else
     {
@@ -158,6 +181,11 @@ Configurator *grl::loadYAML(const std::string &file, const std::string &element,
 
 /// *** ParameterConfigurator ***
 
+bool isseparator(char c)
+{
+  return c == ' ' || c == '\t' || c == '[' || c == ']' || c == '+' || c == ',';
+}
+
 Configurator *ParameterConfigurator::resolve(const std::string &id)
 {
   Configurator *reference = Configurator::find(id);
@@ -173,28 +201,7 @@ std::string ParameterConfigurator::localize(const std::string &id) const
 
   const Configurator *reference = resolve(id);
   if (reference)
-  {
-    std::string fullpath = reference->path(), ownpath = path(), newpath;
-    size_t ii;
-    
-    // Find first path difference
-    for (ii=0; ii < fullpath.size() && ii < ownpath.size() && ownpath[ii] == fullpath[ii]; ++ii);
-    
-    // Make sure we're on a full folder name
-    while (ownpath[ii] != '/')
-      ii--;
-      
-    // Localized path ends with other's path from this point onwards
-    if (ii < fullpath.size())
-      newpath = fullpath.substr(ii+1);
-
-    // Add ../ for every folder on our own path until the end
-    for (; ii < ownpath.size(); ++ii)
-      if (ownpath[ii] == '/')
-        newpath = "../" + newpath;
-        
-    return newpath;
-  }
+    return relative_path(reference->path());
   else
     return id;
 }
@@ -206,7 +213,7 @@ std::string ParameterConfigurator::str() const
   // Resolve references
   for (size_t ii=0; ii < v.size(); ++ii)
   {
-    if (!isalnum(v[ii]) && v[ii] != '/' && v[ii] != '_' && v[ii] != '.')
+    if (isseparator(v[ii]))
     {
       if (!id.empty())
       {
@@ -241,13 +248,21 @@ std::string ParameterConfigurator::str() const
   {
     std::string left, right;
     size_t start=c, end=c+1;
+    char vector_add = 0;
+    
+    if (c+1 < expv.size() && expv[c+1] == '+')
+    {
+      vector_add = 1;
+      end++;
+      c++;
+    }
     
     // Right
     for (size_t ii=c+1; ii < expv.size() && expv[ii] != '+'; ++ii, ++end)
       right.push_back(expv[ii]);
 
     // Left
-    for (int ii=c-1; ii >= 0 && expv[ii] != '+'; --ii, --start)
+    for (int ii=c-1-vector_add; ii >= 0 && expv[ii] != '+'; --ii, --start)
       left.push_back(expv[ii]);
 
     std::reverse(left.begin(), left.end());
@@ -262,13 +277,13 @@ std::string ParameterConfigurator::str() const
     issa.str(left);  issa >> a_in;
     issb.str(right); issb >> b_in;
     
-    Vector a, b, c;
+    LargeVector a, b, c;
     toVector(a_in, a);
     toVector(b_in, b);
     
     // Perform operation
-    if (a.size() == 1 && b.size() == 1) c = a + b;
-    else                                c = extend(a, b);
+    if (a.size() == 1 && b.size() == 1 && !vector_add) c = a + b;
+    else                                               c = extend(a, b);
     
     fromVector(c, c_out);
     
@@ -321,7 +336,7 @@ ParameterConfigurator *ParameterConfigurator::instantiate(Configurator *parent) 
 
   // Make references local
   for (size_t ii=0; ii < v.size(); ++ii)
-    if (!isalnum(v[ii]) && v[ii] != '/' && v[ii] != '_' && v[ii] != '.')
+    if (isseparator(v[ii]))
     {
       expv.insert(expv.size(), localize(id));
       id.clear();
@@ -384,7 +399,7 @@ bool ParameterConfigurator::validate(const CRP &crp) const
     }
     else if (type == "vector")
     {
-      Vector v;
+      LargeVector v;
       if (!convert(value, &v))
       {
         ERROR("Parameter " << path() << " ('" << value << "') should be a vector");
@@ -474,12 +489,15 @@ ObjectConfigurator* ObjectConfigurator::instantiate(Configurator *parent) const
   // Instantiate and validate configuration parameters
   for (ConfiguratorList::const_iterator cc=children_.begin(); cc != children_.end(); ++cc)
   {
+    if ((*cc)->provided())
+      continue;
+  
     // Instantiate
     Configurator *nc = (*cc)->instantiate(oc);
     if (!nc)
       return NULL;
     
-    INFO(path() << "/" << (*cc)->element() << ": " << nc->str());
+    TRACE(path() << "/" << (*cc)->element() << ": " << nc->str());
 
     // Find matching parameter request
     for (size_t ii=0; ii < request.size(); ++ii)
@@ -511,7 +529,7 @@ ObjectConfigurator* ObjectConfigurator::instantiate(Configurator *parent) const
         {
           new ParameterConfigurator(key, request[ii].value, oc);
           
-          INFO(path() << "/" << key << ": " << request[ii].value << " (default)");
+          TRACE(path() << "/" << key << ": " << request[ii].value << " (default)");
           config.set(key, request[ii].value);
         }
         else
@@ -534,7 +552,7 @@ ObjectConfigurator* ObjectConfigurator::instantiate(Configurator *parent) const
   
     if (request[ii].mutability == CRP::Provided)
     {
-      INFO(path() << "/" << key << ": " << config[key].str() << " (provided)");
+      TRACE(path() << "/" << key << ": " << config[key].str() << " (provided)");
     
       if (type == "int" || type == "double" || type == "vector" || type == "string")
       {
@@ -549,6 +567,21 @@ ObjectConfigurator* ObjectConfigurator::instantiate(Configurator *parent) const
   }
   
   return oc;
+}
+
+ObjectConfigurator &ObjectConfigurator::deepcopy(const Configurator &c)
+{
+  Configurator::deepcopy(c);
+
+  if (!ptr() != !c.ptr())
+    throw Exception("Deep copy requires similarly instantiated configuration trees at " + path());
+
+  if (ptr() != c.ptr())
+    ptr()->copy(*c.ptr());
+  else
+    ERROR("Deep copy encountered identical object at " + path());
+  
+  return *this;
 }
 
 bool ObjectConfigurator::validate(const CRP &crp) const
@@ -601,7 +634,7 @@ void ObjectConfigurator::reconfigure(const Configuration &config, bool recursive
             if (!pc.validate(request[jj]))
               return;
             
-            INFO(pc.path() << ": " << request[jj].value << " -> " << value);
+            INFO(path() << "/" << pc.path() << ": " << request[jj].value << " -> " << value);
               
             /// TODO: Update tree
           }

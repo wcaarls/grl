@@ -61,7 +61,6 @@ class PadaSampler : public EpsilonGreedySampler
     virtual void reconfigure(const Configuration &config);
 
     // From Sampler
-    virtual PadaSampler *clone();
     virtual size_t sample(double time, const LargeVector &values, TransitionType &tt);
 
   public:
@@ -81,7 +80,6 @@ class EpsilonPadaSampler : public PadaSampler
     EpsilonPadaSampler() { }
 
     // From Sampler
-    virtual EpsilonPadaSampler *clone();
     virtual size_t sample(double time, const LargeVector &values, TransitionType &tt);
 };
 

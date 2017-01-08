@@ -145,7 +145,7 @@ class MCTSNode
 class MCTSPolicy : public Policy
 {
   public:
-    TYPEINFO("policy/mcts", "Monte-Carlo Tree Search policy")
+    TYPEINFO("mapping/policy/mcts", "Monte-Carlo Tree Search policy")
     
   protected:
     ObservationModel *model_;
@@ -169,7 +169,6 @@ class MCTSPolicy : public Policy
     virtual void reconfigure(const Configuration &config);
 
     // From Policy
-    virtual MCTSPolicy *clone() const;
     virtual TransitionType act(double time, const Vector &in, Vector *out);
     
   protected:

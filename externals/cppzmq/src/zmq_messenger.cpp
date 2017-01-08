@@ -49,7 +49,7 @@ void ZeromqMessenger::start(const char* pubAddress, const char* subAddress, cons
 
   // Prepare ZMQ publisher
   publisher_ = new zmq::socket_t(*context_, ZMQ_PUB);
-  publisher_->bind("tcp://*:5561");//pubAddress);
+  publisher_->bind(pubAddress);
   publisher_->setsockopt(ZMQ_CONFLATE, &confl, sizeof(confl)); // Keep only last message
 
   // Prepare ZMQ subscriber

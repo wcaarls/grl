@@ -42,7 +42,7 @@ namespace grl
 class VPolicy : public Policy
 {
   public:
-    TYPEINFO("policy/discrete/v", "State-value based policy")
+    TYPEINFO("mapping/policy/discrete/v", "State-value based policy")
 
   protected:
     Discretizer *discretizer_;
@@ -62,7 +62,6 @@ class VPolicy : public Policy
     virtual void reconfigure(const Configuration &config);
 
     // From DiscretePolicy
-    virtual VPolicy *clone() const;
     virtual TransitionType act(const Vector &in, Vector *out) const;
     
     virtual void values(const Vector &in, LargeVector *out) const;

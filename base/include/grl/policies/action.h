@@ -40,7 +40,7 @@ namespace grl
 class ActionPolicy : public Policy
 {
   public:
-    TYPEINFO("policy/action", "Policy based on a direct action representation")
+    TYPEINFO("mapping/policy/action", "Policy based on a direct action representation")
 
   protected:
     Projector *projector_;
@@ -57,7 +57,6 @@ class ActionPolicy : public Policy
     virtual void reconfigure(const Configuration &config);
 
     // From Policy
-    virtual ActionPolicy *clone() const;
     virtual TransitionType act(const Vector &in, Vector *out) const;
 };
 
@@ -65,7 +64,7 @@ class ActionPolicy : public Policy
 class ActionProbabilityPolicy : public Policy
 {
   public:
-    TYPEINFO("policy/action_probability", "Policy based on an action-probability representation")
+    TYPEINFO("mapping/policy/action_probability", "Policy based on an action-probability representation")
 
   protected:
     Discretizer *discretizer_;
@@ -83,7 +82,6 @@ class ActionProbabilityPolicy : public Policy
     virtual void reconfigure(const Configuration &config);
   
     // From Policy
-    virtual ActionProbabilityPolicy *clone() const;
     virtual TransitionType act(const Vector &in, Vector *out) const;
 };
 

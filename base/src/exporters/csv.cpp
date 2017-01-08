@@ -40,6 +40,7 @@ void CSVExporter::request(ConfigurationRequest *config)
   config->push_back(CRP("fields", "Comma-separated list of fields to write", fields_));
   config->push_back(CRP("style", "Header style", style_, CRP::Configuration, {"none", "line", "meshup"}));
   config->push_back(CRP("variant", "Variant to export", variant_, CRP::Configuration, {"test", "learn", "all"}));
+  config->push_back(CRP("enabled", "Enable writing to output file", enabled_, CRP::Online, 0, 1));
 }
 
 void CSVExporter::configure(Configuration &config)
@@ -48,6 +49,7 @@ void CSVExporter::configure(Configuration &config)
   fields_  = config["fields"].str();
   style_   = config["style"].str();
   variant_ = config["variant"].str();
+  enabled_ = config["enabled"];
   
   if (file_.empty())
     throw bad_param("exporter/csv:file");
@@ -55,6 +57,7 @@ void CSVExporter::configure(Configuration &config)
 
 void CSVExporter::reconfigure(const Configuration &config)
 {
+  config.get("enabled", enabled_);
 }
 
 void CSVExporter::init(const std::initializer_list<std::string> &headers)
@@ -144,6 +147,9 @@ void CSVExporter::open(const std::string &variant, bool append)
 
 void CSVExporter::write(std::vector<Vector> vars)
 {
+  if (!enabled_)
+    return;
+
   if (!stream_.is_open())
     return;
 

@@ -47,14 +47,6 @@ void LeoSquattingAgent::reconfigure(const Configuration &config)
 {
 }
 
-LeoSquattingAgent *LeoSquattingAgent::clone() const
-{
-  LeoSquattingAgent *agent = new LeoSquattingAgent();
-  agent->agent_standup_ = agent_standup_->clone();
-  agent->agent_learn_ = agent_learn_->clone();
-  return agent;
-}
-
 TransitionType LeoSquattingAgent::start(const Vector &obs, Vector *action)
 {
   time_ = 0.;

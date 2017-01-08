@@ -45,11 +45,6 @@ class StateActionConverter : public Configurable
   public:
     StateActionConverter() : state_in_size_(0), action_out_size_(0) { }
     virtual ~StateActionConverter() { }
-    virtual StateActionConverter *clone() const
-    {
-      StateActionConverter *t = new StateActionConverter(*this);
-      return t;
-    }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config)

@@ -228,11 +228,6 @@ void LeoBaseEnvironment::reconfigure(const Configuration &config)
   time_test_ = time_learn_ = time0_ = 0;
 }
 
-LeoBaseEnvironment *LeoBaseEnvironment::clone() const
-{
-  return NULL;
-}
-
 void LeoBaseEnvironment::start(int test)
 {
   test_ = test;

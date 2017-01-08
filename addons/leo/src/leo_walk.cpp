@@ -190,11 +190,6 @@ void LeoWalkEnvironment::configure(Configuration &config)
   TRACE("Observation max: " << obs_max);
 }
 
-LeoWalkEnvironment *LeoWalkEnvironment::clone() const
-{
-  return NULL;
-}
-
 void LeoWalkEnvironment::start(int test, Vector *obs)
 {
   LeoBaseEnvironment::start(test);
@@ -215,6 +210,9 @@ void LeoWalkEnvironment::start(int test, Vector *obs)
   bh_->parseLeoState(leoState_, *obs);
 
   bh_->setCurrentSTGState(NULL);
+
+  if (pub_ic_signal_)
+    pub_ic_signal_->set(VectorConstructor(lstNone));
 }
 
 double LeoWalkEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)

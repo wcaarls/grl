@@ -49,7 +49,6 @@ class Flyer2DDynamics : public Dynamics
     virtual void reconfigure(const Configuration &config);
 
     // From Dynamics
-    virtual Flyer2DDynamics *clone() const;
     virtual void eom(const Vector &state, const Vector &action, Vector *xd) const;
 };
 
@@ -75,7 +74,6 @@ class Flyer2DRegulatorTask : public RegulatorTask
     virtual void reconfigure(const Configuration &config);
 
     // From Task
-    virtual Flyer2DRegulatorTask *clone() const;
     virtual void observe(const Vector &state, Vector *obs, int *terminal) const;
     virtual bool invert(const Vector &obs, Vector *state) const;
 };

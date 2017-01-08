@@ -39,7 +39,6 @@ class RandomGenerator : public Configurable
 {
   public:
     virtual ~RandomGenerator() { }
-    virtual RandomGenerator *clone() const = 0;
 
     virtual double get(double *param = NULL) const = 0;
 
@@ -62,7 +61,6 @@ class RandomGeneratorUniform : public RandomGenerator
     virtual void reconfigure(const Configuration &config);
 
     // From RandomGenerator
-    virtual RandomGeneratorUniform *clone() const;
     virtual double get(double *param = NULL) const;
 
   protected:
@@ -84,7 +82,6 @@ class RandomGeneratorUniformInteger : public RandomGenerator
     virtual void reconfigure(const Configuration &config);
 
     // From RandomGenerator
-    virtual RandomGeneratorUniformInteger *clone() const;
     virtual double get(double *param = NULL) const;
 
   protected:
@@ -106,7 +103,6 @@ class RandomGeneratorNormal : public RandomGenerator
     virtual void reconfigure(const Configuration &config);
 
     // From RandomGenerator
-    virtual RandomGeneratorNormal *clone() const;
     virtual double get(double *param = NULL) const;
 
   protected:
@@ -128,7 +124,6 @@ class RandomGeneratorOrnsteinUhlenbeck : public RandomGenerator
     virtual void reconfigure(const Configuration &config);
 
     // From RandomGenerator
-    virtual RandomGeneratorOrnsteinUhlenbeck *clone() const;
     virtual double get(double *param = NULL) const;
 
   protected:

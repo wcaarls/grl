@@ -252,13 +252,6 @@ void NMPCPolicyMLRTI::muscod_reset(const Vector &initial_obs, double time)
     std::cout << "MUSCOD is reseted!" << std::endl;
 }
 
-NMPCPolicyMLRTI *NMPCPolicyMLRTI::clone() const
-{
-  return NULL;
-}
-
-
-
 TransitionType NMPCPolicyMLRTI::act(double time, const Vector &in, Vector *out)
 {
   grl_assert(in.size() == nmpc_A_->NXD() + 1); // setpoint indicator

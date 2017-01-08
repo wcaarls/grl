@@ -1,0 +1,125 @@
+experiment:
+  runs: 1
+  trials: 50
+  steps: 0
+  rate: 0
+  test_interval: 1
+  output: pendulum-dyna-tc-llr
+  environment:
+    model:
+      control_step: 0.03
+      integration_steps: 5
+      dynamics:
+        type: dynamics/pendulum
+      type: model/dynamical
+    task:
+      timeout: 2.99
+      randomization: 0
+      type: task/pendulum/swingup
+    exporter: 0
+    type: environment/modeled
+  agent:
+    planning_steps: 200
+    planning_horizon: 100
+    policy:
+      discretizer:
+        min: experiment/environment/task/action_min
+        max: experiment/environment/task/action_max
+        steps: [ 3 ]
+        type: discretizer/uniform
+      projector:
+        tilings: 16
+        memory: 8388608
+        resolution: [ 0.31415, 3.1415, 3 ]
+        wrapping: [ 6.283, 0, 0 ]
+        safe: 0
+        type: projector/tile_coding
+      representation:
+        init_min: [ 0 ]
+        init_max: [ 1 ]
+        memory: ../../projector/memory
+        outputs: 1
+        output_min: [  ]
+        output_max: [  ]
+        type: representation/parameterized/linear
+      sampler:
+        epsilon: 0.05
+        type: sampler/epsilon_greedy
+      type: policy/discrete/q
+    predictor:
+      alpha: 0.2
+      gamma: 0.97
+      lambda: 0.65
+      projector: ../../policy/projector
+      representation: ../../policy/representation
+      trace:
+        type: trace/enumerated/replacing
+      importer: 0
+      exporter: 0
+      type: predictor/sarsa
+    model:
+      control_step: ../../../environment/model/control_step
+      differential: 1
+      wrapping: [ 6.283, 0 ]
+      observation_min: experiment/environment/task/observation_min
+      observation_max: experiment/environment/task/observation_max
+      projector:
+        samples: 10000
+        neighbors: 12
+        locality: 1
+        bucket_size: 10
+        error_bound: 0.1
+        scaling: [  ]
+        inputs: experiment/environment/task/observation_dims+experiment/environment/task/action_dims
+        interval: 10
+        incremental: 1
+        type: projector/sample/ann
+      representation:
+        ridge: 1e-05
+        order: 1
+        input_nominals: [  ]
+        output_nominals: [  ]
+        outputs: experiment/environment/task/observation_dims+2
+        output_min: [  ]
+        output_max: [  ]
+        projector: ../../projector
+        type: representation/llr
+      jacobian_step: 0.001
+      stddev_limit: 1
+      type: observation_model/approximated
+    model_predictor:
+      differential: 1
+      wrapping: ../../policy/projector/wrapping
+      projector: ../../model/projector
+      representation: ../../model/representation
+      importer: 0
+      exporter: 0
+      type: predictor/model
+    model_agent:
+      policy: ../../policy
+      predictor:
+        alpha: 0.02
+        gamma: 0.97
+        lambda: 0
+        projector: ../../../policy/projector
+        representation: ../../../policy/representation
+        trace:
+          type: trace/enumerated/replacing
+        importer: 0
+        exporter: 0
+        type: predictor/sarsa
+      type: agent/td
+    threads: 0
+    type: agent/dyna
+  test_agent:
+    policy:
+      discretizer: ../../../agent/policy/discretizer
+      projector: ../../../agent/policy/projector
+      representation: ../../../agent/policy/representation
+      sampler:
+        type: sampler/greedy
+      type: policy/discrete/q
+    type: agent/fixed
+  load_file: ""
+  save_every: never
+  type: experiment/online_learning

@@ -53,7 +53,6 @@ class LeoFixedAgent : public FixedAgent
     virtual void reconfigure(const Configuration &config);
 
     // From Agent
-    virtual LeoFixedAgent *clone() const;
     virtual TransitionType start(const Vector &obs, Vector *action);
     virtual TransitionType step(double tau, const Vector &obs, double reward, Vector *action);
 };

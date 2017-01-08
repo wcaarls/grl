@@ -58,18 +58,6 @@ void VPolicy::reconfigure(const Configuration &config)
 {
 }
 
-VPolicy *VPolicy::clone() const
-{
-  VPolicy *vp = new VPolicy(*this);
-  vp->discretizer_ = discretizer_->clone();
-  vp->model_ = model_->clone();
-  vp->projector_ = projector_->clone();
-  vp->representation_ = representation_->clone();
-  vp->sampler_ = sampler_->clone();
-  
-  return vp;
-}
-
 void VPolicy::values(const Vector &in, LargeVector *out) const
 {
   out->resize(discretizer_->size(in));

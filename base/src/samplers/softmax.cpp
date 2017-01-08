@@ -25,7 +25,6 @@
  * \endverbatim
  */
 #include <grl/samplers/softmax.h>
-#include <grl/samplers/greedy.h>
 
 using namespace grl;
 
@@ -44,11 +43,6 @@ void SoftmaxSampler::configure(Configuration &config)
 void SoftmaxSampler::reconfigure(const Configuration &config)
 {
   config.get("tau", tau_);
-}
-
-SoftmaxSampler *SoftmaxSampler::clone()
-{
-  return new SoftmaxSampler(*this);
 }
 
 size_t SoftmaxSampler::sample(const LargeVector &values, TransitionType &tt)

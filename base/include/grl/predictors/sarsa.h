@@ -61,7 +61,6 @@ class SARSAPredictor : public Predictor
     virtual void reconfigure(const Configuration &config);
     
     // From Predictor
-    virtual SARSAPredictor *clone() const;
     virtual void update(const Transition &transition);
     virtual void finalize();
 };
@@ -88,7 +87,6 @@ class ExpectedSARSAPredictor : public Predictor
     virtual void reconfigure(const Configuration &config);
 
     // From Predictor
-    virtual ExpectedSARSAPredictor *clone() const;
     virtual void update(const Transition &transition);
     virtual void finalize();
 };

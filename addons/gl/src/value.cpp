@@ -56,7 +56,7 @@ void ValueVisualization::configure(Configuration &config)
   representation_ = (Representation*)config["representation"].ptr();
   
   // Create window  
-  create("Value function");
+  create(path().c_str());
   
   // Let's get this show on the road
   start();
@@ -83,7 +83,7 @@ void PolicyValueVisualization::request(ConfigurationRequest *config)
 {
   FieldVisualization::request(config);
 
-  config->push_back(CRP("policy", "policy/discrete/q", "Q-value based control policy", policy_));
+  config->push_back(CRP("policy", "mapping/policy/discrete/q", "Q-value based control policy", policy_));
 }
 
 void PolicyValueVisualization::configure(Configuration &config)
@@ -93,7 +93,7 @@ void PolicyValueVisualization::configure(Configuration &config)
   policy_ = (QPolicy*)config["policy"].ptr();
   
   // Create window  
-  create("Value function");
+  create(path().c_str());
   
   // Let's get this show on the road
   start();

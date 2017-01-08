@@ -1,11 +1,11 @@
-/** \file policy.h
- * \brief Policy visualization header file.
+/** \file multi.h
+ * \brief Multi projector header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-02-14
+ * \date      2016-12-06
  *
  * \copyright \verbatim
- * Copyright (c) 2015, Wouter Caarls
+ * Copyright (c) 2016, Wouter Caarls
  * All rights reserved.
  *
  * This file is part of GRL, the Generic Reinforcement Learning library.
@@ -25,44 +25,41 @@
  * \endverbatim
  */
 
-#ifndef GRL_POLICY_VISUALIZATION_H_
-#define GRL_POLICY_VISUALIZATION_H_
+#ifndef GRL_MULTI_PROJECTOR_H_
+#define GRL_MULTI_PROJECTOR_H_
 
-#include <string.h>
-#include <pthread.h>
-
-#include <grl/policy.h>
-#include <grl/visualizations/field.h>
+#include <grl/projector.h>
 
 namespace grl
 {
 
-/// Policy visualization.
-class PolicyVisualization : public FieldVisualization
+/// Preprocesses projection onto a normalized [0, 1] vector
+class MultiProjector : public Projector
 {
   public:
-    TYPEINFO("visualization/field/policy/action", "Visualizes a policy over a field of states")
-
-  protected:
-    Policy *policy_;
-    size_t dim_;
-  
-  public:
-    PolicyVisualization() : policy_(NULL), dim_(0) { }
-    ~PolicyVisualization()
-    {
-      stopAndJoin();
-    }
+    TYPEINFO("projector/multi", "Combines multiple projections")
     
+  protected:
+    int dim_;
+    Vector memory_;
+    std::vector<Projector*> projector_;
+
+  public:
+    MultiProjector() : dim_(-1)
+    {
+      projector_.resize(2, NULL);
+    }
+
     // From Configurable
-    virtual void request(ConfigurationRequest *config);
+    virtual void request(const std::string &role, ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
-  
-    // From FieldVisualization
-    virtual double value(const Vector &in) const;
+
+    // From Projector
+    virtual ProjectionLifetime lifetime() const { return std::max(projector_[0]->lifetime(), projector_[1]->lifetime()); }
+    virtual ProjectionPtr project(const Vector &in) const;
 };
 
 }
 
-#endif /* GRL_POLICY_VISUALIZATION_H_ */
+#endif /* GRL_MULTI_PROJECTOR_H_ */

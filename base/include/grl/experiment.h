@@ -38,7 +38,6 @@ class Experiment : public Configurable
 {
   public:
     virtual ~Experiment() { }
-    virtual Experiment *clone() const = 0;
     
     /// Start the experiment.
     virtual void run() = 0;

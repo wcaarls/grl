@@ -53,7 +53,6 @@ class QPolicyMapping : public Mapping
     virtual void reconfigure(const Configuration &config);
 
     // From Mapping
-    virtual QPolicyMapping *clone() const;
     virtual double read(const Vector &in, Vector *result) const;
 };
 

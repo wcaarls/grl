@@ -93,12 +93,6 @@ void ZeromqPubSubCommunicator::configure(Configuration &config)
   zmq_messenger_.start(pub_.c_str(), sub_.c_str(), sync_.c_str(), pattern_);
 }
 
-ZeromqPubSubCommunicator *ZeromqPubSubCommunicator::clone() const
-{
-  ZeromqPubSubCommunicator* me = new ZeromqPubSubCommunicator();
-  return me;
-}
-
 //////////////////////////////////////////////////////////
 void CommunicatorEnvironment::request(ConfigurationRequest *config)
 {
@@ -130,12 +124,6 @@ void CommunicatorEnvironment::configure(Configuration &config)
 
 void CommunicatorEnvironment::reconfigure(const Configuration &config)
 {
-}
-
-CommunicatorEnvironment *CommunicatorEnvironment::clone() const
-{
-  CommunicatorEnvironment *me = new CommunicatorEnvironment();
-  return me;
 }
 
 void CommunicatorEnvironment::start(int test, Vector *obs)
@@ -197,11 +185,6 @@ void ZeromqAgent::configure(Configuration &config)
 
 void ZeromqAgent::reconfigure(const Configuration &config)
 {
-}
-
-ZeromqAgent *ZeromqAgent::clone() const
-{
-  return new ZeromqAgent(*this);
 }
 
 TransitionType ZeromqAgent::start(const Vector &obs, Vector *action)

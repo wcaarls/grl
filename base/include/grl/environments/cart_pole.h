@@ -54,7 +54,6 @@ class CartPoleDynamics : public Dynamics
     virtual void reconfigure(const Configuration &config);
 
     // From Dynamics
-    virtual CartPoleDynamics *clone() const;
     virtual void eom(const Vector &state, const Vector &action, Vector *xd) const;
 };
 
@@ -78,7 +77,6 @@ class CartPoleSwingupTask : public Task
     virtual void reconfigure(const Configuration &config);
 
     // From Task
-    virtual CartPoleSwingupTask *clone() const;
     virtual void start(int test, Vector *state) const;
     virtual void observe(const Vector &state, Vector *obs, int *terminal) const;
     virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const;
@@ -109,7 +107,6 @@ class CartPoleBalancingTask : public Task
     virtual void reconfigure(const Configuration &config);
 
     // From Task
-    virtual CartPoleBalancingTask *clone() const;
     virtual void start(int test, Vector *state) const;
     virtual void observe(const Vector &state, Vector *obs, int *terminal) const;
     virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const;
@@ -144,7 +141,6 @@ class CartPoleRegulatorTask : public RegulatorTask
     virtual void reconfigure(const Configuration &config);
 
     // From Task
-    virtual CartPoleRegulatorTask *clone() const;
     virtual void observe(const Vector &state, Vector *obs, int *terminal) const;
     virtual bool invert(const Vector &obs, Vector *state) const;
 };

@@ -49,7 +49,6 @@ class PeakedProjector : public NormalizingProjector
     virtual void reconfigure(const Configuration &config);
 
     // From Projector
-    virtual PeakedProjector *clone() const;
     virtual ProjectionPtr project(const Vector &in) const;
     virtual Matrix jacobian(const Vector &in) const;
 };

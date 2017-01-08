@@ -120,11 +120,7 @@ class NMPCPolicyMLRTI: public NMPCBase
     virtual void reconfigure(const Configuration &config);
 
     // From Policy
-    virtual NMPCPolicyMLRTI *clone() const;
     virtual TransitionType act(double time, const Vector &in, Vector *out);
-
-    // Own
-    //void *setup_model_path(const std::string path, const std::string model, const std::string lua_model);
 };
 
 } /* namespace grl */

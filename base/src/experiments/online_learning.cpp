@@ -49,6 +49,7 @@ void OnlineLearningExperiment::request(ConfigurationRequest *config)
   config->push_back(CRP("test_agent", "agent", "Agent to use in test trials", agent_, true));
   
   config->push_back(CRP("state", "signal/vector", "Current observed state of the environment", CRP::Provided));
+  config->push_back(CRP("action", "signal/vector", "Current action applied to the environment", CRP::Provided));
   config->push_back(CRP("curve", "signal/vector", "Learning curve", CRP::Provided));
 
   config->push_back(CRP("load_file", "Load policy filename", load_file_));
@@ -71,9 +72,11 @@ void OnlineLearningExperiment::configure(Configuration &config)
   save_every_ = config["save_every"].str();
   
   state_ = new VectorSignal();
+  action_ = new VectorSignal();
   curve_ = new VectorSignal();
   
   config.set("state", state_);
+  config.set("action", action_);
   config.set("curve", curve_);
 
   if (test_interval_ >= 0 && !test_agent_)
@@ -83,19 +86,7 @@ void OnlineLearningExperiment::configure(Configuration &config)
 void OnlineLearningExperiment::reconfigure(const Configuration &config)
 {
   config.get("rate", rate_);
-}
-
-OnlineLearningExperiment *OnlineLearningExperiment::clone() const
-{
-  OnlineLearningExperiment *ole = new OnlineLearningExperiment();
-  
-  ole->agent_ = agent_->clone();
-  ole->environment_ = environment_->clone();
-  ole->runs_ = runs_;
-  ole->trials_ = trials_;
-  ole->steps_ = steps_;
-  
-  return ole;
+  config.get("identity", identity_);
 }
 
 void OnlineLearningExperiment::run()
@@ -105,7 +96,7 @@ void OnlineLearningExperiment::run()
   // Store configuration with output
   if (!output_.empty())
   {
-    ofs.open(output_ + ".yaml");
+    ofs.open(output_ + identity_ + ".yaml");
     ofs << configurator()->root()->yaml();
     ofs.close();
   }
@@ -115,7 +106,7 @@ void OnlineLearningExperiment::run()
     if (!output_.empty())
     {
       std::ostringstream oss;
-      oss << output_ << "-" << rr << ".txt";
+      oss << output_ << "-" << rr << identity_ << ".txt";
       ofs.open(oss.str().c_str());
     }
 
@@ -147,6 +138,9 @@ void OnlineLearningExperiment::run()
       CRAWL(obs);
       agent->start(obs, &action);
       state_->set(obs);
+      action_->set(action);
+
+      CRAWL(obs);
 
       do
       {
@@ -172,6 +166,7 @@ void OnlineLearningExperiment::run()
             agent->step(tau, obs, reward, &action);
 
           state_->set(obs);
+          action_->set(action);
           
           if (!test) ss++;
         }
@@ -182,7 +177,7 @@ void OnlineLearningExperiment::run()
         if (test)
         {
           std::ostringstream oss;
-          oss << std::setw(15) << tt+1-(tt+1)/(test_interval_+1) << std::setw(15) << ss << std::setw(15) << total_reward;
+          oss << std::setw(15) << tt+1-(tt+1)/(test_interval_+1) << std::setw(15) << ss << std::setw(15) << std::setprecision(3) << std::fixed << total_reward;
           agent_->report(oss);
           environment_->report(oss);
           curve_->set(VectorConstructor(total_reward));
@@ -195,7 +190,7 @@ void OnlineLearningExperiment::run()
       else
       {
         std::ostringstream oss;
-        oss << std::setw(15) << tt << std::setw(15) << ss << std::setw(15) << total_reward;
+        oss << std::setw(15) << tt << std::setw(15) << ss << std::setw(15) << std::setprecision(3) << std::fixed << total_reward;
         agent_->report(oss);
         environment_->report(oss);
         curve_->set(VectorConstructor(total_reward));

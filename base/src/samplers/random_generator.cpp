@@ -50,13 +50,6 @@ void RandomGeneratorUniform::reconfigure(const Configuration &config)
 {
 }
 
-RandomGeneratorUniform *RandomGeneratorUniform::clone() const
-{
-  RandomGeneratorUniform *gs = new RandomGeneratorUniform(*this);
-  gs->rand_ = new RandGen();
-  return gs;
-}
-
 double RandomGeneratorUniform::get(double *param) const
 {
   return rand_->getUniform(lower_, upper_);
@@ -76,13 +69,6 @@ void RandomGeneratorUniformInteger::configure(Configuration &config)
 
 void RandomGeneratorUniformInteger::reconfigure(const Configuration &config)
 {
-}
-
-RandomGeneratorUniformInteger *RandomGeneratorUniformInteger::clone() const
-{
-  RandomGeneratorUniformInteger *gs = new RandomGeneratorUniformInteger(*this);
-  gs->rand_ = new RandGen();
-  return gs;
 }
 
 double RandomGeneratorUniformInteger::get(double *param) const
@@ -108,13 +94,6 @@ void RandomGeneratorNormal::reconfigure(const Configuration &config)
 {
 }
 
-RandomGeneratorNormal *RandomGeneratorNormal::clone() const
-{
-  RandomGeneratorNormal *gs = new RandomGeneratorNormal(*this);
-  gs->rand_ = new RandGen();
-  return gs;
-}
-
 double RandomGeneratorNormal::get(double *param) const
 {
   return rand_->getNormal(mu_, sigma_);
@@ -138,13 +117,6 @@ void RandomGeneratorOrnsteinUhlenbeck::configure(Configuration &config)
 
 void RandomGeneratorOrnsteinUhlenbeck::reconfigure(const Configuration &config)
 {
-}
-
-RandomGeneratorOrnsteinUhlenbeck *RandomGeneratorOrnsteinUhlenbeck::clone() const
-{
-  RandomGeneratorOrnsteinUhlenbeck *gs = new RandomGeneratorOrnsteinUhlenbeck(*this);
-  gs->rand_ = new RandGen();
-  return gs;
 }
 
 double RandomGeneratorOrnsteinUhlenbeck::get(double *param) const

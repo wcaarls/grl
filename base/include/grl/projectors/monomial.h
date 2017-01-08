@@ -41,6 +41,7 @@ class MonomialProjector : public Projector
     
   protected:
     size_t inputs_, degree_, memory_;
+    Vector operating_input_;
 
   public:
     MonomialProjector() : inputs_(1), degree_(1), memory_(0) { }
@@ -51,7 +52,6 @@ class MonomialProjector : public Projector
     virtual void reconfigure(const Configuration &config);
 
     // From Projector
-    virtual MonomialProjector *clone() const;
     virtual ProjectionLifetime lifetime() const { return plIndefinite; }
     virtual ProjectionPtr project(const Vector &in) const;
     

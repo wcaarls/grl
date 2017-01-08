@@ -52,11 +52,6 @@ void CartPoleDynamics::reconfigure(const Configuration &config)
 {
 }
 
-CartPoleDynamics *CartPoleDynamics::clone() const
-{
-  return new CartPoleDynamics(*this);
-}
-
 void CartPoleDynamics::eom(const Vector &state, const Vector &action, Vector *xd) const
 {
   if (state.size() != 5 || action.size() != 1)
@@ -138,11 +133,6 @@ void CartPoleSwingupTask::configure(Configuration &config)
 void CartPoleSwingupTask::reconfigure(const Configuration &config)
 {
   config.get("randomization", randomization_);
-}
-
-CartPoleSwingupTask *CartPoleSwingupTask::clone() const
-{
-  return new CartPoleSwingupTask(*this);
 }
 
 void CartPoleSwingupTask::start(int test, Vector *state) const
@@ -250,11 +240,6 @@ void CartPoleBalancingTask::reconfigure(const Configuration &config)
 {
 }
 
-CartPoleBalancingTask *CartPoleBalancingTask::clone() const
-{
-  return new CartPoleBalancingTask(*this);
-}
-
 void CartPoleBalancingTask::start(int test, Vector *state) const
 {
   state->resize(5);
@@ -333,11 +318,6 @@ void CartPoleRegulatorTask::configure(Configuration &config)
 void CartPoleRegulatorTask::reconfigure(const Configuration &config)
 {
   RegulatorTask::reconfigure(config);
-}
-
-CartPoleRegulatorTask *CartPoleRegulatorTask::clone() const
-{
-  return new CartPoleRegulatorTask(*this);
 }
 
 void CartPoleRegulatorTask::observe(const Vector &state, Vector *obs, int *terminal) const

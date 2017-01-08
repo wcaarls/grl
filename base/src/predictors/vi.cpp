@@ -64,18 +64,6 @@ void ValueIterationPredictor::reconfigure(const Configuration &config)
   Predictor::reconfigure(config);
 }
 
-ValueIterationPredictor *ValueIterationPredictor::clone() const
-{
-  ValueIterationPredictor *predictor = new ValueIterationPredictor(*this);
-  
-  predictor->model_ = model_->clone();
-  predictor->discretizer_ = discretizer_->clone();
-  predictor->projector_ = projector_->clone();
-  predictor->representation_ = representation_->clone();
-  
-  return predictor;
-}
-
 void ValueIterationPredictor::update(const Transition &transition)
 {
   Predictor::update(transition);
@@ -115,18 +103,6 @@ void QIterationPredictor::request(ConfigurationRequest *config)
   config->push_back(CRP("discretizer", "discretizer.action", "Action discretizer", discretizer_));
   config->push_back(CRP("projector", "projector.pair", "Projects observation-action pairs onto representation space", projector_));
   config->push_back(CRP("representation", "representation.value/action", "Action-value function representation", representation_));
-}
-
-QIterationPredictor *QIterationPredictor::clone() const
-{
-  QIterationPredictor *predictor = new QIterationPredictor(*this);
-  
-  predictor->model_ = model_->clone();
-  predictor->discretizer_ = discretizer_->clone();
-  predictor->projector_ = projector_->clone();
-  predictor->representation_ = representation_->clone();
-  
-  return predictor;
 }
 
 void QIterationPredictor::update(const Transition &transition)

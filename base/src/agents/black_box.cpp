@@ -57,15 +57,6 @@ void BlackBoxAgent::reconfigure(const Configuration &config)
   }
 }
 
-BlackBoxAgent *BlackBoxAgent::clone() const
-{
-  BlackBoxAgent *agent = new BlackBoxAgent(*this);
-  agent->policy_ = policy_->clone();
-  agent->optimizer_ = optimizer_->clone();
-  
-  return agent;
-}
-
 TransitionType BlackBoxAgent::start(const Vector &obs, Vector *action)
 {
   if (++episode_ == episodes_)

@@ -37,7 +37,7 @@ namespace grl
 class NoisePolicy : public Policy
 {
   public:
-    TYPEINFO("policy/post/noise", "Postprocesses policy output by injecting noise")
+    TYPEINFO("mapping/policy/post/noise", "Postprocesses policy output by injecting noise")
 
   protected:
     Policy *policy_;
@@ -54,7 +54,6 @@ class NoisePolicy : public Policy
     virtual void reconfigure(const Configuration &config);
 
     // From Policy
-    virtual NoisePolicy *clone() const;
     virtual TransitionType act(const Vector &in, Vector *out) const;
     virtual void act(double time, const Vector &in, Vector *out);
 };

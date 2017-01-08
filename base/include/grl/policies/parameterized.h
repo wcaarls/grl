@@ -39,7 +39,7 @@ namespace grl
 class ParameterizedActionPolicy : public ParameterizedPolicy
 {
   public:
-    TYPEINFO("policy/parameterized/action", "Parameterized policy based on a direct action representation")
+    TYPEINFO("mapping/policy/parameterized/action", "Parameterized policy based on a direct action representation")
 
   protected:
     Projector *projector_;
@@ -56,7 +56,6 @@ class ParameterizedActionPolicy : public ParameterizedPolicy
     virtual void reconfigure(const Configuration &config);
 
     // From Policy
-    virtual ParameterizedActionPolicy *clone() const;
     virtual TransitionType act(const Vector &in, Vector *out) const;
     
     // From ParameterizedPolicy

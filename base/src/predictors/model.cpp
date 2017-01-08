@@ -61,14 +61,6 @@ void ModelPredictor::reconfigure(const Configuration &config)
   
 }
 
-ModelPredictor *ModelPredictor::clone() const
-{
-  ModelPredictor *mp = new ModelPredictor(*this);
-  mp->projector_ = projector_->clone();
-  mp->representation_= representation_->clone();
-  return mp;
-}
-
 void ModelPredictor::update(const Transition &transition)
 {
   Predictor::update(transition);

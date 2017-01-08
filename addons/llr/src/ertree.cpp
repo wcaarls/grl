@@ -282,6 +282,12 @@ void ERTreeProjector::reconfigure(const Configuration &config)
   }
 }
 
+ERTreeProjector &ERTreeProjector::copy(const Configurable &obj)
+{
+  ERROR("Not implemented");
+  return *this;
+}
+
 void ERTreeProjector::push(Sample *sample)
 {
   WriteGuard guard(rwlock_);
@@ -324,11 +330,6 @@ void ERTreeProjector::reindex()
     forest_ = newforest;
     indexed_samples_ = store_->size();
   }
-}
-
-ERTreeProjector *ERTreeProjector::clone() const
-{
-  return NULL;
 }
 
 /**

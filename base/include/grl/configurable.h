@@ -91,7 +91,7 @@ struct CRP
   
   /// Request for a Vector value.
   CRP(std::string _name, std::string _description,
-      Vector _value, Mutability _mutability=Configuration) :
+      LargeVector _value, Mutability _mutability=Configuration) :
     name(_name), type("vector"), description(_description), mutability(_mutability), optional(true)
   {
     setValue(_value);
@@ -99,7 +99,7 @@ struct CRP
 
   /// Request for a Vector value with explicit type specification to set role.
   CRP(std::string _name, std::string _type, std::string _description,
-      Vector _value, Mutability _mutability=Configuration) :
+      LargeVector _value, Mutability _mutability=Configuration) :
     name(_name), type(_type), description(_description), mutability(_mutability), optional(true)
   {
     setValue(_value);
@@ -152,6 +152,16 @@ struct CRP
 
     /// Sets the value member to a string description of the given vector parameter.
     void setValue(const Vector& v)
+    {
+      std::ostringstream oss;
+      std::vector<double> v_out;
+      fromVector(v, v_out);
+      oss << v_out;
+      value = oss.str();
+    }
+    
+    /// Sets the value member to a string description of the given vector parameter.
+    void setValue(const LargeVector& v)
     {
       std::ostringstream oss;
       std::vector<double> v_out;
@@ -214,22 +224,38 @@ class Configurator
     Configurator(const std::string &element=std::string(), Configurator *parent=NULL, bool provided=false) : parent_(parent), element_(element), provided_(provided)
     {
       if (parent_)
-      {
-        for (ConfiguratorList::iterator ii=parent_->children_.begin(); ii != parent_->children_.end(); ++ii)
-          if ((*ii)->element_ == element_)
-          {
-            CRAWL(path() << ": Cowardly refusing to overwrite parent's existing child");
-            return;
-          }
-          
-        parent_->children_.push_back(this);
-      }
+        graft(element, parent_);
     }
     
     virtual ~Configurator()
     {
       for (ConfiguratorList::reverse_iterator ii=children_.rbegin(); ii != children_.rend(); ++ii)
         delete *ii;
+    }
+    
+    const Configurator *parent() const
+    {
+      return parent_;
+    }
+    
+    Configurator *parent()
+    {
+      return parent_;
+    }
+    
+    void graft(const std::string &element, Configurator *parent)
+    {
+      element_ = element;
+      parent_ = parent;
+
+      for (ConfiguratorList::iterator ii=parent_->children_.begin(); ii != parent_->children_.end(); ++ii)
+        if ((*ii)->element_ == element_)
+        {
+          CRAWL(path() << ": Cowardly refusing to overwrite parent's existing child");
+          return;
+        }
+        
+      parent_->children_.push_back(this);
     }
 
     Configurator *root()
@@ -250,12 +276,46 @@ class Configurator
       return element_;
     }
     
+    bool provided() const
+    {
+      return provided_;
+    }
+    
+    virtual const Configurable *ptr() const
+    {
+      return const_cast<Configurator*>(this)->ptr();
+    }
+
     std::string path() const
     {
       if (parent_)
         return parent_->path() + "/" + element_;
       else
         return element_;
+    }
+    
+    std::string relative_path(const std::string &fullpath) const
+    {
+      std::string ownpath = path(), newpath;
+      size_t ii;
+      
+      // Find first path difference
+      for (ii=0; ii < fullpath.size() && ii < ownpath.size() && ownpath[ii] == fullpath[ii]; ++ii);
+      
+      // Make sure we're on a full folder name
+      while (ownpath[ii] != '/')
+        ii--;
+        
+      // Localized path ends with other's path from this point onwards
+      if (ii < fullpath.size())
+        newpath = fullpath.substr(ii+1);
+
+      // Add ../ for every folder on our own path until the end
+      for (; ii < ownpath.size(); ++ii)
+        if (ownpath[ii] == '/')
+          newpath = "../" + newpath;
+          
+      return newpath;
     }
 
     ConfigurationParameter operator[](const std::string &path) const
@@ -278,7 +338,7 @@ class Configurator
     {
       return NULL;
     }
-
+    
     // Find object in hierarchy.
     virtual Configurator *find(const std::string &path)
     {
@@ -334,6 +394,21 @@ class Configurator
       return cfg;
     }
     
+    virtual Configurator &deepcopy(const Configurator &c)
+    {
+      ConfiguratorList::const_iterator jj = c.children_.begin();
+    
+      for (ConfiguratorList::iterator ii=children_.begin(); ii != children_.end() && jj != c.children_.end(); ++ii, ++jj)
+      {
+        if ((*ii)->element() != (*jj)->element())
+          throw Exception("Deep copy requires similar configuration trees at " + path() + "/{" + (*ii)->element() + "," + (*jj)->element() + "}");
+          
+        (*ii)->deepcopy(**jj);
+      }
+      
+      return *this;
+    }
+    
     virtual bool validate(const CRP &crp) const
     {
       return false;
@@ -386,6 +461,40 @@ inline std::ostream& operator<<(std::ostream& os, const Configurator& obj)
   return os;
 }
 
+class ReferenceConfigurator : public Configurator
+{
+  protected:
+    Configurator *reference_;
+    
+  public:
+    ReferenceConfigurator(const std::string &element, Configurator *reference, Configurator *parent=NULL) : Configurator(element, parent), reference_(reference) { }
+    virtual std::string str() { return reference_->str(); }
+    virtual Configurable *ptr() { return reference_->ptr(); }
+    virtual Configurator *find(const std::string &path) { return reference_->find(path); }
+    virtual const Configurator *find(const std::string &path) const
+    {
+      return const_cast<ReferenceConfigurator*>(this)->find(path);
+    }
+    virtual ReferenceConfigurator *instantiate(Configurator *parent=NULL) const
+    {
+      if (!parent)
+      {
+        ERROR(path() << ": Reference configurator must be instantiated as part of an object hierarchy");
+        return NULL;
+      }
+      
+      // Rebase
+      return new ReferenceConfigurator(element_, parent->find(relative_path(reference_->path()).substr(3)), parent);
+    }
+    virtual ReferenceConfigurator &deepcopy(const Configurator &c) { return *this; }
+    virtual bool validate(const CRP &crp) const { return reference_->validate(crp); }
+    virtual void reconfigure(const Configuration &config, bool recursive=false) { reference_->reconfigure(config, recursive); }
+    virtual std::string yaml(size_t depth=0) const
+    {
+      return std::string(2*depth, ' ') + element_ + ": " + relative_path(reference_->path()) + "\n";
+    }
+};
+
 class ParameterConfigurator : public Configurator
 {
   protected:
@@ -408,6 +517,7 @@ class ParameterConfigurator : public Configurator
       return const_cast<ParameterConfigurator*>(this)->find(path);
     }
     virtual ParameterConfigurator *instantiate(Configurator *parent=NULL) const;
+    virtual ParameterConfigurator &deepcopy(const Configurator &c) { return *this; }
     virtual bool validate(const CRP &crp) const;
     virtual void reconfigure(const Configuration &config, bool recursive=false);
     virtual std::string yaml(size_t depth=0) const
@@ -453,6 +563,7 @@ class ObjectConfigurator : public Configurator
     }
     
     virtual ObjectConfigurator *instantiate(Configurator *parent=NULL) const;
+    virtual ObjectConfigurator &deepcopy(const Configurator &c);
     virtual bool validate(const CRP &crp) const;
     virtual void reconfigure(const Configuration &config, bool recursive=false);
     virtual std::string yaml(size_t depth=0) const
@@ -540,7 +651,32 @@ class Configurable
       config.set("action", "reset");
       walk(config);
     }
+    
+    Configurable &deepcopy(const Configurable &obj)
+    {
+      configurator_->deepcopy(*obj.configurator_);
+      return *this;
+    }
 
+    /// This function should be reimplemented in derived classes with
+    /// variable internal state (i.e. representations).
+    virtual Configurable &copy(const Configurable &obj)
+    {
+      return *this;
+    }
+
+    Configurable *reinstantiate() const
+    {
+      return configurator_->instantiate()->ptr();
+    }
+    
+    Configurable *clone() const
+    {
+      Configurable *c = reinstantiate();
+      c->deepcopy(*this);
+      return c;
+    }
+    
   protected:
     /// Configurable-specific log writer (also logs class name).
     inline void log(unsigned char level, const std::ostringstream &oss) const

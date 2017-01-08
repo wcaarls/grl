@@ -100,11 +100,6 @@ void LLRRepresentation::reconfigure(const Configuration &config)
 {
 }
 
-LLRRepresentation *LLRRepresentation::clone() const
-{
-  return NULL;
-}
-
 double LLRRepresentation::read(const ProjectionPtr &projection, Vector *result, Vector *stddev) const
 {
   SampleProjection *p = dynamic_cast<SampleProjection*>(projection.get());

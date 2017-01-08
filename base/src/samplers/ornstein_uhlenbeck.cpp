@@ -77,13 +77,6 @@ void OrnsteinUhlenbeckSampler::reconfigure(const Configuration &config)
   GreedySampler::reconfigure(config);
 }
 
-OrnsteinUhlenbeckSampler *OrnsteinUhlenbeckSampler::clone()
-{
-  OrnsteinUhlenbeckSampler *egs = new OrnsteinUhlenbeckSampler(*this);
-  egs->rand_ = rand_->clone();
-  return egs;
-}
-
 void OrnsteinUhlenbeckSampler::evolve_noise()
 {
   CRAWL(noise_);
@@ -146,13 +139,6 @@ void ACOrnsteinUhlenbeckSampler::reconfigure(const Configuration &config)
   config.get("epsilon", epsilon_);
 }
 
-ACOrnsteinUhlenbeckSampler *ACOrnsteinUhlenbeckSampler::clone()
-{
-  ACOrnsteinUhlenbeckSampler *egs = new ACOrnsteinUhlenbeckSampler(*this);
-  egs->rand_ = rand_->clone();
-  return egs;
-}
-
 size_t ACOrnsteinUhlenbeckSampler::sample(double time, const LargeVector &values, TransitionType &tt)
 {
   if (rand_->get() < epsilon_ && time != 0.0)
@@ -201,13 +187,6 @@ void EpsilonOrnsteinUhlenbeckSampler::configure(Configuration &config)
 void EpsilonOrnsteinUhlenbeckSampler::reconfigure(const Configuration &config)
 {
   config.get("epsilon", epsilon_);
-}
-
-EpsilonOrnsteinUhlenbeckSampler *EpsilonOrnsteinUhlenbeckSampler::clone()
-{
-  EpsilonOrnsteinUhlenbeckSampler *egs = new EpsilonOrnsteinUhlenbeckSampler(*this);
-  egs->rand_ = rand_->clone();
-  return egs;
 }
 
 size_t EpsilonOrnsteinUhlenbeckSampler::sample(double time, const LargeVector &values, TransitionType &tt)
@@ -262,13 +241,6 @@ void PadaOrnsteinUhlenbeckSampler::configure(Configuration &config)
 void PadaOrnsteinUhlenbeckSampler::reconfigure(const Configuration &config)
 {
   pada_->reconfigure(config);
-}
-
-PadaOrnsteinUhlenbeckSampler *PadaOrnsteinUhlenbeckSampler::clone()
-{
-  PadaOrnsteinUhlenbeckSampler *egs = new PadaOrnsteinUhlenbeckSampler(*this);
-  egs->rand_ = rand_->clone();
-  return egs;
 }
 
 size_t PadaOrnsteinUhlenbeckSampler::sample(double time, const LargeVector &values, TransitionType &tt)

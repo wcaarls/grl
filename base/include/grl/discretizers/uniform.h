@@ -52,7 +52,6 @@ class UniformDiscretizer : public Discretizer
     virtual void reconfigure(const Configuration &config);
     
     // From Discretizer
-    virtual UniformDiscretizer* clone();
     virtual iterator begin() const;
     virtual size_t size() const;
     virtual void inc(iterator *it) const;

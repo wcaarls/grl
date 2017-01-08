@@ -33,7 +33,7 @@ REGISTER_CONFIGURABLE(TDAgent)
 
 void TDAgent::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("policy", "policy", "Control policy", policy_));
+  config->push_back(CRP("policy", "mapping/policy", "Control policy", policy_));
   config->push_back(CRP("predictor", "predictor", "Value function predictor", predictor_));
 }
 
@@ -45,15 +45,6 @@ void TDAgent::configure(Configuration &config)
 
 void TDAgent::reconfigure(const Configuration &config)
 {
-}
-
-TDAgent *TDAgent::clone() const
-{
-  TDAgent *agent = new TDAgent();
-  agent->policy_ = policy_->clone();
-  agent->predictor_= predictor_->clone();
-  
-  return agent;
 }
 
 TransitionType TDAgent::start(const Vector &obs, Vector *action)

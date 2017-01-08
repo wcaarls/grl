@@ -48,14 +48,6 @@ void LeoTDAgent::reconfigure(const Configuration &config)
   TDAgent::reconfigure(config);
 }
 
-LeoTDAgent *LeoTDAgent::clone() const
-{
-  LeoTDAgent *agent = new LeoTDAgent();
-  agent->policy_ = policy_->clone();
-  agent->predictor_= predictor_->clone();
-  return agent;
-}
-
 TransitionType LeoTDAgent::start(const Vector &obs, Vector *action)
 {
   TransitionType tt = TDAgent::start(obs, action);

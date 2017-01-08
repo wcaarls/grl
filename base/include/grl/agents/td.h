@@ -54,7 +54,7 @@ class TDAgent : public Agent
     Predictor *predictor_;
     
     Instance<TDAgentState> agent_state_;
-
+    
   public:
     TDAgent() : policy_(NULL), predictor_(NULL) { }
   
@@ -64,7 +64,6 @@ class TDAgent : public Agent
     virtual void reconfigure(const Configuration &config);
 
     // From Agent
-    virtual TDAgent *clone() const;
     virtual TransitionType start(const Vector &obs, Vector *action);
     virtual TransitionType step(double tau, const Vector &obs, double reward, Vector *action);
     virtual void end(double tau, const Vector &obs, double reward);

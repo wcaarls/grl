@@ -53,7 +53,6 @@ class MultisineMapping : public Mapping
     virtual void reconfigure(const Configuration &config);
   
     // From Mapping
-    virtual MultisineMapping *clone() const;
     virtual double read(const Vector &in, Vector *result) const ;
     
   protected:

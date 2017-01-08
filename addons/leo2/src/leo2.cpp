@@ -65,11 +65,6 @@ void LEO2Environment::reconfigure(const Configuration &config)
 {
 }
     
-LEO2Environment *LEO2Environment::clone() const
-{
-  return NULL;
-}
-
 void LEO2Environment::start(int test, Vector *obs)
 {
   // First await robot to self-right

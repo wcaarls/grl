@@ -74,13 +74,6 @@ void NormalizingProjector::reconfigure(const Configuration &config)
 {
 }
 
-NormalizingProjector *NormalizingProjector::clone() const
-{
-  NormalizingProjector *projector = new NormalizingProjector(*this);
-  projector->projector_ = projector_->clone();
-  return projector;
-}
-
 ProjectionPtr NormalizingProjector::project(const Vector &in) const
 {
   if (in.size() != scaling_.size())

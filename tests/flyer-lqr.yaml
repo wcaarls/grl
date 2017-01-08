@@ -1,0 +1,48 @@
+experiment:
+  runs: 1
+  trials: 10
+  steps: 0
+  rate: 0
+  test_interval: -1
+  output: flyer-lqr
+  environment:
+    model:
+      control_step: 0.05
+      integration_steps: 5
+      dynamics:
+        type: dynamics/flyer2d
+      type: model/dynamical
+    task:
+      start: [ 0, 0, 0, 0, 0, 0 ]
+      goal: [ 0, 0, 0, 0, 0, 0 ]
+      stddev: [ 0.1, 0.1, 0.1, 0, 0, 0 ]
+      q: [ 1, 1, 1, 0, 0, 0 ]
+      r: [ 0.01, 0.01 ]
+      type: task/flyer2d/regulator
+    exporter: 0
+    type: environment/modeled
+  agent:
+    interval: 1
+    policy:
+      operating_state: ../../../environment/task/goal
+      operating_action: [ 0.5, 0.5 ]
+      gains: [  ]
+      output_min: experiment/environment/task/action_min
+      output_max: experiment/environment/task/action_max
+      type: policy/parameterized/state_feedback
+    solver:
+      operating_state: ../../../environment/task/goal
+      operating_action: ../../policy/operating_action
+      model:
+        jacobian_step: 0.001
+        model: ../../../../environment/model
+        task: ../../../../environment/task
+        type: observation_model/fixed
+      policy: ../../policy
+      type: solver/lqr
+    predictor: 0
+    type: agent/solver
+  test_agent: ../agent
+  save_every: never
+  load_file: ""
+  type: experiment/online_learning

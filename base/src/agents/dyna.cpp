@@ -50,7 +50,7 @@ void DynaAgent::request(ConfigurationRequest *config)
   config->push_back(CRP("planning_horizon", "Planning episode length", planning_horizon_, CRP::Configuration, 0));
   config->push_back(CRP("threads", "Threads used for planning (0 = synchronous planning. >0 requires reentrant model_agent)", threads_, CRP::Configuration, 0, INT_MAX));
 
-  config->push_back(CRP("policy", "policy", "Control policy", policy_));
+  config->push_back(CRP("policy", "mapping/policy", "Control policy", policy_));
   config->push_back(CRP("predictor", "predictor", "Value function predictor", predictor_));
   config->push_back(CRP("model", "observation_model", "Observation model used for planning", model_));
   config->push_back(CRP("model_predictor", "predictor/model", "Model predictor", model_predictor_, true));
@@ -87,19 +87,6 @@ void DynaAgent::reconfigure(const Configuration &config)
   }
     
   config.get("planning_steps", planning_steps_);
-}
-
-DynaAgent *DynaAgent::clone() const
-{
-  DynaAgent *agent = new DynaAgent(*this);
-  
-  agent->policy_ = policy_->clone();
-  agent->predictor_= predictor_->clone();
-  agent->model_ = model_->clone();
-  agent->model_predictor_= model_predictor_->clone();
-  agent->model_agent_= model_agent_->clone();
-  
-  return agent;
 }
 
 TransitionType DynaAgent::start(const Vector &obs, Vector *action)

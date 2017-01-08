@@ -49,7 +49,6 @@ class AcrobotDynamics : public Dynamics
     virtual void reconfigure(const Configuration &config);
 
     // From Dynamics
-    virtual AcrobotDynamics *clone() const;
     virtual void eom(const Vector &state, const Vector &action, Vector *xd) const;
 };
 
@@ -68,7 +67,6 @@ class AcrobotBalancingTask : public Task
     virtual void reconfigure(const Configuration &config);
 
     // From Task
-    virtual AcrobotBalancingTask *clone() const;
     virtual void start(int test, Vector *state) const;
     virtual void observe(const Vector &state, Vector *obs, int *terminal) const;
     virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const;
@@ -100,7 +98,6 @@ class AcrobotRegulatorTask : public RegulatorTask
     virtual void reconfigure(const Configuration &config);
 
     // From Task
-    virtual AcrobotRegulatorTask *clone() const;
     virtual void observe(const Vector &state, Vector *obs, int *terminal) const;
     virtual bool invert(const Vector &obs, Vector *state) const;
 };

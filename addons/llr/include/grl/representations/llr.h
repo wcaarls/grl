@@ -61,7 +61,6 @@ class LLRRepresentation : public Representation
     virtual void reconfigure(const Configuration &config);
   
     // From Representation
-    virtual LLRRepresentation *clone() const;
     virtual double read(const ProjectionPtr &projection, Vector *result, Vector *stddev) const;
     virtual void write(const ProjectionPtr projection, const Vector &target, const Vector &alpha);
     virtual void update(const ProjectionPtr projection, const Vector &delta);

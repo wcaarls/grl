@@ -8,7 +8,6 @@ add_library(${TARGET} SHARED
             ${SRC}/agents/black_box.cpp
             ${SRC}/agents/td.cpp
 #            ${SRC}/agents/dyna.cpp
-#            ${SRC}/agents/exclusive.cpp
             ${SRC}/agents/sequential.cpp
 #            ${SRC}/agents/smdp_master.cpp
             ${SRC}/agents/compartmentalized.cpp
@@ -41,10 +40,12 @@ add_library(${TARGET} SHARED
             ${SRC}/experiments/online_learning.cpp
             ${SRC}/experiments/batch_learning.cpp
 #            ${SRC}/experiments/rpc_env.cpp
+#            ${SRC}/experiments/multi.cpp
             ${SRC}/exporters/csv.cpp
             ${SRC}/importers/csv.cpp
             ${SRC}/mappings/multisine.cpp
             ${SRC}/mappings/q_policy.cpp
+#            ${SRC}/optimizers/rwa.cpp
             ${SRC}/policies/random.cpp
             ${SRC}/policies/action.cpp
             ${SRC}/policies/v.cpp
@@ -63,11 +64,13 @@ add_library(${TARGET} SHARED
 #            ${SRC}/predictors/ggq.cpp
             ${SRC}/predictors/ac.cpp
             ${SRC}/predictors/fqi.cpp
+#            ${SRC}/predictors/mbfqi.cpp
             ${SRC}/predictors/qv.cpp
             ${SRC}/predictors/td.cpp
             ${SRC}/predictors/vi.cpp
             ${SRC}/predictors/advantage.cpp
 #            ${SRC}/predictors/multi.cpp
+            ${SRC}/predictors/dpg.cpp
 #            ${SRC}/projectors/identity.cpp
             ${SRC}/projectors/normalizing.cpp
             ${SRC}/projectors/peaked.cpp
@@ -76,6 +79,8 @@ add_library(${TARGET} SHARED
 #            ${SRC}/projectors/fourier.cpp
 #            ${SRC}/projectors/monomial.cpp
 #            ${SRC}/projectors/grid.cpp
+#            ${SRC}/projectors/rbf.cpp
+#            ${SRC}/projectors/multi.cpp
             ${SRC}/representations/linear.cpp
             ${SRC}/representations/ann.cpp
 #            ${SRC}/representations/dmp.cpp
@@ -112,6 +117,20 @@ set (TARGET grld)
 add_executable(${TARGET} ${SRC}/deployer.cpp)
 grl_link_libraries(${TARGET} base)
 install(TARGETS ${TARGET} DESTINATION ${GRL_BIN_DESTINATION})
+
+FIND_PACKAGE (Lua51)
+
+if (LUA51_FOUND)
+  message("-- Building Lua deployer")
+  include_directories(${LUA_INCLUDE_DIR})
+
+  # Lua deployer
+  set (TARGET grll)
+  add_executable(${TARGET} ${SRC}/lua_deployer.cpp)
+  target_link_libraries(${TARGET} ${LUA_LIBRARIES})
+  grl_link_libraries(${TARGET} base)
+  install(TARGETS ${TARGET} DESTINATION ${GRL_BIN_DESTINATION})
+endif()
 
 # Requestgen
 set (TARGET grlg)

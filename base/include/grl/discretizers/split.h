@@ -52,8 +52,9 @@ class SplitDiscretizer : public Discretizer
     int identify_;
 
   public:
-    SplitDiscretizer() : discretizer_(2), idxsize_(0), ressize_(0), identify_(-1)
+    SplitDiscretizer() : idxsize_(0), ressize_(0), identify_(-1)
     {
+      discretizer_.reserve(2);
       discretizer_[0] = discretizer_[1] = NULL;
     }
   
@@ -63,13 +64,12 @@ class SplitDiscretizer : public Discretizer
     virtual void reconfigure(const Configuration &config);
     
     // From Discretizer
-    virtual SplitDiscretizer* clone();
     virtual iterator begin(const Vector &point) const;
     virtual size_t size(const Vector &point) const;
     virtual void inc(iterator *it) const;
     virtual Vector get(const iterator &it) const;
     virtual Vector at(const Vector &point, size_t idx) const;
-    virtual size_t discretize(Vector *vec) const { return NULL; }
+    virtual size_t discretize(Vector *vec) const { return 0; }
 };
 
 }

@@ -74,11 +74,6 @@ void PinballModel::reconfigure(const Configuration &config)
 {
 }
 
-PinballModel *PinballModel::clone() const
-{
-  return new PinballModel(*this);
-}
-
 double PinballModel::step(const Vector &state, const Vector &action, Vector *next) const
 {
   Ball b = Ball(Point(state[siX], state[siY]), Point(state[siXd], state[siYd]), radius_);
@@ -120,11 +115,6 @@ void PinballMovementTask::configure(Configuration &config)
 
 void PinballMovementTask::reconfigure(const Configuration &config)
 {
-}
-
-PinballMovementTask *PinballMovementTask::clone() const
-{
-  return new PinballMovementTask(*this);
 }
 
 void PinballMovementTask::start(int test, Vector *state) const
@@ -203,11 +193,6 @@ void PinballRegulatorTask::configure(Configuration &config)
 void PinballRegulatorTask::reconfigure(const Configuration &config)
 {
   RegulatorTask::reconfigure(config);
-}
-
-PinballRegulatorTask *PinballRegulatorTask::clone() const
-{
-  return new PinballRegulatorTask(*this);
 }
 
 void PinballRegulatorTask::observe(const Vector &state, Vector *obs, int *terminal) const

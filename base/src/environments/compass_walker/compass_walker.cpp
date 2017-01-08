@@ -60,11 +60,6 @@ void CompassWalkerModel::reconfigure(const Configuration &config)
 {
 }
 
-CompassWalkerModel *CompassWalkerModel::clone() const
-{
-  return new CompassWalkerModel(*this);
-}
-
 double CompassWalkerModel::step(const Vector &state, const Vector &action, Vector *next) const
 {
   if (state.size() != CompassWalker::ssStateSize || action.size() != 1)
@@ -127,9 +122,14 @@ void CompassWalkerSandbox::reconfigure(const Configuration &config)
   time_ = 0.0;
 }
 
-CompassWalkerSandbox *CompassWalkerSandbox::clone() const
+CompassWalkerSandbox &CompassWalkerSandbox::copy(const Configurable &obj)
 {
-  return new CompassWalkerSandbox(*this);
+  const CompassWalkerSandbox &sb = dynamic_cast<const CompassWalkerSandbox&>(obj);
+  
+  hip_instant_velocity_ = sb.hip_instant_velocity_;
+  test_ = sb.test_;
+  
+  return *this;
 }
 
 void CompassWalkerSandbox::start(const Vector &hint, Vector *state)
@@ -246,11 +246,6 @@ void CompassWalkerWalkTask::configure(Configuration &config)
 
 void CompassWalkerWalkTask::reconfigure(const Configuration &config)
 {
-}
-
-CompassWalkerWalkTask *CompassWalkerWalkTask::clone() const
-{
-  return new CompassWalkerWalkTask(*this);
 }
 
 void CompassWalkerWalkTask::start(int test, Vector *state) const

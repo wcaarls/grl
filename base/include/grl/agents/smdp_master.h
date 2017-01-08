@@ -58,7 +58,6 @@ class SMDPMasterAgent : public Agent
     virtual void reconfigure(const Configuration &config);
 
     // From Agent
-    virtual SMDPMasterAgent *clone() const;
     virtual void start(const Vector &obs, Vector *action);
     virtual void step(double tau, const Vector &obs, double reward, Vector *action);
     virtual void end(double tau, const Vector &obs, double reward);
@@ -83,6 +82,15 @@ class PredicatedMasterAgent : public SMDPMasterAgent
 {
   public:
     TYPEINFO("agent/master/predicated", "Master agent in which execution is predicated on preceding agent confidence")
+    
+  protected:
+    virtual void runSubAgents(double time, const Vector &obs, Vector *action);
+};
+
+class RandomMasterAgent : public SMDPMasterAgent
+{
+  public:
+    TYPEINFO("agent/master/random", "Master agent that chooses sub-agents randomly")
     
   protected:
     virtual void runSubAgents(double time, const Vector &obs, Vector *action);

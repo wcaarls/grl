@@ -91,11 +91,6 @@ void PIDPolicy::reconfigure(const Configuration &config)
   }
 }
 
-PIDPolicy *PIDPolicy::clone() const
-{
-  return new PIDPolicy(*this);
-}
-
 TransitionType PIDPolicy::act(const Vector &in, Vector *out) const
 {
   out->resize(outputs_); 
@@ -217,11 +212,6 @@ void PIDTrajectoryPolicy::reconfigure(const Configuration &config)
   }
 }
 
-PIDTrajectoryPolicy *PIDTrajectoryPolicy::clone() const
-{
-  return new PIDTrajectoryPolicy(*this);
-}
-
 TransitionType PIDTrajectoryPolicy::act(const Vector &in, Vector *out) const
 {
   WARNING("Trajectory policy has no autonomous policy implementation");
@@ -273,5 +263,3 @@ TransitionType PIDTrajectoryPolicy::act(double time, const Vector &in, Vector *o
   prev_in_ = in;
   return ttGreedy;
 }
-
-

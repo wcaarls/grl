@@ -38,7 +38,6 @@ class Solver : public Configurable
 {
   public:
     virtual ~Solver() { }
-    virtual Solver *clone() const = 0;
     
     /// Solve MDP.
     virtual bool solve() = 0;

@@ -48,11 +48,6 @@ void Flyer2DDynamics::reconfigure(const Configuration &config)
 {
 }
 
-Flyer2DDynamics *Flyer2DDynamics::clone() const
-{
-  return new Flyer2DDynamics(*this);
-}
-
 void Flyer2DDynamics::eom(const Vector &state, const Vector &action, Vector *xd) const
 {
   if (state.size() != 7 || action.size() != 2)
@@ -93,11 +88,6 @@ void Flyer2DRegulatorTask::configure(Configuration &config)
 void Flyer2DRegulatorTask::reconfigure(const Configuration &config)
 {
   RegulatorTask::reconfigure(config);
-}
-
-Flyer2DRegulatorTask *Flyer2DRegulatorTask::clone() const
-{
-  return new Flyer2DRegulatorTask(*this);
 }
 
 void Flyer2DRegulatorTask::observe(const Vector &state, Vector *obs, int *terminal) const

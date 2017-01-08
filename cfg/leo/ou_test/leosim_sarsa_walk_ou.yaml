@@ -30,7 +30,7 @@ experiment:
   agent: 
     type: agent/leo/td
     policy: 
-      type: policy/discrete/q
+      type: mapping/policy/discrete/q
       discretizer: 
         type: discretizer/uniform
         min: experiment/environment/action_min
@@ -78,7 +78,7 @@ experiment:
   test_agent: 
     type: agent/leo/fixed
     policy: 
-      type: policy/discrete/q
+      type: mapping/policy/discrete/q
       discretizer: experiment/agent/policy/discretizer
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
