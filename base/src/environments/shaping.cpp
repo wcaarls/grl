@@ -83,7 +83,7 @@ double ShapingEnvironment::step(const Vector &action, Vector *obs, double *rewar
   return tau;
 }
 
-void ShapingEnvironment::report(std::ostream &os)
+void ShapingEnvironment::report(std::ostream &os) const
 {
   os << std::setw(15) << total_reward_;
 }

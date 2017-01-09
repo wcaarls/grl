@@ -68,7 +68,7 @@ TransitionType NoisePolicy::act(const Vector &in, Vector *out) const
     (*out)[ii] += RandGen::getNormal(0., sigma_[ii]);
 }
 
-void NoisePolicy::act(double time, const Vector &in, Vector *out)
+TransitionType NoisePolicy::act(double time, const Vector &in, Vector *out)
 {
   policy_->act(in, out);
   
