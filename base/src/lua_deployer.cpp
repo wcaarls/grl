@@ -152,9 +152,19 @@ static int index(lua_State *L)
     luaL_error(L, "__index() expected 2 arguments, %d given", lua_gettop(L));
   
   Configurator *conf = lua_toconfigurator(L, 1);
+  if (dynamic_cast<ParameterConfigurator*>(conf))
+    luaL_error(L, "Cannot index a parameter");
+  
   std::string key = luaL_checkstring(L, 2);
   
-  lua_newgrl(L, conf->find(key));
+  Configurator *param = conf->find(key);
+  
+  // If parameter doesn't exist, assume it will be defined upon
+  // instantiation (i.e. uses default value, or it's provided)
+  if (!param)
+    param = new ReferenceConfigurator("", conf, key);
+  
+  lua_newgrl(L, param);
 
   return 1;
 }
@@ -165,6 +175,16 @@ static int newindex(lua_State *L)
     luaL_error(L, "__newindex() expected 3 arguments, %d given", lua_gettop(L));
     
   Configurator *conf = lua_toconfigurator(L, 1);
+  if (dynamic_cast<ParameterConfigurator*>(conf))
+    luaL_error(L, "Cannot index a parameter");
+    
+  if (dynamic_cast<ReferenceConfigurator*>(conf))
+  {
+    conf = conf->find("");
+    if (!conf)
+      luaL_error(L, "Cannot assign to an invalid reference");
+  }
+
   std::string key = luaL_checkstring(L, 2);
 
   if (lua_istable(L, 3))
@@ -176,10 +196,14 @@ static int newindex(lua_State *L)
     {
       // Configurator
       Configurator *conf2 = (Configurator*)lua_touserdata(L, -1);
+      
+      if (!conf2)
+        luaL_error(L, "Argument #3 points to an invalid object");
+      
       if (conf2->parent())
-        new ReferenceConfigurator(key, conf2, conf);
+        new ReferenceConfigurator(key, conf2, "", conf);
       else
-        conf2->graft(key, conf);
+        conf2->graft(key, conf, true);
     }
     else
     {
@@ -189,7 +213,8 @@ static int newindex(lua_State *L)
       std::vector<double> v_out;
       fromVector(v, v_out);
       oss << v_out;
-      new ParameterConfigurator(key, oss.str(), conf);
+      Configurator *conf2 = new ParameterConfigurator("", oss.str());
+      conf2->graft(key, conf, true);
     }
     lua_pop(L, 1);
   }
@@ -204,7 +229,10 @@ static int newindex(lua_State *L)
       oss << lua_tostring(L, 3);
       
     if (!oss.str().empty())
-      new ParameterConfigurator(key, oss.str(), conf);
+    {
+      Configurator *conf2 = new ParameterConfigurator("", oss.str());
+      conf2->graft(key, conf, true);
+    }
   }
 
   return 0;

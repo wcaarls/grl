@@ -243,7 +243,7 @@ class Configurator
       return parent_;
     }
     
-    void graft(const std::string &element, Configurator *parent)
+    void graft(const std::string &element, Configurator *parent, bool overwrite=false)
     {
       element_ = element;
       parent_ = parent;
@@ -251,7 +251,11 @@ class Configurator
       for (ConfiguratorList::iterator ii=parent_->children_.begin(); ii != parent_->children_.end(); ++ii)
         if ((*ii)->element_ == element_)
         {
-          CRAWL(path() << ": Cowardly refusing to overwrite parent's existing child");
+          if (overwrite)
+            *ii = this;
+          else
+            CRAWL(path() << ": Cowardly refusing to overwrite parent's existing child");
+            
           return;
         }
         
@@ -328,6 +332,11 @@ class Configurator
     }
     
     // *** virtual functions ***
+    
+    virtual std::string reference_path() const
+    {
+      return path();
+    }
     
     virtual std::string str() const
     {
@@ -465,33 +474,33 @@ class ReferenceConfigurator : public Configurator
 {
   protected:
     Configurator *reference_;
+    std::string path_;
     
   public:
-    ReferenceConfigurator(const std::string &element, Configurator *reference, Configurator *parent=NULL) : Configurator(element, parent), reference_(reference) { }
-    virtual std::string str() { return reference_->str(); }
-    virtual Configurable *ptr() { return reference_->ptr(); }
-    virtual Configurator *find(const std::string &path) { return reference_->find(path); }
+    ReferenceConfigurator(const std::string &element, Configurator *reference, const std::string &path="", Configurator *parent=NULL) : Configurator(element, parent), reference_(reference), path_(path) { }
+
+    virtual std::string reference_path() const;
+    virtual std::string str() const;
+    virtual Configurable *ptr();
+    virtual Configurator *find(const std::string &path);
     virtual const Configurator *find(const std::string &path) const
     {
       return const_cast<ReferenceConfigurator*>(this)->find(path);
     }
-    virtual ReferenceConfigurator *instantiate(Configurator *parent=NULL) const
-    {
-      if (!parent)
-      {
-        ERROR(path() << ": Reference configurator must be instantiated as part of an object hierarchy");
-        return NULL;
-      }
-      
-      // Rebase
-      return new ReferenceConfigurator(element_, parent->find(relative_path(reference_->path()).substr(3)), parent);
-    }
+    virtual ReferenceConfigurator *instantiate(Configurator *parent=NULL) const;
     virtual ReferenceConfigurator &deepcopy(const Configurator &c) { return *this; }
-    virtual bool validate(const CRP &crp) const { return reference_->validate(crp); }
-    virtual void reconfigure(const Configuration &config, bool recursive=false) { reference_->reconfigure(config, recursive); }
+    virtual bool validate(const CRP &crp) const;
+    virtual void reconfigure(const Configuration &config, bool recursive=false);
     virtual std::string yaml(size_t depth=0) const
     {
-      return std::string(2*depth, ' ') + element_ + ": " + relative_path(reference_->path()) + "\n";
+      return std::string(2*depth, ' ') + element_ + ": " + relative_path(reference_path()) + "\n";
+    }
+
+  protected:
+    Configurator *resolve(const std::string &id);
+    const Configurator *resolve(const std::string &id) const
+    {
+      return const_cast<ReferenceConfigurator*>(this)->resolve(id);
     }
 };
 
@@ -502,12 +511,6 @@ class ParameterConfigurator : public Configurator
     
   public:
     ParameterConfigurator(const std::string &element, const std::string &value, Configurator *parent=NULL, bool provided=false) : Configurator(element, parent, provided), value_(value) { }
-    std::string localize(const std::string &id) const;
-    Configurator *resolve(const std::string &id);
-    const Configurator *resolve(const std::string &id) const
-    {
-      return const_cast<ParameterConfigurator*>(this)->resolve(id);
-    }
     
     virtual std::string str() const;
     virtual Configurable *ptr();
@@ -526,6 +529,15 @@ class ParameterConfigurator : public Configurator
         return std::string(2*depth, ' ') + element_ + ": " + value_ + "\n";
       else
         return std::string(2*depth, ' ') + element_ + ": \"\"\n";
+    }
+    
+  protected:
+    bool isseparator(char c) const;
+    std::string localize(const std::string &id, const Configurator *parent=NULL) const;
+    Configurator *resolve(const std::string &id, Configurator *parent=NULL);
+    const Configurator *resolve(const std::string &id, const Configurator *parent=NULL) const
+    {
+      return const_cast<ParameterConfigurator*>(this)->resolve(id, const_cast<Configurator*>(parent));
     }
 };
 
