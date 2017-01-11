@@ -42,7 +42,8 @@ class SMDPMasterAgent : public Agent
     std::vector<SubAgent*> agent_;
     std::vector<double> time_, reward_;
     double gamma_, tau_, prev_time_;
-    Vector prev_obs_, prev_action_;
+    Observation prev_obs_;
+    Action prev_action_;
     
   public:
     SMDPMasterAgent() : predictor_(0), agent_(2), time_(2), reward_(2), gamma_(0.97), tau_(0.05), prev_time_(0)
@@ -58,15 +59,15 @@ class SMDPMasterAgent : public Agent
     virtual void reconfigure(const Configuration &config);
 
     // From Agent
-    virtual void start(const Vector &obs, Vector *action);
-    virtual void step(double tau, const Vector &obs, double reward, Vector *action);
-    virtual void end(double tau, const Vector &obs, double reward);
+    virtual void start(const Observation &obs, Action *action);
+    virtual void step(double tau, const Observation &obs, double reward, Action *action);
+    virtual void end(double tau, const Observation &obs, double reward);
     
     /// Run a specific sub-agent, starting it if it hadn't been started already. Returns confidence.
-    virtual double runSubAgent(size_t idx, double time, const Vector &obs, Vector *action);
+    virtual double runSubAgent(size_t idx, double time, const Observation &obs, Action *action);
     
     /// Choose one ore more subagents to run (should call runSubAgent).
-    virtual void runSubAgents(double time, const Vector &obs, Vector *action) = 0;
+    virtual void runSubAgents(double time, const Observation &obs, Action *action) = 0;
 };
 
 class ExclusiveMasterAgent : public SMDPMasterAgent
@@ -75,7 +76,7 @@ class ExclusiveMasterAgent : public SMDPMasterAgent
     TYPEINFO("agent/master/exclusive", "Master agent that selects one sub-agent to execute")
     
   protected:
-    virtual void runSubAgents(double time, const Vector &obs, Vector *action);
+    virtual void runSubAgents(double time, const Observation &obs, Action *action);
 };
 
 class PredicatedMasterAgent : public SMDPMasterAgent
@@ -84,7 +85,7 @@ class PredicatedMasterAgent : public SMDPMasterAgent
     TYPEINFO("agent/master/predicated", "Master agent in which execution is predicated on preceding agent confidence")
     
   protected:
-    virtual void runSubAgents(double time, const Vector &obs, Vector *action);
+    virtual void runSubAgents(double time, const Observation &obs, Action *action);
 };
 
 class RandomMasterAgent : public SMDPMasterAgent
@@ -93,7 +94,7 @@ class RandomMasterAgent : public SMDPMasterAgent
     TYPEINFO("agent/master/random", "Master agent that chooses sub-agents randomly")
     
   protected:
-    virtual void runSubAgents(double time, const Vector &obs, Vector *action);
+    virtual void runSubAgents(double time, const Observation &obs, Action *action);
 };
 
 }

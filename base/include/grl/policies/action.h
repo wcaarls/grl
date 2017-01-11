@@ -57,7 +57,7 @@ class ActionPolicy : public Policy
     virtual void reconfigure(const Configuration &config);
 
     // From Policy
-    virtual void act(const Vector &in, Vector *out) const;
+    virtual void act(const Observation &in, Action *out) const;
 };
 
 /// Policy based on an action-probability representation.
@@ -82,7 +82,7 @@ class ActionProbabilityPolicy : public Policy
     virtual void reconfigure(const Configuration &config);
   
     // From Policy
-    virtual void act(const Vector &in, Vector *out) const;
+    virtual void act(const Observation &in, Action *out) const;
 };
 
 }

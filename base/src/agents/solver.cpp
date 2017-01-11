@@ -59,7 +59,7 @@ void SolverAgent::reconfigure(const Configuration &config)
   episodes_ = 0;
 }
 
-void SolverAgent::start(const Vector &obs, Vector *action)
+void SolverAgent::start(const Observation &obs, Action *action)
 {
   if (predictor_)
     predictor_->finalize();
@@ -77,7 +77,7 @@ void SolverAgent::start(const Vector &obs, Vector *action)
   prev_action_ = *action;
 }
 
-void SolverAgent::step(double tau, const Vector &obs, double reward, Vector *action)
+void SolverAgent::step(double tau, const Observation &obs, double reward, Action *action)
 {
   time_ += tau;
   solver_->resolve(time_, obs);
@@ -90,10 +90,10 @@ void SolverAgent::step(double tau, const Vector &obs, double reward, Vector *act
   }
 
   prev_obs_ = obs;
-  prev_action_ = *action;  
+  prev_action_ = *action;
 }
 
-void SolverAgent::end(double tau, const Vector &obs, double reward)
+void SolverAgent::end(double tau, const Observation &obs, double reward)
 {
   if (predictor_)
   {

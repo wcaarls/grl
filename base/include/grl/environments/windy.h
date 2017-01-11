@@ -57,7 +57,7 @@ class WindyGridworldModel : public Model
     virtual void reconfigure(const Configuration &config);
     
     // From Model
-    virtual double step(const Vector &state, const Vector &action, Vector *next) const;
+    virtual double step(const Vector &state, const Vector &actuation, Vector *next) const;
 };
 
 /// Windy gridworld movement task.
@@ -76,9 +76,9 @@ class WindyGridworldMovementTask : public Task
 
     // From Task
     virtual void start(int test, Vector *state) const;
-    virtual void observe(const Vector &state, Vector *obs, int *terminal) const;
-    virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const;
-    virtual bool invert(const Vector &obs, Vector *state) const;
+    virtual void observe(const Vector &state, Observation *obs, int *terminal) const;
+    virtual void evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const;
+    virtual bool invert(const Observation &obs, Vector *state) const;
 
   protected:
     bool succeeded(const Vector &state) const;

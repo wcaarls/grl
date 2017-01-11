@@ -36,24 +36,21 @@
 namespace grl
 {
 
-/// Encapsulates a vector (e.g. system state).
-class VectorSignal : public Configurable
+template<class T>
+class Signal : public Configurable
 {
-  public:
-    TYPEINFO("signal/vector", "Vector-based signal (state, observation, etc.)");
-    
   protected:
-    itc::SharedVariable<LargeVector> var_;
+    itc::SharedVariable<T> var_;
 
   public:
     /// Returns current value.
-    virtual LargeVector get()
+    virtual T get()
     {
       return var_.get();
     }
 
     /// Sets new value.    
-    virtual void set(const LargeVector &state)
+    virtual void set(const T &state)
     {
       var_.write(state);
     }
@@ -65,45 +62,24 @@ class VectorSignal : public Configurable
     }
 
     /// Reads a new value, waiting until it changes if necessary.    
-    virtual LargeVector read()
+    virtual T read()
     {
       return var_.read();
     }
 };
 
+/// Encapsulates a vector (e.g. system state).
+class VectorSignal : public Signal<LargeVector>
+{
+  public:
+    TYPEINFO("signal/vector", "Vector-based signal (state, observation, etc.)");
+};
+
 /// Encapsulates a matrix (e.g. trajectory).
-class MatrixSignal : public Configurable
+class MatrixSignal : public Signal<Matrix>
 {
   public:
     TYPEINFO("signal/matrix", "Matrix-based signal (trajectory, etc.)");
-    
-  protected:
-    itc::SharedVariable<Matrix> var_;
-
-  public:
-    /// Returns current value.
-    virtual Matrix get()
-    {
-      return var_.get();
-    }
-
-    /// Sets new value.    
-    virtual void set(const Matrix &trajectory)
-    {
-      var_.write(trajectory);
-    }
-
-    /// Returns true if the value has changed.
-    virtual bool test()
-    {
-      return var_.test();
-    }
-
-    /// Reads a new value, waiting until it changes if necessary.    
-    virtual Matrix read()
-    {
-      return var_.read();
-    }
 };
 
 }

@@ -34,7 +34,6 @@ REGISTER_CONFIGURABLE(BlackBoxAgent)
 void BlackBoxAgent::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("episodes", "Number of episodes to evaluate policy", episodes_, CRP::Configuration, 1));
-  
   config->push_back(CRP("optimizer", "optimizer", "Policy optimizer", optimizer_));
 }
 
@@ -58,7 +57,7 @@ void BlackBoxAgent::reconfigure(const Configuration &config)
   }
 }
 
-void BlackBoxAgent::start(const Vector &obs, Vector *action)
+void BlackBoxAgent::start(const Observation &obs, Action *action)
 {
   if (++episode_ == episodes_)
   {
@@ -77,7 +76,7 @@ void BlackBoxAgent::start(const Vector &obs, Vector *action)
   policy_->act(time_, obs, action);
 }
 
-void BlackBoxAgent::step(double tau, const Vector &obs, double reward, Vector *action)
+void BlackBoxAgent::step(double tau, const Observation &obs, double reward, Action *action)
 {
   reward_ += reward;
   time_ += tau;
@@ -85,7 +84,7 @@ void BlackBoxAgent::step(double tau, const Vector &obs, double reward, Vector *a
   policy_->act(time_, obs, action);
 }
 
-void BlackBoxAgent::end(double tau, const Vector &obs, double reward)
+void BlackBoxAgent::end(double tau, const Observation &obs, double reward)
 {
   reward_ += reward;
 }

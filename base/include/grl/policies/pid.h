@@ -29,6 +29,7 @@
 #define GRL_PID_POLICY_H_
 
 #include <grl/policies/parameterized.h>
+#include <grl/policies/feed_forward.h>
 
 namespace grl
 {
@@ -47,6 +48,7 @@ class PIDPolicy : public ParameterizedPolicy
     LargeVector params_;
     
     Vector ival_, prev_in_;
+    Vector action_min_, action_max_;
 
   public:
     PIDPolicy() : outputs_(1) { }
@@ -57,9 +59,41 @@ class PIDPolicy : public ParameterizedPolicy
     virtual void reconfigure(const Configuration &config);
 
     // From Policy
-    virtual void act(const Vector &in, Vector *out) const;
-    virtual void act(double time, const Vector &in, Vector *out);
+    virtual void act(const Observation &in, Action *out) const;
+    virtual void act(double time, const Observation &in, Action *out);
     
+    // From ParameterizedPolicy
+    virtual size_t size() const { return params_.size(); }
+    virtual const LargeVector &params() const { return params_; }
+    virtual LargeVector &params() { return params_; }
+};
+
+/// PID trajectory policy
+class PIDTrajectoryPolicy : public ParameterizedPolicy
+{
+  public:
+    TYPEINFO("mapping/policy/parameterized/pidt", "Parameterized policy based on a proportional-integral-derivative controller for tranjectory tracking")
+
+  protected:
+    Policy *trajectory_;  // TODO: could be a "Timeline" importer ?
+    Vector setpoint_;     // the dynamic setpoint is taken from trajectory at the current time
+    size_t inputs_, outputs_;
+    Vector p_, i_, d_, il_;
+    LargeVector params_;
+    Vector ival_, prev_in_;
+    Vector action_min_, action_max_;
+
+  public:
+    PIDTrajectoryPolicy() : inputs_(1), outputs_(1) { }
+
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+
+    // From Policy
+    virtual void act(double time, const Observation &in, Action *out);
+
     // From ParameterizedPolicy
     virtual size_t size() const { return params_.size(); }
     virtual const LargeVector &params() const { return params_; }

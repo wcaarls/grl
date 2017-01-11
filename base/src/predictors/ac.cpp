@@ -96,7 +96,8 @@ void ActionACPredictor::update(const Transition &transition)
       throw bad_param("predictor/ac:step_limit");
   }
 
-  // (LLR) obtain buckets with nearest neighbours
+  // (LLR)   obtain buckets with nearest neighbours
+  // (SARSA) obtain tile indices that point to previous observations
   ProjectionPtr cp = critic_projector_->project(transition.prev_obs);
   ProjectionPtr ap = actor_projector_->project(transition.prev_obs);
   Vector v, u, delta_u, target_u;
@@ -119,7 +120,7 @@ void ActionACPredictor::update(const Transition &transition)
     actor_representation_->read(ap, &u);
     if (!u.size())
       u = ConstantVector(transition.prev_action.size(), 0.);
-    Vector Delta = (transition.prev_action - u);
+    Vector Delta = (transition.prev_action.v - u);
     
     if (step_limit_.size())
       for (size_t ii=0; ii < Delta.size(); ++ii)
@@ -317,7 +318,7 @@ void QACPredictor::update(const Transition &transition)
   // Update actor based on desired action TD error
   if (update_method_[0] == 'p' || deltau > 0)
   {
-    Vector Delta = (transition.prev_action - u);
+    Vector Delta = (transition.prev_action.v - u);
     
     if (step_limit_.size())
       for (size_t ii=0; ii < Delta.size(); ++ii)
@@ -455,7 +456,7 @@ void QVACPredictor::update(const Transition &transition)
   // Update actor based on desired action TD error
   if (update_method_[0] == 'p' || deltau > 0)
   {
-    Vector Delta = (transition.prev_action - u);
+    Vector Delta = (transition.prev_action.v - u);
     
     if (step_limit_.size())
       for (size_t ii=0; ii < Delta.size(); ++ii)

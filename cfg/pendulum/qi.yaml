@@ -21,7 +21,7 @@ experiment:
     type: agent/solver
     interval: 1
     policy: 
-      type: policy/discrete/q
+      type: policy/value/q
       discretizer: 
         type: discretizer/uniform
         min: experiment/environment/task/action_min
@@ -72,7 +72,7 @@ visualization:
   projector: experiment/agent/policy/projector
   representation: experiment/agent/policy/representation
   policy: 
-    type: policy/discrete/q
+    type: policy/value/q
     discretizer: experiment/agent/policy/discretizer
     projector: experiment/agent/policy/projector
     representation: experiment/agent/policy/representation

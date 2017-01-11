@@ -33,36 +33,41 @@ REGISTER_CONFIGURABLE(EpsilonGreedySampler)
 
 void GreedySampler::request(ConfigurationRequest *config)
 {
+  config->push_back(CRP("rand_max", "In case of multiple maximumum values select a random index among them", rand_max_, CRP::Configuration, 0, 1));
 }
 
 void GreedySampler::configure(Configuration &config)
 {
   rand_ = new Rand();
+  rand_max_ = config["rand_max"];
 }
 
 void GreedySampler::reconfigure(const Configuration &config)
 {
 }
 
-size_t GreedySampler::sample(const LargeVector &values) const
+size_t GreedySampler::sample(const LargeVector &values, ActionType *at) const
 {
   size_t mai = 0;
 
   for (size_t ii=1; ii < values.size(); ++ii)
     if (values[ii] > values[mai])
       mai = ii;
-/*
- * Commented code selects random index in case of multiple maximumum values
- *
-  LargeVector same_values = LargeVector::Constant(values.size(), 0);
-  size_t jj = 0;
-  for (size_t ii=0; ii < values.size(); ++ii)
-    if (values[ii] == values[mai])
-      same_values[jj++] = ii;
 
-  if (jj != 0)
-    mai = same_values[rand_->getInteger(jj)];
-*/
+  if (rand_max_)
+  {
+    LargeVector same_values = ConstantVector(values.size(), 0);
+    size_t jj = 0;
+    for (size_t ii=0; ii < values.size(); ++ii)
+      if (values[ii] == values[mai])
+        same_values[jj++] = ii;
+
+    if (jj != 0)
+      mai = same_values[rand_->getInteger(jj)];
+  }
+
+  if (at)
+    *at = atGreedy;
   return mai;
 }
 
@@ -74,6 +79,7 @@ void GreedySampler::distribution(const LargeVector &values, LargeVector *distrib
 
 void EpsilonGreedySampler::request(ConfigurationRequest *config)
 {
+  GreedySampler::request(config);
   config->push_back(CRP("epsilon", "Exploration rate (can be defined per action)", epsilon_, CRP::Online));
 }
 
@@ -107,7 +113,7 @@ void EpsilonGreedySampler::reconfigure(const Configuration &config)
   }
 }
 
-size_t EpsilonGreedySampler::sample(const LargeVector &values) const
+size_t EpsilonGreedySampler::sample(const LargeVector &values, ActionType *at) const
 {
   double r = rand_->get();
   
@@ -129,14 +135,21 @@ size_t EpsilonGreedySampler::sample(const LargeVector &values) const
       for (size_t ii=0; ii < epsilon_.size(); ++ii)
         if (r < epsilon_[ii])
           if (!ri--)
+          {
+            if (at)
+              *at = atExploratory;
             return ii;
+          }
     }
   }
-  else
-    if (r < epsilon_[0])
-      return rand_->getInteger(values.size());
+  else if (r < epsilon_[0])
+  {
+    if (at)
+      *at = atExploratory;
+    return rand_->getInteger(values.size());
+  }
 
-  return GreedySampler::sample(values);
+  return GreedySampler::sample(values, at);
 }
 
 void EpsilonGreedySampler::distribution(const LargeVector &values, LargeVector *distribution) const

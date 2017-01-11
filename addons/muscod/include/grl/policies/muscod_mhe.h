@@ -49,11 +49,11 @@ struct MHEProblem : public MUSCODProblem {
   }
 
   void initialize_horizon(grl::Vector& hs, grl::Vector& ss, grl::Vector qs){
-    for (int imsn = 0; imsn < m_NMSN; ++imsn) {
+    for (int imsn = 0; imsn < NMSN_; ++imsn) {
       (*m_meas_hs).col(imsn) = hs;
       (*m_meas_ss).col(imsn) = ss;
     }
-    for (int imsn = 0; imsn < m_NMSN-1; ++imsn) {
+    for (int imsn = 0; imsn < NMSN_-1; ++imsn) {
       m_muscod->setNodeQC(imsn, qs.data());
     }
   }
@@ -75,9 +75,9 @@ struct MHEProblem : public MUSCODProblem {
     (*m_meas_ss).col(n) = ss;
 
     // inject qs before last
-    // std::cout << "m_NMSN = " << m_NMSN << std::endl;
-    (*m_meas_hs).block(m_NXD, m_NMSN-2, m_NU, 1) = qs;
-    // m_muscod->setNodeQC(m_NMSN-1, qs.data());
+    // std::cout << "NMSN_ = " << NMSN_ << std::endl;
+    (*m_meas_hs).block(NXD_, NMSN_-2, NU_, 1) = qs;
+    // m_muscod->setNodeQC(NMSN_-1, qs.data());
   }
 
   void get_initial_sd_and_pf(
@@ -88,7 +88,7 @@ struct MHEProblem : public MUSCODProblem {
     m_muscod->getPF(initial_pf->data());
 
     // get last shooting node
-    m_muscod->getNodeSD(m_NMSN-1, initial_sd->data());
+    m_muscod->getNodeSD(NMSN_-1, initial_sd->data());
   }
 
   // ---------------------------------------------------------------------------

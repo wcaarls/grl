@@ -44,13 +44,13 @@ class Environment : public Configurable
     virtual ~Environment() { }
 
     /// Start the environment, returning the first observation.
-    virtual void start(int test, Vector *obs) = 0;
+    virtual void start(int test, Observation *obs) = 0;
     
     /// Take a step, returning the next observation, reward, and whether the episode terminated.
-    virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal) = 0;
+    virtual double step(const Action &action, Observation *obs, double *reward, int *terminal) = 0;
 
     /// Progress report.
-    virtual void report(std::ostream &os) { }
+    virtual void report(std::ostream &os) const { }
 };
 
 /// Random-access transition model (works on states instead of observations).
@@ -58,7 +58,10 @@ class Model : public Configurable
 {
   public:
     virtual ~Model() { }
-    virtual double step(const Vector &state, const Vector &action, Vector *next) const = 0;
+    virtual double step(const Vector &state, const Vector &actuation, Vector *next) const = 0;
+
+    /// Progress report.
+    virtual void report(std::ostream &os, const Vector &state) const { }
 };
 
 class Task : public Configurable
@@ -82,24 +85,30 @@ class Task : public Configurable
     /// Start the task, returning the initial state.
     virtual void start(int test, Vector *state) const = 0;
     
+    /// Convert a possibly higher-level action into low-level actuation to be applied to the model.
+    virtual void actuate(const Vector &state, const Action &action, Vector *actuation) const { *actuation = action; }
+    
     /// Observe a state, returning the observation and whether the episode ended.
-    virtual void observe(const Vector &state, Vector *obs, int *terminal) const = 0;
+    virtual void observe(const Vector &state, Observation *obs, int *terminal) const = 0;
     
     /// Evaluate a state transition, returning the reward.
-    virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const = 0;
+    virtual void evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const = 0;
     
     /**
      * \brief Invert the state->observation projection.
      *
      * Returns false if not implemented by a specific task.
      */
-    virtual bool invert(const Vector &obs, Vector *state) const { return false; }
+    virtual bool invert(const Observation &obs, Vector *state) const { return false; }
     
     /// Returns the Hessian of the reward around the given state and action.
-    virtual Matrix rewardHessian(const Vector &state, const Vector &action) const
+    virtual Matrix rewardHessian(const Vector &state, const Action &action) const
     {
       return Matrix();
     }
+
+    /// Progress report.
+    virtual void report(std::ostream &os, const Vector &state) const { }
 };
 
 /// Task that regulates to a goal state with quadratic cost.
@@ -161,7 +170,7 @@ class RegulatorTask : public Task
         (*state)[ii] = RandGen::getNormal(start_[ii], test?0.:stddev_[ii]);
     }
 
-    void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const
+    void evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const
     {
       if (state.size() != q_.size()+1 || action.size() != r_.size() || next.size() != q_.size()+1)
         throw Exception("Unexpected state or action size");
@@ -174,7 +183,7 @@ class RegulatorTask : public Task
         *reward -= 0.5*r_[ii]*pow(action[ii], 2);
     }
 
-    Matrix rewardHessian(const Vector &state, const Vector &action) const
+    Matrix rewardHessian(const Vector &state, const Action &action) const
     {
       return diagonal(-extend(q_, r_));
     }
@@ -189,7 +198,8 @@ class ModeledEnvironment : public Environment
   public:
     Model *model_;
     Task *task_;
-    Vector state_, obs_;
+    Vector state_;
+    Observation obs_;
     VectorSignal *state_obj_;
     Exporter *exporter_;
     
@@ -206,8 +216,9 @@ class ModeledEnvironment : public Environment
     virtual ModeledEnvironment &copy(const Configurable &obj);
     
     // From Environment
-    virtual void start(int test, Vector *obs);
-    virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal);
+    virtual void start(int test, Observation *obs);
+    virtual double step(const Action &action, Observation *obs, double *reward, int *terminal);
+    virtual void report(std::ostream &os) const;
 };
 
 /// Equations of motion.
@@ -217,7 +228,7 @@ class Dynamics : public Configurable
     virtual ~Dynamics() { }
 
     /// Compute equations of motion, returning accelerations.
-    virtual void eom(const Vector &state, const Vector &action, Vector *xdd) const = 0;
+    virtual void eom(const Vector &state, const Vector &actuation, Vector *xdd) const = 0;
 };
 
 class DynamicalModel : public Model
@@ -232,14 +243,14 @@ class DynamicalModel : public Model
 
   public:
     DynamicalModel() : dynamics_(NULL), tau_(0.05), steps_(5) { }
-  
+        
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
     
     // From Model
-    virtual double step(const Vector &state, const Vector &action, Vector *next) const;
+    virtual double step(const Vector &state, const Vector &actuation, Vector *next) const;
 };
 
 /// Environment modifier that adds sensor and actuator noise.
@@ -266,8 +277,8 @@ class NoiseEnvironment : public Environment
     virtual void reconfigure(const Configuration &config);
     
     // From Environment
-    virtual void start(int test, Vector *obs);
-    virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal);
+    virtual void start(int test, Observation *obs);
+    virtual double step(const Action &action, Observation *obs, double *reward, int *terminal);
 };
 
 /// Environment modifier that adds reward shaping.
@@ -281,7 +292,7 @@ class ShapingEnvironment : public Environment
     Mapping *shaping_function_;
     double gamma_;
     
-    Vector prev_obs_;
+    Observation prev_obs_;
     double total_reward_;
 
   public:
@@ -296,9 +307,9 @@ class ShapingEnvironment : public Environment
     virtual ShapingEnvironment &copy(const Configurable &obj);
     
     // From Environment
-    virtual void start(int test, Vector *obs);
-    virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal);
-    virtual void report(std::ostream &os);
+    virtual void start(int test, Observation *obs);
+    virtual double step(const Action &action, Observation *obs, double *reward, int *terminal);
+    virtual void report(std::ostream &os) const;
 };
 
 /// Sequential-access transition model.
@@ -308,7 +319,13 @@ class Sandbox : public Configurable
     virtual ~Sandbox() { }
 
     virtual void start(const Vector &hint, Vector *state) = 0;
-    virtual double step(const Vector &action, Vector *next) = 0;
+    virtual double step(const Vector &actuation, Vector *next) = 0;
+
+    /// Progress report.
+    virtual void report(std::ostream &os) const { }
+
+  protected:
+    Vector state_, state_step_, next_step_, action_step_;
 };
 
 /// Sequential-access transition environment.
@@ -320,15 +337,16 @@ class SandboxEnvironment : public Environment
   public:
     Sandbox *sandbox_;
     Task *task_;
-    Vector state_, obs_;
+    Vector state_;
+    Observation obs_;
     VectorSignal *state_obj_;
     Exporter *exporter_;
 
     int test_;
-    double time_test_, time_learn_;
+    double time_test_, prev_time_test_, time_learn_;
 
   public:
-    SandboxEnvironment() : sandbox_(NULL), task_(NULL), state_obj_(NULL), exporter_(NULL), test_(false), time_test_(0.), time_learn_(0.) { }
+    SandboxEnvironment() : sandbox_(NULL), task_(NULL), state_obj_(NULL), exporter_(NULL), test_(false), time_test_(0.), prev_time_test_(0.), time_learn_(0.) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -337,8 +355,9 @@ class SandboxEnvironment : public Environment
     virtual SandboxEnvironment &copy(const Configurable &obj);
 
     // From Environment
-    virtual void start(int test, Vector *obs);
-    virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal);
+    virtual void start(int test, Observation *obs);
+    virtual double step(const Action &action, Observation *obs, double *reward, int *terminal);
+    virtual void report(std::ostream &os) const;
 };
 
 }

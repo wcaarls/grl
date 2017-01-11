@@ -115,7 +115,7 @@ class CODEBodyIC: public CODELoggable
 		CODEMatrix3&    getRotation() {return mRotation;} // For editing
 		//const CODEMatrix3&	getRotation()	{return mRotation;}
 		bool				readConfig(const CConfigSection &configSection);
-		void        randomize();
+    void        randomize(double r = 0);
 };
 
 // Object representing an external force, working on a
@@ -170,6 +170,7 @@ class CODEObject: public CODELoggable
 {
 	private:
 		dHashSpace					mSpace;
+    grl::Rand           mRand;
 
 		// Bodies and geometries. An amount of 0 elements is allowed for both vectors.
 		// CODEObject is OWNER of all bodies, geoms, joints and external forces
@@ -184,6 +185,7 @@ class CODEObject: public CODELoggable
 		void						clearJoints();
 		void						clearExternalForces();
 		void						clearAll();
+    void            genRandState(std::map<std::string, double> &jointMap);
 
 	protected:
 		std::string					mName;
@@ -230,6 +232,7 @@ class CODEObject: public CODELoggable
 
 		// dx, dy and dz are in the GLOBAL reference frame
 		void				move(double dx, double dy, double dz);
+    void        getCOM(double &x, double &y, double &z) const;
 
 		void				invalidateCollisions(bool invalid=true);
 

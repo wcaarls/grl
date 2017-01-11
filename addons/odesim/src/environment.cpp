@@ -1,3 +1,4 @@
+#include <sys/stat.h>
 #include <XMLConfiguration.h>
 
 #include <grl/environments/odesim/environment.h>
@@ -22,6 +23,15 @@ ODESTGEnvironment::~ODESTGEnvironment()
 bool ODESTGEnvironment::configure(Configuration &config)
 {
   std::string xml = config["xml"].str();
+  struct stat buffer;
+  if (stat (xml.c_str(), &buffer) != 0)
+    xml = std::string(CONFIG_DIR) + "/" + config["xml"].str();
+
+  if (config.has("randomize"))
+  {
+    randomize_ = config["randomize"];
+    simulator_.setRandomize(randomize_);
+  }
 
   CXMLConfiguration xmlConfig;
 
@@ -58,6 +68,8 @@ bool ODESTGEnvironment::configure(Configuration &config)
     return false;
   }
 
+  //simulator_.setRandomize(randomize_);
+
   if (!simulator_.init())
   {
     ERROR("Could not init simulation!");
@@ -65,7 +77,7 @@ bool ODESTGEnvironment::configure(Configuration &config)
   }
   
   CConfigSection configNode = xmlConfig.root().section("policy");
-  
+
   bool configresult = true;
   
   double trialTimeoutSeconds=20;
@@ -154,9 +166,11 @@ bool ODESTGEnvironment::configure(Configuration &config)
   return true;
 }
 
-void ODESTGEnvironment::start(int test, Vector *obs)
+void ODESTGEnvironment::start(int test, Observation *obs)
 {
-  simulator_.setInitialCondition();
+  simulator_.setInitialCondition(randomize_?time(NULL):0);
+  //double com[3];
+  //simulator_.read("robot.com", com);
   simulator_.resetActuationValues();
   simulator_.activateActions(listener_.getState()->mStateID);
   
@@ -164,17 +178,19 @@ void ODESTGEnvironment::start(int test, Vector *obs)
 
   if (!listener_.waitForNewState())
     throw Exception("Error getting start state from simulator");
-    
-  obs->resize(sensors_.size());
+
+  obs->v.resize(sensors_.size());
   for (size_t ii=0; ii < sensors_.size(); ++ii)
     (*obs)[ii] = sensors_[ii].evaluate(listener_.getState());
     
   start_time_ = simulator_.getAbsTime();
 
+  //simulator_.read("robot.com", com);
+
   emit drawFrame();
 }
 
-double ODESTGEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)
+double ODESTGEnvironment::step(const Action &action, Observation *obs, double *reward, int *terminal)
 {
   if (action.size() != actuators_.size())
     ERROR("Got action vector size " << action.size() << " (" << actuators_.size() << " expected)");
@@ -189,22 +205,31 @@ double ODESTGEnvironment::step(const Vector &action, Vector *obs, double *reward
   if (!listener_.waitForNewState())
     throw Exception("Error getting next state from simulator");
     
-  obs->resize(sensors_.size());
+  obs->v.resize(sensors_.size());
   for (size_t ii=0; ii < sensors_.size(); ++ii)
     (*obs)[ii] = sensors_[ii].evaluate(listener_.getState());
+  obs->absorbing = false;
     
   *reward = reward_.evaluate(listener_.getState());
   
-  if (simulator_.getAbsTime() - start_time_ > timeout_)
-    *terminal = 1;
-  else if (termination_.evaluate(listener_.getState()))
+  if (termination_.evaluate(listener_.getState()))
+  {
     *terminal = 2;
+    obs->absorbing = true;
+  }
+  else if (simulator_.getAbsTime() - start_time_ > timeout_)
+    *terminal = 1;
   else
     *terminal = 0;
 
   emit drawFrame();
   
   return simulator_.getSim()->getStepTime();
+}
+
+bool ODESTGEnvironment::read(const std::string name, double *out) const
+{
+  return simulator_.read(name, out);
 }
 
 // *** ODEEnvironment ***
@@ -227,6 +252,7 @@ ODEEnvironment::~ODEEnvironment()
 void ODEEnvironment::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("xml", "XML configuration filename", xml_));
+  config->push_back(CRP("randomize", "Randomize initial state", 0));
   config->push_back(CRP("visualize", "Whether to display 3D visualization", visualize_, CRP::Configuration, 0, 1));
   
   config->push_back(CRP("observation_dims", "int.observation_dims", "Number of observation dimensions", CRP::Provided));
@@ -283,7 +309,7 @@ void ODEEnvironment::run()
     init_state_ = isError;
     return;
   }
-  
+
   if (visualize_)
   {
     NOTICE("Initializing Qt");
@@ -310,5 +336,6 @@ void ODEEnvironment::run()
  
   while (ok()) usleep(1000);
 
+  free(argv[0]);
   safe_delete(&env_);
 }

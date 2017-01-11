@@ -290,7 +290,7 @@ void NMPCPolicyTh::muscod_quit(void* data)
   pthread_mutex_unlock(&mutex_);
 }
 
-void NMPCPolicyTh::act(double time, const Vector &in, Vector *out)
+TransitionType NMPCPolicyTh::act(double time, const Vector &in, Vector *out)
 {
   if (time == 0.0)
   {
@@ -371,13 +371,8 @@ void NMPCPolicyTh::act(double time, const Vector &in, Vector *out)
     std::cerr << "       No more controls for given horizon!" << std::endl;
     std::cerr << "Abort and cleanup..." << std::endl;
   }
-}
 
-NMPCPolicyTh *NMPCPolicyTh::clone() const
-{
-  NMPCPolicyTh* obj = new NMPCPolicyTh(*this);
-  obj->reset();
-  return obj;
+  return ttGreedy;
 }
 
 void NMPCPolicyTh::print_array(const double* arr, const unsigned int len)

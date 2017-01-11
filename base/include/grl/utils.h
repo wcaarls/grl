@@ -128,6 +128,12 @@ class Rand
     {
       return lrand48()%ma;
     }
+
+    double getOrnsteinUhlenbeck(double prev, double center, double theta, double sigma)
+    {
+      return getNormal(prev + theta*(center - prev), sigma);
+    }
+
 };
 
 /// Random number generator generator.
@@ -149,6 +155,7 @@ class RandGen
     static Vector getVector(size_t sz) { return instance()->getVector(sz); }
     static double getNormal(double mu, double sigma) { return instance()->getNormal(mu, sigma); }
     static size_t getInteger(size_t ma) { return instance()->getInteger(ma); }
+    static double getOrnsteinUhlenbeck(double prev, double center, double theta, double sigma) { return instance()->getOrnsteinUhlenbeck(prev, center, theta, sigma); }
 
     static Rand *instance()
     {
@@ -215,7 +222,7 @@ inline bool convert(const std::string& str, LargeVector *obj)
 }
 
 /// Sample from distribution
-inline size_t sample(const Vector &dist, double sum)
+inline size_t sample(const LargeVector &dist, double sum)
 {
   double r = RandGen::get()*sum;
   
@@ -231,7 +238,7 @@ inline size_t sample(const Vector &dist, double sum)
 }
 
 /// Sample from distribution
-inline size_t sample(const Vector &dist)
+inline size_t sample(const LargeVector &dist)
 {
   double sum = 0;
   for (size_t ii=0; ii < dist.size(); ++ii)

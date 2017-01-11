@@ -19,6 +19,7 @@ class ODESimulator: public CGenericODESim, private PosixNonRealTimeThread, prote
   protected:
     uint64_t    mStepCounter;
     CWaitEvent  mEvtActuation;
+    int         mRandomize;
 
     //void      resetBindData();
     // Main function from AbstractXenomaiTask
@@ -44,6 +45,8 @@ class ODESimulator: public CGenericODESim, private PosixNonRealTimeThread, prote
 
     // Call activateActions() at a moment of your choosing to put the new control actions into effect
     virtual int activateActions(const uint64_t& stateID);
+
+    void setRandomize(int randomize) { mRandomize = randomize; }
 };
 
 }

@@ -52,14 +52,14 @@ void PendulumDynamics::reconfigure(const Configuration &config)
 {
 }
 
-void PendulumDynamics::eom(const Vector &state, const Vector &action, Vector *xd) const
+void PendulumDynamics::eom(const Vector &state, const Vector &actuation, Vector *xd) const
 {
-  if (state.size() != 3 || action.size() != 1)
+  if (state.size() != 3 || actuation.size() != 1)
     throw Exception("dynamics/pendulum requires a task/pendulum subclass");
 
   double a   = state[0];
   double ad  = state[1];
-  double add = (1/J_)*(m_*g_*l_*sin(a)-b_*ad-(K_*K_/R_)*ad+(K_/R_)*action[0]);
+  double add = (1/J_)*(m_*g_*l_*sin(a)-b_*ad-(K_*K_/R_)*ad+(K_/R_)*actuation[0]);
   
   xd->resize(3);
   (*xd)[0] = ad;
@@ -102,7 +102,7 @@ void PendulumSwingupTask::start(int test, Vector *state) const
   (*state)[2] = 0;
 }
 
-void PendulumSwingupTask::observe(const Vector &state, Vector *obs, int *terminal) const
+void PendulumSwingupTask::observe(const Vector &state, Observation *obs, int *terminal) const
 {
   if (state.size() != 3)
     throw Exception("task/pendulum/swingup requires dynamics/pendulum");
@@ -110,16 +110,18 @@ void PendulumSwingupTask::observe(const Vector &state, Vector *obs, int *termina
   double a = fmod(state[0]+M_PI, 2*M_PI);
   if (a < 0) a += 2*M_PI;
   
-  obs->resize(2);
+  obs->v.resize(2);
   (*obs)[0] = a;
   (*obs)[1] = state[1];
+  obs->absorbing = false;
+  
   if (state[2] > T_)
     *terminal = 1;
   else
     *terminal = 0;
 }
 
-void PendulumSwingupTask::evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const
+void PendulumSwingupTask::evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const
 {
   if (state.size() != 3 || action.size() != 1 || next.size() != 3)
     throw Exception("task/pendulum/swingup requires dynamics/pendulum");
@@ -130,7 +132,7 @@ void PendulumSwingupTask::evaluate(const Vector &state, const Vector &action, co
   *reward = -5*pow(a, 2) - 0.1*pow(next[1], 2) - 1*pow(action[0], 2);
 }
 
-bool PendulumSwingupTask::invert(const Vector &obs, Vector *state) const
+bool PendulumSwingupTask::invert(const Observation &obs, Vector *state) const
 {
   *state = obs;
   (*state)[0] -= M_PI;
@@ -166,19 +168,20 @@ void PendulumRegulatorTask::reconfigure(const Configuration &config)
   RegulatorTask::reconfigure(config);
 }
 
-void PendulumRegulatorTask::observe(const Vector &state, Vector *obs, int *terminal) const
+void PendulumRegulatorTask::observe(const Vector &state, Observation *obs, int *terminal) const
 {
   if (state.size() != 3)
     throw Exception("task/pendulum/regulator requires dynamics/pendulum");
     
-  obs->resize(2);
+  obs->v.resize(2);
   for (size_t ii=0; ii < 2; ++ii)
     (*obs)[ii] = state[ii];
+  obs->absorbing = false;
 
   *terminal = state[2] > 3;
 }
 
-bool PendulumRegulatorTask::invert(const Vector &obs, Vector *state) const
+bool PendulumRegulatorTask::invert(const Observation &obs, Vector *state) const
 {
   *state = extend(obs, VectorConstructor(0.));
   

@@ -30,6 +30,9 @@
 
 #include <functional>
 #include <grl/environment.h>
+#include <rbdl/rbdl.h>
+#include <grl/environments/LuaBasic.h>
+#include <lua.h>
 
 namespace RigidBodyDynamics {}
 
@@ -58,6 +61,9 @@ class RBDLDynamics : public Dynamics
     std::string file_, options_;
     mutable Instance<RBDLState> rbdl_state_;
   
+    mutable std::map<std::string, Point> points;
+    mutable std::map<std::string, RigidBodyDynamics::ConstraintSet> constraints;
+
   public:
     RBDLDynamics() : rbdl_state_(std::bind(&RBDLDynamics::createRBDLState, this)) { }
   
@@ -67,10 +73,21 @@ class RBDLDynamics : public Dynamics
     virtual void reconfigure(const Configuration &config);
 
     // From Dynamics
-    virtual void eom(const Vector &state, const Vector &action, Vector *xd) const;
+    virtual void eom(const Vector &state, const Vector &actuation, Vector *xd) const;
+    
+    /// Adds positions of additional points to state vector.
+    virtual void finalize(const Vector &state, Vector &out) const;
     
   protected:
+    // own
+    std::vector<std::string> points_, auxiliary_;
+
+  protected:
     RBDLState *createRBDLState() const;
+    bool loadPointsFromFile(const char* filename, RigidBodyDynamics::Model *model) const;
+    bool loadConstraintSetsFromFile(const char* filename, RigidBodyDynamics::Model *model) const;
+    void getPointPosition(const Vector &state, const std::string point_name, Vector &out) const;
+    void getAuxiliary(const Vector &state, double &modelMass, Vector &centerOfMass, Vector &centerOfMassVelocity, Vector &angularMomentum) const;
 };
 
 struct LuaState
@@ -102,10 +119,10 @@ class LuaTask : public Task
 
     // From Task
     virtual void start(int test, Vector *state) const;
-    virtual void observe(const Vector &state, Vector *obs, int *terminal) const;
-    virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const;
-    virtual bool invert(const Vector &obs, Vector *state) const;
-    virtual Matrix rewardHessian(const Vector &state, const Vector &action) const;
+    virtual void observe(const Vector &state, Observation *obs, int *terminal) const;
+    virtual void evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const;
+    virtual bool invert(const Observation &obs, Vector *state) const;
+    virtual Matrix rewardHessian(const Observation &state, const Action &action) const;
     
   protected:
     LuaState *createLuaState() const;

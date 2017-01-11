@@ -124,7 +124,8 @@ void OnlineLearningExperiment::run()
     
     for (size_t ss=0, tt=0; (!trials_ || tt < trials_) && (!steps_ || ss < steps_); ++tt)
     { 
-      Vector obs, action;
+      Observation obs;
+      Action action;
       double reward, total_reward=0;
       int terminal;
       int test = (test_interval_ >= 0 && tt%(test_interval_+1) == test_interval_) * (rr+1);
@@ -134,11 +135,12 @@ void OnlineLearningExperiment::run()
       if (test) agent = test_agent_;
       
       environment_->start(test, &obs);
-      agent->start(obs, &action);
-      state_->set(obs);
-      action_->set(action);
 
       CRAWL(obs);
+      
+      agent->start(obs, &action);
+      state_->set(obs.v);
+      action_->set(action.v);
 
       do
       {
@@ -149,9 +151,9 @@ void OnlineLearningExperiment::run()
             usleep(1000000.*sleep_time);
           step_timer.restart();
         }
-        
+
         double tau = environment_->step(action, &obs, &reward, &terminal);
-        
+
         CRAWL(action << " - " << reward << " -> " << obs);
         
         total_reward += reward;
@@ -163,8 +165,8 @@ void OnlineLearningExperiment::run()
           else
             agent->step(tau, obs, reward, &action);
 
-          state_->set(obs);
-          action_->set(action);
+          state_->set(obs.v);
+          action_->set(action.v);
           
           if (!test) ss++;
         }

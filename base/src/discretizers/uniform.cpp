@@ -61,6 +61,10 @@ void UniformDiscretizer::configure(Configuration &config)
   if (min_.size() != max_.size() || min_.size() != steps_.size())
     throw bad_param("discretizer/uniform:{min,max,steps}");
   
+  for (int ii = 0; ii < steps_.size(); ii++)
+    if (steps_[ii] == 0)
+      throw bad_param("discretizer/uniform:steps");
+
   Vector range, delta;  
 
   range = max_-min_;
@@ -133,10 +137,41 @@ Vector UniformDiscretizer::at(size_t idx) const
   for (size_t dd=0; dd < steps_.size(); ++dd)
   {
     size_t ss = steps_[dd];
-  
+
     out[dd] = values_[dd][idx % ss];
     idx /= ss;
   }
-  
+
   return out;
 }
+
+size_t UniformDiscretizer::discretize(Vector *vec) const
+{
+  double steps = 1;
+  double offset = 0;
+
+  for (int dd=0; dd < steps_.size(); ++dd)
+  {
+    double nearest = values_[dd][0];
+    size_t nearest_vv = 0;
+    for (size_t vv=1; vv < steps_[dd]; ++vv)
+    {
+      if (fabs(nearest-(*vec)[dd]) > fabs(values_[dd][vv]-(*vec)[dd]))
+      {
+        nearest = values_[dd][vv];
+        nearest_vv = vv;
+      }
+    }
+    (*vec)[dd] = nearest;
+
+    // calculating offset
+    offset += nearest_vv*steps;
+    steps *= steps_[dd];
+  }
+
+  // offset = sample_[0] + sample_[1]*steps_[0] + sample_[2]*steps_[0]*steps_[1];
+  return static_cast<size_t>(round(offset));
+}
+
+
+

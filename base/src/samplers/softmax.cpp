@@ -32,7 +32,7 @@ REGISTER_CONFIGURABLE(SoftmaxSampler)
 
 void SoftmaxSampler::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("tau", "Temperature of Boltzmann distribution", tau_, CRP::Online, 0.001, 100.));
+  config->push_back(CRP("tau", "Temperature of Boltzmann distribution", tau_, CRP::Online, 0.000001, 100.));
 }
 
 void SoftmaxSampler::configure(Configuration &config)
@@ -45,27 +45,61 @@ void SoftmaxSampler::reconfigure(const Configuration &config)
   config.get("tau", tau_);
 }
 
-size_t SoftmaxSampler::sample(const LargeVector &values) const
+size_t SoftmaxSampler::sample(const LargeVector &values, ActionType *at) const
 {
   LargeVector dist;
   
   distribution(values, &dist);
   
-  return ::sample(dist, 1.);
+  if (at)
+    *at = atExploratory;
+    
+  return grl::sample(dist, 1.);
 }
 
 void SoftmaxSampler::distribution(const LargeVector &values, LargeVector *distribution) const
 {
-  LargeVector v(values.size());
-  double sum=0;
+  LargeVector v = LargeVector::Zero(values.size());
+  for (size_t ii=0; ii < values.size(); ++ii)
+    if (std::isnan(values[ii]))
+      ERROR("SoftmaxSampler: NaN value in Boltzmann distribution 1");
+
+  distribution->resize(values.size());
+  const double threshold = -100;
+
+  // Find max_power and min_power, and center of feasible powers
+  double max_power = -DBL_MAX;
+  for (size_t ii=0; ii < values.size(); ++ii)
+  {
+    double p = values[ii]/tau_;
+    max_power = (max_power < p) ? p : max_power;
+  }
+  double min_power = max_power + threshold;
+  double center = (max_power+min_power)/2.0;
+
+  // Discard powers from interval [0.0; threshold] * max_power
+  double sum = 0;
+  for (size_t ii=0; ii < values.size(); ++ii)
+  {
+    double p = values[ii]/tau_;
+    if (p > min_power)
+    {
+      p -= center;
+      v[ii] = exp(p);
+      sum += v[ii];
+      (*distribution)[ii] = 1;
+
+      if (std::isnan(v[ii]))
+        ERROR("SoftmaxSampler: NaN value in Boltzmann distribution 2");
+    }
+    else
+      (*distribution)[ii] = 0;
+  }
 
   for (size_t ii=0; ii < values.size(); ++ii)
   {
-    v[ii] = exp(values[ii]/tau_);
-    sum += v[ii];
+    (*distribution)[ii] *= v[ii]/sum;
+    if (std::isnan((*distribution)[ii]))
+      ERROR("SoftmaxSampler: NaN value in Boltzmann distribution 4");
   }
-
-  distribution->resize(v.size());
-  for (size_t ii=0; ii < values.size(); ++ii)
-    (*distribution)[ii] = v[ii]/sum;
 }

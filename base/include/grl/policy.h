@@ -28,6 +28,7 @@
 #ifndef GRL_POLICY_H_
 #define GRL_POLICY_H_
 
+#include <grl/grl.h>
 #include <grl/configurable.h>
 #include <grl/mapping.h>
 
@@ -45,7 +46,7 @@ class Policy : public Mapping
      *
      * Called by visualizations.
      */
-    virtual void act(const Vector &in, Vector *out) const
+    virtual void act(const Observation &in, Action *out) const
     {
       throw Exception("Policy does not support visualization");
     }
@@ -56,20 +57,31 @@ class Policy : public Mapping
      * Called by agents, once per timestep. time is 0. at the start of a new episode.
      * \note out is an inout parameter, the input being a previous or suggested action.
      */
-    virtual void act(double time, const Vector &in, Vector *out)
+    virtual void act(double time, const Observation &in, Action *out)
     {
-      act(in, out);
+      return act(in, out);
     }
     
     // From Mapping
     virtual double read(const Vector &in, Vector *result) const
     {
-      act(in, result);
+      Action action;
+      act(in, &action);
+      *result = action.v;
+      
       if (result->size())
         return (*result)[0];
       else
         return 0;
     }
+};
+
+/// A policy based on Q or V values.
+class ValuePolicy : public Policy
+{
+  public:
+    /// Returns the expected value of the action taken in state 'in'
+    virtual double value(const Observation &in) const = 0;
 };
 
 /// A parameterized Policy.

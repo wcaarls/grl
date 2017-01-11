@@ -26,6 +26,7 @@
  */
 
 #include <grl/environment.h>
+#include <iomanip>
 
 using namespace grl;
 
@@ -73,13 +74,13 @@ SandboxEnvironment &SandboxEnvironment::copy(const Configurable &obj)
 }
 
 
-void SandboxEnvironment::start(int test, Vector *obs)
+void SandboxEnvironment::start(int test, Observation *obs)
 {
   int terminal;
 
   task_->start(test, &state_);
-  task_->observe(state_, obs, &terminal);
   sandbox_->start(ConstantVector(1, test), &state_);
+  task_->observe(state_, obs, &terminal);
 
   obs_ = *obs;
   state_obj_->set(state_);
@@ -88,9 +89,11 @@ void SandboxEnvironment::start(int test, Vector *obs)
 
   if (exporter_)
     exporter_->open((test_?"test":"learn"), (test_?time_test_:time_learn_) != 0.0);
+
+  prev_time_test_ = time_test_;
 }
 
-double SandboxEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)
+double SandboxEnvironment::step(const Action &action, Observation *obs, double *reward, int *terminal)
 {
   Vector next;
 
@@ -112,4 +115,15 @@ double SandboxEnvironment::step(const Vector &action, Vector *obs, double *rewar
   return tau;
 }
 
+void SandboxEnvironment::report(std::ostream &os) const
+{
+  const int pw = 15;
+  std::stringstream progressString;
+  progressString << std::fixed << std::setprecision(3) << std::right;
+  progressString << std::setw(pw) << (time_test_ - prev_time_test_);
+  os << progressString.str();
+
+  sandbox_->report(os);
+  task_->report(os, state_);
+}
 

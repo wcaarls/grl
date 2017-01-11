@@ -49,7 +49,8 @@ class SolverAgent : public Agent, public itc::Thread
     Predictor *predictor_;
     Solver *solver_;
     
-    Vector prev_obs_, prev_action_;
+    Observation prev_obs_;
+    Action prev_action_;
     int interval_, episodes_;
     
     double time_;
@@ -66,9 +67,9 @@ class SolverAgent : public Agent, public itc::Thread
     virtual void reconfigure(const Configuration &config);
 
     // From Agent
-    virtual void start(const Vector &obs, Vector *action);
-    virtual void step(double tau, const Vector &obs, double reward, Vector *action);
-    virtual void end(double tau, const Vector &obs, double reward);
+    virtual void start(const Observation &obs, Action *action);
+    virtual void step(double tau, const Observation &obs, double reward, Action *action);
+    virtual void end(double tau, const Observation &obs, double reward);
     
   protected:
     virtual void run();

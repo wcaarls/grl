@@ -89,7 +89,7 @@ void DynaAgent::reconfigure(const Configuration &config)
   config.get("planning_steps", planning_steps_);
 }
 
-void DynaAgent::start(const Vector &obs, Vector *action)
+void DynaAgent::start(const Observation &obs, Action *action)
 {
   predictor_->finalize();
   
@@ -104,7 +104,7 @@ void DynaAgent::start(const Vector &obs, Vector *action)
     startThreads();
 }
 
-void DynaAgent::step(double tau, const Vector &obs, double reward, Vector *action)
+void DynaAgent::step(double tau, const Observation &obs, double reward, Action *action)
 {
   time_ += tau;
   policy_->act(time_, obs, action);
@@ -125,7 +125,7 @@ void DynaAgent::step(double tau, const Vector &obs, double reward, Vector *actio
   total_control_steps_++;
 }
 
-void DynaAgent::end(double tau, const Vector &obs, double reward)
+void DynaAgent::end(double tau, const Observation &obs, double reward)
 {
   Transition t(prev_obs_, prev_action_, reward, obs);
   predictor_->update(t);
@@ -152,7 +152,8 @@ void DynaAgent::report(std::ostream &os)
 
 void DynaAgent::runModel()
 {
-  Vector obs, action;
+  Observation obs;
+  Action action;
   int terminal=1;
   size_t steps=0;
 
@@ -162,17 +163,17 @@ void DynaAgent::runModel()
     {
       steps = 0;
       obs = start_obs_.draw();
-      state_->set(obs);
+      state_->set(obs.v);
       model_agent_->start(obs, &action);
     }
       
-    Vector next;
+    Observation next;
     double reward;
   
     double tau = model_->step(obs, action, &next, &reward, &terminal);
     
     obs = next;
-    state_->set(obs);
+    state_->set(obs.v);
         
     // Guard against failed model prediction    
     if (obs.size())

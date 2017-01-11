@@ -30,6 +30,7 @@
 
 #include <grl/configurable.h>
 #include <grl/utils.h>
+#include <grl/grl.h>
 
 namespace grl
 {
@@ -39,11 +40,37 @@ class Sampler : public Configurable
 {
   public:
     virtual ~Sampler() { }
-
-    /// Sample an action from a value vector.
-    virtual size_t sample(const LargeVector &values) const = 0;
     
-    /// Returns the sampling distribution for a value vector.
+    /**
+    * \brief Sample an action based on the values of actions.
+    * \param values - values of fasible discretized actions.
+    * \param at - type of action which can be used in Q-learning, for example.
+    * \return offset in the vector which can be used for fining the corresponding action.
+    * \note Sampler does not have an internal memory.
+    */
+    virtual size_t sample(const LargeVector &values, ActionType *tt=NULL) const
+    {
+      throw Exception("Autonomous sample method is not implemented");
+    }
+
+    /**
+    * \brief Sample an action based on the current time and values of actions.
+    *
+    * Called once per timestep. Time is 0. at the start of a new episode.
+    * \param time - current time
+    * \param values - values of fasible discretized actions.
+    * \param tt - type of action which can be used in Q-learning, for example.
+    * \return offset in the vector which can be used for fining the corresponding action.
+    * \note Sampler has an internal memory for implementation of OrnsteinUhlenbeck or PADA samplers.
+    */
+    virtual size_t sample(double time, const LargeVector &values, ActionType *tt=NULL)
+    {
+      return sample(values, tt);
+    }
+
+    /**
+    * \brief Returns the sampling distribution for a value vector.
+    */
     virtual void distribution(const LargeVector &values, LargeVector *distribution) const = 0;
 };
 

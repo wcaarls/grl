@@ -48,18 +48,18 @@ void Flyer2DDynamics::reconfigure(const Configuration &config)
 {
 }
 
-void Flyer2DDynamics::eom(const Vector &state, const Vector &action, Vector *xd) const
+void Flyer2DDynamics::eom(const Vector &state, const Vector &actuation, Vector *xd) const
 {
-  if (state.size() != 7 || action.size() != 2)
+  if (state.size() != 7 || actuation.size() != 2)
     throw Exception("dynamics/flyer2d requires a task/flyer2d subclass");
 
   xd->resize(7);
   (*xd)[0] = state[3];
   (*xd)[1] = state[4];
   (*xd)[2] = state[5];
-  (*xd)[3] = -(action[0]+action[1])*sin(state[2])/m_;
-  (*xd)[4] =  (action[0]+action[1])*cos(state[2])/m_-g_;
-  (*xd)[5] =  (action[1]-action[0])*l_/I_;
+  (*xd)[3] = -(actuation[0]+actuation[1])*sin(state[2])/m_;
+  (*xd)[4] =  (actuation[0]+actuation[1])*cos(state[2])/m_-g_;
+  (*xd)[5] =  (actuation[1]-actuation[0])*l_/I_;
   (*xd)[6] = 1;
 }
 
@@ -90,19 +90,20 @@ void Flyer2DRegulatorTask::reconfigure(const Configuration &config)
   RegulatorTask::reconfigure(config);
 }
 
-void Flyer2DRegulatorTask::observe(const Vector &state, Vector *obs, int *terminal) const
+void Flyer2DRegulatorTask::observe(const Vector &state, Observation *obs, int *terminal) const
 {
   if (state.size() != 7)
     throw Exception("task/flyer2d/regulator requires dynamics/flyer2d");
     
-  obs->resize(6);
+  obs->v.resize(6);
   for (size_t ii=0; ii < 6; ++ii)
     (*obs)[ii] = state[ii];
+  obs->absorbing = false;
 
   *terminal = state[6] > 3;
 }
 
-bool Flyer2DRegulatorTask::invert(const Vector &obs, Vector *state) const
+bool Flyer2DRegulatorTask::invert(const Observation &obs, Vector *state) const
 {
   *state = extend(obs, VectorConstructor(0.));
   

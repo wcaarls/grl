@@ -48,21 +48,23 @@ void BoundedQPolicy::reconfigure(const Configuration &config)
 {
 }
 
-void BoundedQPolicy::act(double time, const Vector &in, Vector *out)
+void BoundedQPolicy::act(double time, const Observation &in, Action *out)
 {
   if (out->size())
   {
     LargeVector qvalues, filtered;
+    ActionType at;
     std::vector<size_t> idx;
     
     values(in, &qvalues);
     filter(in, *out, qvalues, &filtered, &idx);
     
-    size_t action = sampler_->sample(filtered);
+    size_t action = sampler_->sample(time, filtered, &at);
     *out = discretizer_->at(in, idx[action]);
+    out->type = at;
   }
   else
-    QPolicy::act(in, out); 
+    QPolicy::act(in, out);
 }
 
 /**
@@ -72,7 +74,7 @@ void BoundedQPolicy::act(double time, const Vector &in, Vector *out)
 void BoundedQPolicy::filter(const Vector &in, const Vector &prev_out, const LargeVector &qvalues, LargeVector *filtered, std::vector<size_t> *idx) const
 {
   if (prev_out.size() != bound_.size())
-    throw bad_param("policy/discrete/q/bounded:bound");
+    throw bad_param("mapping/policy/value/q/bounded:bound");
     
   idx->clear();
   idx->reserve(qvalues.size());
@@ -99,4 +101,3 @@ void BoundedQPolicy::filter(const Vector &in, const Vector &prev_out, const Larg
   for (size_t ii=0; ii < idx->size(); ++ii)
     (*filtered)[ii] = qvalues[(*idx)[ii]];
 }
-            

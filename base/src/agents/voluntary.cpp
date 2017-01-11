@@ -48,9 +48,9 @@ void VoluntarySubAgent::reconfigure(const Configuration &config)
 {
 }
 
-void VoluntarySubAgent::start(const Vector &obs, Vector *action, double *confidence)
+void VoluntarySubAgent::start(const Observation &obs, Action *action, double *confidence)
 {
-  Vector a;
+  Action a;
   agent_->start(obs, &a);
   
   if (dim_ >= a.size())
@@ -59,13 +59,13 @@ void VoluntarySubAgent::start(const Vector &obs, Vector *action, double *confide
   *confidence = a[dim_];
   
   // Remove indicator dimension
-  *action = Vector(a.size()-1);
-  *action << a.leftCols(dim_), a.rightCols(a.size()-dim_-1);
+  action->v = Vector(a.size()-1);
+  action->v << a.v.leftCols(dim_), a.v.rightCols(a.size()-dim_-1);
 }
 
-void VoluntarySubAgent::step(double tau, const Vector &obs, double reward, Vector *action, double *confidence)
+void VoluntarySubAgent::step(double tau, const Observation &obs, double reward, Action *action, double *confidence)
 {
-  Vector a;
+  Action a;
   agent_->step(tau, obs, reward, &a);
 
   if (dim_ >= a.size())
@@ -74,11 +74,11 @@ void VoluntarySubAgent::step(double tau, const Vector &obs, double reward, Vecto
   *confidence = a[dim_];
   
   // Remove indicator dimension
-  *action = Vector(a.size()-1);
-  *action << a.leftCols(dim_), a.rightCols(a.size()-dim_-1);
+  action->v = Vector(a.size()-1);
+  action->v << a.v.leftCols(dim_), a.v.rightCols(a.size()-dim_-1);
 }
 
-void VoluntarySubAgent::end(double tau, const Vector &obs, double reward)
+void VoluntarySubAgent::end(double tau, const Observation &obs, double reward)
 {
   agent_->end(tau, obs, reward);
 }

@@ -139,7 +139,7 @@ double CSWModel::getSlopeAngle() const
   return mSlopeAngle;
 }
 
-void CSWModel::singleStep(CSWModelState& state, double hipTorque, grl::Exporter * const exporter, double time) const
+void CSWModel::singleStep(CSWModelState& state, double hipTorque, grl::Exporter * const exporter, double time, double *step_distance) const
 {
   // Keep previous state
   CSWModelState prevState = state;
@@ -158,6 +158,10 @@ void CSWModel::singleStep(CSWModelState& state, double hipTorque, grl::Exporter 
                        grl::VectorConstructor(hipTorque)
                       });
     }
+
+    // Integrate average velocity
+    if (step_distance)
+      *step_distance += - state.mStanceLegAngleRate * cos(state.mStanceLegAngle) * partialStepTime;
 
     // Runge-Kutta!
     integrateRK4(state, hipTorque, partialStepTime);
@@ -189,6 +193,10 @@ void CSWModel::singleStep(CSWModelState& state, double hipTorque, grl::Exporter 
       integrateRK4(state, hipTorque, timeleft);  // --> after this function, mState contains the new state
       // Wrap angles to the domain of -Pi to Pi
       state.wrapAngles();
+
+      // Restart calculation of single step average velocity
+      if (step_distance)
+        *step_distance = - state.mStanceLegAngleRate * cos(state.mStanceLegAngle) * timeleft;
     }
     // Backup prevState
     prevState = state;

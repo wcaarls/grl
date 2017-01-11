@@ -73,7 +73,7 @@ class PolicyValueVisualization : public FieldVisualization
     TYPEINFO("visualization/field/policy/value", "Visualizes the value of a policy over a field of states")
     
   protected:
-    QPolicy *policy_;
+    ValuePolicy *policy_;
   
   public:
     PolicyValueVisualization() : policy_(NULL) { }

@@ -52,12 +52,12 @@ class CompartmentalizedSubAgent : public SubAgent
     virtual void reconfigure(const Configuration &config);
 
     // From Agent
-    virtual void start(const Vector &obs, Vector *action);
-    virtual void step(double tau, const Vector &obs, double reward, Vector *action);
-    virtual void end(double tau, const Vector &obs, double reward);
+    virtual void start(const Observation &obs, Action *action);
+    virtual void step(double tau, const Observation &obs, double reward, Action *action);
+    virtual void end(double tau, const Observation &obs, double reward);
     
     // From SubAgent
-    double confidence(const Vector &obs) const;
+    double confidence(const Observation &obs) const;
 };
 
 }

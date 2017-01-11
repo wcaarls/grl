@@ -45,18 +45,18 @@ void FixedAgent::reconfigure(const Configuration &config)
 {
 }
 
-void FixedAgent::start(const Vector &obs, Vector *action)
+void FixedAgent::start(const Observation &obs, Action *action)
 {
   time_ = 0.;
   policy_->act(time_, obs, action);
 }
 
-void FixedAgent::step(double tau, const Vector &obs, double reward, Vector *action)
+void FixedAgent::step(double tau, const Observation &obs, double reward, Action *action)
 {
   time_ += tau;
   policy_->act(time_, obs, action);
 }
 
-void FixedAgent::end(double tau, const Vector &obs, double reward)
+void FixedAgent::end(double tau, const Observation &obs, double reward)
 {
 }

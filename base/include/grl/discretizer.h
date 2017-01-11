@@ -69,7 +69,7 @@ class Discretizer : public Configurable
         inline iterator &operator++() { discretizer_->inc(this); return *this; }
         inline Vector operator*() { return discretizer_->get(*this); }
     };
-    
+
     virtual size_t size() const { return size(Vector()); }
     virtual size_t size(const Vector &point) const { return size(); }
     virtual iterator begin() const { return begin(Vector()); }
@@ -83,6 +83,10 @@ class Discretizer : public Configurable
     virtual Vector get(const iterator &it) const = 0;
     virtual Vector at(size_t idx) const { return at(Vector(), idx); }
     virtual Vector at(const Vector &point, size_t idx) const { return at(idx); }
+
+    /// Finds the most closest discrete vector to 'vec' in L1 sense per element
+    /// Returns an offset and a discretized vector
+    virtual size_t discretize(Vector *vec) const = 0;
 };
 
 }

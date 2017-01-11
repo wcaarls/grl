@@ -38,11 +38,11 @@ class CompassWalker
 {
   public:
     enum stateIndex       { siStanceLegAngle, siHipAngle, siStanceLegAngleRate, siHipAngleRate,
-                            siStanceLegChanged, siStanceFootX, siLastHipX, siHipVelocity, siTime,
+                            siStanceLegChanged, siStanceFootX, siLastHipX, siHipVelocity, siStepDistance, siTime,
                             siTimeout, ssStateSize};
 
     enum observationIndex { oiStanceLegAngle, oiHipAngle, oiStanceLegAngleRate, oiHipAngleRate,
-                            oiStanceLegChanged, oiHipVelocity, osMaxObservationSize};
+                            oiStanceLegChanged, oiHipVelocity, oiStepDistance, osMaxObservationSize};
 };
 
 // Compass (simplest) walker model.
@@ -56,7 +56,6 @@ class CompassWalkerModel : public Model
     size_t steps_;
     double slope_angle_;
     CSWModel model_;
-    std::string integrator_out_;
 
   public:
     CompassWalkerModel() : tau_(0.2), steps_(20), slope_angle_(0.004) { }
@@ -68,7 +67,7 @@ class CompassWalkerModel : public Model
     virtual void reconfigure(const Configuration &config);
     
     // From Model
-    virtual double step(const Vector &state, const Vector &action, Vector *next) const;
+    virtual double step(const Vector &state, const Vector &actuation, Vector *next) const;
 };
 
 // Compass (simplest) walker non-markov model.
@@ -85,13 +84,13 @@ class CompassWalkerSandbox : public Sandbox
     double time_;
     CSWModel model_;
     std::deque<double> hip_instant_velocity_;
-    Vector state_;
     Exporter *exporter_;
     int use_avg_velocity_;
+    double step_distance_;
 
   public:
     CompassWalkerSandbox() : tau_(0.2), steps_(20), slope_angle_(0.004),
-      test_(0), time_(0.0), exporter_(NULL), use_avg_velocity_(1) { }
+      test_(0), time_(0.0), exporter_(NULL), use_avg_velocity_(1), step_distance_(0) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -101,7 +100,7 @@ class CompassWalkerSandbox : public Sandbox
 
     // From Model
     virtual void start(const Vector &hint, Vector *state);
-    virtual double step(const Vector &action, Vector *next);
+    virtual double step(const Vector &actuation, Vector *next);
 };
 
 // Walk forward task for compass walker.
@@ -131,9 +130,9 @@ class CompassWalkerWalkTask : public Task
     
     // From Task
     virtual void start(int test, Vector *state) const;
-    virtual void observe(const Vector &state, Vector *obs, int *terminal) const;
-    virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const;
-    virtual bool invert(const Vector &obs, Vector *state) const;
+    virtual void observe(const Vector &state, Observation *obs, int *terminal) const;
+    virtual void evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const;
+    virtual bool invert(const Observation &obs, Vector *state) const;
 };
 
 // Walk forward with a reference velocity task for compass walker.
@@ -155,7 +154,7 @@ class CompassWalkerVrefTask : public CompassWalkerWalkTask
 
     // From Task
     virtual void start(int test, Vector *state) const;
-    virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const;
+    virtual void evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const;
 };
 
 // Walk forward with a reference velocity task for compass walker in limit cycle and control minimization.
@@ -168,7 +167,7 @@ class CompassWalkerVrefuTask : public CompassWalkerVrefTask
     CompassWalkerVrefuTask() { }
 
     // From Task
-    virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const;
+    virtual void evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const;
 };
 
 }

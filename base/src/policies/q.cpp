@@ -42,6 +42,7 @@ void QPolicy::request(ConfigurationRequest *config)
 void QPolicy::configure(Configuration &config)
 {
   discretizer_ = (Discretizer*)config["discretizer"].ptr();
+  
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (Representation*)config["representation"].ptr();
   sampler_ = (Sampler*)config["sampler"].ptr();
@@ -51,7 +52,7 @@ void QPolicy::reconfigure(const Configuration &config)
 {
 }
 
-double QPolicy::value(const Vector &in) const
+double QPolicy::value(const Observation &in) const
 {
   LargeVector qvalues, distribution;
   double v=0;
@@ -71,7 +72,7 @@ double QPolicy::value(const Vector &in) const
  * @param in: state
  * @param out: each element containes an (e.g. LLR) approximation of a value function Q(s, a), whrere 'a' is an index of vector 'out'
  */
-void QPolicy::values(const Vector &in, LargeVector *out) const
+void QPolicy::values(const Observation &in, LargeVector *out) const
 {
   // 'projections' contains list of neighbours around state 'in' and any possible action. Number of projections is equal to number of possible actions.
   std::vector<Vector> variants;
@@ -86,12 +87,26 @@ void QPolicy::values(const Vector &in, LargeVector *out) const
     (*out)[ii] = representation_->read(projections[ii], &value); // reading approximated values
 }
 
-void QPolicy::act(const Vector &in, Vector *out) const
+void QPolicy::act(const Observation &in, Action *out) const
 {
   LargeVector qvalues;
+  ActionType at;
+  
+  values(in, &qvalues);
+  size_t action = sampler_->sample(qvalues, &at);
+  
+  *out = discretizer_->at(in, action);
+  out->type = at;
+}
+
+void QPolicy::act(double time, const Observation &in, Action *out)
+{
+  LargeVector qvalues;
+  ActionType at;
 
   values(in, &qvalues);
-  size_t action = sampler_->sample(qvalues);
+  size_t action = sampler_->sample(time, qvalues, &at);
 
   *out = discretizer_->at(in, action);
+  out->type = at;
 }

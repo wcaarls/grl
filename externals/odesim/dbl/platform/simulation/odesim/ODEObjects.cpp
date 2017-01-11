@@ -117,10 +117,10 @@ bool CODEBodyIC::readConfig(const CConfigSection &configSection)
 	return configresult;
 }
 
-void CODEBodyIC::randomize()
+void CODEBodyIC::randomize(double r)
 {
   if (mOrientationAsRotation)
-    mRotation.setRotation(mAxisX.evaluate(), mAxisY.evaluate(), mAxisZ.evaluate(), mAngle.evaluate());
+    mRotation.setRotation(mAxisX.evaluate(), mAxisY.evaluate(), mAxisZ.evaluate(), mAngle.evaluate() + r);
   else
     mRotation.setOrientation(mXaxisX.evaluate(), mXaxisY.evaluate(), mXaxisZ.evaluate(),
                              mYaxisX.evaluate(), mYaxisY.evaluate(), mYaxisZ.evaluate());
@@ -183,6 +183,7 @@ CODEObject::CODEObject(CODESim* pSim):
 	mShouldDrawGeoms	= false;
 	// Disable cleanup mode of the hash space - we will delete the geoms one by one in the destructors.
 	mSpace.setCleanup(0);
+  mRand.init(time(NULL));
 }
 
 CODEObject::~CODEObject()
@@ -281,8 +282,30 @@ bool CODEObject::init(dWorld& world)
 	return true;	// Do we want to return something else? Can we ever fail?
 }
 
+void CODEObject::genRandState(std::map<std::string, double> &jointMap)
+{
+  const double C = 1*0.087263889; // 0.087263889 = +/- 5 deg
+  double r1 = mRand.getUniform(-C, C);
+  double r2 = mRand.getUniform(0, 2*C); // knee cannot be bended outside
+  double r3 = mRand.getUniform(-C, C);
+
+  jointMap[std::string("virtualBoom")] = 0;
+  jointMap[std::string("torso")] = r3;
+  jointMap[std::string("upperlegleft")] = r1;
+  jointMap[std::string("upperlegright")] = r1;
+  jointMap[std::string("lowerlegleft")] = r2;
+  jointMap[std::string("lowerlegright")] = r2;
+  jointMap[std::string("footleft")] = 0;
+  jointMap[std::string("footright")] = 0;
+  jointMap[std::string("arm")] = r3;
+}
+
 void CODEObject::setInitialCondition(bool randomize)
 {
+  std::map<std::string, double> jointMap;
+  if (randomize)
+    genRandState(jointMap);
+
 	// Process body ICs
 	for (unsigned int iBodyIC=0; iBodyIC<mBodyICs.size(); iBodyIC++)
 	{
@@ -295,7 +318,7 @@ void CODEObject::setInitialCondition(bool randomize)
 		else
 		{
 			if (randomize)
-				mBodyICs[iBodyIC]->randomize();
+        mBodyICs[iBodyIC]->randomize(jointMap[mBodyICs[iBodyIC]->getBodyName()]);
 			body->setRotation(mBodyICs[iBodyIC]->getRotation());
 		}
 	}
@@ -427,6 +450,24 @@ void CODEObject::clearAll()
 	clearExternalForces();
 }
 
+void CODEObject::getCOM(double &x, double &y, double &z) const
+{
+  x = y = z = 0;
+  double M = 0, m;
+  for (unsigned int i=0; i<mBodies.size(); i++)
+  {
+    m = mBodies[i]->getMass();
+    const dReal *pos = ((dBody*)mBodies[i])->getPosition();
+    x += pos[0]*m;
+    y += pos[1]*m;
+    z += pos[2]*m;
+    M += m;
+  }
+  x = x/M;
+  y = y/M;
+  z = z/M;
+}
+
 void CODEObject::move(double dx, double dy, double dz)
 {
 	for (unsigned int i=0; i<mBodies.size(); i++)
@@ -445,7 +486,7 @@ void CODEObject::processFixedPoint()
 
 	CODEBody *fixedBody = resolveBody(mFixedPoint->getBodyName());
 	// Fail?
-	if (fixedBody == NULL)
+  if (fixedBody == NULL)
 	{
 		mLogErrorLn("In CODEObject::processFixedPoint(): could not resolve body " << mFixedPoint->getBodyName() << "!");
 		return;

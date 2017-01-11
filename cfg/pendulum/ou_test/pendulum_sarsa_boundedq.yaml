@@ -1,0 +1,92 @@
+experiment:
+  runs: 1
+  trials: 0
+  steps: 15000
+  rate: 0
+  test_interval: 10
+  output: pendulum_sarsa_boundedq
+  environment:
+    model:
+      control_step: 0.03
+      integration_steps: 5
+      dynamics:
+        type: dynamics/pendulum
+      type: model/dynamical
+    task:
+      timeout: 2.99
+      randomization: 0
+      type: task/pendulum/swingup
+    exporter:
+      file: pendulum_sarsa_boundedq
+      style: meshup
+      variant: all
+      fields: ""
+      enabled: 1
+      type: exporter/csv
+    type: environment/modeled
+  agent:
+    policy:
+      bound: [ 3 ]
+      discretizer:
+        min: ../../../../environment/task/action_min
+        max: ../../../../environment/task/action_max
+        steps: [ 3 ]
+        type: discretizer/uniform
+      projector:
+        tilings: 16
+        memory: 8388608
+        safe: 0
+        resolution: [ 0.31415, 3.1415, 3 ]
+        wrapping: [ 6.283, 0, 0 ]
+        type: projector/tile_coding
+      representation:
+        init_min: [ 0 ]
+        init_max: [ 1 ]
+        memory: ../../projector/memory
+        outputs: 1
+        output_min: [  ]
+        output_max: [  ]
+        type: representation/parameterized/linear
+      sampler:
+        rand_max: 0
+        epsilon: 0.05
+        type: sampler/epsilon_greedy
+      type: mapping/policy/value/q/bounded
+    predictor:
+      alpha: 0.2
+      gamma: 0.97
+      lambda: 0.65
+      projector: ../../policy/projector
+      representation: ../../policy/representation
+      trace:
+        type: trace/enumerated/replacing
+      importer: 0
+      exporter: 0
+      type: predictor/sarsa
+    type: agent/td
+  test_agent:
+    policy:
+      bound: ../../../agent/policy/bound
+      discretizer: ../../../agent/policy/discretizer
+      projector: ../../../agent/policy/projector
+      representation: ../../../agent/policy/representation
+      sampler:
+        rand_max: 0
+        type: sampler/greedy
+      type: mapping/policy/value/q/bounded
+    type: agent/fixed
+  save_every: never
+  load_file: ""
+  type: experiment/online_learning
+visualizer:
+  type: visualizer/glut
+visualization:
+  field_dims: [ 0, 1 ]
+  input_min: ../../experiment/environment/task/observation_min
+  input_max: ../../experiment/environment/task/observation_max
+  points: 65536
+  savepoints: 1048576
+  projection: mean
+  policy: ../../experiment/test_agent/policy
+  state: 0
+  type: visualization/field/policy/value

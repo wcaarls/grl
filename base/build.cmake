@@ -4,6 +4,9 @@ set(TARGET grl)
 # Make library
 add_library(${TARGET} SHARED
             ${SRC}/grl.cpp
+            ${SRC}/configurable.cpp
+            ${SRC}/predictor.cpp
+            ${SRC}/random_generator.cpp
             ${SRC}/agents/fixed.cpp
             ${SRC}/agents/black_box.cpp
             ${SRC}/agents/td.cpp
@@ -14,7 +17,6 @@ add_library(${TARGET} SHARED
             ${SRC}/agents/voluntary.cpp
             ${SRC}/agents/solver.cpp
             ${SRC}/agents/filtering.cpp
-            ${SRC}/configurable.cpp
             ${SRC}/discretizers/uniform.cpp
             ${SRC}/discretizers/peaked.cpp
             ${SRC}/discretizers/split.cpp
@@ -42,7 +44,7 @@ add_library(${TARGET} SHARED
             ${SRC}/exporters/csv.cpp
             ${SRC}/importers/csv.cpp
             ${SRC}/mappings/multisine.cpp
-            ${SRC}/mappings/q_policy.cpp
+            ${SRC}/mappings/value.cpp
             ${SRC}/optimizers/rwa.cpp
             ${SRC}/policies/random.cpp
             ${SRC}/policies/action.cpp
@@ -56,7 +58,6 @@ add_library(${TARGET} SHARED
             ${SRC}/policies/ucb.cpp
             ${SRC}/policies/state_feedback.cpp
             ${SRC}/policies/noise.cpp
-            ${SRC}/predictor.cpp
             ${SRC}/predictors/model.cpp
             ${SRC}/predictors/sarsa.cpp
             ${SRC}/predictors/ggq.cpp
@@ -86,6 +87,8 @@ add_library(${TARGET} SHARED
             ${SRC}/representations/iterative.cpp
             ${SRC}/samplers/greedy.cpp
             ${SRC}/samplers/softmax.cpp
+            ${SRC}/samplers/pada.cpp
+            ${SRC}/samplers/ornstein_uhlenbeck.cpp
             ${SRC}/solvers/agent.cpp
             ${SRC}/solvers/vi.cpp
             ${SRC}/traces/enumerated.cpp

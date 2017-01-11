@@ -42,9 +42,10 @@ class GreedySampler : public Sampler
 
   protected:
     Rand *rand_;
+    int rand_max_;
 
   public:
-    GreedySampler() : rand_(NULL) { }
+    GreedySampler() : rand_(NULL), rand_max_(0) { }
     ~GreedySampler() { if (rand_) { delete rand_; rand_ = NULL;} }
 
     // From Configurable
@@ -53,7 +54,7 @@ class GreedySampler : public Sampler
     virtual void reconfigure(const Configuration &config);
   
     // From Sampler
-    virtual size_t sample(const LargeVector &values) const;
+    virtual size_t sample(const LargeVector &values, ActionType *tt=NULL) const;
     virtual void distribution(const LargeVector &values, LargeVector *distribution) const;
 };
 
@@ -79,7 +80,7 @@ class EpsilonGreedySampler : public GreedySampler
     virtual void reconfigure(const Configuration &config);
   
     // From Sampler
-    virtual size_t sample(const LargeVector &values) const;
+    virtual size_t sample(const LargeVector &values, ActionType *tt=NULL) const;
     virtual void distribution(const LargeVector &values, LargeVector *distribution) const;
     
   protected:

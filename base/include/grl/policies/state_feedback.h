@@ -54,7 +54,7 @@ class StateFeedbackPolicy : public ParameterizedPolicy
     virtual StateFeedbackPolicy &copy(const Configurable &obj);
 
     // From Policy
-    virtual void act(const Vector &in, Vector *out) const;
+    virtual void act(const Observation &in, Action *out) const;
     
     // From ParameterizedPolicy
     virtual size_t size() const { return gains_.size(); }
@@ -90,7 +90,7 @@ class SampleFeedbackPolicy : public Policy
     virtual SampleFeedbackPolicy &copy(const Configurable &obj);
 
     // From Policy
-    virtual void act(const Vector &in, Vector *out) const;
+    virtual void act(const Observation &in, Action *out) const;
 
     virtual void clear();
     virtual void push(const Sample &sample);

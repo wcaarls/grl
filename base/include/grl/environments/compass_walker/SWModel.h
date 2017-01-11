@@ -103,7 +103,7 @@ class CSWModel
     void        setSlopeAngle(double angle);
     double      getSlopeAngle() const;
 
-    void        singleStep(CSWModelState& state, double hipTorque, grl::Exporter * const exporter = NULL, double time=0) const;
+    void        singleStep(CSWModelState& state, double hipTorque, grl::Exporter * const exporter=NULL, double time=0, double *ssa_velocity=NULL) const;
 };
 
 #endif /* SWMODEL_H_ */

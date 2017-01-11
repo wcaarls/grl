@@ -169,7 +169,7 @@ class MCTSPolicy : public Policy
     virtual void reconfigure(const Configuration &config);
 
     // From Policy
-    virtual void act(double time, const Vector &in, Vector *out);
+    virtual void act(double time, const Observation &in, Action *out);
     
   protected:
     virtual void allocate() const
@@ -188,7 +188,7 @@ class MCTSPolicy : public Policy
     MCTSNode *expand(MCTSNode *node) const
     {
       const Vector &state = node->state();
-      Vector next;
+      Observation next;
       double reward;
       int terminal;
 
@@ -204,7 +204,7 @@ class MCTSPolicy : public Policy
       else
         a = node->children();
         
-      Vector action = discretizer_->at(state, a);
+      Action action = discretizer_->at(state, a);
           
       model_->step(state, action, &next, &reward, &terminal);
       
@@ -244,7 +244,7 @@ class MCTSPolicy : public Policy
     
     double defaultPolicy(Vector state, size_t depth) const
     {
-      Vector next;
+      Observation next;
       double reward=0, total_reward=0;
       int terminal=0;
       

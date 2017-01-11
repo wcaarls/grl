@@ -38,10 +38,10 @@ namespace grl
 {
 
 /// Policy based on an action-value Representation.
-class QPolicy : public Policy
+class QPolicy : public ValuePolicy
 {
   public:
-    TYPEINFO("mapping/policy/discrete/q", "Q-value based policy")
+    TYPEINFO("mapping/policy/value/q", "Q-value based policy")
 
   protected:
     Discretizer *discretizer_;
@@ -57,14 +57,15 @@ class QPolicy : public Policy
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
 
-    // From DiscretePolicy
-    virtual void act(const Vector &in, Vector *out) const;
+    // From Policy
+    virtual void act(const Observation &in, Action *out) const;
+    virtual void act(double time, const Observation &in, Action *out);
     
-    /// Returns the expected value of the action taken in state 'in'
-    virtual double value(const Vector &in) const;
+    // From ValuePolicy
+    virtual double value(const Observation &in) const;
     
   protected:
-    virtual void values(const Vector &in, LargeVector *out) const;
+    virtual void values(const Observation &in, LargeVector *out) const;
 };
 
 }

@@ -49,7 +49,7 @@ class Flyer2DDynamics : public Dynamics
     virtual void reconfigure(const Configuration &config);
 
     // From Dynamics
-    virtual void eom(const Vector &state, const Vector &action, Vector *xd) const;
+    virtual void eom(const Vector &state, const Vector &actuation, Vector *xd) const;
 };
 
 /// 2D flyer hovering task with quadratic costs
@@ -74,8 +74,8 @@ class Flyer2DRegulatorTask : public RegulatorTask
     virtual void reconfigure(const Configuration &config);
 
     // From Task
-    virtual void observe(const Vector &state, Vector *obs, int *terminal) const;
-    virtual bool invert(const Vector &obs, Vector *state) const;
+    virtual void observe(const Vector &state, Observation *obs, int *terminal) const;
+    virtual bool invert(const Observation &obs, Vector *state) const;
 };
 
 }

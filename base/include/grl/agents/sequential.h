@@ -30,6 +30,7 @@
 
 #include <grl/agent.h>
 #include <grl/predictor.h>
+#include <grl/exporter.h>
 
 namespace grl
 {
@@ -43,10 +44,13 @@ class SequentialMasterAgent : public Agent
   protected:
     Predictor *predictor_;
     std::vector<Agent*> agent_;
-    Vector prev_obs_, prev_action_;
+    Exporter *exporter_;
+    double time_;
+    Observation prev_obs_;
+    Action prev_action_;
     
   public:
-    SequentialMasterAgent() : predictor_(0), agent_(2)
+    SequentialMasterAgent() : predictor_(0), agent_(2), exporter_(NULL)
     {
       agent_[0] = agent_[1] = NULL;
     }
@@ -57,9 +61,31 @@ class SequentialMasterAgent : public Agent
     virtual void reconfigure(const Configuration &config);
 
     // From Agent
-    virtual void start(const Vector &obs, Vector *action);
-    virtual void step(double tau, const Vector &obs, double reward, Vector *action);
-    virtual void end(double tau, const Vector &obs, double reward);
+    virtual void start(const Observation &obs, Action *action);
+    virtual void step(double tau, const Observation &obs, double reward, Action *action);
+    virtual void end(double tau, const Observation &obs, double reward);
+};
+
+/// Fixed-policy agent.
+class SequentialAdditiveMasterAgent : public SequentialMasterAgent
+{
+  public:
+    TYPEINFO("agent/master/sequential/additive", "Additive master agent that executes sub-agents sequentially and adds their outputs")
+
+  protected:
+    Vector min_, max_;
+
+  public:
+
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+
+    // From Agent
+    virtual void start(const Observation &obs, Action *action);
+    virtual void step(double tau, const Observation &obs, double reward, Action *action);
+    virtual void end(double tau, const Observation &obs, double reward);
 };
 
 }

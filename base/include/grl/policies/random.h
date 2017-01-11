@@ -50,7 +50,7 @@ class RandomPolicy : public Policy
     virtual void reconfigure(const Configuration &config);
 
     // From Policy
-    virtual void act(const Vector &in, Vector *out) const;
+    virtual void act(const Observation &in, Action *out) const;
 };
 
 /// Discrete random policy
@@ -71,7 +71,7 @@ class RandomDiscretePolicy : public Policy
     virtual void reconfigure(const Configuration &config);
 
     // From Policy
-    virtual void act(const Vector &in, Vector *out) const;
+    virtual void act(const Observation &in, Action *out) const;
 };
 
 }

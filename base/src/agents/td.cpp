@@ -47,7 +47,7 @@ void TDAgent::reconfigure(const Configuration &config)
 {
 }
 
-void TDAgent::start(const Vector &obs, Vector *action)
+void TDAgent::start(const Observation &obs, Action *action)
 {
   TDAgentState *state = agent_state_.instance();
 
@@ -60,7 +60,7 @@ void TDAgent::start(const Vector &obs, Vector *action)
   state->prev_action = *action;
 }
 
-void TDAgent::step(double tau, const Vector &obs, double reward, Vector *action)
+void TDAgent::step(double tau, const Observation &obs, double reward, Action *action)
 {
   TDAgentState *state = agent_state_.instance();
 
@@ -73,7 +73,7 @@ void TDAgent::step(double tau, const Vector &obs, double reward, Vector *action)
   state->prev_action = *action;
 }
 
-void TDAgent::end(double tau, const Vector &obs, double reward)
+void TDAgent::end(double tau, const Observation &obs, double reward)
 {
   TDAgentState *state = agent_state_.instance();
 

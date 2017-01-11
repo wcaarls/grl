@@ -130,6 +130,7 @@ class CODESim: public CVisualSim, public CODELoggable
 		CODEBody*		getWorldBody()	{return &mWorldBody;}	// CODEBody that represents the world (its ID is 0)
 
 		bool			init();
+		bool			read(const std::string name, double *out) const;
 		bool			deinit();
 
 		void			clearAll();	// Reset the sim to a completely empty initial state

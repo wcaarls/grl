@@ -56,7 +56,7 @@ void UCBPolicy::reconfigure(const Configuration &config)
 {
 }
 
-void UCBPolicy::act(const Vector &in, Vector *out) const
+void UCBPolicy::act(const Observation &in, Action *out) const
 {
   std::vector<Vector> variants;
   discretizer_->options(in, &variants);
@@ -88,9 +88,10 @@ void UCBPolicy::act(const Vector &in, Vector *out) const
   }
   
   *out = variants[action];
+  out->type = atGreedy;
 }
 
-void UCBPolicy::act(double time, const Vector &in, Vector *out)
+void UCBPolicy::act(double time, const Observation &in, Action *out)
 {
   act(in, out);
   
@@ -101,4 +102,3 @@ void UCBPolicy::act(double time, const Vector &in, Vector *out)
   visit_representation_->write(projection, VectorConstructor(visits+1));
   visit_representation_->finalize();
 }
-                              

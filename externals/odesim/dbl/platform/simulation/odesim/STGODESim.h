@@ -51,6 +51,11 @@ class CSTGODESim: public CStateTransitionGenerator<STGStateType>
 			return mSim.init();
 		}
 
+    virtual bool	read(const std::string name, double *out) const
+    {
+      return mSim.read(name, out);
+    }
+
 		virtual bool	deinit()
 		{
 			return mSim.deinit();

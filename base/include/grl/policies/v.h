@@ -39,10 +39,10 @@ namespace grl
 {
 
 /// Policy based on a state-value Representation.
-class VPolicy : public Policy
+class VPolicy : public ValuePolicy
 {
   public:
-    TYPEINFO("mapping/policy/discrete/v", "State-value based policy")
+    TYPEINFO("mapping/policy/value/v", "State-value based policy")
 
   protected:
     Discretizer *discretizer_;
@@ -61,10 +61,14 @@ class VPolicy : public Policy
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
 
-    // From DiscretePolicy
-    virtual void act(const Vector &in, Vector *out) const;
+    // From Policy
+    virtual void act(const Observation &in, Action *out) const;
     
-    virtual void values(const Vector &in, LargeVector *out) const;
+    // From ValuePolicy
+    virtual double value(const Observation &in) const;
+    
+  protected:
+    virtual void values(const Observation &in, LargeVector *out) const;
 };
 
 }

@@ -112,7 +112,7 @@ using ::operator >>;
 using ::operator <<;
 
 #ifdef GRL_EIGEN_VECTOR
-#define GRL_STATIC_VECTOR_SIZE 24
+#define GRL_STATIC_VECTOR_SIZE 32
 
 typedef Eigen::Array<double,1,Eigen::Dynamic> LargeVector;
 typedef Eigen::Array<double,1,Eigen::Dynamic,Eigen::RowMajor,1,GRL_STATIC_VECTOR_SIZE> Vector;
@@ -148,6 +148,10 @@ inline Vector VectorConstructor(double a, double b, double c, double d, double e
 inline Vector VectorConstructor(double a, double b, double c, double d, double e, double f)
 {
   Vector v(6); v << a, b, c, d ,e, f; return v;
+}
+inline Vector VectorConstructor(double a, double b, double c, double d, double e, double f, double g)
+{
+  Vector v(7); v << a, b, c, d ,e, f, g; return v;
 }
 
 using ::pow;

@@ -65,9 +65,9 @@ Vector PolicyDiscretizer::get(const iterator &it) const
   if (!it.idx.size())
     return Vector();
 
-  Vector action;
+  Action action;
   policy_->act(it.point, &action);
-  return action;
+  return action.v;
 }
 
 Vector PolicyDiscretizer::at(const Vector &point, size_t idx) const
@@ -75,7 +75,7 @@ Vector PolicyDiscretizer::at(const Vector &point, size_t idx) const
   if (idx)
     return Vector();
 
-  Vector action;
+  Action action;
   policy_->act(point, &action);
-  return action;
+  return action.v;
 }

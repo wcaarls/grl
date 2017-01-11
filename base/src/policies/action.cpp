@@ -69,10 +69,11 @@ void ActionPolicy::reconfigure(const Configuration &config)
 {
 }
 
-void ActionPolicy::act(const Vector &in, Vector *out) const
+void ActionPolicy::act(const Observation &in, Action *out) const
 {
   ProjectionPtr p = projector_->project(in);
-  representation_->read(p, out);
+  representation_->read(p, &out->v);
+  out->type = atGreedy;
   
   // Some representations may not always return a value.
   if (!out->size())
@@ -81,10 +82,13 @@ void ActionPolicy::act(const Vector &in, Vector *out) const
   for (size_t ii=0; ii < out->size(); ++ii)
   {
     if (sigma_[ii])
+    {
       (*out)[ii] += RandGen::getNormal(0., sigma_[ii]);
+      out->type = atExploratory;
+    }
       
     (*out)[ii] = fmin(fmax((*out)[ii], min_[ii]), max_[ii]);
-  }    
+  }
 }
 
 void ActionProbabilityPolicy::request(ConfigurationRequest *config)
@@ -106,7 +110,7 @@ void ActionProbabilityPolicy::reconfigure(const Configuration &config)
 {
 }
 
-void ActionProbabilityPolicy::act(const Vector &in, Vector *out) const
+void ActionProbabilityPolicy::act(const Observation &in, Action *out) const
 {
   std::vector<Vector> variants;
   std::vector<ProjectionPtr> projections;
@@ -120,4 +124,5 @@ void ActionProbabilityPolicy::act(const Vector &in, Vector *out) const
     dist[ii] = representation_->read(projections[ii], &v);
     
   *out = variants[sample(dist)];
+  out->type = atExploratory;
 }

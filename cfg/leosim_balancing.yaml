@@ -4,7 +4,7 @@ experiment:
   trials: 0
   steps: 0
   rate: 0
-  test_interval: 0
+  test_interval: 10
   output: leo_balancing
   environment: 
     type: environment/ode
@@ -25,12 +25,8 @@ experiment:
         representation: 
           type: representation/parameterized/ann
           inputs: experiment/environment/observation_dims
-          output_min: experiment/environment/action_min
-          output_max: experiment/environment/action_max
+          outputs: experiment/environment/action_dims
           hiddens: 10
-          steepness: 5
-          bias: 1
-          recurrent: 0
   test_agent: 
     type: agent/fixed
     policy: experiment/agent/optimizer/policy

@@ -26,6 +26,7 @@
  */
 
 #include <grl/policies/feed_forward.h>
+#include <sys/stat.h>
 
 using namespace grl;
 
@@ -33,38 +34,50 @@ REGISTER_CONFIGURABLE(FeedForwardPolicy)
 
 void FeedForwardPolicy::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("action_dims", "Number of action dimensions", action_dims_, CRP::Configuration, 1));
-  config->push_back(CRP("time_control", "Sequence of control vectors with a timestamp", time_control_));
-  config->push_back(CRP("input", "string.input_", "CSV file with timestep and controls"));
+  config->push_back(CRP("input", "CSV file with timestep and controls", input_, CRP::Configuration));
 }
 
 void FeedForwardPolicy::configure(Configuration &config)
 {
-  action_dims_ = config["action_dims"];
   input_ = config["input"].str();
-  shift_ = 1 + action_dims_; // time + action
-  if (input_.empty())
-  {
-    time_control_ = config["time_control"].v();
-  }
-  else
+
+  std::vector<double> v;
+  struct stat buffer;
+  if (stat(input_.c_str(), &buffer) == 0)
   {
     std::ifstream file(input_);
     std::string line;
-    std::vector<double> v;
+    bool first = true;
     while( std::getline( file, line ) )
     {
       std::istringstream iss( line );
       std::string result;
       while( std::getline( iss, result, ',' ) )
          v.push_back(::atof(result.c_str()));
+
+      if (first)
+      {
+        shift_ = v.size();
+        first = false;
+      }
+
+      if (time_control_.size() % shift_ != 0)
+        throw bad_param("policy/feed_forward:time_control");
     }
+
     file.close();
-    toVector(v, time_control_);
+  }
+  else
+  {
+    INFO("Reading input as a vector of doubles");
+    const std::vector<std::string> list = cutLongStr(input_);
+    if (list.size() < 2)
+      throw bad_param("policy/feed_forward:input");
+    for (int i = 0; i < list.size(); i++)
+      v.push_back(std::stod(list[i]));
   }
 
-  if (time_control_.size() % shift_ != 0)
-    throw bad_param("policy/feed_forward:time_control");
+  toVector(v, time_control_);
 }
 
 void FeedForwardPolicy::reconfigure(const Configuration &config)
@@ -72,7 +85,7 @@ void FeedForwardPolicy::reconfigure(const Configuration &config)
 
 }
 
-void FeedForwardPolicy::act(double time, const Vector &in, Vector *out)
+void FeedForwardPolicy::act(double time, const Observation &in, Action *out)
 {
   if (time == 0)
     prev_time_idx_ = 0;
@@ -89,12 +102,28 @@ void FeedForwardPolicy::act(double time, const Vector &in, Vector *out)
   int tis1 = (prev_time_idx_+ti-1)*shift_;
   int tis2 = (prev_time_idx_+ti  )*shift_;
 
-  out->resize(action_dims_);
-  // linear interpolation on the interval (t_tis1; t_tis2]
-  double k = (time-time_control_[tis1])/(time_control_[tis2] - time_control_[tis1]);
-  for (size_t ii=0; ii < action_dims_; ++ii)
+  out->v.resize(shift_-1); // do not count time
+  out->type = atGreedy;
+
+  double k;
+  if (tis2 >= time_control_.size())
+  {
+    // keep the last active control if control for this time interval is not specified
+    tis2 = time_control_.size() - shift_;
+    tis1 = tis2 - shift_;
+    k = 1;
+    WARNING("Control for this time interval is not specified. Use last control of " << time_control_.block(0, tis2+1, 1, shift_-1));
+  }
+  else
+  {
+    // linear interpolation on the interval (t_tis1; t_tis2]
+    k = (time-time_control_[tis1])/(time_control_[tis2] - time_control_[tis1]);
+  }
+
+  for (size_t ii=0; ii < shift_-1; ++ii)
     (*out)[ii] = (1-k) * time_control_[tis1+1+ii] +
                      k * time_control_[tis2+1+ii];
 
   prev_time_idx_ = ti-1;
 }
+

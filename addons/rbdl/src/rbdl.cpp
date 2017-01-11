@@ -25,14 +25,17 @@
  * \endverbatim
  */
 
+#include <grl/environments/rbdl.h>
+
 #include <sys/stat.h>
 #include <libgen.h>
+#include <rbdl/rbdl_mathutils.h>
 
-#include <rbdl/rbdl.h>
 #include <rbdl/addons/luamodel/luamodel.h>
+#include <rbdl/addons/luamodel/luatables.h>
 
 #include <grl/lua_utils.h>
-#include <grl/environments/rbdl.h>
+#include <grl/environments/LuaTypes.h>
 
 using namespace grl;
 
@@ -43,13 +46,18 @@ void RBDLDynamics::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("file", "RBDL Lua model file", file_, CRP::Configuration));
   config->push_back(CRP("options", "Lua string to execute when loading model", options_, CRP::Configuration));
+  config->push_back(CRP("points", "Points", "", CRP::Configuration));
+  config->push_back(CRP("auxiliary", "Model mass(mm), Center of mass (com), Center of mass velocity (comv), Angular momentum (am)", "", CRP::Configuration));
 }
 
 void RBDLDynamics::configure(Configuration &config)
 {
   file_ = config["file"].str();
   options_ = config["options"].str();
-  
+
+  points_ = cutLongStr(config["points"].str());
+  auxiliary_ = cutLongStr(config["auxiliary"].str());
+
   struct stat buffer;   
   if (stat (file_.c_str(), &buffer) != 0)
     file_ = std::string(RBDL_LUA_CONFIG_DIR) + "/" + file_;
@@ -59,7 +67,7 @@ void RBDLDynamics::reconfigure(const Configuration &config)
 {
 }
 
-void RBDLDynamics::eom(const Vector &state, const Vector &action, Vector *xd) const
+void RBDLDynamics::eom(const Vector &state, const Vector &actuation, Vector *xd) const
 {
   RBDLState *rbdl = rbdl_state_.instance();
 
@@ -74,7 +82,7 @@ void RBDLDynamics::eom(const Vector &state, const Vector &action, Vector *xd) co
   if (!lua_isnil(rbdl->L, -1))
   {
     lua_pushvector(rbdl->L, state);
-    lua_pushvector(rbdl->L, action);
+    lua_pushvector(rbdl->L, actuation);
     if (lua_pcall(rbdl->L, 2, 1, 0) != 0)
     {
       ERROR("Cannot find controls: " << lua_tostring(rbdl->L, -1));
@@ -87,7 +95,7 @@ void RBDLDynamics::eom(const Vector &state, const Vector &action, Vector *xd) co
   }
   else
   {
-    controls = action;
+    controls = actuation;
     if (controls.size() != dim)
       throw Exception("Policy is incompatible with dynamics");
   }
@@ -116,6 +124,207 @@ void RBDLDynamics::eom(const Vector &state, const Vector &action, Vector *xd) co
     (*xd)[ii + dim] = qdd[ii];
   }
   (*xd)[2*dim] = 1.;
+}
+
+void RBDLDynamics::finalize(const Vector &state, Vector &out) const
+{
+  Vector pt;
+  std::vector<double> v;
+
+  for (int ii = 0; ii < points_.size(); ii++)
+  {
+    getPointPosition(state, points_[ii], pt);
+    v.push_back(pt[0]);
+    v.push_back(pt[1]);
+    v.push_back(pt[2]);
+  }
+
+  double modelMass;
+  Vector centerOfMass, centerOfMassVelocity, angularMomentum;
+  if (auxiliary_.size())
+    getAuxiliary(state, modelMass, centerOfMass, centerOfMassVelocity, angularMomentum);
+
+  for (int ii = 0; ii < auxiliary_.size(); ii++)
+  {
+    if (auxiliary_[ii] == "mm")
+      v.push_back(modelMass);
+    if (auxiliary_[ii] == "com")
+    {
+      v.push_back(centerOfMass[0]);
+      v.push_back(centerOfMass[1]);
+      v.push_back(centerOfMass[2]);
+    }
+    if (auxiliary_[ii] == "comv")
+    {
+      v.push_back(centerOfMassVelocity[0]);
+      v.push_back(centerOfMassVelocity[1]);
+      v.push_back(centerOfMassVelocity[2]);
+    }
+    if (auxiliary_[ii] == "am")
+    {
+      v.push_back(angularMomentum[0]);
+      v.push_back(angularMomentum[1]);
+      v.push_back(angularMomentum[2]);
+    }
+  }
+  toVector(v, out);
+}
+
+bool RBDLDynamics::loadPointsFromFile(const char* filename, RigidBodyDynamics::Model *model) const
+{
+  LuaTable lua_table = LuaTable::fromFile(filename);
+
+  int point_count = lua_table["points"].length();
+
+  for (int pi = 1; pi <= point_count; pi++)
+  {
+    Point point = lua_table["points"][pi];
+    point.body_id = model->GetBodyId (point.body_name.c_str());
+
+    points[point.name] = point;
+
+    TRACE(" Adding Point: " << point.name);
+    TRACE("    body =        " << point.body_name << " (id = " << point.body_id << ")");
+    TRACE("    point_local = [" << point.point_local.transpose() << "]");
+  }
+
+  // check whether we missed some points
+  if (points.size() != point_count)
+  {
+    ERROR("Error: not all contact points have been loaded!");
+    abort();
+  }
+
+  return true;
+}
+
+bool RBDLDynamics::loadConstraintSetsFromFile(const char* filename, RigidBodyDynamics::Model *model) const
+{
+  // initialize Constraint Sets
+  LuaTable lua_table = LuaTable::fromFile (filename);
+
+  std::vector<LuaKey> constraint_set_keys = lua_table["constraint_sets"].keys();
+  std::vector<std::string> constraint_set_names;
+  for (size_t i = 0; i < constraint_set_keys.size(); i++)
+  {
+    if (constraint_set_keys[i].type == LuaKey::String)
+    {
+      constraint_set_names.push_back (constraint_set_keys[i].string_value);
+    }
+    else
+    {
+      ERROR("Found invalid constraint set name, string expected!");
+      abort();
+    }
+  }
+
+  for (size_t si = 0; si < constraint_set_names.size(); si++)
+  {
+    std::string set_name_str = constraint_set_names[si];
+
+    TRACE("ConstraintSet '" << set_name_str);
+
+    unsigned int constraint_count = lua_table["constraint_sets"][constraint_set_names[si].c_str()].length();
+
+    RigidBodyDynamics::ConstraintSet cs;
+    ConstraintSetInfo csi;
+    csi.name = set_name_str;
+    csi.constraints.resize (constraint_count);
+
+    for (int ci = 0; ci < constraint_count; ci++)
+    {
+      ConstraintInfo constraint_info = lua_table["constraint_sets"][set_name_str.c_str()][ci + 1];
+      std::string point_name = constraint_info.point_name.c_str();
+      constraint_info.point_id = ci;
+
+      TRACE("  Adding Constraint point: " << points[point_name].name);
+      TRACE("    body id = " << points[point_name].body_id);
+      TRACE("    normal =  [" << constraint_info.normal.transpose() << "]");
+
+      cs.AddConstraint (
+        points[point_name].body_id,
+        points[point_name].point_local,
+        constraint_info.normal
+      );
+      csi.constraints[ci] = constraint_info;
+    }
+
+    // save constraint set infos
+    //constraintSetInfos[set_name_str] = csi;
+
+    // assign constraint set
+    constraints[set_name_str] = cs;
+    // TODO check which solver works better
+    constraints[set_name_str].linear_solver = RigidBodyDynamics::Math::LinearSolverHouseholderQR;
+    // constraintSets[set_name].linear_solver = LinearSolverPartialPivLU;
+    constraints[set_name_str].Bind (*model);
+  }
+
+  // check whether we missed some sets
+  if (constraints.size() != constraint_set_names.size())
+  {
+    ERROR("Error: not all constraint sets have been loaded!");
+    abort();
+  }
+
+  return true;
+}
+
+void RBDLDynamics::getPointPosition(const Vector &state, const std::string point_name, Vector &out) const
+{
+  RBDLState *rbdl = rbdl_state_.instance();
+
+  if ( !points.count( point_name ) )
+  {
+    std::cerr << "ERROR in " << __func__ << std::endl;
+    std::cerr << "Could not find point '" << point_name << "'!" << std::endl;
+    std::cerr << "bailing out ..." << std::endl;
+    abort();
+  }
+
+  size_t dim = rbdl->model->dof_count;
+
+  RigidBodyDynamics::Math::VectorNd q = RigidBodyDynamics::Math::VectorNd::Zero(dim);
+  for (size_t ii=0; ii < dim; ++ii)
+    q[ii] = state[ii];
+
+  Point point = points[point_name];
+  unsigned int body_id = point.body_id;
+  RigidBodyDynamics::Math::Vector3d point_local = point.point_local;
+
+  RigidBodyDynamics::Math::Vector3d point3d = RigidBodyDynamics::CalcBodyToBaseCoordinates (*rbdl->model, q, body_id, point_local, false);
+
+  out.resize(3);
+  for (size_t ii=0; ii < 3; ++ii)
+    out[ii] = point3d[ii];
+}
+
+void RBDLDynamics::getAuxiliary(const Vector &state, double &modelMass, Vector &centerOfMass, Vector &centerOfMassVelocity, Vector &angularMomentum) const
+{
+  RBDLState *rbdl = rbdl_state_.instance();
+
+  size_t dim = rbdl->model->dof_count;
+  RigidBodyDynamics::Math::VectorNd q = RigidBodyDynamics::Math::VectorNd::Zero(dim);
+  RigidBodyDynamics::Math::VectorNd qd = RigidBodyDynamics::Math::VectorNd::Zero(dim);
+
+  for (size_t ii=0; ii < dim; ++ii)
+  {
+    q[ii] = state[ii];
+    qd[ii] = state[ii + dim];
+  }
+
+  RigidBodyDynamics::Math::Vector3d com, com_velocity, angular_momentum;
+  RigidBodyDynamics::Utils::CalcCenterOfMass(*rbdl->model, q, qd, modelMass, com, &com_velocity, &angular_momentum, false );
+
+  centerOfMass.resize(3);
+  centerOfMassVelocity.resize(3);
+  angularMomentum.resize(3);
+  for (size_t ii=0; ii < 3; ++ii)
+  {
+    centerOfMass[ii] = com[ii];
+    centerOfMassVelocity[ii] = com_velocity[ii];
+    angularMomentum[ii] = angular_momentum[ii];
+  }
 }
 
 RBDLState *RBDLDynamics::createRBDLState() const
@@ -159,10 +368,14 @@ RBDLState *RBDLDynamics::createRBDLState() const
     Body &body = rbdl->model->mBodies[i];
     SpatialRigidBodyInertia body_rbi = SpatialRigidBodyInertia::createFromMassComInertiaC(body.mMass, body.mCenterOfMass, body.mInertia);
     TRACE("=============== Spatial inertia of body " << i << " ===============");
-    TRACE(body_rbi.toMatrix() << std::endl);
+    TRACE(std::endl << body_rbi.toMatrix() << std::endl);
   }
   
   NOTICE("Loaded RBDL model with " << rbdl->model->dof_count << " degrees of freedom");
+
+  // Load optional things
+  loadPointsFromFile(file_.c_str(), rbdl->model);
+  loadConstraintSetsFromFile(file_.c_str(), rbdl->model);
   
   return rbdl;
 }
@@ -232,7 +445,7 @@ void LuaTask::start(int test, Vector *state) const
   lua_pop(lua->L, 1);
 }
 
-void LuaTask::observe(const Vector &state, Vector *obs, int *terminal) const
+void LuaTask::observe(const Vector &state, Observation *obs, int *terminal) const
 {
   LuaState *lua = lua_state_.instance();
 
@@ -251,10 +464,11 @@ void LuaTask::observe(const Vector &state, Vector *obs, int *terminal) const
     WARNING("Termination condition is not a number");
   
   *terminal = lua_tointeger(lua->L, -1);
+  obs->absorbing = *terminal > 1;
   lua_pop(lua->L, 2);
 }
 
-void LuaTask::evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const
+void LuaTask::evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const
 {
   LuaState *lua = lua_state_.instance();
 
@@ -276,7 +490,7 @@ void LuaTask::evaluate(const Vector &state, const Vector &action, const Vector &
   lua_pop(lua->L, 1);
 }
  
-bool LuaTask::invert(const Vector &obs, Vector *state) const
+bool LuaTask::invert(const Observation &obs, Vector *state) const
 {
   LuaState *lua = lua_state_.instance();
 
@@ -295,7 +509,7 @@ bool LuaTask::invert(const Vector &obs, Vector *state) const
   return true;
 }
 
-Matrix LuaTask::rewardHessian(const Vector &state, const Vector &action) const
+Matrix LuaTask::rewardHessian(const Observation &state, const Action &action) const
 {
   LuaState *lua = lua_state_.instance();
   Matrix hessian;

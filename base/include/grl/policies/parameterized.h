@@ -56,7 +56,7 @@ class ParameterizedActionPolicy : public ParameterizedPolicy
     virtual void reconfigure(const Configuration &config);
 
     // From Policy
-    virtual void act(const Vector &in, Vector *out) const;
+    virtual void act(const Observation &in, Action *out) const;
     
     // From ParameterizedPolicy
     virtual size_t size() const { return representation_->size(); }

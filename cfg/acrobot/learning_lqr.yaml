@@ -78,12 +78,12 @@ experiment:
 visualizer: 
   type: visualizer/glut
 visualization: 
-  type: visualization/field/policy/action
+  type: visualization/field/mapping
   field_dims: [0, 1]
   input_min: experiment/environment/task/observation_min
   input_max: experiment/environment/task/observation_max
   points: 65536
   savepoints: 1048576
   projection: mean
-  policy: experiment/test_agent/policy
+  mapping: experiment/test_agent/policy
   output_dim: 0

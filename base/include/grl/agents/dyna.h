@@ -66,11 +66,12 @@ class DynaAgent : public Agent
     ModelPredictor *model_predictor_;
     Agent *model_agent_;
     VectorSignal *state_;
-    FIFOSampler<Vector> start_obs_;
+    FIFOSampler<Observation> start_obs_;
     
     std::vector<DynaAgentThread*> agent_threads_;
     
-    Vector prev_obs_, prev_action_;
+    Observation prev_obs_;
+    Action prev_action_;
     size_t planning_steps_, planning_horizon_, total_planned_steps_;
     
     double planning_reward_, actual_reward_;
@@ -92,9 +93,9 @@ class DynaAgent : public Agent
     virtual void reconfigure(const Configuration &config);
 
     // From Agent
-    virtual void start(const Vector &obs, Vector *action);
-    virtual void step(double tau, const Vector &obs, double reward, Vector *action);
-    virtual void end(double tau, const Vector &obs, double reward);
+    virtual void start(const Observation &obs, Action *action);
+    virtual void step(double tau, const Observation &obs, double reward, Action *action);
+    virtual void end(double tau, const Observation &obs, double reward);
     virtual void report(std::ostream &os);
 
   protected:

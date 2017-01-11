@@ -58,6 +58,7 @@ class PolicyDiscretizer : public Discretizer
     virtual void inc(iterator *it) const;
     virtual Vector get(const iterator &it) const;
     virtual Vector at(const Vector &point, size_t idx) const;
+    virtual size_t discretize(Vector *vec) const { return 0; }
 };
 
 }
