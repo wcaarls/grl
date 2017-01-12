@@ -28,9 +28,9 @@
 #include <grl/policies/pid.h>
 
 #define P(i, o) ((i)*outputs_+(o))
-#define I(i, o) (p_.size()+P(i, o))
-#define D(i, o) (p_.size()+i_.size()+P(i, o))
-#define IL(i, o) (p_.size()+i_.size()+d_.size()+P(i, o))
+#define I(i, o) (setpoint_.size()*outputs_+P(i, o))
+#define D(i, o) (2*setpoint_.size()*outputs_+P(i, o))
+#define IL(i, o) (3*setpoint_.size()*outputs_+P(i, o))
 
 using namespace grl;
 
@@ -63,19 +63,27 @@ void PIDPolicy::configure(Configuration &config)
   outputs_ = config["outputs"];
 
   p_ = config["p"].v();
-  if (p_.size() && p_.size() != setpoint_.size()*outputs_)
+  if (!p_.size())
+    p_ = ConstantVector(setpoint_.size()*outputs_, 0.);
+  if (p_.size() != setpoint_.size()*outputs_)
     throw bad_param("policy/pid:p");
 
   i_ = config["i"].v();
-  if (i_.size() && i_.size() != setpoint_.size()*outputs_)
+  if (!i_.size())
+    i_ = ConstantVector(setpoint_.size()*outputs_, 0.);
+  if (i_.size() != setpoint_.size()*outputs_)
     throw bad_param("policy/pid:i");
 
   d_ = config["d"].v();
-  if (d_.size() && d_.size() != setpoint_.size()*outputs_)
+  if (!d_.size())
+    d_ = ConstantVector(setpoint_.size()*outputs_, 0.);
+  if (d_.size() != setpoint_.size()*outputs_)
     throw bad_param("policy/pid:d");
 
   il_ = config["il"].v();
-  if (il_.size() && il_.size() != setpoint_.size()*outputs_)
+  if (!il_.size())
+    il_ = ConstantVector(setpoint_.size()*outputs_, std::numeric_limits<double>::infinity());
+  if (il_.size() != setpoint_.size()*outputs_)
     throw bad_param("policy/pid:il");
 
   params_ = extend(extend(extend(p_, i_), d_), il_);
@@ -91,9 +99,10 @@ void PIDPolicy::reconfigure(const Configuration &config)
   }
 }
 
-TransitionType PIDPolicy::act(const Vector &in, Vector *out) const
+void PIDPolicy::act(const Observation &in, Action *out) const
 {
-  out->resize(outputs_); 
+  out->v.resize(outputs_); 
+  out->type = atGreedy;
 
   for (size_t oo=0; oo < outputs_; ++oo)
   {
@@ -105,17 +114,14 @@ TransitionType PIDPolicy::act(const Vector &in, Vector *out) const
       
       // Autonomous policy assumes no accumulated errors or differences, but
       // integration happens before applying the gains.
-      u += params_[P(ii, oo)]*err;
-      if (i_.size() && il_.size())
-        u += params_[I(ii, oo)]*err;
+      u += (params_[P(ii, oo)]+params_[I(ii, oo)])*err;
     }
 
     (*out)[oo] = fmin(action_max_[oo], fmax(u, action_min_[oo]));
   }
-  return ttGreedy;
 }
 
-TransitionType PIDPolicy::act(double time, const Vector &in, Vector *out)
+void PIDPolicy::act(double time, const Observation &in, Action *out)
 {
   if (time == 0.)
   {
@@ -124,7 +130,8 @@ TransitionType PIDPolicy::act(double time, const Vector &in, Vector *out)
     prev_in_ = in;
   }
 
-  out->resize(outputs_); 
+  out->v.resize(outputs_); 
+  out->type = atGreedy;
 
   for (size_t oo=0; oo < outputs_; ++oo)
   {
@@ -132,36 +139,25 @@ TransitionType PIDPolicy::act(double time, const Vector &in, Vector *out)
     
     for (size_t ii=0; ii < setpoint_.size(); ++ii)
     {
-      double err = 0, acc = 0, diff = 0;
-
-      err = setpoint_[ii] - in[ii];
-      u += params_[P(ii, oo)]*err;
-
-      if (i_.size() && il_.size())
-      {
-        acc = fmin(ival_[ii*outputs_+oo] + err, params_[IL(ii, oo)]);
-        ival_[ii*outputs_+oo] = acc;
-        u += params_[I(ii, oo)]*acc;
-      }
-
-      if (d_.size())
-      {
-        diff = in[ii] - prev_in_[ii];
-        u += params_[D(ii, oo)]*diff;
-      }
+      double err = setpoint_[ii] - in[ii];
+      double acc = fmin(ival_[ii*outputs_+oo] + err, params_[IL(ii, oo)]);
+      double diff = in[ii] - prev_in_[ii];
+      
+      u += params_[P(ii, oo)]*err + params_[I(ii, oo)]*acc + params_[D(ii, oo)]*diff;
+      
+      ival_[ii*outputs_+oo] = acc;
     }
     
     (*out)[oo] = fmin(action_max_[oo], fmax(u, action_min_[oo]));
   }
   
   prev_in_ = in;
-  return ttGreedy;
 }
 
 ////////////////////////////////////////////////
 void PIDTrajectoryPolicy::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("policy", "policy", "Control policy", trajectory_));
+  config->push_back(CRP("trajectory", "mapping", "Maps time to setpoints", trajectory_));
   config->push_back(CRP("inputs", "int.observation_dims", "Number of inputs", (int)inputs_, CRP::System, 1));
   config->push_back(CRP("outputs", "int.action_dims", "Number of outputs", (int)outputs_, CRP::System, 1));
 
@@ -179,25 +175,33 @@ void PIDTrajectoryPolicy::configure(Configuration &config)
   action_min_ = config["action_min"].v();
   action_max_ = config["action_max"].v();
 
-  trajectory_ = (Policy*)config["policy"].ptr();
+  trajectory_ = (Mapping*)config["trajectory"].ptr();
   inputs_ = config["inputs"];
   outputs_ = config["outputs"];
 
   p_ = config["p"].v();
-  if (p_.size() && p_.size() != setpoint_.size()*outputs_)
-    throw bad_param("policy/pid:p");
+  if (!p_.size())
+    p_ = ConstantVector(inputs_*outputs_, 0.);
+  if (p_.size() && p_.size() != inputs_*outputs_)
+    throw bad_param("policy/pidt:p");
 
   i_ = config["i"].v();
-  if (i_.size() && i_.size() != setpoint_.size()*outputs_)
-    throw bad_param("policy/pid:i");
+  if (!i_.size())
+    i_ = ConstantVector(inputs_*outputs_, 0.);
+  if (i_.size() && i_.size() != inputs_*outputs_)
+    throw bad_param("policy/pidt:i");
 
   d_ = config["d"].v();
-  if (d_.size() && d_.size() != setpoint_.size()*outputs_)
-    throw bad_param("policy/pid:d");
+  if (!d_.size())
+    d_ = ConstantVector(inputs_*outputs_, 0.);
+  if (d_.size() && d_.size() != inputs_*outputs_)
+    throw bad_param("policy/pidt:d");
 
   il_ = config["il"].v();
-  if (il_.size() && il_.size() != setpoint_.size()*outputs_)
-    throw bad_param("policy/pid:il");
+  if (!il_.size())
+    il_ = ConstantVector(inputs_*outputs_, std::numeric_limits<double>::infinity());
+  if (il_.size() && il_.size() != inputs_*outputs_)
+    throw bad_param("policy/pidt:il");
 
   params_ = extend(extend(extend(p_, i_), d_), il_);
 
@@ -212,16 +216,12 @@ void PIDTrajectoryPolicy::reconfigure(const Configuration &config)
   }
 }
 
-TransitionType PIDTrajectoryPolicy::act(const Vector &in, Vector *out) const
+void PIDTrajectoryPolicy::act(double time, const Observation &in, Action *out)
 {
-  WARNING("Trajectory policy has no autonomous policy implementation");
-  return ttGreedy;
-}
-
-TransitionType PIDTrajectoryPolicy::act(double time, const Vector &in, Vector *out)
-{
-  // Read a new setpoint from a trajectory
-  trajectory_->act(time, in, &setpoint_);
+  // Read current setpoint from the trajectory
+  trajectory_->read(VectorConstructor(time), &setpoint_);
+  
+  CRAWL("Setpoint " << setpoint_);
 
   if (time == 0.)
   {
@@ -230,7 +230,8 @@ TransitionType PIDTrajectoryPolicy::act(double time, const Vector &in, Vector *o
     prev_in_ = in;
   }
 
-  out->resize(outputs_);
+  out->v.resize(outputs_);
+  out->type = atGreedy;
 
   for (size_t oo=0; oo < outputs_; ++oo)
   {
@@ -238,28 +239,17 @@ TransitionType PIDTrajectoryPolicy::act(double time, const Vector &in, Vector *o
 
     for (size_t ii=0; ii < inputs_; ++ii)
     {
-      double err = 0, acc = 0, diff = 0;
-
-      err = setpoint_[ii] - in[ii];
-      u += params_[P(ii, oo)]*err;
-
-      if (i_.size() && il_.size())
-      {
-        acc = fmin(ival_[ii*outputs_+oo] + err, params_[IL(ii, oo)]);
-        ival_[ii*outputs_+oo] = acc;
-        u += params_[I(ii, oo)]*acc;
-      }
-
-      if (d_.size())
-      {
-        diff = in[ii] - prev_in_[ii];
-        u += params_[D(ii, oo)]*diff;
-      }
+      double err = setpoint_[ii] - in[ii];
+      double acc = fmin(ival_[ii*outputs_+oo] + err, params_[IL(ii, oo)]);
+      double diff = in[ii] - prev_in_[ii];
+      
+      u += params_[P(ii, oo)]*err + params_[I(ii, oo)]*acc + params_[D(ii, oo)]*diff;
+      
+      ival_[ii*outputs_+oo] = acc;
     }
 
     (*out)[oo] = fmin(action_max_[oo], fmax(u, action_min_[oo]));
   }
 
   prev_in_ = in;
-  return ttGreedy;
 }

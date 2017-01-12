@@ -41,14 +41,14 @@ void CSVImporter::configure(Configuration &config)
 {
   file_ = config["file"].str();
   if (file_.empty())
-    throw bad_param("exporter/csv:file");
+    throw bad_param("importer/csv:file");
 }
 
 void CSVImporter::reconfigure(const Configuration &config)
 {
 }
 
-void CSVImporter::init(const std::initializer_list<std::string> &headers)
+void CSVImporter::init(const std::vector<std::string> &headers)
 {
   headers_ = headers;
 }
@@ -57,51 +57,63 @@ void CSVImporter::open(const std::string &variant)
 {
   stream_.open((file_+variant+".csv").c_str());
   
-  std::string line;
-  std::getline(stream_, line);
-  if (line != "COLUMNS:")
+  if (!stream_.good())
   {
-    ERROR("CSV file should start with COLUMNS directive");
+    ERROR("Could not open '" << file_ << variant << ".csv' for reading");
     throw bad_param("importer/csv:file");
   }
   
-  std::vector<bool> found(false, headers_.size());
-  do
+  if (headers_.size())
   {
+    // Requested specific headers to read
+    std::string line;
     std::getline(stream_, line);
-    
-    if (line != "DATA:")
+    if (line != "COLUMNS:")
     {
-      line.erase(0, line.find_first_not_of(" \t"));
-      line.erase(line.find_last_not_of(" \t,")+1);
-      if (line.find('[') != std::string::npos)
-        line.erase(line.find('['));
-      
-      for (size_t ii=0; ii != headers_.size(); ++ii)
-        if (headers_[ii] == line)
-        {
-          order_.push_back(ii);
-          found[ii] = true;
-        }
-    }
-  } while (stream_.good() && line != "DATA:");
-  
-  for (size_t ii=0; ii != headers_.size(); ++ii)
-    if (!found[ii])
-    {
-      ERROR("CSV file does not contain required field '" << headers_[ii] << "'");
+      ERROR("CSV file should start with COLUMNS directive");
       throw bad_param("importer/csv:file");
     }
+    
+    std::vector<bool> found(false, headers_.size());
+    do
+    {
+      std::getline(stream_, line);
+      
+      if (line != "DATA:")
+      {
+        line.erase(0, line.find_first_not_of(" \t"));
+        line.erase(line.find_last_not_of(" \t,")+1);
+        if (line.find('[') != std::string::npos)
+          line.erase(line.find('['));
+        
+        for (size_t ii=0; ii != headers_.size(); ++ii)
+          if (headers_[ii] == line)
+          {
+            order_.push_back(ii);
+            found[ii] = true;
+          }
+      }
+    } while (stream_.good() && line != "DATA:");
+    
+    for (size_t ii=0; ii != headers_.size(); ++ii)
+      if (!found[ii])
+      {
+        ERROR("CSV file does not contain required field '" << headers_[ii] << "'");
+        throw bad_param("importer/csv:file");
+      }
+  }
+  else
+    order_ = std::vector<size_t>(1024, 0);
 }
 
-bool CSVImporter::read(const std::initializer_list<Vector*> &vars)
+bool CSVImporter::read(const std::vector<Vector*> &vars)
 {
-  if (vars.size() != headers_.size())
+  if (headers_.size() && vars.size() != headers_.size())
   {
     ERROR("Variable list does not match header list");
     return false;
-  }
-
+  } 
+  
   std::vector<std::vector<double> > var_vec(vars.size());
 
   std::string str;
@@ -109,6 +121,22 @@ bool CSVImporter::read(const std::initializer_list<Vector*> &vars)
   while (ii < order_.size() && stream_.good())
   {
     char c = stream_.get();
+    
+    if (c == 'C')
+    {
+      // Reading a CSV file with headers without specifying headers.
+      // Clear until we get to the data.
+      
+      CRAWL("Skipping header");
+      
+      std::string line;
+      do
+      {
+        std::getline(stream_, line);
+      } while (stream_.good() && line != "DATA:");
+      
+      continue;
+    }
     
     if (c == ',' || c == '\n' || !stream_.good())
     {
@@ -132,5 +160,5 @@ bool CSVImporter::read(const std::initializer_list<Vector*> &vars)
   for (; it != var_vec.end(); ++it, ++jt)
     toVector(*it, **jt);
   
-  return ii == order_.size();
+  return stream_.good();
 }

@@ -4,19 +4,21 @@ set(TARGET grl)
 # Make library
 add_library(${TARGET} SHARED
             ${SRC}/grl.cpp
+            ${SRC}/configurable.cpp
+            ${SRC}/predictor.cpp
+            ${SRC}/random_generator.cpp
             ${SRC}/agents/fixed.cpp
             ${SRC}/agents/black_box.cpp
             ${SRC}/agents/td.cpp
             ${SRC}/agents/dyna.cpp
             ${SRC}/agents/sequential.cpp
-#            ${SRC}/agents/smdp_master.cpp
+            ${SRC}/agents/smdp_master.cpp
             ${SRC}/agents/compartmentalized.cpp
             ${SRC}/agents/voluntary.cpp
             ${SRC}/agents/solver.cpp
             ${SRC}/agents/filtering.cpp
             ${SRC}/agents/leo_squatting_agent.cpp
             ${SRC}/agents/leo_preprogrammed.cpp
-            ${SRC}/configurable.cpp
             ${SRC}/discretizers/uniform.cpp
             ${SRC}/discretizers/peaked.cpp
             ${SRC}/discretizers/split.cpp
@@ -44,7 +46,8 @@ add_library(${TARGET} SHARED
             ${SRC}/exporters/csv.cpp
             ${SRC}/importers/csv.cpp
             ${SRC}/mappings/multisine.cpp
-            ${SRC}/mappings/q_policy.cpp
+            ${SRC}/mappings/value.cpp
+            ${SRC}/mappings/timeline.cpp
             ${SRC}/optimizers/rwa.cpp
             ${SRC}/policies/random.cpp
             ${SRC}/policies/action.cpp
@@ -58,7 +61,6 @@ add_library(${TARGET} SHARED
             ${SRC}/policies/ucb.cpp
             ${SRC}/policies/state_feedback.cpp
             ${SRC}/policies/noise.cpp
-            ${SRC}/predictor.cpp
             ${SRC}/predictors/model.cpp
             ${SRC}/predictors/sarsa.cpp
             ${SRC}/predictors/ggq.cpp

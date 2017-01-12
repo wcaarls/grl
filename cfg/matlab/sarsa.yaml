@@ -15,7 +15,7 @@ agent:
     trace:
       type: trace/enumerated/replacing
   policy:
-    type: policy/discrete/q
+    type: mapping/policy/value/q
     projector: agent/predictor/projector
     representation: agent/predictor/representation
     discretizer:

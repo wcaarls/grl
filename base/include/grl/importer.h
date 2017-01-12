@@ -29,7 +29,6 @@
 #define GRL_IMPORTER_H_
 
 #include <grl/configurable.h>
-#include <initializer_list>
 
 namespace grl {
 
@@ -37,8 +36,8 @@ class Importer : public Configurable
 {
   public:
     /// Register header names of variables that will be read.
-    virtual void init(const std::initializer_list<std::string> &list) = 0;
-    
+    virtual void init(const std::vector<std::string> &list) = 0;
+
     /// Open a file.
     virtual void open(const std::string &variant="") = 0;
 
@@ -47,7 +46,7 @@ class Importer : public Configurable
      * 
      * The variable list should correspond to the header name.
      */
-    virtual bool read(const std::initializer_list<Vector*> &list) = 0;
+    virtual bool read(const std::vector<Vector*> &list) = 0;
 };
 
 class CSVImporter : public Importer
@@ -71,9 +70,9 @@ class CSVImporter : public Importer
     virtual void reconfigure(const Configuration &config);
 
     // From Importer
-    virtual void init(const std::initializer_list<std::string> &list);
+    virtual void init(const std::vector<std::string> &list);
     virtual void open(const std::string &variant="");
-    virtual bool read(const std::initializer_list<Vector*> &list);
+    virtual bool read(const std::vector<Vector*> &list);
 };
 
 }

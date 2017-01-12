@@ -1,11 +1,11 @@
-/** \file feed_forward.h
- * \brief Feed forward policy header file.
+/** \file timeline.h
+ * \brief Timeline mapping definition.
  *
- * \author    Ivan Koryakovskiy <i.koryakovskiy@gmail.com>
- * \date      2016-02-11
+ * \author    Wouter Caarls <wouter@caarls.org>
+ * \date      2017-01-12
  *
  * \copyright \verbatim
- * Copyright (c) 2015, Wouter Caarls
+ * Copyright (c) 2017, Wouter Caarls
  * All rights reserved.
  *
  * This file is part of GRL, the Generic Reinforcement Learning library.
@@ -25,35 +25,39 @@
  * \endverbatim
  */
 
-#ifndef GRL_FEED_FORWARD_POLICY_H_
-#define GRL_FEED_FORWARD_POLICY_H_
+#ifndef GRL_TIMELINE_MAPPING_H_
+#define GRL_TIMELINE_MAPPING_H_
 
-#include <grl/policy.h>
+#include <grl/mapping.h>
+#include <grl/importer.h>
 
 namespace grl
 {
 
-/// FF policy
-class FeedForwardPolicy : public Policy
+class TimelineMapping : public Mapping
 {
   public:
-    TYPEINFO("mapping/policy/feed_forward", "Feed-forward policy")
+    TYPEINFO("mapping/timeline", "Imported timeline mapping")
 
   protected:
-    Mapping *controls_;
-
+    Importer *importer_;
+    std::vector<Vector> data_;
+    mutable Instance<size_t> prev_idx_;
+  
   public:
-    FeedForwardPolicy() { }
+    TimelineMapping() : importer_(NULL)
+    {
+    }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
 
-    // From Policy
-    virtual TransitionType act(double time, const Vector &in, Vector *out);
+    // From Mapping
+    virtual double read(const Vector &in, Vector *result) const;
 };
 
 }
 
-#endif /* GRL_FEED_FORWARD_POLICY_H_ */
+#endif /* GRL_TIMELINE_MAPPING_H_ */
