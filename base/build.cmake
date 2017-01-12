@@ -45,6 +45,7 @@ add_library(${TARGET} SHARED
             ${SRC}/importers/csv.cpp
             ${SRC}/mappings/multisine.cpp
             ${SRC}/mappings/value.cpp
+            ${SRC}/mappings/timeline.cpp
             ${SRC}/optimizers/rwa.cpp
             ${SRC}/policies/random.cpp
             ${SRC}/policies/action.cpp

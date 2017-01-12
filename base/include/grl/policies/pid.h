@@ -72,10 +72,10 @@ class PIDPolicy : public ParameterizedPolicy
 class PIDTrajectoryPolicy : public ParameterizedPolicy
 {
   public:
-    TYPEINFO("mapping/policy/parameterized/pidt", "Parameterized policy based on a proportional-integral-derivative controller for tranjectory tracking")
+    TYPEINFO("mapping/policy/parameterized/pidt", "Parameterized policy based on a proportional-integral-derivative controller for trajectory tracking")
 
   protected:
-    Policy *trajectory_;  // TODO: could be a "Timeline" importer ?
+    Mapping *trajectory_;
     Vector setpoint_;     // the dynamic setpoint is taken from trajectory at the current time
     size_t inputs_, outputs_;
     Vector p_, i_, d_, il_;

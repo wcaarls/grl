@@ -157,7 +157,7 @@ void PIDPolicy::act(double time, const Observation &in, Action *out)
 ////////////////////////////////////////////////
 void PIDTrajectoryPolicy::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("policy", "policy", "Control policy", trajectory_));
+  config->push_back(CRP("trajectory", "mapping", "Maps time to setpoints", trajectory_));
   config->push_back(CRP("inputs", "int.observation_dims", "Number of inputs", (int)inputs_, CRP::System, 1));
   config->push_back(CRP("outputs", "int.action_dims", "Number of outputs", (int)outputs_, CRP::System, 1));
 
@@ -175,25 +175,33 @@ void PIDTrajectoryPolicy::configure(Configuration &config)
   action_min_ = config["action_min"].v();
   action_max_ = config["action_max"].v();
 
-  trajectory_ = (Policy*)config["policy"].ptr();
+  trajectory_ = (Mapping*)config["trajectory"].ptr();
   inputs_ = config["inputs"];
   outputs_ = config["outputs"];
 
   p_ = config["p"].v();
-  if (p_.size() && p_.size() != setpoint_.size()*outputs_)
-    throw bad_param("policy/pid:p");
+  if (!p_.size())
+    p_ = ConstantVector(inputs_*outputs_, 0.);
+  if (p_.size() && p_.size() != inputs_*outputs_)
+    throw bad_param("policy/pidt:p");
 
   i_ = config["i"].v();
-  if (i_.size() && i_.size() != setpoint_.size()*outputs_)
-    throw bad_param("policy/pid:i");
+  if (!i_.size())
+    i_ = ConstantVector(inputs_*outputs_, 0.);
+  if (i_.size() && i_.size() != inputs_*outputs_)
+    throw bad_param("policy/pidt:i");
 
   d_ = config["d"].v();
-  if (d_.size() && d_.size() != setpoint_.size()*outputs_)
-    throw bad_param("policy/pid:d");
+  if (!d_.size())
+    d_ = ConstantVector(inputs_*outputs_, 0.);
+  if (d_.size() && d_.size() != inputs_*outputs_)
+    throw bad_param("policy/pidt:d");
 
   il_ = config["il"].v();
-  if (il_.size() && il_.size() != setpoint_.size()*outputs_)
-    throw bad_param("policy/pid:il");
+  if (!il_.size())
+    il_ = ConstantVector(inputs_*outputs_, std::numeric_limits<double>::infinity());
+  if (il_.size() && il_.size() != inputs_*outputs_)
+    throw bad_param("policy/pidt:il");
 
   params_ = extend(extend(extend(p_, i_), d_), il_);
 
@@ -210,10 +218,10 @@ void PIDTrajectoryPolicy::reconfigure(const Configuration &config)
 
 void PIDTrajectoryPolicy::act(double time, const Observation &in, Action *out)
 {
-  // Read a new setpoint from a trajectory
-  Action a;
-  trajectory_->act(time, in, &a);
-  setpoint_ = a.v;
+  // Read current setpoint from the trajectory
+  trajectory_->read(VectorConstructor(time), &setpoint_);
+  
+  CRAWL("Setpoint " << setpoint_);
 
   if (time == 0.)
   {
