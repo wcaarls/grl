@@ -75,7 +75,7 @@ void GridProjector::configure(Configuration &config)
   if (min_.size() != max_.size() || min_.size() != steps_.size())
     throw bad_param("projector/grid:{min,max,steps}");
 
-  delta_ = (max_-min_)/steps_;
+  delta_ = (max_-min_)/(steps_-1);
   
   config.set("memory", (int)prod(steps_));
 }
@@ -97,7 +97,7 @@ ProjectionPtr GridProjector::project(const Vector &in) const
   size_t ff = 1;
   for (size_t dd=0; dd < steps_.size(); ++dd)
   {
-    size_t v = std::min(std::max((in[dd]-min_[dd])/delta_[dd], 0.), steps_[dd]-1.);
+    size_t v = round(std::min(std::max((in[dd]-min_[dd])/delta_[dd], 0.), steps_[dd]-1.));
     index += ff*v;
     ff *= steps_[dd];
   }

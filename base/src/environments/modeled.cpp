@@ -90,9 +90,17 @@ void ModeledEnvironment::start(int test, Vector *obs)
 
 double ModeledEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)
 {
-  Vector next;
+  Vector state = state_, next, actuation;
+  double tau = 0;
+  bool done = false;
 
-  double tau = model_->step(state_, action, &next);
+  do
+  {
+    done = task_->actuate(state, action, &actuation);
+    tau += model_->step(state, actuation, &next);
+    state = next;
+  } while (!done);
+  
   task_->observe(next, obs, terminal);
   task_->evaluate(state_, action, next, reward);
 

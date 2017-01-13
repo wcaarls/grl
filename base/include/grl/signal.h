@@ -28,6 +28,67 @@
 #ifndef GRL_SIGNAL_H_
 #define GRL_SIGNAL_H_
 
-#include <grl/signals/signal.h>
+#include <itc/itc.h>
+
+#include <grl/configurable.h>
+#include <grl/mutex.h>
+
+namespace grl
+{
+
+template<class T>
+class Signal : public Configurable
+{
+  protected:
+    itc::SharedVariable<T> var_;
+
+  public:
+    /// Returns reference to current value.
+    /// NOTE: not thread-safe
+    virtual T &operator*()
+    {
+      return *var_;
+    }
+    
+    /// Returns current value.
+    virtual T get()
+    {
+      return var_.get();
+    }
+
+    /// Sets new value.    
+    virtual void set(const T &state)
+    {
+      var_.write(state);
+    }
+
+    /// Returns true if the value has changed.
+    virtual bool test()
+    {
+      return var_.test();
+    }
+
+    /// Reads a new value, waiting until it changes if necessary.    
+    virtual T read()
+    {
+      return var_.read();
+    }
+};
+
+/// Encapsulates a vector (e.g. system state).
+class VectorSignal : public Signal<LargeVector>
+{
+  public:
+    TYPEINFO("signal/vector", "Vector-based signal (state, observation, etc.)");
+};
+
+/// Encapsulates a matrix (e.g. trajectory).
+class MatrixSignal : public Signal<Matrix>
+{
+  public:
+    TYPEINFO("signal/matrix", "Matrix-based signal (trajectory, etc.)");
+};
+
+}
 
 #endif /* GRL_SIGNAL_H_ */

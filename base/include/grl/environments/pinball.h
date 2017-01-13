@@ -217,10 +217,10 @@ class PinballModel : public Model
   public:
     std::vector<Obstacle> obstacles_;
     double radius_, restitution_, tau_;
-    int steps_;
+    int steps_, maze_;
 
   public:
-    PinballModel() : radius_(0.01), restitution_(0.5), tau_(0.05), steps_(5) { }
+    PinballModel() : radius_(0.01), restitution_(0.5), tau_(0.05), steps_(5), maze_(0) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
