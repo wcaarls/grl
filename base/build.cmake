@@ -40,6 +40,7 @@ add_library(${TARGET} SHARED
             ${SRC}/environments/shaping.cpp
             ${SRC}/environments/flyer2d.cpp
             ${SRC}/environments/puddle.cpp
+            ${SRC}/environments/mountain.cpp
             ${SRC}/experiments/approx_test.cpp
             ${SRC}/experiments/online_learning.cpp
             ${SRC}/experiments/batch_learning.cpp
@@ -51,6 +52,7 @@ add_library(${TARGET} SHARED
             ${SRC}/mappings/value.cpp
             ${SRC}/mappings/timeline.cpp
             ${SRC}/mappings/puddle.cpp
+            ${SRC}/mappings/displacement.cpp
             ${SRC}/optimizers/rwa.cpp
             ${SRC}/policies/random.cpp
             ${SRC}/policies/action.cpp
