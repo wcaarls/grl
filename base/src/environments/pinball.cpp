@@ -39,6 +39,7 @@ void PinballModel::request(ConfigurationRequest *config)
   config->push_back(CRP("integration_steps", "Number of integration steps per control step", (int)steps_, CRP::Configuration, 1));
   config->push_back(CRP("restitution", "Coefficient of restitution", restitution_, CRP::Configuration, 0., 1.));
   config->push_back(CRP("radius", "Ball radius", radius_, CRP::Configuration, 0.001, DBL_MAX));
+  config->push_back(CRP("maze", "Maze ID", maze_, CRP::Configuration, 0, 1));
 }
 
 void PinballModel::configure(Configuration &config)
@@ -47,27 +48,58 @@ void PinballModel::configure(Configuration &config)
   steps_ = config["integration_steps"];
   restitution_ = config["restitution"];
   radius_ = config["radius"];
+  maze_ = config["maze"];
   
-  Obstacle w;
-  w.addPoint(Point(0, 0));
-  w.addPoint(Point(0, 1));
-  w.addPoint(Point(1, 1));
-  w.addPoint(Point(1, 0));
-  obstacles_.push_back(w);
-  
-  Obstacle o1;
-  o1.addPoint(Point(0.2, 0.0));
-  o1.addPoint(Point(0.4, 0.0));
-  o1.addPoint(Point(0.4, 0.8));
-  o1.addPoint(Point(0.2, 0.8));
-  obstacles_.push_back(o1);
-  
-  Obstacle o2;
-  o2.addPoint(Point(0.6, 0.2));
-  o2.addPoint(Point(0.8, 0.2));
-  o2.addPoint(Point(0.8, 1.0));
-  o2.addPoint(Point(0.6, 1.0));
-  obstacles_.push_back(o2);
+  if (maze_ == 0)
+  {
+    Obstacle w;
+    w.addPoint(Point(0, 0));
+    w.addPoint(Point(0, 1));
+    w.addPoint(Point(1, 1));
+    w.addPoint(Point(1, 0));
+    obstacles_.push_back(w);
+    
+    Obstacle o1;
+    o1.addPoint(Point(0.2, 0.0));
+    o1.addPoint(Point(0.4, 0.0));
+    o1.addPoint(Point(0.4, 0.8));
+    o1.addPoint(Point(0.2, 0.8));
+    obstacles_.push_back(o1);
+    
+    Obstacle o2;
+    o2.addPoint(Point(0.6, 0.2));
+    o2.addPoint(Point(0.8, 0.2));
+    o2.addPoint(Point(0.8, 1.0));
+    o2.addPoint(Point(0.6, 1.0));
+    obstacles_.push_back(o2);
+  }
+  else if (maze_ == 1)
+  {
+    Obstacle w;
+    w.addPoint(Point(0, 0));
+    w.addPoint(Point(0, 1));
+    w.addPoint(Point(1, 1));
+    w.addPoint(Point(1, 0));
+    obstacles_.push_back(w);
+    
+    Obstacle o1;
+    o1.addPoint(Point(0.2, 0.0));
+    o1.addPoint(Point(0.3, 0.0));
+    o1.addPoint(Point(0.3, 0.7));
+    o1.addPoint(Point(0.5, 0.7));
+    o1.addPoint(Point(0.5, 0.8));
+    o1.addPoint(Point(0.2, 0.8));
+    obstacles_.push_back(o1);
+
+    Obstacle o2;
+    o2.addPoint(Point(0.5, 0.2));
+    o2.addPoint(Point(0.8, 0.2));
+    o2.addPoint(Point(0.8, 1.0));
+    o2.addPoint(Point(0.7, 1.0));
+    o2.addPoint(Point(0.7, 0.3));
+    o2.addPoint(Point(0.5, 0.3));
+    obstacles_.push_back(o2);
+  }
 }
 
 void PinballModel::reconfigure(const Configuration &config)

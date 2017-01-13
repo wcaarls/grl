@@ -7,6 +7,7 @@ add_library(${TARGET} SHARED
             ${SRC}/configurable.cpp
             ${SRC}/predictor.cpp
             ${SRC}/random_generator.cpp
+            ${SRC}/signal.cpp
             ${SRC}/agents/fixed.cpp
             ${SRC}/agents/black_box.cpp
             ${SRC}/agents/td.cpp
@@ -36,6 +37,7 @@ add_library(${TARGET} SHARED
             ${SRC}/environments/swimmer.cpp
             ${SRC}/environments/shaping.cpp
             ${SRC}/environments/flyer2d.cpp
+            ${SRC}/environments/puddle.cpp
             ${SRC}/experiments/approx_test.cpp
             ${SRC}/experiments/online_learning.cpp
             ${SRC}/experiments/batch_learning.cpp
@@ -46,6 +48,7 @@ add_library(${TARGET} SHARED
             ${SRC}/mappings/multisine.cpp
             ${SRC}/mappings/value.cpp
             ${SRC}/mappings/timeline.cpp
+            ${SRC}/mappings/puddle.cpp
             ${SRC}/optimizers/rwa.cpp
             ${SRC}/policies/random.cpp
             ${SRC}/policies/action.cpp

@@ -57,10 +57,33 @@ void Flyer2DDynamics::eom(const Vector &state, const Vector &actuation, Vector *
   (*xd)[0] = state[3];
   (*xd)[1] = state[4];
   (*xd)[2] = state[5];
-  (*xd)[3] = -(actuation[0]+actuation[1])*sin(state[2])/m_;
-  (*xd)[4] =  (actuation[0]+actuation[1])*cos(state[2])/m_-g_;
+  (*xd)[3] = -(1.+actuation[0]+actuation[1])*sin(state[2])/m_;
+  (*xd)[4] =  (1.+actuation[0]+actuation[1])*cos(state[2])/m_-g_;
   (*xd)[5] =  (actuation[1]-actuation[0])*l_/I_;
   (*xd)[6] = 1;
+
+  // Simulate walls
+  // NOTE: Cannot reset position or velocity here, so just keep them from getting larger
+  if (state[0] > 1)
+  {
+    if ((*xd)[0] > 0) (*xd)[0] = 0;
+    if ((*xd)[3] > 0) (*xd)[3] = 0;
+  }
+  if (state[0] < -1)
+  {
+    if ((*xd)[0] < 0) (*xd)[0] = 0;
+    if ((*xd)[3] < 0) (*xd)[3] = 0;
+  }
+  if (state[1] > 1)
+  {
+    if ((*xd)[1] > 0) (*xd)[1] = 0;
+    if ((*xd)[4] > 0) (*xd)[4] = 0;
+  }
+  if (state[1] < -1)
+  {
+    if ((*xd)[1] < 0) (*xd)[1] = 0;
+    if ((*xd)[4] < 0) (*xd)[4] = 0;
+  }
 }
 
 // Regulator
@@ -68,11 +91,17 @@ void Flyer2DDynamics::eom(const Vector &state, const Vector &actuation, Vector *
 void Flyer2DRegulatorTask::request(ConfigurationRequest *config)
 {
   RegulatorTask::request(config);
+  
+  config->push_back(CRP("action_range", "Range of allowed actions", action_range_, CRP::Configuration, 0., 1.));
+  config->push_back(CRP("timeout", "Episode timeout", timeout_, CRP::Configuration, 0., DBL_MAX));
 }
 
 void Flyer2DRegulatorTask::configure(Configuration &config)
 {
   RegulatorTask::configure(config);
+  
+  action_range_ = config["action_range"];
+  timeout_ = config["timeout"];
   
   if (q_.size() != 6)
     throw bad_param("task/flyer2d/regulator:q");
@@ -81,8 +110,8 @@ void Flyer2DRegulatorTask::configure(Configuration &config)
 
   config.set("observation_min", VectorConstructor(-1, -1, -M_PI, -10, -10, -10*M_PI));
   config.set("observation_max", VectorConstructor( 1,  1,  M_PI,  10,  10,  10*M_PI));
-  config.set("action_min", VectorConstructor(0, 0));
-  config.set("action_max", VectorConstructor(1, 1));
+  config.set("action_min", VectorConstructor(-action_range_/2, -action_range_/2));
+  config.set("action_max", VectorConstructor( action_range_/2,  action_range_/2));
 }
 
 void Flyer2DRegulatorTask::reconfigure(const Configuration &config)
@@ -100,7 +129,7 @@ void Flyer2DRegulatorTask::observe(const Vector &state, Observation *obs, int *t
     (*obs)[ii] = state[ii];
   obs->absorbing = false;
 
-  *terminal = state[6] > 3;
+  *terminal = state[6] > timeout_;
 }
 
 bool Flyer2DRegulatorTask::invert(const Observation &obs, Vector *state) const

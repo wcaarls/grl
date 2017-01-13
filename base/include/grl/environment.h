@@ -85,8 +85,12 @@ class Task : public Configurable
     /// Start the task, returning the initial state.
     virtual void start(int test, Vector *state) const = 0;
     
-    /// Convert a possibly higher-level action into low-level actuation to be applied to the model.
-    virtual void actuate(const Vector &state, const Action &action, Vector *actuation) const { *actuation = action; }
+    /**
+     * \brief Convert a possibly higher-level action into low-level actuation to be applied to the model.
+     * 
+     * Returns true if a new high-level action is called for.
+     */
+    virtual bool actuate(const Vector &state, const Action &action, Vector *actuation) const { *actuation = action; return true; }
     
     /// Observe a state, returning the observation and whether the episode ended.
     virtual void observe(const Vector &state, Observation *obs, int *terminal) const = 0;

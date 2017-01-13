@@ -95,9 +95,16 @@ void SandboxEnvironment::start(int test, Observation *obs)
 
 double SandboxEnvironment::step(const Action &action, Observation *obs, double *reward, int *terminal)
 {
-  Vector next;
+  Vector next = state_, actuation;
+  double tau = 0;
+  bool done = false;
 
-  double tau = sandbox_->step(action, &next);
+  do
+  {
+    done = task_->actuate(next, action, &actuation);
+    tau += sandbox_->step(actuation, &next);
+  } while (!done);
+  
   task_->observe(next, obs, terminal);
   task_->evaluate(state_, action, next, reward);
 

@@ -138,8 +138,7 @@ void SliceVisualization::key(unsigned char k, int x, int y)
 
 void SliceVisualization::click(int button, int state, int x, int y)
 {
-  // Require right mouse button down movement
-  if (button != 2 || state != 0)
+  if (state != 0)
     return;
 
   double ox, oy, oz;
@@ -154,12 +153,22 @@ void SliceVisualization::click(int button, int state, int x, int y)
   const Vector range = (state_max_-state_min_);
   size_t dimx = dims_[0], dimy = dims_[1];
   
-  double xx = state_min_[dimx] + ox*range[dimx], yy = state_min_[dimy] + oy*range[dimy];
+  double xx = state_min_[dimx] + ox*range[dimx], yy = state_max_[dimy] - oy*range[dimy];
   
-  operating_point_[dimx] = xx;
-  operating_point_[dimy] = yy;
+  Vector op = operating_point_;
+  op[dimx] = xx;
+  op[dimy] = yy;
   
-  INFO("Operating point now " << operating_point_);
+  switch (button)
+  {
+    case 0:
+      INFO("Value at " << op << ": " << value(op));
+      break;
+    case 2:
+      operating_point_ = op;
+      INFO("Operating point now " << operating_point_);
+      break;
+  }
 }
 
 void SliceVisualization::run()

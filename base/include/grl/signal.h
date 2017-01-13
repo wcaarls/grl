@@ -43,6 +43,13 @@ class Signal : public Configurable
     itc::SharedVariable<T> var_;
 
   public:
+    /// Returns reference to current value.
+    /// NOTE: not thread-safe
+    virtual T &operator*()
+    {
+      return *var_;
+    }
+    
     /// Returns current value.
     virtual T get()
     {

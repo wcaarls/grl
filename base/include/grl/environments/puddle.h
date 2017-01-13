@@ -1,11 +1,11 @@
-/** \file flyer2d.h
- * \brief 2D flyer environment header file.
+/** \file puddle.h
+ * \brief Puddle world environment header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2016-07-13
+ * \date      2017-01-10
  *
  * \copyright \verbatim
- * Copyright (c) 2016, Wouter Caarls
+ * Copyright (c) 2017, Wouter Caarls
  * All rights reserved.
  *
  * This file is part of GRL, the Generic Reinforcement Learning library.
@@ -25,49 +25,53 @@
  * \endverbatim
  */
  
-#ifndef GRL_FLYER2D_ENVIRONMENT_H_
-#define GRL_FLYER2D_ENVIRONMENT_H_
+#ifndef GRL_PUDDLE_ENVIRONMENT_H_
+#define GRL_PUDDLE_ENVIRONMENT_H_
 
 #include <grl/environment.h>
 
 namespace grl
 {
 
-/// 2D flyer dynamics.
-class Flyer2DDynamics : public Dynamics
+/// Puddle world dynamics
+class PuddleModel : public Model
 {
   public:
-    TYPEINFO("dynamics/flyer2d", "2D flyer dynamics")
+    TYPEINFO("model/puddle", "Puddle world model")
 
-  public:
-    double m_, g_, l_, I_;
+  protected:
+    double drag_;
+    Mapping *map_;
   
   public:
+    PuddleModel() : drag_(1.), map_(NULL) { }
+  
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
 
-    // From Dynamics
-    virtual void eom(const Vector &state, const Vector &actuation, Vector *xd) const;
+    // From Model
+    virtual double step(const Vector &state, const Vector &action, Vector *next) const;
 };
 
-/// 2D flyer hovering task with quadratic costs
-class Flyer2DRegulatorTask : public RegulatorTask
+/// Regulator task with possible additional penalties for entering puddles
+class PuddleRegulatorTask : public RegulatorTask
 {
   public:
-    TYPEINFO("task/flyer2d/regulator", "2D flyer regulator task")
+    TYPEINFO("task/puddle/regulator", "Puddle world regulator task")
     
   protected:
-    double action_range_, timeout_;
+    double penalty_;
+    Mapping *map_;
 
   public:
-    Flyer2DRegulatorTask() : action_range_(1.0), timeout_(2.99)
+    PuddleRegulatorTask() : penalty_(1.), map_(NULL)
     {
-      start_ = VectorConstructor(0, 0, 0, 0, 0, 0);
-      goal_ = VectorConstructor(0, 0, 0, 0, 0 ,0);
-      stddev_ = VectorConstructor(0.1, 0.1, 0.1, 0, 0, 0);
-      q_ = VectorConstructor(1, 1, 1, 0, 0, 0);
+      start_ = VectorConstructor(0.1, 0.1, 0., 0.);
+      goal_ = VectorConstructor(0.9, 0.9, 0., 0.);
+      stddev_ = VectorConstructor(0.1, 0.1, 0., 0.);
+      q_ = VectorConstructor(1., 1., 0., 0.);
       r_ = VectorConstructor(0.01, 0.01);
     }
   
@@ -78,9 +82,10 @@ class Flyer2DRegulatorTask : public RegulatorTask
 
     // From Task
     virtual void observe(const Vector &state, Observation *obs, int *terminal) const;
+    virtual void evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const;
     virtual bool invert(const Observation &obs, Vector *state) const;
 };
 
 }
 
-#endif /* GRL_FLYER2D_ENVIRONMENT_H_ */
+#endif /* GRL_PUDDLE_ENVIRONMENT_H_ */
