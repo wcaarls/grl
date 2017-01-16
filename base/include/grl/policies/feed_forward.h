@@ -40,13 +40,10 @@ class FeedForwardPolicy : public Policy
     TYPEINFO("mapping/policy/feed_forward", "Feed-forward policy")
 
   protected:
-    Vector time_control_;
-    int prev_time_idx_; // used for an acelerated search
-    int shift_;
-    std::string input_;
+    Mapping *controls_;
 
   public:
-    FeedForwardPolicy() : prev_time_idx_(0), shift_(2) { }
+    FeedForwardPolicy() { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -54,7 +51,7 @@ class FeedForwardPolicy : public Policy
     virtual void reconfigure(const Configuration &config);
 
     // From Policy
-    virtual TransitionType act(double time, const Vector &in, Vector *out);
+    virtual void act(double time, const Observation &in, Action *out);
 };
 
 }

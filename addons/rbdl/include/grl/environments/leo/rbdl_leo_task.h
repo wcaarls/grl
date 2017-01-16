@@ -101,11 +101,9 @@ class LeoSquattingTask : public Task
 
     // From Task
     virtual void start(int test, Vector *state) const;
-    virtual void observe(const Vector &state, Vector *obs, int *terminal) const;
-    virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const;
+    virtual void observe(const Vector &state, Observation *obs, int *terminal) const;
+    virtual void evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const;
     virtual void report(std::ostream &os, const Vector &state) const;
-    virtual bool invert(const Vector &obs, Vector *state) const;
-    virtual Matrix rewardHessian(const Vector &state, const Vector &action) const;
 
   protected:
     virtual int failed(const Vector &state) const;

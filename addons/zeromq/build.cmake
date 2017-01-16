@@ -1,22 +1,10 @@
 # Setup build environment
 set(TARGET addon_zeromq)
 
-FIND_LIBRARY(ZMQ_LIB zmq PATHS /usr/local/lib)
-if (NOT ZMQ_LIB)
-  message(WARNING "-- ZeroMQ library not found")
-else()
-  message("-- zmq: ${ZMQ_LIB}")
-endif()
-
-set(PROTOBUF_FOUND FALSE)
+find_package(ZeroMQ 4.0.0)
 find_package(Protobuf)
-if (NOT ${PROTOBUF_FOUND})
-  message(WARNING "-- Google Protocol Buffers library not found")
-else()
-  message ("-- protobuf: ${PROTOBUF_LIBRARY}")
-endif()
 
-if (ZMQ_LIB AND ${PROTOBUF_FOUND})
+if (ZeroMQ_FOUND AND PROTOBUF_FOUND)
   message("-- Building ZeroMQ addon")
 
   add_custom_command(
@@ -32,11 +20,9 @@ if (ZMQ_LIB AND ${PROTOBUF_FOUND})
               ${CMAKE_CURRENT_BINARY_DIR}/drl_messages.pb.cc
              )
 
-  INCLUDE_DIRECTORIES(${SRC}/../../../externals/cppzmq/include/)
-
   add_dependencies(${TARGET} protobuffer)
 
-  target_link_libraries(${TARGET} ${ZMQ_LIB} ${PROTOBUF_LIBRARY})
+  target_link_libraries(${TARGET} ${PROTOBUF_LIBRARY})
   grl_link_libraries(${TARGET} base externals/cppzmq)
   install(TARGETS ${TARGET} DESTINATION ${GRL_LIB_DESTINATION})
   install(DIRECTORY ${SRC}/../include/grl DESTINATION ${GRL_INCLUDE_DESTINATION} FILES_MATCHING PATTERN "*.h")

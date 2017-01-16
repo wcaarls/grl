@@ -20,12 +20,12 @@ experiment:
       shaping: 0
       gamma: 1
   agent: 
-    type: agent/master
+    type: agent/master/predicated
     gamma: 0.97
     agent1: 
       type: agent/sub/compartmentalized
-      min: [-0.5, 3, -1, -1]
-      max: [0.5, 3.28, 1, 1]
+      min: [-1, 2.64, -2, -2]
+      max: [ 1, 3.64, 2, 2]
       agent: 
         type: agent/fixed
         policy: 
@@ -43,7 +43,7 @@ experiment:
       agent: 
         type: agent/td
         policy: 
-          type: policy/discrete/q
+          type: policy/value/q
           discretizer: 
             type: discretizer/uniform
             min: experiment/environment/task/action_min

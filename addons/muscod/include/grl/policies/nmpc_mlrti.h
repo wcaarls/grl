@@ -120,7 +120,7 @@ class NMPCPolicyMLRTI: public NMPCBase
     virtual void reconfigure(const Configuration &config);
 
     // From Policy
-    virtual TransitionType act(double time, const Vector &in, Vector *out);
+    virtual void act(double time, const Observation &in, Action *out);
 };
 
 } /* namespace grl */

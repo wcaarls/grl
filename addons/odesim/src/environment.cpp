@@ -166,7 +166,7 @@ bool ODESTGEnvironment::configure(Configuration &config)
   return true;
 }
 
-void ODESTGEnvironment::start(int test, Vector *obs)
+void ODESTGEnvironment::start(int test, Observation *obs)
 {
   simulator_.setInitialCondition(randomize_?time(NULL):0);
   //double com[3];
@@ -179,7 +179,7 @@ void ODESTGEnvironment::start(int test, Vector *obs)
   if (!listener_.waitForNewState())
     throw Exception("Error getting start state from simulator");
 
-  obs->resize(sensors_.size());
+  obs->v.resize(sensors_.size());
   for (size_t ii=0; ii < sensors_.size(); ++ii)
     (*obs)[ii] = sensors_[ii].evaluate(listener_.getState());
     
@@ -190,7 +190,7 @@ void ODESTGEnvironment::start(int test, Vector *obs)
   emit drawFrame();
 }
 
-double ODESTGEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)
+double ODESTGEnvironment::step(const Action &action, Observation *obs, double *reward, int *terminal)
 {
   if (action.size() != actuators_.size())
     ERROR("Got action vector size " << action.size() << " (" << actuators_.size() << " expected)");
@@ -205,16 +205,20 @@ double ODESTGEnvironment::step(const Vector &action, Vector *obs, double *reward
   if (!listener_.waitForNewState())
     throw Exception("Error getting next state from simulator");
     
-  obs->resize(sensors_.size());
+  obs->v.resize(sensors_.size());
   for (size_t ii=0; ii < sensors_.size(); ++ii)
     (*obs)[ii] = sensors_[ii].evaluate(listener_.getState());
+  obs->absorbing = false;
     
   *reward = reward_.evaluate(listener_.getState());
   
-  if (simulator_.getAbsTime() - start_time_ > timeout_)
-    *terminal = 1;
-  else if (termination_.evaluate(listener_.getState()))
+  if (termination_.evaluate(listener_.getState()))
+  {
     *terminal = 2;
+    obs->absorbing = true;
+  }
+  else if (simulator_.getAbsTime() - start_time_ > timeout_)
+    *terminal = 1;
   else
     *terminal = 0;
 
@@ -225,7 +229,7 @@ double ODESTGEnvironment::step(const Vector &action, Vector *obs, double *reward
 
 bool ODESTGEnvironment::read(const std::string name, double *out) const
 {
-  simulator_.read(name, out);
+  return simulator_.read(name, out);
 }
 
 // *** ODEEnvironment ***

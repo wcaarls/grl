@@ -85,7 +85,7 @@ void DPGPredictor::update(const Transition &transition)
   double v = critic_representation_->read(p, &_);
   
   // amu is the coordinate for the linear local advantage model q.
-  Vector amu = transition.prev_action - mu;
+  Vector amu = transition.prev_action.v - mu;
   
   // Here we "read out" the local advantage model by taking the dot product.
   double delta = transition.reward - (dot(q, amu) + v);
@@ -100,7 +100,7 @@ void DPGPredictor::update(const Transition &transition)
     double vp = critic_representation_->read(pp, &_);
     
     // Same thing as above, but for next state.
-    Vector amup = transition.action - mup;
+    Vector amup = transition.action.v - mup;
     delta += gamma_*(dot(qp, amup) + vp);
   }
   

@@ -5,7 +5,7 @@
  * \date      2016-09-30
  *
  * \copyright \verbatim
- * Copyright (c) 2015, Wouter Caarls
+ * Copyright (c) 2016, Ivan Koryakovskiy
  * All rights reserved.
  *
  * This file is part of GRL, the Generic Reinforcement Learning library.
@@ -90,13 +90,13 @@ Vector OrnsteinUhlenbeckSampler::mix_signal_noise(const Vector &in, const Vector
   return in + noise_scale_*noise;
 }
 
-size_t OrnsteinUhlenbeckSampler::sample(double time, const LargeVector &values, TransitionType &tt)
+size_t OrnsteinUhlenbeckSampler::sample(double time, const LargeVector &values, ActionType *at)
 {
   if (pub_sub_ou_state_)
     noise_ = pub_sub_ou_state_->get();
 
   // Greedy action selection
-  size_t offset = GreedySampler::sample(values, tt);
+  size_t offset = GreedySampler::sample(values, at);
   CRAWL(discretizer_->at(offset));
 
   // Supress noise at the start of an episode
@@ -112,7 +112,8 @@ size_t OrnsteinUhlenbeckSampler::sample(double time, const LargeVector &values, 
   if (pub_sub_ou_state_)
     pub_sub_ou_state_->set(noise_);
 
-  tt = ttExploratory;
+  if (at)
+    *at = atExploratory;
   return offset;
 }
 
@@ -139,11 +140,12 @@ void ACOrnsteinUhlenbeckSampler::reconfigure(const Configuration &config)
   config.get("epsilon", epsilon_);
 }
 
-size_t ACOrnsteinUhlenbeckSampler::sample(double time, const LargeVector &values, TransitionType &tt)
+size_t ACOrnsteinUhlenbeckSampler::sample(double time, const LargeVector &values, ActionType *at)
 {
   if (rand_->get() < epsilon_ && time != 0.0)
   {
-    tt = ttExploratory;
+    if (at)
+      *at = atExploratory;
 
     // read previous action values
     Vector smp_vec;
@@ -162,7 +164,7 @@ size_t ACOrnsteinUhlenbeckSampler::sample(double time, const LargeVector &values
     TRACE(offset_);
   }
   else
-    offset_ = GreedySampler::sample(values, tt);
+    offset_ = GreedySampler::sample(values, at);
 
   if (pub_sub_ou_state_)
     pub_sub_ou_state_->set(discretizer_->at(offset_));
@@ -189,12 +191,12 @@ void EpsilonOrnsteinUhlenbeckSampler::reconfigure(const Configuration &config)
   config.get("epsilon", epsilon_);
 }
 
-size_t EpsilonOrnsteinUhlenbeckSampler::sample(double time, const LargeVector &values, TransitionType &tt)
+size_t EpsilonOrnsteinUhlenbeckSampler::sample(double time, const LargeVector &values, ActionType *at)
 {
   if (pub_sub_ou_state_)
     noise_ = pub_sub_ou_state_->get();
 
-  size_t offset = GreedySampler::sample(values, tt);
+  size_t offset = GreedySampler::sample(values, at);
   CRAWL(discretizer_->at(offset));
 
   // Supress noise at the start of an episode
@@ -209,7 +211,8 @@ size_t EpsilonOrnsteinUhlenbeckSampler::sample(double time, const LargeVector &v
   if (rand_->get() < epsilon_)
   {
     // add noise to to signal
-    tt = ttExploratory;
+    if (at)
+      *at = atExploratory;
     Vector action_new = mix_signal_noise(discretizer_->at(offset), noise_);
     TRACE(action_new);
 
@@ -243,12 +246,12 @@ void PadaOrnsteinUhlenbeckSampler::reconfigure(const Configuration &config)
   pada_->reconfigure(config);
 }
 
-size_t PadaOrnsteinUhlenbeckSampler::sample(double time, const LargeVector &values, TransitionType &tt)
+size_t PadaOrnsteinUhlenbeckSampler::sample(double time, const LargeVector &values, ActionType *at)
 {
   if (pub_sub_ou_state_)
     noise_ = pub_sub_ou_state_->get();
 
-  size_t offset = pada_->sample(time, values, tt);
+  size_t offset = pada_->sample(time, values, at);
   CRAWL(discretizer_->at(offset));
 
   // Supress noise at the start of an episode
@@ -285,7 +288,7 @@ size_t PadaOrnsteinUhlenbeckSampler::sample(double time, const LargeVector &valu
   if (pub_sub_ou_state_)
      pub_sub_ou_state_->set(noise_);
 
-  tt = ttExploratory;
+  if (at)
+    *at = atExploratory;
   return offset;
 }
-

@@ -25,7 +25,6 @@
  * \endverbatim
  */
 
-#include <ftdi.h>
 #include <grl/environments/leo2.h>
 
 using namespace grl;
@@ -44,7 +43,7 @@ void LEO2Environment::configure(Configuration &config)
   port_ = config["port"].str();
   bps_ = config["bps"];
   
-  state_obj_ = new State();
+  state_obj_ = new VectorSignal();
   
   config.set("state", state_obj_);
   
@@ -65,7 +64,7 @@ void LEO2Environment::reconfigure(const Configuration &config)
 {
 }
     
-void LEO2Environment::start(int test, Vector *obs)
+void LEO2Environment::start(int test, Observation *obs)
 {
   // First await robot to self-right
   do
@@ -83,11 +82,12 @@ void LEO2Environment::start(int test, Vector *obs)
   state_obj_->set(state);
   
   *obs = VectorConstructor(state[0], state[1]);
+  obs->absorbing = false;
 
   timer_.restart();
 }
 
-double LEO2Environment::step(const Vector &action, Vector *obs, double *reward, int *terminal)
+double LEO2Environment::step(const Action &action, Observation *obs, double *reward, int *terminal)
 {
   writeControls(action);
 
@@ -95,6 +95,7 @@ double LEO2Environment::step(const Vector &action, Vector *obs, double *reward, 
   state_obj_->set(state);
   
   *obs = VectorConstructor(state[0], state[1]);
+  obs->absorbing = false;
   
   double tau = timer_.elapsed();
   timer_.restart();

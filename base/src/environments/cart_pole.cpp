@@ -52,9 +52,9 @@ void CartPoleDynamics::reconfigure(const Configuration &config)
 {
 }
 
-void CartPoleDynamics::eom(const Vector &state, const Vector &action, Vector *xd) const
+void CartPoleDynamics::eom(const Vector &state, const Vector &actuation, Vector *xd) const
 {
-  if (state.size() != 5 || action.size() != 1)
+  if (state.size() != 5 || actuation.size() != 1)
     throw Exception("dynamics/cart_pole requires a task/cart_pole subclass");
 
   double acc,thetaacc,costheta,sintheta,temp;
@@ -62,7 +62,7 @@ void CartPoleDynamics::eom(const Vector &state, const Vector &action, Vector *xd
   costheta = cos(static_cast<double>(state[1]));
   sintheta = sin(static_cast<double>(state[1]));
  
-  temp = (action[0] + pole_mass_length_ * state[3] * state[3] * sintheta) / total_mass_;
+  temp = (actuation[0] + pole_mass_length_ * state[3] * state[3] * sintheta) / total_mass_;
  
   thetaacc = (g_ * sintheta - costheta * temp) /
              (length_ * ((4./3.) - mass_pole_ * costheta * costheta / total_mass_));
@@ -146,7 +146,7 @@ void CartPoleSwingupTask::start(int test, Vector *state) const
   (*state)[4] = 0;
 }
 
-void CartPoleSwingupTask::observe(const Vector &state, Vector *obs, int *terminal) const
+void CartPoleSwingupTask::observe(const Vector &state, Observation *obs, int *terminal) const
 {
   if (state.size() != 5)
     throw Exception("task/cart_pole/swingup requires dynamics/cart_pole");
@@ -154,21 +154,25 @@ void CartPoleSwingupTask::observe(const Vector &state, Vector *obs, int *termina
   double a = fmod(state[1]+M_PI, 2*M_PI);
   if (a < 0) a += 2*M_PI;
   
-  obs->resize(4);
+  obs->v.resize(4);
   (*obs)[0] = state[0];
   (*obs)[1] = a;
   (*obs)[2] = state[2];
   (*obs)[3] = state[3];
+  obs->absorbing = false;
 
   if (end_stop_penalty_ && failed(state))
+  {
     *terminal = 2;
+    obs->absorbing = true;
+  }
   else if (state[4] > T_)
     *terminal = 1;
   else
     *terminal = 0;
 }
 
-void CartPoleSwingupTask::evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const
+void CartPoleSwingupTask::evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const
 {
   if (state.size() != 5 || action.size() != 1 || next.size() != 5)
     throw Exception("task/cart_pole/swingup requires dynamics/cart_pole");
@@ -179,7 +183,7 @@ void CartPoleSwingupTask::evaluate(const Vector &state, const Vector &action, co
     *reward = potential(next) - end_stop_penalty_*failed(next)*10000;
 }
 
-bool CartPoleSwingupTask::invert(const Vector &obs, Vector *state) const
+bool CartPoleSwingupTask::invert(const Observation &obs, Vector *state) const
 {
   *state = obs;
   (*state)[1] -= M_PI;
@@ -193,7 +197,7 @@ bool CartPoleSwingupTask::failed(const Vector &state) const
   return fabs(state[0]) > 2.4;
 }
 
-Matrix CartPoleSwingupTask::rewardHessian(const Vector &state, const Vector &action) const
+Matrix CartPoleSwingupTask::rewardHessian(const Vector &state, const Action &action) const
 {
   return diagonal(VectorConstructor(-2, -1, -0.1, -0.1, -0.01));
 }
@@ -251,26 +255,30 @@ void CartPoleBalancingTask::start(int test, Vector *state) const
   (*state)[4] = 0;
 }
 
-void CartPoleBalancingTask::observe(const Vector &state, Vector *obs, int *terminal) const
+void CartPoleBalancingTask::observe(const Vector &state, Observation *obs, int *terminal) const
 {
   if (state.size() != 5)
     throw Exception("task/cart_pole/balacing requires dynamics/cart_pole");
 
-  obs->resize(4);
+  obs->v.resize(4);
   (*obs)[0] = state[0];
   (*obs)[1] = state[1];
   (*obs)[2] = state[2];
   (*obs)[3] = state[3];
+  obs->absorbing = false;
 
   if (failed(state))
+  {
     *terminal = 2;
+    obs->absorbing = true;
+  }
   else if (state[4] > T_)
     *terminal = 1;
   else
     *terminal = 0;
 }
 
-void CartPoleBalancingTask::evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const
+void CartPoleBalancingTask::evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const
 {
   if (state.size() != 5 || action.size() != 1 || next.size() != 5)
     throw Exception("task/cart_pole/balancing requires dynamics/cart_pole");
@@ -281,7 +289,7 @@ void CartPoleBalancingTask::evaluate(const Vector &state, const Vector &action, 
     *reward = 1 - (fabs(state[0]) + fabs(state[1]))/(2.4+12*M_PI/180);
 }
 
-bool CartPoleBalancingTask::invert(const Vector &obs, Vector *state) const
+bool CartPoleBalancingTask::invert(const Observation &obs, Vector *state) const
 {
   *state = obs;
   *state = extend(*state, VectorConstructor(0.));
@@ -320,16 +328,17 @@ void CartPoleRegulatorTask::reconfigure(const Configuration &config)
   RegulatorTask::reconfigure(config);
 }
 
-void CartPoleRegulatorTask::observe(const Vector &state, Vector *obs, int *terminal) const
+void CartPoleRegulatorTask::observe(const Vector &state, Observation *obs, int *terminal) const
 {
   if (state.size() != 5)
     throw Exception("task/cart_pole/regulator requires dynamics/cart_pole");
 
-  obs->resize(4);
+  obs->v.resize(4);
   (*obs)[0] = state[0];
   (*obs)[1] = state[1];
   (*obs)[2] = state[2];
   (*obs)[3] = state[3];
+  obs->absorbing = false;
 
   if (state[4] > T_)
     *terminal = 1;
@@ -337,7 +346,7 @@ void CartPoleRegulatorTask::observe(const Vector &state, Vector *obs, int *termi
     *terminal = 0;
 }
 
-bool CartPoleRegulatorTask::invert(const Vector &obs, Vector *state) const
+bool CartPoleRegulatorTask::invert(const Observation &obs, Vector *state) const
 {
   *state = obs;
   *state = extend(*state, VectorConstructor(0.));

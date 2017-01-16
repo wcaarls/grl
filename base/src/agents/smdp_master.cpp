@@ -61,7 +61,7 @@ void SMDPMasterAgent::reconfigure(const Configuration &config)
     time_[0] = time_[1] = -1;
 }
 
-void SMDPMasterAgent::start(const Vector &obs, Vector *action)
+void SMDPMasterAgent::start(const Observation &obs, Action *action)
 {
   // Treat a terminal, non-absorbing state as absorbing for
   // agents that weren't running. The rationale is that it did not
@@ -82,7 +82,7 @@ void SMDPMasterAgent::start(const Vector &obs, Vector *action)
   prev_time_ = 0;
 }
 
-void SMDPMasterAgent::step(double tau, const Vector &obs, double reward, Vector *action)
+void SMDPMasterAgent::step(double tau, const Observation &obs, double reward, Action *action)
 {
   double curtime = prev_time_ + tau;
 
@@ -104,7 +104,7 @@ void SMDPMasterAgent::step(double tau, const Vector &obs, double reward, Vector 
   prev_time_ = curtime;
 }
 
-void SMDPMasterAgent::end(double tau, const Vector &obs, double reward)
+void SMDPMasterAgent::end(double tau, const Observation &obs, double reward)
 {
   double curtime = prev_time_ + tau;
 
@@ -126,7 +126,7 @@ void SMDPMasterAgent::end(double tau, const Vector &obs, double reward)
   }
 }
 
-double SMDPMasterAgent::runSubAgent(size_t idx, double time, const Vector &obs, Vector *action)
+double SMDPMasterAgent::runSubAgent(size_t idx, double time, const Observation &obs, Action *action)
 {
   double confidence;
 
@@ -143,7 +143,7 @@ double SMDPMasterAgent::runSubAgent(size_t idx, double time, const Vector &obs, 
 
 // *** ExclusiveMasterAgent ***
 
-void ExclusiveMasterAgent::runSubAgents(double time, const Vector &obs, Vector *action)
+void ExclusiveMasterAgent::runSubAgents(double time, const Observation &obs, Action *action)
 {
   // Find most confident agent
   double maxconf = agent_[0]->confidence(obs);
@@ -164,7 +164,7 @@ void ExclusiveMasterAgent::runSubAgents(double time, const Vector &obs, Vector *
 
 // *** PredicatedMasterAgent ***
 
-void PredicatedMasterAgent::runSubAgents(double time, const Vector &obs, Vector *action)
+void PredicatedMasterAgent::runSubAgents(double time, const Observation &obs, Action *action)
 {
   // Run agents until we find a confident one
   for (size_t ii=0; ii < agent_.size(); ++ii)
@@ -174,9 +174,9 @@ void PredicatedMasterAgent::runSubAgents(double time, const Vector &obs, Vector 
 
 // *** RandomMasterAgent ***
 
-void RandomMasterAgent::runSubAgents(double time, const Vector &obs, Vector *action)
+void RandomMasterAgent::runSubAgents(double time, const Observation &obs, Action *action)
 {
-  // Run agents until we find a confident one
+  // Run random agent[H
   size_t idx = RandGen::getInteger(agent_.size());
   runSubAgent(idx, time, obs, action);
 }

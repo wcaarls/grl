@@ -106,7 +106,7 @@ void ANNProjector::reindex()
   // Create new pruned store
   StorePtr newstore = StorePtr(store_->prune(max_samples_));
   
-  INFO("Building kd-tree with " << newstore->size() << " samples");
+  TRACE("Building kd-tree with " << newstore->size() << " samples");
 
   // Build new index using new store
   ANNkd_tree *newindex = new ANNkd_tree((ANNcoord**)newstore->samples(), newstore->size(), dims_, bucket_size_);

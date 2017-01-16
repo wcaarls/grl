@@ -72,7 +72,7 @@ ModeledEnvironment &ModeledEnvironment::copy(const Configurable &obj)
   return *this;
 }
     
-void ModeledEnvironment::start(int test, Vector *obs)
+void ModeledEnvironment::start(int test, Observation *obs)
 {
   int terminal;
 
@@ -88,11 +88,19 @@ void ModeledEnvironment::start(int test, Vector *obs)
     exporter_->open((test_?"test":"learn"), (test_?time_test_:time_learn_) != 0.0);
 }
 
-double ModeledEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)
+double ModeledEnvironment::step(const Action &action, Observation *obs, double *reward, int *terminal)
 {
-  Vector next;
+  Vector state = state_, next, actuation;
+  double tau = 0;
+  bool done = false;
 
-  double tau = model_->step(state_, action, &next);
+  do
+  {
+    done = task_->actuate(state, action, &actuation);
+    tau += model_->step(state, actuation, &next);
+    state = next;
+  } while (!done);
+  
   task_->observe(next, obs, terminal);
   task_->evaluate(state_, action, next, reward);
 
@@ -136,7 +144,7 @@ void DynamicalModel::reconfigure(const Configuration &config)
 {
 }
 
-double DynamicalModel::step(const Vector &state, const Vector &action, Vector *next) const
+double DynamicalModel::step(const Vector &state, const Vector &actuation, Vector *next) const
 {
   Vector xd;
   double h = tau_/steps_;
@@ -145,21 +153,17 @@ double DynamicalModel::step(const Vector &state, const Vector &action, Vector *n
   
   for (size_t ii=0; ii < steps_; ++ii)
   {
-    dynamics_->eom(*next, action, &xd);
+    dynamics_->eom(*next, actuation, &xd);
     Vector k1 = h*xd;
-    dynamics_->eom(*next + k1/2, action, &xd);
+    dynamics_->eom(*next + k1/2, actuation, &xd);
     Vector k2 = h*xd;
-    dynamics_->eom(*next + k2/2, action, &xd);
+    dynamics_->eom(*next + k2/2, actuation, &xd);
     Vector k3 = h*xd;
-    dynamics_->eom(*next + k3, action, &xd);
+    dynamics_->eom(*next + k3, actuation, &xd);
     Vector k4 = h*xd;
 
     *next = *next + (k1+2*k2+2*k3+k4)/6;
   }
   
   return tau_;
-}
-
-void DynamicalModel::finalize(Vector &state) const
-{
 }

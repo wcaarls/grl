@@ -59,8 +59,8 @@ class PIDPolicy : public ParameterizedPolicy
     virtual void reconfigure(const Configuration &config);
 
     // From Policy
-    virtual TransitionType act(const Vector &in, Vector *out) const;
-    virtual TransitionType act(double time, const Vector &in, Vector *out);
+    virtual void act(const Observation &in, Action *out) const;
+    virtual void act(double time, const Observation &in, Action *out);
     
     // From ParameterizedPolicy
     virtual size_t size() const { return params_.size(); }
@@ -72,10 +72,10 @@ class PIDPolicy : public ParameterizedPolicy
 class PIDTrajectoryPolicy : public ParameterizedPolicy
 {
   public:
-    TYPEINFO("policy/parameterized/pidt", "Parameterized policy based on a proportional-integral-derivative controller for tranjectory tracking")
+    TYPEINFO("mapping/policy/parameterized/pidt", "Parameterized policy based on a proportional-integral-derivative controller for trajectory tracking")
 
   protected:
-    Policy *trajectory_;  // TODO: could be a "Timeline" importer ?
+    Mapping *trajectory_;
     Vector setpoint_;     // the dynamic setpoint is taken from trajectory at the current time
     size_t inputs_, outputs_;
     Vector p_, i_, d_, il_;
@@ -92,8 +92,7 @@ class PIDTrajectoryPolicy : public ParameterizedPolicy
     virtual void reconfigure(const Configuration &config);
 
     // From Policy
-    virtual TransitionType act(const Vector &in, Vector *out) const;
-    virtual TransitionType act(double time, const Vector &in, Vector *out);
+    virtual void act(double time, const Observation &in, Action *out);
 
     // From ParameterizedPolicy
     virtual size_t size() const { return params_.size(); }

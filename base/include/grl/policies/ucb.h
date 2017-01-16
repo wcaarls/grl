@@ -41,7 +41,7 @@ namespace grl
 class UCBPolicy : public Policy
 {
   public:
-    TYPEINFO("mapping/policy/discrete/q/ucb", "UCB1 policy")
+    TYPEINFO("mapping/policy/value/q/ucb", "UCB1 policy")
 
   protected:
     Discretizer *discretizer_;
@@ -57,9 +57,9 @@ class UCBPolicy : public Policy
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
 
-    // From DiscretePolicy
-    virtual TransitionType act(const Vector &in, Vector *out) const;
-    virtual TransitionType act(double time, const Vector &in, Vector *out);
+    // From Policy
+    virtual void act(const Observation &in, Action *out) const;
+    virtual void act(double time, const Observation &in, Action *out);
 };
 
 }

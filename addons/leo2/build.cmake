@@ -4,7 +4,7 @@ set(TARGET addon_leo2)
 find_package(PkgConfig)
 
 if (PKG_CONFIG_FOUND)
-  pkg_check_modules(FTDIPP libftdipp)
+  pkg_search_module(FTDIPP libftdipp libftdipp1)
 
   if (FTDIPP_FOUND)
     message("-- Building LEO/2 addon")
@@ -15,6 +15,7 @@ if (PKG_CONFIG_FOUND)
                )
 
     # Add dependencies
+    include_directories(${FTDIPP_INCLUDE_DIRS})
     grl_link_libraries(${TARGET} base)
     target_link_libraries(${TARGET} ${FTDIPP_LIBRARIES})
     install(TARGETS ${TARGET} DESTINATION ${GRL_LIB_DESTINATION})

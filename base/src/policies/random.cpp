@@ -51,14 +51,14 @@ void RandomPolicy::reconfigure(const Configuration &config)
 {
 }
 
-TransitionType RandomPolicy::act(const Vector &in, Vector *out) const
+void RandomPolicy::act(const Observation &in, Action *out) const
 {
-  out->resize(min_.size());
+  out->v.resize(min_.size());
   Rand *rand = RandGen::instance();
   
   for (size_t ii=0; ii < min_.size(); ++ii)
     (*out)[ii] = rand->getUniform(min_[ii], max_[ii]);
-  return ttExploratory;
+  out->type = atExploratory;
 }
 
 void RandomDiscretePolicy::request(ConfigurationRequest *config)
@@ -75,8 +75,8 @@ void RandomDiscretePolicy::reconfigure(const Configuration &config)
 {
 }
 
-TransitionType RandomDiscretePolicy::act(const Vector &in, Vector *out) const
+void RandomDiscretePolicy::act(const Observation &in, Action *out) const
 {
   *out = discretizer_->at(in, RandGen::getInteger(discretizer_->size(in)));
-  return ttExploratory;
+  out->type = atExploratory;
 }

@@ -290,16 +290,16 @@ void NMPCPolicyTh::muscod_quit(void* data)
   pthread_mutex_unlock(&mutex_);
 }
 
-TransitionType NMPCPolicyTh::act(double time, const Vector &in, Vector *out)
+void NMPCPolicyTh::act(double time, const Observation &in, Action *out)
 {
   if (time == 0.0)
   {
 //    so_convert_obs_for_muscod(NULL, NULL);                    // Reset internal counters
 //    so_convert_obs_for_muscod(in.data(), muscod_obs_.data()); // Convert
-    muscod_reset(in, time);
+    muscod_reset(in.v, time);
   }
 
-  out->resize(outputs_);
+  out->v.resize(outputs_);
 
 //  if (verbose_)
 //    std::cout << "observation state: [ " << in << "]" << std::endl;
@@ -308,7 +308,7 @@ TransitionType NMPCPolicyTh::act(double time, const Vector &in, Vector *out)
 //  so_convert_obs_for_muscod(in.data(), muscod_obs_.data());
 
   if (verbose_)
-    std::cout << "time: [ " << time << " ]; state: [ " << in << "]" << std::endl;
+    std::cout << "time: [ " << time << " ]; state: [ " << in.v << "]" << std::endl;
 
   // Obtain feedback, provide new state and unblock thread
   pthread_mutex_lock(&mutex_);
@@ -323,7 +323,7 @@ TransitionType NMPCPolicyTh::act(double time, const Vector &in, Vector *out)
 
     // Provide state and time
     for (int IXD = 0; IXD < data_.NXD; ++IXD)
-      data_.sd[IXD] = in.data()[IXD];
+      data_.sd[IXD] = in.v.data()[IXD];
     for (int IP = 0; IP < data_.NP; ++IP)
       data_.pf[IP] = time;
 
@@ -361,7 +361,8 @@ TransitionType NMPCPolicyTh::act(double time, const Vector &in, Vector *out)
   {
     if (verbose_)
       std::cout << "Feedback Control:" << muscod_action_.row(qc_cnt_) << std::endl;
-    *out = muscod_action_.row(qc_cnt_);
+    out->v = muscod_action_.row(qc_cnt_);
+    out->type = atGreedy;
     qc_cnt_++;
     qc_cnt_base_++;
   }
@@ -370,9 +371,8 @@ TransitionType NMPCPolicyTh::act(double time, const Vector &in, Vector *out)
     std::cerr << "ERROR: MUSCOD-II was too slow." << std::endl;
     std::cerr << "       No more controls for given horizon!" << std::endl;
     std::cerr << "Abort and cleanup..." << std::endl;
+    out->type = atUndefined;
   }
-
-  return ttGreedy;
 }
 
 void NMPCPolicyTh::print_array(const double* arr, const unsigned int len)

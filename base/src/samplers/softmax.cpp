@@ -45,34 +45,26 @@ void SoftmaxSampler::reconfigure(const Configuration &config)
   config.get("tau", tau_);
 }
 
-size_t SoftmaxSampler::sample(const LargeVector &values, TransitionType &tt)
+size_t SoftmaxSampler::sample(const LargeVector &values, ActionType *at) const
 {
   LargeVector dist;
   
   distribution(values, &dist);
   
-  tt = ttExploratory;
-  size_t idx = ::sample(dist, 1.);
-/*
-  // For testing purpose
-  GreedySampler gs;
-  TransitionType gtt;
-  size_t gidx = gs.sample(values, gtt);
-
-  if (idx != gidx)
-    TRACE("Non-greedy action selected");
-*/
-  return idx;
+  if (at)
+    *at = atExploratory;
+    
+  return grl::sample(dist, 1.);
 }
 
-void SoftmaxSampler::distribution(const LargeVector &values, LargeVector *distribution)
+void SoftmaxSampler::distribution(const LargeVector &values, LargeVector *distribution) const
 {
-  Vector v(values);
+  LargeVector v = LargeVector::Zero(values.size());
   for (size_t ii=0; ii < values.size(); ++ii)
-    if (std::isnan(v[ii]) || std::isnan(values[ii]))
+    if (std::isnan(values[ii]))
       ERROR("SoftmaxSampler: NaN value in Boltzmann distribution 1");
 
-  distribution->resize(v.size());
+  distribution->resize(values.size());
   const double threshold = -100;
 
   // Find max_power and min_power, and center of feasible powers
@@ -101,11 +93,7 @@ void SoftmaxSampler::distribution(const LargeVector &values, LargeVector *distri
         ERROR("SoftmaxSampler: NaN value in Boltzmann distribution 2");
     }
     else
-    {
       (*distribution)[ii] = 0;
-      if (std::isnan(v[ii]))
-        ERROR("SoftmaxSampler: NaN value in Boltzmann distribution 3");
-    }
   }
 
   for (size_t ii=0; ii < values.size(); ++ii)

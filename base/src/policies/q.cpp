@@ -52,7 +52,7 @@ void QPolicy::reconfigure(const Configuration &config)
 {
 }
 
-double QPolicy::value(const Vector &in) const
+double QPolicy::value(const Observation &in) const
 {
   LargeVector qvalues, distribution;
   double v=0;
@@ -72,7 +72,7 @@ double QPolicy::value(const Vector &in) const
  * @param in: state
  * @param out: each element containes an (e.g. LLR) approximation of a value function Q(s, a), whrere 'a' is an index of vector 'out'
  */
-void QPolicy::values(const Vector &in, LargeVector *out) const
+void QPolicy::values(const Observation &in, LargeVector *out) const
 {
   // 'projections' contains list of neighbours around state 'in' and any possible action. Number of projections is equal to number of possible actions.
   std::vector<Vector> variants;
@@ -87,40 +87,26 @@ void QPolicy::values(const Vector &in, LargeVector *out) const
     (*out)[ii] = representation_->read(projections[ii], &value); // reading approximated values
 }
 
-TransitionType QPolicy::act(const Vector &in, Vector *out) const
+void QPolicy::act(const Observation &in, Action *out) const
 {
   LargeVector qvalues;
-  TransitionType tt;
+  ActionType at;
   
   values(in, &qvalues);
-  size_t action = sampler_->sample(qvalues, tt);
+  size_t action = sampler_->sample(qvalues, &at);
   
   *out = discretizer_->at(in, action);
-  TRACE(*out);
-
-  return tt;
+  out->type = at;
 }
 
-//Vector prev_out;
-TransitionType QPolicy::act(double time, const Vector &in, Vector *out)
+void QPolicy::act(double time, const Observation &in, Action *out)
 {
   LargeVector qvalues;
-  TransitionType tt;
+  ActionType at;
 
   values(in, &qvalues);
-  size_t action = sampler_->sample(time, qvalues, tt);
+  size_t action = sampler_->sample(time, qvalues, &at);
 
   *out = discretizer_->at(in, action);
-  TRACE(*out);
-/*
-  // Verifying neighbouring action in case of PADA
-  if (prev_out.size())
-  {
-    for (int i = 0; i < prev_out.size(); i++)
-      if (fabs((*out)[i] - prev_out[i]) > 5.35)
-        std::cout << "Something is wrong!" << std::endl;
-  }
-  prev_out = *out;
-*/
-  return tt;
+  out->type = at;
 }

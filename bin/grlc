@@ -326,6 +326,8 @@ class GrlObject:
       return
     elif type(config) is str:
       self.type.set(config)
+    elif type(config) is IntType:
+      return
     else:
       self.type.set(config["type"])
       
@@ -365,11 +367,11 @@ class GrlVariable:
 
     type, role = splittype(self.spec["type"])
   
-    if type == 'int' and spec["max"]-spec["min"] < 10:
+    if type == 'int' and int(spec["max"])-int(spec["min"]) < 10:
       self.value.set(spec["default"])
       self.value.grid(sticky=W+E)
       self.frame.grid_columnconfigure(0, weight=1)
-    elif type == 'double' and spec["max"]-spec["min"] < 1.0001:
+    elif type == 'double' and float(spec["max"])-float(spec["min"]) < 1.0001:
       self.value.set(spec["default"])
       self.value.grid(column=0, row=0)
       self.scale = Scale(self.frame, from_=spec["min"], to=spec["max"], value=spec["default"], command=self.change)

@@ -5,7 +5,7 @@
  * \date      2016-09-30
  *
  * \copyright \verbatim
- * Copyright (c) 2015, Wouter Caarls
+ * Copyright (c) 2016, Ivan Koryakovskiy
  * All rights reserved.
  *
  * This file is part of GRL, the Generic Reinforcement Learning library.
@@ -61,7 +61,7 @@ class OrnsteinUhlenbeckSampler : public GreedySampler
     virtual void reconfigure(const Configuration &config);
 
     // From Sampler
-    virtual size_t sample(double time, const LargeVector &values, TransitionType &tt);
+    virtual size_t sample(double time, const LargeVector &values, ActionType *tt=NULL);
 
   protected:
     virtual void evolve_noise();
@@ -87,14 +87,14 @@ class ACOrnsteinUhlenbeckSampler : public OrnsteinUhlenbeckSampler
     virtual void reconfigure(const Configuration &config);
 
     // From Sampler
-    virtual size_t sample(double time, const LargeVector &values, TransitionType &tt);
+    virtual size_t sample(double time, const LargeVector &values, ActionType *tt=NULL);
 };
 
 
 class EpsilonOrnsteinUhlenbeckSampler : public OrnsteinUhlenbeckSampler
 {
   public:
-    TYPEINFO("sampler/epsilon_ornstein_ohlenbeck", "Exploitations are done by greedy action selection without constraints, as in e-greedy. Explorations are done with time-correlated noise, as it is in ou.")
+    TYPEINFO("sampler/epsilon_ornstein_ohlenbeck", "Exploitations are done by greedy action selection without constraints, as in e-greedy. Explorations are done with time-correlated noise, as it is in OU.")
 
   protected:
     double epsilon_;
@@ -108,13 +108,13 @@ class EpsilonOrnsteinUhlenbeckSampler : public OrnsteinUhlenbeckSampler
     virtual void reconfigure(const Configuration &config);
 
     // From Sampler
-    virtual size_t sample(double time, const LargeVector &values, TransitionType &tt);
+    virtual size_t sample(double time, const LargeVector &values, ActionType *tt=NULL);
 };
 
 class PadaOrnsteinUhlenbeckSampler : public OrnsteinUhlenbeckSampler
 {
   public:
-    TYPEINFO("sampler/pada_ornstein_ohlenbeck", "Exploitations and exploitations are same as ou, but action is selected from a constrained set, as in pada. ")
+    TYPEINFO("sampler/pada_ornstein_ohlenbeck", "Explorations and exploitations are same as OU, but action is selected from a constrained set, as in PADA. ")
 
     protected:
       Sampler *pada_;
@@ -129,7 +129,7 @@ class PadaOrnsteinUhlenbeckSampler : public OrnsteinUhlenbeckSampler
     virtual void reconfigure(const Configuration &config);
 
     // From Sampler
-    virtual size_t sample(double time, const LargeVector &values, TransitionType &tt);
+    virtual size_t sample(double time, const LargeVector &values, ActionType *tt=NULL);
 };
 
 }

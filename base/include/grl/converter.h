@@ -1,11 +1,11 @@
 /** \file converter.h
  * \brief Class which is capable of remapping states and actions.
  *
- * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-01-22
+ * \author    Ivan Koryakovskiy <i.koryakovskiy@tudelft.nl>
+ * \date      2016-01-01
  *
  * \copyright \verbatim
- * Copyright (c) 2015, Wouter Caarls
+ * Copyright (c) 2016, Ivan Koryakovskiy
  * All rights reserved.
  *
  * This file is part of GRL, the Generic Reinforcement Learning library.
@@ -75,13 +75,13 @@ class StateActionConverter : public Configurable
     virtual void reconfigure(const Configuration &config) { }
 
     // Own
-    virtual int convert(const Vector &state_in, Vector &state_out, const Vector &action_in, Vector &action_out) const
+    virtual void convert(const Vector &state_in, Vector &state_out, const Vector &action_in, Vector &action_out) const
     {
       convert_state(state_in, state_out);
       convert_action(action_in, action_out);
     }
 
-    virtual int convert_state(const Vector &state_in, Vector &state_out) const
+    virtual void convert_state(const Vector &state_in, Vector &state_out) const
     {
       if (state_out.size() < state_map_.size())
         state_out.resize(state_map_.size());
@@ -97,7 +97,7 @@ class StateActionConverter : public Configurable
       }
     }
 
-    virtual int convert_action(const Vector &action_in, Vector &action_out) const
+    virtual void convert_action(const Vector &action_in, Vector &action_out) const
     {
       if (action_out.size() < action_map_.size())
         action_out.resize(action_map_.size());

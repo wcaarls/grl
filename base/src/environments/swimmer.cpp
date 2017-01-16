@@ -72,7 +72,7 @@ void SwimmerDynamics::reconfigure(const Configuration &config)
 }
 
 template<int d>
-void SwimmerDynamics::staticEOM(Eigen::Matrix<double,2*(d+2)+1,1> state, Eigen::Matrix<double,d-1,1> action, Vector *xd) const
+void SwimmerDynamics::staticEOM(Eigen::Matrix<double,2*(d+2)+1,1> state, Eigen::Matrix<double,d-1,1> actuation, Vector *xd) const
 {
   typedef Eigen::Matrix<double,d,1> VectorD;
   typedef Eigen::Matrix<double,d,d> MatrixD;
@@ -115,22 +115,22 @@ void SwimmerDynamics::staticEOM(Eigen::Matrix<double,2*(d+2)+1,1> state, Eigen::
   (*xd)[2 + d] = - (k1 * Vn.dot(-sth) + k2 * Vt.dot(cth)) / total_mass_;
   (*xd)[3 + d] = - (k1 * Vn.dot(cth) + k2 * Vt.dot(sth)) / total_mass_;
 
-  xd->middleCols(4+d, d) = EL3.lu().solve(EL1 + EL2 + U*action).transpose();
+  xd->middleCols(4+d, d) = EL3.lu().solve(EL1 + EL2 + U*actuation).transpose();
   (*xd)[2*(d+2)] = 1.; // Time
 }
 
-void SwimmerDynamics::eom(const Vector &state, const Vector &action, Vector *xd) const
+void SwimmerDynamics::eom(const Vector &state, const Vector &actuation, Vector *xd) const
 {
-  if (state.size() != 2*(segments_+2)+1 || action.size() != segments_-1)
+  if (state.size() != 2*(segments_+2)+1 || actuation.size() != segments_-1)
   {
-    ERROR("Expected state size " << 2*(segments_+2)+1 << ", action size " << segments_-1 << ", received " << state.size() << " / " << action.size());
+    ERROR("Expected state size " << 2*(segments_+2)+1 << ", actuation size " << segments_-1 << ", received " << state.size() << " / " << actuation.size());
     throw Exception("dynamics/swimmer requires a task/swimmer subclass with equal number of segments");
   }
   
   switch (segments_)
   {
-    case 2: staticEOM<2>(state.transpose(), action.transpose(), xd); break;
-    case 3: staticEOM<3>(state.transpose(), action.transpose(), xd); break;
+    case 2: staticEOM<2>(state.transpose(), actuation.transpose(), xd); break;
+    case 3: staticEOM<3>(state.transpose(), actuation.transpose(), xd); break;
     default:
       throw bad_param("Unsupported number of segments");
   }
@@ -198,7 +198,7 @@ void SwimmerReachingTask::start(int test, Vector *state) const
   (*state)[1] = 5*sin(theta);
 }
 
-void SwimmerReachingTask::observe(const Vector &state, Vector *obs, int *terminal) const
+void SwimmerReachingTask::observe(const Vector &state, Observation *obs, int *terminal) const
 {
   if (state.size() != 2*(segments_+2)+1)
     throw Exception("task/swimmer/reaching requires dynamics/swimmer with equal number of segments");
@@ -237,9 +237,9 @@ void SwimmerReachingTask::observe(const Vector &state, Vector *obs, int *termina
 
   // Lose one dimension because nose is axis-aligned
   // (and one because observation doesn't include time)
-  obs->resize(state.size()-2);
+  obs->v.resize(state.size()-2);
   
-  (*obs) << Tcn.transpose(), rtheta.transpose(), Vcn.transpose(), dtheta.transpose();
+  obs->v << Tcn.transpose(), rtheta.transpose(), Vcn.transpose(), dtheta.transpose();
   
   // Shift angles to [0, 2pi], with pi in the middle
   for (size_t ii=0; ii < d-1; ++ii)
@@ -248,11 +248,12 @@ void SwimmerReachingTask::observe(const Vector &state, Vector *obs, int *termina
     if (a < 0) a += 2*M_PI;
     (*obs)[2+ii] = a;
   }
+  obs->absorbing = false;
   
   *terminal = state[2*(d+2)] > T_;
 }
 
-void SwimmerReachingTask::evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const
+void SwimmerReachingTask::evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const
 {
   if (state.size() != 2*(segments_+2)+1 || action.size() != segments_-1 || next.size() != state.size())
     throw Exception("task/swimmer/swingup requires dynamics/swimmer with equal number of segments");
@@ -260,14 +261,14 @@ void SwimmerReachingTask::evaluate(const Vector &state, const Vector &action, co
   *reward = -pow(next[0], 2) - pow(next[1], 2);
 }
 
-bool SwimmerReachingTask::invert(const Vector &obs, Vector *state) const
+bool SwimmerReachingTask::invert(const Observation &obs, Vector *state) const
 {
   int d = segments_;
 
-  ColumnVector Tcn = obs.leftCols(2);
-  ColumnVector rtheta = obs.middleCols(2, d-1);
-  ColumnVector Vcn = obs.middleCols(2+d-1, 2);
-  ColumnVector dtheta = obs.middleCols(4+d-1, d);
+  ColumnVector Tcn = obs.v.leftCols(2);
+  ColumnVector rtheta = obs.v.middleCols(2, d-1);
+  ColumnVector Vcn = obs.v.middleCols(2+d-1, 2);
+  ColumnVector dtheta = obs.v.middleCols(4+d-1, d);
 
   ColumnVector theta(d);
   theta[0] = 0.;
@@ -303,7 +304,7 @@ bool SwimmerReachingTask::invert(const Vector &obs, Vector *state) const
   return true;
 }
 
-Matrix SwimmerReachingTask::rewardHessian(const Vector &state, const Vector &action) const
+Matrix SwimmerReachingTask::rewardHessian(const Vector &state, const Action &action) const
 {
   Vector d = ConstantVector(2*(segments_+2)-1 + segments_-1, 0.);
   d[0] = d[1] = -1;

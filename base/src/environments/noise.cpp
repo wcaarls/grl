@@ -50,7 +50,7 @@ void NoiseEnvironment::reconfigure(const Configuration &config)
 {
 }
     
-void NoiseEnvironment::start(int test, Vector *obs)
+void NoiseEnvironment::start(int test, Observation *obs)
 {
   Rand *rand = RandGen::instance();
 
@@ -66,7 +66,7 @@ void NoiseEnvironment::start(int test, Vector *obs)
     (*obs)[ii] += rand->getNormal(0, sensor_noise_[ii]);
 }
 
-double NoiseEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)
+double NoiseEnvironment::step(const Action &action, Observation *obs, double *reward, int *terminal)
 {
   Rand *rand = RandGen::instance();
 

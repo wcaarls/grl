@@ -37,7 +37,7 @@ namespace grl
 class BoundedQPolicy : public QPolicy
 {
   public:
-    TYPEINFO("mapping/policy/discrete/q/bounded", "Q-value based policy with bounded action deltas")
+    TYPEINFO("mapping/policy/value/q/bounded", "Q-value based policy with bounded action deltas")
 
   protected:
     Vector bound_;
@@ -49,7 +49,7 @@ class BoundedQPolicy : public QPolicy
     virtual void reconfigure(const Configuration &config);
 
     // From QPolicy
-    virtual TransitionType act(double time, const Vector &in, Vector *out);
+    virtual void act(double time, const Observation &in, Action *out);
     
   protected:
     /// Filter out actions that lie outside bounds.

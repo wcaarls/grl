@@ -46,9 +46,9 @@ void WindyGridworldModel::reconfigure(const Configuration &config)
 {
 }
 
-double WindyGridworldModel::step(const Vector &state, const Vector &action, Vector *next) const
+double WindyGridworldModel::step(const Vector &state, const Vector &actuation, Vector *next) const
 {
-  int a = action[0];
+  int a = actuation[0];
   *next = state;
   
   switch (a)
@@ -103,22 +103,26 @@ void WindyGridworldMovementTask::start(int test, Vector *state) const
   *state = VectorConstructor(0., 3., 0.);
 }
 
-void WindyGridworldMovementTask::observe(const Vector &state, Vector *obs, int *terminal) const
+void WindyGridworldMovementTask::observe(const Vector &state, Observation *obs, int *terminal) const
 {
   if (state.size() != 3)
     throw Exception("task/windy/movement requires model/windy");
     
-  obs->resize(2);
+  obs->v.resize(2);
   for (size_t ii=0; ii < 2; ++ii)
     (*obs)[ii] = state[ii];
+  obs->absorbing = false;
     
   if (succeeded(state))
+  {
     *terminal = 2;
+    obs->absorbing = true;
+  }
   else
     *terminal = 0;
 }
 
-void WindyGridworldMovementTask::evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const
+void WindyGridworldMovementTask::evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const
 {
   if (state.size() != 3 || action.size() != 1 || next.size() != 3)
     throw Exception("task/windy/movement requires model/windy");
@@ -126,7 +130,7 @@ void WindyGridworldMovementTask::evaluate(const Vector &state, const Vector &act
   *reward = -1;
 }
 
-bool WindyGridworldMovementTask::invert(const Vector &obs, Vector *state) const
+bool WindyGridworldMovementTask::invert(const Observation &obs, Vector *state) const
 {
   state->resize(3);
   for (size_t ii=0; ii < 2; ++ii)

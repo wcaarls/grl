@@ -53,22 +53,22 @@ void CompartmentalizedSubAgent::reconfigure(const Configuration &config)
 {
 }
 
-TransitionType CompartmentalizedSubAgent::start(const Vector &obs, Vector *action)
+void CompartmentalizedSubAgent::start(const Observation &obs, Action *action)
 {
-  return agent_->start(obs, action);
+  agent_->start(obs, action);
 }
 
-TransitionType CompartmentalizedSubAgent::step(double tau, const Vector &obs, double reward, Vector *action)
+void CompartmentalizedSubAgent::step(double tau, const Observation &obs, double reward, Action *action)
 {
-  return agent_->step(tau, obs, reward, action);
+  agent_->step(tau, obs, reward, action);
 }
 
-void CompartmentalizedSubAgent::end(double tau, const Vector &obs, double reward)
+void CompartmentalizedSubAgent::end(double tau, const Observation &obs, double reward)
 {
   agent_->end(tau, obs, reward);
 }
 
-double CompartmentalizedSubAgent::confidence(const Vector &obs) const
+double CompartmentalizedSubAgent::confidence(const Observation &obs) const
 {
   if (!min_.size())
     return 0.999;

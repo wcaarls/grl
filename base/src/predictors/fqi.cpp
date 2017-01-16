@@ -107,10 +107,10 @@ void FQIPredictor::reconfigure(const Configuration &config)
 
     CachedTransition ctr;
     Transition &tr = ctr.transition;
-    tr.prev_obs.resize(count_obs);
-    tr.prev_action.resize(count_action);
-    tr.obs.resize(count_obs);
-    tr.action.resize(count_action);
+    tr.prev_obs.v.resize(count_obs);
+    tr.prev_action.v.resize(count_action);
+    tr.obs.v.resize(count_obs);
+    tr.action.v.resize(count_action);
     for (unsigned int i = 0; i < count; i++)
     {
       fileInStream.read(reinterpret_cast<char*>(&(tr.prev_obs[0])), tr.prev_obs.size()*sizeof(double));
@@ -126,7 +126,7 @@ void FQIPredictor::reconfigure(const Configuration &config)
       transitions_.push_back(ctr);
       if (!tr.action.size())
       { // restore
-        tr.action.resize(count_action);
+        tr.action.v.resize(count_action);
       }
     }
     fileInStream.close();
