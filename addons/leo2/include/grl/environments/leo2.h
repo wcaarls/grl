@@ -48,7 +48,7 @@ class LEO2Environment : public Environment
     Ftdi::Context ftdi_;
     timer timer_;
     int mode_;
-    State *state_obj_;
+    VectorSignal *state_obj_;
 
   public:
     LEO2Environment() : port_("i:0x0403:0x6001"), bps_(57600), mode_(0), state_obj_(NULL) { }
@@ -59,8 +59,8 @@ class LEO2Environment : public Environment
     virtual void reconfigure(const Configuration &config);
     
     // From Environment
-    virtual void start(int test, Vector *obs);
-    virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal);
+    virtual void start(int test, Observation *obs);
+    virtual double step(const Action &action, Observation *obs, double *reward, int *terminal);
     
   protected:
     virtual Vector readState();
