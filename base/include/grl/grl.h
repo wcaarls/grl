@@ -63,7 +63,12 @@ struct Observation
 
 inline std::ostream &operator<<(std::ostream& os, const Observation& o)
 {
-  os << o.v;
+  if (o.absorbing)
+    os << "abs:[";
+  else
+    os << "reg:[";
+
+  os << o.v << "]";
   return os;
 }
 
@@ -93,17 +98,17 @@ inline std::ostream &operator<<(std::ostream& os, const Action& a)
   switch (a.type)
   {
     case atUndefined:
-      os << "undefined:";
+      os << "und:[";
       break;
     case atExploratory:
-      os << "exploratory:";
+      os << "exp:[";
       break;
     case atGreedy:
-      os << "greedy:";
+      os << "gdy:[";
       break;
   }
 
-  os << a.v;
+  os << a.v << "]";
   return os;
 }
 

@@ -34,7 +34,7 @@ REGISTER_CONFIGURABLE(PuddleMapping)
 void PuddleMapping::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("seed", "World seed", (int)seed_));
-  config->push_back(CRP("smoothing", "Standard deviation of Gaussian filter", smoothing_, CRP::Configuration, 0., 10.));
+  config->push_back(CRP("smoothing", "Standard deviation of Gaussian filter", smoothing_));
   config->push_back(CRP("steepness", "Parameter of sigmoid stretching", steepness_, CRP::Configuration, 1., 50.));
 }
 
