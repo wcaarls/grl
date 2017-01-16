@@ -39,20 +39,90 @@
 namespace grl
 {
 
-enum TransitionType { ttUndefined, ttExploratory, ttGreedy };
+enum ActionType { atUndefined, atExploratory, atGreedy };
+
+struct Observation
+{
+  Vector v;
+  bool absorbing;
+  
+  Observation() { }
+  Observation(const Vector &_v, bool _absorbing=false) : v(_v), absorbing(_absorbing) { }
+  operator Vector&() { return v; }
+  operator const Vector&() const { return v; }
+  Observation &operator=(const Vector &_v)
+  {
+    v = _v;
+    return *this;
+  }
+  
+  double& operator[](int idx) { return v[idx]; }
+  const double& operator[](int idx) const { return v[idx]; }
+  size_t size() const { return v.size(); }
+};
+
+inline std::ostream &operator<<(std::ostream& os, const Observation& o)
+{
+  if (o.absorbing)
+    os << "abs:[";
+  else
+    os << "reg:[";
+
+  os << o.v << "]";
+  return os;
+}
+
+struct Action
+{
+  Vector v;
+  ActionType type;
+
+  Action() { type = atUndefined; }
+  Action(const Vector &_v, ActionType _type=atUndefined) : v(_v), type(_type) { }
+  operator Vector&() { return v; }
+  operator const Vector&() const { return v; }
+  Action &operator=(const Vector &_v)
+  {
+    v = _v;
+    type = atUndefined;
+    return *this;
+  }
+
+  double& operator[](int idx) { return v[idx]; }
+  const double& operator[](int idx) const { return v[idx]; }
+  size_t size() const { return v.size(); }
+};
+
+inline std::ostream &operator<<(std::ostream& os, const Action& a)
+{
+  switch (a.type)
+  {
+    case atUndefined:
+      os << "und:[";
+      break;
+    case atExploratory:
+      os << "exp:[";
+      break;
+    case atGreedy:
+      os << "gdy:[";
+      break;
+  }
+
+  os << a.v << "]";
+  return os;
+}
 
 /// Basic (s, a, r, s', a') state transition.
 struct Transition
 {
-  Vector prev_obs;
-  Vector prev_action;
+  Observation prev_obs;
+  Action prev_action;
   double reward;
-  Vector obs;    ///< Empty observation signifies a terminal absorbing state with discontinued dynamics.
-  Vector action; ///< Empty action signifies a terminal absorbing state with continued dynamics.
-  TransitionType tt;
+  Observation obs;    ///< Empty observation signifies a terminal absorbing state with discontinued dynamics.
+  Action action; ///< Empty action signifies a terminal absorbing state with continued dynamics.
   
-  Transition(Vector _prev_obs=Vector(), Vector _prev_action=Vector(), double _reward=0., Vector _obs=Vector(), Vector _action=Vector(), TransitionType _tt = ttUndefined) :
-    prev_obs(_prev_obs), prev_action(_prev_action), reward(_reward), obs(_obs), action(_action), tt(_tt)
+  Transition(Observation _prev_obs=Observation(), Action _prev_action=Action(), double _reward=0., Observation _obs=Observation(), Action _action=Action()) :
+    prev_obs(_prev_obs), prev_action(_prev_action), reward(_reward), obs(_obs), action(_action)
     {
     }
 };

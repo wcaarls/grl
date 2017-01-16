@@ -1,5 +1,5 @@
 /** \file value.h
- * \brief Policy value mapping definition.
+ * \brief Policy displacement mapping definition.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
  * \date      2017-01-13

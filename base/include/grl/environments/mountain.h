@@ -41,10 +41,10 @@ class MountainDynamics : public Dynamics
 
   protected:
     Mapping *map_;
-    double mass_;
+    double m_, g_, mu_, k_;
   
   public:
-    MountainDynamics() : map_(NULL), mass_(1) { }
+    MountainDynamics() : map_(NULL), m_(1), g_(1), mu_(0.05), k_(1000) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);

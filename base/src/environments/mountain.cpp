@@ -34,14 +34,20 @@ REGISTER_CONFIGURABLE(MountainRegulatorTask)
 
 void MountainDynamics::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("mass", "Car mass", mass_, CRP::Configuration, 0., 100.));
+  config->push_back(CRP("mass", "Car mass", m_, CRP::Configuration, 0., DBL_MAX));
+  config->push_back(CRP("gravity", "Gravitational acceleration", g_, CRP::Configuration, 0., DBL_MAX));
+  config->push_back(CRP("friction", "Coefficient of viscous friction between car and ground", mu_, CRP::Configuration, 0., DBL_MAX));
+  config->push_back(CRP("stiffness", "Spring constant of walls", k_, CRP::Configuration, 0., DBL_MAX));
   config->push_back(CRP("map", "mapping/puddle", "Height map", map_));
 }
 
 void MountainDynamics::configure(Configuration &config)
 {
   map_ = (Mapping*)config["map"].ptr();
-  mass_ = config["mass"];
+  m_ = config["mass"];
+  g_ = config["gravity"];
+  mu_ = config["friction"];
+  k_ = config["stiffness"];
 }
 
 void MountainDynamics::reconfigure(const Configuration &config)
@@ -75,7 +81,6 @@ void MountainDynamics::eom(const Vector &state, const Vector &actuation, Vector 
     throw Exception("dynamics/mountain requires a task/mountain subclass");
   }
 
-  const double g = 1, mu = 0.05;
   Vector d, pos, angle;
   
   slope(state.head(2), &angle);
@@ -85,32 +90,19 @@ void MountainDynamics::eom(const Vector &state, const Vector &actuation, Vector 
   // Velocity/acceleration is defined along ground
   (*xd)[0] = cos(angle[0])*state[2];
   (*xd)[1] = cos(angle[1])*state[3];
-  (*xd)[2] = actuation[0]/mass_ - g*sin(angle[0]) - mu*state[2];
-  (*xd)[3] = actuation[1]/mass_ - g*sin(angle[1]) - mu*state[3];
+  (*xd)[2] = actuation[0]/m_ - g_*sin(angle[0]) - mu_*state[2];
+  (*xd)[3] = actuation[1]/m_ - g_*sin(angle[1]) - mu_*state[3];
   (*xd)[4] = 1;
   
   // Don't fall off the world
-  // NOTE: Cannot reset position or velocity here, so just keep them from getting larger
-  if (state[0] > 1)
-  {
-    if ((*xd)[0] > 0) (*xd)[0] = 0;
-    if ((*xd)[2] > 0) (*xd)[2] = 0;
-  }
   if (state[0] < 0)
-  {
-    if ((*xd)[0] < 0) (*xd)[0] = 0;
-    if ((*xd)[2] < 0) (*xd)[2] = 0;
-  }
-  if (state[1] > 1)
-  {
-    if ((*xd)[1] > 0) (*xd)[1] = 0;
-    if ((*xd)[3] > 0) (*xd)[3] = 0;
-  }
+    (*xd)[2] -= k_ * state[0];
+  if (state[0] > 1)
+    (*xd)[2] -= k_ * (state[0]-1);
   if (state[1] < 0)
-  {
-    if ((*xd)[1] < 0) (*xd)[1] = 0;
-    if ((*xd)[3] < 0) (*xd)[3] = 0;
-  }
+    (*xd)[3] -= k_ * state[1];
+  if (state[1] > 1)
+    (*xd)[3] -= k_ * (state[1]-1);
 }
 
 void MountainRegulatorTask::configure(Configuration &config)
