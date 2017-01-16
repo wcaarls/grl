@@ -7,6 +7,7 @@
 
 #define ZMQ_SYNC_PUB 0x01
 #define ZMQ_SYNC_SUB 0x02
+#define ZMQ_SYNC_CLI 0x04
 
 class ZeromqMessenger
 {
