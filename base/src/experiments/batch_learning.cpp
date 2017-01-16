@@ -102,13 +102,13 @@ void BatchLearningExperiment::run()
       // Create a batch of random experience
       for (size_t ss=0; ss < batch_size_; ++ss)
       {
-        Vector obs = RandGen::getVector(observation_min_.size()),
-               action = RandGen::getVector(action_min_.size()),
-               next_action = RandGen::getVector(action_min_.size());
+        Observation obs = RandGen::getVector(observation_min_.size());
+        Action      action = RandGen::getVector(action_min_.size()),
+                    next_action = RandGen::getVector(action_min_.size());
                
-        obs = observation_min_ + obs*(observation_max_-observation_min_);
-        action = action_min_ + action*(action_max_-action_min_);
-        next_action = action_min_ + next_action*(action_max_-action_min_);
+        obs = observation_min_ + obs.v*(observation_max_-observation_min_);
+        action = action_min_ + action.v*(action_max_-action_min_);
+        next_action = action_min_ + next_action.v*(action_max_-action_min_);
         
         Vector state;
         if (!task_->invert(obs, &state))
@@ -117,7 +117,8 @@ void BatchLearningExperiment::run()
           throw bad_param("experiment/online_learning:task");
         }
         
-        Vector next, next_obs;
+        Vector next;
+        Observation next_obs;
         int terminal;
         double reward;
         model_->step(state, action, &next);
@@ -126,8 +127,8 @@ void BatchLearningExperiment::run()
         
         if (terminal == 2)
         {
-          next_obs = Vector();
-          next_action = Vector();
+          next_obs = Observation();
+          next_action = Action();
         }
         
         Transition t(obs, action, reward, next_obs, next_action);
@@ -139,7 +140,9 @@ void BatchLearningExperiment::run()
       predictor_->finalize();
         
       // Test trial
-      Vector state, next, obs, next_obs, action, next_action;
+      Vector state, next;
+      Observation obs, next_obs;
+      Action action, next_action;
       double reward, total_reward=0;
       int terminal;
       

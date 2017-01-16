@@ -108,7 +108,7 @@ bool ILQGSolver::resolve(double t, const Vector &xt)
   if (!step_)
   {
     // Retrieve step size (assuming it's constant)
-    Vector next;
+    Observation next;
     double reward;
     int terminal;
     step_ = model_->step(xt, stddev_, &next, &reward, &terminal);
@@ -196,15 +196,21 @@ bool ILQGSolver::resolve(double t, const Vector &xt)
       // NOTE: May be done in parallel
       for (size_t ss=0; ss < N; ++ss)
       {
-        J[ss] = model_->jacobian(x.col(ss).transpose(), u.col(ss).transpose());
+        Observation obs; obs.v = x.col(ss).transpose();
+        Action action; action.v = u.col(ss).transpose();
+      
+        J[ss] = model_->jacobian(obs, action);
         J[ss].row(n) = -J[ss].row(n);
-        H[ss] = -model_->rewardHessian(x.col(ss).transpose(), u.col(ss).transpose());
+        H[ss] = -model_->rewardHessian(obs, action);
       }
     
       // Final cost Jacobian and Hessian. In our case, just the last state cost with action zero.
-      J[N] = model_->jacobian(x.col(N).transpose(), ConstantVector(m, 0.).transpose());
+      Observation obs; obs.v = x.col(N).transpose();
+      Action action; action.v = ConstantVector(m, 0.);
+      
+      J[N] = model_->jacobian(obs, action);
       J[N].row(n) = -J[N].row(n);
-      H[N] = -model_->rewardHessian(x.col(N).transpose(), ConstantVector(m, 0.).transpose());
+      H[N] = -model_->rewardHessian(obs, action);
       
       accepted = false;
     }
@@ -351,19 +357,22 @@ bool ILQGSolver::forwardPass(const ColumnVector &x0, const Matrix &x, const Matr
       unew->col(i) = unew->col(i) + L[i]*dx;
     }
     
-    Vector next;
+    Observation next;
     double reward;
     int terminal;
     
-    model_->step(xnew->col(i).transpose(), unew->col(i).transpose(), &next, &reward, &terminal);
+    Observation obs; obs.v = xnew->col(i).transpose();
+    Action action; action.v = unew->col(i).transpose();
+    
+    model_->step(obs, action, &next, &reward, &terminal);
     
     if (!next.size())
     {
-      TRACE("Model prediction failed at step " << i << "(state " << xnew->col(i).transpose() << ", action " << unew->col(i).transpose() << ")");
+      TRACE("Model prediction failed at step " << i << "(state " << obs << ", action " << action << ")");
       return false;
     }
     
-    xnew->col(i+1).transpose() = next;
+    xnew->col(i+1).transpose() = next.v;
     (*cnew)[i] = -reward;
   }
   

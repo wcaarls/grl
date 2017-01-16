@@ -49,7 +49,7 @@ class PendulumDynamics : public Dynamics
     virtual void reconfigure(const Configuration &config);
 
     // From Dynamics
-    virtual void eom(const Vector &state, const Vector &action, Vector *xd) const;
+    virtual void eom(const Vector &state, const Vector &actuation, Vector *xd) const;
 };
 
 /// Pendulum swing-up task.
@@ -71,9 +71,9 @@ class PendulumSwingupTask : public Task
 
     // From Task
     virtual void start(int test, Vector *state) const;
-    virtual void observe(const Vector &state, Vector *obs, int *terminal) const;
-    virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const;
-    virtual bool invert(const Vector &obs, Vector *state) const;
+    virtual void observe(const Vector &state, Observation *obs, int *terminal) const;
+    virtual void evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const;
+    virtual bool invert(const Observation &obs, Vector *state) const;
 };
 
 /// Pendulum balancing task with quadratic costs
@@ -98,8 +98,8 @@ class PendulumRegulatorTask : public RegulatorTask
     virtual void reconfigure(const Configuration &config);
 
     // From Task
-    virtual void observe(const Vector &state, Vector *obs, int *terminal) const;
-    virtual bool invert(const Vector &obs, Vector *state) const;
+    virtual void observe(const Vector &state, Observation *obs, int *terminal) const;
+    virtual bool invert(const Observation &obs, Vector *state) const;
 };
 
 }

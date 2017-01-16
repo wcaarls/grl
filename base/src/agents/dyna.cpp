@@ -89,12 +89,12 @@ void DynaAgent::reconfigure(const Configuration &config)
   config.get("planning_steps", planning_steps_);
 }
 
-TransitionType DynaAgent::start(const Vector &obs, Vector *action)
+void DynaAgent::start(const Observation &obs, Action *action)
 {
   predictor_->finalize();
   
   time_= 0.;
-  TransitionType tt = policy_->act(time_, obs, action);
+  policy_->act(time_, obs, action);
   
   prev_obs_ = obs;
   prev_action_ = *action;
@@ -102,14 +102,12 @@ TransitionType DynaAgent::start(const Vector &obs, Vector *action)
 
   if (threads_ && agent_threads_.empty())
     startThreads();
-
-  return tt;
 }
 
-TransitionType DynaAgent::step(double tau, const Vector &obs, double reward, Vector *action)
+void DynaAgent::step(double tau, const Observation &obs, double reward, Action *action)
 {
   time_ += tau;
-  TransitionType tt = policy_->act(time_, obs, action);
+  policy_->act(time_, obs, action);
   
   Transition t(prev_obs_, prev_action_, reward, obs, *action);
   predictor_->update(t);
@@ -125,11 +123,9 @@ TransitionType DynaAgent::step(double tau, const Vector &obs, double reward, Vec
   actual_reward_ += reward;  
   control_steps_++;
   total_control_steps_++;
-
-  return tt;
 }
 
-void DynaAgent::end(double tau, const Vector &obs, double reward)
+void DynaAgent::end(double tau, const Observation &obs, double reward)
 {
   Transition t(prev_obs_, prev_action_, reward, obs);
   predictor_->update(t);
@@ -156,7 +152,8 @@ void DynaAgent::report(std::ostream &os)
 
 void DynaAgent::runModel()
 {
-  Vector obs, action;
+  Observation obs;
+  Action action;
   int terminal=1;
   size_t steps=0;
 
@@ -166,17 +163,17 @@ void DynaAgent::runModel()
     {
       steps = 0;
       obs = start_obs_.draw();
-      state_->set(obs);
+      state_->set(obs.v);
       model_agent_->start(obs, &action);
     }
       
-    Vector next;
+    Observation next;
     double reward;
   
     double tau = model_->step(obs, action, &next, &reward, &terminal);
     
     obs = next;
-    state_->set(obs);
+    state_->set(obs.v);
         
     // Guard against failed model prediction    
     if (obs.size())

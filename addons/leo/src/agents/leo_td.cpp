@@ -1,11 +1,11 @@
 /** \file leo_td.cpp
  * \brief Leo temporal difference agent source file.
  *
- * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-01-22
+ * \author    Ivan Koryakovskiy <i.koryakovskiy@tudelft.nl>
+ * \date      2016-01-01
  *
  * \copyright \verbatim
- * Copyright (c) 2015, Wouter Caarls
+ * Copyright (c) 2016, Ivan Koryakovskiy
  * All rights reserved.
  *
  * This file is part of GRL, the Generic Reinforcement Learning library.
@@ -25,7 +25,7 @@
  * \endverbatim
  */
 
-#include <grl/environments/leo/agents/leo_td.h>
+#include <grl/agents/leo_td.h>
 
 using namespace grl;
 
@@ -48,22 +48,18 @@ void LeoTDAgent::reconfigure(const Configuration &config)
   TDAgent::reconfigure(config);
 }
 
-TransitionType LeoTDAgent::start(const Vector &obs, Vector *action)
+void LeoTDAgent::start(const Observation &obs, Action *action)
 {
-  TransitionType tt = TDAgent::start(obs, action);
+  TDAgent::start(obs, action);
 
   if (pub_transition_type_)
-    pub_transition_type_->set(VectorConstructor((double)tt));
-
-  return tt;
+    pub_transition_type_->set(VectorConstructor((double)action->type));
 }
 
-TransitionType LeoTDAgent::step(double tau, const Vector &obs, double reward, Vector *action)
+void LeoTDAgent::step(double tau, const Observation &obs, double reward, Action *action)
 {
-  TransitionType tt = TDAgent::step(tau, obs, reward, action);
+  TDAgent::step(tau, obs, reward, action);
 
   if (pub_transition_type_)
-    pub_transition_type_->set(VectorConstructor((double)tt));
-
-  return tt;
+    pub_transition_type_->set(VectorConstructor((double)action->type));
 }

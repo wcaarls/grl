@@ -107,7 +107,7 @@ void ExpectedSARSAPredictor::request(ConfigurationRequest *config)
 
   config->push_back(CRP("projector", "projector.pair", "Projects observation-action pairs onto representation space", projector_));
   config->push_back(CRP("representation", "representation.value/action", "Q-value representation", representation_));
-  config->push_back(CRP("policy", "mapping/policy/discrete/q", "Q-value based target policy", policy_));
+  config->push_back(CRP("policy", "mapping/policy/value", "Value based target policy", policy_));
   config->push_back(CRP("trace", "trace", "Trace of projections", trace_, true));
 }
 
@@ -117,7 +117,7 @@ void ExpectedSARSAPredictor::configure(Configuration &config)
   
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (Representation*)config["representation"].ptr();
-  policy_ = (QPolicy*)config["policy"].ptr();
+  policy_ = (ValuePolicy*)config["policy"].ptr();
   trace_ = (Trace*)config["trace"].ptr();
   
   alpha_ = config["alpha"];

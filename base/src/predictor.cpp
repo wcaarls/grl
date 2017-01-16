@@ -66,12 +66,12 @@ void Predictor::update(const Transition &transition)
     
     Transition t;
     Vector r;
-    while (importer->read({&t.prev_obs, &t.prev_action, &r, &t.obs, &t.action}))
+    while (importer->read({&t.prev_obs.v, &t.prev_action.v, &r, &t.obs.v, &t.action.v}))
     {
       if (!std::isfinite(t.obs[0]))
       {
-        t.obs = Vector();
-        t.action = Vector();
+        t.obs = Observation();
+        t.action = Action();
       }
       
       t.reward = r[0];

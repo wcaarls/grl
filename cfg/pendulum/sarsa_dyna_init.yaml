@@ -23,7 +23,7 @@ experiment:
     planning_horizon: 100
     threads: 0
     policy: 
-      type: policy/discrete/q
+      type: policy/value/q
       discretizer: 
         type: discretizer/uniform
         min: experiment/environment/task/action_min
@@ -104,7 +104,7 @@ experiment:
     model_agent: 
       type: agent/td
       policy: 
-        type: policy/discrete/q
+        type: policy/value/q
         discretizer: experiment/agent/policy/discretizer
         projector: experiment/agent/policy/projector
         representation: experiment/agent/policy/representation/representation1
@@ -121,7 +121,7 @@ experiment:
   test_agent: 
     type: agent/fixed
     policy: 
-      type: policy/discrete/q
+      type: policy/value/q
       discretizer: experiment/agent/policy/discretizer
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
@@ -148,7 +148,7 @@ visualization2:
   savepoints: 1048576
   projection: mean
   policy: 
-    type: policy/discrete/q
+    type: policy/value/q
     discretizer: experiment/agent/policy/discretizer
     projector: experiment/agent/policy/projector
     representation: experiment/agent/policy/representation/representation1
@@ -163,7 +163,7 @@ visualization3:
   savepoints: 1048576
   projection: mean
   policy: 
-    type: policy/discrete/q
+    type: policy/value/q
     discretizer: experiment/agent/policy/discretizer
     projector: experiment/agent/policy/projector
     representation: experiment/agent/policy/representation/representation2

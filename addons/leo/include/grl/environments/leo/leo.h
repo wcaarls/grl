@@ -160,7 +160,7 @@ class LeoBaseEnvironment: public Environment
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
 
-    // From Environment
+    // Base variants of Environment member functions
     virtual void start(int test);
     virtual void step(double tau, double reward, int terminal);
     virtual void report(std::ostream &os) const;
@@ -172,7 +172,8 @@ class LeoBaseEnvironment: public Environment
     CLeoBhBase *bh_;
 
     int observation_dims_, action_dims_;
-    Vector target_obs_, target_action_;
+    Observation target_obs_;
+    Action target_action_;
 
     // Exporter
     Exporter *exporter_;

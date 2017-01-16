@@ -121,13 +121,13 @@ void LeoSquattingTask::start(int test, Vector *state) const
   CRAWL("Initial state: " << *state);
 }
 
-void LeoSquattingTask::observe(const Vector &state, Vector *obs, int *terminal) const
+void LeoSquattingTask::observe(const Vector &state, Observation *obs, int *terminal) const
 {
   grl_assert(state.size() == stsStateDim);
 
   // arm is not actuated => exclude angle and angle rate from observations
-  obs->resize(2*dof_+1);
-  (*obs) << state.block(0, rlsAnkleAngle, 1, rlsHipAngle-rlsAnkleAngle+1),
+  obs->v.resize(2*dof_+1);
+  obs->v << state.block(0, rlsAnkleAngle, 1, rlsHipAngle-rlsAnkleAngle+1),
             state.block(0, rlsAnkleAngleRate, 1, rlsHipAngleRate-rlsAnkleAngleRate+1),
             state[rlsRefRootZ];
 
@@ -139,7 +139,7 @@ void LeoSquattingTask::observe(const Vector &state, Vector *obs, int *terminal) 
     *terminal = 0;
 }
 
-void LeoSquattingTask::evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const
+void LeoSquattingTask::evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const
 {
   grl_assert(state.size() == stsStateDim);
   grl_assert(action.size() == rlsDofDim || action.size() == rlsDofDim-1); // if auto-actuated, action is shorter
@@ -241,15 +241,3 @@ void LeoSquattingTask::report(std::ostream &os, const Vector &state) const
   progressString << std::setw(pw) << state[stsSquats];
   os << progressString.str();
 }
-
-bool LeoSquattingTask::invert(const Vector &obs, Vector *state) const
-{
-  return true;
-}
-
-Matrix LeoSquattingTask::rewardHessian(const Vector &state, const Vector &action) const
-{
-  Matrix hessian;
-  return hessian;
-}
-

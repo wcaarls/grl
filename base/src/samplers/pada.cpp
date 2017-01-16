@@ -5,7 +5,7 @@
  * \date      2016-09-30
  *
  * \copyright \verbatim
- * Copyright (c) 2015, Wouter Caarls
+ * Copyright (c) 2016, Ivan Koryakovskiy
  * All rights reserved.
  *
  * This file is part of GRL, the Generic Reinforcement Learning library.
@@ -64,7 +64,7 @@ void PadaSampler::reconfigure(const Configuration &config)
   EpsilonGreedySampler::reconfigure(config);
 }
 
-size_t PadaSampler::sample(double time, const LargeVector &values, TransitionType &tt)
+size_t PadaSampler::sample(double time, const LargeVector &values, ActionType *at)
 {
   // offset is updated only if sampler_state is modified, i.e. contact happend for Leo
   if (pub_sub_pada_state_)
@@ -86,7 +86,7 @@ size_t PadaSampler::sample(double time, const LargeVector &values, TransitionTyp
   std::vector<size_t> idx;
   filter(delta, prev_action_, values, &filtered, &idx);
 
-  size_t filtered_offset = EpsilonGreedySampler::sample(filtered, tt); // PadaSampler is derived from EpsilonGreedySampler => they share same epsilon
+  size_t filtered_offset = EpsilonGreedySampler::sample(filtered, at); // PadaSampler is derived from EpsilonGreedySampler => they share same epsilon
   CRAWL(filtered_offset);
   CRAWL(idx[filtered_offset]);
 
@@ -137,7 +137,7 @@ void PadaSampler::filter(const Vector &delta, const Vector &prev_out, const Larg
 
 //////////////////////////////////////////////////////////
 
-size_t EpsilonPadaSampler::sample(double time, const LargeVector &values, TransitionType &tt)
+size_t EpsilonPadaSampler::sample(double time, const LargeVector &values, ActionType *at)
 {
   size_t offset;
   if (rand_->get() < epsilon_[0])
@@ -162,7 +162,8 @@ size_t EpsilonPadaSampler::sample(double time, const LargeVector &values, Transi
     std::vector<size_t> idx;
     filter(delta, prev_action_, values, &filtered, &idx);
 
-    tt = ttExploratory;
+    if (at)
+      *at = atExploratory;
     size_t filtered_offset = rand_->getInteger(filtered.size());
     TRACE(filtered_offset);
     offset = idx[filtered_offset];
@@ -170,8 +171,7 @@ size_t EpsilonPadaSampler::sample(double time, const LargeVector &values, Transi
   }
   else
   {
-    tt = ttGreedy;
-    offset = GreedySampler::sample(values, tt);
+    offset = GreedySampler::sample(values, at);
     prev_action_ = discretizer_->at(offset);
   }
   CRAWL(offset);

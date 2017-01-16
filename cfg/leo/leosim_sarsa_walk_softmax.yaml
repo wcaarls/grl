@@ -5,32 +5,27 @@ experiment:
   steps: 1000000
   rate: 0
   test_interval: 10
-  output: leosim_sarsa_walk_ou
+  output: leosim_sarsa_walk_softmax_out
   environment: 
     type: environment/leo_walk
+    behavior: 
+      type: behavior/leo_walk_sym
     xml: ../../leo/cfg/leo_walk.xml
     target_env: 
       type: environment/ode
-      xml: experiment/environment/xml
+      xml: ../../xml
       randomize: 1
       visualize: 1
     observe: torso_boom, hipright, hipleft, kneeright, kneeleft
     actuate: hipright, hipleft, kneeleft
-    exporter: 
-      type: exporter/csv
-      file: leosim_sarsa_walk_ou
-      style: meshup
-      variant: all
-    observation_dims: experiment/environment/target_env/observation_dims
-    action_dims: experiment/environment/target_env/action_dims
   agent: 
     type: agent/td
     policy: 
-      type: policy/discrete/q
+      type: mapping/policy/value/q
       discretizer: 
         type: discretizer/uniform
-        min: experiment/environment/action_min
-        max: experiment/environment/action_max
+        min: ../../../../environment/action_min
+        max: ../../../../environment/action_max
         steps: [7, 7, 7]
       projector: 
         type: projector/tile_coding
@@ -43,34 +38,29 @@ experiment:
         type: representation/parameterized/linear
         init_min: [0]
         init_max: [0.01]
-        memory: experiment/agent/policy/projector/memory
+        memory: ../../projector/memory
         outputs: 1
         output_min: []
         output_max: []
       sampler: 
-        type: sampler/ornstein_ohlenbeck
-        rand_max: 0
-        epsilon: 0.05
-        discretizer: experiment/agent/policy/discretizer
-        theta: [0.01, 0.01, 0.01]
-        sigma: [3.0, 3.0, 3.0]
-        center: [0.0, 0.0, 0.0]
+        type: sampler/softmax
+        tau: 1
     predictor: 
       type: predictor/sarsa
       alpha: 0.2
       gamma: 0.9962
       lambda: 0.8582
-      projector: experiment/agent/policy/projector
-      representation: experiment/agent/policy/representation
+      projector: ../../policy/projector
+      representation: ../../policy/representation
       trace: 
         type: trace/enumerated/accumulating
   test_agent: 
     type: agent/fixed
     policy: 
-      type: policy/discrete/q
-      discretizer: experiment/agent/policy/discretizer
-      projector: experiment/agent/policy/projector
-      representation: experiment/agent/policy/representation
+      type: mapping/policy/value/q
+      discretizer: ../../../agent/policy/discretizer
+      projector: ../../../agent/policy/projector
+      representation: ../../../agent/policy/representation
       sampler: 
         type: sampler/greedy
         rand_max: 0

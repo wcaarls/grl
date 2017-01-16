@@ -61,7 +61,7 @@ void MCTSPolicy::reconfigure(const Configuration &config)
   config.get("budget", budget_);
 }
 
-TransitionType MCTSPolicy::act(double time, const Vector &in, Vector *out)
+void MCTSPolicy::act(double time, const Observation &in, Action *out)
 {
   // Clear tree at start of episode
   if (time == 0.)
@@ -141,14 +141,15 @@ TransitionType MCTSPolicy::act(double time, const Vector &in, Vector *out)
   {
     MCTSNode *node = trunk_->select(0);
     *out = discretizer_->at(trunk_->state(), node->action());
+    out->type = atGreedy;
 
     TRACE("Selected action " << *out << " (Q " << node->q()/node->visits() << ") after " << searches << " searches");
   }
   else
   {
     *out = discretizer_->at(in, lrand48()%discretizer_->size(in));
+    out->type = atExploratory;
 
     TRACE("Selected random action " << *out);
   }
-  return ttGreedy;
 }

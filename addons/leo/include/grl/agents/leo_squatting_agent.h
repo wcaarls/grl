@@ -1,11 +1,11 @@
 /** \file leo_squatting_agent.cpp
  * \brief State-machine agent header file which performs squatting on Leo.
  *
- * \author    Wouter Caarls <wouter@caarls.org>
+ * \author    Ivan Koryakovskiy <i.koryakovskiy@tudelft.nl>
  * \date      2015-02-04
  *
  * \copyright \verbatim
- * Copyright (c) 2015, Wouter Caarls
+ * Copyright (c) 2015, Ivan Koryakovskiy
  * All rights reserved.
  *
  * This file is part of GRL, the Generic Reinforcement Learning library.
@@ -55,9 +55,9 @@ class LeoSquattingAgent : public Agent
     virtual void reconfigure(const Configuration &config);
 
     // From Agent
-    virtual TransitionType start(const Vector &obs, Vector *action);
-    virtual TransitionType step(double tau, const Vector &obs, double reward, Vector *action);
-    virtual void end(double tau, const Vector &obs, double reward);
+    virtual void start(const Observation &obs, Action *action);
+    virtual void step(double tau, const Observation &obs, double reward, Action *action);
+    virtual void end(double tau, const Observation &obs, double reward);
 };
 
 }

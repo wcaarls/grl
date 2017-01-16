@@ -80,22 +80,22 @@ void LeoPreprogrammedAgent::reconfigure(const Configuration &config)
 {
 }
 
-TransitionType LeoPreprogrammedAgent::start(const Vector &obs, Vector *action)
+void LeoPreprogrammedAgent::start(const Observation &obs, Action *action)
 {
   time_ = mSwingTime = 0.;
-  auto_actuate(obs, action);
-  return ttGreedy;
+  auto_actuate(obs, &action->v);
+  action->type = atGreedy;
 }
 
-TransitionType LeoPreprogrammedAgent::step(double tau, const Vector &obs, double reward, Vector *action)
+void LeoPreprogrammedAgent::step(double tau, const Observation &obs, double reward, Action *action)
 {
   time_ += tau;
   mSwingTime += tau;
-  auto_actuate(obs, action);
-  return ttGreedy;
+  auto_actuate(obs, &action->v);
+  action->type = atGreedy;
 }
 
-void LeoPreprogrammedAgent::end(double tau, const Vector &obs, double reward)
+void LeoPreprogrammedAgent::end(double tau, const Observation &obs, double reward)
 {
 }
 

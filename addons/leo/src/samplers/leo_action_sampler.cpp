@@ -5,7 +5,7 @@
  * \date      2016-09-30
  *
  * \copyright \verbatim
- * Copyright (c) 2015, Wouter Caarls
+ * Copyright (c) 2016, Ivan Koryakovskiy
  * All rights reserved.
  *
  * This file is part of GRL, the Generic Reinforcement Learning library.
@@ -25,7 +25,7 @@
  * \endverbatim
  */
 #include <grl/grl.h>
-#include <grl/environments/leo/samplers/leo_action_sampler.h>
+#include <grl/samplers/leo_action_sampler.h>
 #include <leo.h>
 
 using namespace grl;
@@ -55,7 +55,7 @@ void LeoActionSampler::reconfigure(const Configuration &config)
   Sampler::reconfigure(config);
 }
 
-size_t LeoActionSampler::sample(double time, const LargeVector &values, TransitionType &tt)
+size_t LeoActionSampler::sample(double time, const LargeVector &values, ActionType *at)
 {
   if (sub_ic_signal_)
   {
@@ -93,12 +93,10 @@ size_t LeoActionSampler::sample(double time, const LargeVector &values, Transiti
     }
   }
 
-  return sampler_->sample(time, values, tt);
+  return sampler_->sample(time, values, at);
 }
 
 void LeoActionSampler::distribution(const LargeVector &values, LargeVector *distribution) const
 {
   sampler_->distribution(values, distribution);
 }
-
-

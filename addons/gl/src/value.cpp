@@ -83,14 +83,14 @@ void PolicyValueVisualization::request(ConfigurationRequest *config)
 {
   FieldVisualization::request(config);
 
-  config->push_back(CRP("policy", "mapping/policy/discrete/q", "Q-value based control policy", policy_));
+  config->push_back(CRP("policy", "mapping/policy/value", "Value based control policy", policy_));
 }
 
 void PolicyValueVisualization::configure(Configuration &config)
 {
   FieldVisualization::configure(config);
   
-  policy_ = (QPolicy*)config["policy"].ptr();
+  policy_ = (ValuePolicy*)config["policy"].ptr();
   
   // Create window  
   create(path().c_str());

@@ -22,7 +22,7 @@ experiment:
     planning_steps: 200
     planning_horizon: 100
     policy: 
-      type: policy/discrete/q
+      type: policy/value/q
       discretizer: 
         type: discretizer/uniform
         min: experiment/environment/task/action_min
@@ -106,7 +106,7 @@ experiment:
   test_agent: 
     type: agent/fixed
     policy: 
-      type: policy/discrete/q
+      type: policy/value/q
       discretizer: experiment/agent/policy/discretizer
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation

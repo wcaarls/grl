@@ -1,5 +1,5 @@
-/** \file q_policy.cpp
- * \brief Q policy mapping source file. 
+/** \file value.h
+ * \brief Policy value mapping definition.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
  * \date      2016-06-01
@@ -25,28 +25,37 @@
  * \endverbatim
  */
 
-#include <grl/mappings/q_policy.h>
+#ifndef GRL_VALUE_MAPPING_H_
+#define GRL_VALUE_MAPPING_H_
 
-using namespace grl;
+#include <grl/mapping.h>
+#include <grl/policy.h>
 
-REGISTER_CONFIGURABLE(QPolicyMapping)
-
-void QPolicyMapping::request(ConfigurationRequest *config)
+namespace grl
 {
-  config->push_back(CRP("policy", "mapping/policy/discrete/q", "Q-value based policy", policy_));
+
+class ValueMapping : public Mapping
+{
+  public:
+    TYPEINFO("mapping/value", "Mapping that returns the expected value of a value-based policy")
+
+  protected:
+    ValuePolicy *policy_;
+  
+  public:
+    ValueMapping() : policy_(NULL)
+    {
+    }
+  
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+
+    // From Mapping
+    virtual double read(const Vector &in, Vector *result) const;
+};
+
 }
 
-void QPolicyMapping::configure(Configuration &config)
-{
-  policy_ = (QPolicy*)config["policy"].ptr();
-}
-
-void QPolicyMapping::reconfigure(const Configuration &config)
-{
-}
-
-double QPolicyMapping::read(const Vector &in, Vector *result) const
-{
-  *result = VectorConstructor(policy_->value(in));
-  return (*result)[0];
-}
+#endif /* GRL_VALUE_MAPPING_H_ */

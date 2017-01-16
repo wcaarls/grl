@@ -1,11 +1,11 @@
 /** \file leo_fixed.h
  * \brief Leo fixed agent header file.
  *
- * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-01-22
+ * \author    Ivan Koryakovskiy <i.koryakovskiy@tudelft.nl>
+ * \date      2016-01-01
  *
  * \copyright \verbatim
- * Copyright (c) 2015, Wouter Caarls
+ * Copyright (c) 2016, Ivan Koryakovskiy
  * All rights reserved.
  *
  * This file is part of GRL, the Generic Reinforcement Learning library.
@@ -53,8 +53,8 @@ class LeoFixedAgent : public FixedAgent
     virtual void reconfigure(const Configuration &config);
 
     // From Agent
-    virtual TransitionType start(const Vector &obs, Vector *action);
-    virtual TransitionType step(double tau, const Vector &obs, double reward, Vector *action);
+    virtual void start(const Observation &obs, Action *action);
+    virtual void step(double tau, const Observation &obs, double reward, Action *action);
 };
 
 }

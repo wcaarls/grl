@@ -106,7 +106,7 @@ void PinballModel::reconfigure(const Configuration &config)
 {
 }
 
-double PinballModel::step(const Vector &state, const Vector &action, Vector *next) const
+double PinballModel::step(const Vector &state, const Vector &actuation, Vector *next) const
 {
   Ball b = Ball(Point(state[siX], state[siY]), Point(state[siXd], state[siYd]), radius_);
   double h = tau_/steps_;
@@ -114,7 +114,7 @@ double PinballModel::step(const Vector &state, const Vector &action, Vector *nex
 
   for (int ii=0; ii < steps_; ++ii)
   {
-    b.roll(Point(action[aiXdd], action[aiYdd]), h);
+    b.roll(Point(actuation[aiXdd], actuation[aiYdd]), h);
     for (size_t jj=0; jj < obstacles_.size(); ++jj)
       collision |= obstacles_[jj].collide(b, restitution_);
   }
@@ -154,24 +154,28 @@ void PinballMovementTask::start(int test, Vector *state) const
   *state = VectorConstructor(0.1, 0.1, 0., 0., 0.);
 }
 
-void PinballMovementTask::observe(const Vector &state, Vector *obs, int *terminal) const
+void PinballMovementTask::observe(const Vector &state, Observation *obs, int *terminal) const
 {
   if (state.size() != 5)
     throw Exception("task/pinball/movement requires model/pinball");
     
-  obs->resize(4);
+  obs->v.resize(4);
   for (size_t ii=0; ii < 4; ++ii)
     (*obs)[ii] = state[ii];
-    
+  obs->absorbing = false;
+      
   if (succeeded(state))
+  {
     *terminal = 2;
+    obs->absorbing = true;
+  }
   else if (state[PinballModel::siTime] > 10)
     *terminal = 1;
   else
     *terminal = 0;
 }
 
-void PinballMovementTask::evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const
+void PinballMovementTask::evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const
 {
   if (state.size() != 5 || action.size() != 2 || next.size() != 5)
     throw Exception("task/pinball/movement requires model/pinball");
@@ -182,7 +186,7 @@ void PinballMovementTask::evaluate(const Vector &state, const Vector &action, co
     *reward = -1;
 }
 
-bool PinballMovementTask::invert(const Vector &obs, Vector *state) const
+bool PinballMovementTask::invert(const Observation &obs, Vector *state) const
 {
   state->resize(5);
   for (size_t ii=0; ii < 4; ++ii)
@@ -227,19 +231,20 @@ void PinballRegulatorTask::reconfigure(const Configuration &config)
   RegulatorTask::reconfigure(config);
 }
 
-void PinballRegulatorTask::observe(const Vector &state, Vector *obs, int *terminal) const
+void PinballRegulatorTask::observe(const Vector &state, Observation *obs, int *terminal) const
 {
   if (state.size() != 5)
     throw Exception("task/pinball/regulator requires dynamics/pinball");
     
-  obs->resize(4);
+  obs->v.resize(4);
   for (size_t ii=0; ii < 4; ++ii)
     (*obs)[ii] = state[ii];
+  obs->absorbing = false;
 
   *terminal = state[4] > 20;
 }
 
-bool PinballRegulatorTask::invert(const Vector &obs, Vector *state) const
+bool PinballRegulatorTask::invert(const Observation &obs, Vector *state) const
 {
   *state = extend(obs, VectorConstructor(0.));
   

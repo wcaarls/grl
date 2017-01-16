@@ -41,7 +41,7 @@ void GGQPredictor::request(ConfigurationRequest *config)
 
   config->push_back(CRP("projector", "projector.pair", "Projects observation-action pairs onto representation space", projector_));
   config->push_back(CRP("representation", "representation.value/action", "(Q, w) representation", representation_));
-  config->push_back(CRP("policy", "mapping/policy/discrete/q", "Greedy target policy", policy_));
+  config->push_back(CRP("policy", "mapping/policy/value", "Greedy target policy", policy_));
 }
 
 void GGQPredictor::configure(Configuration &config)
@@ -50,7 +50,7 @@ void GGQPredictor::configure(Configuration &config)
   
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (Representation*)config["representation"].ptr();
-  policy_ = (QPolicy*)config["policy"].ptr();
+  policy_ = (ValuePolicy*)config["policy"].ptr();
   
   alpha_ = config["alpha"];
   eta_ = config["eta"];
@@ -76,7 +76,7 @@ void GGQPredictor::update(const Transition &transition)
   // phi_next for greedy target policy
   if (transition.action.size())
   {
-    Vector action;
+    Action action;
     policy_->act(transition.obs, &action);
     phi_next = projector_->project(transition.obs, action);
     target += gamma_*representation_->read(phi_next, &v);

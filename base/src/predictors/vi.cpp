@@ -72,7 +72,7 @@ void ValueIterationPredictor::update(const Transition &transition)
   
   for (Discretizer::iterator it = discretizer_->begin(transition.prev_obs); it != discretizer_->end(); ++it)
   {
-    Vector next;
+    Observation next;
     double reward;
     int terminal;
     model_->step(transition.prev_obs, *it, &next, &reward, &terminal);
@@ -111,7 +111,7 @@ void QIterationPredictor::update(const Transition &transition)
   
   for (Discretizer::iterator it=discretizer_->begin(transition.prev_obs); it != discretizer_->end(); ++it)
   {
-    Vector next;
+    Observation next;
     double reward;
     int terminal;
     model_->step(transition.prev_obs, *it, &next, &reward, &terminal);

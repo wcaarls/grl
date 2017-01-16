@@ -74,7 +74,7 @@ SandboxEnvironment &SandboxEnvironment::copy(const Configurable &obj)
 }
 
 
-void SandboxEnvironment::start(int test, Vector *obs)
+void SandboxEnvironment::start(int test, Observation *obs)
 {
   int terminal;
 
@@ -93,7 +93,7 @@ void SandboxEnvironment::start(int test, Vector *obs)
   prev_time_test_ = time_test_;
 }
 
-double SandboxEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)
+double SandboxEnvironment::step(const Action &action, Observation *obs, double *reward, int *terminal)
 {
   Vector next = state_, actuation;
   double tau = 0;

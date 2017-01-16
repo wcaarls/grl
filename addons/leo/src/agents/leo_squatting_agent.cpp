@@ -1,11 +1,11 @@
 /** \file leo_squatting_agent.cpp
  * \brief State-machine agent source file which performs squatting on Leo.
  *
- * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-01-22
+ * \author    Ivan Koryakovskiy <i.koryakovskiy@tudelft.nl>
+ * \date      2016-01-01
  *
  * \copyright \verbatim
- * Copyright (c) 2015, Wouter Caarls
+ * Copyright (c) 2016, Ivan Koryakovskiy
  * All rights reserved.
  *
  * This file is part of GRL, the Generic Reinforcement Learning library.
@@ -47,14 +47,14 @@ void LeoSquattingAgent::reconfigure(const Configuration &config)
 {
 }
 
-TransitionType LeoSquattingAgent::start(const Vector &obs, Vector *action)
+void LeoSquattingAgent::start(const Observation &obs, Action *action)
 {
   time_ = 0.;
   agent_ = agent_standup_;
-  return agent_->start(obs, action);
+  agent_->start(obs, action);
 }
 
-TransitionType LeoSquattingAgent::step(double tau, const Vector &obs, double reward, Vector *action)
+void LeoSquattingAgent::step(double tau, const Observation &obs, double reward, Action *action)
 {
   time_ += tau;
 
@@ -62,13 +62,14 @@ TransitionType LeoSquattingAgent::step(double tau, const Vector &obs, double rew
     if (trigger_.check(time_, obs))
     {
       agent_ = agent_learn_;
-      return agent_->start(obs, action);
+      agent_->start(obs, action);
+      return;
     }
 
-  return agent_->step(tau, obs, reward, action);
+  agent_->step(tau, obs, reward, action);
 }
 
-void LeoSquattingAgent::end(double tau, const Vector &obs, double reward)
+void LeoSquattingAgent::end(double tau, const Observation &obs, double reward)
 {
   agent_standup_->end(tau, obs, reward);
   if (agent_ == agent_learn_)

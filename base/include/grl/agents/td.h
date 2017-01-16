@@ -46,7 +46,8 @@ class TDAgent : public Agent
     struct TDAgentState
     {
       double time;
-      Vector prev_obs, prev_action;
+      Observation prev_obs;
+      Action prev_action;
     };
 
   protected:
@@ -64,9 +65,9 @@ class TDAgent : public Agent
     virtual void reconfigure(const Configuration &config);
 
     // From Agent
-    virtual TransitionType start(const Vector &obs, Vector *action);
-    virtual TransitionType step(double tau, const Vector &obs, double reward, Vector *action);
-    virtual void end(double tau, const Vector &obs, double reward);
+    virtual void start(const Observation &obs, Action *action);
+    virtual void step(double tau, const Observation &obs, double reward, Action *action);
+    virtual void end(double tau, const Observation &obs, double reward);
 };
 
 }

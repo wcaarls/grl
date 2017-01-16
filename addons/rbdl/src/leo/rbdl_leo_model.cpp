@@ -35,6 +35,8 @@ REGISTER_CONFIGURABLE(LeoSquattingSandboxModel)
 void LeoSandboxModel::request(ConfigurationRequest *config)
 {
   dm_.request(config);
+  config->pop_back();
+  config->push_back(CRP("dynamics", "dynamics/rbdl", "Equations of motion", dm_.dynamics_));
 
   config->push_back(CRP("target_dof", "int.target_dof", "Number of degrees of freedom of the target model", target_dof_, CRP::Configuration, 0, INT_MAX));
   config->push_back(CRP("animation", "Save current state or full animation", animation_, CRP::Configuration, {"nope", "full", "immediate"}));
@@ -44,6 +46,7 @@ void LeoSandboxModel::request(ConfigurationRequest *config)
 void LeoSandboxModel::configure(Configuration &config)
 {
   dm_.configure(config);
+  dynamics_ = (RBDLDynamics*) dm_.dynamics_;
 
   target_env_ = (Environment*)config["target_env"].ptr(); // Select a real enviromnent if needed
   target_dof_ = config["target_dof"];
@@ -105,15 +108,19 @@ void LeoSquattingSandboxModel::start(const Vector &hint, Vector *state)
 {
   // Obtain an actual state from a target environment, not from task
   if (target_env_)
-    target_env_->start(0, state);
+  {
+    Observation obs;
+    target_env_->start(0, &obs);
+    *state = obs.v;
+  }
 
   // Unknown bug in GRL call/Lua/RBDL: need to call eom, then 'finalize' works correctly
   Vector xd;
   action_step_.resize(target_dof_);
-  dm_.dynamics_->eom(*state, action_step_, &xd);
+  dynamics_->eom(*state, action_step_, &xd);
 
   // Fill parts of a state such as Center of Mass, Angular Momentum
-  dm_.dynamics_->finalize(*state, rbdl_addition_);
+  dynamics_->finalize(*state, rbdl_addition_);
 
   // Compose a complete state <state, time, height, com, ..., squats>
   state_.resize(stsStateDim);
@@ -154,13 +161,17 @@ double LeoSquattingSandboxModel::step(const Vector &action, Vector *next)
   double tau;
   if (target_env_)
   {
-    tau = target_env_->step(action_step_, &next_step_, NULL, NULL);
+    Observation obs;
+  
+    tau = target_env_->step(action_step_, &obs, NULL, NULL);
+    next_step_ = obs.v;
+    
     next_step_[rlsTime] = state_step_[rlsTime] + tau;
   }
   else
     tau = dm_.step(state_step_, action_step_, &next_step_);
 
-  dm_.dynamics_->finalize(next_step_, rbdl_addition_);
+  dynamics_->finalize(next_step_, rbdl_addition_);
 
   // Compose the next state
   (*next) << next_step_, VectorConstructor(state_[rlsRefRootZ]),

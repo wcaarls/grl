@@ -33,8 +33,8 @@ class ODESTGEnvironment: public QObject
     ~ODESTGEnvironment();
   
     bool configure(Configuration &config);
-    void start(int test, Vector *obs);
-    double step(const Vector &action, Vector *obs, double *reward, int *terminal);
+    void start(int test, Observation *obs);
+    double step(const Action &action, Observation *obs, double *reward, int *terminal);
     bool read(const std::string name, double *out) const;
     
     ODESimulator *getSim() { return &simulator_; }
@@ -70,12 +70,12 @@ class ODEEnvironment: public grl::Environment, public itc::Thread
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
 
-    virtual void start(int test, Vector *obs)
+    virtual void start(int test, Observation *obs)
     {
       env_->start(test, obs);
     }
     
-    virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal)
+    virtual double step(const Action &action, Observation *obs, double *reward, int *terminal)
     {
       return env_->step(action, obs, reward, terminal);
     }

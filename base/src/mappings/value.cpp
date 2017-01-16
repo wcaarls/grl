@@ -1,5 +1,5 @@
-/** \file mapping.h
- * \brief Q-policy mapping definition.
+/** \file value.cpp
+ * \brief Policy value mapping source file. 
  *
  * \author    Wouter Caarls <wouter@caarls.org>
  * \date      2016-06-01
@@ -25,37 +25,29 @@
  * \endverbatim
  */
 
-#ifndef GRL_Q_POLICY_MAPPING_H_
-#define GRL_Q_POLICY_MAPPING_H_
+#include <grl/mappings/value.h>
 
-#include <grl/mapping.h>
-#include <grl/policies/q.h>
+using namespace grl;
 
-namespace grl
+REGISTER_CONFIGURABLE(ValueMapping)
+
+void ValueMapping::request(ConfigurationRequest *config)
 {
-
-class QPolicyMapping : public Mapping
-{
-  public:
-    TYPEINFO("mapping/q_policy", "Mapping that returns the value of a q-policy")
-
-  protected:
-    QPolicy *policy_;
-  
-  public:
-    QPolicyMapping() : policy_(NULL)
-    {
-    }
-  
-    // From Configurable
-    virtual void request(ConfigurationRequest *config);
-    virtual void configure(Configuration &config);
-    virtual void reconfigure(const Configuration &config);
-
-    // From Mapping
-    virtual double read(const Vector &in, Vector *result) const;
-};
-
+  config->push_back(CRP("policy", "mapping/policy/value", "Value based policy", policy_));
 }
 
-#endif /* GRL_Q_POLICY_MAPPING_H_ */
+void ValueMapping::configure(Configuration &config)
+{
+  policy_ = (ValuePolicy*)config["policy"].ptr();
+}
+
+void ValueMapping::reconfigure(const Configuration &config)
+{
+}
+
+double ValueMapping::read(const Vector &in, Vector *result) const
+{
+  Observation obs = in;
+  *result = VectorConstructor(policy_->value(obs));
+  return (*result)[0];
+}

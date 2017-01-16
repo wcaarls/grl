@@ -5,7 +5,7 @@ experiment:
   steps: 0
   rate: 0
   test_interval: 0
-  output: rbdl_ac_tc_squat_fb_sl_play
+  output: rbdl_ac_tc_squat_fb_sl_play_out
   environment: 
     type: environment/sandbox
     model: 

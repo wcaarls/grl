@@ -48,10 +48,10 @@ void VoluntarySubAgent::reconfigure(const Configuration &config)
 {
 }
 
-TransitionType VoluntarySubAgent::start(const Vector &obs, Vector *action, double *confidence)
+void VoluntarySubAgent::start(const Observation &obs, Action *action, double *confidence)
 {
-  Vector a;
-  TransitionType tt = agent_->start(obs, &a);
+  Action a;
+  agent_->start(obs, &a);
   
   if (dim_ >= a.size())
     throw bad_param("agent/sub/voluntary:dim");
@@ -59,16 +59,14 @@ TransitionType VoluntarySubAgent::start(const Vector &obs, Vector *action, doubl
   *confidence = a[dim_];
   
   // Remove indicator dimension
-  *action = Vector(a.size()-1);
-  *action << a.leftCols(dim_), a.rightCols(a.size()-dim_-1);
-
-  return tt;
+  action->v = Vector(a.size()-1);
+  action->v << a.v.leftCols(dim_), a.v.rightCols(a.size()-dim_-1);
 }
 
-TransitionType VoluntarySubAgent::step(double tau, const Vector &obs, double reward, Vector *action, double *confidence)
+void VoluntarySubAgent::step(double tau, const Observation &obs, double reward, Action *action, double *confidence)
 {
-  Vector a;
-  TransitionType tt = agent_->step(tau, obs, reward, &a);
+  Action a;
+  agent_->step(tau, obs, reward, &a);
 
   if (dim_ >= a.size())
     throw bad_param("agent/sub/voluntary:dim");
@@ -76,13 +74,11 @@ TransitionType VoluntarySubAgent::step(double tau, const Vector &obs, double rew
   *confidence = a[dim_];
   
   // Remove indicator dimension
-  *action = Vector(a.size()-1);
-  *action << a.leftCols(dim_), a.rightCols(a.size()-dim_-1);
-
-  return tt;
+  action->v = Vector(a.size()-1);
+  action->v << a.v.leftCols(dim_), a.v.rightCols(a.size()-dim_-1);
 }
 
-void VoluntarySubAgent::end(double tau, const Vector &obs, double reward)
+void VoluntarySubAgent::end(double tau, const Observation &obs, double reward)
 {
   agent_->end(tau, obs, reward);
 }

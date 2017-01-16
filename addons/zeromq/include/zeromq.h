@@ -55,7 +55,7 @@ public:
 class ZeromqCommunicator: public Communicator
 {
   public:
-    ZeromqCommunicator() : sync_("") { }
+    ZeromqCommunicator() : pattern_(0) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -93,7 +93,7 @@ class CommunicatorEnvironment: public Environment
 {
   public:
     TYPEINFO("environment/communicator", "Communicator environment which interects with a real environment by sending and receiving messages")
-    CommunicatorEnvironment(): target_obs_dims_(0), target_action_dims_(0) {}
+    CommunicatorEnvironment(): converter_(NULL), communicator_(NULL), target_obs_dims_(0), target_action_dims_(0) {}
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -101,8 +101,8 @@ class CommunicatorEnvironment: public Environment
     virtual void reconfigure(const Configuration &config);
 
     // From Environment
-    virtual void start(int test, Vector *obs);
-    virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal);
+    virtual void start(int test, Observation *obs);
+    virtual double step(const Action &action, Observation *obs, double *reward, int *terminal);
 
   protected:
     Vector obs_conv_, action_conv_;
@@ -119,7 +119,7 @@ class ZeromqAgent : public Agent
     TYPEINFO("agent/zeromq", "Agent which sends and receives messages using ZeroMQ and protobuffers")
 
   protected:
-    int action_dims_, observation_dims_;
+    int observation_dims_, action_dims_;
     Vector action_min_, action_max_;
 
     zmq::context_t* context_;
@@ -131,7 +131,7 @@ class ZeromqAgent : public Agent
     bool isConnected_;
 
   public:
-    ZeromqAgent() : observation_dims_(1), action_dims_(1), isConnected_(false), globalTimeIndex_(-1) { }
+    ZeromqAgent() : observation_dims_(1), action_dims_(1), lastAction_(-1), globalTimeIndex_(-1), isConnected_(false) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -139,9 +139,9 @@ class ZeromqAgent : public Agent
     virtual void reconfigure(const Configuration &config);
 
     // From Policy
-    virtual TransitionType start(const Vector &obs, Vector *action);
-    virtual TransitionType step(double tau, const Vector &obs, double reward, Vector *action);
-    virtual void end(double tau, const Vector &obs, double reward);
+    virtual void start(const Observation &obs, Action *action);
+    virtual void step(double tau, const Observation &obs, double reward, Action *action);
+    virtual void end(double tau, const Observation &obs, double reward);
 
   protected:
     void init();

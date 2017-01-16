@@ -65,7 +65,8 @@ void AgentSolver::reconfigure(const Configuration &config)
 
 bool AgentSolver::solve()
 {
-  Vector obs, action;
+  Observation obs;
+  Action action;
   int terminal=1;
   size_t steps=0;
 
@@ -75,17 +76,17 @@ bool AgentSolver::solve()
     {
       steps = 0;
       obs = start_;
-      state_->set(obs);
+      state_->set(obs.v);
       agent_->start(obs, &action);
     }
       
-    Vector next;
+    Observation next;
     double reward;
   
     double tau = model_->step(obs, action, &next, &reward, &terminal);
     
     obs = next;
-    state_->set(obs);
+    state_->set(obs.v);
         
     // Guard against failed model prediction    
     if (obs.size())

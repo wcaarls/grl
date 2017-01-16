@@ -24,7 +24,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * \endverbatim
  */
-#include <grl/samplers/random_generator.h>
+
+#include <grl/random_generator.h>
 #include <grl/grl.h>
 
 using namespace grl;

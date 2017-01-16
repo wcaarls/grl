@@ -51,7 +51,7 @@ void NoisePolicy::reconfigure(const Configuration &config)
 {
 }
 
-TransitionType NoisePolicy::act(const Vector &in, Vector *out) const
+void NoisePolicy::act(const Observation &in, Action *out) const
 {
   policy_->act(in, out);
   
@@ -66,9 +66,10 @@ TransitionType NoisePolicy::act(const Vector &in, Vector *out) const
   
   for (size_t ii=0; ii < out->size(); ++ii)
     (*out)[ii] += RandGen::getNormal(0., sigma_[ii]);
+  out->type = atExploratory;
 }
 
-TransitionType NoisePolicy::act(double time, const Vector &in, Vector *out)
+void NoisePolicy::act(double time, const Observation &in, Action *out)
 {
   policy_->act(in, out);
   
@@ -98,5 +99,5 @@ TransitionType NoisePolicy::act(double time, const Vector &in, Vector *out)
     n_[ii] = (1-theta_[ii])*n_[ii] + RandGen::getNormal(0., sigma_[ii]);
     (*out)[ii] += n_[ii];
   }
-  return ttExploratory;
+  out->type = atExploratory;
 }

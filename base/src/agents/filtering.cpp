@@ -95,37 +95,37 @@ void FilteringAgent::reconfigure(const Configuration &config)
 {
 }
 
-TransitionType FilteringAgent::start(const Vector &obs, Vector *action)
+void FilteringAgent::start(const Observation &obs, Action *action)
 {
-  Vector downstream_obs = reindex(obs, observation_idx_), downstream_action;
+  Observation downstream_obs = reindex(obs, observation_idx_);
+  Action downstream_action;
   
   if (action->size())
     downstream_action = reindex(*action, inv_action_idx_);
   
-  TransitionType tt = agent_->start(downstream_obs, &downstream_action);
+  agent_->start(downstream_obs, &downstream_action);
   
   *action = reindex(downstream_action, action_idx_);
-
-  return tt;
+  action->type = downstream_action.type;
 }
 
-TransitionType FilteringAgent::step(double tau, const Vector &obs, double reward, Vector *action)
+void FilteringAgent::step(double tau, const Observation &obs, double reward, Action *action)
 {
-  Vector downstream_obs = reindex(obs, observation_idx_), downstream_action;
+  Observation downstream_obs = reindex(obs, observation_idx_);
+  Action downstream_action;
   
   if (action->size())
     downstream_action = reindex(*action, inv_action_idx_);
   
-  TransitionType tt = agent_->step(tau, downstream_obs, reward, &downstream_action);
+  agent_->step(tau, downstream_obs, reward, &downstream_action);
   
   *action = reindex(downstream_action, action_idx_);
-
-  return tt;
+  action->type = downstream_action.type;
 }
 
-void FilteringAgent::end(double tau, const Vector &obs, double reward)
+void FilteringAgent::end(double tau, const Observation &obs, double reward)
 {
-  Vector downstream_obs = reindex(obs, observation_idx_);
+  Observation downstream_obs = reindex(obs, observation_idx_);
   
   agent_->end(tau, downstream_obs, reward);
 }
@@ -155,44 +155,44 @@ void FilteringSubAgent::reconfigure(const Configuration &config)
 {
 }
 
-TransitionType FilteringSubAgent::start(const Vector &obs, Vector *action, double *conf)
+void FilteringSubAgent::start(const Observation &obs, Action *action, double *conf)
 {
-  Vector downstream_obs = reindex(obs, observation_idx_), downstream_action;
+  Observation downstream_obs = reindex(obs, observation_idx_);
+  Action downstream_action;
   
   if (action->size())
     downstream_action = reindex(*action, inv_action_idx_);
   
-  TransitionType tt = agent_->start(downstream_obs, &downstream_action, conf);
+  agent_->start(downstream_obs, &downstream_action, conf);
   
   *action = reindex(downstream_action, action_idx_);
-
-  return tt;
+  action->type = downstream_action.type;
 }
 
-TransitionType FilteringSubAgent::step(double tau, const Vector &obs, double reward, Vector *action, double *conf)
+void FilteringSubAgent::step(double tau, const Observation &obs, double reward, Action *action, double *conf)
 {
-  Vector downstream_obs = reindex(obs, observation_idx_), downstream_action;
+  Observation downstream_obs = reindex(obs, observation_idx_);
+  Action downstream_action;
   
   if (action->size())
     downstream_action = reindex(*action, inv_action_idx_);
   
-  TransitionType tt = agent_->step(tau, downstream_obs, reward, &downstream_action, conf);
+  agent_->step(tau, downstream_obs, reward, &downstream_action, conf);
   
   *action = reindex(downstream_action, action_idx_);
-
-  return tt;
+  action->type = downstream_action.type;
 }
 
-void FilteringSubAgent::end(double tau, const Vector &obs, double reward)
+void FilteringSubAgent::end(double tau, const Observation &obs, double reward)
 {
-  Vector downstream_obs = reindex(obs, observation_idx_);
+  Observation downstream_obs = reindex(obs, observation_idx_);
   
   agent_->end(tau, downstream_obs, reward);
 }
 
-double FilteringSubAgent::confidence(const Vector &obs) const
+double FilteringSubAgent::confidence(const Observation &obs) const
 {
-  Vector downstream_obs = reindex(obs, observation_idx_);
+  Observation downstream_obs = reindex(obs, observation_idx_);
 
   return agent_->confidence(downstream_obs);
 }

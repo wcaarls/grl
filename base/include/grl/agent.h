@@ -41,17 +41,17 @@ class Agent : public Configurable
     virtual ~Agent() { }
     
     /// Start the agent, returning the action for the first observation in an episode.
-    virtual TransitionType start(const Vector &obs, Vector *action) = 0;
+    virtual void start(const Observation &obs, Action *action) = 0;
     
     /**
      * \brief Supply next state and reward, returning the next action.
      *
      * \note action is an inout parameter, the input being a previous or suggested action.
      */
-    virtual TransitionType step(double tau, const Vector &obs, double reward, Vector *action) = 0;
+    virtual void step(double tau, const Observation &obs, double reward, Action *action) = 0;
     
     /// Signal an absorbing state.
-    virtual void end(double tau, const Vector &obs, double reward) = 0;
+    virtual void end(double tau, const Observation &obs, double reward) = 0;
     
     /// Progress report.
     virtual void report(std::ostream &os) { }
@@ -65,13 +65,13 @@ class SubAgent : public Agent
     virtual ~SubAgent() { }
 
     // From Agent
-    virtual TransitionType start(const Vector &obs, Vector *action)
+    virtual void start(const Observation &obs, Action *action)
     {
       double confidence;
       return start(obs, action, &confidence);
     }
 
-    virtual TransitionType step(double tau, const Vector &obs, double reward, Vector *action)
+    virtual void step(double tau, const Observation &obs, double reward, Action *action)
     {
       double confidence;
       return step(tau, obs, reward, action, &confidence);
@@ -82,11 +82,10 @@ class SubAgent : public Agent
      * Note that unlike the confidence() function, calling this function
      * executes a learning step, even when the returned confidence is 0.
      */
-    virtual TransitionType start(const Vector &obs, Vector *action, double *conf)
+    virtual void start(const Observation &obs, Action *action, double *conf)
     {
-      TransitionType tt = start(obs, action);
+      start(obs, action);
       *conf = confidence(obs);
-      return tt;
     }
 
     /**
@@ -94,15 +93,14 @@ class SubAgent : public Agent
      * Note that unlike the confidence() function, calling this function
      * executes a learning step, even when the returned confidence is 0.
      */
-    virtual TransitionType step(double tau, const Vector &obs, double reward, Vector *action, double *conf)
+    virtual void step(double tau, const Observation &obs, double reward, Action *action, double *conf)
     {
-      TransitionType tt = step(tau, obs, reward, action);
+      step(tau, obs, reward, action);
       *conf = confidence(obs);
-      return tt;
     }
 
     /// Returns the agent's confidence for a certain observation.
-    virtual double confidence(const Vector &obs) const = 0;
+    virtual double confidence(const Observation &obs) const = 0;
 };
 
 }

@@ -87,7 +87,8 @@ void RPCEnvExperiment::run()
 
   while (1)
   {
-    Vector action = readVector(), obs;
+    Observation obs;
+    Action action = readVector();
     double reward = 0, tau = 0;
     int terminal = 0;
     

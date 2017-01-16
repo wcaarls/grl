@@ -5,7 +5,7 @@
  * \date      2016-09-30
  *
  * \copyright \verbatim
- * Copyright (c) 2015, Wouter Caarls
+ * Copyright (c) 2016, Ivan Koryakovskiy
  * All rights reserved.
  *
  * This file is part of GRL, the Generic Reinforcement Learning library.
@@ -61,7 +61,7 @@ class PadaSampler : public EpsilonGreedySampler
     virtual void reconfigure(const Configuration &config);
 
     // From Sampler
-    virtual size_t sample(double time, const LargeVector &values, TransitionType &tt);
+    virtual size_t sample(double time, const LargeVector &values, ActionType *at=NULL);
 
   public:
     virtual void set_prev_action(Vector prev_action) { prev_action_ = prev_action; }
@@ -80,7 +80,7 @@ class EpsilonPadaSampler : public PadaSampler
     EpsilonPadaSampler() { }
 
     // From Sampler
-    virtual size_t sample(double time, const LargeVector &values, TransitionType &tt);
+    virtual size_t sample(double time, const LargeVector &values, ActionType *at=NULL);
 };
 
 }

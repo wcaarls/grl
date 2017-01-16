@@ -29,7 +29,7 @@
 #define GRL_LEO_PREPROGRAMMED_AGENT_H_
 
 #include <grl/agent.h>
-#include <grl/samplers/random_generator.h>
+#include <grl/random_generator.h>
 
 namespace grl
 {
@@ -61,9 +61,9 @@ class LeoPreprogrammedAgent : public Agent
     virtual void reconfigure(const Configuration &config);
 
     // From Agent
-    virtual TransitionType start(const Vector &obs, Vector *action);
-    virtual TransitionType step(double tau, const Vector &obs, double reward, Vector *action);
-    virtual void end(double tau, const Vector &obs, double reward);
+    virtual void start(const Observation &obs, Action *action);
+    virtual void step(double tau, const Observation &obs, double reward, Action *action);
+    virtual void end(double tau, const Observation &obs, double reward);
 
     // own
     virtual void auto_actuate(const Vector &obs, Vector *action);

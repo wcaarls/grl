@@ -53,8 +53,8 @@ class LeoWalkEnvironment: public LeoBaseEnvironment
     virtual void configure(Configuration &config);
     
     // From Environment
-    virtual void start(int test, Vector *obs);
-    virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal);
+    virtual void start(int test, Observation *obs);
+    virtual double step(const Action &action, Observation *obs, double *reward, int *terminal);
 
     virtual void report(std::ostream &os) const;
     

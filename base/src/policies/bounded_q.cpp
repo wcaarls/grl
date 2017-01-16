@@ -48,23 +48,23 @@ void BoundedQPolicy::reconfigure(const Configuration &config)
 {
 }
 
-TransitionType BoundedQPolicy::act(double time, const Vector &in, Vector *out)
+void BoundedQPolicy::act(double time, const Observation &in, Action *out)
 {
   if (out->size())
   {
     LargeVector qvalues, filtered;
-    TransitionType tt;
+    ActionType at;
     std::vector<size_t> idx;
     
     values(in, &qvalues);
     filter(in, *out, qvalues, &filtered, &idx);
     
-    size_t action = sampler_->sample(filtered, tt);
+    size_t action = sampler_->sample(time, filtered, &at);
     *out = discretizer_->at(in, idx[action]);
-    return tt;
+    out->type = at;
   }
   else
-    return QPolicy::act(in, out);
+    QPolicy::act(in, out);
 }
 
 /**
@@ -74,7 +74,7 @@ TransitionType BoundedQPolicy::act(double time, const Vector &in, Vector *out)
 void BoundedQPolicy::filter(const Vector &in, const Vector &prev_out, const LargeVector &qvalues, LargeVector *filtered, std::vector<size_t> *idx) const
 {
   if (prev_out.size() != bound_.size())
-    throw bad_param("policy/discrete/q/bounded:bound");
+    throw bad_param("mapping/policy/value/q/bounded:bound");
     
   idx->clear();
   idx->reserve(qvalues.size());

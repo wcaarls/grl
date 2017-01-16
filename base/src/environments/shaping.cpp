@@ -63,7 +63,7 @@ ShapingEnvironment &ShapingEnvironment::copy(const Configurable &obj)
   return *this;
 }
     
-void ShapingEnvironment::start(int test, Vector *obs)
+void ShapingEnvironment::start(int test, Observation *obs)
 {
   environment_->start(test, obs);
   
@@ -71,7 +71,7 @@ void ShapingEnvironment::start(int test, Vector *obs)
   total_reward_ = 0;
 }
 
-double ShapingEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)
+double ShapingEnvironment::step(const Action &action, Observation *obs, double *reward, int *terminal)
 {
   double tau = environment_->step(action, obs, reward, terminal);
   total_reward_ += *reward;

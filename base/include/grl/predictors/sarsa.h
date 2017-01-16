@@ -75,7 +75,7 @@ class ExpectedSARSAPredictor : public Predictor
     double alpha_, gamma_, lambda_;
     Projector *projector_;
     Representation *representation_;
-    QPolicy *policy_;
+    ValuePolicy *policy_;
     Trace *trace_;
 
   public:

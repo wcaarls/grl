@@ -5,7 +5,7 @@
  * \date      2016-09-30
  *
  * \copyright \verbatim
- * Copyright (c) 2015, Wouter Caarls
+ * Copyright (c) 2016, Ivan Koryakovskiy
  * All rights reserved.
  *
  * This file is part of GRL, the Generic Reinforcement Learning library.
@@ -56,7 +56,7 @@ class LeoActionSampler : public Sampler
     virtual void reconfigure(const Configuration &config);
 
     // From Sampler
-    virtual size_t sample(double time, const LargeVector &values, TransitionType &tt);
+    virtual size_t sample(double time, const LargeVector &values, ActionType *at=NULL);
     virtual void distribution(const LargeVector &values, LargeVector *distribution) const;
 };
 

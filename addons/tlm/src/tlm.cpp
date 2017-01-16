@@ -53,14 +53,14 @@ void TwoLinkManipulatorDynamics::reconfigure(const Configuration &config)
 {
 }
 
-void TwoLinkManipulatorDynamics::eom(const Vector &state, const Vector &action, Vector *xd) const
+void TwoLinkManipulatorDynamics::eom(const Vector &state, const Vector &actuation, Vector *xd) const
 {
-  if (state.size() != 5 || action.size() != 2)
+  if (state.size() != 5 || actuation.size() != 2)
     throw Exception("dynamics/tlm requires a task/tlm subclass");
     
   Eigen::Matrix2d M, C;
   Eigen::Vector2d ad(state[siAngleRate1], state[siAngleRate2]);
-  Eigen::Vector2d torques(action[0], action[1]);
+  Eigen::Vector2d torques(actuation[0], actuation[1]);
 
   double cosa2 = cos(state[siAngle2]);
   double sina2 = sin(state[siAngle2]);
@@ -109,12 +109,12 @@ void TwoLinkManipulatorBalancingTask::start(int test, Vector *state) const
   (*state)[TwoLinkManipulatorDynamics::siTime] = 0;
 }
 
-void TwoLinkManipulatorBalancingTask::observe(const Vector &state, Vector *obs, int *terminal) const
+void TwoLinkManipulatorBalancingTask::observe(const Vector &state, Observation *obs, int *terminal) const
 {
   if (state.size() != 5)
     throw Exception("task/tlm/balancing requires dynamics/tlm");
     
-  obs->resize(4);
+  obs->v.resize(4);
   for (size_t ii=0; ii < 2; ++ii)
   {
     (*obs)[ii] = fmod(state[ii]+M_PI, 2*M_PI);
@@ -122,11 +122,12 @@ void TwoLinkManipulatorBalancingTask::observe(const Vector &state, Vector *obs, 
   }
   for (size_t ii=2; ii < 4; ++ii)
     (*obs)[ii] = state[ii];
+  obs->absorbing = false;
 
   *terminal = state[TwoLinkManipulatorDynamics::siTime] > 3;
 }
 
-void TwoLinkManipulatorBalancingTask::evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const
+void TwoLinkManipulatorBalancingTask::evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const
 {
   if (state.size() != 5 || action.size() != 2 || next.size() != 5)
     throw Exception("task/tlm/balancing requires dynamics/tlm");
@@ -141,7 +142,7 @@ void TwoLinkManipulatorBalancingTask::evaluate(const Vector &state, const Vector
             -1*pow(a2, 2) -0.05*pow(next[TwoLinkManipulatorDynamics::siAngleRate2], 2);
 }
 
-bool TwoLinkManipulatorBalancingTask::invert(const Vector &obs, Vector *state) const
+bool TwoLinkManipulatorBalancingTask::invert(const Observation &obs, Vector *state) const
 {
   *state = VectorConstructor(obs[TwoLinkManipulatorDynamics::siAngle1]-M_PI,
                              obs[TwoLinkManipulatorDynamics::siAngle2]-M_PI,

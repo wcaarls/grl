@@ -373,7 +373,7 @@ void LeoSquatEnvironment::configure(Configuration &config)
   TRACE("Observation max: " << obs_max);
 }
 
-void LeoSquatEnvironment::start(int test, Vector *obs)
+void LeoSquatEnvironment::start(int test, Observation *obs)
 {
   LeoBaseEnvironment::start(test);
 
@@ -389,14 +389,15 @@ void LeoSquatEnvironment::start(int test, Vector *obs)
   bh_->updateDerivedStateVars(&leoState_); // swing-stance switching happens here
 
   // construct new obs from CLeoState
-  obs->resize(observation_dims_);
+  obs->v.resize(observation_dims_);
+  obs->absorbing = false;
   bh_->parseLeoState(leoState_, *obs);
   dynamic_cast<CLeoBhSquat*>(bh_)->updateDirection(test_?time_test_:time_learn_);
 
   bh_->setCurrentSTGState(NULL);
 }
 
-double LeoSquatEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)
+double LeoSquatEnvironment::step(const Action &action, Observation *obs, double *reward, int *terminal)
 {
   CRAWL("RL action: " << action);
 
@@ -423,6 +424,7 @@ double LeoSquatEnvironment::step(const Vector &action, Vector *obs, double *rewa
 
   // construct new obs from CLeoState
   bh_->parseLeoState(leoState_, *obs);
+  obs->absorbing = false;
 
   // Determine reward
   *reward = bh_->calculateReward();
@@ -431,7 +433,10 @@ double LeoSquatEnvironment::step(const Vector &action, Vector *obs, double *rewa
   if (*terminal == 1) // timeout
     *terminal = 1;
   else if (bh_->isDoomedToFall(&leoState_, true))
+  {
     *terminal = 2;
+    obs->absorbing = true;
+  }
   else
     *terminal = 0;
 

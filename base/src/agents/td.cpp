@@ -47,37 +47,33 @@ void TDAgent::reconfigure(const Configuration &config)
 {
 }
 
-TransitionType TDAgent::start(const Vector &obs, Vector *action)
+void TDAgent::start(const Observation &obs, Action *action)
 {
   TDAgentState *state = agent_state_.instance();
 
   predictor_->finalize();
 
   state->time = 0;
-  TransitionType tt = policy_->act(state->time, obs, action);
+  policy_->act(state->time, obs, action);
   
   state->prev_obs = obs;
   state->prev_action = *action;
-
-  return tt;
 }
 
-TransitionType TDAgent::step(double tau, const Vector &obs, double reward, Vector *action)
+void TDAgent::step(double tau, const Observation &obs, double reward, Action *action)
 {
   TDAgentState *state = agent_state_.instance();
 
   state->time += tau;
-  TransitionType tt = policy_->act(state->time, obs, action);
+  policy_->act(state->time, obs, action);
   
-  predictor_->update(Transition(state->prev_obs, state->prev_action, reward, obs, *action, tt));
+  predictor_->update(Transition(state->prev_obs, state->prev_action, reward, obs, *action));
 
   state->prev_obs = obs;
   state->prev_action = *action;
-
-  return tt;
 }
 
-void TDAgent::end(double tau, const Vector &obs, double reward)
+void TDAgent::end(double tau, const Observation &obs, double reward)
 {
   TDAgentState *state = agent_state_.instance();
 

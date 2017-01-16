@@ -18,8 +18,6 @@ add_library(${TARGET} SHARED
             ${SRC}/agents/voluntary.cpp
             ${SRC}/agents/solver.cpp
             ${SRC}/agents/filtering.cpp
-            ${SRC}/agents/leo_squatting_agent.cpp
-            ${SRC}/agents/leo_preprogrammed.cpp
             ${SRC}/discretizers/uniform.cpp
             ${SRC}/discretizers/peaked.cpp
             ${SRC}/discretizers/split.cpp
@@ -97,8 +95,6 @@ add_library(${TARGET} SHARED
             ${SRC}/samplers/softmax.cpp
             ${SRC}/samplers/pada.cpp
             ${SRC}/samplers/ornstein_uhlenbeck.cpp
-            ${SRC}/samplers/random_generator.cpp
-            ${SRC}/signals/signal.cpp
             ${SRC}/solvers/agent.cpp
             ${SRC}/solvers/vi.cpp
             ${SRC}/traces/enumerated.cpp

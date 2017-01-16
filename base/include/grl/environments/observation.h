@@ -49,9 +49,9 @@ class ObservationModel : public Configurable
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
     
-    virtual double step(const Vector &obs, const Vector &action, Vector *next, double *reward, int *terminal) const = 0;
-    virtual Matrix jacobian(const Vector &obs, const Vector &action) const;
-    virtual Matrix rewardHessian(const Vector &obs, const Vector &action) const;
+    virtual double step(const Observation &obs, const Action &action, Observation *next, double *reward, int *terminal) const = 0;
+    virtual Matrix jacobian(const Observation &obs, const Action &action) const;
+    virtual Matrix rewardHessian(const Observation &obs, const Action &action) const;
 };
 
 /// Observation model that is all given beforehand.
@@ -73,8 +73,8 @@ class FixedObservationModel : public ObservationModel
     virtual void reconfigure(const Configuration &config);
 
     // From ObservationModel
-    virtual double step(const Vector &obs, const Vector &action, Vector *next, double *reward, int *terminal) const;
-    virtual Matrix rewardHessian(const Vector &obs, const Vector &action) const;
+    virtual double step(const Observation &obs, const Action &action, Observation *next, double *reward, int *terminal) const;
+    virtual Matrix rewardHessian(const Observation &obs, const Action &action) const;
 };
 
 /// Observation model that is all learned
@@ -101,8 +101,8 @@ class ApproximatedObservationModel : public ObservationModel
     virtual void reconfigure(const Configuration &config);
 
     // From ObservationModel
-    virtual double step(const Vector &obs, const Vector &action, Vector *next, double *reward, int *terminal) const;
-    virtual Matrix jacobian(const Vector &obs, const Vector &action) const;
+    virtual double step(const Observation &obs, const Action &action, Observation *next, double *reward, int *terminal) const;
+    virtual Matrix jacobian(const Observation &obs, const Action &action) const;
 };
 
 /// Observation model in which the reward is given and the model is learned
@@ -123,8 +123,8 @@ class FixedRewardObservationModel : public ApproximatedObservationModel
     virtual void reconfigure(const Configuration &config);
 
     // From ObservationModel
-    virtual double step(const Vector &obs, const Vector &action, Vector *next, double *reward, int *terminal) const;
-    virtual Matrix rewardHessian(const Vector &obs, const Vector &action) const;
+    virtual double step(const Observation &obs, const Action &action, Observation *next, double *reward, int *terminal) const;
+    virtual Matrix rewardHessian(const Observation &obs, const Action &action) const;
 };
 
 }

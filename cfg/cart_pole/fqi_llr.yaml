@@ -39,20 +39,20 @@ experiment:
       output_min: [  ]
       output_max: [  ]
       projector: experiment/predictor/projector
-    policy: 
-      type: policy/discrete/q
-      discretizer: 
-        type: discretizer/uniform
-        min: experiment/task/action_min
-        max: experiment/task/action_max
-        steps: [3]
+    discretizer: 
+      type: discretizer/uniform
+      min: experiment/task/action_min
+      max: experiment/task/action_max
+      steps: [3]
+  test_agent: 
+    type: agent/fixed
+    policy:
+      type: policy/value/q
+      discretizer: experiment/predictor/discretizer
       projector: experiment/predictor/projector
       representation: experiment/predictor/representation
       sampler: 
         type: sampler/greedy
-  test_agent: 
-    type: agent/fixed
-    policy: experiment/predictor/policy
   observation_min: experiment/task/observation_min
   observation_max: experiment/task/observation_max
   action_min: experiment/task/action_min
