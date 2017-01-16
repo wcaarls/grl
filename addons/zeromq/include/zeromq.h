@@ -48,7 +48,7 @@ public:
   virtual void send(const Vector v) const = 0;
 
   /// Receive data.
-  virtual bool recv(Vector &v) const = 0;
+  virtual bool recv(Vector *v) const = 0;
 };
 
 // ZeroMQ generic communication class
@@ -63,7 +63,7 @@ class ZeromqCommunicator: public Communicator
 
     // From Communicator
     virtual void send(const Vector v) const;
-    virtual bool recv(Vector &v) const;
+    virtual bool recv(Vector *v) const;
 
   protected:
     ZeromqMessenger zmq_messenger_;
@@ -98,7 +98,6 @@ class ZeromqRequestReplyCommunicator: public ZeromqCommunicator
   protected:
     std::string cli_;
 };
-// @Divyam, derive your communicator class from ZeromqCommunicator
 
 /// An environment which bridges actual environment with a middle layer environment by converting states and actions, and then sending and receiving messages
 class CommunicatorEnvironment: public Environment
@@ -129,7 +128,7 @@ class ZeromqAgent : public Agent
 {
   public:
     TYPEINFO("agent/zeromq", "Zeromq Agent which interects with a python by sending and receiving messages")
-    ZeromqAgent() : observation_dims_(1), action_dims_(1) { }
+    ZeromqAgent() : action_dims_(1), observation_dims_(1) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);

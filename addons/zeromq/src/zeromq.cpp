@@ -61,13 +61,14 @@ void ZeromqCommunicator::send(const Vector v) const
   zmq_messenger_.send(reinterpret_cast<const void*>(v.data()), v.cols()*sizeof(double));
 }
 
-bool ZeromqCommunicator::recv(Vector &v) const
+bool ZeromqCommunicator::recv(Vector *v) const
 {
-  Vector v_rc = v;
+  Vector v_rc;
+  v_rc.resize(v->size());
   bool rc = zmq_messenger_.recv(reinterpret_cast<void*>(v_rc.data()), v_rc.cols()*sizeof(double), ZMQ_NOBLOCK);
   if (rc)
   {
-    v = v_rc; // modify content only if data was received
+    *v = v_rc; // modify content only if data was received
     //std::cout << std::fixed << std::setprecision(2) << std::right << std::setw(7) << v << std::endl << std::endl;
   }
   return rc;
@@ -149,7 +150,7 @@ void CommunicatorEnvironment::reconfigure(const Configuration &config)
 
 void CommunicatorEnvironment::start(int test, Observation *obs)
 {
-  communicator_->recv(obs_conv_);
+  communicator_->recv(&obs_conv_);
   clock_gettime(CLOCK_MONOTONIC, &time_begin_);
   converter_->convert_state(obs_conv_, obs->v);
   obs->absorbing = false;
@@ -160,7 +161,7 @@ double CommunicatorEnvironment::step(const Action &action, Observation *obs, dou
   timespec time_end;
   converter_->convert_action(action, action_conv_);
   communicator_->send(action_conv_);
-  communicator_->recv(obs_conv_);  // Non-blocking, therefore it gets the most recently transmitted state
+  communicator_->recv(&obs_conv_);  // Non-blocking, therefore it gets the most recently transmitted state
   clock_gettime(CLOCK_MONOTONIC, &time_end);
   converter_->convert_state(obs_conv_, obs->v);
   obs->absorbing = false;
@@ -200,7 +201,7 @@ void ZeromqAgent::start(const Observation &obs, Action *action)
   action->v.resize(action_dims_);
   action->type = atUndefined;
   communicator_->send(obs.v);
-  communicator_->recv(action->v);
+  communicator_->recv(&(action->v));
 }
 
 void ZeromqAgent::step(double tau, const Observation &obs, double reward, Action *action)
@@ -209,19 +210,19 @@ void ZeromqAgent::step(double tau, const Observation &obs, double reward, Action
   action->type = atUndefined;
   
   Vector v(obs.v.cols()+2);
-  v << obs,reward,1;
+  v << obs.v,reward,1;
   communicator_->send(v);
-  communicator_->recv(action->v);
+  communicator_->recv(&(action->v));
 }
 
 void ZeromqAgent::end(double tau, const Observation &obs, double reward)
 {
     Vector test;
 
-    Vector v(obs.cols()+2);
-    v << obs,reward,2;
+    Vector v(obs.v.cols()+2);
+    v << obs.v,reward,2;
     communicator_->send(v);
-    communicator_->recv(test);
+    communicator_->recv(&test);
 }
 
 
