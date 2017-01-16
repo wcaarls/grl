@@ -77,7 +77,7 @@ class Sampler : public Configurable
     * \param out - distribution output.
     * \note possible implementation may use "sample" method which may use memory (e.g. GreedySampler)
     */
-    virtual void distribution(const LargeVector &values, LargeVector *distribution) = 0;
+    virtual void distribution(const LargeVector &values, LargeVector *distribution) const = 0;
 };
 
 }

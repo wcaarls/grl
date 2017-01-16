@@ -31,14 +31,13 @@ experiment:
       type: agent/fixed
       policy: 
         type: mapping/policy/nmpc
+        verbose: 0
+        initFeedback: 1
         action_min: experiment/environment/task/action_min
         action_max: experiment/environment/task/action_max
         lua_model: leo_fb_sl_fa.lua
         model_name: nmpc_leo_squat_fb_sl_fa
         nmpc_model_name: nmpc_leo_squat_fb_sl_fa
-        outputs: 3
-        initFeedback: 1
-        verbose: 0
         feedback: non-threaded
         n_iter: 1
     agent2: 
@@ -46,9 +45,6 @@ experiment:
       policy: 
         type: mapping/policy/action
         sigma: [1, 1, 1]
-        use_ou: 0
-        theta: []
-        center: []
         output_min: experiment/environment/task/action_min
         output_max: experiment/environment/task/action_max
         projector: 
@@ -77,6 +73,8 @@ experiment:
         beta: 0.02
         gamma: 0.9962
         lambda: 0.8582
+        update_method: proportional
+        step_limit: [  ]
         critic_projector: 
           type: projector/pre/peaked
           peaking: experiment/agent/agent2/policy/projector/peaking
@@ -111,9 +109,6 @@ experiment:
       policy: 
         type: mapping/policy/action
         sigma: []
-        use_ou: 0
-        theta: []
-        center: []
         output_min: experiment/environment/task/action_min
         output_max: experiment/environment/task/action_max
         projector: experiment/agent/agent2/policy/projector

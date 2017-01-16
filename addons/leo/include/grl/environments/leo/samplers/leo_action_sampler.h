@@ -57,7 +57,7 @@ class LeoActionSampler : public Sampler
 
     // From Sampler
     virtual size_t sample(double time, const LargeVector &values, TransitionType &tt);
-    virtual void distribution(const LargeVector &values, LargeVector *distribution);
+    virtual void distribution(const LargeVector &values, LargeVector *distribution) const;
 };
 
 }

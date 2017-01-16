@@ -73,7 +73,7 @@ TransitionType ActionPolicy::act(const Vector &in, Vector *out) const
 {
   ProjectionPtr p = projector_->project(in);
   representation_->read(p, out);
-  
+
   // Some representations may not always return a value.
   if (!out->size())
     *out = (min_+max_)/2;

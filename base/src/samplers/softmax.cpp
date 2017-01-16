@@ -45,7 +45,7 @@ void SoftmaxSampler::reconfigure(const Configuration &config)
   config.get("tau", tau_);
 }
 
-size_t SoftmaxSampler::sample(const LargeVector &values, TransitionType &tt)
+size_t SoftmaxSampler::sample(const LargeVector &values, TransitionType &tt) const
 {
   LargeVector dist;
   
@@ -65,7 +65,7 @@ size_t SoftmaxSampler::sample(const LargeVector &values, TransitionType &tt)
   return idx;
 }
 
-void SoftmaxSampler::distribution(const LargeVector &values, LargeVector *distribution)
+void SoftmaxSampler::distribution(const LargeVector &values, LargeVector *distribution) const
 {
   Vector v(values);
   for (size_t ii=0; ii < values.size(); ++ii)

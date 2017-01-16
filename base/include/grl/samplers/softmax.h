@@ -52,8 +52,8 @@ class SoftmaxSampler : public Sampler
     virtual void reconfigure(const Configuration &config);
   
     // From Sampler
-    virtual size_t sample(const LargeVector &values, TransitionType &tt);
-    virtual void distribution(const LargeVector &values, LargeVector *distribution);
+    virtual size_t sample(const LargeVector &values, TransitionType &tt) const;
+    virtual void distribution(const LargeVector &values, LargeVector *distribution) const;
 };
 
 }

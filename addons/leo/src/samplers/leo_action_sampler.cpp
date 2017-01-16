@@ -96,7 +96,7 @@ size_t LeoActionSampler::sample(double time, const LargeVector &values, Transiti
   return sampler_->sample(time, values, tt);
 }
 
-void LeoActionSampler::distribution(const LargeVector &values, LargeVector *distribution)
+void LeoActionSampler::distribution(const LargeVector &values, LargeVector *distribution) const
 {
   sampler_->distribution(values, distribution);
 }

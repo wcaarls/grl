@@ -46,7 +46,7 @@ void GreedySampler::reconfigure(const Configuration &config)
 {
 }
 
-size_t GreedySampler::sample(const LargeVector &values, TransitionType &tt)
+size_t GreedySampler::sample(const LargeVector &values, TransitionType &tt) const
 {
   size_t mai = 0;
 
@@ -70,7 +70,7 @@ size_t GreedySampler::sample(const LargeVector &values, TransitionType &tt)
   return mai;
 }
 
-void GreedySampler::distribution(const LargeVector &values, LargeVector *distribution)
+void GreedySampler::distribution(const LargeVector &values, LargeVector *distribution) const
 {
   TransitionType tt;
   *distribution = LargeVector::Constant(values.size(), 0.);
@@ -113,7 +113,7 @@ void EpsilonGreedySampler::reconfigure(const Configuration &config)
   }
 }
 
-size_t EpsilonGreedySampler::sample(const LargeVector &values, TransitionType &tt)
+size_t EpsilonGreedySampler::sample(const LargeVector &values, TransitionType &tt) const
 {
   double r = rand_->get();
   
@@ -148,7 +148,7 @@ size_t EpsilonGreedySampler::sample(const LargeVector &values, TransitionType &t
   return GreedySampler::sample(values, tt);
 }
 
-void EpsilonGreedySampler::distribution(const LargeVector &values, LargeVector *distribution)
+void EpsilonGreedySampler::distribution(const LargeVector &values, LargeVector *distribution) const
 {
   if (epsilon_.size() > 1)
   {

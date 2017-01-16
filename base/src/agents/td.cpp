@@ -52,7 +52,7 @@ TransitionType TDAgent::start(const Vector &obs, Vector *action)
   TDAgentState *state = agent_state_.instance();
 
   predictor_->finalize();
-  
+
   state->time = 0;
   TransitionType tt = policy_->act(state->time, obs, action);
   
