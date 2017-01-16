@@ -236,17 +236,17 @@ void NMPCPolicy::muscod_reset(const Vector &initial_obs, Vector &initial_qc)
     std::cout << "MUSCOD is reseted!" << std::endl;
 }
 
-TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
+void NMPCPolicy::act(double time, const Observation &in, Action *out)
 {
-  grl_assert((in.size() == nmpc_->NXD() + nmpc_->NP()) || (in.size() == nmpc_->NXD()));
+  grl_assert((in.v.size() == nmpc_->NXD() + nmpc_->NP()) || (in.v.size() == nmpc_->NXD()));
 
   // subdivide 'in' into state and setpoint
-  if (in.size() == nmpc_->NXD() + nmpc_->NP())
+  if (in.v.size() == nmpc_->NXD() + nmpc_->NP())
   {
-    initial_sd_ << in.block(0, 0, 1, nmpc_->NXD());
-    initial_pf_ << in.block(0, nmpc_->NXD(), 1, nmpc_->NP());
+    initial_sd_ << in.v.block(0, 0, 1, nmpc_->NXD());
+    initial_pf_ << in.v.block(0, nmpc_->NXD(), 1, nmpc_->NP());
   } else {
-    initial_sd_ << in;
+    initial_sd_ << in.v;
   }
 
   if (verbose_)
@@ -258,7 +258,7 @@ TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
   if (time == 0.0)
     muscod_reset(initial_sd_, initial_pf_, initial_qc_);
 
-  out->resize( nmpc_->NU() );
+  out->v.resize( nmpc_->NU() );
 
   if (feedback_ == "non-threaded")
   {
@@ -323,14 +323,14 @@ TransitionType NMPCPolicy::act(double time, const Vector &in, Vector *out)
   // NOTE feedback control is cut of at action limits 'action_min/max'
   for (int i = 0; i < action_min_.size(); i++)
   {
-    (*out)[i] = fmax( fmin(initial_qc_[i], action_max_[i]) , action_min_[i]);
-    if ((*out)[i] != initial_qc_[i])
+    out->v[i] = fmax( fmin(initial_qc_[i], action_max_[i]) , action_min_[i]);
+    if (out->v[i] != initial_qc_[i])
       WARNING("NMPC action " << i << " was truncated");
   }
 
-  if (verbose_)
-    std::cout << "Feedback Control: [" << *out << "]" << std::endl;
+  out->type = atGreedy;
 
-  return ttGreedy;
+  if (verbose_)
+    std::cout << "Feedback Control: [" << out->v << "]" << std::endl;
 }
 
