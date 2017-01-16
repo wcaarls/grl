@@ -85,7 +85,19 @@ class ZeromqPubSubCommunicator: public ZeromqCommunicator
   protected:
     std::string pub_, sub_;
 };
+class ZeromqRequestReplyCommunicator: public ZeromqCommunicator
+{
+  public:
+    TYPEINFO("communicator/zeromq/request_reply", "A zeromq class capable to establish a link by events and send messages asynchronously (request/reply)")
+    ZeromqRequestReplyCommunicator() : cli_("tcp://localhost:5555") {}
 
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+
+  protected:
+    std::string cli_;
+};
 // @Divyam, derive your communicator class from ZeromqCommunicator
 
 /// An environment which bridges actual environment with a middle layer environment by converting states and actions, and then sending and receiving messages
@@ -116,23 +128,9 @@ class CommunicatorEnvironment: public Environment
 class ZeromqAgent : public Agent
 {
   public:
-    TYPEINFO("agent/zeromq", "Agent which sends and receives messages using ZeroMQ and protobuffers")
+    TYPEINFO("agent/zeromq", "Zeromq Agent which interects with a python by sending and receiving messages")
+    ZeromqAgent() : observation_dims_(1), action_dims_(1) { }
 
-  protected:
-    int action_dims_, observation_dims_;
-    Vector action_min_, action_max_;
-
-    zmq::context_t* context_;
-    zmq::socket_t* publisher_;
-    zmq::socket_t* subscriber_;
-
-    int lastAction_;
-    int globalTimeIndex_;
-    bool isConnected_;
-
-  public:
-    ZeromqAgent() : observation_dims_(1), action_dims_(1), isConnected_(false), globalTimeIndex_(-1) { }
-  
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
@@ -143,13 +141,13 @@ class ZeromqAgent : public Agent
     virtual TransitionType step(double tau, const Vector &obs, double reward, Vector *action);
     virtual void end(double tau, const Vector &obs, double reward);
 
-  protected:
-    void init();
-    void communicate(const Vector &in, double reward, double terminal, Vector *out);
-    bool receive(DRL_MESSAGES::drl_unimessage* drlRecMessage);
-    void send(DRL_MESSAGES::drl_unimessage &drlSendMessage);
 
-    void receive(const DRL_MESSAGES::drl_unimessage_Type type, const char *msgstr, DRL_MESSAGES::drl_unimessage &msg);
+  protected:
+    int action_dims_, observation_dims_;
+    Vector action_min_, action_max_;
+    Communicator *communicator_;
+
+
 };
 
 }
