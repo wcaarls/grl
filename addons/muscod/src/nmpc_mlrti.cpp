@@ -252,15 +252,15 @@ void NMPCPolicyMLRTI::muscod_reset(const Vector &initial_obs, double time)
     std::cout << "MUSCOD is reseted!" << std::endl;
 }
 
-TransitionType NMPCPolicyMLRTI::act(double time, const Vector &in, Vector *out)
+void NMPCPolicyMLRTI::act(double time, const Observation &in, Action *out)
 {
-  grl_assert(in.size() == nmpc_A_->NXD() + 1); // setpoint indicator
+  grl_assert(in.v.size() == nmpc_A_->NXD() + 1); // setpoint indicator
 
   // reference height
-  initial_pf_ << in[in.size()-1];
+  initial_pf_ << in.v[in.v.size()-1];
 
   // remove indicator
-  Vector initial_sd_ = in.block(0, 0, 1, in.size()-1);
+  Vector initial_sd_ = in.v.block(0, 0, 1, in.v.size()-1);
 
   if (time == 0.0)
     muscod_reset(initial_sd_, time);
@@ -470,11 +470,10 @@ TransitionType NMPCPolicyMLRTI::act(double time, const Vector &in, Vector *out)
   }
 
   // Here we can return the feedback control
-  (*out) = initial_qc_;
+  out->v = initial_qc_;
+  out->type = atGreedy;
 
   if (verbose_)
-    std::cout << "Feedback Control: [" << *out << "]" << std::endl;
-
-  return ttGreedy;
+    std::cout << "Feedback Control: [" << out->v << "]" << std::endl;
 }
 

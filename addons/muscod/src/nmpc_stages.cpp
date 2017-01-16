@@ -17,36 +17,36 @@ using namespace grl;
 
 REGISTER_CONFIGURABLE(NMPCStagesPolicy);
 
-TransitionType NMPCStagesPolicy::act(double time, const Vector &in, Vector *out)
+void NMPCStagesPolicy::act(double time, const Observation &in, Action *out)
 {
   // NOTE this time it's different NXD is larger than the values in 'in'
   grl_assert(
-    (in.size() == nmpc_->NXD()+1) || (in.size() == nmpc_->NXD())
-    || (in.size() == nmpc_->NXD()+2)
+    (in.v.size() == nmpc_->NXD()+1) || (in.v.size() == nmpc_->NXD())
+    || (in.v.size() == nmpc_->NXD()+2)
   );
 
   // subdivide 'in' into state and set-point
   // TODO subdivide into actual states and switch statement
   // if (in.size() == nmpc_->NXD() + nmpc_->NP())
   // {
-    std::cout << "in:  [ " << in << "]" << std::endl;
+    std::cout << "in:  [ " << in.v << "]" << std::endl;
     // initial_sd_.block(0, 0, 1, nmpc_->NXD()-1) << in.block(0, 0, 1, nmpc_->NXD()-1);
     if (in[4] == 1) {
       last_time_ == time;
     }
 
-    initial_sd_[0] = in[0];
-    initial_sd_[1] = in[1] + 2* in[0];
-    initial_sd_[2] = in[2];
-    initial_sd_[3] = in[3] + 2* in[2];
-    initial_sd_[4] = in[5]; // v_h
+    initial_sd_[0] = in.v[0];
+    initial_sd_[1] = in.v[1] + 2* in.v[0];
+    initial_sd_[2] = in.v[2];
+    initial_sd_[3] = in.v[3] + 2* in.v[2];
+    initial_sd_[4] = in.v[5]; // v_h
     initial_sd_[5] = time - last_time_;
 
     // FIXME
     initial_hf_.resize(nmpc_->NH());
 
     initial_swt_.resize(1);
-    initial_swt_ << in[4];
+    initial_swt_ << in.v[4];
   // } else {
   //   initial_sd_ << in;
   // }
@@ -61,7 +61,7 @@ TransitionType NMPCStagesPolicy::act(double time, const Vector &in, Vector *out)
   // if (time == 0.0)
   //   muscod_reset(initial_sd_, initial_qc_);
 
-  out->resize( nmpc_->NU() );
+  out->v.resize( nmpc_->NU() );
 
 
   if (false) {
@@ -283,14 +283,14 @@ TransitionType NMPCStagesPolicy::act(double time, const Vector &in, Vector *out)
   // NOTE feedback control is cut of at action limits 'action_min/max'
   for (int i = 0; i < action_min_.size(); i++)
   {
-    (*out)[i] = fmax( fmin(initial_qc_[i], action_max_[i]) , action_min_[i]);
-    if ((*out)[i] != initial_qc_[i])
+    out->v[i] = fmax( fmin(initial_qc_[i], action_max_[i]) , action_min_[i]);
+    if (out->v[i] != initial_qc_[i])
       WARNING("NMPC action " << i << " was truncated");
   }
 
-  // if (verbose_)
-    std::cout << "Feedback Control: [" << *out << "]" << std::endl;
+  out->type = atGreedy;
 
-  return ttGreedy;
+  // if (verbose_)
+    std::cout << "Feedback Control: [" << out->v << "]" << std::endl;
 }
 

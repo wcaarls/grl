@@ -78,7 +78,7 @@ class NMPCPolicy : public NMPCBase
     virtual void muscod_reset(const Vector &initial_obs, Vector &initial_qc);
 
     // From Policy
-    virtual TransitionType act(double time, const Vector &in, Vector *out);
+    virtual void act(double time, const Observation &in, Action *out);
 };
 
 }

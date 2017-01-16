@@ -58,11 +58,9 @@ class NMPCStagesPolicy : public NMPCPolicy
         run_nmpc (true),
         last_time_ (0.0)
     { }
-    //~NMPCStagesPolicy();
-
 
     // From Policy
-    virtual TransitionType act(double time, const Vector &in, Vector *out);
+    virtual void act(double time, const Observation &in, Action *out);
 };
 
 }
