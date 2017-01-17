@@ -52,7 +52,7 @@ void TDAgent::start(const Observation &obs, Action *action)
   TDAgentState *state = agent_state_.instance();
 
   predictor_->finalize();
-  
+
   state->time = 0;
   policy_->act(state->time, obs, action);
   

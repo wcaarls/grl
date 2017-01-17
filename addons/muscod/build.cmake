@@ -1,6 +1,8 @@
 # Setup build environment
 set(TARGET addon_muscod)
 
+SET(MUSCOD_FIND_QUIETLY 1)
+
 FIND_PACKAGE(MUSCOD)
 
 if (MUSCOD_FOUND)
@@ -68,5 +70,5 @@ if (MUSCOD_FOUND)
   # Build models
   grl_build_library(addons/muscod/models)
 else()
-  message(WARNING "-- MUSCOD-II not found")
+  message("-- MUSCOD-II not found")
 endif()
