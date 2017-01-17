@@ -60,6 +60,8 @@ class StateFeedbackPolicy : public ParameterizedPolicy
     virtual size_t size() const { return gains_.size(); }
     virtual const LargeVector &params() const { return gains_; }
     virtual LargeVector &params() { return gains_; }
+    
+    virtual void feedforward(const Vector &ff) { operating_action_ = ff; }
 };
 
 /// State feedback policy defined over samples

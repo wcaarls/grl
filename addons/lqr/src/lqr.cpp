@@ -120,6 +120,19 @@ bool LQRSolver::solve()
       WARNING("Calculated gain matrix contains infinities");
       return false;
     }
+    
+    // Calculate optimal feedforward action
+    Observation next;
+    double reward;
+    int terminal;
+    model_->step(operating_state_, operating_action_, &next, &reward, &terminal);
+
+    ColumnVector s = (operating_state_ - next.v).matrix().transpose() + B * operating_action_.matrix().transpose();
+    ColumnVector u = B.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(s);
+    
+    TRACE("Feedforward action: " << u.transpose());
+    
+    policy_->feedforward(u.transpose().array());
   }
   else
   {

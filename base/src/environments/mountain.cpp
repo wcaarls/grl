@@ -90,8 +90,8 @@ void MountainDynamics::eom(const Vector &state, const Vector &actuation, Vector 
   // Velocity/acceleration is defined along ground
   (*xd)[0] = cos(angle[0])*state[2];
   (*xd)[1] = cos(angle[1])*state[3];
-  (*xd)[2] = actuation[0]/m_ - g_*sin(angle[0]) - mu_*state[2];
-  (*xd)[3] = actuation[1]/m_ - g_*sin(angle[1]) - mu_*state[3];
+  (*xd)[2] = (actuation[0] - mu_*state[2])/m_ - g_*sin(angle[0]);
+  (*xd)[3] = (actuation[1] - mu_*state[3])/m_ - g_*sin(angle[1]);
   (*xd)[4] = 1;
   
   // Don't fall off the world
