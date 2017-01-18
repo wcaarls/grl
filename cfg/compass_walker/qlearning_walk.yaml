@@ -12,14 +12,19 @@ experiment:
       type: model/compass_walker
       control_step: 0.2
       integration_steps: 20
+      slope_angle: 0.004
     task: 
       type: task/compass_walker/walk
       timeout: 100
       initial_state_variation: 0.2
+      slope_angle: experiment/environment/model/slope_angle
+      negative_reward: -100
+      observe: [ 1, 1, 1, 1, 1, 0, 0 ]
+      steps: 0
   agent: 
     type: agent/td
     policy: 
-      type: policy/discrete/q
+      type: mapping/policy/value/q
       discretizer: 
         type: discretizer/uniform
         min: experiment/environment/task/action_min
@@ -29,6 +34,7 @@ experiment:
         type: projector/tile_coding
         tilings: 16
         memory: 8388608
+        safe: 0
         resolution: [0.0838, 0.1047, 0.1111, 0.2222, 10, 1.2]
         wrapping: []
       representation: 
@@ -41,6 +47,7 @@ experiment:
         output_max: []
       sampler: 
         type: sampler/epsilon_greedy
+        rand_max: 0
         epsilon: 0.05
     predictor: 
       type: predictor/advantage
@@ -56,13 +63,14 @@ experiment:
   test_agent: 
     type: agent/fixed
     policy: 
-      type: policy/discrete/q
+      type: mapping/policy/value/q
       discretizer: experiment/agent/policy/discretizer
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
       sampler: 
         type: sampler/greedy
-  save_every: run
+        rand_max: 0
+  save_every: never
 visualizer: 
   type: visualizer/glut
 visualization: 
