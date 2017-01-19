@@ -12,13 +12,19 @@ experiment:
       type: model/compass_walker
       control_step: 0.2
       integration_steps: 20
+      slope_angle: 0.004
     task: 
       type: task/compass_walker/walk
       timeout: 100
+      initial_state_variation: 0.2
+      slope_angle: experiment/environment/model/slope_angle
+      negative_reward: -100
+      observe: [1, 1, 1, 1, 1, 0, 0]
+      steps: 0
   agent: 
     type: agent/td
     policy: 
-      type: policy/discrete/q
+      type: mapping/policy/value/q
       discretizer: 
         type: discretizer/uniform
         min: experiment/environment/task/action_min
@@ -29,9 +35,10 @@ experiment:
         samples: 200000
         neighbors: 20
         locality: 1
+        interval: 10
+        incremental: 1
         bucket_size: 10
         error_bound: 0.01
-        scaling: []
         inputs: experiment/environment/task/observation_dims+experiment/environment/task/action_dims
       representation: 
         type: representation/llr
@@ -45,25 +52,29 @@ experiment:
         projector: experiment/agent/policy/projector
       sampler: 
         type: sampler/epsilon_greedy
+        rand_max: 0
         epsilon: 0.05
     predictor: 
       type: predictor/fqi
       gamma: 0.97
       transitions: 200000
       iterations: 20
+      reset_strategy: iteration
+      macro_batch_size: 1
+      discretizer: experiment/agent/policy/discretizer
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
-      policy: experiment/agent/policy
-      rebuild_batch_size: 3
   test_agent: 
     type: agent/fixed
     policy: 
-      type: policy/discrete/q
+      type: mapping/policy/value/q
       discretizer: experiment/agent/policy/discretizer
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
       sampler: 
         type: sampler/greedy
+        rand_max: 0
+  save_every: never
 visualizer: 
   type: visualizer/glut
 visualization: 

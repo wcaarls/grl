@@ -121,7 +121,7 @@ class CompassWalkerWalkTask : public Task
 
   public:
     CompassWalkerWalkTask() : T_(100), initial_state_variation_(0.2), slope_angle_(0.004),
-      neg_reward_(-100.0), verbose_(false), observe_(VectorConstructor(1, 1, 1, 1, 1, 0)), steps_(0){ }
+      neg_reward_(-100.0), verbose_(false), observe_(VectorConstructor(1, 1, 1, 1, 1, 0, 0)), steps_(0){ }
     
     // From Configurable
     virtual void request(ConfigurationRequest *config);
