@@ -128,7 +128,7 @@ class ZeromqAgent : public Agent
 {
   public:
     TYPEINFO("agent/zeromq", "Zeromq Agent which interects with a python by sending and receiving messages")
-    ZeromqAgent() : action_dims_(1), observation_dims_(1) { }
+    ZeromqAgent() : action_dims_(1), observation_dims_(1), test_(0) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -145,7 +145,7 @@ class ZeromqAgent : public Agent
     int action_dims_, observation_dims_;
     Vector action_min_, action_max_;
     Communicator *communicator_;
-
+    int test_;
 
 };
 

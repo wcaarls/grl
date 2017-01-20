@@ -179,6 +179,7 @@ void ZeromqAgent::request(ConfigurationRequest *config)
   config->push_back(CRP("action_dims", "int.action_dims", "Number of action dimensions", action_dims_, CRP::System));
   config->push_back(CRP("action_min", "vector.action_min", "Lower limit of action", action_min_, CRP::System));
   config->push_back(CRP("action_max", "vector.action_max", "Upper limit of action", action_max_, CRP::System));
+  config->push_back(CRP("test", "int.test", "Selection of learning/testing agent", test_, CRP::System));
 }
 
 void ZeromqAgent::configure(Configuration &config)
@@ -189,7 +190,7 @@ void ZeromqAgent::configure(Configuration &config)
   action_min_ = config["action_min"].v();
   action_max_ = config["action_max"].v();
   communicator_ = (Communicator*)config["communicator"].ptr();
-
+  test_ = config["test"];
 }
 
 void ZeromqAgent::reconfigure(const Configuration &config)
@@ -210,7 +211,7 @@ void ZeromqAgent::step(double tau, const Observation &obs, double reward, Action
   action->type = atUndefined;
   
   Vector v(obs.v.cols()+2);
-  v << obs.v,reward,1;
+  v << test_, obs.v, reward, 1;
   communicator_->send(v);
   communicator_->recv(&(action->v));
 }

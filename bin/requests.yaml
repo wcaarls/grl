@@ -456,7 +456,7 @@ agent/zeromq:
     type: communicator
     description: Comunicator which exchanges messages with an actual/virtual environment
     mutability: configuration
-    default: 0x1fde8e0
+    default: 0xfaa8e0
     optional: 0
   observation_dims:
     type: int.observation_dims
@@ -486,6 +486,14 @@ agent/zeromq:
     mutability: system
     default: "[  ]"
     optional: 1
+  test:
+    type: int.test
+    description: Selection of learning/testing agent
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 2147483647
 behavior/leo_squat_sym:
   description: Leo squatting behavior with symmetrical switchers of observations
 behavior/leo_walk:
@@ -1505,7 +1513,7 @@ mapping/policy/feed_forward:
     type: mapping
     description: Maps time to controls
     mutability: configuration
-    default: 0x20
+    default: 0x11a2410
     optional: 1
 mapping/policy/mcts:
   description: Monte-Carlo Tree Search policy
