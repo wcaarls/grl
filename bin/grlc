@@ -32,6 +32,8 @@ class GrlMain:
     
     master.bind_all("<Button-4>", self.OnMousewheelUp)
     master.bind_all("<Button-5>", self.OnMousewheelDown)
+    master.bind_all("<Control-s>", self.save)
+    master.bind_all("<Control-r>", self.run)
 
     # Buttons
     self.savebutton = Button(
@@ -66,13 +68,13 @@ class GrlMain:
     child.destroy()
     self.objlist.remove(child)
 
-  def save(self):
+  def save(self, event=None):
     print "Writing", savefile
     output = open(savefile, "w")
     self.write(output)
     output.close()
     
-  def run(self):
+  def run(self, event=None):
     global grld_process
     
     if grld_process and grld_process.poll() == None:
@@ -89,7 +91,7 @@ class GrlMain:
 
     app.refresh()
     
-  def add(self):
+  def add(self, event=None):
     obj = GrlTopObject(self, self.row)
     self.objlist.append(obj)
     self.row = self.row + 1
