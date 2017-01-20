@@ -20,9 +20,9 @@ experiment:
         timeout: 2.99
         randomization: 0
     shaping_function: 
-      type: mapping/q_policy
+      type: mapping/value
       policy: 
-        type: policy/discrete/q
+        type: policy/value/q
         discretizer: 
           type: discretizer/uniform
           min: experiment/environment/environment/task/action_min
@@ -51,7 +51,7 @@ experiment:
     planning_horizon: 100
     threads: 0
     policy: 
-      type: policy/discrete/q
+      type: policy/value/q
       discretizer: experiment/environment/shaping_function/policy/discretizer
       projector: experiment/environment/shaping_function/policy/projector
       representation: 
@@ -112,7 +112,7 @@ experiment:
     model_agent: 
       type: agent/td
       policy: 
-        type: policy/discrete/q
+        type: policy/value/q
         discretizer: experiment/environment/shaping_function/policy/discretizer
         projector: experiment/environment/shaping_function/policy/projector
         representation: experiment/environment/shaping_function/policy/representation
@@ -129,7 +129,7 @@ experiment:
   test_agent: 
     type: agent/fixed
     policy: 
-      type: policy/discrete/q
+      type: policy/value/q
       discretizer: experiment/environment/shaping_function/policy/discretizer
       projector: experiment/environment/shaping_function/policy/projector
       representation: experiment/agent/policy/representation
@@ -156,7 +156,7 @@ visualization2:
   savepoints: 1048576
   projection: mean
   policy: 
-    type: policy/discrete/q
+    type: policy/value/q
     discretizer: experiment/environment/shaping_function/policy/discretizer
     projector: experiment/environment/shaping_function/policy/projector
     representation: experiment/environment/shaping_function/policy/representation

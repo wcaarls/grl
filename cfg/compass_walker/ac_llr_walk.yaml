@@ -12,25 +12,32 @@ experiment:
       type: model/compass_walker
       control_step: 0.2
       integration_steps: 20
+      slope_angle: 0.004
     task: 
       type: task/compass_walker/walk
       timeout: 100
       initial_state_variation: 0.2
+      slope_angle: experiment/environment/model/slope_angle
+      negative_reward: -100
+      observe: [1, 1, 1, 1, 1, 0, 0]
+      steps: 0
   agent: 
     type: agent/td
     policy: 
-      type: policy/action
+      type: mapping/policy/action
       sigma: [0.48]
       output_min: experiment/environment/task/action_min
       output_max: experiment/environment/task/action_max
       projector: 
         type: projector/pre/scaling
-        scaling: [1, 1, 1, 1]
+        scaling: [1, 1, 1, 1, 1]
         projector: 
           type: projector/sample/ann
           samples: 8000
           neighbors: 20
           locality: 1
+          interval: 10
+          incremental: 1
           bucket_size: 10
           error_bound: 0.01
           inputs: experiment/environment/task/observation_dims
@@ -50,14 +57,18 @@ experiment:
       beta: 0.01
       gamma: 0.97
       lambda: 0.65
+      update_method: proportional
+      step_limit: [  ]
       critic_projector: 
         type: projector/pre/scaling
-        scaling: [1, 1, 1, 1]
+        scaling: [1, 1, 1, 1, 1]
         projector: 
           type: projector/sample/ann
           samples: 8000
           neighbors: 20
           locality: 1
+          interval: 10
+          incremental: 1
           bucket_size: 10
           error_bound: 0.1
           inputs: experiment/environment/task/observation_dims
@@ -78,7 +89,7 @@ experiment:
   test_agent: 
     type: agent/fixed
     policy: 
-      type: policy/action
+      type: mapping/policy/action
       sigma: []
       output_min: experiment/environment/task/action_min
       output_max: experiment/environment/task/action_max

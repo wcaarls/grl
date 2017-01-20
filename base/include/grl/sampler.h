@@ -44,15 +44,13 @@ class Sampler : public Configurable
     /**
     * \brief Sample an action based on the values of actions.
     * \param values - values of fasible discretized actions.
-    * \param tt - type of action which can be used in Q-learning, for example.
+    * \param at - type of action which can be used in Q-learning, for example.
     * \return offset in the vector which can be used for fining the corresponding action.
     * \note Sampler does not have an internal memory.
     */
-    virtual size_t sample(const LargeVector &values, TransitionType &tt) const
+    virtual size_t sample(const LargeVector &values, ActionType *tt=NULL) const
     {
-      throw Exception("sample method is not implemented");
-      tt = ttUndefined;
-      return 0;
+      throw Exception("Autonomous sample method is not implemented");
     }
 
     /**
@@ -65,19 +63,15 @@ class Sampler : public Configurable
     * \return offset in the vector which can be used for fining the corresponding action.
     * \note Sampler has an internal memory for implementation of OrnsteinUhlenbeck or PADA samplers.
     */
-    virtual size_t sample(double time, const LargeVector &values, TransitionType &tt)
+    virtual size_t sample(double time, const LargeVector &values, ActionType *tt=NULL)
     {
       return sample(values, tt);
     }
 
     /**
     * \brief Returns the sampling distribution for a value vector.
-    *
-    * Called once per timestep. Time is 0. at the start of a new episode.
-    * \param out - distribution output.
-    * \note possible implementation may use "sample" method which may use memory (e.g. GreedySampler)
     */
-    virtual void distribution(const LargeVector &values, LargeVector *distribution) = 0;
+    virtual void distribution(const LargeVector &values, LargeVector *distribution) const = 0;
 };
 
 }

@@ -48,21 +48,21 @@ void ObservationModel::reconfigure(const Configuration &config)
   config.get("jacobian_step", jacobian_step_);
 }
 
-Matrix ObservationModel::jacobian(const Vector &obs, const Vector &action) const
+Matrix ObservationModel::jacobian(const Observation &obs, const Action &action) const
 {
   Matrix J(obs.size()+1, obs.size()+action.size());
   
   // Central differences 
   for (size_t ii=0; ii < obs.size()+action.size(); ++ii)
   {
-    Vector res1, res2;
+    Observation res1, res2;
     double reward1, reward2;
     int terminal;
     
     if (ii < obs.size())
     {
       // d obs / d obs
-      Vector state1 = obs, state2 = obs;
+      Observation state1 = obs, state2 = obs;
       state1[ii] -= jacobian_step_/2; state2[ii] += jacobian_step_/2;
     
       step(state1, action, &res1, &reward1, &terminal);
@@ -71,7 +71,7 @@ Matrix ObservationModel::jacobian(const Vector &obs, const Vector &action) const
     else
     {
       // d obs / d action
-      Vector action1 = action, action2 = action;
+      Action action1 = action, action2 = action;
       action1[ii-obs.size()] -= jacobian_step_/2; action2[ii-obs.size()] += jacobian_step_/2;
       
       step(obs, action1, &res1, &reward1, &terminal);
@@ -89,14 +89,15 @@ Matrix ObservationModel::jacobian(const Vector &obs, const Vector &action) const
   return J;
 }
 
-Matrix ObservationModel::rewardHessian(const Vector &obs, const Vector &action) const
+Matrix ObservationModel::rewardHessian(const Observation &obs, const Action &action) const
 {
   Matrix H(obs.size()+action.size(), obs.size()+action.size());
   
   // Central differences 
   for (size_t ii=0; ii < obs.size()+action.size(); ++ii)
   {
-    Vector obs1=obs, obs2=obs, action1=action, action2=action;
+    Observation obs1=obs, obs2=obs;
+    Action action1=action, action2=action;
   
     if (ii < obs.size())
     {
@@ -144,14 +145,14 @@ void FixedObservationModel::reconfigure(const Configuration &config)
   ObservationModel::reconfigure(config);
 }
 
-double FixedObservationModel::step(const Vector &obs, const Vector &action, Vector *next, double *reward, int *terminal) const
+double FixedObservationModel::step(const Observation &obs, const Action &action, Observation *next, double *reward, int *terminal) const
 {
   Vector state, next_state;
   
   if (!task_->invert(obs, &state))
   {
     ERROR("Task does not support inversion");
-    *next = Vector();
+    *next = Observation();
     return 0.;
   }
   
@@ -162,7 +163,7 @@ double FixedObservationModel::step(const Vector &obs, const Vector &action, Vect
   return tau;
 }
 
-Matrix FixedObservationModel::rewardHessian(const Vector &obs, const Vector &action) const
+Matrix FixedObservationModel::rewardHessian(const Observation &obs, const Action &action) const
 {
   Matrix H = task_->rewardHessian(obs, action);
   if (!H.size())
@@ -232,13 +233,13 @@ void ApproximatedObservationModel::reconfigure(const Configuration &config)
   ObservationModel::reconfigure(config);
 }
 
-double ApproximatedObservationModel::step(const Vector &obs, const Vector &action, Vector *next, double *reward, int *terminal) const
+double ApproximatedObservationModel::step(const Observation &obs, const Action &action, Observation *next, double *reward, int *terminal) const
 {
   ProjectionPtr p = projector_->project(extend(obs, action)); 
   
   if (!p)
   {
-    *next = Vector();
+    *next = Observation();
     return 0.;
   }
  
@@ -249,8 +250,9 @@ double ApproximatedObservationModel::step(const Vector &obs, const Vector &actio
     return 0.;
 
   *reward = pred[pred.size()-2];
-  *terminal = 2*(pred[pred.size()-1] > 0.5);
-  next->resize(pred.size()-2);
+  *terminal = (pred[pred.size()-1] > 0.5);
+  next->absorbing = *terminal;
+  next->v.resize(pred.size()-2);
   for (size_t ii=0; ii < next->size(); ++ii)
     (*next)[ii] = pred[ii];
   
@@ -265,7 +267,7 @@ double ApproximatedObservationModel::step(const Vector &obs, const Vector &actio
     // Don't predict starting from outside observable interval
     if (obs[ii] < observation_min_[ii] || obs[ii] > observation_max_[ii])
     {
-      *next = Vector();
+      *next = Observation();
       return 0.;
     }
   }
@@ -277,7 +279,7 @@ double ApproximatedObservationModel::step(const Vector &obs, const Vector &actio
       // Don't accept inaccurate predictions
       if (stddev[ii] > stddev_limit_*(observation_max_[ii]-observation_min_[ii]))
       {
-        *next = Vector();
+        *next = Observation();
         return 0.;
       }
     }
@@ -286,7 +288,7 @@ double ApproximatedObservationModel::step(const Vector &obs, const Vector &actio
   return tau_;
 }
 
-Matrix ApproximatedObservationModel::jacobian(const Vector &obs, const Vector &action) const
+Matrix ApproximatedObservationModel::jacobian(const Observation &obs, const Action &action) const
 {
   // Get complete Jacobian.
   Matrix J = representation_->jacobian(projector_->project(obs, action))*projector_->jacobian(extend(obs, action));
@@ -330,14 +332,15 @@ void FixedRewardObservationModel::reconfigure(const Configuration &config)
   ApproximatedObservationModel::reconfigure(config);
 }
 
-double FixedRewardObservationModel::step(const Vector &obs, const Vector &action, Vector *next, double *reward, int *terminal) const
+double FixedRewardObservationModel::step(const Observation &obs, const Action &action, Observation *next, double *reward, int *terminal) const
 {
   double tau = ApproximatedObservationModel::step(obs, action, next, reward, terminal);
   
   if (!next->size())
     return 0.;
   
-  Vector state, next_state, next_obs;
+  Vector state, next_state;
+  Observation next_obs;
   if (!task_->invert(obs, &state))
   {
     WARNING("Task does not support inversion");
@@ -351,7 +354,7 @@ double FixedRewardObservationModel::step(const Vector &obs, const Vector &action
   return tau;
 }
 
-Matrix FixedRewardObservationModel::rewardHessian(const Vector &obs, const Vector &action) const
+Matrix FixedRewardObservationModel::rewardHessian(const Observation &obs, const Action &action) const
 {
   Matrix H = task_->rewardHessian(obs, action);
   if (!H.size())

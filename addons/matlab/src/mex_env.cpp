@@ -107,7 +107,7 @@ void mexFunction(int nlhs, mxArray *plhs[ ],
   else if (!strcmp(func, "start"))
   {
     // Run environment
-    Vector obs;
+    Observation obs;
     
     // TODO: READ TEST ARGUMENT
     g_env->start(0, &obs);
@@ -118,7 +118,7 @@ void mexFunction(int nlhs, mxArray *plhs[ ],
   }
   else if (!strcmp(func, "step"))
   {
-    Vector action;
+    Action action;
     
     if (!g_started)
       mexErrMsgTxt("Environment not started.");
@@ -133,12 +133,12 @@ void mexFunction(int nlhs, mxArray *plhs[ ],
     if (elements != g_action_dims)
       mexErrMsgTxt("Invalid action size.");
     
-    action.resize(elements);
+    action.v.resize(elements);
     for (size_t ii=0; ii < elements; ++ii)
       action[ii] = mxGetPr(prhs[1])[ii];
     
     // Run environment
-    Vector obs;
+    Observation obs;
     double reward;
     int terminal;
     double tau = g_env->step(action, &obs, &reward, &terminal);

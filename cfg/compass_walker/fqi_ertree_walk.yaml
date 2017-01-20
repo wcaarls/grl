@@ -12,13 +12,19 @@ experiment:
       type: model/compass_walker
       control_step: 0.2
       integration_steps: 20
+      slope_angle: 0.004
     task: 
       type: task/compass_walker/walk
       timeout: 100
+      initial_state_variation: 0.2
+      slope_angle: experiment/environment/model/slope_angle
+      negative_reward: -100
+      observe: [ 1, 1, 1, 1, 1, 0, 0 ]
+      steps: 0
   agent: 
     type: agent/td
     policy: 
-      type: policy/discrete/q
+      type: mapping/policy/value/q
       discretizer: 
         type: discretizer/uniform
         min: experiment/environment/task/action_min
@@ -58,7 +64,7 @@ experiment:
   test_agent: 
     type: agent/fixed
     policy: 
-      type: policy/discrete/q
+      type: mapping/policy/value/q
       discretizer: experiment/agent/policy/discretizer
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation

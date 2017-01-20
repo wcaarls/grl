@@ -142,14 +142,15 @@ std::string CLeoBhBase::jointIndexToName(int jointIndex) const
 
 LeoBaseEnvironment::LeoBaseEnvironment() :
   target_env_(NULL),
+  bh_(NULL),
   observation_dims_(CLeoBhBase::svNumStates),
+  action_dims_(CLeoBhBase::svNumActions),
+  exporter_(NULL),
+  test_(0),
   time_test_(0),
   time_learn_(0),
   time0_(0),
-  test_(0),
-  exporter_(NULL),
-  sub_transition_type_(NULL),
-  bh_(NULL)
+  sub_transition_type_(NULL)
 {
 }
 
@@ -217,8 +218,8 @@ void LeoBaseEnvironment::configure(Configuration &config)
   configParseObservations(config, ode->getSensors());
   configParseActions(config, ode->getActuators());
 
-  target_obs_.resize(ode->getSensors().size());
-  target_action_.resize(ode->getActuators().size());
+  target_obs_.v.resize(ode->getSensors().size());
+  target_action_.v.resize(ode->getActuators().size());
 
   delete ode;
 }

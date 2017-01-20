@@ -59,7 +59,7 @@ void SolverAgent::reconfigure(const Configuration &config)
   episodes_ = 0;
 }
 
-TransitionType SolverAgent::start(const Vector &obs, Vector *action)
+void SolverAgent::start(const Observation &obs, Action *action)
 {
   if (predictor_)
     predictor_->finalize();
@@ -71,19 +71,17 @@ TransitionType SolverAgent::start(const Vector &obs, Vector *action)
     solver_->solve();
   solver_->solve(obs);
 
-  TransitionType tt = policy_->act(time_, obs, action);
+  policy_->act(time_, obs, action);
   
   prev_obs_ = obs;
   prev_action_ = *action;
-
-  return tt;
 }
 
-TransitionType SolverAgent::step(double tau, const Vector &obs, double reward, Vector *action)
+void SolverAgent::step(double tau, const Observation &obs, double reward, Action *action)
 {
   time_ += tau;
   solver_->resolve(time_, obs);
-  TransitionType tt = policy_->act(time_, obs, action);
+  policy_->act(time_, obs, action);
   
   if (predictor_)
   {
@@ -93,11 +91,9 @@ TransitionType SolverAgent::step(double tau, const Vector &obs, double reward, V
 
   prev_obs_ = obs;
   prev_action_ = *action;
-
-  return tt;
 }
 
-void SolverAgent::end(double tau, const Vector &obs, double reward)
+void SolverAgent::end(double tau, const Observation &obs, double reward)
 {
   if (predictor_)
   {

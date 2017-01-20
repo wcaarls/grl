@@ -58,11 +58,11 @@ class SwimmerDynamics : public Dynamics
     virtual void reconfigure(const Configuration &config);
 
     // From Dynamics
-    virtual void eom(const Vector &state, const Vector &action, Vector *xd) const;
+    virtual void eom(const Vector &state, const Vector &actuation, Vector *xd) const;
     
   protected:
     template<int d>
-    void staticEOM(Eigen::Matrix<double,2*(d+2)+1,1> state, Eigen::Matrix<double,d-1,1> action, Vector *xd) const;
+    void staticEOM(Eigen::Matrix<double,2*(d+2)+1,1> state, Eigen::Matrix<double,d-1,1> actuation, Vector *xd) const;
 };
 
 /// Swimmer reaching task.
@@ -86,10 +86,10 @@ class SwimmerReachingTask : public Task
 
     // From Task
     virtual void start(int test, Vector *state) const;
-    virtual void observe(const Vector &state, Vector *obs, int *terminal) const;
-    virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const;
-    virtual bool invert(const Vector &obs, Vector *state) const;
-    virtual Matrix rewardHessian(const Vector &state, const Vector &action) const;
+    virtual void observe(const Vector &state, Observation *obs, int *terminal) const;
+    virtual void evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const;
+    virtual bool invert(const Observation &obs, Vector *state) const;
+    virtual Matrix rewardHessian(const Vector &state, const Action &action) const;
 };
 
 }

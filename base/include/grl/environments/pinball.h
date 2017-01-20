@@ -217,10 +217,10 @@ class PinballModel : public Model
   public:
     std::vector<Obstacle> obstacles_;
     double radius_, restitution_, tau_;
-    int steps_;
+    int steps_, maze_;
 
   public:
-    PinballModel() : radius_(0.01), restitution_(0.5), tau_(0.05), steps_(5) { }
+    PinballModel() : radius_(0.01), restitution_(0.5), tau_(0.05), steps_(5), maze_(0) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -228,7 +228,7 @@ class PinballModel : public Model
     virtual void reconfigure(const Configuration &config);
     
     // From Model
-    virtual double step(const Vector &state, const Vector &action, Vector *next) const;
+    virtual double step(const Vector &state, const Vector &actuation, Vector *next) const;
 };
 
 /// Pinball movement task.
@@ -250,9 +250,9 @@ class PinballMovementTask : public Task
 
     // From Task
     virtual void start(int test, Vector *state) const;
-    virtual void observe(const Vector &state, Vector *obs, int *terminal) const;
-    virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const;
-    virtual bool invert(const Vector &obs, Vector *state) const;
+    virtual void observe(const Vector &state, Observation *obs, int *terminal) const;
+    virtual void evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const;
+    virtual bool invert(const Observation &obs, Vector *state) const;
 
   protected:
     bool succeeded(const Vector &state) const;
@@ -280,8 +280,8 @@ class PinballRegulatorTask : public RegulatorTask
     virtual void reconfigure(const Configuration &config);
 
     // From Task
-    virtual void observe(const Vector &state, Vector *obs, int *terminal) const;
-    virtual bool invert(const Vector &obs, Vector *state) const;
+    virtual void observe(const Vector &state, Observation *obs, int *terminal) const;
+    virtual bool invert(const Observation &obs, Vector *state) const;
 };
 
 }

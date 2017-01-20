@@ -131,7 +131,7 @@ class Rand
 
     double getOrnsteinUhlenbeck(double prev, double center, double theta, double sigma)
     {
-      return prev + theta*(center - prev) + sigma * getNormal(0, 1);
+      return getNormal(prev + theta*(center - prev), sigma);
     }
 
 };
@@ -222,7 +222,7 @@ inline bool convert(const std::string& str, LargeVector *obj)
 }
 
 /// Sample from distribution
-inline size_t sample(const Vector &dist, double sum)
+inline size_t sample(const LargeVector &dist, double sum)
 {
   double r = RandGen::get()*sum;
   
@@ -238,7 +238,7 @@ inline size_t sample(const Vector &dist, double sum)
 }
 
 /// Sample from distribution
-inline size_t sample(const Vector &dist)
+inline size_t sample(const LargeVector &dist)
 {
   double sum = 0;
   for (size_t ii=0; ii < dist.size(); ++ii)

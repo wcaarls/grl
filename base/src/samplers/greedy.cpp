@@ -33,7 +33,7 @@ REGISTER_CONFIGURABLE(EpsilonGreedySampler)
 
 void GreedySampler::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("rand_max", "In case of multiple maximumum values select a random index among them", rand_max_, CRP::System, 0, 1));
+  config->push_back(CRP("rand_max", "In case of multiple maximumum values select a random index among them", rand_max_, CRP::Configuration, 0, 1));
 }
 
 void GreedySampler::configure(Configuration &config)
@@ -46,7 +46,7 @@ void GreedySampler::reconfigure(const Configuration &config)
 {
 }
 
-size_t GreedySampler::sample(const LargeVector &values, TransitionType &tt)
+size_t GreedySampler::sample(const LargeVector &values, ActionType *at) const
 {
   size_t mai = 0;
 
@@ -66,21 +66,21 @@ size_t GreedySampler::sample(const LargeVector &values, TransitionType &tt)
       mai = same_values[rand_->getInteger(jj)];
   }
 
-  tt = ttGreedy;
+  if (at)
+    *at = atGreedy;
   return mai;
 }
 
-void GreedySampler::distribution(const LargeVector &values, LargeVector *distribution)
+void GreedySampler::distribution(const LargeVector &values, LargeVector *distribution) const
 {
-  TransitionType tt;
   *distribution = LargeVector::Constant(values.size(), 0.);
-  (*distribution)[GreedySampler::sample(values, tt)] = 1;
+  (*distribution)[GreedySampler::sample(values)] = 1;
 }
 
 void EpsilonGreedySampler::request(ConfigurationRequest *config)
 {
   GreedySampler::request(config);
-  config->push_back(CRP("epsilon", "Exploration rate", epsilon_, CRP::Online));
+  config->push_back(CRP("epsilon", "Exploration rate (can be defined per action)", epsilon_, CRP::Online));
 }
 
 void EpsilonGreedySampler::configure(Configuration &config)
@@ -113,7 +113,7 @@ void EpsilonGreedySampler::reconfigure(const Configuration &config)
   }
 }
 
-size_t EpsilonGreedySampler::sample(const LargeVector &values, TransitionType &tt)
+size_t EpsilonGreedySampler::sample(const LargeVector &values, ActionType *at) const
 {
   double r = rand_->get();
   
@@ -135,26 +135,29 @@ size_t EpsilonGreedySampler::sample(const LargeVector &values, TransitionType &t
       for (size_t ii=0; ii < epsilon_.size(); ++ii)
         if (r < epsilon_[ii])
           if (!ri--)
+          {
+            if (at)
+              *at = atExploratory;
             return ii;
+          }
     }
   }
-  else
-    if (r < epsilon_[0])
-     {
-      tt = ttExploratory;
-      return rand_->getInteger(values.size());
-     }
+  else if (r < epsilon_[0])
+  {
+    if (at)
+      *at = atExploratory;
+    return rand_->getInteger(values.size());
+  }
 
-  return GreedySampler::sample(values, tt);
+  return GreedySampler::sample(values, at);
 }
 
-void EpsilonGreedySampler::distribution(const LargeVector &values, LargeVector *distribution)
+void EpsilonGreedySampler::distribution(const LargeVector &values, LargeVector *distribution) const
 {
   if (epsilon_.size() > 1)
   {
     *distribution = distribution_;
-    TransitionType tt;
-    (*distribution)[GreedySampler::sample(values, tt)] += 1 - distribution_sum_;
+    (*distribution)[GreedySampler::sample(values)] += 1 - distribution_sum_;
   }
   else
   {

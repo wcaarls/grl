@@ -56,7 +56,7 @@ void UCBPolicy::reconfigure(const Configuration &config)
 {
 }
 
-TransitionType UCBPolicy::act(const Vector &in, Vector *out) const
+void UCBPolicy::act(const Observation &in, Action *out) const
 {
   std::vector<Vector> variants;
   discretizer_->options(in, &variants);
@@ -88,12 +88,12 @@ TransitionType UCBPolicy::act(const Vector &in, Vector *out) const
   }
   
   *out = variants[action];
-  return ttGreedy;
+  out->type = atGreedy;
 }
 
-TransitionType UCBPolicy::act(double time, const Vector &in, Vector *out)
+void UCBPolicy::act(double time, const Observation &in, Action *out)
 {
-  TransitionType tt = act(in, out);
+  act(in, out);
   
   ProjectionPtr projection = projector_->project(in, *out);
   
@@ -101,5 +101,4 @@ TransitionType UCBPolicy::act(double time, const Vector &in, Vector *out)
   double visits = visit_representation_->read(projection, &v);
   visit_representation_->write(projection, VectorConstructor(visits+1));
   visit_representation_->finalize();
-  return tt;
 }

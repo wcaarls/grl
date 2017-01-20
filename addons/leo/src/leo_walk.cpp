@@ -190,7 +190,7 @@ void LeoWalkEnvironment::configure(Configuration &config)
   TRACE("Observation max: " << obs_max);
 }
 
-void LeoWalkEnvironment::start(int test, Vector *obs)
+void LeoWalkEnvironment::start(int test, Observation *obs)
 {
   LeoBaseEnvironment::start(test);
 
@@ -206,8 +206,9 @@ void LeoWalkEnvironment::start(int test, Vector *obs)
   bh_->updateDerivedStateVars(&leoState_); // swing-stance switching happens here
 
   // construct new obs from CLeoState
-  obs->resize(observation_dims_);
+  obs->v.resize(observation_dims_);
   bh_->parseLeoState(leoState_, *obs);
+  obs->absorbing = false;
 
   bh_->setCurrentSTGState(NULL);
 
@@ -215,7 +216,7 @@ void LeoWalkEnvironment::start(int test, Vector *obs)
     pub_ic_signal_->set(VectorConstructor(lstNone));
 }
 
-double LeoWalkEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)
+double LeoWalkEnvironment::step(const Action &action, Observation *obs, double *reward, int *terminal)
 {
   CRAWL("RL action: " << action);
 
@@ -241,6 +242,7 @@ double LeoWalkEnvironment::step(const Vector &action, Vector *obs, double *rewar
 
   // construct new obs from CLeoState
   bh_->parseLeoState(leoState_, *obs);
+  obs->absorbing = false;
 
   // Determine reward
   *reward = bh_->calculateReward();
@@ -249,7 +251,10 @@ double LeoWalkEnvironment::step(const Vector &action, Vector *obs, double *rewar
   if (*terminal == 1) // timeout
     *terminal = 1;
   else if (bh_->isDoomedToFall(&leoState_, true))
+  {
     *terminal = 2;
+    obs->absorbing = true;
+  }
   else
     *terminal = 0;
 

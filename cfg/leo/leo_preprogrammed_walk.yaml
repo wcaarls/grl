@@ -5,18 +5,18 @@ experiment:
   steps: 1000000
   rate: 0
   test_interval: 0
-  output: leo_preprogrammed_walk
+  output: leo_preprogrammed_walk_out
   environment: 
     type: environment/leo_walk
     xml: ../../leo/cfg/leo_walk.xml
     target_env: 
       type: environment/communicator
       communicator: 
-        type: communicator/zeromq
+        type: communicator/zeromq/pub_sub
         pub: tcp://*:5561
         sub: tcp://192.168.1.10:5562
-        event: tcp://192.168.1.10:5560
-        event_mode: ZMQ_SYNC_SUB
+        sync: tcp://192.168.1.10:5560
+        pattern: ZMQ_SYNC_SUB
     observe: torso_boom, shoulder, hipright, hipleft, kneeright, kneeleft, ankleright, ankleleft, toeright, heelright, toeleft, heelleft
     actuate: shoulder, hipright, hipleft, kneeright, kneeleft, ankleright, ankleleft
     exporter: 

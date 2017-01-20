@@ -19,7 +19,7 @@ experiment:
       initial_state_variation: 0.2
       slope_angle: experiment/environment/model/slope_angle
       negative_reward: -100
-      observe: [ 1, 1, 1, 1, 0, 1 ]
+      observe: [ 1, 1, 1, 1, 0, 1, 0 ]
       reference_velocity: 0.12
     exporter: 
       type: exporter/csv
@@ -28,7 +28,7 @@ experiment:
   agent: 
     type: agent/td
     policy: 
-      type: policy/action
+      type: mapping/policy/action
       sigma: [0.5]
       output_min: experiment/environment/task/action_min
       output_max: experiment/environment/task/action_max
@@ -73,7 +73,7 @@ experiment:
   test_agent: 
     type: agent/fixed
     policy: 
-      type: policy/action
+      type: mapping/policy/action
       sigma: []
       output_min: experiment/environment/task/action_min
       output_max: experiment/environment/task/action_max

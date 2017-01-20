@@ -99,14 +99,14 @@ void mexFunction(int nlhs, mxArray *plhs[ ],
   }
   else if (!strcmp(func, "start"))
   {
-    Vector action;
+    Action action;
     
     // Verify input    
     if (nrhs < 2 || !mxIsDouble(prhs[1]))
       mexErrMsgTxt("Missing state.");
     
     // Prepare input
-    Vector obs = arrayToVector(prhs[1]);
+    Observation obs = arrayToVector(prhs[1]);
   
     // Run agent
     g_agent->start(obs, &action);
@@ -116,7 +116,7 @@ void mexFunction(int nlhs, mxArray *plhs[ ],
   }
   else if (!strcmp(func, "step"))
   {
-    Vector action;
+    Action action;
     
     // Verify input    
     if (nrhs < 2 || !mxIsDouble(prhs[1]))
@@ -137,7 +137,7 @@ void mexFunction(int nlhs, mxArray *plhs[ ],
     // Prepare input
     double tau = mxGetPr(prhs[1])[0];
     double reward = mxGetPr(prhs[2])[0];
-    Vector obs = arrayToVector(prhs[3]);
+    Observation obs = arrayToVector(prhs[3]);
   
     // Run agent
     g_agent->step(tau, obs, reward, &action);
@@ -166,7 +166,7 @@ void mexFunction(int nlhs, mxArray *plhs[ ],
     // Prepare input
     double tau = mxGetPr(prhs[1])[0];
     double reward = mxGetPr(prhs[2])[0];
-    Vector obs = arrayToVector(prhs[3]);
+    Observation obs = arrayToVector(prhs[3]);
   
     // Run agent
     g_agent->end(tau, obs, reward);

@@ -121,5 +121,6 @@ void AdvantagePredictor::finalize()
 {
   Predictor::finalize();
   
-  trace_->clear();
+  if (trace_)
+    trace_->clear();
 }

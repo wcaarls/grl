@@ -54,8 +54,8 @@ class GreedySampler : public Sampler
     virtual void reconfigure(const Configuration &config);
   
     // From Sampler
-    virtual size_t sample(const LargeVector &values, TransitionType &tt);
-    virtual void distribution(const LargeVector &values, LargeVector *distribution);
+    virtual size_t sample(const LargeVector &values, ActionType *tt=NULL) const;
+    virtual void distribution(const LargeVector &values, LargeVector *distribution) const;
 };
 
 /// Maximum search with a uniform random chance of non-maximums.
@@ -80,8 +80,8 @@ class EpsilonGreedySampler : public GreedySampler
     virtual void reconfigure(const Configuration &config);
   
     // From Sampler
-    virtual size_t sample(const LargeVector &values, TransitionType &tt);
-    virtual void distribution(const LargeVector &values, LargeVector *distribution);
+    virtual size_t sample(const LargeVector &values, ActionType *tt=NULL) const;
+    virtual void distribution(const LargeVector &values, LargeVector *distribution) const;
     
   protected:
     LargeVector calculateBaseDistribution(const LargeVector &epsilon) const;

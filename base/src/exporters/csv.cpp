@@ -60,7 +60,7 @@ void CSVExporter::reconfigure(const Configuration &config)
   config.get("enabled", enabled_);
 }
 
-void CSVExporter::init(const std::initializer_list<std::string> &headers)
+void CSVExporter::init(const std::vector<std::string> &headers)
 {
   order_.clear();
   headers_ = headers;
@@ -143,9 +143,15 @@ void CSVExporter::open(const std::string &variant, bool append)
     write_header_ = false;
 
   stream_.open((file+".csv").c_str(), std::ofstream::out | (append?std::ofstream::app:std::ofstream::trunc));
+  
+  if (!stream_.good())
+  {
+    ERROR("Could not open '" << file << ".csv' for writing");
+    throw bad_param("exporter/csv:file");
+  }
 }
 
-void CSVExporter::write(std::vector<Vector> vars)
+void CSVExporter::write(const std::vector<Vector> &vars)
 {
   if (!enabled_)
     return;
@@ -166,7 +172,7 @@ void CSVExporter::write(std::vector<Vector> vars)
 
     for (size_t ii=0; ii < order_.size(); ++ii)
     {
-      Vector &v = vars[order_[ii]];
+      const Vector &v = vars[order_[ii]];
       for (size_t jj = 0; jj < v.size(); ++jj)
       {
         stream_ << headers_[order_[ii]] << "[" << jj << "]";
@@ -187,7 +193,7 @@ void CSVExporter::write(std::vector<Vector> vars)
 
   for (size_t ii=0; ii < order_.size(); ++ii)
   {
-    Vector &v = vars[order_[ii]];
+    const Vector &v = vars[order_[ii]];
     for (size_t jj = 0; jj < v.size(); ++jj)
     {
       stream_ << std::fixed << std::setw(11) << std::setprecision(6) << v[jj];
@@ -199,14 +205,7 @@ void CSVExporter::write(std::vector<Vector> vars)
   stream_ << std::endl;
 }
 
-void CSVExporter::write(const std::initializer_list<Vector> &vars)
-{
-  std::vector<Vector> var_vec;
-  var_vec.insert(var_vec.end(), vars.begin(), vars.end());
-  write(var_vec);
-}
-
-void CSVExporter::append(const std::initializer_list<Vector> &vars)
+void CSVExporter::append(const std::vector<Vector> &vars)
 {
   append_vec_.insert(append_vec_.end(), vars.begin(), vars.end());
   if (append_vec_.size() >= headers_.size())

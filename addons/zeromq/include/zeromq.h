@@ -48,14 +48,14 @@ public:
   virtual void send(const Vector v) const = 0;
 
   /// Receive data.
-  virtual bool recv(Vector &v) const = 0;
+  virtual bool recv(Vector *v) const = 0;
 };
 
 // ZeroMQ generic communication class
 class ZeromqCommunicator: public Communicator
 {
   public:
-    ZeromqCommunicator() : sync_("") { }
+    ZeromqCommunicator() : pattern_(0) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -63,7 +63,7 @@ class ZeromqCommunicator: public Communicator
 
     // From Communicator
     virtual void send(const Vector v) const;
-    virtual bool recv(Vector &v) const;
+    virtual bool recv(Vector *v) const;
 
   protected:
     ZeromqMessenger zmq_messenger_;
@@ -98,14 +98,13 @@ class ZeromqRequestReplyCommunicator: public ZeromqCommunicator
   protected:
     std::string cli_;
 };
-// @Divyam, derive your communicator class from ZeromqCommunicator
 
 /// An environment which bridges actual environment with a middle layer environment by converting states and actions, and then sending and receiving messages
 class CommunicatorEnvironment: public Environment
 {
   public:
     TYPEINFO("environment/communicator", "Communicator environment which interects with a real environment by sending and receiving messages")
-    CommunicatorEnvironment(): target_obs_dims_(0), target_action_dims_(0) {}
+    CommunicatorEnvironment(): converter_(NULL), communicator_(NULL), target_obs_dims_(0), target_action_dims_(0) {}
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -113,8 +112,8 @@ class CommunicatorEnvironment: public Environment
     virtual void reconfigure(const Configuration &config);
 
     // From Environment
-    virtual void start(int test, Vector *obs);
-    virtual double step(const Vector &action, Vector *obs, double *reward, int *terminal);
+    virtual void start(int test, Observation *obs);
+    virtual double step(const Action &action, Observation *obs, double *reward, int *terminal);
 
   protected:
     Vector obs_conv_, action_conv_;
@@ -129,7 +128,7 @@ class ZeromqAgent : public Agent
 {
   public:
     TYPEINFO("agent/zeromq", "Zeromq Agent which interects with a python by sending and receiving messages")
-    ZeromqAgent() : observation_dims_(1), action_dims_(1) { }
+    ZeromqAgent() : action_dims_(1), observation_dims_(1), test_(0) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -137,16 +136,16 @@ class ZeromqAgent : public Agent
     virtual void reconfigure(const Configuration &config);
 
     // From Policy
-    virtual TransitionType start(const Vector &obs, Vector *action);
-    virtual TransitionType step(double tau, const Vector &obs, double reward, Vector *action);
-    virtual void end(double tau, const Vector &obs, double reward);
+    virtual void start(const Observation &obs, Action *action);
+    virtual void step(double tau, const Observation &obs, double reward, Action *action);
+    virtual void end(double tau, const Observation &obs, double reward);
 
 
   protected:
     int action_dims_, observation_dims_;
     Vector action_min_, action_max_;
     Communicator *communicator_;
-
+    int test_;
 
 };
 

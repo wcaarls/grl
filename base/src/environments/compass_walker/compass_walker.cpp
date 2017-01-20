@@ -60,9 +60,9 @@ void CompassWalkerModel::reconfigure(const Configuration &config)
 {
 }
 
-double CompassWalkerModel::step(const Vector &state, const Vector &action, Vector *next) const
+double CompassWalkerModel::step(const Vector &state, const Vector &actuation, Vector *next) const
 {
-  if (state.size() != CompassWalker::ssStateSize || action.size() != 1)
+  if (state.size() != CompassWalker::ssStateSize || actuation.size() != 1)
     throw Exception("model/compass_walker requires a task/compass_walker subclass");
 
   CSWModelState swstate;
@@ -73,7 +73,7 @@ double CompassWalkerModel::step(const Vector &state, const Vector &action, Vecto
                state[CompassWalker::siHipAngle],
                state[CompassWalker::siHipAngleRate]);
 
-  model_.singleStep(swstate, action[0]);
+  model_.singleStep(swstate, actuation[0]);
 
   next->resize(state.size());
   (*next)[CompassWalker::siStanceLegAngle] = swstate.mStanceLegAngle;
@@ -141,9 +141,9 @@ void CompassWalkerSandbox::start(const Vector &hint, Vector *state)
     exporter_->open((test_?"test":"learn"), time_ != 0.0);
 }
 
-double CompassWalkerSandbox::step(const Vector &action, Vector *next)
+double CompassWalkerSandbox::step(const Vector &actuation, Vector *next)
 {
-  if (state_.size() != CompassWalker::ssStateSize || action.size() != 1)
+  if (state_.size() != CompassWalker::ssStateSize || actuation.size() != 1)
     throw Exception("model/compass_walker_sandbox requires a task/compass_walker subclass");
 
   CSWModelState swstate;
@@ -154,7 +154,7 @@ double CompassWalkerSandbox::step(const Vector &action, Vector *next)
                state_[CompassWalker::siHipAngle],
                state_[CompassWalker::siHipAngleRate]);
 
-  model_.singleStep(swstate, action[0], test_?exporter_:NULL, time_, &step_distance_);
+  model_.singleStep(swstate, actuation[0], test_?exporter_:NULL, time_, &step_distance_);
   if (test_)
     time_ += tau_;
 
@@ -287,42 +287,46 @@ void CompassWalkerWalkTask::start(int test, Vector *state) const
     (*state)[CompassWalker::siTimeout] = T_;
 }
 
-void CompassWalkerWalkTask::observe(const Vector &state, Vector *obs, int *terminal) const
+void CompassWalkerWalkTask::observe(const Vector &state, Observation *obs, int *terminal) const
 {
   if (state.size() != CompassWalker::ssStateSize)
     throw Exception("task/compass_walker/walk requires model/compass_walker");
 
   // Observation vector which contains all observations, masked by 'observe_' vector when observations requested
-  Vector obs_;
-  obs_.resize(CompassWalker::osMaxObservationSize);
-  obs_[CompassWalker::oiStanceLegAngle] = state[CompassWalker::siStanceLegAngle];
-  obs_[CompassWalker::oiHipAngle] = state[CompassWalker::siHipAngle] - 2 * state[CompassWalker::siStanceLegAngle];
-  obs_[CompassWalker::oiStanceLegAngleRate] = state[CompassWalker::siStanceLegAngleRate];
-  obs_[CompassWalker::oiHipAngleRate] = state[CompassWalker::siHipAngleRate] - 2 * state[CompassWalker::siStanceLegAngleRate];
-  obs_[CompassWalker::oiStanceLegChanged] = state[CompassWalker::siStanceLegChanged] > 0.5;
-  obs_[CompassWalker::oiHipVelocity] = state[CompassWalker::siHipVelocity];
-  obs_[CompassWalker::oiStepDistance] = state[CompassWalker::siStepDistance];
+  Observation _obs;
+  _obs.v.resize(CompassWalker::osMaxObservationSize);
+  _obs[CompassWalker::oiStanceLegAngle] = state[CompassWalker::siStanceLegAngle];
+  _obs[CompassWalker::oiHipAngle] = state[CompassWalker::siHipAngle] - 2 * state[CompassWalker::siStanceLegAngle];
+  _obs[CompassWalker::oiStanceLegAngleRate] = state[CompassWalker::siStanceLegAngleRate];
+  _obs[CompassWalker::oiHipAngleRate] = state[CompassWalker::siHipAngleRate] - 2 * state[CompassWalker::siStanceLegAngleRate];
+  _obs[CompassWalker::oiStanceLegChanged] = state[CompassWalker::siStanceLegChanged] > 0.5;
+  _obs[CompassWalker::oiHipVelocity] = state[CompassWalker::siHipVelocity];
+  _obs[CompassWalker::oiStepDistance] = state[CompassWalker::siStepDistance];
 
   // Mask unwanted observations
-  obs->resize(observation_dims_);
+  obs->v.resize(observation_dims_);
   for (int i = 0, j = 0; i < observe_.size(); i++)
     if (observe_[i] != 0)
-      (*obs)[j++] = obs_[i];
+      (*obs)[j++] = _obs[i];
+  obs->absorbing = false;
 
   if (fabs(state[CompassWalker::siStanceLegAngle]) > M_PI/8 || fabs(state[CompassWalker::siHipAngle] - 2 * state[CompassWalker::siStanceLegAngle]) > M_PI/4)
+  {
     *terminal = 2;
+    obs->absorbing = true;
+  }
   else if (state[CompassWalker::siTime] > state[CompassWalker::siTimeout])
     *terminal = 1;
-  else if (steps_ > 0 && obs_[CompassWalker::oiStanceLegChanged])
+  else if (steps_ > 0 && _obs[CompassWalker::oiStanceLegChanged])
     *terminal = 1;
   else
     *terminal = 0;
 
   if ((*terminal) && verbose_)
-    std::cout << obs_[CompassWalker::oiHipVelocity] << std::endl;
+    std::cout << _obs[CompassWalker::oiHipVelocity] << std::endl;
 }
 
-void CompassWalkerWalkTask::evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const
+void CompassWalkerWalkTask::evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const
 {
   if (state.size() != CompassWalker::ssStateSize || action.size() != 1 || next.size() != CompassWalker::ssStateSize)
     throw Exception("task/compass_walker/walk requires model/compass_walker");
@@ -339,7 +343,7 @@ void CompassWalkerWalkTask::evaluate(const Vector &state, const Vector &action, 
       *reward = neg_reward_;
 }
 
-bool CompassWalkerWalkTask::invert(const Vector &obs, Vector *state) const
+bool CompassWalkerWalkTask::invert(const Observation &obs, Vector *state) const
 {
   state->resize(CompassWalker::ssStateSize);
 
@@ -380,7 +384,7 @@ void CompassWalkerVrefTask::start(int test, Vector *state) const
   CompassWalkerWalkTask::start(test, state);
 }
 
-void CompassWalkerVrefTask::evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const
+void CompassWalkerVrefTask::evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const
 {
   if (state.size() != CompassWalker::ssStateSize || action.size() != 1 || next.size() != CompassWalker::ssStateSize)
     throw Exception("task/compass_walker/vref requires model/compass_walker");
@@ -396,7 +400,7 @@ void CompassWalkerVrefTask::evaluate(const Vector &state, const Vector &action, 
 }
 
 // *** CompassWalkerVrefuTask ***
-void CompassWalkerVrefuTask::evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const
+void CompassWalkerVrefuTask::evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const
 {
   if (state.size() != CompassWalker::ssStateSize || action.size() != 1 || next.size() != CompassWalker::ssStateSize)
     throw Exception("task/compass_walker/vrefu requires model/compass_walker");

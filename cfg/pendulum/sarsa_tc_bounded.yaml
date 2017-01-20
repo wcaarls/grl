@@ -20,7 +20,7 @@ experiment:
   agent: 
     type: agent/td
     policy: 
-      type: policy/discrete/q/bounded
+      type: policy/value/q/bounded
       bound: [2]
       discretizer: 
         type: discretizer/uniform
@@ -57,7 +57,7 @@ experiment:
   test_agent: 
     type: agent/fixed
     policy: 
-      type: policy/discrete/q/bounded
+      type: policy/value/q/bounded
       bound: experiment/agent/policy/bound
       discretizer: experiment/agent/policy/discretizer
       projector: experiment/agent/policy/projector

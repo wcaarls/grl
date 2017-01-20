@@ -58,14 +58,25 @@ void VPolicy::reconfigure(const Configuration &config)
 {
 }
 
-void VPolicy::values(const Vector &in, LargeVector *out) const
+double VPolicy::value(const Observation &in) const
+{
+  Vector v;
+  representation_->read(projector_->project(in), &v);
+  
+  if (v.size())
+    return v[0];
+  else
+    return 0;
+}
+
+void VPolicy::values(const Observation &in, LargeVector *out) const
 {
   out->resize(discretizer_->size(in));
   
   size_t aa=0;
   for (Discretizer::iterator it = discretizer_->begin(in); it != discretizer_->end(); ++it, ++aa)
   {
-    Vector next;
+    Observation next;
     double reward;
     int terminal;
     
@@ -73,7 +84,7 @@ void VPolicy::values(const Vector &in, LargeVector *out) const
     
     if (next.size())
     {
-      if (!terminal)
+      if (terminal != 2)
       {
         Vector value;
         reward += reward + gamma_*representation_->read(projector_->project(next), &value);
@@ -84,14 +95,14 @@ void VPolicy::values(const Vector &in, LargeVector *out) const
   }
 }
 
-TransitionType VPolicy::act(const Vector &in, Vector *out) const
+void VPolicy::act(const Observation &in, Action *out) const
 {
   LargeVector v;
-  TransitionType tt;
+  ActionType at;
 
   values(in, &v);
-  size_t action = sampler_->sample(v, tt);
+  size_t action = sampler_->sample(v, &at);
   
   *out = discretizer_->at(in, action);
-  return tt;
+  out->type = at;
 }

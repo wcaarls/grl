@@ -30,9 +30,9 @@ protected:
   STGStateType	mPreviousSTGState;
   STGStateType	*mCurrentSTGState;
   CAgentAction	mPreviousAction;
-  CLog2					mLog;
   ISTGActuation *mActuationInterface;
   CAgentAction  mAgentAction;
+  CLog2					mLog;
 
 };
 

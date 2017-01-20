@@ -29,6 +29,7 @@
 #define RBDL_LEO_MODEL_H
 
 #include <grl/environment.h>
+#include <grl/environments/rbdl.h>
 
 namespace grl
 {
@@ -36,7 +37,7 @@ namespace grl
 class LeoSandboxModel: public Sandbox
 {
   public:
-    LeoSandboxModel() : target_dof_(4), target_env_(NULL) { }
+    LeoSandboxModel() : target_dof_(4), target_env_(NULL), dynamics_(NULL) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -53,6 +54,7 @@ class LeoSandboxModel: public Sandbox
     int target_dof_;
     Environment *target_env_;
     DynamicalModel dm_;
+    RBDLDynamics *dynamics_;
     std::string animation_;
 };
 

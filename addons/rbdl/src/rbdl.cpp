@@ -67,7 +67,7 @@ void RBDLDynamics::reconfigure(const Configuration &config)
 {
 }
 
-void RBDLDynamics::eom(const Vector &state, const Vector &action, Vector *xd) const
+void RBDLDynamics::eom(const Vector &state, const Vector &actuation, Vector *xd) const
 {
   RBDLState *rbdl = rbdl_state_.instance();
 
@@ -82,7 +82,7 @@ void RBDLDynamics::eom(const Vector &state, const Vector &action, Vector *xd) co
   if (!lua_isnil(rbdl->L, -1))
   {
     lua_pushvector(rbdl->L, state);
-    lua_pushvector(rbdl->L, action);
+    lua_pushvector(rbdl->L, actuation);
     if (lua_pcall(rbdl->L, 2, 1, 0) != 0)
     {
       ERROR("Cannot find controls: " << lua_tostring(rbdl->L, -1));
@@ -95,7 +95,7 @@ void RBDLDynamics::eom(const Vector &state, const Vector &action, Vector *xd) co
   }
   else
   {
-    controls = action;
+    controls = actuation;
     if (controls.size() != dim)
       throw Exception("Policy is incompatible with dynamics");
   }
@@ -445,7 +445,7 @@ void LuaTask::start(int test, Vector *state) const
   lua_pop(lua->L, 1);
 }
 
-void LuaTask::observe(const Vector &state, Vector *obs, int *terminal) const
+void LuaTask::observe(const Vector &state, Observation *obs, int *terminal) const
 {
   LuaState *lua = lua_state_.instance();
 
@@ -464,10 +464,11 @@ void LuaTask::observe(const Vector &state, Vector *obs, int *terminal) const
     WARNING("Termination condition is not a number");
   
   *terminal = lua_tointeger(lua->L, -1);
+  obs->absorbing = *terminal > 1;
   lua_pop(lua->L, 2);
 }
 
-void LuaTask::evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const
+void LuaTask::evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const
 {
   LuaState *lua = lua_state_.instance();
 
@@ -489,7 +490,7 @@ void LuaTask::evaluate(const Vector &state, const Vector &action, const Vector &
   lua_pop(lua->L, 1);
 }
  
-bool LuaTask::invert(const Vector &obs, Vector *state) const
+bool LuaTask::invert(const Observation &obs, Vector *state) const
 {
   LuaState *lua = lua_state_.instance();
 
@@ -508,7 +509,7 @@ bool LuaTask::invert(const Vector &obs, Vector *state) const
   return true;
 }
 
-Matrix LuaTask::rewardHessian(const Vector &state, const Vector &action) const
+Matrix LuaTask::rewardHessian(const Observation &state, const Action &action) const
 {
   LuaState *lua = lua_state_.instance();
   Matrix hessian;

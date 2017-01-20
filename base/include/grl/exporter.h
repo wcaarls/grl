@@ -30,7 +30,6 @@
 #define GRL_EXPORTER_H_
 
 #include <grl/configurable.h>
-#include <initializer_list>
 
 namespace grl {
 
@@ -38,7 +37,7 @@ class Exporter : public Configurable
 {
   public:
     /// Register header names of variables that will be written.
-    virtual void init(const std::initializer_list<std::string> &list) = 0;
+    virtual void init(const std::vector<std::string> &list) = 0;
     
     /// Open a file.
     virtual void open(const std::string &variant="", bool append=true) = 0;
@@ -48,7 +47,7 @@ class Exporter : public Configurable
      * 
      * The variable list should correspond to the header name.
      */
-    virtual void write(const std::initializer_list<Vector> &list) = 0;
+    virtual void write(const std::vector<Vector> &list) = 0;
 
     /**
      * \brief Append to a line.
@@ -57,7 +56,7 @@ class Exporter : public Configurable
      * The variable list should contain all or a few of header names.
      * After the line is fully prepared it is written autamatically.
      */
-    virtual void append(const std::initializer_list<Vector> &vars) = 0;
+    virtual void append(const std::vector<Vector> &vars) = 0;
 };
 
 class CSVExporter : public Exporter
@@ -78,8 +77,6 @@ class CSVExporter : public Exporter
     bool write_header_, enabled_;
     std::map<std::string, int> run_counter_;
 
-    void write(std::vector<Vector> vars);
-
   public:
     CSVExporter() : style_("line"), variant_("all"), write_header_(true), enabled_(true) { }
   
@@ -89,10 +86,10 @@ class CSVExporter : public Exporter
     virtual void reconfigure(const Configuration &config);
 
     // From Exporter
-    void init(const std::initializer_list<std::string> &headers);
+    void init(const std::vector<std::string> &headers);
     void open(const std::string &variant="", bool append=true);
-    void write(const std::initializer_list<Vector> &vars);
-    void append(const std::initializer_list<Vector> &vars);
+    void write(const std::vector<Vector> &vars);
+    void append(const std::vector<Vector> &vars);
 };
 
 }

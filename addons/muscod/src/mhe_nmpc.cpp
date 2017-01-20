@@ -209,17 +209,17 @@ void MHE_NMPCPolicy::muscod_reset(const Vector &initial_obs, const Vector &initi
     std::cout << "MUSCOD is reseted!" << std::endl;
 }
 
-TransitionType MHE_NMPCPolicy::act(double time, const Vector &in, Vector *out)
+void MHE_NMPCPolicy::act(double time, const Observation &in, Action *out)
 {
-  grl_assert((in.size() == nmpc_->NXD() + nmpc_->NP()) || (in.size() == nmpc_->NXD()));
+  grl_assert((in.v.size() == nmpc_->NXD() + nmpc_->NP()) || (in.v.size() == nmpc_->NXD()));
 
   // subdivide 'in' into state and setpoint
   if (in.size() == nmpc_->NXD() + nmpc_->NP())
   {
-    initial_sd_ << in.block(0, 0, 1, nmpc_->NXD());
-    initial_pf_ << in.block(0, nmpc_->NXD(), 1, nmpc_->NP());
+    initial_sd_ << in.v.block(0, 0, 1, nmpc_->NXD());
+    initial_pf_ << in.v.block(0, nmpc_->NXD(), 1, nmpc_->NP());
   } else {
-    initial_sd_ << in;
+    initial_sd_ << in.v;
   }
 
   if (verbose_)
@@ -231,7 +231,7 @@ TransitionType MHE_NMPCPolicy::act(double time, const Vector &in, Vector *out)
   if (time == 0.0)
     muscod_reset(initial_sd_, initial_pf_, initial_qc_);
 
-  out->resize( nmpc_->NU() );
+  out->v.resize( nmpc_->NU() );
 
   if (feedback_ == "non-threaded")
   {
@@ -242,7 +242,7 @@ TransitionType MHE_NMPCPolicy::act(double time, const Vector &in, Vector *out)
         // 0) Compose new measurement
         // NOTE measurement consists of simulation result + feedback control
         // m_hs = [ xd[0], ..., xd[NXD-1], u[0], ..., u[NU-1] ]
-        hs_ << in, ConstantVector(mhe_->NU(), 0);
+        hs_ << in.v, ConstantVector(mhe_->NU(), 0);
         // std::cout << "new_measurement = " << hs_ << std::endl;
         // 1) Inject measurements
         mhe_->inject_measurement(hs_, ss_, initial_qc_);
@@ -334,14 +334,14 @@ TransitionType MHE_NMPCPolicy::act(double time, const Vector &in, Vector *out)
   // NOTE feedback control is cut of at action limits 'action_min/max'
   for (int i = 0; i < action_min_.size(); i++)
   {
-    (*out)[i] = fmax( fmin(initial_qc_[i], action_max_[i]) , action_min_[i]);
-    if ((*out)[i] != initial_qc_[i])
+    out->v[i] = fmax( fmin(initial_qc_[i], action_max_[i]) , action_min_[i]);
+    if (out->v[i] != initial_qc_[i])
       WARNING("NMPC action " << i << " was truncated");
   }
 
-  if (verbose_)
-    std::cout << "Feedback Control: [" << *out << "]" << std::endl;
+  out->type = atGreedy;
 
-  return ttGreedy;
+  if (verbose_)
+    std::cout << "Feedback Control: [" << out->v << "]" << std::endl;
 }
 

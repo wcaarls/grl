@@ -67,7 +67,7 @@ class CompassWalkerModel : public Model
     virtual void reconfigure(const Configuration &config);
     
     // From Model
-    virtual double step(const Vector &state, const Vector &action, Vector *next) const;
+    virtual double step(const Vector &state, const Vector &actuation, Vector *next) const;
 };
 
 // Compass (simplest) walker non-markov model.
@@ -100,7 +100,7 @@ class CompassWalkerSandbox : public Sandbox
 
     // From Model
     virtual void start(const Vector &hint, Vector *state);
-    virtual double step(const Vector &action, Vector *next);
+    virtual double step(const Vector &actuation, Vector *next);
 };
 
 // Walk forward task for compass walker.
@@ -121,7 +121,7 @@ class CompassWalkerWalkTask : public Task
 
   public:
     CompassWalkerWalkTask() : T_(100), initial_state_variation_(0.2), slope_angle_(0.004),
-      neg_reward_(-100.0), verbose_(false), observe_(VectorConstructor(1, 1, 1, 1, 1, 0)), steps_(0){ }
+      neg_reward_(-100.0), verbose_(false), observe_(VectorConstructor(1, 1, 1, 1, 1, 0, 0)), steps_(0){ }
     
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -130,9 +130,9 @@ class CompassWalkerWalkTask : public Task
     
     // From Task
     virtual void start(int test, Vector *state) const;
-    virtual void observe(const Vector &state, Vector *obs, int *terminal) const;
-    virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const;
-    virtual bool invert(const Vector &obs, Vector *state) const;
+    virtual void observe(const Vector &state, Observation *obs, int *terminal) const;
+    virtual void evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const;
+    virtual bool invert(const Observation &obs, Vector *state) const;
 };
 
 // Walk forward with a reference velocity task for compass walker.
@@ -154,7 +154,7 @@ class CompassWalkerVrefTask : public CompassWalkerWalkTask
 
     // From Task
     virtual void start(int test, Vector *state) const;
-    virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const;
+    virtual void evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const;
 };
 
 // Walk forward with a reference velocity task for compass walker in limit cycle and control minimization.
@@ -167,7 +167,7 @@ class CompassWalkerVrefuTask : public CompassWalkerVrefTask
     CompassWalkerVrefuTask() { }
 
     // From Task
-    virtual void evaluate(const Vector &state, const Vector &action, const Vector &next, double *reward) const;
+    virtual void evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const;
 };
 
 }

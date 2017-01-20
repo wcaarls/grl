@@ -62,10 +62,11 @@ void ParameterizedActionPolicy::reconfigure(const Configuration &config)
 {
 }
 
-TransitionType ParameterizedActionPolicy::act(const Vector &in, Vector *out) const
+void ParameterizedActionPolicy::act(const Observation &in, Action *out) const
 {
   ProjectionPtr p = projector_->project(in);
-  representation_->read(p, out);
+  representation_->read(p, &out->v);
+  out->type = atGreedy;
   
   // Some representations may not always return a value.
   if (!out->size())
@@ -74,10 +75,11 @@ TransitionType ParameterizedActionPolicy::act(const Vector &in, Vector *out) con
   for (size_t ii=0; ii < out->size(); ++ii)
   {
     if (sigma_[ii])
+    {
       (*out)[ii] += RandGen::getNormal(0., sigma_[ii]);
+      out->type = atExploratory;
+    }
       
     (*out)[ii] = fmin(fmax((*out)[ii], min_[ii]), max_[ii]);
   }
-
-  return ttExploratory;
 }
