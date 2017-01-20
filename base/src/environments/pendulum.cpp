@@ -128,6 +128,8 @@ void PendulumSwingupTask::evaluate(const Vector &state, const Vector &action, co
   if (a > M_PI) a -= 2*M_PI;
 
   *reward = -5*pow(a, 2) - 0.1*pow(next[1], 2) - 1*pow(action[0], 2);
+ // *reward = -pow(a, 2) - 0.1*pow(next[1], 2) - 0.01*pow(action[0], 2);
+
 }
 
 bool PendulumSwingupTask::invert(const Vector &obs, Vector *state) const

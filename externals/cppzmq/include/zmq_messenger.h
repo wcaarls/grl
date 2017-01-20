@@ -30,7 +30,7 @@ public:
 
   void start(const char *pubAddress, const char *subAddress, const char *syncAddress = 0, int flags = 0);
   void send(const void *data, int size) const;
-  bool recv(void* data, int size, int flags = 0) const;
+  bool recv(void* data, int size) const;
 
 };
 

@@ -101,11 +101,11 @@ void ZeromqMessenger::send(const void* data, int size) const
   publisher_->send(message);
 }
 
-bool ZeromqMessenger::recv(void *data, int size, int flags) const
+bool ZeromqMessenger::recv(void *data, int size) const
 {
   if (flags_ & ZMQ_SYNC_CLI)
   {
-      zmq::message_t reply(size);
+      zmq::message_t reply;
       publisher_->recv(&reply);
       memcpy(data, reply.data(), size);
       return true;
