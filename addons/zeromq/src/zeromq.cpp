@@ -35,7 +35,7 @@ REGISTER_CONFIGURABLE(ZeromqPubSubCommunicator)
 REGISTER_CONFIGURABLE(CommunicatorEnvironment)
 REGISTER_CONFIGURABLE(ZeromqRequestReplyCommunicator)
 REGISTER_CONFIGURABLE(ZeromqAgent)
-
+REGISTER_CONFIGURABLE(CommunicatorRepresentation)
 
 void ZeromqCommunicator::request(ConfigurationRequest *config)
 {
@@ -56,7 +56,7 @@ void ZeromqCommunicator::configure(Configuration &config)
     pattern_ |= ZMQ_SYNC_CLI;
 }
 
-void ZeromqCommunicator::send(const Vector v) const
+void ZeromqCommunicator::send(const Vector &v) const
 {
   zmq_messenger_.send(reinterpret_cast<const void*>(v.data()), v.cols()*sizeof(double));
 }
@@ -225,4 +225,164 @@ void ZeromqAgent::end(double tau, const Observation &obs, double reward)
     communicator_->recv(&test);
 }
 
+//////////////////////////////////////////////////////////
+void CommunicatorRepresentation::request(const std::string &role, ConfigurationRequest *config)
+{
+  if (role == "action")
+  {
+    config->push_back(CRP("inputs", "int.observation_dims", "Number of input dimensions", (int)inputs_, CRP::System, 1));
+    config->push_back(CRP("outputs", "int.action_dims", "Number of output dimensions", (int)outputs_, CRP::System, 1));
+  }
+  else
+  {
+    if (role == "transition" || role == "value/action")
+      config->push_back(CRP("inputs", "int.observation_dims+int.action_dims", "Number of input dimensions", (int)inputs_, CRP::System, 1));
+    else if (role == "value/state")
+      config->push_back(CRP("inputs", "int.observation_dims", "Number of input dimensions", (int)inputs_, CRP::System, 1));
+    else
+      config->push_back(CRP("inputs", "Number of input dimensions", (int)inputs_, CRP::System, 1));
+      
+    if (role == "transition")
+      config->push_back(CRP("outputs", "int.observation_dims+2", "Number of output dimensions", (int)outputs_, CRP::System, 1));
+    else
+      config->push_back(CRP("outputs", "Number of output dimensions", (int)outputs_, CRP::System, 1));
+  }
+  
+  config->push_back(CRP("communicator", "communicator", "Communicator which exchanges messages with the out-of-process representation", communicator_));
+}
 
+void CommunicatorRepresentation::configure(Configuration &config)
+{
+  communicator_ = (Communicator*)config["communicator"].ptr();
+  
+  Configuration comcfg_in, comcfg_out;
+  
+  comcfg_in.set("inputs", inputs_);
+  comcfg_in.set("outputs", outputs_);
+  
+  communicator_->setup(comcfg_in, &comcfg_out);
+}
+
+void CommunicatorRepresentation::reconfigure(const Configuration &config)
+{
+}
+
+double CommunicatorRepresentation::read(const ProjectionPtr &projection, Vector *result, Vector *stddev) const
+{
+  IndexProjection *ip = dynamic_cast<IndexProjection*>(projection.get());
+  if (ip)
+  {
+    if (ip->indices.size() != 1)
+      throw Exception("Communicator representation does not support multi-index projections");
+      
+    communicator_->send(VectorConstructor(mtRead, (double)ip->indices[0]));
+  }
+  else
+  {
+    VectorProjection *vp = dynamic_cast<VectorProjection*>(projection.get());
+    if (vp)
+    {
+      if (vp->vector.size() != inputs_)
+        throw bad_param("representation/communicator:inputs");
+    
+      communicator_->send(extend(VectorConstructor(mtRead), vp->vector));
+    }
+    else
+      throw Exception("Communicator representation only supports index or vector projections");
+  }
+  
+  result->resize(outputs_);
+  communicator_->recv(result);
+
+  //CRAWL("Read " << ip->indices[0] << " -> " << *result);
+  
+  if (stddev)
+    *stddev = Vector();
+    
+  return (*result)[0];
+}
+
+void CommunicatorRepresentation::write(const ProjectionPtr projection, const Vector &target, const Vector &alpha)
+{
+  if (target.size() != outputs_)
+    throw bad_param("representation/communicator:outputs");
+
+  if (target.size() != alpha.size())
+    throw Exception("Learning rate vector does not match target vector");
+
+  IndexProjection *ip = dynamic_cast<IndexProjection*>(projection.get());
+  if (ip)
+  {
+    if (ip->indices.size() != 1)
+      throw Exception("Communicator representation does not support multi-index projections");
+      
+    Vector v(2 + target.size() + alpha.size());
+    v << mtWrite, ip->indices[0], target, alpha;
+
+    //CRAWL("Writing " << ip->indices[0] << " -" << alpha << "> " << target);
+    communicator_->send(v);
+  }
+  else
+  {
+    VectorProjection *vp = dynamic_cast<VectorProjection*>(projection.get());
+    if (vp)
+    {
+      if (vp->vector.size() != inputs_)
+        throw bad_param("representation/communicator:inputs");
+        
+      Vector v(1 + vp->vector.size() + target.size() + alpha.size());
+      v << mtWrite, vp->vector, target, alpha;
+    
+      communicator_->send(v);
+    }
+    else
+      throw Exception("Communicator representation only supports index or vector projections");
+  }
+
+  Vector _;
+  communicator_->recv(&_);
+}
+
+void CommunicatorRepresentation::update(const ProjectionPtr projection, const Vector &delta)
+{
+  if (delta.size() != outputs_)
+    throw bad_param("representation/communicator:outputs");
+
+  IndexProjection *ip = dynamic_cast<IndexProjection*>(projection.get());
+  if (ip)
+  {
+    if (ip->indices.size() != 1)
+      throw Exception("Communicator representation does not support multi-index projections");
+      
+    //CRAWL("Updating " << ip->indices[0] << " + " << delta);
+    communicator_->send(extend(VectorConstructor(mtUpdate, (double)ip->indices[0]), delta));
+  }
+  else
+  {
+    VectorProjection *vp = dynamic_cast<VectorProjection*>(projection.get());
+    if (vp)
+    {
+      if (vp->vector.size() != inputs_)
+        throw bad_param("representation/communicator:inputs");
+        
+      Vector v(1 + vp->vector.size() + delta.size());
+      v << mtUpdate, vp->vector, delta;
+    
+      communicator_->send(v);
+    }
+    else
+      throw Exception("Communicator representation only supports index or vector projections");
+  }
+
+  Vector _;
+  communicator_->recv(&_);
+}
+
+void CommunicatorRepresentation::finalize()
+{
+  Vector _;
+
+  //CRAWL("Finalizing");
+  communicator_->send(VectorConstructor(mtFinalize));
+  communicator_->recv(&_);
+}

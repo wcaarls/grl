@@ -297,5 +297,7 @@ void SliceVisualization::draw()
     }
   }
 
-  swap();
+  // Ugly hack to avoid swapping in a derived class
+  if (d_type() == s_type())
+    swap();
 }

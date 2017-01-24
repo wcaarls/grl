@@ -59,6 +59,13 @@ void StateVisualization::configure(Configuration &config)
   if (min_.size() != max_.size())
     throw bad_param("visualization/state:{input_min,input_max}");
     
+  if (!dims_.size())
+  {
+    dims_ = Vector(min_.size());
+    for (size_t ii=0; ii < min_.size(); ++ii)
+      dims_[ii] = ii;
+  }
+    
   for (size_t ii=0; ii < dims_.size(); ++ii)
     if (dims_[ii] >= min_.size())
       throw bad_param("visualization/state:{input_dims,input_min,input_max}");

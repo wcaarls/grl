@@ -31,6 +31,7 @@
 #include <zmq_messenger.h>
 #include <grl/environment.h>
 #include <grl/agent.h>
+#include <grl/representation.h>
 #include <grl/converter.h>
 #include <drl_messages.pb.h>
 #include <time.h>
@@ -43,9 +44,12 @@ class Communicator: public Configurable
 {
 public:
   virtual ~Communicator() { }
+  
+  /// Exchange metadata.
+  virtual void setup(const Configuration &in, Configuration *out) { }
 
   /// Send data.
-  virtual void send(const Vector v) const = 0;
+  virtual void send(const Vector &v) const = 0;
 
   /// Receive data.
   virtual bool recv(Vector *v) const = 0;
@@ -62,7 +66,7 @@ class ZeromqCommunicator: public Communicator
     virtual void configure(Configuration &config);
 
     // From Communicator
-    virtual void send(const Vector v) const;
+    virtual void send(const Vector &v) const;
     virtual bool recv(Vector *v) const;
 
   protected:
@@ -147,6 +151,32 @@ class ZeromqAgent : public Agent
     Communicator *communicator_;
 
 
+};
+
+class CommunicatorRepresentation : public Representation
+{
+  public:
+    TYPEINFO("representation/communicator", "Interface to an out-of-process representation")
+
+    enum MessageType {mtRead, mtWrite, mtUpdate, mtFinalize};
+
+  protected:
+    size_t inputs_, outputs_;
+    Communicator *communicator_;
+
+  public:
+    CommunicatorRepresentation() : inputs_(1), outputs_(1) { }
+  
+    // From Configurable
+    virtual void request(const std::string &role, ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+
+    // From Representation
+    virtual double read(const ProjectionPtr &projection, Vector *result, Vector *stddev) const;
+    virtual void write(const ProjectionPtr projection, const Vector &target, const Vector &alpha);
+    virtual void update(const ProjectionPtr projection, const Vector &delta);
+    virtual void finalize();
 };
 
 }
