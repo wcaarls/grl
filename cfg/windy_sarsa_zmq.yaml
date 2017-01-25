@@ -1,0 +1,64 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 0
+  steps: 0
+  rate: 0
+  test_interval: -1
+  environment: 
+    type: environment/modeled
+    model: 
+      type: model/windy
+    task: 
+      type: task/windy/movement
+  agent: 
+    type: agent/td
+    policy: 
+      type: mapping/policy/value/q
+      discretizer: 
+        type: discretizer/uniform
+        min: experiment/environment/task/action_min
+        max: experiment/environment/task/action_max
+        steps: [4]
+      projector: 
+        type: projector/grid
+        input_min: experiment/environment/task/observation_min+experiment/environment/task/action_min
+        input_max: experiment/environment/task/observation_max+experiment/environment/task/action_max
+        steps: [10, 7, 4]
+      representation: 
+        type: representation/communicator
+        inputs: experiment/environment/task/observation_dims+experiment/environment/task/action_dims
+        outputs: 1
+        communicator: 
+          type: communicator/zeromq/request_reply
+          pattern: ZMQ_SYNC_CLI
+          cli: tcp://localhost:5556
+      sampler: 
+        type: sampler/epsilon_greedy
+        rand_max: 0
+        epsilon: 0.1
+    predictor: 
+      type: predictor/sarsa
+      alpha: 0.1
+      gamma: 1.0
+      lambda: 0
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+      trace: 
+        type: trace/enumerated/replacing
+  test_agent: 
+    type: agent/fixed
+    policy: 
+      type: mapping/policy/value/q
+      discretizer: experiment/agent/policy/discretizer
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+      sampler: 
+        type: sampler/greedy
+        rand_max: 0
+  save_every: never
+visualizer: 
+  type: visualizer/glut
+visualization: 
+  type: visualization/windy
+  state: experiment/environment/state
