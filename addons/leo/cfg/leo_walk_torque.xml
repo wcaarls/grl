@@ -23,7 +23,7 @@
 		<leofloorlength>2*pi*leofloorradius</leofloorlength>
 		<startheight>0.0410</startheight>
 		<ctrlFrequency>30.0</ctrlFrequency>
-		<maxvoltage>10.7</maxvoltage>
+		<stalltorque>1.5</stalltorque>
 	</constants>
 	<strings comment="These strings will not generate parser warnings; they are assumed to be spelled correctly when spelled this way.">
 		<!-- booleans -->
@@ -36,7 +36,7 @@
 		<s>surface</s>
 	</strings>
 	<appLogLevel info="2" warn="4" err="5">0</appLogLevel>
-  <loglevel info="2" warn="4" err="5">error</loglevel>
+  <loglevel info="2" warn="4" err="5">err</loglevel>
 	<learner>
 		<lifeTime comment="in seconds">36000</lifeTime>
 		<autoSavePolicy>true</autoSavePolicy>
@@ -100,10 +100,10 @@
 		<scaleFactKneeSwingAngle>3.58</scaleFactKneeSwingAngle>
 		<scaleFactKneeSwingAngleRate>0.10</scaleFactKneeSwingAngleRate>
 
-		<!-- action space -->
+		<!-- action space 
 		<numActionsPerJoint>7</numActionsPerJoint>
 		<scaleFactVoltage>0.15</scaleFactVoltage>
-	
+	-->
 		<!-- pre-programmed walking controller settings -->
 		<preprogrammedTorsoAngle>-0.09</preprogrammedTorsoAngle>
 		<preprogrammedHipAngle>0.680</preprogrammedHipAngle>
@@ -222,47 +222,47 @@
 			<max>1</max>
 		</statevar>
 
-		<actionvar comment="Shoulder voltage">
-		    <variable>robot.shoulder.voltage</variable>
+		<actionvar comment="Shoulder torque">
+		    <variable>robot.shoulder.torque</variable>
 		    <expression>x</expression>
-		    <min>-maxvoltage</min>
-		    <max>maxvoltage</max>
+		    <min>-stalltorque</min>
+		    <max>stalltorque</max>
 		</actionvar>
-		<actionvar comment="Right hip voltage">
-		    <variable>robot.hipright.voltage</variable>
+		<actionvar comment="Right hip torque">
+		    <variable>robot.hipright.torque</variable>
 		    <expression>x</expression>
-		    <min>-maxvoltage</min>
-		    <max>maxvoltage</max>
+		    <min>-stalltorque</min>
+		    <max>stalltorque</max>
 		</actionvar>
-		<actionvar comment="Left hip voltage">
-		    <variable>robot.hipleft.voltage</variable>
+		<actionvar comment="Left hip torque">
+		    <variable>robot.hipleft.torque</variable>
 		    <expression>x</expression>
-		    <min>-maxvoltage</min>
-		    <max>maxvoltage</max>
+		    <min>-stalltorque</min>
+		    <max>stalltorque</max>
 		</actionvar>
-		<actionvar comment="Right knee voltage">
-		    <variable>robot.kneeright.voltage</variable>
+		<actionvar comment="Right knee torque">
+		    <variable>robot.kneeright.torque</variable>
 		    <expression>x</expression>
-		    <min>-maxvoltage</min>
-		    <max>maxvoltage</max>
+		    <min>-stalltorque</min>
+		    <max>stalltorque</max>
 		</actionvar>
-		<actionvar comment="Left knee voltage">
-		    <variable>robot.kneeleft.voltage</variable>
+		<actionvar comment="Left knee torque">
+		    <variable>robot.kneeleft.torque</variable>
 		    <expression>x</expression>
-		    <min>-maxvoltage</min>
-		    <max>maxvoltage</max>
+		    <min>-stalltorque</min>
+		    <max>stalltorque</max>
 		</actionvar>
-		<actionvar comment="Right ankle voltage">
-		    <variable>robot.ankleright.voltage</variable>
+		<actionvar comment="Right ankle torque">
+		    <variable>robot.ankleright.torque</variable>
 		    <expression>x</expression>
-		    <min>-maxvoltage</min>
-		    <max>maxvoltage</max>
+		    <min>-stalltorque</min>
+		    <max>stalltorque</max>
 		</actionvar>
-		<actionvar comment="Left ankle voltage">
-		    <variable>robot.ankleleft.voltage</variable>
+		<actionvar comment="Left ankle torque">
+		    <variable>robot.ankleleft.torque</variable>
 		    <expression>x</expression>
-		    <min>-maxvoltage</min>
-		    <max>maxvoltage</max>
+		    <min>-stalltorque</min>
+		    <max>stalltorque</max>
 		</actionvar>
 	</policy>
 	<ode>
@@ -276,7 +276,7 @@
 		<actuationdelay>0.000</actuationdelay>
 		<!-- Merge this configuration with leo's ODE configuration -->
 		<include>
-			<filename>leoconfig.xml</filename>
+			<filename>leoconfig_torque.xml</filename>
 			<path>ode/</path>
 		</include>
 		<object>

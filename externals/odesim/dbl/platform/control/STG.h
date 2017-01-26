@@ -124,6 +124,9 @@ enum ESTGActuationMode
 // Return codes are integer and successful function calls should return zero (0).
 class ISTGActuation
 {
+  private:
+    ESTGActuationMode mActuationMode;
+
 	public:
 		ISTGActuation()				{}
 		virtual ~ISTGActuation()	{}
@@ -135,8 +138,9 @@ class ISTGActuation
 *
 *		 Set the right mode first before calling SetJoint*()
 */
-		virtual int					setActuationMode(ESTGActuationMode actuationMode)	{return 0;}
-		ESTGActuationMode			getActuationModeByName(const std::string& actuationMode)
+    void setActuationMode(ESTGActuationMode actuationMode)	{ mActuationMode = actuationMode; }
+    ESTGActuationMode	getActuationMode() const              { return mActuationMode; }
+    ESTGActuationMode	getActuationModeByName(const std::string& actuationMode)
 		{
 			if (actuationMode.compare("off") == 0)
 				return amOff;
@@ -178,13 +182,11 @@ class ISTGActuation
 		virtual void				setStatusStr(const std::string& status)				{}
 		virtual void				setMotorPower(bool action)							{}
 		virtual void				setParameters()										{}
-        virtual void                setJointAction(int jointIndex, double action)       {}
-
-
+    virtual void        setJointAction(int jointIndex, double action)       {}
 
 		// It's wise to implement the physical properties of the motors, as well as their name
 		virtual const std::string	getJointName(int jointIndex)						{return "";}
-		virtual int					getJointIndexByName(const std::string& jointName)	{return 0;}
+    virtual int           getJointIndexByName(const std::string& jointName)	{return 0;}
 
 		virtual double				getJointMaxSpeed(int jointIndex)					{return 0;}
 		virtual double				getJointMaxTorque(int jointIndex)					{return 0;}
@@ -196,7 +198,7 @@ class ISTGActuation
 		virtual double				getJointTemperature(int jointIndex)					{return 0;}
 		// Call activateActions() at a moment of your choosing to put the new control actions into effect.
 		// To be able to determine to which state this is a response, a stateID is passed
-		virtual int					activateActions(const uint64_t& stateID)			{return 0;}
+    virtual int           activateActions(const uint64_t& stateID)			{return 0;}
 
 		// The actuation interface also provides an estimate of the computational delay between state measurements and control action execution
 		// The computational delay is defined as the ratio of the delay time and the sample time, and can exceed 1.

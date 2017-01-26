@@ -169,6 +169,7 @@ class CGenericActuator : public CSTGLoggable
     void setAction(double value, ISTGActuation *iface);
     double getAction(GenericState *state);
     const std::string& name() const { return mName; }
+    const ESTGActuationMode& mode() const { return mActuationMode; }
 };
 
 class CGenericActionVar : public CSTGLoggable
@@ -178,7 +179,7 @@ class CGenericActionVar : public CSTGLoggable
     std::string mExpression;
     mu::Parser mParser;
     double *mValue;
-    ESTGActuationMode mActuationMode;
+    //ESTGActuationMode mActuationMode;
 
   public:
     CGenericActionVar(std::string expression="0") : mExpression(expression)
@@ -205,6 +206,7 @@ class CGenericActionVar : public CSTGLoggable
     void actuate(double value, ISTGActuation *iface);
     double getAction(GenericState *state);
     const std::string& name() const { return mActuators[0].name(); }
+    const ESTGActuationMode& mode() const { return mActuators[0].mode(); }
 };
 
 #endif /* __GENERICSTATE_H_INCLUDED */

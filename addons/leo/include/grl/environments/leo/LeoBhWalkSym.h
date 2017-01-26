@@ -55,8 +55,8 @@ class CLeoBhWalkSym: public CSTGAgentQLeo
     double        mMultiResScaleFact;         // If > 0, multi-resolution tile coding will be used with an additional layer, uniformly scaled with this factor (state space only, not action space)
 
     // Action space settings
-    int           mNumActionsPerJoint;
-    double        mScaleFactVoltage;
+//    int           mNumActionsPerJoint;
+//    double        mScaleFactVoltage;
 
     // Termination variables
     uint64_t      mTrialTimeout;              // Trial timeout time in microseconds

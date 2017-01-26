@@ -35,9 +35,10 @@ bool CODEJointMotor::readConfig(const CConfigSection &configSection)
 }
 
 CODETorqueMotor::CODETorqueMotor(CODEJoint* joint):
-	CODEJointMotor(joint),
+  CODEServoMotor(joint),
 	mTorque(0.0),
-	mLinearDamping(0.0)
+  mLinearDamping(0.0),
+  mStallTorque(3.0)
 {
 
 }
@@ -49,18 +50,40 @@ void CODETorqueMotor::setTorque(double torque)
 
 void CODETorqueMotor::update(double stepTime)
 {
-	double finalTorque = mTorque - mLinearDamping*mpJoint->getAngleRate(mAxisIndex);
-	mpJoint->addTorque(finalTorque, mAxisIndex);
+  double clippedTorque = mTorque;
+  if (clippedTorque > mStallTorque)
+    clippedTorque = mStallTorque;
+  if (clippedTorque < -mStallTorque)
+    clippedTorque = -mStallTorque;
+
+//  mLinearDamping = 0.5;
+
+  double torque = mTorque - mLinearDamping*mpJoint->getAngleRate(mAxisIndex);
+/*
+  // Update virtual motor disc model if the armature has inertia
+  if (mEffectiveInertia > 0)
+  {
+    double VDiscCtrlTorque	= updateVDisc(stepTime);
+    torque -= VDiscCtrlTorque;	// Equal but opposite torque acts on the joint
+  }
+
+  // Gearbox inefficiency
+  torque *= mGearboxEfficiency;
+*/
+
+//  printf("[DEBUG] Joint %s: torque: %.4f\n", mpJoint->name().c_str(), torque);
+
+  mpJoint->addTorque(torque, mAxisIndex);
 }
 
 bool CODETorqueMotor::readConfig(const CConfigSection &configSection)
 {
 	bool configresult = true;
+  configresult &= CODEServoMotor::readConfig(configSection);
 
-	configresult &= CODEJointMotor::readConfig(configSection);
-
-	// Not necessary to define damping; in that case, 0 is assumed (see constructor)
-	configSection.get("lineardamping", &mLinearDamping);
+  // Parameters specific to torque control
+  configSection.get("lineardamping", &mLinearDamping);  // Not necessary to define damping; in that case, 0 is assumed (see constructor)
+  configresult &= mLogAssert(configSection.get("stalltorque", &mStallTorque));
 
 	return configresult;
 }
@@ -222,6 +245,8 @@ void CODEServoMotor::update(double stepTime)
 	torque *= mGearboxEfficiency;
 
 	mpJoint->addTorque(torque, mAxisIndex);
+
+  printf("[DEBUG] Joint %s: voltage: %.4f, torque: %.4f\n", mpJoint->name().c_str(), clippedVoltage, torque);
 
 	// Report to screen if desired
 	/*

@@ -32,6 +32,7 @@
 // Motor coefficients
 #define DXL_RX28_TORQUE_CONST			0.00992
 #define DXL_RX28_GEARBOX_RATIO			193.0
+#define DXL_RX28_RESISTANCE           8.6
 
 // Temperature coefficients
 #define DXL_RX28_COPPER_COEF			0.004	// Was 0.0041, which worked well with motorCoeff=-0.002 for half compensation. And tempRef = 20deg.
