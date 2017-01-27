@@ -140,3 +140,29 @@ Vector SplitDiscretizer::at(const Vector &point, size_t idx) const
   else
     return v;
 }
+
+size_t SplitDiscretizer::discretize(const Vector &vec) const
+{
+  size_t nearest_dd = 0, nearest_offset = discretizer_[0]->discretize(vec);
+  Vector nearest_point = discretizer_[0]->at(nearest_offset);
+  double nearest_dist = (vec-nearest_point).matrix().squaredNorm();
+
+  for (size_t dd=1; dd < discretizer_.size(); ++dd)
+  {
+    size_t offset = discretizer_[dd]->discretize(vec);
+    Vector point = discretizer_[dd]->at(nearest_offset);
+    double dist = (vec-point).matrix().squaredNorm();
+    
+    if (dist < nearest_dist)
+    {
+      nearest_dd = dd;
+      nearest_offset = offset;
+      nearest_point = point;
+      nearest_dist = dist;
+    }
+  }
+  
+  for (size_t dd=0; dd < nearest_dd; nearest_offset += discretizer_[dd]->size());
+  
+  return nearest_offset;
+}

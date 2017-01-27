@@ -33,8 +33,9 @@
 #include <grl/agent.h>
 #include <grl/representation.h>
 #include <grl/converter.h>
-#include <drl_messages.pb.h>
+//#include <drl_messages.pb.h>
 #include <time.h>
+#include <mutex>
 
 namespace grl
 {
@@ -163,9 +164,10 @@ class CommunicatorRepresentation : public Representation
   protected:
     size_t inputs_, outputs_;
     Communicator *communicator_;
+    mutable std::mutex mutex_;
 
   public:
-    CommunicatorRepresentation() : inputs_(1), outputs_(1) { }
+    CommunicatorRepresentation() : inputs_(1), outputs_(1), communicator_(NULL) { }
   
     // From Configurable
     virtual void request(const std::string &role, ConfigurationRequest *config);

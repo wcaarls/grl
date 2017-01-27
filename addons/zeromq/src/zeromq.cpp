@@ -254,6 +254,8 @@ void CommunicatorRepresentation::request(const std::string &role, ConfigurationR
 void CommunicatorRepresentation::configure(Configuration &config)
 {
   communicator_ = (Communicator*)config["communicator"].ptr();
+  inputs_ = config["inputs"];
+  outputs_ = config["outputs"];
   
   Configuration comcfg_in, comcfg_out;
   
@@ -269,12 +271,15 @@ void CommunicatorRepresentation::reconfigure(const Configuration &config)
 
 double CommunicatorRepresentation::read(const ProjectionPtr &projection, Vector *result, Vector *stddev) const
 {
+  std::lock_guard<std::mutex> lock(mutex_);
+
   IndexProjection *ip = dynamic_cast<IndexProjection*>(projection.get());
   if (ip)
   {
     if (ip->indices.size() != 1)
       throw Exception("Communicator representation does not support multi-index projections");
       
+    //CRAWL("Reading " << ip->indices[0]);
     communicator_->send(VectorConstructor(mtRead, (double)ip->indices[0]));
   }
   else
@@ -283,8 +288,12 @@ double CommunicatorRepresentation::read(const ProjectionPtr &projection, Vector 
     if (vp)
     {
       if (vp->vector.size() != inputs_)
+      {
+        ERROR("Projection size " << vp->vector.size() << " doesn't match input size " << inputs_);
         throw bad_param("representation/communicator:inputs");
+      }
     
+      //CRAWL("Reading " << vp->vector);
       communicator_->send(extend(VectorConstructor(mtRead), vp->vector));
     }
     else
@@ -293,9 +302,8 @@ double CommunicatorRepresentation::read(const ProjectionPtr &projection, Vector 
   
   result->resize(outputs_);
   communicator_->recv(result);
+  //CRAWL("Result " << *result);
 
-  //CRAWL("Read " << ip->indices[0] << " -> " << *result);
-  
   if (stddev)
     *stddev = Vector();
     
@@ -304,6 +312,8 @@ double CommunicatorRepresentation::read(const ProjectionPtr &projection, Vector 
 
 void CommunicatorRepresentation::write(const ProjectionPtr projection, const Vector &target, const Vector &alpha)
 {
+  std::lock_guard<std::mutex> lock(mutex_);
+
   if (target.size() != outputs_)
     throw bad_param("representation/communicator:outputs");
 
@@ -328,11 +338,15 @@ void CommunicatorRepresentation::write(const ProjectionPtr projection, const Vec
     if (vp)
     {
       if (vp->vector.size() != inputs_)
+      {
+        ERROR("Projection size " << vp->vector.size() << " doesn't match input size " << inputs_);
         throw bad_param("representation/communicator:inputs");
+      }
         
       Vector v(1 + vp->vector.size() + target.size() + alpha.size());
       v << mtWrite, vp->vector, target, alpha;
     
+      //CRAWL("Writing " << vp->vector << " -" << alpha << "> " << target);
       communicator_->send(v);
     }
     else
@@ -345,6 +359,8 @@ void CommunicatorRepresentation::write(const ProjectionPtr projection, const Vec
 
 void CommunicatorRepresentation::update(const ProjectionPtr projection, const Vector &delta)
 {
+  std::lock_guard<std::mutex> lock(mutex_);
+
   if (delta.size() != outputs_)
     throw bad_param("representation/communicator:outputs");
 
@@ -363,11 +379,15 @@ void CommunicatorRepresentation::update(const ProjectionPtr projection, const Ve
     if (vp)
     {
       if (vp->vector.size() != inputs_)
+      {
+        ERROR("Projection size " << vp->vector.size() << " doesn't match input size " << inputs_);
         throw bad_param("representation/communicator:inputs");
+      }
         
       Vector v(1 + vp->vector.size() + delta.size());
       v << mtUpdate, vp->vector, delta;
     
+      //CRAWL("Updating " << vp->vector << " + " << delta);
       communicator_->send(v);
     }
     else
@@ -380,6 +400,8 @@ void CommunicatorRepresentation::update(const ProjectionPtr projection, const Ve
 
 void CommunicatorRepresentation::finalize()
 {
+  std::lock_guard<std::mutex> lock(mutex_);
+
   Vector _;
 
   //CRAWL("Finalizing");

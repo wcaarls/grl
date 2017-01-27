@@ -57,7 +57,7 @@ class UniformDiscretizer : public Discretizer
     virtual void inc(iterator *it) const;
     virtual Vector get(const iterator &it) const;
     virtual Vector at(size_t idx) const;
-    virtual size_t discretize(Vector *vec) const;
+    virtual size_t discretize(const Vector &vec) const;
 };
 
 }

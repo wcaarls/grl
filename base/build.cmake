@@ -91,6 +91,7 @@ add_library(${TARGET} SHARED
 #            ${SRC}/representations/dmp.cpp
             ${SRC}/representations/additive.cpp
             ${SRC}/representations/iterative.cpp
+            ${SRC}/representations/dictionary.cpp
             ${SRC}/samplers/greedy.cpp
             ${SRC}/samplers/softmax.cpp
             ${SRC}/samplers/pada.cpp
