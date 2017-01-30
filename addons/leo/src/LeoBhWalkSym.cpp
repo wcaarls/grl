@@ -476,7 +476,7 @@ double CLeoBhWalkSym::calculateReward()
 //    reward += -1;
 //  }
 
-  //mLogInfoLn("Step reward: " << reward);
+//  std::cout << "Step reward: " << reward << std::endl;
   return reward;
 }
 

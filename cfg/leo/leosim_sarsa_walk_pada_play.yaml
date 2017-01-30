@@ -1,11 +1,11 @@
 experiment: 
   type: experiment/online_learning
   runs: 1
-  trials: 0
-  steps: 1000000
-  rate: 0
-  test_interval: 10
-  output: leosim_sarsa_walk_ou
+  trials: 1
+  steps: 0
+  rate: 30
+  test_interval: 0
+  output: leosim_sarsa_walk_pada_play
   environment: 
     type: environment/leo_walk
     behavior: 
@@ -14,10 +14,16 @@ experiment:
     target_env: 
       type: environment/ode
       xml: experiment/environment/xml
-      randomize: 1
+      randomize: 0
       visualize: 1
     observe: torso_boom, hipright, hipleft, kneeright, kneeleft
     actuate: hipright, hipleft, stanceknee
+    exporter: 
+      type: exporter/csv
+      file: leosim_sarsa_walk_pada_play
+      style: meshup
+      variant: all
+      enabled: 1
     sub_transition_type: 
       type: signal/vector
     pub_ic_signal: 
@@ -49,16 +55,15 @@ experiment:
       sampler: 
         type: sampler/leo/action
         sampler: 
-          type: sampler/ornstein_ohlenbeck
+          type: sampler/pada
           rand_max: 0
+          epsilon: [ 0.05 ]
           discretizer: experiment/agent/policy/discretizer
-          theta: [0.001, 0.001, 0.001]
-          sigma: [0.02, 0.02, 0.02]
-          center: [0.0, 0.0, 0.0]
-          pub_sub_ou_state: 
+          delta: [ 3.57, 3.57, 3.57 ]
+          pub_sub_pada_state: 
             type: signal/vector
         sub_ic_signal: experiment/environment/pub_ic_signal
-        pub_sub_sampler_state: experiment/agent/policy/sampler/sampler/pub_sub_ou_state
+        pub_sub_sampler_state: experiment/agent/policy/sampler/sampler/pub_sub_pada_state
     predictor: 
       type: predictor/sarsa
       alpha: 0.2
@@ -77,7 +82,16 @@ experiment:
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
       sampler: 
-        type: sampler/greedy
-        rand_max: 0
+        type: sampler/leo/action
+        sampler: 
+          type: sampler/pada
+          rand_max: experiment/agent/policy/sampler/sampler/rand_max
+          epsilon: [ 0.00 ]
+          discretizer: experiment/agent/policy/discretizer
+          delta: experiment/agent/policy/sampler/sampler/delta
+          pub_sub_pada_state: experiment/agent/policy/sampler/sampler/pub_sub_pada_state
+        sub_ic_signal: experiment/environment/pub_ic_signal
+        pub_sub_sampler_state: experiment/agent/policy/sampler/sampler/pub_sub_pada_state
     pub_transition_type: experiment/environment/sub_transition_type
-  save_every: run
+  load_file: leosim_sarsa_walk_pada-run0
+  save_every: never
