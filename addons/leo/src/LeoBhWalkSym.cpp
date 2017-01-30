@@ -321,22 +321,15 @@ double CLeoBhWalkSym::getJointMotorWork(int jointIndex)
     double omega = 0.5*(getCurrentSTGState()->mJointSpeeds[jointIndex] + getPreviousSTGState()->mJointSpeeds[jointIndex]);
     if (mActuationInterface->getActuationMode() == amVoltage)
     {
-      // old motor params (RX-28)
-      const double k = DXL_RX28_TORQUE_CONST;
-      const double R = DXL_RX28_RESISTANCE;
-      const double G = DXL_RX28_GEARBOX_RATIO;
       // We take the action that was executed the previous step. This is reported in the *current* state
       U = getCurrentSTGState()->mActuationVoltages[jointIndex];
-      I = (U - k*G*omega)/R;
+      I = (U - DXL_TORQUE_CONST*DXL_GEARBOX_RATIO*omega)/DXL_RESISTANCE;
     }
-    else
+    else if (mActuationInterface->getActuationMode() == amTorque)
     {
-      // new motor params (XM-430)
-      const double k = DXL_XM430_210_TORQUE_CONST;
-      const double G = DXL_XM430_210_GEARBOX_RATIO;
-      const double R = DXL_XM430_210_RESISTANCE;
-      I = getCurrentSTGState()->mActuationTorques[jointIndex] / (k*G);
-      U = I*R + k*G*omega;
+      // We take the action that was executed the previous step. This is reported in the *current* state
+      I = getCurrentSTGState()->mActuationTorques[jointIndex] / (DXL_TORQUE_CONST*DXL_GEARBOX_RATIO);
+      U = I*DXL_RESISTANCE + DXL_TORQUE_CONST*DXL_GEARBOX_RATIO*omega;
 /*
       double tau1 = 23.31 / omega;
       double tau2 = k*G*(11.1-k*G*omega)/R;

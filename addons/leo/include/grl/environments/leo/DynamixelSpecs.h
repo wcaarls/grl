@@ -8,35 +8,108 @@
 #ifndef DYNAMIXELSPECS_H_
 #define DYNAMIXELSPECS_H_
 
-// Conversions
-#define DXL_RX28_NUM_POSITIONS			1024
-#define DXL_RX28_MAX_POSITION			1023
-#define DXL_RX28_SPEED_TO_RAD_S			0.01163552834662886385  // = (M_PI/270.0)	// Multiply speed with 0.111 (~=1/9) to get RPM. Multiply RPM with (2pi/60) for rad/s.
-#define DXL_RX28_STEPS_TO_RAD			0.00511826760115639172 	// = ((300.0/360.0)*2.0*M_PI/1023.0)
+// Select the proper Dynamixel motor here
+//#define RX28
+//#define MX28
+#define XM430_210
 
-#define DXL_RX64_SPEED_TO_RAD_S			DXL_RX28_SPEED_TO_RAD_S
-#define DXL_RX64_STEPS_TO_RAD			DXL_RX28_STEPS_TO_RAD
+#define LEO_SUPPLY_VOLTAGE              13.8  // [V]
 
-#define DXL_RX28_TORQUE_TO_RATIO		0.00097751710654936461	// = (1.0/1023.0)
+#ifdef RX28
+  #include "RX28/RX28_Specs.h"
 
-#define DXL_VOLTAGE_TO_VOLT				0.1
+  #define DXL_MAX_TORQUE_PER_VOLT       DXL_RX28_MAX_TORQUE_PER_VOLT
+  #define DXL_MAX_SPEED_PER_VOLT        DXL_RX28_MAX_SPEED_PER_VOLT
+
+  #define DXL_MAX_RAD_S_SPEED           DXL_RX28_MAX_RAD_S_SPEED
+  #define DXL_MAX_RAD_ANGLE             DXL_RX28_MAX_RAD_ANGLE
+
+  // Motor coefficients
+  #define DXL_TORQUE_CONST              DXL_RX28_TORQUE_CONST
+  #define DXL_GEARBOX_RATIO             DXL_RX28_GEARBOX_RATIO
+  #define DXL_RESISTANCE                8.6
+
+  // Temperature coefficients
+  #define DXL_COPPER_COEF               DXL_RX28_COPPER_COEF
+  #define DXL_MAGNET_COEF               DXL_RX28_MAGNET_COEF
+
+  #define DXL_NUM_POSITIONS             DXL_RX28_NUM_POSITIONS
+  #define DXL_MAX_POSITION              DXL_RX28_MAX_POSITION
+  #define DXL_MAX_VELOCITY              DXL_RX28_MAX_VELOCITY
+  #define DXL_SPEED_TO_RAD_S            DXL_RX28_SPEED_TO_RAD_S
+  #define DXL_STEPS_TO_RAD              DXL_RX28_STEPS_TO_RAD
+  #define DXL_TORQUE_TO_RATIO           DXL_RX28_TORQUE_TO_RATIO
+#endif
+
+#ifdef MX28
+  #include "MX28/MX28_Specs.h"
+
+  #define DXL_MAX_TORQUE_PER_VOLT       DXL_MX28_MAX_TORQUE_PER_VOLT
+  #define DXL_MAX_SPEED_PER_VOLT        DXL_MX28_MAX_SPEED_PER_VOLT
+
+  #define DXL_MAX_RAD_S_SPEED           DXL_MX28_MAX_RAD_S_SPEED
+  #define DXL_MAX_RAD_ANGLE             DXL_MX28_MAX_RAD_ANGLE
+
+  // Motor coefficients
+  #define DXL_TORQUE_CONST              DXL_MX28_TORQUE_CONST
+  #define DXL_GEARBOX_RATIO             DXL_MX28_GEARBOX_RATIO
+  #define DXL_RESISTANCE                8.6
+
+  // Temperature coefficients
+  #define DXL_COPPER_COEF               DXL_MX28_COPPER_COEF
+  #define DXL_MAGNET_COEF               DXL_MX28_MAGNET_COEF
+
+  #define DXL_NUM_POSITIONS             DXL_MX28_NUM_POSITIONS
+  #define DXL_MAX_POSITION              DXL_MX28_MAX_POSITION
+  #define DXL_MAX_VELOCITY              DXL_MX28_MAX_VELOCITY
+  #define DXL_SPEED_TO_RAD_S            DXL_MX28_SPEED_TO_RAD_S
+  #define DXL_STEPS_TO_RAD              DXL_MX28_STEPS_TO_RAD
+  #define DXL_TORQUE_TO_RATIO           DXL_MX28_TORQUE_TO_RATIO
+#endif
+
+#ifdef XM430_210
+  #include "XM430/XM430_210_Specs.h"
+
+  #define DXL_MAX_RAD_S_SPEED                 DXL_XM430_210_MAX_RAD_S_SPEED
+  #define DXL_MAX_RAD_ANGLE                   DXL_XM430_210_MAX_RAD_ANGLE
+
+  #define DXL_MAX_POSITION                    DXL_XM430_210_MAX_POSITION
+  #define DXL_MAX_VELOCITY                    DXL_XM430_210_MAX_VELOCITY
+
+  // Motor coefficients
+  #define DXL_TORQUE_CONST                    MAXON_TORQUE_CONST
+  #define DXL_GEARBOX_RATIO                   DXL_XM430_210_GEARBOX_RATIO
+  #define DXL_RESISTANCE                      8.6    // #ivan, just took an RX-28 value. Need to update it
+
+  // Temperature coefficients
+  #define DXL_COPPER_COEF                     DXL_XM430_210_COPPER_COEF
+  #define DXL_MAGNET_COEF                     DXL_XM430_210_MAGNET_COEF
+
+  #define DXL_NUM_POSITIONS                   DXL_XM430_210_NUM_POSITIONS
+  #define DXL_MAX_POSITION                    DXL_XM430_210_MAX_POSITION
+  #define DXL_SPEED_TO_RAD_S                  DXL_XM430_210_SPEED_TO_RAD_S
+  #define DXL_STEPS_TO_RAD                    DXL_XM430_210_STEPS_TO_RAD
+#endif
+
+// ** Temperature compensation used in voltage/PWM control mode ** //
+
+// Temperature compensation defines
+#define LEO_DXL_REF_TEMP                25.0    // Use 25.0 with copperfact=0.004 and magnetfact=0.0
+#define LEO_DXL_MAX_TEMP                75.0
+#define LEO_DXL_MAX_TEMP_DIFF           (LEO_DXL_MAX_TEMP - LEO_DXL_REF_TEMP)
+#define LEO_DXL_MAX_BREAKING_VEL        4.0        // Maximum velocity during breaking - this is important for determining maximum thermal compensation
+#define LEO_DXL_VOLTAGE_TEMP_FACT       ((1.0 + LEO_DXL_MAX_TEMP_DIFF*DXL_COPPER_COEF)/(1.0 + LEO_DXL_MAX_TEMP_DIFF*DXL_MAGNET_COEF))
+#define LEO_DXL_VOLTAGE_TEMP_FACT_FULL  (LEO_DXL_VOLTAGE_TEMP_FACT + ((-1.0)*LEO_DXL_MAX_BREAKING_VEL*DXL_TORQUE_CONST*DXL_GEARBOX_RATIO/LEO_SUPPLY_VOLTAGE)*((1.0 + LEO_DXL_MAX_TEMP_DIFF*DXL_MAGNET_COEF) - LEO_DXL_VOLTAGE_TEMP_FACT))
+
+// Define the maximum allowable Dynamixel voltage that can be guaranteed
+// under all temperature compensation situations.
+#define LEO_MAX_DXL_VOLTAGE             (LEO_SUPPLY_VOLTAGE/LEO_DXL_VOLTAGE_TEMP_FACT_FULL) // = 10.69 V @ RX-28;
 
 
-// Max torques in [Nm]
-#define DXL_RX28_MAX_TORQUE_PER_VOLT	(3.3/14)
-#define DXL_RX64_MAX_TORQUE_PER_VOLT	(0.4291)
-// Max speeds
-#define DXL_RX28_MAX_SPEED_PER_VOLT		(40.75*DXL_RX28_SPEED_TO_RAD_S)	// In rad/s
-#define DXL_RX64_MAX_SPEED_PER_VOLT		(31.78*DXL_RX64_SPEED_TO_RAD_S)	// In rad/s. Yes, this is lower than for the RX-28.
 
-// Motor coefficients
-#define DXL_RX28_TORQUE_CONST			0.00992
-#define DXL_RX28_GEARBOX_RATIO			193.0
-#define DXL_RX28_RESISTANCE           8.6
-
-// Temperature coefficients
-#define DXL_RX28_COPPER_COEF			0.004	// Was 0.0041, which worked well with motorCoeff=-0.002 for half compensation. And tempRef = 20deg.
-#define DXL_RX28_MAGNET_COEF			(-0.00)	// According to Maxon, this is -0.0011. (Was -0.002, which worked well for half compensation (not logical! since back-emf is ignored))
-
+// Dynamixel on, off and toggle convention
+#define DXL_OFF                         0
+#define DXL_ON                          1
+#define DXL_TOGGLE                      2
 
 #endif /* DYNAMIXELSPECS_H_ */

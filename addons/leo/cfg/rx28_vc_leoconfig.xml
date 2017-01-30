@@ -76,14 +76,6 @@
 		<dxl_servoinertiatrackerK oldvalue="500.0">500.0</dxl_servoinertiatrackerK>
 		<dxl_servoinertiatrackerD oldvalue="0.07" >0.07 </dxl_servoinertiatrackerD>
 		<dxl_supplyvoltage>13.6</dxl_supplyvoltage>
-		<!-- Don't forget to define the following constants in your final XML for LEO's initial condition:
-		<leftlegICangle></leftlegICangle>
-		<rightupperlegICangle></rightupperlegICangle>
-		<rightlowerlegICangle></rightlowerlegICangle>
-		<leftfootICangle></leftfootICangle>
-		<rightfootICangle></rightfootICangle>
-		<torsoICangle></torsoICangle>
-		-->
 	</constants>
 	<strings comment="These strings will not generate parser warnings; they are assumed to be spelled correctly when spelled this way.">
 		<!-- booleans -->

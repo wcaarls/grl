@@ -246,7 +246,7 @@ void CODEServoMotor::update(double stepTime)
 
 	mpJoint->addTorque(torque, mAxisIndex);
 
-  printf("[DEBUG] Joint %s: voltage: %.4f, torque: %.4f\n", mpJoint->name().c_str(), clippedVoltage, torque);
+//  printf("[DEBUG] Joint %s: voltage: %.4f, torque: %.4f\n", mpJoint->name().c_str(), clippedVoltage, torque);
 
 	// Report to screen if desired
 	/*

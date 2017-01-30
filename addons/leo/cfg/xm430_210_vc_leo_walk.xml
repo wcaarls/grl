@@ -100,10 +100,10 @@
 		<scaleFactKneeSwingAngle>3.58</scaleFactKneeSwingAngle>
 		<scaleFactKneeSwingAngleRate>0.10</scaleFactKneeSwingAngleRate>
 
-		<!-- action space -->
+		<!-- action space 
 		<numActionsPerJoint>7</numActionsPerJoint>
 		<scaleFactVoltage>0.15</scaleFactVoltage>
-	
+	-->
 		<!-- pre-programmed walking controller settings -->
 		<preprogrammedTorsoAngle>-0.09</preprogrammedTorsoAngle>
 		<preprogrammedHipAngle>0.680</preprogrammedHipAngle>
@@ -276,7 +276,7 @@
 		<actuationdelay>0.000</actuationdelay>
 		<!-- Merge this configuration with leo's ODE configuration -->
 		<include>
-			<filename>leoconfig.xml</filename>
+			<filename>xm430_210_vc_leoconfig.xml</filename>
 			<path>ode/</path>
 		</include>
 		<object>

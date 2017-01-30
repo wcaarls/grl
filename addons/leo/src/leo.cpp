@@ -377,15 +377,12 @@ void LeoBaseEnvironment::ensure_bounds(Vector *action) const
       else
         omega = bh_->getCurrentSTGState()->mJointSpeeds[i];
 
-      double k = DXL_XM430_210_TORQUE_CONST;
-      double G = DXL_XM430_210_GEARBOX_RATIO;
-      double R = DXL_XM430_210_RESISTANCE;
-      double max_torque = fabs(k*G*(LEO_MAX_DXL_VOLTAGE-k*G*omega)/R);
+      double max_torque = fabs(DXL_TORQUE_CONST*DXL_GEARBOX_RATIO*(LEO_MAX_DXL_VOLTAGE-DXL_TORQUE_CONST*DXL_GEARBOX_RATIO*omega)/DXL_RESISTANCE);
 
       if (fabs((*action)[i]) > max_torque)
       {
-        double I = (*action)[i] / (k*G);
-        double U = I*R + k*G*omega;
+        double I = (*action)[i] / (DXL_TORQUE_CONST*DXL_GEARBOX_RATIO);
+        double U = I*DXL_RESISTANCE + DXL_TORQUE_CONST*DXL_GEARBOX_RATIO*omega;
         //std::cout << "[ensure_bounds] Voltage " << U << " exeeded maximum value;" <<std::endl;
       }
 
