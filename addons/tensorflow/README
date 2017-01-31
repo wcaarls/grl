@@ -1,0 +1,12 @@
+Build steps:
+
+1) Build grl normally from grl/build
+2) Link this directory somewhere in the TensorFlow source tree and call
+
+   export GRL_TF_DIR=relative/path/to/link
+   bazel build $GRL_TF_DIR/...
+   cp bazel-out/local-opt/bin/$GRL_TF_DIR/libaddon_tensorflow.so $GRL_TF_DIR/lib
+   chmod 644 $GRL_TF_DIR/lib/libaddon_tensorflow.so
+
+   from the TensorFlow root directory.
+3) Install grl, if desired.

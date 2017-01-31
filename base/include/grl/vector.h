@@ -31,7 +31,7 @@
 #define GRL_EIGEN_VECTOR
 
 #ifdef GRL_EIGEN_VECTOR
-#include <eigen3/Eigen/Dense>
+#include <Eigen/Dense>
 #endif 
 
 #include <vector>

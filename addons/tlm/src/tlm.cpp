@@ -25,8 +25,6 @@
  * \endverbatim
  */
 
-#include <eigen3/Eigen/Eigen>
-
 #include <grl/environments/tlm.h>
 
 using namespace grl;

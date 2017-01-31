@@ -38,7 +38,7 @@
 #ifndef ILQG_SOLVER_H_
 #define ILQG_SOLVER_H_
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Eigen>
 #include <grl/solver.h>
 #include <grl/environments/observation.h>
 #include <grl/policies/state_feedback.h>
