@@ -118,7 +118,7 @@ void ZeromqRequestReplyCommunicator::configure(Configuration &config)
 //////////////////////////////////////////////////////////
 void CommunicatorEnvironment::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("converter", "converter", "Convert states and actions if needed", converter_));
+  config->push_back(CRP("converter", "converter", "Convert states and actions if needed", converter_, true));
   config->push_back(CRP("communicator", "communicator", "Comunicator which exchanges messages with an actual/virtual environment", communicator_));
   config->push_back(CRP("target_obs_dims", "Observation dimension of a target", target_obs_dims_, CRP::System));
   config->push_back(CRP("target_action_dims", "Action dimension of a target", target_action_dims_, CRP::System));
@@ -152,18 +152,27 @@ void CommunicatorEnvironment::start(int test, Observation *obs)
 {
   communicator_->recv(&obs_conv_);
   clock_gettime(CLOCK_MONOTONIC, &time_begin_);
-  converter_->convert_state(obs_conv_, obs->v);
+  if (converter_)
+    converter_->convert_state(obs_conv_, obs->v);
+  else
+    *obs = obs_conv_;
   obs->absorbing = false;
 }
 
 double CommunicatorEnvironment::step(const Action &action, Observation *obs, double *reward, int *terminal)
 {
   timespec time_end;
-  converter_->convert_action(action, action_conv_);
+  if (converter_)
+    converter_->convert_action(action, action_conv_);
+  else
+    action_conv_ = action;
   communicator_->send(action_conv_);
   communicator_->recv(&obs_conv_);  // Non-blocking, therefore it gets the most recently transmitted state
   clock_gettime(CLOCK_MONOTONIC, &time_end);
-  converter_->convert_state(obs_conv_, obs->v);
+  if (converter_)
+    converter_->convert_state(obs_conv_, obs->v);
+  else
+    *obs = obs_conv_;
   obs->absorbing = false;
 
   double tau = (time_end.tv_sec - time_begin_.tv_sec) + (static_cast<double>(time_end.tv_nsec - time_begin_.tv_nsec))/1.0e9;

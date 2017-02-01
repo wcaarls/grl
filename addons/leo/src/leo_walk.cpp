@@ -196,6 +196,11 @@ void LeoWalkEnvironment::start(int test, Observation *obs)
 
   target_env_->start(test_, &target_obs_);
 
+  /// Faking boom for rela Leo experiment
+  target_obs_[CLeoBhBase::svTorsoAngle] = -0.30;      // average
+  target_obs_[CLeoBhBase::svTorsoAngleRate] = -0.02;  // average
+  ///
+
   // Parse obs into CLeoState (Start with left leg being the stance leg)
   bh_->fillLeoState(target_obs_, Vector(), leoState_);
   bh_->setCurrentSTGState(&leoState_);
@@ -238,6 +243,12 @@ double LeoWalkEnvironment::step(const Action &action, Observation *obs, double *
 //  target_action_.v << 0.0027, -0.3474, 0.0372, 0.0094, 0.0226, 0.1755, 0.3891;
   CRAWL(target_action_);
   double tau = target_env_->step(target_action_, &target_obs_, reward, terminal);
+
+  /// Faking boom for rela Leo experiment
+  target_obs_[CLeoBhBase::svTorsoAngle] = -0.30;      // average
+  target_obs_[CLeoBhBase::svTorsoAngleRate] = -0.02;  // average
+  ///
+
   CRAWL(target_obs_);
 
   // Filter joint speeds

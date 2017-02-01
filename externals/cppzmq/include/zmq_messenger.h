@@ -20,7 +20,7 @@ private:
 
   // Worker thread
   pthread_t           worker_;
-  std::mutex*         mtx_;
+  std::mutex          *mtx_;
   char*               buffer_;
   int                 buffer_size_;
 

@@ -456,7 +456,7 @@ agent/zeromq:
     type: communicator
     description: Comunicator which exchanges messages with an actual/virtual environment
     mutability: configuration
-    default: 0xce9b30
+    default: 0x7edb30
     optional: 0
   observation_dims:
     type: int.observation_dims
@@ -753,7 +753,7 @@ environment/communicator:
     description: Convert states and actions if needed
     mutability: configuration
     default: 0
-    optional: 0
+    optional: 1
   communicator:
     type: communicator
     description: Comunicator which exchanges messages with an actual/virtual environment
@@ -1513,7 +1513,7 @@ mapping/policy/feed_forward:
     type: mapping
     description: Maps time to controls
     mutability: configuration
-    default: 0xdda930
+    default: 0x89acb0
     optional: 1
 mapping/policy/mcts:
   description: Monte-Carlo Tree Search policy

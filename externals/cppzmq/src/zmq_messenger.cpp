@@ -9,6 +9,8 @@ struct worker_args {
     int             buffer_size;
 };
 
+worker_args         g_args;
+
 void *worker_routine(void *param)
 {
   // Prepare ZMQ subscriber
@@ -27,9 +29,10 @@ void *worker_routine(void *param)
     {
       if (args->buffer_size < update.size())
       {
-        std::cout << "Error: (ZeromqMessenger) Incomming message is too large" << std::endl;
+        std::cout << "Error: (ZeromqMessenger) Incomming message of silze " << update.size() << " is too large" << std::endl;
         continue;
       }
+
       args->mtx->lock();
       memcpy(args->buffer, update.data(), update.size());
       args->mtx->unlock();
@@ -61,9 +64,14 @@ void ZeromqMessenger::start(const char* pubAddress, const char* subAddress, cons
 
       // Prepare ZMQ subscriber
       mtx_ = new std::mutex();
-      buffer_ = new char(buffer_size_);
-      worker_args args = {context_, subAddress, mtx_, buffer_, buffer_size_};
-      pthread_create(&worker_, NULL, worker_routine, (void*)&args);
+      buffer_ = new char [buffer_size_];
+      g_args = {context_, subAddress, mtx_, buffer_, buffer_size_};
+      int ret = pthread_create(&worker_, NULL, worker_routine, (void*)&g_args);
+      if (ret)
+      {
+        std::cout << "Failed creating zmq worker thread with error " << ret << std::endl;
+        abort();
+      }
 
       if (flags_ & ZMQ_SYNC_PUB)
       {
@@ -122,6 +130,7 @@ bool ZeromqMessenger::recv(void *data, int size, int flags) const
       mtx_->lock();
       memcpy(data, buffer_, size);
       mtx_->unlock();
+
       return true;
   }
 }
