@@ -58,7 +58,7 @@ void LeoSquattingTask::configure(Configuration &config)
   toVector(obs_max, target_obs_max_);
 
   // Observations and actions exposed to an agent
-  dof_ = rlsDofDim-1;
+  dof_ = rlsDofDim;
   config.set("observation_dims", 2*dof_+1);
   Vector observation_min, observation_max;
   observation_min.resize(2*dof_+1);
@@ -82,6 +82,7 @@ void LeoSquattingTask::configure(Configuration &config)
 
 void LeoSquattingTask::start(int test, Vector *state) const
 {
+/*
   *state = ConstantVector(2*rlsDofDim+1, 0);
 
   // sitted pose
@@ -91,6 +92,19 @@ void LeoSquattingTask::start(int test, Vector *state) const
          1.0680264236561250E+00,
         -2.5999999999984957E-01,
         -0.0,
+        -0.0,
+        -0.0,
+        -0.0,  // end of rlsDofDim
+         0.0;  // rlsTime
+*/
+
+  *state = ConstantVector(2*rlsDofDim+1, 0);
+
+  // sitted pose
+  *state <<
+         1.0586571916803691E+00,
+        -2.1266836153365212E+00,
+         1.0680264236561250E+00,
         -0.0,
         -0.0,
         -0.0,  // end of rlsDofDim
@@ -194,14 +208,19 @@ void LeoSquattingTask::evaluate(const Vector &state, const Action &action, const
 
   double w = 10.0;
   double F1, F0;
-  if (state[rlsRefRootZ] == next[rlsRefRootZ])
+/*  if (state[rlsRefRootZ] == next[rlsRefRootZ])
     F0 = - pow(w * (state[rlsRootZ] - state[rlsRefRootZ]), 2);
   else
     F0 = - pow(w * (state[rlsRootZ] - next [rlsRefRootZ]), 2);
+*/
 
-  F1 = - pow(w * (next [rlsRootZ] - next [rlsRefRootZ]), 2);
+  F0 = - pow(w * (state[rlsRootZ] - next[rlsRefRootZ]), 2);
+  F1 = - pow(w * (next [rlsRootZ] - next[rlsRefRootZ]), 2);
 
   shaping += F1 - F0;
+
+  TRACE(state[rlsRootZ] << ", " << next[rlsRootZ] << " -> " << next[rlsRefRootZ]);
+  TRACE(F1 << " - " << F0 << " = " << shaping);
 
   // reward is a negative of cost
   *reward = -0.0001*cost + shaping;
@@ -221,8 +240,8 @@ int LeoSquattingTask::failed(const Vector &state) const
       (state[rlsKneeAngleRate]  > target_obs_max_[rlsKneeAngleRate])  ||
       (state[rlsHipAngleRate]   < target_obs_min_[rlsHipAngleRate])   ||
       (state[rlsHipAngleRate]   > target_obs_max_[rlsHipAngleRate])   ||
-      (state[rlsArmAngleRate]   < target_obs_min_[rlsArmAngleRate])   ||
-      (state[rlsArmAngleRate]   > target_obs_max_[rlsArmAngleRate])   ||
+//      (state[rlsArmAngleRate]   < target_obs_min_[rlsArmAngleRate])   ||
+//      (state[rlsArmAngleRate]   > target_obs_max_[rlsArmAngleRate])   ||
       (state[rlsRootZ] < 0)
       )
     return 1;

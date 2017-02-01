@@ -75,5 +75,5 @@ experiment:
         type: sampler/greedy
         rand_max: 0
     pub_transition_type: experiment/environment/sub_transition_type
-  load_file: leosim_sarsa_walk_egreedy-run0
+  load_file: leo_leosim_sarsa_walk_pada-mp4-run0
   save_every: never
