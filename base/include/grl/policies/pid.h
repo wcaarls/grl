@@ -44,7 +44,7 @@ class PIDPolicy : public ParameterizedPolicy
     Vector setpoint_;
     size_t outputs_;
     
-    Vector p_, i_, d_, il_;
+    LargeVector p_, i_, d_, il_;
     LargeVector params_;
     
     Vector ival_, prev_in_;

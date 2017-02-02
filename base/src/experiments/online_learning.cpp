@@ -158,6 +158,8 @@ void OnlineLearningExperiment::run()
         
         total_reward += reward;
         
+        double t0 = step_timer.elapsed();
+
         if (obs.size())
         {
           if (terminal == 2)
@@ -170,6 +172,9 @@ void OnlineLearningExperiment::run()
           
           if (!test) ss++;
         }
+
+        std::cout << "Time = " << step_timer.elapsed() - t0 << std::endl;
+
       } while (!terminal);
 
       if (test_interval_ >= 0)

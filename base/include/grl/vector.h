@@ -336,6 +336,18 @@ inline Vector extend(const Vector &a, const Vector &b)
   return c;
 }
 
+inline LargeVector extend(const LargeVector &a, const Vector &b)
+{
+  LargeVector c(a.size()+b.size());
+
+  for (size_t ii=0; ii < a.size(); ++ii)
+    c[ii] = a[ii];
+  for (size_t ii=0; ii < b.size(); ++ii)
+    c[a.size()+ii] = b[ii];
+
+  return c;
+}
+
 template <class T>
 inline void fromVector(const Vector &vector, T &to)
 {

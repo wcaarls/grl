@@ -482,6 +482,7 @@ double CLeoBhWalkSym::calculateReward()
 
 bool CLeoBhWalkSym::isDoomedToFall(CLeoState* state, bool report)
 {
+/*// #ivan
   // Torso angle out of 'range'
   if ((state->mJointAngles[ljTorso] < -1.0) || (state->mJointAngles[ljTorso] > 1.0))
   {
@@ -489,8 +490,8 @@ bool CLeoBhWalkSym::isDoomedToFall(CLeoState* state, bool report)
       mLogNoticeLn("[TERMINATION] Torso angle too large");
     return true;
   }
-
-  // No balancing
+*/
+  // No balancing (Erik)
   /*
   double balanceVelocity = 0.02;
   if ((fabs(getCurrentSTGState()->mJointSpeeds[ljTorso]) < balanceVelocity)
@@ -503,6 +504,7 @@ bool CLeoBhWalkSym::isDoomedToFall(CLeoState* state, bool report)
     return true;
   }
    */
+/*// #ivan
   // Stance leg angle out of 'range'
   if (fabs(state->mJointAngles[ljTorso] + state->mJointAngles[mHipStance]) > 0.36*M_PI)
   {
@@ -510,7 +512,7 @@ bool CLeoBhWalkSym::isDoomedToFall(CLeoState* state, bool report)
       mLogNoticeLn("[TERMINATION] Stance leg angle too large");
     return true;
   }
-
+*/
   return false;
 }
 

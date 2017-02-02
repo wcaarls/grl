@@ -12,12 +12,12 @@
 		<!-- Initial condition for learning, all angles measured with respect to gravity  -->
 		<!-- Don't let the torso lean too much forward; it helps balancing in the beginning -->
 		<leftupperlegICangle>0</leftupperlegICangle>
-		<rightupperlegICangle oldvalue="-0.72">-0.72</rightupperlegICangle>
+		<rightupperlegICangle oldvalue="-0.72">-0.05</rightupperlegICangle>
 		<leftlowerlegICangle>0</leftlowerlegICangle>
-		<rightlowerlegICangle oldvalue="0.55">0.55</rightlowerlegICangle>
+		<rightlowerlegICangle oldvalue="0.55">0.05</rightlowerlegICangle>
 		<leftfootICangle>0.0</leftfootICangle>
 		<rightfootICangle oldvalue="rightlowerlegICangle">rightlowerlegICangle</rightfootICangle>
-		<torsoICangle oldvalue="0.35">0.10</torsoICangle>
+		<torsoICangle oldvalue="0.35">0.0</torsoICangle>
 		<leofloorheightdata>0.0410;0.0415;0.0415;0.042;0.0425;0.0425;0.043;0.0435;0.0435;0.0435;0.0435;0.044;0.044;0.044;0.044;0.044;0.044;0.0435;0.0435;0.0435;0.044;0.044;0.0445;0.0445;0.0445;0.045;0.045;0.045;0.0455;0.0455;0.0455;0.0455;0.0455;0.0455;0.0455;0.0455;0.0455;0.0455;0.0455;0.0455;0.045;0.045;0.045;0.0445;0.0445;0.0445;0.0445;0.0445;0.0445;0.0445;0.0445;0.044;0.0435;0.0435;0.0435;0.044;0.044;0.0445;0.0445;0.0445;0.0445;0.0445;0.0445;0.0445;0.0445;0.0445;0.0445;0.0435;0.0435;0.043;0.043;0.0425;0.0425;0.0425;0.042;0.042;0.0415;0.0415;0.0415;0.0415;0.0415;0.0415;0.0415;0.0415;0.0415;0.0415;0.0415;0.0415;0.0415;0.042;0.0425;0.0425;0.0425;0.0425;0.0425;0.043;0.043;0.0435;0.043;0.043;0.043;0.0425;0.0425;0.0425;0.042;0.0415;0.0415;0.041;0.0405;0.0405;0.0395;0.0395;0.039;0.0385;0.0385;0.0385;0.0385;0.0385;0.0385;0.0385;0.0385;0.0385;0.0385;0.038;0.0375;0.0375;0.037;0.037;0.0365;0.0365;0.0365;0.036;0.0355;0.036;0.0355;0.0355;0.0355;0.0355;0.0355;0.0355;0.0355;0.0355;0.0355;0.035;0.035;0.0345;0.0345;0.0345;0.0345;0.0345;0.034;0.034;0.034;0.0345;0.0345;0.035;0.0355;0.0355;0.0355;0.036;0.036;0.0365;0.0365;0.037;0.037;0.0375;0.0372;0.0372;0.037;0.037;0.037;0.0375;0.0375;0.038;0.0385;0.039;0.0395;0.04;0.0405;0.041;0.0415;0.0415;0.0415;0.0415;0.0415;0.0415;0.041;0.0405;0.0405;0.0405;0.0405;0.0405;0.0405;0.0405;0.0405;0.0405;0.0405;0.0405;0.0405;0.0405;0.0405;0.0405;0.0405;0.0405;0.0405;0.041;0.041;0.0415;0.0415;0.0415;0.042;0.042;0.0415;0.0415;0.041;0.041;0.0405;0.0405;0.04;0.0395;0.0395;0.039;0.0385;0.0385;0.0385;0.039;0.039;0.0395;0.0395;0.0395;0.04;0.04;0.04;0.04;0.0395;0.04;0.0395;0.0395;0.0395;0.0395;0.039;0.0385;0.0385;0.038;0.038;0.038;0.038;0.0385;0.0385;0.0385;0.0385;0.039;0.038;0.038;0.0395;0.0395;0.0395;0.04;0.04;0.04;0.04;0.04;0.04;0.04;0.04;0.04;0.0405;0.0405;0.0405;0.0405;0.041</leofloorheightdata>
 		<leofloorradius>1.72</leofloorradius>
 		<leofloorlength>2*pi*leofloorradius</leofloorlength>
@@ -86,7 +86,7 @@
 		<rewardTorsoUpright>0.0</rewardTorsoUpright>
 		<rewardTorsoUprightAngle lastvalue="-0.15">-0.15</rewardTorsoUprightAngle>
 		<rewardTorsoUprightAngleMargin definition="angle deviation [rad] for which reward is 50%">0.1</rewardTorsoUprightAngleMargin>
-		<trialTimeoutSeconds>25</trialTimeoutSeconds>
+		<trialTimeoutSeconds>2500</trialTimeoutSeconds>
 	
 		<!-- state space -->
 		<scaleFactTorsoAngle>2.0*3.58</scaleFactTorsoAngle>
