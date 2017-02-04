@@ -43,25 +43,22 @@ experiment:
         epsilon: [0.5]
     predictor: 
       type: predictor/mbfqi
-      alpha: 1
       gamma: 0.97
       transitions: 100000
       minibatch_size: 64
       update_interval: 1000
-      target: 
-        type: mapping/value
-        policy: 
-          type: mapping/policy/value/q
-          discretizer: experiment/agent/policy/discretizer
-          projector: experiment/agent/policy/projector
-          representation: experiment/agent/policy/representation
-          sampler: 
-            type: sampler/greedy
+      discretizer: experiment/agent/policy/discretizer
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
   test_agent: 
     type: agent/fixed
-    policy: experiment/agent/predictor/target/policy
+    policy:
+      type: mapping/policy/value/q
+      discretizer: experiment/agent/policy/discretizer
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+      sampler: 
+        type: sampler/greedy
   save_every: never
 visualizer: 
   type: visualizer/glut

@@ -28,6 +28,8 @@
 #ifndef GRL_REPRESENTATION_H_
 #define GRL_REPRESENTATION_H_
 
+#include <pthread.h>
+
 #include <grl/configurable.h>
 #include <grl/projection.h>
 #include <grl/trace.h>
@@ -38,7 +40,14 @@ namespace grl
 /// Approximates a Mapping.
 class Representation : public Configurable
 {
+  private:
+    std::vector<ProjectionPtr> batch_;
+    size_t batch_output_size_;
+    pthread_mutex_t mutex_;
+
   public:
+    Representation() : mutex_(PTHREAD_MUTEX_INITIALIZER) { }
+  
     /// Read out the approximation.
     virtual double read(const ProjectionPtr &projection, Vector *result) const
     {
@@ -47,7 +56,7 @@ class Representation : public Configurable
 
     /// Read out the approximation, returning standard deviation of result.
     virtual double read(const ProjectionPtr &projection, Vector *result, Vector *stddev) const = 0;
-    
+
     /// Add a new estimate of the target function, using a single learning rate for all outputs.
     virtual void write(const ProjectionPtr projection, const Vector &target, double alpha=1.)
     {
@@ -81,6 +90,56 @@ class Representation : public Configurable
     virtual Matrix jacobian(const ProjectionPtr projection) const
     {
       return Matrix();
+    }
+
+    /// Starts a batch operation, specifying the batch size, input size and output size.
+    virtual void batch(size_t sz, size_t insz, size_t outsz)
+    {
+      // Make sure other threads can't interrupt our batch
+      pthread_mutex_lock(&mutex_);
+    
+      batch_.clear();
+      batch_.reserve(sz);
+      batch_output_size_ = outsz;
+    }
+    
+    /// Enqueues a batch read operation, to be read later.
+    virtual void enqueue(const ProjectionPtr &projection)
+    {
+      batch_.push_back(projection);
+    }
+
+    /// Enqueues a batch write operation, to be executed later.
+    virtual void enqueue(const ProjectionPtr &projection, const Vector &target)
+    {
+      // Assume write is not reentrant for regular representations
+      write(projection, target);
+    }
+    
+    /// Reads the results of all enqueued read operations.
+    virtual void read(Matrix *out)
+    {
+      *out = Matrix(batch_.size(), batch_output_size_);
+      
+      #ifdef _OPENMP
+      #pragma omp parallel for
+      #endif
+      for (size_t ii=0; ii < batch_.size(); ++ii)
+      {
+        Vector result;
+        read(batch_[ii], &result);
+        out->row(ii) = result;
+      }
+
+      pthread_mutex_unlock(&mutex_);
+    }
+    
+    /// Executes all enqueued write operations.
+    virtual void write()
+    {
+      finalize();
+
+      pthread_mutex_unlock(&mutex_);
     }
 };
 

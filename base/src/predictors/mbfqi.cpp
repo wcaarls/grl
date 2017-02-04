@@ -35,14 +35,13 @@ void MBFQIPredictor::request(ConfigurationRequest *config)
 {
   Predictor::request(config);
 
-  config->push_back(CRP("alpha", "Learning rate", alpha_));
   config->push_back(CRP("gamma", "Discount rate", gamma_));
   config->push_back(CRP("transitions", "Maximum number of transitions to store", max_samples_, CRP::Configuration, 1));
 
   config->push_back(CRP("minibatch_size", "Number of transitions to average gradient over.", (int)minibatch_size_));
   config->push_back(CRP("update_interval", "Number of minibatches between target updates.", (int)update_interval_, CRP::Configuration, 1));
 
-  config->push_back(CRP("target", "mapping", "Target value at next state", target_));
+  config->push_back(CRP("discretizer", "discretizer", "Action discretizer", discretizer_));
   config->push_back(CRP("projector", "projector.pair", "Projects observations onto critic representation space", projector_));
   config->push_back(CRP("representation", "representation.value/action", "Value function representation", representation_));
 }
@@ -51,11 +50,10 @@ void MBFQIPredictor::configure(Configuration &config)
 {
   Predictor::configure(config);
   
-  target_ = (Mapping*)config["target"].ptr();
+  discretizer_ = (Discretizer*)config["discretizer"].ptr();
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (Representation*)config["representation"].ptr();
   
-  alpha_ = config["alpha"];
   gamma_ = config["gamma"];
   max_samples_ = config["transitions"];
   minibatch_size_ = config["minibatch_size"];
@@ -106,7 +104,8 @@ void MBFQIPredictor::update(const Transition &transition)
   t.target = t.transition.reward;
     
   // Accumulate gradients
-  // ANNRepresentation is not reentrant, so we don't bother parallelizing this loop.
+  representation_->batch(minibatch_size_, transition.prev_obs.size(), 1);
+  
   for (size_t jj=0; jj < minibatch_size_; ++jj)
   {
     CachedTransition& t = indices_.size()?transitions_[indices_[update_counter_*minibatch_size_+jj]]
@@ -119,12 +118,12 @@ void MBFQIPredictor::update(const Transition &transition)
     else
       p = t.projection;
 
-    // Alpha is for representations that don't have an internal learning rate, such as tile coding.
-    representation_->write(p, VectorConstructor(t.target), alpha_);
+    // Only works for representations with an internal learning rate
+    representation_->enqueue(p, VectorConstructor(t.target));
   }
 
   // Update representation
-  representation_->finalize();
+  representation_->write();
 
   // Recalculate targets if necessary
   if (++update_counter_ == update_interval_)
@@ -142,43 +141,53 @@ void MBFQIPredictor::finalize()
 void MBFQIPredictor::rebuild()
 {
   indices_.resize(minibatch_size_ * update_interval_);
-  
-  // We're avoiding calculating the target of the same transition twice here,
-  // but that is not really relevant if there are many more transitions
-  // than updates between rebuilds.
-  
-  #ifdef _OPENMP
-  #pragma omp parallel for schedule(static)
-  #endif
-  for (size_t jj=0; jj < transitions_.size(); ++jj)
-    transitions_[jj].target = -std::numeric_limits<double>::infinity();
 
-  #ifdef _OPENMP
-  #pragma omp parallel
-  #endif
-  {
-    // Avoid calling pthread_getspecific every iteration
-    Rand *rand = RandGen::instance();
+  // Assume this is state-independent
+  size_t actions = discretizer_->size();
+  
+  representation_->batch(minibatch_size_ * update_interval_ * actions, transitions_[0].transition.prev_obs.size(), 1);
     
-    #pragma omp for
-    for (size_t jj=0; jj < minibatch_size_ * update_interval_; ++jj)
-    {
-      size_t idx = rand->getInteger(transitions_.size());
-      
-      CachedTransition& t = transitions_[idx];
-      
-      if (t.target == -std::numeric_limits<double>::infinity())
-      {
-        double target = t.transition.reward;
+  Rand *rand = RandGen::instance();
+  
+  // Enqueuing must occur in order, so this loop can not be trivially
+  // parallelized without passing the index to enqueue.
+  for (size_t ii=0; ii < minibatch_size_ * update_interval_; ++ii)
+  {
+    indices_[ii] = rand->getInteger(transitions_.size());
+    
+    CachedTransition& t = transitions_[indices_[ii]];
+    
+    std::vector<Vector> variants;
+    std::vector<ProjectionPtr> projections;
 
-        Vector v;
-        if (t.transition.action.size())
-          target += gamma_ * target_->read(t.transition.obs, &v);
-      
-        t.target = target;
-      }
-      
-      indices_[jj] = idx;
+    discretizer_->options(t.transition.obs, &variants);
+    projector_->project(t.transition.obs, variants, &projections);
+    
+    for (size_t jj=0; jj < projections.size(); ++jj)
+      representation_->enqueue(projections[jj]);
+  }
+  
+  Matrix results;
+  
+  representation_->read(&results);
+  
+  #ifdef _OPENMP
+  #pragma omp parallel for
+  #endif
+  for (size_t ii=0; ii < minibatch_size_ * update_interval_; ++ii)
+  {
+    CachedTransition& t = transitions_[indices_[ii]];
+    
+    t.target = t.transition.reward;
+    
+    if (t.transition.action.size())
+    {
+      double v = results(ii*actions);
+    
+      for (size_t jj=1; jj < actions; ++jj)
+        v = fmax(v, results(ii*actions+jj, 0));
+        
+      t.target += gamma_*v;
     }
   }
 }
