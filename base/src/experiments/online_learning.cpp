@@ -173,7 +173,7 @@ void OnlineLearningExperiment::run()
           if (!test) ss++;
         }
 
-        std::cout << "Time = " << step_timer.elapsed() - t0 << std::endl;
+        //std::cout << "Time = " << step_timer.elapsed() - t0 << std::endl;
 
       } while (!terminal);
 

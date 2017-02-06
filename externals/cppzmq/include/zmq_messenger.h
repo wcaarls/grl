@@ -8,24 +8,26 @@
 #define ZMQ_SYNC_PUB 0x01
 #define ZMQ_SYNC_SUB 0x02
 #define ZMQ_SYNC_CLI 0x04
+//#define ZMQ_NB_RECV  0x08
 
 class ZeromqMessenger
 {
 private:
-  zmq::context_t*     context_;
-  zmq::socket_t*      publisher_;
+  zmq::context_t      *context_;
+  zmq::socket_t       *publisher_;
   bool                connected_;
   int                 flags_;
-  zmq::socket_t*      syncService_;
+  zmq::socket_t       *syncService_;
 
   // Worker thread
   pthread_t           worker_;
   std::mutex          *mtx_;
-  char*               buffer_;
+  char                *buffer_;
   int                 buffer_size_;
+  int                 *recv_update_;
 
 public:
-  ZeromqMessenger() : syncService_(NULL), mtx_(NULL), buffer_(NULL), buffer_size_(60*sizeof(double)) {}
+  ZeromqMessenger() : syncService_(NULL), mtx_(NULL), buffer_(NULL), buffer_size_(60*sizeof(double)), recv_update_(0) {}
   ~ZeromqMessenger();
 
   void start(const char *pubAddress, const char *subAddress, const char *syncAddress = 0, int flags = 0);

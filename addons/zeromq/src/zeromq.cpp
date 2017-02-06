@@ -65,7 +65,7 @@ bool ZeromqCommunicator::recv(Vector *v) const
 {
   Vector v_rc;
   v_rc.resize(v->size());
-  bool rc = zmq_messenger_.recv(reinterpret_cast<void*>(v_rc.data()), v_rc.cols()*sizeof(double), ZMQ_NOBLOCK);
+  bool rc = zmq_messenger_.recv(reinterpret_cast<void*>(v_rc.data()), v_rc.cols()*sizeof(double), 0);//ZMQ_NOBLOCK);
   if (rc)
   {
     *v = v_rc; // modify content only if data was received
@@ -161,22 +161,30 @@ void CommunicatorEnvironment::start(int test, Observation *obs)
 
 double CommunicatorEnvironment::step(const Action &action, Observation *obs, double *reward, int *terminal)
 {
-  timespec time_end;
+  timespec action_delay_time, time_end;
   if (converter_)
     converter_->convert_action(action, action_conv_);
   else
     action_conv_ = action;
   communicator_->send(action_conv_);
-  communicator_->recv(&obs_conv_);  // Non-blocking, therefore it gets the most recently transmitted state
+
+  clock_gettime(CLOCK_MONOTONIC, &action_delay_time);
+  double action_delay = (action_delay_time.tv_sec - time_begin_.tv_sec) + (static_cast<double>(action_delay_time.tv_nsec - time_begin_.tv_nsec))/1.0e9;
+//  std::cout << "Action delay " << action_delay << std::endl;
+  if (action_delay > 5000)
+    std::cout << "LEO recv timeout" << std::endl;
+
+  communicator_->recv(&obs_conv_);
   clock_gettime(CLOCK_MONOTONIC, &time_end);
+  double tau = (time_end.tv_sec - time_begin_.tv_sec) + (static_cast<double>(time_end.tv_nsec - time_begin_.tv_nsec))/1.0e9;
+  time_begin_ = time_end;
+
   if (converter_)
     converter_->convert_state(obs_conv_, obs->v);
   else
     *obs = obs_conv_;
   obs->absorbing = false;
 
-  double tau = (time_end.tv_sec - time_begin_.tv_sec) + (static_cast<double>(time_end.tv_nsec - time_begin_.tv_nsec))/1.0e9;
-  time_begin_ = time_end;
   return tau;
 }
 

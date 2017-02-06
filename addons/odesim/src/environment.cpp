@@ -217,7 +217,7 @@ double ODESTGEnvironment::step(const Action &action, Observation *obs, double *r
     *terminal = 2;
     obs->absorbing = true;
   }
-  else if (simulator_.getAbsTime() - start_time_ > timeout_)
+  else if (timeout_ && (simulator_.getAbsTime() - start_time_ > timeout_))
     *terminal = 1;
   else
     *terminal = 0;

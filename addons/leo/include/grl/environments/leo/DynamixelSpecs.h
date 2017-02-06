@@ -79,7 +79,7 @@
   // Motor coefficients
   #define DXL_TORQUE_CONST                    MAXON_TORQUE_CONST
   #define DXL_GEARBOX_RATIO                   DXL_XM430_210_GEARBOX_RATIO
-  #define DXL_RESISTANCE                      8.6    // #ivan, just took an RX-28 value. Need to update it
+  #define DXL_RESISTANCE                      4.6
 
   // Temperature coefficients
   #define DXL_COPPER_COEF                     DXL_XM430_210_COPPER_COEF

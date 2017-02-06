@@ -73,6 +73,7 @@ CLeoBhWalkSym::CLeoBhWalkSym(ISTGActuation *actuationInterface):
   mScaleFactKneeSwingAngle      = 1.33;
   mScaleFactKneeSwingAngleRate  = 0.15;
   mMultiResScaleFact            = -1.0;
+  mContinueAfterFall            = false;
 
 //  mNumActionsPerJoint        = 7;
 //  mScaleFactVoltage        = 0.2;
@@ -137,6 +138,10 @@ bool CLeoBhWalkSym::readConfig(const CConfigSection &xmlRoot)
   configresult &= mLogAssert(configNode.get("scaleFactKneeStanceAngleRate",	&mScaleFactKneeStanceAngleRate));
   configresult &= mLogAssert(configNode.get("scaleFactKneeSwingAngle", 		&mScaleFactKneeSwingAngle));
   configresult &= mLogAssert(configNode.get("scaleFactKneeSwingAngleRate",	&mScaleFactKneeSwingAngleRate));
+
+  configresult &= mLogAssert(configNode.get("continueAfterFall",	&mContinueAfterFall));
+
+
 
   configNode.get("multiResScaleFact", &mMultiResScaleFact);
 
@@ -482,37 +487,39 @@ double CLeoBhWalkSym::calculateReward()
 
 bool CLeoBhWalkSym::isDoomedToFall(CLeoState* state, bool report)
 {
-/*// #ivan
-  // Torso angle out of 'range'
-  if ((state->mJointAngles[ljTorso] < -1.0) || (state->mJointAngles[ljTorso] > 1.0))
+  if (!mContinueAfterFall)
   {
-    if (report)
-      mLogNoticeLn("[TERMINATION] Torso angle too large");
-    return true;
+    // Torso angle out of 'range'
+    if ((state->mJointAngles[ljTorso] < -1.0) || (state->mJointAngles[ljTorso] > 1.0))
+    {
+      if (report)
+        mLogNoticeLn("[TERMINATION] Torso angle too large");
+      return true;
+    }
+
+    // No balancing (Erik)
+    /*
+    double balanceVelocity = 0.02;
+    if ((fabs(getCurrentSTGState()->mJointSpeeds[ljTorso]) < balanceVelocity)
+      && (fabs(getCurrentSTGState()->mJointSpeeds[ljHipLeft]) < balanceVelocity)
+      && (fabs(getCurrentSTGState()->mJointSpeeds[ljHipRight]) < balanceVelocity)
+      )
+    {
+      if (report)
+        mLogNoticeLn("[TERMINATION] Robot should not balance");
+      return true;
+    }
+     */
+
+    // Stance leg angle out of 'range'
+    if (fabs(state->mJointAngles[ljTorso] + state->mJointAngles[mHipStance]) > 0.36*M_PI)
+    {
+      if (report)
+        mLogNoticeLn("[TERMINATION] Stance leg angle too large");
+      return true;
+    }
   }
-*/
-  // No balancing (Erik)
-  /*
-  double balanceVelocity = 0.02;
-  if ((fabs(getCurrentSTGState()->mJointSpeeds[ljTorso]) < balanceVelocity)
-    && (fabs(getCurrentSTGState()->mJointSpeeds[ljHipLeft]) < balanceVelocity)
-    && (fabs(getCurrentSTGState()->mJointSpeeds[ljHipRight]) < balanceVelocity)
-    )
-  {
-    if (report)
-      mLogNoticeLn("[TERMINATION] Robot should not balance");
-    return true;
-  }
-   */
-/*// #ivan
-  // Stance leg angle out of 'range'
-  if (fabs(state->mJointAngles[ljTorso] + state->mJointAngles[mHipStance]) > 0.36*M_PI)
-  {
-    if (report)
-      mLogNoticeLn("[TERMINATION] Stance leg angle too large");
-    return true;
-  }
-*/
+
   return false;
 }
 

@@ -53,6 +53,7 @@ class CLeoBhWalkSym: public CSTGAgentQLeo
     double        mScaleFactKneeSwingAngle;
     double        mScaleFactKneeSwingAngleRate;
     double        mMultiResScaleFact;         // If > 0, multi-resolution tile coding will be used with an additional layer, uniformly scaled with this factor (state space only, not action space)
+    bool          mContinueAfterFall;
 
     // Action space settings
 //    int           mNumActionsPerJoint;
