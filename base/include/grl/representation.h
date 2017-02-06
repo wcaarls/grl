@@ -42,7 +42,6 @@ class Representation : public Configurable
 {
   private:
     std::vector<ProjectionPtr> batch_;
-    size_t batch_output_size_;
     pthread_mutex_t mutex_;
 
   public:
@@ -92,15 +91,14 @@ class Representation : public Configurable
       return Matrix();
     }
 
-    /// Starts a batch operation, specifying the batch size, input size and output size.
-    virtual void batch(size_t sz, size_t insz, size_t outsz)
+    /// Starts a batch operation.
+    virtual void batch(size_t sz)
     {
       // Make sure other threads can't interrupt our batch
       pthread_mutex_lock(&mutex_);
     
       batch_.clear();
       batch_.reserve(sz);
-      batch_output_size_ = outsz;
     }
     
     /// Enqueues a batch read operation, to be read later.
@@ -119,12 +117,21 @@ class Representation : public Configurable
     /// Reads the results of all enqueued read operations.
     virtual void read(Matrix *out)
     {
-      *out = Matrix(batch_.size(), batch_output_size_);
+      Vector result;
+      read(batch_[0], &result);
+      if (!result.size())
+      {
+        *out = Matrix();
+        return;
+      }
+      
+      *out = Matrix(batch_.size(), result.size());
+      out->row(0) = result;
       
       #ifdef _OPENMP
       #pragma omp parallel for
       #endif
-      for (size_t ii=0; ii < batch_.size(); ++ii)
+      for (size_t ii=1; ii < batch_.size(); ++ii)
       {
         Vector result;
         read(batch_[ii], &result);

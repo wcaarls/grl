@@ -34,35 +34,30 @@ experiment:
           type: projector/identity
       representation: 
         type: representation/tensorflow
-        file: pendulum_q.pb
+        inputs: experiment/environment/task/observation_dims+experiment/environment/task/action_dims
         outputs: 1
+        file: pendulum_q.pb
       sampler: 
         type: sampler/epsilon_greedy
+        rand_max: 0
         epsilon: [0.5]
     predictor: 
       type: predictor/mbfqi
-      alpha: 1
       gamma: 0.97
       transitions: 100000
       minibatch_size: 64
       update_interval: 1000
-      target: 
-        type: mapping/value
-        policy: 
-          type: mapping/policy/value/q
-          discretizer: experiment/agent/policy/discretizer
-          projector: experiment/agent/policy/projector
-          representation: experiment/agent/policy/representation
-          sampler: 
-            type: sampler/greedy
+      discretizer: experiment/agent/policy/discretizer
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
   test_agent: 
     type: agent/fixed
-    policy: experiment/agent/predictor/target/policy
+    policy: 
+      type: mapping/policy/value/q
+      discretizer: experiment/agent/policy/discretizer
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+      sampler: 
+        type: sampler/greedy
+        rand_max: 0
   save_every: never
-visualizer: 
-  type: visualizer/glut
-visualization:
-  type: visualization/pendulum
-  state: experiment/environment/state

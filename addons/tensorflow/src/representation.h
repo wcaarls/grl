@@ -45,13 +45,19 @@ class TensorFlowRepresentation : public Representation
     typedef std::pair<Vector, Vector> Sample;
     
   protected:
-    std::string file_, input_layer_, output_layer_, target_, sample_weights_, learning_phase_, init_node_, update_node_;
+    int inputs_, outputs_;
+    std::string file_, input_layer_, output_layer_, output_target_, sample_weights_, learning_phase_, init_node_, update_node_;
     
     tensorflow::GraphDef graph_def_;
     tensorflow::Session* session_;
     std::vector<Sample> batch_;
+    
+    tensorflow::Tensor input_, output_, target_;
+    size_t counter_;
 
   public:
+    TensorFlowRepresentation() : inputs_(1), outputs_(1), counter_(0) { }
+  
     // From Configurable
     virtual void request(const std::string &role, ConfigurationRequest *config);
     virtual void configure(Configuration &config);
@@ -63,6 +69,12 @@ class TensorFlowRepresentation : public Representation
     virtual void write(const ProjectionPtr projection, const Vector &target, const Vector &alpha);
     virtual void update(const ProjectionPtr projection, const Vector &delta);
     virtual void finalize();
+
+    virtual void batch(size_t sz);
+    virtual void enqueue(const ProjectionPtr &projection);
+    virtual void enqueue(const ProjectionPtr &projection, const Vector &target);
+    virtual void read(Matrix *out);
+    virtual void write();
 };
 
 }

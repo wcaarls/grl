@@ -39,11 +39,31 @@ REGISTER_CONFIGURABLE(TensorFlowRepresentation)
 
 void TensorFlowRepresentation::request(const std::string &role, ConfigurationRequest *config)
 {
+  if (role == "action")
+  {
+    config->push_back(CRP("inputs", "int.observation_dims", "Number of input dimensions", (int)inputs_, CRP::System, 1));
+    config->push_back(CRP("outputs", "int.action_dims", "Number of output dimensions", (int)outputs_, CRP::System, 1));
+  }
+  else
+  {
+    if (role == "transition" || role == "value/action")
+      config->push_back(CRP("inputs", "int.observation_dims+int.action_dims", "Number of input dimensions", (int)inputs_, CRP::System, 1));
+    else if (role == "value/state")
+      config->push_back(CRP("inputs", "int.observation_dims", "Number of input dimensions", (int)inputs_, CRP::System, 1));
+    else
+      config->push_back(CRP("inputs", "Number of input dimensions", (int)inputs_, CRP::System, 1));
+      
+    if (role == "transition")
+      config->push_back(CRP("outputs", "int.observation_dims+2", "Number of output dimensions", (int)outputs_, CRP::System, 1));
+    else
+      config->push_back(CRP("outputs", "Number of output dimensions", (int)outputs_, CRP::System, 1));
+  }
+  
   config->push_back(CRP("file", "TensorFlow graph stored in binary protocol buffer", file_));
   
   config->push_back(CRP("input_layer", "Name of input layer placeholder", input_layer_));
   config->push_back(CRP("output_layer", "Name of output layer tensor", output_layer_));
-  config->push_back(CRP("target", "Name of output layer target placeholder", target_));
+  config->push_back(CRP("target", "Name of output layer target placeholder", output_target_));
   config->push_back(CRP("sample_weights", "Name of sample weights placeholder", sample_weights_));
   config->push_back(CRP("learning_phase", "Name of learning phase placeholder", learning_phase_));
 
@@ -53,6 +73,8 @@ void TensorFlowRepresentation::request(const std::string &role, ConfigurationReq
 
 void TensorFlowRepresentation::configure(Configuration &config)
 {
+  inputs_ = config["inputs"];
+  outputs_ = config["outputs"];
   file_ = config["file"].str();
   if (file_.empty())
     throw bad_param("representation/tensorflow:file");
@@ -79,8 +101,8 @@ void TensorFlowRepresentation::configure(Configuration &config)
     if (input_layer_.empty() && n.name().find("input") != std::string::npos)
       input_layer_ = n.name();
 
-    if (target_.empty() && n.name().find("target") != std::string::npos)
-      target_ = n.name();
+    if (output_target_.empty() && n.name().find("target") != std::string::npos)
+      output_target_ = n.name();
       
     if (sample_weights_.empty() && n.name().find("sample_weights") != std::string::npos)
       sample_weights_ = n.name();
@@ -104,7 +126,7 @@ void TensorFlowRepresentation::configure(Configuration &config)
   if (output_layer_.empty())
     throw bad_param("representation/tensorflow:output_layer");
 
-  if (target_.empty())
+  if (output_target_.empty())
     throw bad_param("representation/tensorflow:target");
 
   if (update_node_.empty())
@@ -113,7 +135,7 @@ void TensorFlowRepresentation::configure(Configuration &config)
   INFO("Model loaded");
   INFO("  Input layer placeholder   : " << input_layer_);
   INFO("  Output layer tensor       : " << output_layer_);
-  INFO("  Target placeholder        : " << target_);
+  INFO("  Target placeholder        : " << output_target_);
   INFO("  Sample weights placeholder: " << sample_weights_);
   INFO("  Learning phase placeholder: " << learning_phase_);
   INFO("  Init node                 : " << init_node_);
@@ -243,7 +265,7 @@ void TensorFlowRepresentation::finalize()
   for (size_t ii=0; ii < batch_.size(); ++ii)
     weight_map(ii) = 1.;
     
-  std::vector<std::pair<std::string, tensorflow::Tensor>> inputs = {{input_layer_, input}, {target_, target}};
+  std::vector<std::pair<std::string, tensorflow::Tensor>> inputs = {{input_layer_, input}, {output_target_, target}};
   if (!learning_phase_.empty())
     inputs.push_back({learning_phase_, learning});
   if (!sample_weights_.empty())
@@ -257,4 +279,103 @@ void TensorFlowRepresentation::finalize()
   }
   
   batch_.clear();
+}
+
+void TensorFlowRepresentation::batch(size_t sz)
+{
+  input_ = Tensor(tensorflow::DT_FLOAT, TensorShape({(int)sz, (int)inputs_}));
+  output_ = Tensor(tensorflow::DT_FLOAT, TensorShape({(int)sz, (int)outputs_}));
+  target_ = Tensor(tensorflow::DT_FLOAT, TensorShape({(int)sz, (int)outputs_}));
+  
+  counter_ = 0;
+}
+
+void TensorFlowRepresentation::enqueue(const ProjectionPtr &projection)
+{
+  VectorProjection *vp = dynamic_cast<VectorProjection*>(projection.get());
+  
+  if (vp)
+  {
+    auto input_map = input_.tensor<float, 2>();
+    for (size_t jj=0; jj < input_map.dimension(1); ++jj)
+      input_map(counter_, jj) = vp->vector[jj];
+    counter_++;
+  }
+  else
+    throw Exception("representation/tensorflow requires a projector returning a VectorProjection");
+}
+
+void TensorFlowRepresentation::enqueue(const ProjectionPtr &projection, const Vector &target)
+{
+  VectorProjection *vp = dynamic_cast<VectorProjection*>(projection.get());
+  
+  if (vp)
+  {
+    auto input_map = input_.tensor<float, 2>();
+    for (size_t ii=0; ii < input_map.dimension(1); ++ii)
+      input_map(counter_, ii) = vp->vector[ii];
+
+    auto target_map = target_.tensor<float, 2>();
+    for (size_t ii=0; ii < target_map.dimension(1); ++ii)
+      target_map(counter_, ii) = target[ii];
+
+    counter_++;
+  }
+  else
+    throw Exception("representation/tensorflow requires a projector returning a VectorProjection");
+}
+
+void TensorFlowRepresentation::read(Matrix *out)
+{
+  std::vector<std::pair<std::string, tensorflow::Tensor>> inputs = {{input_layer_, input_}};
+  
+  Tensor learning(tensorflow::DT_BOOL, TensorShape());
+  if (!learning_phase_.empty())
+  {
+    learning.scalar<bool>()() = false;
+    inputs.push_back({learning_phase_, learning});
+  }
+  
+  std::vector<Tensor> outputs;
+  
+  Status run_status = session_->Run(inputs, {output_layer_}, {}, &outputs);
+  if (!run_status.ok()) {
+    ERROR(run_status.ToString());
+    throw Exception("Could not run prediction graph");
+  }
+  
+  // std::swap?
+  auto output_map = outputs[0].tensor<float, 2>();
+  out->resize(output_map.dimension(0), output_map.dimension(1));
+  for (size_t ii=0; ii < output_map.dimension(0); ++ii)
+    for (size_t jj=0; jj < output_map.dimension(1); ++jj)
+      (*out)(ii, jj) = output_map(ii, jj);
+}
+
+void TensorFlowRepresentation::write()
+{
+  std::vector<std::pair<std::string, tensorflow::Tensor>> inputs = {{input_layer_, input_}, {output_target_, target_}};
+  
+  Tensor learning(tensorflow::DT_BOOL, TensorShape());
+  if (!learning_phase_.empty())
+  {
+    learning.scalar<bool>()() = true;
+    inputs.push_back({learning_phase_, learning});
+  }
+  
+  Tensor weights(tensorflow::DT_FLOAT, TensorShape({target_.shape().dim_size(0)}));
+  if (!sample_weights_.empty())
+  {
+    auto weight_map = weights.tensor<float, 1>();
+    for (size_t ii=0; ii < weight_map.dimension(0); ++ii)
+      weight_map(ii) = 1.;
+    inputs.push_back({sample_weights_, weights});
+  }
+
+  // Training
+  Status run_status = session_->Run(inputs, {}, {update_node_}, NULL);
+  if (!run_status.ok()) {
+    ERROR(run_status.ToString());
+    throw Exception("Could not run learning graph");
+  }
 }
