@@ -326,10 +326,8 @@ class GrlObject:
   def load(self, config):
     if type(config) is NoneType:
       return
-    elif type(config) is str:
-      self.type.set(config)
-    elif type(config) is IntType:
-      return
+    elif type(config) is str or type(config) is IntType or type(config) is FloatType or type(config) is ListType:
+      self.type.set(str(config))
     else:
       self.type.set(config["type"])
       

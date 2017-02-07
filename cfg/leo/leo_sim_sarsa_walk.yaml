@@ -5,7 +5,7 @@ experiment:
   steps: 1000000
   rate: 0
   test_interval: 10
-  output: leosim_sarsa_walk_ou_out
+  output: leosim_sarsa_walk_out
   environment: 
     type: environment/leo_walk
     behavior: 
@@ -14,16 +14,16 @@ experiment:
     target_env: 
       type: environment/ode
       xml: ../../xml
-      randomize: 1
+      randomize: 0
       visualize: 1
     observe: torso_boom, hipright, hipleft, kneeright, kneeleft
-    actuate: hipright, hipleft, kneeleft
+    actuate: hipright, hipleft, stanceknee
     exporter: 
       type: exporter/csv
       file: leosim_sarsa_walk_ou
       style: meshup
       variant: all
-      enabled: 1
+      enabled: 0
   agent: 
     type: agent/td
     policy: 
@@ -49,12 +49,8 @@ experiment:
         output_min: []
         output_max: []
       sampler: 
-        type: sampler/ornstein_ohlenbeck
-        rand_max: 0
-        discretizer: ../../discretizer
-        theta: [0.01, 0.01, 0.01]
-        sigma: [3.0, 3.0, 3.0]
-        center: [0.0, 0.0, 0.0]
+        type: sampler/epsilon_greedy
+        epsilon: 0.05
     predictor: 
       type: predictor/sarsa
       alpha: 0.2
