@@ -487,13 +487,17 @@ double CLeoBhWalkSym::calculateReward()
 
 bool CLeoBhWalkSym::isDoomedToFall(CLeoState* state, bool report)
 {
+  double stanceComstraint = 1*M_PI; // 0.36*M_PI
+  double torsoComstraint = 0.5*M_PI; // 0.36*M_PI
+
   if (!mContinueAfterFall)
   {
     // Torso angle out of 'range'
-    if ((state->mJointAngles[ljTorso] < -1.0) || (state->mJointAngles[ljTorso] > 1.0))
+    if (fabs(state->mJointAngles[ljTorso]) > torsoComstraint)
     {
       if (report)
         mLogNoticeLn("[TERMINATION] Torso angle too large");
+      std::cout << "[TERMINATION] Torso angle too large" << std::endl;
       return true;
     }
 
@@ -512,10 +516,11 @@ bool CLeoBhWalkSym::isDoomedToFall(CLeoState* state, bool report)
      */
 
     // Stance leg angle out of 'range'
-    if (fabs(state->mJointAngles[ljTorso] + state->mJointAngles[mHipStance]) > 0.36*M_PI)
+    if (fabs(state->mJointAngles[ljTorso] + state->mJointAngles[mHipStance]) > stanceComstraint)
     {
       if (report)
         mLogNoticeLn("[TERMINATION] Stance leg angle too large");
+      std::cout << "[TERMINATION] Stance leg angle too large" << std::endl;
       return true;
     }
   }

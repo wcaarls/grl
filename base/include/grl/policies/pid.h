@@ -30,6 +30,7 @@
 
 #include <grl/policies/parameterized.h>
 #include <grl/policies/feed_forward.h>
+#include <grl/importer.h>
 
 namespace grl
 {
@@ -44,10 +45,10 @@ class PIDPolicy : public ParameterizedPolicy
     Vector setpoint_;
     size_t outputs_;
     
-    LargeVector p_, i_, d_, il_;
+    LargeVector p_, i_, d_, il_, ival_;
     LargeVector params_;
     
-    Vector ival_, prev_in_;
+    Vector prev_in_;
     Vector action_min_, action_max_;
 
   public:
@@ -78,13 +79,13 @@ class PIDTrajectoryPolicy : public ParameterizedPolicy
     Mapping *trajectory_;
     Vector setpoint_;     // the dynamic setpoint is taken from trajectory at the current time
     size_t inputs_, outputs_;
-    Vector p_, i_, d_, il_;
+    LargeVector p_, i_, d_, il_, ival_;
     LargeVector params_;
-    Vector ival_, prev_in_;
+    Vector prev_in_;
     Vector action_min_, action_max_;
 
   public:
-    PIDTrajectoryPolicy() : inputs_(1), outputs_(1) { }
+    PIDTrajectoryPolicy() : trajectory_(NULL), inputs_(1), outputs_(1) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);

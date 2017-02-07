@@ -49,10 +49,10 @@ class StateActionConverter : public Configurable
     // From Configurable
     virtual void request(ConfigurationRequest *config)
     {
-      config->push_back(CRP("state_in", "string.state_in", "Comma-separated list of state elements in the input vector"));
-      config->push_back(CRP("state_out", "string.state_out", "Comma-separated list of state elements in the output vector"));
-      config->push_back(CRP("action_in", "string.action_in", "Comma-separated list of action elements observed in the input vector"));
-      config->push_back(CRP("action_out", "string.action_out", "Comma-separated list of action elements provided in the output vector"));
+      config->push_back(CRP("state_in", "Comma-separated list of state elements in the input vector", ""));
+      config->push_back(CRP("state_out", "Comma-separated list of state elements in the output vector", ""));
+      config->push_back(CRP("action_in", "Comma-separated list of action elements observed in the input vector", ""));
+      config->push_back(CRP("action_out", "Comma-separated list of action elements provided in the output vector", ""));
     }
 
     virtual void configure(Configuration &config)

@@ -31,7 +31,11 @@ struct TargetInterface
   ActuatorInterface actuator_sym; // used for stance leg being right
 };
 
-enum LeoSignalType {lstNone, lstContact}; // Leo has the additional to default signal type
+enum LeoSignalType {
+  lstNone          = 0x00,
+  lstSwlTouchDown  = 0x01,   // Set at swing leg touchdown
+  lstGroundContact = 0x02,   // Set when Leo is touching the ground (real Leo may not touch the ground at the beginning)
+};
 
 // Base classes for Leo
 class CLeoBhBase: public CLeoBhWalkSym

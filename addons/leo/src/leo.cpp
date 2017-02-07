@@ -173,8 +173,8 @@ void LeoBaseEnvironment::request(ConfigurationRequest *config)
 
   config->push_back(CRP("xml", "XML configuration filename", xml_));
   config->push_back(CRP("target_env", "environment", "Interaction environment", target_env_));
-  config->push_back(CRP("observe", "string.observe", "Comma-separated list of state elements observed by an agent"));
-  config->push_back(CRP("actuate", "string.actuate", "Comma-separated list of action elements provided by an agent"));
+  config->push_back(CRP("observe", "Comma-separated list of state elements observed by an agent", ""));
+  config->push_back(CRP("actuate", "Comma-separated list of action elements provided by an agent", ""));
   config->push_back(CRP("exporter", "exporter", "Optional exporter for transition log (supports time, state, observation, action, reward, terminal)", exporter_, true));
   config->push_back(CRP("sub_transition_type", "signal/vector", "Subscriber to the transition type", sub_transition_type_, true));
 

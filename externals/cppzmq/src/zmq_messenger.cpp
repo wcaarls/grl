@@ -166,7 +166,7 @@ bool ZeromqMessenger::recv(void *data, int size, int flags) const
       mtx_->lock();
       memcpy(data, buffer_, size);
       mtx_->unlock();
-      std::cout << "Zeromq timeout!" << std::endl;
+      //std::cout << "Zeromq timeout!" << std::endl;
     }
 
     return true;

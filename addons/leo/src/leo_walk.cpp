@@ -195,12 +195,7 @@ void LeoWalkEnvironment::start(int test, Observation *obs)
   LeoBaseEnvironment::start(test);
 
   target_env_->start(test_, &target_obs_);
-/*
-  /// Faking boom for real Leo experiment
-  target_obs_[CLeoBhBase::svTorsoAngle] = -0.1;      // -0.3 average
-  target_obs_[CLeoBhBase::svTorsoAngleRate] = -0.02;  // -0.02 average
-  ///
-*/
+
   // Parse obs into CLeoState (Start with left leg being the stance leg)
   bh_->fillLeoState(target_obs_, Vector(), leoState_);
   bh_->setCurrentSTGState(&leoState_);
@@ -217,8 +212,9 @@ void LeoWalkEnvironment::start(int test, Observation *obs)
 
   bh_->setCurrentSTGState(NULL);
 
+  // set ground contact if it is established
   if (pub_ic_signal_)
-    pub_ic_signal_->set(VectorConstructor(lstNone));
+    pub_ic_signal_->set(VectorConstructor(leoState_.mFootContacts?lstGroundContact:lstNone));
 }
 
 double LeoWalkEnvironment::step(const Action &action, Observation *obs, double *reward, int *terminal)
@@ -235,20 +231,11 @@ double LeoWalkEnvironment::step(const Action &action, Observation *obs, double *
   ensure_bounds(&target_action_.v);
   TRACE(target_action_);
 
-//  double auto_actuated_knee_voltage = bh_->grlAutoActuateKnee();
-
   // Execute action
   bh_->setPreviousSTGState(&leoState_);
-//target_action << actionArm, actionRightHip, actionLeftHip, actionRightKnee, actionLeftKnee, actionRightAnkle, actionLeftAnkle;
-//  target_action_.v << 0.0027, -0.3474, 0.0372, 0.0094, 0.0226, 0.1755, 0.3891;
+
   CRAWL(target_action_);
   double tau = target_env_->step(target_action_, &target_obs_, reward, terminal);
-/*
-  /// Faking boom for rela Leo experiment
-  target_obs_[CLeoBhBase::svTorsoAngle] = -0.1;      // -0.3 average
-  target_obs_[CLeoBhBase::svTorsoAngleRate] = -0.02;  // -0.02 average
-  ///
-*/
   CRAWL(target_obs_);
 
   // Filter joint speeds
@@ -280,22 +267,24 @@ double LeoWalkEnvironment::step(const Action &action, Observation *obs, double *
   // signal contact (agent may use this signal to tackle discontinuities)
   if (pub_ic_signal_)
   {
-    if (!bh_->madeFootstep())
-      pub_ic_signal_->set(VectorConstructor(lstNone));
-    else
+    Vector signal;
+    signal.resize(1+2*CLeoBhBase::svNumActions);
+    if (bh_->madeFootstep())
     {
       const TargetInterface ti = bh_->getInterface();
-      Vector ti_actuator, ti_actuator_sym, signal;
+      Vector ti_actuator, ti_actuator_sym;
       toVector(ti.actuator.action, ti_actuator);
       toVector(ti.actuator_sym.action, ti_actuator_sym);
-      signal.resize(1+2*CLeoBhBase::svNumActions);
-      // pack into a single vector
       if (bh_->stanceLegLeft())
-        signal << VectorConstructor(lstContact), ti_actuator, ti_actuator_sym;
+        signal << VectorConstructor(0), ti_actuator, ti_actuator_sym;
       else
-        signal << VectorConstructor(lstContact), ti_actuator_sym, ti_actuator;
-      pub_ic_signal_->set(signal);
+        signal << VectorConstructor(0), ti_actuator_sym, ti_actuator;
     }
+
+    int gc = leoState_.mFootContacts  ? lstGroundContact : lstNone;
+    int td = bh_->madeFootstep()      ? lstSwlTouchDown  : lstNone;
+    signal[0] = gc | td;
+    pub_ic_signal_->set(signal);
   }
 
   LeoBaseEnvironment::step(tau, *reward, *terminal);

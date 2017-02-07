@@ -60,9 +60,10 @@ class CSVImporter : public Importer
     std::ifstream stream_;
     std::vector<size_t> order_;
     std::vector<std::string> headers_;
+    std::string split_;
 
   public:
-    CSVImporter() { }
+    CSVImporter() : split_("no_split") { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);

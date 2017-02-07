@@ -1,4 +1,4 @@
-/** \file leo_squatting_agent.h
+/** \file leo_sma.cpp
  * \brief State-machine agent header file for Leo
  *
  * \author    Ivan Koryakovskiy <i.koryakovskiy@tudelft.nl>
@@ -25,29 +25,34 @@
  * \endverbatim
  */
 
-#ifndef GRL_LEO_SQATTING_AGENT_H_
-#define GRL_LEO_SQATTING_AGENT_H_
+#ifndef GRL_LEO_STATE_MACHINE_AGENT_H_
+#define GRL_LEO_STATE_MACHINE_AGENT_H_
 
 #include <grl/agent.h>
 #include <grl/policy.h>
 #include <grl/state_machine.h>
+#include <grl/signal.h>
 
 namespace grl
 {
 
 /// State machine agent.
-class LeoSquattingAgent : public Agent
+class LeoStateMachineAgent : public Agent
 {
   public:
-    TYPEINFO("mapping/policy/nmpc_sw", "Nonlinear model predictive control policy for the simplest walker using the MUSCOD library")
+    TYPEINFO("agent/leo/sma", "State-machine agent for Leo")
 
   protected:
-    Agent *agent_standup_, *agent_learn_, *agent_;
-    Trigger trigger_;
+    Agent *agent_prepare_;
+    Agent *agent_standup_;
+    Agent *agent_main_;
+    Agent *agent_;
+    Trigger *trigger_;
+    VectorSignal *sub_ic_signal_;
     double time_;
     
   public:
-    LeoSquattingAgent() : agent_standup_(NULL), agent_learn_(NULL), agent_(NULL), time_(0.) { }
+    LeoStateMachineAgent() : agent_prepare_(NULL), agent_standup_(NULL), agent_main_(NULL), agent_(NULL), trigger_(NULL), sub_ic_signal_(NULL), time_(0.) { }
   
     // From Configurable    
     virtual void request(ConfigurationRequest *config);
@@ -62,4 +67,4 @@ class LeoSquattingAgent : public Agent
 
 }
 
-#endif /* GRL_LEO_SQATTING_AGENT_H_ */
+#endif /* GRL_LEO_STATE_MACHINE_AGENT_H_ */

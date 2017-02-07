@@ -60,7 +60,7 @@ class Trigger : public Configurable
     {
       config->push_back(CRP("min", "vector.observation_min", "Minimum of compartment bounding box", min_));
       config->push_back(CRP("max", "vector.observation_max", "Maximum of compartment bounding box", max_));
-      config->push_back(CRP("delay", "double", "Settlement delay for which conitions are continuously fullfilled", delay_, CRP::System, 0.0, DBL_MAX));
+      config->push_back(CRP("delay", "double", "Settlement delay for which conditions are continuously fullfilled", delay_, CRP::System, 0.0, DBL_MAX));
     }
 
     virtual void configure(Configuration &config)

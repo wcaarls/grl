@@ -5,7 +5,7 @@ experiment:
   steps: 0
   rate: 30
   test_interval: 0
-  output: leosim_pid_right_leg_up
+  output: leosim_pid_walk
   environment: 
     type: environment/leo_walk
     behavior: 
@@ -21,8 +21,15 @@ experiment:
   agent: 
     type: agent/fixed
     policy: 
-      type: mapping/policy/parameterized/pid
-      setpoint: [ -0.101485,  -0.261799,   0.819996,   0.100951,  -1.269998,   0.001465,   0.000000,   0.000004,  0, 0, 0, 0, 0, 0, 0, 0 ]
+      type: mapping/policy/parameterized/pidt
+      trajectory: 
+        type: mapping/timeline
+        importer: 
+          type: importer/csv
+          file: ../src/grl/addons/leo/pid_trajectories/leosim_sarsa_walk_pada_play-test-0-converted
+          headers: time, state0
+          split: no_split
+      inputs: 16
       outputs: 7
       p: [0, 20, 0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0,
 0, 0, 20, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0,
@@ -30,7 +37,7 @@ experiment:
 0, 0, 0, 0, 20, 0, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0,
 0, 0, 0, 0, 0, 20, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0,
 0, 0, 0, 0, 0, 0, 20, 0,   0, 0, 0, 0, 0, 0, 0, 0,
-0, 0, 0, 0, 0, 0, 0, 60,   0, 0, 0, 0, 0, 0, 0, 0]
+0, 0, 0, 0, 0, 0, 0, 20,   0, 0, 0, 0, 0, 0, 0, 0]
       i: []
       d: []
       il: []

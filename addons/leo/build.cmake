@@ -26,10 +26,11 @@ if (PKG_CONFIG_FOUND AND QT4_FOUND)
                           ${SRC}/LeoBhWalkSym.cpp
                           ${SRC}/STGLeoSim.cpp
                           ${SRC}/ThirdOrderButterworth.cpp
+                          ${SRC}/state_machine.cpp
                           ${SRC}/samplers/leo_action_sampler.cpp
                           ${SRC}/agents/leo_td.cpp
                           ${SRC}/agents/leo_fixed.cpp
-                          ${SRC}/agents/leo_squatting_agent.cpp
+                          ${SRC}/agents/leo_sma.cpp
                           ${SRC}/agents/leo_preprogrammed.cpp)
 
     include_directories(${SRC}/../include/grl/environments/leo)
