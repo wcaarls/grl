@@ -1,11 +1,11 @@
-/** \file monomial.h
- * \brief Monomial basis function projector header file.
+/** \file split.h
+ * \brief Split projector header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2016-11-24
+ * \date      2017-02-09
  *
  * \copyright \verbatim
- * Copyright (c) 2016, Wouter Caarls
+ * Copyright (c) 2017, Wouter Caarls
  * All rights reserved.
  *
  * This file is part of GRL, the Generic Reinforcement Learning library.
@@ -25,47 +25,40 @@
  * \endverbatim
  */
 
-#ifndef GRL_MONOMIAL_PROJECTOR_H_
-#define GRL_MONOMIAL_PROJECTOR_H_
+#ifndef GRL_SPLIT_PROJECTOR_H_
+#define GRL_SPLIT_PROJECTOR_H_
 
+#include <grl/discretizer.h>
 #include <grl/projector.h>
 
 namespace grl
 {
 
-/// Projects the input onto a set of monomial basis functions.
-class MonomialProjector : public Projector
+/// Splits a vector projection into distinct features according to a single-element index projection
+class SplitProjector : public Projector
 {
   public:
-    TYPEINFO("projector/monomial", "Monomial basis function projector")
+    TYPEINFO("projector/split", "Splits a feature vector into distinct sets")
     
   protected:
-    size_t degree_, memory_;
-    Vector operating_input_;
+    Vector index_;
+    Discretizer *discretizer_;
+    Projector* projector_;
+    size_t projector_memory_;
 
   public:
-    MonomialProjector() : degree_(1), memory_(0) { }
-
+    SplitProjector() : discretizer_(NULL), projector_(NULL), projector_memory_(0) { }
+  
     // From Configurable
     virtual void request(const std::string &role, ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
 
     // From Projector
-    virtual ProjectionLifetime lifetime() const { return plIndefinite; }
+    virtual ProjectionLifetime lifetime() const { return projector_->lifetime(); }
     virtual ProjectionPtr project(const Vector &in) const;
-    
-  protected:
-    size_t fact(size_t n)
-    {
-      size_t f=1;
-      for (size_t ii=2; ii <= n; ++ii)
-        f *= ii;
-        
-      return f;
-    }
 };
 
 }
 
-#endif /* GRL_MONOMIAL_PROJECTOR_H_ */
+#endif /* GRL_SPLIT_PROJECTOR_H_ */

@@ -86,6 +86,7 @@ add_library(${TARGET} SHARED
             ${SRC}/projectors/grid.cpp
             ${SRC}/projectors/rbf.cpp
             ${SRC}/projectors/multi.cpp
+            ${SRC}/projectors/split.cpp
             ${SRC}/representations/linear.cpp
             ${SRC}/representations/ann.cpp
 #            ${SRC}/representations/dmp.cpp
