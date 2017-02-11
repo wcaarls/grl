@@ -594,7 +594,6 @@ void CLeoBhWalkSym::autoActuateAnkles_FixedPos(ISTGActuation* actuationInterface
   }
 }
 
-
 void CLeoBhWalkSym::autoActuateArm(ISTGActuation* actuationInterface)
 {
   double armTorque = 5.0*(mPreProgShoulderAngle - getCurrentSTGState()->mJointAngles[ljShoulder]);

@@ -28,6 +28,7 @@ if (PKG_CONFIG_FOUND AND QT4_FOUND)
                           ${SRC}/ThirdOrderButterworth.cpp
                           ${SRC}/state_machine.cpp
                           ${SRC}/samplers/leo_action_sampler.cpp
+                          ${SRC}/agents/leo_sym_wrapper.cpp
                           ${SRC}/agents/leo_td.cpp
                           ${SRC}/agents/leo_fixed.cpp
                           ${SRC}/agents/leo_sma.cpp

@@ -40,44 +40,45 @@ void LeoBhWalk::parseStateFromTarget(const CLeoState &leoState, Vector &obs, con
   }
 }
 
-void LeoBhWalk::parseActionForTarget(const Vector &action, Vector &target_action, const TargetInterface::ActuatorInterface *actuator)
+void LeoBhWalk::parseActionForTarget(const Action &action, Action &target_action, const TargetInterface::ActuatorInterface *actuator)
 {
-    double actionArm, actionRightHip, actionLeftHip, actionRightKnee, actionLeftKnee, actionRightAnkle, actionLeftAnkle;
+  double actionArm, actionRightHip, actionLeftHip, actionRightKnee, actionLeftKnee, actionRightAnkle, actionLeftAnkle;
 
-    if (actuator->action[avRightHipAction] != -1)
-      actionRightHip = action[ actuator->action[avRightHipAction] ];
-    if (actuator->action[avLeftHipAction] != -1)
-      actionLeftHip = action[ actuator->action[avLeftHipAction] ];
-    if (actuator->action[avRightKneeAction] != -1)
-      actionRightKnee = action[ actuator->action[avRightKneeAction] ];
-    if (actuator->action[avLeftKneeAction] != -1)
-      actionLeftKnee = action[ actuator->action[avLeftKneeAction] ];
-    if (actuator->action[avRightAnkleAction] != -1)
-      actionRightAnkle = action[ actuator->action[avRightAnkleAction] ];
-    if (actuator->action[avLeftAnkleAction] != -1)
-      actionLeftAnkle = action[ actuator->action[avLeftAnkleAction] ];
-    if (actuator->action[avLeftArmAction] != -1)
-      actionArm = action[ actuator->action[avLeftArmAction] ];
+  if (actuator->action[avRightHipAction] != -1)
+    actionRightHip = action[ actuator->action[avRightHipAction] ];
+  if (actuator->action[avLeftHipAction] != -1)
+    actionLeftHip = action[ actuator->action[avLeftHipAction] ];
+  if (actuator->action[avRightKneeAction] != -1)
+    actionRightKnee = action[ actuator->action[avRightKneeAction] ];
+  if (actuator->action[avLeftKneeAction] != -1)
+    actionLeftKnee = action[ actuator->action[avLeftKneeAction] ];
+  if (actuator->action[avRightAnkleAction] != -1)
+    actionRightAnkle = action[ actuator->action[avRightAnkleAction] ];
+  if (actuator->action[avLeftAnkleAction] != -1)
+    actionLeftAnkle = action[ actuator->action[avLeftAnkleAction] ];
+  if (actuator->action[avLeftArmAction] != -1)
+    actionArm = action[ actuator->action[avLeftArmAction] ];
 
-    for (int i = 0; i < actuator->autoActuated.size(); i++)
+  for (int i = 0; i < actuator->autoActuated.size(); i++)
+  {
+    if (actuator->autoActuated[i] == "shoulder")
+      actionArm = grlAutoActuateArm();
+    if (actuator->autoActuated[i] == "stanceknee")
     {
-      if (actuator->autoActuated[i] == "shoulder")
-        actionArm = grlAutoActuateArm();
-      if (actuator->autoActuated[i] == "stanceknee")
-      {
-        // refers to an auto-actuation of the stance leg knee
-        if (stanceLegLeft())
-          actionLeftKnee = grlAutoActuateKnee();
-        else
-          actionRightKnee = grlAutoActuateKnee();
-      }
-       if (actuator->autoActuated[i] == "ankleright")
-         actionRightAnkle = grlAutoActuateRightAnkle();
-       if (actuator->autoActuated[i] == "ankleleft")
-         actionLeftAnkle = grlAutoActuateLeftAnkle();
+      // refers to an auto-actuation of the stance leg knee
+      if (stanceLegLeft())
+        actionLeftKnee = grlAutoActuateKnee();
+      else
+        actionRightKnee = grlAutoActuateKnee();
     }
+     if (actuator->autoActuated[i] == "ankleright")
+       actionRightAnkle = grlAutoActuateRightAnkle();
+     if (actuator->autoActuated[i] == "ankleleft")
+       actionLeftAnkle = grlAutoActuateLeftAnkle();
+  }
 
-    target_action << actionArm, actionRightHip, actionLeftHip, actionRightKnee, actionLeftKnee, actionRightAnkle, actionLeftAnkle;
+  target_action.v << actionArm, actionRightHip, actionLeftHip, actionRightKnee, actionLeftKnee, actionRightAnkle, actionLeftAnkle;
+  target_action.type = action.type;
 }
 
 std::string LeoBhWalk::getProgressReport(double trialTime)
@@ -115,7 +116,7 @@ void LeoBhWalk::parseLeoState(const CLeoState &leoState, Vector &obs)
   parseStateFromTarget(leoState, obs, &interface_.observer);
 }
 
-void LeoBhWalk::parseLeoAction(const Vector &action, Vector &target_action)
+void LeoBhWalk::parseLeoAction(const Action &action, Action &target_action)
 {
   parseActionForTarget(action, target_action, &interface_.actuator);
 }
@@ -130,7 +131,7 @@ void LeoBhWalkSym::parseLeoState(const CLeoState &leoState, Vector &obs)
     parseStateFromTarget(leoState, obs, &interface_.observer_sym);
 }
 
-void LeoBhWalkSym::parseLeoAction(const Vector &action, Vector &target_action)
+void LeoBhWalkSym::parseLeoAction(const Action &action, Action &target_action)
 {
   if (stanceLegLeft())
     parseActionForTarget(action, target_action, &interface_.actuator);
@@ -214,7 +215,11 @@ void LeoWalkEnvironment::start(int test, Observation *obs)
 
   // set ground contact if it is established
   if (pub_ic_signal_)
-    pub_ic_signal_->set(VectorConstructor(leoState_.mFootContacts?lstGroundContact:lstNone));
+  {
+    int gc = leoState_.mFootContacts ? lstGroundContact : lstNone;
+    int sl = bh_->stanceLegLeft() ? lstStanceLeft : lstStanceRight;
+    pub_ic_signal_->set(VectorConstructor(gc | sl));
+  }
 }
 
 double LeoWalkEnvironment::step(const Action &action, Observation *obs, double *reward, int *terminal)
@@ -227,14 +232,13 @@ double LeoWalkEnvironment::step(const Action &action, Observation *obs, double *
   bh_->parseLeoAction(action, target_action_);
 
   // ensure that action is always within bounds
-  TRACE(target_action_);
+  CRAWL(target_action_);
   ensure_bounds(&target_action_.v);
-  TRACE(target_action_);
 
   // Execute action
   bh_->setPreviousSTGState(&leoState_);
 
-  CRAWL(target_action_);
+  TRACE("Target action " << target_action_);
   double tau = target_env_->step(target_action_, &target_obs_, reward, terminal);
   CRAWL(target_obs_);
 
@@ -283,7 +287,8 @@ double LeoWalkEnvironment::step(const Action &action, Observation *obs, double *
 
     int gc = leoState_.mFootContacts  ? lstGroundContact : lstNone;
     int td = bh_->madeFootstep()      ? lstSwlTouchDown  : lstNone;
-    signal[0] = gc | td;
+    int sl = bh_->stanceLegLeft()     ? lstStanceLeft    : lstStanceRight;
+    signal[0] = gc | td | sl;
     pub_ic_signal_->set(signal);
   }
 

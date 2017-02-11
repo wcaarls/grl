@@ -35,6 +35,8 @@ enum LeoSignalType {
   lstNone          = 0x00,
   lstSwlTouchDown  = 0x01,   // Set at swing leg touchdown
   lstGroundContact = 0x02,   // Set when Leo is touching the ground (real Leo may not touch the ground at the beginning)
+  lstStanceLeft    = 0x04,   // Set when left leg is assumed to be a current stance leg
+  lstStanceRight   = 0x08,   // Set when right leg is assumed to be a current stance leg
 };
 
 // Base classes for Leo
@@ -105,7 +107,7 @@ class CLeoBhBase: public CLeoBhWalkSym
   public:
     virtual void resetState(double time0);
     virtual void parseLeoState(const CLeoState &leoState, Vector &obs);
-    virtual void parseLeoAction(const Vector &action, Vector &target_action) = 0;
+    virtual void parseLeoAction(const Action &action, Action &target_action) = 0;
 
     void setObserverInterface(const TargetInterface::ObserverInterface oi, const TargetInterface::ObserverInterface oi_sym) { interface_.observer = oi; interface_.observer_sym = oi_sym; }
     void setActuatorInterface(const TargetInterface::ActuatorInterface ai, const TargetInterface::ActuatorInterface ai_sym) { interface_.actuator = ai; interface_.actuator_sym = ai_sym; }

@@ -156,6 +156,20 @@ agent/leo/sma:
     mutability: configuration
     default: 0
     optional: 1
+agent/leo/sym_wrapper:
+  description: Leo agent that symmetrically wraps angles and controls
+  agent:
+    type: agent
+    description: Target agent with reduced state-action space due to symmetry
+    mutability: configuration
+    default: 0
+    optional: 0
+  sub_ic_signal:
+    type: signal/vector
+    description: Publisher of the initialization and contact signal
+    mutability: configuration
+    default: 0
+    optional: 0
 agent/leo/td:
   description: Leo agent that learns from observed state transitions
   policy:
@@ -1560,7 +1574,7 @@ mapping/policy/feed_forward:
     type: mapping
     description: Maps time to controls
     mutability: configuration
-    default: 0x20
+    default: 0x17f7c30
     optional: 1
 mapping/policy/mcts:
   description: Monte-Carlo Tree Search policy

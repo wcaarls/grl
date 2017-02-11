@@ -22,7 +22,7 @@ class CLeoBhSquat: public CLeoBhBase
     virtual void resetState(double time0);
     virtual double calculateReward();
     virtual void parseLeoState(const CLeoState &leoState, Vector &obs);
-    virtual void parseLeoAction(const Vector &action, Vector &target_action);
+    virtual void parseLeoAction(const Action &action, Action &target_action);
     virtual bool isDoomedToFall(CLeoState* state, bool report);
     virtual std::string getProgressReport(double trialTime);
 

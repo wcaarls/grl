@@ -1,9 +1,9 @@
 experiment: 
   type: experiment/online_learning
   runs: 1
-  trials: 1
+  trials: 20
   steps: 0
-  rate: 30
+  rate: 0
   test_interval: 0
   output: leosim_sarsa_walk_pada_play
   environment: 
@@ -14,8 +14,8 @@ experiment:
     target_env: 
       type: environment/ode
       xml: experiment/environment/xml
-      randomize: 0
-      visualize: 1
+      randomize: 1
+      visualize: 0
     observe: torso_boom, hipright, hipleft, kneeright, kneeleft
     actuate: hipright, hipleft, stanceknee
     exporter: 
@@ -57,9 +57,9 @@ experiment:
         sampler: 
           type: sampler/pada
           rand_max: 0
-          epsilon: [ 0.05 ]
+          epsilon: [0.05]
           discretizer: experiment/agent/policy/discretizer
-          delta: [ 3.57, 3.57, 3.57 ]
+          delta: [3.57, 3.57, 3.57]
           pub_sub_pada_state: 
             type: signal/vector
         sub_ic_signal: experiment/environment/pub_ic_signal
@@ -86,7 +86,7 @@ experiment:
         sampler: 
           type: sampler/pada
           rand_max: experiment/agent/policy/sampler/sampler/rand_max
-          epsilon: [ 0.00 ]
+          epsilon: [0.0]
           discretizer: experiment/agent/policy/discretizer
           delta: experiment/agent/policy/sampler/sampler/delta
           pub_sub_pada_state: experiment/agent/policy/sampler/sampler/pub_sub_pada_state
