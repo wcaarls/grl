@@ -3,7 +3,7 @@ experiment:
   runs: 1
   trials: 20
   steps: 0
-  rate: 0
+  rate: 30
   test_interval: 0
   output: leosim_sarsa_walk_egreedy_play
   environment: 
