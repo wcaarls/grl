@@ -86,7 +86,7 @@
 		<rewardTorsoUpright>0.0</rewardTorsoUpright>
 		<rewardTorsoUprightAngle lastvalue="-0.15">-0.15</rewardTorsoUprightAngle>
 		<rewardTorsoUprightAngleMargin definition="angle deviation [rad] for which reward is 50%">0.1</rewardTorsoUprightAngleMargin>
-		<trialTimeoutSeconds>0</trialTimeoutSeconds>
+		<trialTimeoutSeconds>25</trialTimeoutSeconds>
 		<continueAfterFall>false</continueAfterFall>
 	
 		<!-- state space -->
@@ -274,7 +274,7 @@
 		<!-- The main reason why the step time has to be so small is the relatively low mass/inertia of the feet -->
 		<!-- Unfortunately, it doesn't help to, e.g., disable DC motor inertia simulation, change globalK/D, etc. -->
 		<subsamplingfactor>167</subsamplingfactor>
-		<actuationdelay comment="in seconds">0.000</actuationdelay>
+		<actuationdelay comment="in seconds">0.010</actuationdelay>
 		<!-- Merge this configuration with leo's ODE configuration -->
 		<include>
 			<filename>xm430_210_vc_leoconfig.xml</filename>
