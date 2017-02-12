@@ -14,6 +14,28 @@ agent/black_box:
     mutability: configuration
     default: 0
     optional: 0
+agent/delayed_td:
+  description: Agent that learns from observed state transitions assuming non-integer values of control delay
+  policy:
+    type: mapping/policy
+    description: Control policy
+    mutability: configuration
+    default: 0
+    optional: 0
+  predictor:
+    type: predictor
+    description: Value function predictor
+    mutability: configuration
+    default: 0
+    optional: 0
+  control_delay:
+    type: double
+    description: "Relative control delay: 0 (no delay) - 1 (one timestep delay) "
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
 agent/dyna:
   description: Agent that learns from both observed and predicted state transitions
   planning_steps:
@@ -502,7 +524,7 @@ agent/zeromq:
     type: communicator
     description: Comunicator which exchanges messages with an actual/virtual environment
     mutability: configuration
-    default: 0
+    default: 0x23fa700
     optional: 0
   observation_dims:
     type: int.observation_dims
@@ -1574,7 +1596,7 @@ mapping/policy/feed_forward:
     type: mapping
     description: Maps time to controls
     mutability: configuration
-    default: 0x17f7c30
+    default: 0x24a7890
     optional: 1
 mapping/policy/mcts:
   description: Monte-Carlo Tree Search policy

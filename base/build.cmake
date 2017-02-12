@@ -11,6 +11,7 @@ add_library(${TARGET} SHARED
             ${SRC}/agents/fixed.cpp
             ${SRC}/agents/black_box.cpp
             ${SRC}/agents/td.cpp
+            ${SRC}/agents/delayed_td.cpp
             ${SRC}/agents/dyna.cpp
             ${SRC}/agents/sequential.cpp
             ${SRC}/agents/smdp_master.cpp
