@@ -487,8 +487,8 @@ double CLeoBhWalkSym::calculateReward()
 
 bool CLeoBhWalkSym::isDoomedToFall(CLeoState* state, bool report)
 {
-  double stanceComstraint = 1*M_PI; // 0.36*M_PI
-  double torsoComstraint = 0.5*M_PI; // 0.36*M_PI
+  double torsoComstraint = 1; // 1
+  double stanceComstraint = 0.36*M_PI; // 0.36*M_PI
 
   if (!mContinueAfterFall)
   {
