@@ -14,7 +14,7 @@ experiment:
     target_env: 
       type: environment/ode
       xml: experiment/environment/xml
-      randomize: 1
+      randomize: 0
       visualize: 1
     observe: torso_boom, hipright, hipleft, kneeright, kneeleft
     actuate: hipright, hipleft, stanceknee
@@ -30,8 +30,8 @@ experiment:
       projector: 
         type: projector/tile_coding
         tilings: 16
-        memory: 33554432
-        safe: 1
+        memory: 16777216
+        safe: 0
         resolution: [0.14, 0.28, 0.28, 0.28, 0.28, 5, 10, 10, 10, 10, 6.67, 6.67, 6.67]
         wrapping: []
       representation: 
