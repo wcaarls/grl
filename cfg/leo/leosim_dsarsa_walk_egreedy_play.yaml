@@ -10,7 +10,7 @@ experiment:
     type: environment/leo_walk
     behavior: 
       type: behavior/leo_walk_sym
-    xml: ../../leo/cfg/xm430_210_vc_leo_walk.xml
+    xml: ../../leo/cfg/xm430_210_vc_leo_walk_d000.xml
     target_env: 
       type: environment/ode
       xml: experiment/environment/xml
@@ -63,7 +63,7 @@ experiment:
       representation: experiment/agent/policy/representation
       trace: 
         type: trace/enumerated/accumulating
-    control_delay: 0.6
+    control_delay: 0.0
   test_agent: 
     type: agent/leo/fixed
     policy: 
@@ -74,5 +74,5 @@ experiment:
       sampler: 
         type: sampler/greedy
         rand_max: 0
-  load_file: leo_leosim_dsarsa_walk_egreedy-mp3-run0
+  load_file: leo_leosim_sarsa_walk_egreedy-mp4-run0
   save_every: never

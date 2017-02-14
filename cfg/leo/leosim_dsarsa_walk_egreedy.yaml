@@ -10,11 +10,11 @@ experiment:
     type: environment/leo_walk
     behavior: 
       type: behavior/leo_walk_sym
-    xml: ../../leo/cfg/xm430_210_vc_leo_walk.xml
+    xml: ../../leo/cfg/xm430_210_vc_leo_walk_d000.xml
     target_env: 
       type: environment/ode
       xml: experiment/environment/xml
-      randomize: 0
+      randomize: 1
       visualize: 1
     observe: torso_boom, hipright, hipleft, kneeright, kneeleft
     actuate: hipright, hipleft, stanceknee
@@ -30,8 +30,8 @@ experiment:
       projector: 
         type: projector/tile_coding
         tilings: 16
-        memory: 16777216
-        safe: 0
+        memory: 33554432
+        safe: 1
         resolution: [0.14, 0.28, 0.28, 0.28, 0.28, 5, 10, 10, 10, 10, 6.67, 6.67, 6.67]
         wrapping: []
       representation: 
@@ -55,7 +55,7 @@ experiment:
       representation: experiment/agent/policy/representation
       trace: 
         type: trace/enumerated/accumulating
-    control_delay: 0.6
+    control_delay: 0.0
   test_agent: 
     type: agent/leo/fixed
     policy: 

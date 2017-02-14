@@ -91,8 +91,15 @@ void DelayedTDAgent::end(double tau, const Observation &obs, double reward)
 
 Action DelayedTDAgent::combine(const Action &a0, const Action &a1) const
 {
-  Action a_hat;
-  a_hat.v = a0.v*control_delay_ + a1.v*(1-control_delay_);
-  a_hat.type = (a0.type == atGreedy && a1.type == atGreedy) ? atGreedy : atExploratory;
-  return a_hat;
+  if (control_delay_ != 0 && control_delay_ != 1)
+  {
+    Action a_hat;
+    a_hat.v = a0.v*control_delay_ + a1.v*(1-control_delay_);
+    a_hat.type = (a0.type == atGreedy && a1.type == atGreedy) ? atGreedy : atExploratory;
+    return a_hat;
+  }
+  else if (control_delay_ == 1)
+    return a0;
+  else
+    return a1;
 }

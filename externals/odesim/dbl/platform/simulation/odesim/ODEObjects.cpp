@@ -303,7 +303,7 @@ void CODEObject::genRandState(std::map<std::string, double> &jointMap)
 
 void CODEObject::genRandState(std::map<std::string, double> &jointMap)
 {
-  const double C = 2.5*0.087263889; // 0.087263889 = +/- 5 deg
+  const double C = 1*0.087263889; // 0.087263889 = +/- 5 deg
 
   jointMap[std::string("virtualBoom")] = 0;
 
