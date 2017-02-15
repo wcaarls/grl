@@ -524,7 +524,7 @@ agent/zeromq:
     type: communicator
     description: Comunicator which exchanges messages with an actual/virtual environment
     mutability: configuration
-    default: 0x23fa700
+    default: 0x191c900
     optional: 0
   observation_dims:
     type: int.observation_dims
@@ -578,9 +578,10 @@ communicator/zeromq/pub_sub:
     optional: 1
     options:
       - NONE
-      - ZMQ_SYNC_SUB
-      - ZMQ_SYNC_PUB
-      - ZMQ_SYNC_CLI
+      - ZMQ_SUB
+      - ZMQ_PUB
+      - ZMQ_REQ
+      - ZMQ_REP
   sync:
     type: string
     description: Syncronization ip address
@@ -609,18 +610,19 @@ communicator/zeromq/request_reply:
     optional: 1
     options:
       - NONE
-      - ZMQ_SYNC_SUB
-      - ZMQ_SYNC_PUB
-      - ZMQ_SYNC_CLI
+      - ZMQ_SUB
+      - ZMQ_PUB
+      - ZMQ_REQ
+      - ZMQ_REP
   sync:
     type: string
     description: Syncronization ip address
     mutability: configuration
     default: ""
     optional: 1
-  cli:
+  addr:
     type: string
-    description: Client address
+    description: Address
     mutability: configuration
     default: tcp://localhost:5555
     optional: 1
@@ -1596,7 +1598,7 @@ mapping/policy/feed_forward:
     type: mapping
     description: Maps time to controls
     mutability: configuration
-    default: 0x24a7890
+    default: 0x1ae8180
     optional: 1
 mapping/policy/mcts:
   description: Monte-Carlo Tree Search policy

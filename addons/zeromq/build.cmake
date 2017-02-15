@@ -17,6 +17,7 @@ if (ZeroMQ_FOUND AND PROTOBUF_FOUND)
   # Build library
   add_library(${TARGET} SHARED
               ${SRC}/zeromq.cpp
+              ${SRC}/Statistics.cpp
               ${CMAKE_CURRENT_BINARY_DIR}/drl_messages.pb.cc
              )
 

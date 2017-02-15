@@ -34,6 +34,7 @@
 #include <grl/converter.h>
 #include <drl_messages.pb.h>
 #include <time.h>
+#include <Statistics.h>
 
 namespace grl
 {
@@ -55,7 +56,7 @@ public:
 class ZeromqCommunicator: public Communicator
 {
   public:
-    ZeromqCommunicator() : pattern_(0) { }
+    ZeromqCommunicator() : type_(0) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -68,7 +69,7 @@ class ZeromqCommunicator: public Communicator
   protected:
     ZeromqMessenger zmq_messenger_;
     std::string sync_;
-    int pattern_;
+    int type_;
 };
 
 // ZeroMQ publisher-subscriber communication class
@@ -89,14 +90,14 @@ class ZeromqRequestReplyCommunicator: public ZeromqCommunicator
 {
   public:
     TYPEINFO("communicator/zeromq/request_reply", "A zeromq class capable to establish a link by events and send messages asynchronously (request/reply)")
-    ZeromqRequestReplyCommunicator() : cli_("tcp://localhost:5555") {}
+    ZeromqRequestReplyCommunicator() : addr_("tcp://localhost:5555") {}
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
 
   protected:
-    std::string cli_;
+    std::string addr_;
 };
 
 /// An environment which bridges actual environment with a middle layer environment by converting states and actions, and then sending and receiving messages
@@ -119,8 +120,10 @@ class CommunicatorEnvironment: public Environment
     Vector obs_conv_, action_conv_;
     StateActionConverter *converter_;
     Communicator *communicator_;
-    timespec time_begin_;
+    timespec computation_begin_;
     int target_obs_dims_, target_action_dims_;
+
+    CSimpleStat computation_stat_;
 };
 
 /// ZeroMQ agent

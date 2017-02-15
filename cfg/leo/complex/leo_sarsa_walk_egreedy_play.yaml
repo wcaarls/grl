@@ -14,11 +14,10 @@ experiment:
     target_env: 
       type: environment/communicator
       communicator: 
-        type: communicator/zeromq/pub_sub
-        pattern: ZMQ_SYNC_SUB
+        type: communicator/zeromq/request_reply
+        pattern: ZMQ_REP
         sync: tcp://192.168.1.10:5560
-        pub: tcp://*:5561
-        sub: tcp://192.168.1.10:5562
+        addr: tcp://*:5561
       target_obs_dims: 20
       target_action_dims: 7
     observe: torso_boom, shoulder, hipright, hipleft, kneeright, kneeleft, ankleright, ankleleft
@@ -88,7 +87,7 @@ experiment:
           sampler: 
             type: sampler/epsilon_greedy
             rand_max: 0
-            epsilon: [ 0.05 ]
+            epsilon: [0.05]
         predictor: 
           type: predictor/sarsa
           alpha: 0.2
