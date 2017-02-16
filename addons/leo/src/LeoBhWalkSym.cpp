@@ -178,8 +178,8 @@ void CLeoBhWalkSym::updateDerivedStateVars(CLeoState* currentSTGState)
   double rightHipAbsAngle   = currentSTGState->mJointAngles[ljTorso] + currentSTGState->mJointAngles[ljHipRight];
   double rightKneeAbsAngle  = rightHipAbsAngle + currentSTGState->mJointAngles[ljKneeRight];
   double rightAnkleAbsAngle = rightKneeAbsAngle + currentSTGState->mJointAngles[ljAnkleRight];
-  double leftAnklePos       = upLegLength*sin(leftHipAbsAngle) + loLegLength*sin(leftKneeAbsAngle);   // in X direction (horizontal)
-  double rightAnklePos      = upLegLength*sin(rightHipAbsAngle) + loLegLength*sin(rightKneeAbsAngle); // in X direction (horizontal)
+  mLeftAnklePos             = upLegLength*sin(leftHipAbsAngle) + loLegLength*sin(leftKneeAbsAngle);   // in X direction (horizontal)
+  mRightAnklePos            = upLegLength*sin(rightHipAbsAngle) + loLegLength*sin(rightKneeAbsAngle); // in X direction (horizontal)
 
   // Calculate the absolute positions of the toes and heels; assume that the lowest point touches the floor.
   // Start calculations from the hip. For convenience, take Z upwards as positive (some minus-signs are flipped).
@@ -200,7 +200,7 @@ void CLeoBhWalkSym::updateDerivedStateVars(CLeoState* currentSTGState)
   leftToeZ   = hipHeight - leftToeZ;
   rightHeelZ = hipHeight - rightHeelZ;
   rightToeZ  = hipHeight - rightToeZ;
-  //mLogInfoLn("leftHeelZ:" << leftHeelZ << ", leftToeZ:" << leftToeZ << ", rightHeelZ:" << rightHeelZ << ", rightToeZ:" << rightToeZ);
+  mLogDebugLn("leftHeelZ:" << leftHeelZ << ", leftToeZ:" << leftToeZ << ", rightHeelZ:" << rightHeelZ << ", rightToeZ:" << rightToeZ);
 
   bool leftIsStance;
   if (leftFootContact && (!rightFootContact))
@@ -214,7 +214,7 @@ void CLeoBhWalkSym::updateDerivedStateVars(CLeoState* currentSTGState)
   else
   // Both feet on the floor: the front leg is stance leg
   {
-    if (rightAnklePos > leftAnklePos)
+    if (mRightAnklePos > mLeftAnklePos)
       leftIsStance = false;
     else
       leftIsStance = true;
@@ -255,9 +255,9 @@ void CLeoBhWalkSym::updateDerivedStateVars(CLeoState* currentSTGState)
   // A footstep has positive length if the swing foot is in front of the stance foot
   // Here, we don't yet take into account that the stance leg might have changed.
   if (mLastStancelegWasLeft > 0)
-    mFootstepLength = rightAnklePos - leftAnklePos;
+    mFootstepLength = mRightAnklePos - mLeftAnklePos;
   else
-    mFootstepLength = leftAnklePos - rightAnklePos;
+    mFootstepLength = mLeftAnklePos - mRightAnklePos;
 
   // Determine whether footstep took place
   mMadeFootstep  = false;
@@ -378,17 +378,12 @@ double CLeoBhWalkSym::getFootstepReward()
   {
     // Only reward footsteps of certain maximum length. Don't use '> -maxFootstepLength', since the robot will make a large step backwards (no penalty) and a small step forward (reward) and walk backwards!
     reward += mRwFootstepDist*clip(mFootstepLength, -mRwFootstepMaxLength, mRwFootstepMaxLength);
-    // Reward for specific footstep length:
-    //double idealFootstepLength  = 0.18;
-    //double footstepMargin    = 0.05;
-    //result = mRwFootstepDist*idealFootstepLength*(1.0 - clip(fabs(mFootstepLength - idealFootstepLength)/footstepMargin, 0.0, 1.0));
 
     // Extra reward per event for footsteps backward
     if (mFootstepLength < 0)
       reward += mRwFootstepBackward;
 
     mLogNoticeLn("[REWARD] Robot made a footstep of " << mFootstepLength*100.0 << "cm! Reward = " << reward);
-    //mAgentQLogger << " Stance hip: " << mHipStance << ", Stance contact: " << mStanceFootContact << ", swing contact: " << mSwingFootContact;
     if (mHipStance == ljHipRight)
       mLastRewardedFoot = lpFootRight;
     else
@@ -400,7 +395,7 @@ double CLeoBhWalkSym::getFootstepReward()
   {
     double footDistChangeReward = mRwFootstepDistCont*(clip(mFootstepLength, -mRwFootstepMaxLength, mRwFootstepMaxLength) - clip(mLastFootstepLength, -mRwFootstepMaxLength, mRwFootstepMaxLength));
     reward += footDistChangeReward;
-    //mLogInfoLn("Foot distance change reward: " << footDistChangeReward);
+    mLogInfoLn("Foot distance change reward: " << footDistChangeReward);
   }
 
   return reward;
@@ -426,8 +421,12 @@ double CLeoBhWalkSym::calculateReward()
   // Foot clearance reward
   if (mFootClearance < mRwFootClearanceThreshold)
   {
-    double clearanceReward = mRwFootClearance*(mRwFootClearanceThreshold - mFootClearance);
-    //mLogNoticeLn("[REWARD] Robot has low foot clearance of " << mFootClearance*100.0 << "cm! Reward = " << clearanceReward);
+    double clearanceReward = 0;
+    if (( mLastStancelegWasLeft && mRightAnklePos-0.1 < mLeftAnklePos) || // right swing leg is behind
+        (!mLastStancelegWasLeft && mRightAnklePos > mLeftAnklePos-0.1) )  // left swing leg is behind
+      clearanceReward = mRwFootClearance;
+
+    mLogNoticeLn("[REWARD] Robot has low foot clearance of " << mFootClearance*100.0 << "cm! Reward = " << clearanceReward);
     reward += clearanceReward;
   }
 

@@ -139,6 +139,11 @@ void LeoBhWalkSym::parseLeoAction(const Action &action, Action &target_action)
     parseActionForTarget(action, target_action, &interface_.actuator_sym);
 }
 
+std::string LeoBhWalkSym::getProgressReport(double trialTime)
+{
+  return LeoBhWalk::getProgressReport(trialTime);
+}
+
 /////////////////////////////////
 
 LeoWalkEnvironment::LeoWalkEnvironment()

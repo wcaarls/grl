@@ -36,6 +36,7 @@ class LeoBhWalkSym: public LeoBhWalk
     LeoBhWalkSym() {}
     virtual void parseLeoState(const CLeoState &leoState, Vector &obs);
     virtual void parseLeoAction(const Action &action, Action &target_action);
+    virtual std::string getProgressReport(double trialTime);
 };
 
 /// Simulation of original Leo robot by Erik Schuitema.

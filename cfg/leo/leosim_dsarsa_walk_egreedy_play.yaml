@@ -10,7 +10,7 @@ experiment:
     type: environment/leo_walk
     behavior: 
       type: behavior/leo_walk_sym
-    xml: ../../leo/cfg/xm430_210_vc_leo_walk_d000.xml
+    xml: ../../leo/cfg/xm430_210_vc_leo_walk_d010.xml
     target_env: 
       type: environment/ode
       xml: experiment/environment/xml
@@ -40,7 +40,7 @@ experiment:
         tilings: 16
         memory: 33554432
         safe: 1
-        resolution: [0.14, 0.28, 0.28, 0.28, 0.28, 5, 10, 10, 10, 10, 6.67, 6.67, 6.67]
+        resolution: [0.14, 0.28, 0.28, 0.28, 0.28, 5, 10, 10, 10, 10, 5.33, 5.33, 5.33]
         wrapping: []
       representation: 
         type: representation/parameterized/linear
@@ -74,5 +74,5 @@ experiment:
       sampler: 
         type: sampler/greedy
         rand_max: 0
-  load_file: leo_leosim_sarsa_walk_egreedy-mp4-run0
+  load_file: leo_leosim_dsarsa_walk_egreedy-010-mp0-d0-run0
   save_every: never
