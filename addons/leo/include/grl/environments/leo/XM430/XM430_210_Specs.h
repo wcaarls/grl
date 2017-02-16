@@ -30,7 +30,7 @@
 // By quadratic interpolation, at 13.8 V we get stall torque of 2.841132
 //  #define DXL_XM430_210_MAX_TORQUE_PER_VOLT  (2.841132/13.8)  // Max torques in [Nm]
 
-// Not loaded speed @ 13.8 [V]: 89.2277992278 [rpm] (interpolated with datasheet values)
+// Not loaded speed @ 13.8 [V]: 89.2277992278 rpm (interpolated with datasheet values) = 9.343637739 rad s^-1
 //  #define DXL_XM430_210_RPM_PER_VOLT          (89.2277992278/LEO_SUPPLY_VOLTAGE)  // [rpm]
 #define DXL_XM430_210_VELOCITY_UNIT         (0.229*DXL_XM430_210_SPEED_TO_RAD_S)    // [rad/s/unit] = 0.023980117
 #define DXL_XM430_210_VELOCITY_LIMIT        1023  // max velocity = 24.531659428 rad/s

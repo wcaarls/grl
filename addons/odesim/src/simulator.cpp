@@ -108,7 +108,7 @@ void ODESimulator::run()
 
   fillState();
 
-  // Simulate the change of a state in case of control delay
+  // Simulate the change of a state in the case of a non-zero control delay
   if (adSubsamplingFactor > 0)
   {
     mSim.setTiming(adSteptime, adSubsamplingFactor);
