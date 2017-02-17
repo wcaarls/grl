@@ -224,7 +224,7 @@ double ODESTGEnvironment::step(const Action &action, Observation *obs, double *r
 
   emit drawFrame();
   
-  return simulator_.getSim()->getStepTime();
+  return simulator_.getSim()->getTotalStepTime();
 }
 
 bool ODESTGEnvironment::read(const std::string name, double *out) const

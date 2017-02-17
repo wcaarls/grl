@@ -169,6 +169,8 @@ void CLeoBhWalkSym::updateDerivedStateVars(CLeoState* currentSTGState)
   bool leftFootContact      = (currentSTGState->mFootContacts & LEO_FOOTSENSOR_LEFT_HEEL) || (currentSTGState->mFootContacts & LEO_FOOTSENSOR_LEFT_TOE);
   bool rightFootContact     = (currentSTGState->mFootContacts & LEO_FOOTSENSOR_RIGHT_HEEL) || (currentSTGState->mFootContacts & LEO_FOOTSENSOR_RIGHT_TOE);
 
+  mFootContactNum = std::bitset<8>(currentSTGState->mFootContacts).count();
+
   // Determine foot position relative to the hip axis
   double upLegLength        = 0.116;  // length of the thigh
   double loLegLength        = 0.1045; // length of the shin
@@ -415,6 +417,10 @@ double CLeoBhWalkSym::calculateReward()
     mLogDebugLn("[REWARD] Energy penalty: " << mRwEnergy*energyUsage);
   }
 
+  // Foot contact penalty
+  if (mFootContactNum <= 1)
+    reward += -5;
+
   // Footstep reward (calculation is a little bit more complicated -> separate function)
   reward += getFootstepReward();
 
@@ -425,6 +431,8 @@ double CLeoBhWalkSym::calculateReward()
     if (( mLastStancelegWasLeft && mRightAnklePos-0.1 < mLeftAnklePos) || // right swing leg is behind
         (!mLastStancelegWasLeft && mRightAnklePos > mLeftAnklePos-0.1) )  // left swing leg is behind
       clearanceReward = mRwFootClearance;
+
+    std::cout << "[REWARD] Robot has low foot clearance of " << mFootClearance*100.0 << "cm! Reward = " << clearanceReward << std::endl;
 
     mLogNoticeLn("[REWARD] Robot has low foot clearance of " << mFootClearance*100.0 << "cm! Reward = " << clearanceReward);
     reward += clearanceReward;
@@ -500,7 +508,7 @@ bool CLeoBhWalkSym::isDoomedToFall(CLeoState* state, bool report)
       return true;
     }
 
-    // No balancing (Erik)
+    // No balancing (Erik's commented code)
     /*
     double balanceVelocity = 0.02;
     if ((fabs(getCurrentSTGState()->mJointSpeeds[ljTorso]) < balanceVelocity)
@@ -531,21 +539,12 @@ void CLeoBhWalkSym::autoActuateKnees(ISTGActuation* actuationInterface)
 {
   double kneeStanceTorque = 5.0*(mPreProgStanceKneeAngle - getCurrentSTGState()->mJointAngles[mKneeStance]);
 
-/*
-  const double k = 1.344712182;
-  double I = kneeStanceTorque / k;
-  if (I > 2.59575289575)
-  {
-    std::cout << "Current " << I << " exeeded maximum value; Torque " << kneeStanceTorque << std::endl;
-  }
-*/
-
   if (actuationInterface->getActuationMode() == amVoltage)
   {
     // Set joint voltages
     // Always set stance knee voltage
     // The stance knee contains a weak controller to remain stretched
-    const double torqueToVoltage= 14.0/3.3;
+    const double torqueToVoltage = XM430_VS_RX28_COEFF*14.0/3.3;
     getActuationInterface()->setJointVoltage(mKneeStance, torqueToVoltage*kneeStanceTorque);
   }
   else if (actuationInterface->getActuationMode() == amTorque)
@@ -573,15 +572,15 @@ void CLeoBhWalkSym::autoActuateKnees(ISTGActuation* actuationInterface)
 
 void CLeoBhWalkSym::autoActuateAnkles_FixedPos(ISTGActuation* actuationInterface)
 {
-  double K = 10.0;
-  double D =  0.0;
+  double K = 5.0;
+  double D = 0.0;
   double leftAnkleTorque    = K*(mPreProgAnkleAngle - getCurrentSTGState()->mJointAngles[ljAnkleLeft]) + D*getCurrentSTGState()->mJointSpeeds[ljAnkleLeft];
   double rightAnkleTorque   = K*(mPreProgAnkleAngle - getCurrentSTGState()->mJointAngles[ljAnkleRight]) + D*getCurrentSTGState()->mJointSpeeds[ljAnkleRight];
 
   if (actuationInterface->getActuationMode() == amVoltage)
   {
     // The "torque" here is not actually torque, but a leftover from the "endless turn mode" control from dynamixels, which is actually voltage control
-    const double torqueToVoltage  = 14.0/3.3;
+    const double torqueToVoltage  = XM430_VS_RX28_COEFF*14.0/3.3;
     getActuationInterface()->setJointVoltage(ljAnkleLeft,  leftAnkleTorque*torqueToVoltage);
     getActuationInterface()->setJointVoltage(ljAnkleRight, rightAnkleTorque*torqueToVoltage);
   }

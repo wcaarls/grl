@@ -304,7 +304,7 @@ double LeoWalkEnvironment::step(const Action &action, Observation *obs, double *
 
 void LeoWalkEnvironment::report(std::ostream &os) const
 {
-  double trialTime  = test_?time_test_:time_learn_ - time0_;
+  double trialTime  = (test_?time_test_:time_learn_) - time0_;
   os << bh_->getProgressReport(trialTime);
 }
 

@@ -76,7 +76,7 @@
 		<rewardFootstepBackward>0.0</rewardFootstepBackward>
 		<rewardFootstepDistCont>300.0</rewardFootstepDistCont>
 		<rewardFootstepMaxLength>10.20</rewardFootstepMaxLength>
-		<rewardEnergy comment="per joule!">-5.0</rewardEnergy>
+		<rewardEnergy comment="per joule!">-3.0</rewardEnergy>
 		<rewardFootClearance>-1.0</rewardFootClearance>
 		<rewardFootClearanceThreshold comment="in cm">0.02</rewardFootClearanceThreshold>
 		<rewardDoomedToFall>-125.0</rewardDoomedToFall>

@@ -32,9 +32,9 @@ bool ODESimulator::readConfig(const CConfigSection &configSection, bool noObject
   configSection.get("actuationdelay", &mActuationDelay);
 
   // Check that the actuation delay is not set larger than the step time
-  if (mActuationDelay > mSim.getStepTime())
+  if (mActuationDelay > mSim.getTotalStepTime())
   {
-    mLogErrorLn("Actuation delay (" << mActuationDelay << ") cannot be larger than step time (" << mSim.getStepTime() << ")!");
+    mLogErrorLn("Actuation delay (" << mActuationDelay << ") cannot be larger than step time (" << mSim.getTotalStepTime() << ")!");
     return false;
   }
 
@@ -88,7 +88,7 @@ void ODESimulator::run()
 {
   // Save original simulation timing
   int subsamplingFactor	= mSim.getSubsamplingFactor();
-  double totalSteptime	= mSim.getStepTime();
+  double totalSteptime	= mSim.getTotalStepTime();
 
   // Split original timing into two parts, while maintaining the same partial step time or better (totalSteptime/subsamplingFactor):
   // - actuation delay: ad
@@ -104,7 +104,7 @@ void ODESimulator::run()
   // shouldStep() will wait for the initial actuation signals from the policy (it is reset in start())
   setInitialCondition(mRandomize?time(NULL):0);
 
-  mLogNoticeLn("Simulator settings:\n      step time: " << mSim.getStepTime() << ", subsamplingfactor: " << mSim.getSubsamplingFactor());
+  mLogNoticeLn("Simulator settings:\n      step time: " << mSim.getTotalStepTime() << ", subsamplingfactor: " << mSim.getSubsamplingFactor());
 
   fillState();
 

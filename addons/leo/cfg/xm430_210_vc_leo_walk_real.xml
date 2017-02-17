@@ -23,7 +23,7 @@
 		<leofloorlength>2*pi*leofloorradius</leofloorlength>
 		<startheight>0.0410</startheight>
 		<ctrlFrequency>30.0</ctrlFrequency>
-		<maxvoltage>10.7</maxvoltage>
+		<maxvoltage comment="10.7*80%">8.56</maxvoltage>
 	</constants>
 	<strings comment="These strings will not generate parser warnings; they are assumed to be spelled correctly when spelled this way.">
 		<!-- booleans -->
@@ -77,8 +77,8 @@
 		<rewardFootstepDistCont>300.0</rewardFootstepDistCont>
 		<rewardFootstepMaxLength>10.20</rewardFootstepMaxLength>
 		<rewardEnergy comment="per joule!">-3.0</rewardEnergy>
-		<rewardFootClearance>0.0</rewardFootClearance>
-		<rewardFootClearanceThreshold>0.0</rewardFootClearanceThreshold>
+		<rewardFootClearance>-1.0</rewardFootClearance>
+		<rewardFootClearanceThreshold comment="in cm">0.02</rewardFootClearanceThreshold>
 		<rewardDoomedToFall>-125.0</rewardDoomedToFall>
 		<rewardHipAngleChange>0.0</rewardHipAngleChange>
 		<rewardDoubleStance>0.0</rewardDoubleStance>
@@ -139,8 +139,8 @@
 		</statevar>
 		<statevar comment="Left arm angle rate">
 			<expression>robot.shoulder.anglerate</expression>
-			<min>-10*pi</min>
-			<max>10*pi</max>
+			<min>-2.9*pi</min>
+			<max>2.9*pi</max>
 		</statevar>
 		<statevar comment="Right hip angle">
 			<expression>robot.hipright.angle</expression>
@@ -149,8 +149,8 @@
 		</statevar>
 		<statevar comment="Right hip angle rate">
 			<expression>robot.hipright.anglerate</expression>
-			<min>-10*pi</min>
-			<max>10*pi</max>
+			<min>-2.9*pi</min>
+			<max>2.9*pi</max>
 		</statevar>
 		<statevar comment="Left hip angle">
 			<expression>robot.hipleft.angle</expression>
@@ -159,8 +159,8 @@
 		</statevar>
 		<statevar comment="Left hip angle rate">
 			<expression>robot.hipleft.anglerate</expression>
-			<min>-10*pi</min>
-			<max>10*pi</max>
+			<min>-2.9*pi</min>
+			<max>2.9*pi</max>
 		</statevar>
 		<statevar comment="Right knee angle">
 			<expression>robot.kneeright.angle</expression>
@@ -169,8 +169,8 @@
 		</statevar>
 		<statevar comment="Right knee angle rate">
 			<expression>robot.kneeright.anglerate</expression>
-			<min>-10*pi</min>
-			<max>10*pi</max>
+			<min>-2.9*pi</min>
+			<max>2.9*pi</max>
 		</statevar>
 		<statevar comment="Left knee angle">
 			<expression>robot.kneeleft.angle</expression>
@@ -179,8 +179,8 @@
 		</statevar>
 		<statevar comment="Left knee angle rate">
 			<expression>robot.kneeleft.anglerate</expression>
-			<min>-10*pi</min>
-			<max>10*pi</max>
+			<min>-2.9*pi</min>
+			<max>2.9*pi</max>
 		</statevar>
 		<statevar comment="Right ankle angle">
 			<expression>robot.ankleright.angle</expression>
@@ -189,8 +189,8 @@
 		</statevar>
 		<statevar comment="Right ankle angle rate">
 			<expression>robot.ankleright.anglerate</expression>
-			<min>-10*pi</min>
-			<max>10*pi</max>
+			<min>-2.9*pi</min>
+			<max>2.9*pi</max>
 		</statevar>
 		<statevar comment="Left ankle angle">
 			<expression>robot.ankleleft.angle</expression>
@@ -199,8 +199,8 @@
 		</statevar>
 		<statevar comment="Left ankle angle rate">
 			<expression>robot.ankleleft.anglerate</expression>
-			<min>-10*pi</min>
-			<max>10*pi</max>
+			<min>-2.9*pi</min>
+			<max>2.9*pi</max>
 		</statevar>
 		<statevar comment="Right toes contact">
 			<expression>robot.toeright.contact</expression>

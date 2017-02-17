@@ -3,7 +3,7 @@ experiment:
   runs: 1
   trials: 0
   steps: 0
-  rate: 30
+  rate: 10
   test_interval: 0
   output: complex_leosim_sarsa_walk_egreedy_play
   environment: 
@@ -62,15 +62,15 @@ experiment:
           type: mapping/policy/value/q
           discretizer: 
             type: discretizer/uniform
-            min: [-10.7, -10.7, -10.7]
-            max: [10.7, 10.7, 10.7]
+            min: [-8.56, -8.56, -8.56]
+            max: [8.56, 8.56, 8.56]
             steps: [7, 7, 7]
           projector: 
             type: projector/tile_coding
             tilings: 16
             memory: 33554432
             safe: 1
-            resolution: [0.14, 0.28, 0.28, 0.28, 0.28, 5, 10, 10, 10, 10, 6.67, 6.67, 6.67]
+            resolution: [0.14, 0.28, 0.28, 0.28, 0.28, 5, 10, 10, 10, 10, 5.33, 5.33, 5.33]
             wrapping: []
           representation: 
             type: representation/parameterized/linear
@@ -121,5 +121,5 @@ experiment:
       sub_ic_signal: experiment/environment/pub_ic_signal
     trigger: experiment/agent/trigger
     pub_ic_signal: experiment/environment/pub_ic_signal
-  load_file: leo_leosim_sarsa_walk_egreedy-mp4-run0
+  load_file: leo_leosim_dsarsa_walk_egreedy-010-mp4-d0-run0
   save_every: never

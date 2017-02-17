@@ -45,6 +45,9 @@
 // Stall current @ 13.8 [V]: 2.59575289575 [A] (interpolated with datasheet values)
 #define DXL_XM430_210_MAX_CURRENT           2.59575289575
 
+// Coeffecient which says how much the XM430 motor is stronger then RX28
+#define XM430_VS_RX28_COEFF                 0.8
+
 // Torque constant of the whole dynamixel
 // ( stallTorque / stallCurrent ) / gearRatio
 #define DXL_XM430_210_TORQUE_CONST          (DXL_XM430_210_MAX_TORQUE/DXL_XM430_210_MAX_CURRENT) // = 1.344712182 [Nm/A]

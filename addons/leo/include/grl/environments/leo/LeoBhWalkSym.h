@@ -87,6 +87,7 @@ class CLeoBhWalkSym: public CSTGAgentQLeo
     double        mFootClearance;             // Distance of a swing leg to a floor
     double        mLeftAnklePos, mRightAnklePos;
     uint64_t      mSwingTime;                 // Time since last footstep [us]
+    int           mFootContactNum;
 
     // Performance variables
     int           mNumFootsteps;              // Number of footsteps since last reset
