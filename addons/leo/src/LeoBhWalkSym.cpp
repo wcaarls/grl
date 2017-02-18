@@ -419,7 +419,7 @@ double CLeoBhWalkSym::calculateReward()
 
   // Foot contact penalty
   if (mFootContactNum <= 1)
-    reward += -5;
+    reward += -3;
 
   // Footstep reward (calculation is a little bit more complicated -> separate function)
   reward += getFootstepReward();
@@ -432,7 +432,7 @@ double CLeoBhWalkSym::calculateReward()
         (!mLastStancelegWasLeft && mRightAnklePos > mLeftAnklePos-0.1) )  // left swing leg is behind
       clearanceReward = mRwFootClearance;
 
-    std::cout << "[REWARD] Robot has low foot clearance of " << mFootClearance*100.0 << "cm! Reward = " << clearanceReward << std::endl;
+    //std::cout << "[REWARD] Robot has low foot clearance of " << mFootClearance*100.0 << "cm! Reward = " << clearanceReward << std::endl;
 
     mLogNoticeLn("[REWARD] Robot has low foot clearance of " << mFootClearance*100.0 << "cm! Reward = " << clearanceReward);
     reward += clearanceReward;

@@ -3,7 +3,7 @@ experiment:
   runs: 1
   trials: 20
   steps: 0
-  rate: 10
+  rate: 0
   test_interval: 0
   output: leosim_dsarsa_walk_egreedy_play
   environment: 
@@ -74,5 +74,5 @@ experiment:
       sampler: 
         type: sampler/greedy
         rand_max: 0
-  load_file: leo_leosim_dsarsa_walk_egreedy-010-mp4-d0-run0
+  load_file: leo_leosim_dsarsa_walk_egreedy-000-mp0-d0-run0
   save_every: never
