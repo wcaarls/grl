@@ -419,7 +419,7 @@ double CLeoBhWalkSym::calculateReward()
 
   // Foot contact penalty
   if (mFootContactNum <= 1)
-    reward += -3;
+    reward += -4;
 
   // Footstep reward (calculation is a little bit more complicated -> separate function)
   reward += getFootstepReward();

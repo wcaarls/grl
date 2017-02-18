@@ -74,7 +74,7 @@
 		<rewardTime comment="per step!">-1.0</rewardTime>
 		<rewardFootstepDist>0.0</rewardFootstepDist>
 		<rewardFootstepBackward>0.0</rewardFootstepBackward>
-		<rewardFootstepDistCont>250.0</rewardFootstepDistCont>
+		<rewardFootstepDistCont>300.0</rewardFootstepDistCont>
 		<rewardFootstepMaxLength>10.20</rewardFootstepMaxLength>
 		<rewardEnergy comment="per joule!">-3.0</rewardEnergy>
 		<rewardFootClearance>-1.0</rewardFootClearance>
