@@ -38,7 +38,8 @@ void LeoStateMachineAgent::request(ConfigurationRequest *config)
   config->push_back(CRP("agent_standup", "agent", "Safe standup agent", agent_standup_, false));
   config->push_back(CRP("agent_main", "agent", "Main agent", agent_main_, false));
 
-  config->push_back(CRP("trigger", "trigger", "Trigger which finishes stand-up phase", trigger_, false));
+  config->push_back(CRP("upright_trigger", "trigger", "Trigger which finishes stand-up phase and triggers preparation agent", upright_trigger_, false));
+  config->push_back(CRP("fc_trigger", "trigger", "Trigger which checks for foot contact to ensure that robot is prepared to walk", foot_contact_trigger_, false));
   config->push_back(CRP("pub_ic_signal", "signal/vector", "Subscriber to the contact signal", sub_ic_signal_, true));
 }
 
@@ -48,7 +49,8 @@ void LeoStateMachineAgent::configure(Configuration &config)
   agent_standup_ = (Agent*)config["agent_standup"].ptr();
   agent_main_ = (Agent*)config["agent_main"].ptr();
 
-  trigger_ = (Trigger*)config["trigger"].ptr();
+  upright_trigger_ = (Trigger*)config["upright_trigger"].ptr();
+  foot_contact_trigger_ = (Trigger*)config["fc_trigger"].ptr();
   sub_ic_signal_ = (VectorSignal*)config["pub_ic_signal"].ptr();
 }
 
@@ -75,7 +77,8 @@ void LeoStateMachineAgent::step(double tau, const Observation &obs, double rewar
     if (sub_ic_signal_)
     {
       Vector signal = sub_ic_signal_->get();
-      if ((int)signal[0] & lstGroundContact)
+      Vector fc = VectorConstructor(((int)signal[0] & lstGroundContact) != 0);
+      if (foot_contact_trigger_->check(time_, fc))
       {
         agent_ = agent_main_;
         INFO("Contact!");
@@ -84,7 +87,7 @@ void LeoStateMachineAgent::step(double tau, const Observation &obs, double rewar
   }
 
   if (agent_ == agent_standup_)
-    if (trigger_->check(time_, obs))
+    if (upright_trigger_->check(time_, obs))
     {
       agent_ = agent_prepare_;
       agent_->start(obs, action);
@@ -97,10 +100,5 @@ void LeoStateMachineAgent::step(double tau, const Observation &obs, double rewar
 
 void LeoStateMachineAgent::end(double tau, const Observation &obs, double reward)
 {
-  /*
-  agent_standup_->end(tau, obs, reward);
-  if (agent_ == agent_main_)
-    agent_main_->end(tau, obs, reward);
-  */
   agent_->end(tau, obs, reward);
 }

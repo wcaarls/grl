@@ -42,9 +42,10 @@ class Trigger : public Configurable
   protected:
     Vector min_, max_;
     double delay_, time_begin_;
+    bool reset_time_;
 
   public:
-    Trigger() : delay_(0), time_begin_(-1) { }
+    Trigger() : delay_(0), time_begin_(0), reset_time_(true) { }
     virtual ~Trigger() { }
     virtual Trigger *clone() const
     {
@@ -84,26 +85,27 @@ class Trigger : public Configurable
       if (obs.size() != min_.size())
         throw bad_param("trigger:{obs,min,max}");
 
-      // check if observation is within a box.
-      int in = 1;
+      // check if observation is within a box
+      int inside = 1;
       for (size_t ii=0; ii != obs.size(); ++ii)
         if (obs[ii] < min_[ii] || obs[ii] > max_[ii])
-          in = 0;
+          inside = 0;
 
       // reset time counter if out of box
-      if (!in)
-        time_begin_ = -1;
-
-      // check if delay is requested
-      if (in && delay_ > 0.0)
+      if (!inside || reset_time_)
       {
-        if (time_begin_ == -1)
-          time_begin_ = time;
-        if (time - time_begin_ >= delay_)
-          in = 1;
+        time_begin_ = time;
+        reset_time_ = false;
       }
 
-      return in;
+      // check if conditions are satisfied
+      if ((inside) && (time - time_begin_ >= delay_))
+      {
+        reset_time_ = true; // Time will be reset next time the trigger is questioned
+        return 1;
+      }
+
+      return 0;
     }
 
 };

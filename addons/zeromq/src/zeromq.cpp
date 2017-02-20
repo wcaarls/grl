@@ -169,16 +169,19 @@ double CommunicatorEnvironment::step(const Action &action, Observation *obs, dou
   else
     action_conv_ = action;
 
-  timespec computation_end, computation_begin_prev;
-  clock_gettime(CLOCK_MONOTONIC, &computation_end);
-  double computation_delay = (computation_end.tv_sec - computation_begin_.tv_sec)*1.0e6 + (static_cast<double>(computation_end.tv_nsec - computation_begin_.tv_nsec))/1.0e3;
-  computation_stat_.addValue(computation_delay);
-  std::cout << "Computation delay: " << computation_stat_.toStr("us") << std::endl;
+  if (measure_stat_)
+  {
+    timespec computation_end;
+    clock_gettime(CLOCK_MONOTONIC, &computation_end);
+    double computation_delay = (computation_end.tv_sec - computation_begin_.tv_sec)*1.0e6 + (static_cast<double>(computation_end.tv_nsec - computation_begin_.tv_nsec))/1.0e3;
+    computation_stat_.addValue(computation_delay);
+    std::cout << "Computation delay: " << computation_stat_.toStr("us") << std::endl;
+  }
 
   communicator_->send(action_conv_);
   communicator_->recv(&obs_conv_);
 
-  computation_begin_prev = computation_begin_;
+  timespec computation_begin_prev = computation_begin_;
   clock_gettime(CLOCK_MONOTONIC, &computation_begin_);
 
   if (converter_)
@@ -188,7 +191,7 @@ double CommunicatorEnvironment::step(const Action &action, Observation *obs, dou
   obs->absorbing = false;
 
   double tau = (computation_begin_.tv_sec - computation_begin_prev.tv_sec) + (static_cast<double>(computation_begin_.tv_nsec - computation_begin_prev.tv_nsec))/1.0e9;
-  std::cout << "stg time: " << tau << std::endl;
+  //std::cout << "stg time: " << tau << std::endl;
   return tau;
 }
 

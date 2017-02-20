@@ -254,7 +254,6 @@ ZeromqMessenger::~ZeromqMessenger()
   safe_delete(&syncService_);
   zmq_close(primary_);
   safe_delete(&primary_);
-  context_->close();
   safe_delete(&context_);
   safe_delete(&g_args);
 }

@@ -47,12 +47,12 @@ class LeoStateMachineAgent : public Agent
     Agent *agent_standup_;
     Agent *agent_main_;
     Agent *agent_;
-    Trigger *trigger_;
+    Trigger *upright_trigger_, *foot_contact_trigger_;
     VectorSignal *sub_ic_signal_;
     double time_;
     
   public:
-    LeoStateMachineAgent() : agent_prepare_(NULL), agent_standup_(NULL), agent_main_(NULL), agent_(NULL), trigger_(NULL), sub_ic_signal_(NULL), time_(0.) { }
+    LeoStateMachineAgent() : agent_prepare_(NULL), agent_standup_(NULL), agent_main_(NULL), agent_(NULL), upright_trigger_(NULL), foot_contact_trigger_(NULL), sub_ic_signal_(NULL), time_(0.) { }
   
     // From Configurable    
     virtual void request(ConfigurationRequest *config);

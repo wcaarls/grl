@@ -105,7 +105,7 @@ class CommunicatorEnvironment: public Environment
 {
   public:
     TYPEINFO("environment/communicator", "Communicator environment which interects with a real environment by sending and receiving messages")
-    CommunicatorEnvironment(): converter_(NULL), communicator_(NULL), target_obs_dims_(0), target_action_dims_(0) {}
+    CommunicatorEnvironment(): converter_(NULL), communicator_(NULL), target_obs_dims_(0), target_action_dims_(0), measure_stat_(0) {}
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -123,6 +123,7 @@ class CommunicatorEnvironment: public Environment
     timespec computation_begin_;
     int target_obs_dims_, target_action_dims_;
 
+    int measure_stat_;
     CSimpleStat computation_stat_;
 };
 

@@ -166,9 +166,15 @@ agent/leo/sma:
     mutability: configuration
     default: 0
     optional: 0
-  trigger:
+  upright_trigger:
     type: trigger
-    description: Trigger which finishes stand-up phase
+    description: Trigger which finishes stand-up phase and triggers preparation agent
+    mutability: configuration
+    default: 0
+    optional: 0
+  fc_trigger:
+    type: trigger
+    description: Trigger which checks for foot contact to ensure that robot is prepared to walk
     mutability: configuration
     default: 0
     optional: 0
@@ -524,7 +530,7 @@ agent/zeromq:
     type: communicator
     description: Comunicator which exchanges messages with an actual/virtual environment
     mutability: configuration
-    default: 0x191c900
+    default: 0xa88150
     optional: 0
   observation_dims:
     type: int.observation_dims
@@ -1598,7 +1604,7 @@ mapping/policy/feed_forward:
     type: mapping
     description: Maps time to controls
     mutability: configuration
-    default: 0x1ae8180
+    default: 0x20
     optional: 1
 mapping/policy/mcts:
   description: Monte-Carlo Tree Search policy
