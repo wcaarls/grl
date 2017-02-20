@@ -81,7 +81,9 @@ void LeoStateMachineAgent::step(double tau, const Observation &obs, double rewar
       if (foot_contact_trigger_->check(time_, fc))
       {
         agent_ = agent_main_;
+        agent_->start(obs, action);
         INFO("Contact!");
+        return;
       }
     }
   }

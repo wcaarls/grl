@@ -14,13 +14,13 @@ experiment:
     target_env: 
       type: environment/ode
       xml: experiment/environment/xml
-      randomize: 1
+      randomize: 0
       visualize: 1
     observe: torso_boom, hipright, hipleft, kneeright, kneeleft
     actuate: hipright, hipleft, stanceknee
     exporter: 
       type: exporter/csv
-      file: leosim_sarsa_walk_egreedy_play
+      file: leosim_dsarsa_walk_egreedy_play
       style: meshup
       variant: all
       enabled: 1
@@ -74,5 +74,6 @@ experiment:
       sampler: 
         type: sampler/greedy
         rand_max: 0
+    pub_transition_type: experiment/environment/sub_transition_type
   load_file: c2-2/leo_leosim_dsarsa_walk_egreedy-010-mp0-d0-run0
   save_every: never
