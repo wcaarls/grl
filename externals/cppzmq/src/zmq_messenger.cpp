@@ -49,48 +49,48 @@ void ZeromqMessenger::start(const char* pubAddress, const char* subAddress, cons
 
   if (flags_ & ZMQ_SYNC_CLI)
   {
-      publisher_ = new zmq::socket_t(*context_, ZMQ_REQ);
-      publisher_->connect(pubAddress);
+    publisher_ = new zmq::socket_t(*context_, ZMQ_REQ);
+    publisher_->connect(pubAddress);
   }
   else
   {
-      // Prepare ZMQ publisher
-      publisher_ = new zmq::socket_t(*context_, ZMQ_PUB);
-      publisher_->bind(pubAddress);
+    // Prepare ZMQ publisher
+    publisher_ = new zmq::socket_t(*context_, ZMQ_PUB);
+    publisher_->bind(pubAddress);
       publisher_->setsockopt(ZMQ_CONFLATE, &confl, sizeof(confl)); // Keep only last message
 
       // Prepare ZMQ subscriber
-      mtx_ = new std::mutex();
-      buffer_ = new char(buffer_size_);
-      worker_args args = {context_, subAddress, mtx_, buffer_, buffer_size_};
-      pthread_create(&worker_, NULL, worker_routine, (void*)&args);
+    mtx_ = new std::mutex();
+    buffer_ = new char(buffer_size_);
+    worker_args args = {context_, subAddress, mtx_, buffer_, buffer_size_};
+    pthread_create(&worker_, NULL, worker_routine, (void*)&args);
 
-      if (flags_ & ZMQ_SYNC_PUB)
-      {
-        syncService_ = new zmq::socket_t(*context_, ZMQ_REP);
-        syncService_->bind(syncAddress);
-      }
+    if (flags_ & ZMQ_SYNC_PUB)
+    {
+      syncService_ = new zmq::socket_t(*context_, ZMQ_REP);
+      syncService_->bind(syncAddress);
+    }
 
-      if (flags_ & ZMQ_SYNC_SUB)
-      {
-        //std::cout << "Trying to connect" << std::endl;
+    if (flags_ & ZMQ_SYNC_SUB)
+    {
+      //std::cout << "Trying to connect" << std::endl;
 
-        // synchronize with publisher
-        syncService_ = new zmq::socket_t(*context_, ZMQ_REQ);
-        syncService_->connect(syncAddress);
+      // synchronize with publisher
+      syncService_ = new zmq::socket_t(*context_, ZMQ_REQ);
+      syncService_->connect(syncAddress);
 
-        // - send a synchronization request
-        zmq::message_t message(0);
-        syncService_->send(message);
+      // - send a synchronization request
+      zmq::message_t message(0);
+      syncService_->send(message);
 
-        // - wait for synchronization reply
-        zmq::message_t update;
-        syncService_->recv(&update);
+      // - wait for synchronization reply
+      zmq::message_t update;
+      syncService_->recv(&update);
 
-        // Third, get our updates and report how many we got
-        //std::cout << "Ready to receive" << std::endl;
-        zmq_close(syncService_);
-       }
+      // Third, get our updates and report how many we got
+      //std::cout << "Ready to receive" << std::endl;
+      zmq_close(syncService_);
+    }
   }
 }
 
@@ -105,24 +105,24 @@ bool ZeromqMessenger::recv(void *data, int size) const
 {
   if (flags_ & ZMQ_SYNC_CLI)
   {
-      zmq::message_t reply;
-      publisher_->recv(&reply);
-      memcpy(data, reply.data(), size);
-      return true;
+    zmq::message_t reply;
+    publisher_->recv(&reply);
+    memcpy(data, reply.data(), size);
+    return true;
 
   }
   else
   {
-      if (buffer_size_ < size)
-      {
-        std::cout << "Error: (ZeromqMessenger) Buffer size is too small" << std::endl;
-        return false;
-      }
+    if (buffer_size_ < size)
+    {
+      std::cout << "Error: (ZeromqMessenger) Buffer size is too small" << std::endl;
+      return false;
+    }
 
-      mtx_->lock();
-      memcpy(data, buffer_, size);
-      mtx_->unlock();
-      return true;
+    mtx_->lock();
+    memcpy(data, buffer_, size);
+    mtx_->unlock();
+    return true;
   }
 }
 

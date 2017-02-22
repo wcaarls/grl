@@ -65,7 +65,7 @@ bool ZeromqCommunicator::recv(Vector *v) const
 {
   Vector v_rc;
   v_rc.resize(v->size());
-  bool rc = zmq_messenger_.recv(reinterpret_cast<void*>(v_rc.data()), v_rc.cols()*sizeof(double));
+  bool rc = zmq_messenger_.recv(reinterpret_cast<void*>(v_rc.data()), v_rc.cols()*sizeof(double), ZMQ_NOBLOCK);
   if (rc)
   {
     *v = v_rc; // modify content only if data was received
@@ -201,10 +201,7 @@ void ZeromqAgent::start(const Observation &obs, Action *action)
 {
   action->v.resize(action_dims_);
   action->type = atUndefined;
-
-  Vector v(obs.v.cols()+1);
-  v << test_, obs.v;
-  communicator_->send(v);
+  communicator_->send(obs.v);
   communicator_->recv(&(action->v));
 }
 
@@ -213,20 +210,20 @@ void ZeromqAgent::step(double tau, const Observation &obs, double reward, Action
   action->v.resize(action_dims_);
   action->type = atUndefined;
   
-  Vector v(obs.v.cols()+3);
-  v << test_, obs.v, reward, 0;
+  Vector v(obs.v.cols()+2);
+  v << test_, obs.v, reward, 1;
   communicator_->send(v);
   communicator_->recv(&(action->v));
 }
 
 void ZeromqAgent::end(double tau, const Observation &obs, double reward)
 {
-  Vector temp;
+    Vector test;
 
-  Vector v(obs.v.cols()+3);
-  v << test_, obs.v, reward, 2;
-  communicator_->send(v);
-  communicator_->recv(&temp);
+    Vector v(obs.v.cols()+2);
+    v << obs.v,reward,2;
+    communicator_->send(v);
+    communicator_->recv(&test);
 }
 
 

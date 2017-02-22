@@ -61,14 +61,13 @@ void ZeromqCommunicator::send(const Vector v) const
   zmq_messenger_.send(reinterpret_cast<const void*>(v.data()), v.cols()*sizeof(double));
 }
 
-bool ZeromqCommunicator::recv(Vector *v) const
+bool ZeromqCommunicator::recv(Vector &v) const
 {
-  Vector v_rc;
-  v_rc.resize(v->size());
+  Vector v_rc = v;
   bool rc = zmq_messenger_.recv(reinterpret_cast<void*>(v_rc.data()), v_rc.cols()*sizeof(double));
   if (rc)
   {
-    *v = v_rc; // modify content only if data was received
+    v = v_rc; // modify content only if data was received
     //std::cout << std::fixed << std::setprecision(2) << std::right << std::setw(7) << v << std::endl << std::endl;
   }
   return rc;
@@ -148,23 +147,21 @@ void CommunicatorEnvironment::reconfigure(const Configuration &config)
 {
 }
 
-void CommunicatorEnvironment::start(int test, Observation *obs)
+void CommunicatorEnvironment::start(int test, Vector *obs)
 {
-  communicator_->recv(&obs_conv_);
+  communicator_->recv(obs_conv_);
   clock_gettime(CLOCK_MONOTONIC, &time_begin_);
-  converter_->convert_state(obs_conv_, obs->v);
-  obs->absorbing = false;
+  converter_->convert_state(obs_conv_, *obs);
 }
 
-double CommunicatorEnvironment::step(const Action &action, Observation *obs, double *reward, int *terminal)
+double CommunicatorEnvironment::step(const Vector &action, Vector *obs, double *reward, int *terminal)
 {
   timespec time_end;
   converter_->convert_action(action, action_conv_);
   communicator_->send(action_conv_);
-  communicator_->recv(&obs_conv_);  // Non-blocking, therefore it gets the most recently transmitted state
+  communicator_->recv(obs_conv_);  // Non-blocking, therefore it gets the most recently transmitted state
   clock_gettime(CLOCK_MONOTONIC, &time_end);
-  converter_->convert_state(obs_conv_, obs->v);
-  obs->absorbing = false;
+  converter_->convert_state(obs_conv_, *obs);
 
   double tau = (time_end.tv_sec - time_begin_.tv_sec) + (static_cast<double>(time_end.tv_nsec - time_begin_.tv_nsec))/1.0e9;
   time_begin_ = time_end;
@@ -179,7 +176,6 @@ void ZeromqAgent::request(ConfigurationRequest *config)
   config->push_back(CRP("action_dims", "int.action_dims", "Number of action dimensions", action_dims_, CRP::System));
   config->push_back(CRP("action_min", "vector.action_min", "Lower limit of action", action_min_, CRP::System));
   config->push_back(CRP("action_max", "vector.action_max", "Upper limit of action", action_max_, CRP::System));
-  config->push_back(CRP("test", "int.test", "Selection of learning/testing agent", test_, CRP::System));
 }
 
 void ZeromqAgent::configure(Configuration &config)
@@ -190,43 +186,44 @@ void ZeromqAgent::configure(Configuration &config)
   action_min_ = config["action_min"].v();
   action_max_ = config["action_max"].v();
   communicator_ = (Communicator*)config["communicator"].ptr();
-  test_ = config["test"];
+
 }
 
 void ZeromqAgent::reconfigure(const Configuration &config)
 {
 }
 
-void ZeromqAgent::start(const Observation &obs, Action *action)
+TransitionType ZeromqAgent::start(const Vector &obs, Vector *action)
 {
-  action->v.resize(action_dims_);
-  action->type = atUndefined;
+//  Vector v(2);
+//  v << 1.0,2.0;
+  action->resize(action_dims_);
+  communicator_->send(obs);
+  communicator_->recv(*action);
 
-  Vector v(obs.v.cols()+1);
-  v << test_, obs.v;
-  communicator_->send(v);
-  communicator_->recv(&(action->v));
+  return ttUndefined;
 }
 
-void ZeromqAgent::step(double tau, const Observation &obs, double reward, Action *action)
+TransitionType ZeromqAgent::step(double tau, const Vector &obs, double reward, Vector *action)
 {
-  action->v.resize(action_dims_);
-  action->type = atUndefined;
-  
-  Vector v(obs.v.cols()+3);
-  v << test_, obs.v, reward, 0;
+  action->resize(action_dims_);
+
+  Vector v(obs.cols()+2);
+  v << obs,reward,1.0;
   communicator_->send(v);
-  communicator_->recv(&(action->v));
+  communicator_->recv(*action);
+
+  return ttUndefined;
 }
 
-void ZeromqAgent::end(double tau, const Observation &obs, double reward)
+void ZeromqAgent::end(double tau, const Vector &obs, double reward)
 {
-  Vector temp;
+    Vector test;
 
-  Vector v(obs.v.cols()+3);
-  v << test_, obs.v, reward, 2;
-  communicator_->send(v);
-  communicator_->recv(&temp);
+    Vector v(obs.cols()+2);
+    v << obs,reward,2.0;
+    communicator_->send(v);
+    communicator_->recv(test);
 }
 
 

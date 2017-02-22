@@ -456,7 +456,7 @@ agent/zeromq:
     type: communicator
     description: Comunicator which exchanges messages with an actual/virtual environment
     mutability: configuration
-    default: 0xfaa8e0
+    default: 0x11d2880
     optional: 0
   observation_dims:
     type: int.observation_dims
@@ -493,7 +493,7 @@ agent/zeromq:
     default: 0
     optional: 1
     min: 0
-    max: 2147483647
+    max: 1
 behavior/leo_squat_sym:
   description: Leo squatting behavior with symmetrical switchers of observations
 behavior/leo_walk:
@@ -708,32 +708,6 @@ dynamics/mountain:
     optional: 0
 dynamics/pendulum:
   description: Pendulum dynamics based on the DCSC MOPS
-dynamics/rbdl:
-  description: RBDL rigid body dynamics
-  file:
-    type: string
-    description: RBDL Lua model file
-    mutability: configuration
-    default: ""
-    optional: 1
-  options:
-    type: string
-    description: Lua string to execute when loading model
-    mutability: configuration
-    default: ""
-    optional: 1
-  points:
-    type: string
-    description: Points
-    mutability: configuration
-    default: ""
-    optional: 1
-  auxiliary:
-    type: string
-    description: Model mass(mm), Center of mass (com), Center of mass velocity (comv), Angular momentum (am)
-    mutability: configuration
-    default: ""
-    optional: 1
 dynamics/swimmer:
   description: Coulom's swimmer dynamics
   segments:
@@ -776,26 +750,6 @@ environment/communicator:
     optional: 1
     min: 0
     max: 2147483647
-environment/leo2:
-  description: LEO/2 environment
-  port:
-    type: string
-    description: Device ID of FTDI usb-to-serial converter
-    mutability: configuration
-    default: i:0x0403:0x6001
-    optional: 1
-  bps:
-    type: int
-    description: Bit rate
-    mutability: configuration
-    default: 57600
-    optional: 1
-    min: 0
-    max: 2147483647
-  state:
-    type: state
-    description: Current state of the robot
-    mutability: provided
 environment/leo_squat:
   description: Leo squatting environment
   behavior:
@@ -1513,7 +1467,7 @@ mapping/policy/feed_forward:
     type: mapping
     description: Maps time to controls
     mutability: configuration
-    default: 0x11a2410
+    default: 0x20
     optional: 1
 mapping/policy/mcts:
   description: Monte-Carlo Tree Search policy
@@ -1561,142 +1515,6 @@ mapping/policy/mcts:
     optional: 1
     min: 0
     max: 1.797693134862316e+308
-mapping/policy/mhe_nmpc:
-  description: Nonlinear model predictive control policy with moving horizon estimator using the MUSCOD library
-  verbose:
-    type: int
-    description: Verbose mode
-    mutability: system
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
-  initFeedback:
-    type: int
-    description: Initialize feedback
-    mutability: system
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
-  action_min:
-    type: vector.action_min
-    description: Lower limit on actions
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  action_max:
-    type: vector.action_max
-    description: Upper limit on actions
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  lua_model:
-    type: string
-    description: Lua model used by MUSCOD
-    mutability: configuration
-    default: ""
-    optional: 1
-  model_name:
-    type: string
-    description: Name of the model in grl
-    mutability: configuration
-    default: ""
-    optional: 1
-  nmpc_model_name:
-    type: string
-    description: Name of MUSCOD NMPC model library
-    mutability: configuration
-    default: ""
-    optional: 1
-  mhe_model_name:
-    type: string
-    description: Name of MUSCOD MHE model library
-    mutability: configuration
-    default: ""
-    optional: 1
-  feedback:
-    type: string
-    description: Choose between a non-treaded and a threaded feedback of NMPC
-    mutability: configuration
-    default: ""
-    optional: 1
-    options:
-      - non-threaded
-      - threaded
-  n_iter:
-    type: int
-    description: Number of iteration
-    mutability: system
-    default: 1
-    optional: 1
-    min: 0
-    max: 2147483647
-mapping/policy/nmpc:
-  description: Nonlinear model predictive control policy using the MUSCOD library
-  verbose:
-    type: int
-    description: Verbose mode
-    mutability: system
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
-  initFeedback:
-    type: int
-    description: Initialize feedback
-    mutability: system
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
-  action_min:
-    type: vector.action_min
-    description: Lower limit on actions
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  action_max:
-    type: vector.action_max
-    description: Upper limit on actions
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  lua_model:
-    type: string
-    description: Lua model used by MUSCOD
-    mutability: configuration
-    default: ""
-    optional: 1
-  model_name:
-    type: string
-    description: Name of the model in grl
-    mutability: configuration
-    default: ""
-    optional: 1
-  nmpc_model_name:
-    type: string
-    description: Name of MUSCOD NMPC model library
-    mutability: configuration
-    default: ""
-    optional: 1
-  feedback:
-    type: string
-    description: Choose between a non-treaded and a threaded feedback of NMPC
-    mutability: configuration
-    default: ""
-    optional: 1
-    options:
-      - non-threaded
-      - threaded
-  n_iter:
-    type: int
-    description: Number of iteration
-    mutability: system
-    default: 1
-    optional: 1
-    min: 0
-    max: 2147483647
 mapping/policy/nmpc_sw:
   description: Nonlinear model predictive control policy for the simplest walker using the MUSCOD library
   agent_standup:
@@ -1711,52 +1529,6 @@ mapping/policy/nmpc_sw:
     mutability: configuration
     default: 0
     optional: 0
-mapping/policy/nmpc_th:
-  description: Nonlinear multistep (thread-based) model predictive control policy using the MUSCOD library
-  model_name:
-    type: string
-    description: Name of MUSCOD model library
-    mutability: configuration
-    default: ""
-    optional: 1
-  lua_model:
-    type: string
-    description: Lua model used by MUSCOD
-    mutability: configuration
-    default: ""
-    optional: 1
-  inputs:
-    type: int.observation_dims
-    description: Number of inputs
-    mutability: system
-    default: 0
-    optional: 1
-    min: 1
-    max: 2147483647
-  outputs:
-    type: int.action_dims
-    description: Number of outputs
-    mutability: system
-    default: 0
-    optional: 1
-    min: 1
-    max: 2147483647
-  single_step:
-    type: int
-    description: Run NMPC in single-step mode
-    mutability: system
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
-  verbose:
-    type: int
-    description: Verbose mode
-    mutability: system
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
 mapping/policy/parameterized/action:
   description: Parameterized policy based on a direct action representation
   sigma:
@@ -2529,119 +2301,6 @@ optimizer/rwa:
     mutability: configuration
     default: 0
     optional: 0
-policy/nmpc_mlrti:
-  description: "Thread-based nonlinear model predictive control policy using the MUSCOD library and implementing a multi-level real-time iteration "
-  verbose:
-    type: int
-    description: Verbose mode
-    mutability: system
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
-  initFeedback:
-    type: int
-    description: Initialize feedback
-    mutability: system
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
-  action_min:
-    type: vector.action_min
-    description: Lower limit on actions
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  action_max:
-    type: vector.action_max
-    description: Upper limit on actions
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  lua_model:
-    type: string
-    description: Lua model used by MUSCOD
-    mutability: configuration
-    default: ""
-    optional: 1
-  model_name:
-    type: string
-    description: Name of the model in grl
-    mutability: configuration
-    default: ""
-    optional: 1
-  nmpc_model_name:
-    type: string
-    description: Name of MUSCOD NMPC model library
-    mutability: configuration
-    default: ""
-    optional: 1
-policy/nmpc_stages:
-  description: Nonlinear model predictive control policy using the MUSCOD library
-  verbose:
-    type: int
-    description: Verbose mode
-    mutability: system
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
-  initFeedback:
-    type: int
-    description: Initialize feedback
-    mutability: system
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
-  action_min:
-    type: vector.action_min
-    description: Lower limit on actions
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  action_max:
-    type: vector.action_max
-    description: Upper limit on actions
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  lua_model:
-    type: string
-    description: Lua model used by MUSCOD
-    mutability: configuration
-    default: ""
-    optional: 1
-  model_name:
-    type: string
-    description: Name of the model in grl
-    mutability: configuration
-    default: ""
-    optional: 1
-  nmpc_model_name:
-    type: string
-    description: Name of MUSCOD NMPC model library
-    mutability: configuration
-    default: ""
-    optional: 1
-  feedback:
-    type: string
-    description: Choose between a non-treaded and a threaded feedback of NMPC
-    mutability: configuration
-    default: ""
-    optional: 1
-    options:
-      - non-threaded
-      - threaded
-  n_iter:
-    type: int
-    description: Number of iteration
-    mutability: system
-    default: 1
-    optional: 1
-    min: 0
-    max: 2147483647
 predictor/ac/action:
   description: Actor-critic predictor for direct action policies
   importer:
@@ -4764,70 +4423,6 @@ sandbox_model/compass_walker:
     optional: 1
     min: 0
     max: 1
-sandbox_model/leo_squatting:
-  description: State transition model that integrates equations of motion and augments state vector with additional elements
-  control_step:
-    type: double.control_step
-    description: Control step time
-    mutability: configuration
-    default: 0.05
-    optional: 1
-    min: 0.001
-    max: 1.797693134862316e+308
-  integration_steps:
-    type: int
-    description: Number of integration steps per control step
-    mutability: configuration
-    default: 5
-    optional: 1
-    min: 1
-    max: 2147483647
-  dynamics:
-    type: dynamics/rbdl
-    description: Equations of motion
-    mutability: configuration
-    default: 0
-    optional: 0
-  target_dof:
-    type: int.target_dof
-    description: Number of degrees of freedom of the target model
-    mutability: configuration
-    default: 4
-    optional: 1
-    min: 0
-    max: 2147483647
-  animation:
-    type: string
-    description: Save current state or full animation
-    mutability: configuration
-    default: ""
-    optional: 1
-    options:
-      - nope
-      - full
-      - immediate
-  target_env:
-    type: environment
-    description: Interaction environment
-    mutability: configuration
-    default: 0
-    optional: 1
-  lower_height:
-    type: double.lower_height
-    description: Lower bound of root height to switch direction
-    mutability: configuration
-    default: 0.28
-    optional: 1
-    min: 0
-    max: 1.797693134862316e+308
-  upper_height:
-    type: double.upper_height
-    description: Upper bound of root height to switch direction
-    mutability: configuration
-    default: 0.35
-    optional: 1
-    min: 0
-    max: 1.797693134862316e+308
 signal/matrix:
   description: Matrix-based signal (trajectory, etc.)
 signal/vector:
@@ -5844,102 +5439,6 @@ task/flyer2d/regulator:
     optional: 1
     min: 0
     max: 1.797693134862316e+308
-task/leo_squatting:
-  description: Task specification for Leo squatting with a fixed arm
-  observation_dims:
-    type: int.observation_dims
-    description: Number of observation dimensions
-    mutability: provided
-  observation_min:
-    type: vector.observation_min
-    description: Lower limit on observations
-    mutability: provided
-  observation_max:
-    type: vector.observation_max
-    description: Upper limit on observations
-    mutability: provided
-  action_dims:
-    type: int.action_dims
-    description: Number of action dimensions
-    mutability: provided
-  action_min:
-    type: vector.action_min
-    description: Lower limit on actions
-    mutability: provided
-  action_max:
-    type: vector.action_max
-    description: Upper limit on actions
-    mutability: provided
-  reward_min:
-    type: double.reward_min
-    description: Lower limit on immediate reward
-    mutability: provided
-  reward_max:
-    type: double.reward_max
-    description: Upper limit on immediate reward
-    mutability: provided
-  timeout:
-    type: double.timeout
-    description: Task timeout
-    mutability: system
-    default: 0
-    optional: 1
-    min: 0
-    max: 1.797693134862316e+308
-  rand_init:
-    type: int.rand_init
-    description: Initialization from a random pose
-    mutability: system
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
-task/lua:
-  description: User-provided task specification in LUA
-  observation_dims:
-    type: int.observation_dims
-    description: Number of observation dimensions
-    mutability: provided
-  observation_min:
-    type: vector.observation_min
-    description: Lower limit on observations
-    mutability: provided
-  observation_max:
-    type: vector.observation_max
-    description: Upper limit on observations
-    mutability: provided
-  action_dims:
-    type: int.action_dims
-    description: Number of action dimensions
-    mutability: provided
-  action_min:
-    type: vector.action_min
-    description: Lower limit on actions
-    mutability: provided
-  action_max:
-    type: vector.action_max
-    description: Upper limit on actions
-    mutability: provided
-  reward_min:
-    type: double.reward_min
-    description: Lower limit on immediate reward
-    mutability: provided
-  reward_max:
-    type: double.reward_max
-    description: Upper limit on immediate reward
-    mutability: provided
-  file:
-    type: string
-    description: Lua task file
-    mutability: configuration
-    default: ""
-    optional: 1
-  options:
-    type: string
-    description: Lua string to execute when loading task
-    mutability: configuration
-    default: ""
-    optional: 1
 task/mountain/regulator:
   description: Mountain world regulator task
   observation_dims:

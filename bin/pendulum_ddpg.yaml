@@ -1,0 +1,40 @@
+experiment:
+  runs: 3
+  trials: 0
+  steps: 0
+  rate: 0
+  test_interval: -1
+  output: pendulum_ddpg
+  environment:
+    model:
+      control_step: 0.03
+      integration_steps: 5
+      dynamics:
+        type: dynamics/pendulum
+      type: model/dynamical
+    task:
+      timeout: 2.99
+      randomization: 0.03
+      type: task/pendulum/swingup
+    exporter: 0
+    type: environment/modeled
+  agent:
+    communicator:
+      pattern: ZMQ_SYNC_CLI
+      cli: tcp://localhost:5555
+      sync: ""
+      type: communicator/zeromq/request_reply
+    observation_dims: ../../environment/task/observation_dims
+    action_dims: ../../environment/task/action_dims
+    action_min: ../../environment/task/action_min
+    action_max: ../../environment/task/action_max
+    type: agent/zeromq
+  save_every: never
+  test_agent: 0
+  load_file: ""
+  type: experiment/online_learning
+visualizer:
+  type: visualizer/glut
+visualization:
+  state: ../../experiment/environment/state
+  type: visualization/pendulum
