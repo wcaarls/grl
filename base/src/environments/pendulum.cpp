@@ -82,7 +82,7 @@ void PendulumSwingupTask::configure(Configuration &config)
 
   config.set("observation_dims", 2);
   config.set("observation_min", VectorConstructor(0., -12*M_PI));
-  config.set("observation_max", VectorConstructor(2*M_PI, 12*M*PI));
+  config.set("observation_max", VectorConstructor(2*M_PI, 12*M_PI));
   config.set("action_dims", 1);
   config.set("action_min", VectorConstructor(-3));
   config.set("action_max", VectorConstructor(3));
