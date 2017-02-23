@@ -20,6 +20,7 @@ class ODESimulator: public CGenericODESim, private PosixNonRealTimeThread, prote
     uint64_t    mStepCounter;
     CWaitEvent  mEvtActuation;
     int         mRandomize;
+    double			mActuationDelay;	// In seconds
 
     //void      resetBindData();
     // Main function from AbstractXenomaiTask

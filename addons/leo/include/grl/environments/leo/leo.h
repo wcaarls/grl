@@ -20,8 +20,9 @@ struct TargetInterface
   };
   struct ActuatorInterface
   {
-    std::vector<int> voltage;               // mapping: target_action = agent_action(actions == i)
-    std::vector<std::string> autoActuated;  // textual names of actions that should be automatically actuated, for them 'actions = -1'
+    ESTGActuationMode mode;                 // type of actuation (amVoltage or amTorque is supported by now)
+    std::vector<int> action;                // mapping: target_action = agent_action(actions == i)
+    std::vector<std::string> autoActuated;  // textual names of actions that should be automatically actuated, for them 'action[i] = -1'
   };
 
   ObserverInterface observer;     // used for stance leg being left
@@ -30,7 +31,13 @@ struct TargetInterface
   ActuatorInterface actuator_sym; // used for stance leg being right
 };
 
-enum LeoSignalType {lstNone, lstContact}; // Leo has the additional to default signal type
+enum LeoSignalType {
+  lstNone          = 0x00,
+  lstSwlTouchDown  = 0x01,   // Set at swing leg touchdown
+  lstGroundContact = 0x02,   // Set when Leo is touching the ground (real Leo may not touch the ground at the beginning)
+  lstStanceLeft    = 0x04,   // Set when left leg is assumed to be a current stance leg
+  lstStanceRight   = 0x08,   // Set when right leg is assumed to be a current stance leg
+};
 
 // Base classes for Leo
 class CLeoBhBase: public CLeoBhWalkSym
@@ -60,17 +67,6 @@ class CLeoBhBase: public CLeoBhWalkSym
       svLeftHeelContact,
       svNumStates
     };
-    enum LeoActionVar
-    {
-      avLeftArmTorque,
-      avRightHipTorque,
-      avLeftHipTorque,
-      avRightKneeTorque,
-      avLeftKneeTorque,
-      avRightAnkleTorque,
-      avLeftAnkleTorque,
-      svNumActions
-    };
     enum LeoObservationWalk
     {
       owTorsoAngle,
@@ -84,6 +80,17 @@ class CLeoBhBase: public CLeoBhWalkSym
       owKneeSwingAngle,
       owKneeSwingAngleRate,
       owNumDims
+    };
+    enum LeoActionVar
+    {
+      avLeftArmAction,
+      avRightHipAction,
+      avLeftHipAction,
+      avRightKneeAction,
+      avLeftKneeAction,
+      avRightAnkleAction,
+      avLeftAnkleAction,
+      svNumActions
     };
 
   public:
@@ -100,7 +107,7 @@ class CLeoBhBase: public CLeoBhWalkSym
   public:
     virtual void resetState(double time0);
     virtual void parseLeoState(const CLeoState &leoState, Vector &obs);
-    virtual void parseLeoAction(const Vector &action, Vector &target_action) = 0;
+    virtual void parseLeoAction(const Action &action, Action &target_action) = 0;
 
     void setObserverInterface(const TargetInterface::ObserverInterface oi, const TargetInterface::ObserverInterface oi_sym) { interface_.observer = oi; interface_.observer_sym = oi_sym; }
     void setActuatorInterface(const TargetInterface::ActuatorInterface ai, const TargetInterface::ActuatorInterface ai_sym) { interface_.actuator = ai; interface_.actuator_sym = ai_sym; }
@@ -111,29 +118,28 @@ class CLeoBhBase: public CLeoBhWalkSym
     bool madeFootstep();
     void setCurrentSTGState(CLeoState *leoState);
     void setPreviousSTGState(CLeoState *leoState);
-    void grlAutoActuateRightAnkle(double &actionRightAnkle)
+    void setActuationMode(const ESTGActuationMode &mode) { leoSim_.setActuationMode(mode); }
+    ESTGActuationMode getActuationMode() const { return leoSim_.getActuationMode(); }
+
+    double grlAutoActuateRightAnkle()
     {
-      CSTGLeoSim *leoSim = dynamic_cast<CSTGLeoSim*>(mActuationInterface);
-      CLeoBhWalkSym::autoActuateAnkles_FixedPos(leoSim);
-      actionRightAnkle = leoSim->getJointVoltage(ljAnkleRight);
+      CLeoBhWalkSym::autoActuateAnkles_FixedPos(&leoSim_);
+      return getJointAction(ljAnkleRight);
     }
-    void grlAutoActuateLeftAnkle(double &actionLeftAnkle)
+    double grlAutoActuateLeftAnkle()
     {
-      CSTGLeoSim *leoSim = dynamic_cast<CSTGLeoSim*>(mActuationInterface);
-      CLeoBhWalkSym::autoActuateAnkles_FixedPos(leoSim);
-      actionLeftAnkle = leoSim->getJointVoltage(ljAnkleLeft);
+      CLeoBhWalkSym::autoActuateAnkles_FixedPos(&leoSim_);
+      return getJointAction(ljAnkleLeft);
     }
     double grlAutoActuateArm()
     {
-      CSTGLeoSim *leoSim = dynamic_cast<CSTGLeoSim*>(mActuationInterface);
-      CLeoBhWalkSym::autoActuateArm(leoSim);
-      return leoSim->getJointVoltage(ljShoulder);
+      CLeoBhWalkSym::autoActuateArm(&leoSim_);
+      return getJointAction(ljShoulder);
     }
     double grlAutoActuateKnee()
     {
-      CSTGLeoSim *leoSim = dynamic_cast<CSTGLeoSim*>(mActuationInterface);
-      CLeoBhWalkSym::autoActuateKnees(leoSim);
-      return stanceLegLeft() ? leoSim->getJointVoltage(ljKneeLeft) : leoSim->getJointVoltage(ljKneeRight);
+      CLeoBhWalkSym::autoActuateKnees(&leoSim_);
+      return stanceLegLeft() ? getJointAction(ljKneeLeft) : getJointAction(ljKneeRight);
     }
 
     std::string jointIndexToName(int jointIndex) const;
@@ -142,6 +148,18 @@ class CLeoBhBase: public CLeoBhWalkSym
   protected:
     CButterworthFilter<1>	mJointSpeedFilter[ljNumJoints];
     TargetInterface interface_;
+    double getJointAction(int jointIndex)
+    {
+      if (leoSim_.getActuationMode() == amVoltage)
+        return leoSim_.getJointVoltage(jointIndex);
+      else if (leoSim_.getActuationMode() == amTorque)
+        return leoSim_.getJointTorque(jointIndex);
+      else
+      {
+        ERROR("Unknown actuaton mode '" << leoSim_.getActuationMode() << "'");
+        throw bad_param("CLeoBhBase:actuationMode");
+      }
+    }
 
   private:
     CSTGLeoSim leoSim_;
@@ -174,6 +192,7 @@ class LeoBaseEnvironment: public Environment
     int observation_dims_, action_dims_;
     Observation target_obs_;
     Action target_action_;
+    Vector target_action_min_, target_action_max_;
 
     // Exporter
     Exporter *exporter_;
@@ -181,6 +200,8 @@ class LeoBaseEnvironment: public Environment
     double time_test_, time_learn_, time0_;
 
   protected:
+    void ensure_bounds(Vector *action) const;
+
     int findVarIdx(const std::vector<CGenericStateVar> &genericStates, std::string query) const;
 
     // Observations

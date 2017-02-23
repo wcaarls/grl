@@ -75,7 +75,8 @@ class CODESim: public CVisualSim, public CODELoggable
 		std::vector<SSimTimer>		mTimers;
 
 		// Settings
-		double						mTotalStepTime;		// The total steptime
+    double						mTotalStepTime; // Total tength of time between steps
+    double						mStepTime;		// The steptime which may be equal to total step time, or be partial of it (for simulation of control delays)
 		int							mStepDelay;		// Not used yet
 		bool						mRealtime;		// Not used yet
 		int							mSubsamplingFactor;
@@ -105,7 +106,7 @@ class CODESim: public CVisualSim, public CODELoggable
 
 		// Loop control
 		// Partial step time: the simulator will eventually call dWorldStep(getPartialStepTime());
-		inline double				getPartialStepTime()	{return mTotalStepTime/mSubsamplingFactor;}
+    inline double				getPartialStepTime()	{return mStepTime/mSubsamplingFactor;}
 		bool						shouldContinue();	// Waits if necessary and returns true if worker thread should continue
 		void						incrementTime();
 		void						updateJointMotors(double stepTime);
@@ -140,14 +141,14 @@ class CODESim: public CVisualSim, public CODELoggable
 		// If you ever want to implement a setStepTime(),
 		// make sure you recalculate mGlobalERP and mGlobalCFM
 		// if the user provided globalK and globalD parameters!
-		double			getStepTime();
+    double			getTotalStepTime();
 
 		// !!!WARNING!!!
 		// If you change the timing while simulating, make sure that totalStepTime/subsamplingFactor
 		// remains equal to its value before the change, so that all convertKDToERPCFM() calculations
 		// that were performed in readConfig() functions all over the place will still be valid!!!!
 		// !!!WARNING!!!
-		void			setTiming(double totalStepTime, int subsamplingFactor);
+    void			setTiming(double stepTime, int subsamplingFactor);
 
 		void			setSubsamplingFactor(const int subsamplingFactor);
 		int				getSubsamplingFactor();

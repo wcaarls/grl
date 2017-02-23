@@ -112,8 +112,9 @@ void LinearRepresentation::reconfigure(const Configuration &config)
     }
     else if (config["action"].str() == "load")
     {
-      std::string file = config["file"].str() + path() + ".dat";
-      std::replace(file.begin(), file.end(), '/', '_');
+      std::string cfg_path = path();
+      std::replace(cfg_path.begin(), cfg_path.end(), '/', '_');
+      std::string file = config["file"].str() + cfg_path + ".dat";
 
       FILE *f = fopen(file.c_str(), "rb");
       if (!f)
@@ -141,8 +142,9 @@ void LinearRepresentation::reconfigure(const Configuration &config)
     }
     else if (config["action"].str() == "save")
     {
-      std::string file = config["file"].str() + path() + ".dat";
-      std::replace(file.begin(), file.end(), '/', '_');
+      std::string cfg_path = path();
+      std::replace(cfg_path.begin(), cfg_path.end(), '/', '_');
+      std::string file = config["file"].str() + cfg_path + ".dat";
 
       FILE *f = fopen(file.c_str(), "wb");
       if (!f)
@@ -224,9 +226,14 @@ void LinearRepresentation::write(const ProjectionPtr projection, const Vector &t
   // TODO: Store read values and update those (for thread safety)
   Vector value;
   read(projection, &value, NULL);
+  TRACE("value: " << value);
   Vector delta = alpha*(target-value);
-  
+  TRACE("delta: " << delta);
   update(projection, delta);
+
+  // debug: updated value
+  read(projection, &value, NULL);
+  TRACE("new value: " << value);
 }
 
 void LinearRepresentation::update(const ProjectionPtr projection, const Vector &delta)

@@ -20,12 +20,12 @@ class LeoBhWalk: public CLeoBhBase
     LeoBhWalk() {}
     virtual double calculateReward();
     virtual void parseLeoState(const CLeoState &leoState, Vector &obs);
-    virtual void parseLeoAction(const Vector &action, Vector &target_action);
+    virtual void parseLeoAction(const Action &action, Action &target_action);
     virtual std::string getProgressReport(double trialTime);
 
   protected:
     void parseStateFromTarget(const CLeoState &leoState, Vector &obs, const TargetInterface::ObserverInterface *observer) const;
-    void parseActionForTarget(const Vector &action, Vector &target_action, const TargetInterface::ActuatorInterface *actuator);
+    void parseActionForTarget(const Action &action, Action &target_action, const TargetInterface::ActuatorInterface *actuator);
 };
 
 class LeoBhWalkSym: public LeoBhWalk
@@ -35,7 +35,8 @@ class LeoBhWalkSym: public LeoBhWalk
 
     LeoBhWalkSym() {}
     virtual void parseLeoState(const CLeoState &leoState, Vector &obs);
-    virtual void parseLeoAction(const Vector &action, Vector &target_action);
+    virtual void parseLeoAction(const Action &action, Action &target_action);
+    virtual std::string getProgressReport(double trialTime);
 };
 
 /// Simulation of original Leo robot by Erik Schuitema.

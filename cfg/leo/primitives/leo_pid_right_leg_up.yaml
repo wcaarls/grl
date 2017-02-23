@@ -1,0 +1,45 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 0
+  steps: 0
+  rate: 0
+  test_interval: 0
+  output: leo_pid_right_leg_up
+  environment: 
+    type: environment/leo_walk
+    behavior: 
+      type: behavior/leo_walk
+    xml: ../../leo/cfg/xm430_210_vc_leo_walk_real.xml
+    target_env: 
+      type: environment/communicator
+      communicator: 
+        type: communicator/zeromq/pub_sub
+        pattern: ZMQ_SYNC_SUB
+        sync: tcp://192.168.1.10:5560
+        pub: tcp://*:5561
+        sub: tcp://192.168.1.10:5562
+      target_obs_dims: 20
+      target_action_dims: 7
+    observe: torso_boom, shoulder, hipright, hipleft, kneeright, kneeleft, ankleright, ankleleft
+    actuate: shoulder, hipright, hipleft, kneeright, kneeleft, ankleright, ankleleft
+  agent: 
+    type: agent/fixed
+    policy: 
+      type: mapping/policy/parameterized/pid
+      setpoint: [ -0.101485,  -0.261799,   0.819996,   0.100951,  -1.269998,   0.001465,   0.000000,   0.000004,  0, 0, 0, 0, 0, 0, 0, 0 ]
+      outputs: 7
+      p: [0, 20, 0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 20, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 20, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 20, 0, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 20, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 20, 0,   0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 60,   0, 0, 0, 0, 0, 0, 0, 0]
+      i: []
+      d: []
+      il: []
+      action_min: experiment/environment/action_min
+      action_max: experiment/environment/action_max
+  test_agent: experiment/agent
+  save_every: never

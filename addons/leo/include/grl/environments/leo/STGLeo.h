@@ -21,20 +21,6 @@
 #define LEO_FOOTSENSOR_LEFT_HEEL        0x08
 static const char* LEO_FOOTSENSOR_NAME[] = {"RightToe", "RightHeel", "LeftToe", "LeftHeel"};
 
-#define LEO_SUPPLY_VOLTAGE              14.0    // Volts
-
-// Temperature compensation defines
-#define LEO_DXL_REF_TEMP                25.0    // Use 25.0 with copperfact=0.004 and magnetfact=0.0
-#define LEO_DXL_MAX_TEMP                75.0
-#define LEO_DXL_MAX_TEMP_DIFF           (LEO_DXL_MAX_TEMP - LEO_DXL_REF_TEMP)
-#define LEO_DXL_MAX_BREAKING_VEL        4.0        // Maximum velocity during breaking - this is important for determining maximum thermal compensation
-#define LEO_DXL_VOLTAGE_TEMP_FACT       ((1.0 + LEO_DXL_MAX_TEMP_DIFF*DXL_RX28_COPPER_COEF)/(1.0 + LEO_DXL_MAX_TEMP_DIFF*DXL_RX28_MAGNET_COEF))
-#define LEO_DXL_VOLTAGE_TEMP_FACT_FULL  (LEO_DXL_VOLTAGE_TEMP_FACT + ((-1.0)*LEO_DXL_MAX_BREAKING_VEL*DXL_RX28_TORQUE_CONST*DXL_RX28_GEARBOX_RATIO/LEO_SUPPLY_VOLTAGE)*((1.0 + LEO_DXL_MAX_TEMP_DIFF*DXL_RX28_MAGNET_COEF) - LEO_DXL_VOLTAGE_TEMP_FACT))
-
-// Define the maximum allowable Dynamixel voltage that can be guaranteed
-// under all temperature compensation situations.
-#define LEO_MAX_DXL_VOLTAGE             (LEO_SUPPLY_VOLTAGE/LEO_DXL_VOLTAGE_TEMP_FACT_FULL) // =10.69V
-
 enum ELeoFootContact
 {
     lfToeRight,
@@ -81,32 +67,31 @@ enum ELeoPart
 
 class ISTGLeoActuation: public ISTGActuation
 {
-    public:
-        const std::string    getJointName(int jointIndex)
-        {
-            switch (jointIndex)
-            {
-                case ljHipLeft:        return "hipleft"; break;
-                case ljHipRight:    return "hipright"; break;
-                case ljKneeLeft:    return "kneeleft"; break;
-                case ljKneeRight:    return "kneeright"; break;
-                case ljAnkleLeft:    return "ankleleft"; break;
-                case ljAnkleRight:    return "ankleright"; break;
-                case ljShoulder:    return "shoulder"; break;
-                case ljTorso:        return "torso"; break;
-                default:
-                    return "";
-            }
-        }
+  public:
+    const std::string getJointName(int jointIndex)
+    {
+      switch (jointIndex)
+      {
+        case ljHipLeft:     return "hipleft";     break;
+        case ljHipRight:    return "hipright";    break;
+        case ljKneeLeft:    return "kneeleft";    break;
+        case ljKneeRight:   return "kneeright";   break;
+        case ljAnkleLeft:   return "ankleleft";   break;
+        case ljAnkleRight:  return "ankleright";  break;
+        case ljShoulder:    return "shoulder";    break;
+        case ljTorso:       return "torso";       break;
+        default:
+          return "";
+      }
+    }
 
-        int                    getJointIndexByName(const std::string& jointName)
-        {
-            for (int i=0; i<ljNumJoints; i++)
-                if (jointName.compare(getJointName(i)) == 0)
-                    return (ELeoJoint)i;
-
-            return ljInvalid;
-        }
+    int getJointIndexByName(const std::string& jointName)
+    {
+      for (int i=0; i<ljNumJoints; i++)
+        if (jointName.compare(getJointName(i)) == 0)
+          return (ELeoJoint)i;
+      return ljInvalid;
+    }
 };
 
 class CLeoState: public CSTGState
@@ -120,9 +105,10 @@ class CLeoState: public CSTGState
         double            mActuationAngles[ljNumDynamixels];
         double            mActuationSpeeds[ljNumDynamixels];
         double            mActuationVoltages[ljNumDynamixels];
+        double            mActuationTorques[ljNumDynamixels];
         double            mActuationVoltagesTempComp[ljNumDynamixels];    // Temperature compensated
-        uint64_t        mActuationDelay;
-        unsigned char    mFootContacts;
+        uint64_t          mActuationDelay;
+        unsigned char     mFootContacts;
         double            mFootSensors[LEO_NUM_FOOTSENSORS];
 
         CLeoState()
@@ -139,6 +125,7 @@ class CLeoState: public CSTGState
             memset(mActuationAngles, 0, ljNumDynamixels*sizeof(double));
             memset(mActuationSpeeds, 0, ljNumDynamixels*sizeof(double));
             memset(mActuationVoltages, 0, ljNumDynamixels*sizeof(double));
+            memset(mActuationTorques, 0, ljNumDynamixels*sizeof(double));
             memset(mActuationVoltagesTempComp, 0, ljNumDynamixels*sizeof(double));
             mFootContacts    = 0;
             mActuationDelay    = 0;

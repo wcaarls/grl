@@ -1,0 +1,49 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 0
+  steps: 70000
+  rate: 1
+  test_interval: 0
+  output: rbdl_nmpc_squat_fb_sl
+  environment: 
+    type: environment/sandbox
+    model: 
+      type: sandbox_model/leo_squatting
+      control_step: 0.03
+      integration_steps: 25
+      dynamics: 
+        type: dynamics/rbdl
+        file: leo_fb_sl_fa.lua
+        points: tip_left, heel_left, root
+        auxiliary: mm, com, comv, am
+      target_dof: 3
+      animation: immediate
+      lower_height: 0.28
+      upper_height: 0.35
+    task: 
+      type: task/leo_squatting
+      timeout: 0
+      rand_init: 0
+    exporter: 
+      type: exporter/csv
+      file: rbdl_nmpc_squat_fb_sl_fa
+      fields: time, state, observation, action, reward, terminal
+      style: meshup
+      variant: test
+      enabled: 1
+  agent: 
+    type: agent/fixed
+    policy: 
+      type: mapping/policy/nmpc
+      verbose: 0
+      initFeedback: 1
+      action_min: experiment/environment/task/action_min
+      action_max: experiment/environment/task/action_max
+      lua_model: leo_fb_sl_fa.lua
+      model_name: nmpc_leo_squat_fb_sl_fa
+      nmpc_model_name: nmpc_leo_squat_fb_sl_fa
+      feedback: non-threaded
+      n_iter: 1
+  test_agent: experiment/agent
+  save_every: never

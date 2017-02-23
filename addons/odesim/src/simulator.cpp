@@ -15,7 +15,8 @@ ODESimulator::ODESimulator():
   CGenericODESim("simulator", 8),
   PosixNonRealTimeThread("simulator-thread", BaseThread::NORMAL),
   mEvtActuation(false, false),
-  mRandomize(0)
+  mRandomize(0),
+  mActuationDelay(0)
 {
   mLogDebugLn("Simulator constructor");
 
@@ -28,6 +29,15 @@ bool ODESimulator::readConfig(const CConfigSection &configSection, bool noObject
 {
   bool result = true;
   result &= CSTGODESim<GenericState>::readConfig(configSection, noObjects);
+  configSection.get("actuationdelay", &mActuationDelay);
+
+  // Check that the actuation delay is not set larger than the step time
+  if (mActuationDelay > mSim.getTotalStepTime())
+  {
+    mLogErrorLn("Actuation delay (" << mActuationDelay << ") cannot be larger than step time (" << mSim.getTotalStepTime() << ")!");
+    return false;
+  }
+
   return result;
 }
 
@@ -76,14 +86,35 @@ void ODESimulator::fillState()
 
 void ODESimulator::run()
 {
+  // Save original simulation timing
+  int subsamplingFactor	= mSim.getSubsamplingFactor();
+  double totalSteptime	= mSim.getTotalStepTime();
+
+  // Split original timing into two parts, while maintaining the same partial step time or better (totalSteptime/subsamplingFactor):
+  // - actuation delay: ad
+  // - remaining step: rs
+  double adSteptime       = mActuationDelay;
+  int adSubsamplingFactor	= (int)ceil(subsamplingFactor*mActuationDelay/totalSteptime);
+  double rsSteptime       = totalSteptime - mActuationDelay;
+  int rsSubsamplingFactor = (int)ceil(subsamplingFactor*rsSteptime/totalSteptime);
+  mLogInfoLn("Timing (" << totalSteptime << "s in " << subsamplingFactor << "steps) is split into actuation delay (" << adSteptime << "s in " << adSubsamplingFactor << " steps) and a rest step (" << rsSteptime << "s in " << rsSubsamplingFactor << " steps)");
+
   // Broadcast the initial state of the robot so that the policy
   // can calculate the initial actuation signals.
   // shouldStep() will wait for the initial actuation signals from the policy (it is reset in start())
   setInitialCondition(mRandomize?time(NULL):0);
 
-  mLogNoticeLn("Simulator settings:\n      step time: " << mSim.getStepTime() << ", subsamplingfactor: " << mSim.getSubsamplingFactor());
+  mLogNoticeLn("Simulator settings:\n      step time: " << mSim.getTotalStepTime() << ", subsamplingfactor: " << mSim.getSubsamplingFactor());
 
   fillState();
+
+  // Simulate the change of a state in the case of a non-zero control delay
+  if (adSubsamplingFactor > 0)
+  {
+    mSim.setTiming(adSteptime, adSubsamplingFactor);
+    mSim.singleStep();
+    mLogCrawlLn("Performed actuation delay step of " << adSteptime << " (subsampled " << adSubsamplingFactor << "x)");
+  }
 
   if (!broadcast())
     mLogWarningLn("STG state broadcast failed on one of the receivers (error " << errno << ")!");
@@ -94,10 +125,22 @@ void ODESimulator::run()
   {
     if (shouldStep())
     {
-      mSim.singleStep();
+      // Make a simulation step
+      if (rsSubsamplingFactor > 0)
+      {
+        mSim.setTiming(rsSteptime, rsSubsamplingFactor);
+        mSim.singleStep();
+      }
 
       // Since the step is done now, we don't need to ask for sim access, so just fill the state struct
       fillState();
+
+      // Simulate the change of a state in case of control delay
+      if (adSubsamplingFactor > 0)
+      {
+        mSim.setTiming(adSteptime, adSubsamplingFactor);
+        mSim.singleStep();
+      }
 
       // Now send our state to the queue
       if (broadcast())

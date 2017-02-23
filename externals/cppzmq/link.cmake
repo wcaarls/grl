@@ -1,5 +1,5 @@
 find_package(ZeroMQ 4.0.0)
 if (ZeroMQ_FOUND)
   include_directories(${ZeroMQ_INCLUDE_DIRS})
-  target_link_libraries(${TARGET} ${ZeroMQ_LIBRARIES} cppzmq)
+  target_link_libraries(${TARGET} ${ZeroMQ_LIBRARIES} cppzmq pthread)
 endif()

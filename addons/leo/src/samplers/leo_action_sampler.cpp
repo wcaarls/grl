@@ -61,7 +61,7 @@ size_t LeoActionSampler::sample(double time, const LargeVector &values, ActionTy
   {
     Vector signal = sub_ic_signal_->get();
     Vector sampler_state = pub_sub_sampler_state_->get(); // must hold either actual values of action or noise (not indexed arrays)
-    if (signal[0] == lstContact)
+    if ((int)signal[0] & lstSwlTouchDown)
     {
       // Take care of Leo body symmetry, if required!
       TRACE(sampler_state);

@@ -1,0 +1,72 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 0
+  steps: 1000000
+  rate: 0
+  test_interval: 10
+  output: leosim_sarsa_walk_egreedy
+  environment: 
+    type: environment/leo_walk
+    behavior: 
+      type: behavior/leo_walk_sym
+    xml: ../../leo/cfg/xm430_210_vc_leo_walk.xml
+    target_env: 
+      type: environment/ode
+      xml: experiment/environment/xml
+      randomize: 1
+      visualize: 1
+    observe: torso_boom, hipright, hipleft, kneeright, kneeleft
+    actuate: hipright, hipleft, stanceknee
+    sub_transition_type: 
+      type: signal/vector
+  agent: 
+    type: agent/leo/td
+    policy: 
+      type: mapping/policy/value/q
+      discretizer: 
+        type: discretizer/uniform
+        min: experiment/environment/action_min
+        max: experiment/environment/action_max
+        steps: [7, 7, 7]
+      projector: 
+        type: projector/tile_coding
+        tilings: 16
+        memory: 33554432
+        safe: 1
+        resolution: [0.14, 0.28, 0.28, 0.28, 0.28, 5, 10, 10, 10, 10, 5.33, 5.33, 5.33]
+        wrapping: []
+      representation: 
+        type: representation/parameterized/linear
+        init_min: [0]
+        init_max: [0.01]
+        memory: experiment/agent/policy/projector/memory
+        outputs: 1
+        output_min: []
+        output_max: []
+      sampler: 
+        type: sampler/epsilon_greedy
+        rand_max: 0
+        epsilon: 0.05
+    predictor: 
+      type: predictor/sarsa
+      alpha: 0.2
+      gamma: 0.9962
+      lambda: 0.8582
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+      trace: 
+        type: trace/enumerated/accumulating
+    pub_transition_type: experiment/environment/sub_transition_type
+  test_agent: 
+    type: agent/leo/fixed
+    policy: 
+      type: mapping/policy/value/q
+      discretizer: experiment/agent/policy/discretizer
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+      sampler: 
+        type: sampler/greedy
+        rand_max: 0
+    pub_transition_type: experiment/environment/sub_transition_type
+  save_every: run

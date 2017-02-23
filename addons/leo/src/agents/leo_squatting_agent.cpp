@@ -1,5 +1,5 @@
 /** \file leo_squatting_agent.cpp
- * \brief State-machine agent source file which performs squatting on Leo.
+ * \brief State-machine agent source file for Leo
  *
  * \author    Ivan Koryakovskiy <i.koryakovskiy@tudelft.nl>
  * \date      2016-01-01

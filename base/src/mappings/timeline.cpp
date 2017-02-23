@@ -43,7 +43,14 @@ void TimelineMapping::configure(Configuration &config)
   
   Vector line;
   while (importer_->read({&line}))
+  {
+    if (data_.size() && data_[data_.size()-1].size() != line.size())
+    {
+      ERROR("Data vectors should be of equal size");
+      throw bad_param("mapping/timeline:importer");
+    }
     data_.push_back(line);
+  }
     
   if (data_.empty())
   {
@@ -97,7 +104,7 @@ double TimelineMapping::read(const Vector &in, Vector *result) const
   }
 
   // Remove time  
-  for (size_t ii=0; ii < data_.size()-1; ++ii)
+  for (size_t ii=0; ii < result->size(); ++ii)
     (*result)[ii] = v[ii+1];
     
   return (*result)[0];

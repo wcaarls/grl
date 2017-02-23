@@ -1,0 +1,91 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 0
+  steps: 1000000
+  rate: 0
+  test_interval: 10
+  output: leosim_sarsa_walk_pada0
+  environment: 
+    type: environment/leo_walk
+    behavior: 
+      type: behavior/leo_walk_sym
+    xml: ../../leo/cfg/xm430_210_vc_leo_walk.xml
+    target_env: 
+      type: environment/ode
+      xml: experiment/environment/xml
+      randomize: 1
+      visualize: 1
+    observe: torso_boom, hipright, hipleft, kneeright, kneeleft
+    actuate: hipright, hipleft, stanceknee
+    sub_transition_type: 
+      type: signal/vector
+    pub_ic_signal: 
+      type: signal/vector
+  agent: 
+    type: agent/leo/td
+    policy: 
+      type: mapping/policy/value/q
+      discretizer: 
+        type: discretizer/uniform
+        min: experiment/environment/action_min
+        max: experiment/environment/action_max
+        steps: [7, 7, 7]
+      projector: 
+        type: projector/tile_coding
+        tilings: 16
+        memory: 33554432
+        safe: 1
+        resolution: [0.14, 0.28, 0.28, 0.28, 0.28, 5, 10, 10, 10, 10, 6.67, 6.67, 6.67]
+        wrapping: []
+      representation: 
+        type: representation/parameterized/linear
+        init_min: [0]
+        init_max: [0.01]
+        memory: experiment/agent/policy/projector/memory
+        outputs: 1
+        output_min: []
+        output_max: []
+      sampler: 
+        type: sampler/leo/action
+        sampler: 
+          type: sampler/pada
+          rand_max: 0
+          epsilon: [ 0.05 ]
+          discretizer: experiment/agent/policy/discretizer
+          delta: [ 3.57, 3.57, 3.57 ]
+          pub_sub_pada_state: 
+            type: signal/vector
+        sub_ic_signal: experiment/environment/pub_ic_signal
+        pub_sub_sampler_state: experiment/agent/policy/sampler/sampler/pub_sub_pada_state
+    predictor: 
+      type: predictor/sarsa
+      alpha: 0.2
+      gamma: 0.9962
+      lambda: 0.8582
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+      trace: 
+        type: trace/enumerated/accumulating
+    pub_transition_type: experiment/environment/sub_transition_type
+  test_agent: 
+    type: agent/leo/fixed
+    policy: 
+      type: mapping/policy/value/q
+      discretizer: experiment/agent/policy/discretizer
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+      sampler: 
+        type: sampler/leo/action
+        sampler: 
+          type: sampler/pada
+          rand_max: experiment/agent/policy/sampler/sampler/rand_max
+          epsilon: [ 0.00 ]
+          discretizer: experiment/agent/policy/discretizer
+          delta: experiment/agent/policy/sampler/sampler/delta
+          pub_sub_pada_state: experiment/agent/policy/sampler/sampler/pub_sub_pada_state
+        sub_ic_signal: experiment/environment/pub_ic_signal
+        pub_sub_sampler_state: experiment/agent/policy/sampler/sampler/pub_sub_pada_state
+    pub_transition_type: experiment/environment/sub_transition_type
+  load_file: leo_leosim_sarsa_walk_pada-mp2-run0
+  save_every: run

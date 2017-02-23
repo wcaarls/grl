@@ -35,6 +35,8 @@ REGISTER_CONFIGURABLE(CSVImporter)
 void CSVImporter::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("file", "Input base filename", file_));
+  config->push_back(CRP("headers", "Comma-separated list of imported headers elements", ""));
+  config->push_back(CRP("split", "Allows to import all data into a single variable or split colums across multiple variables", split_, CRP::Configuration, {"no_split", "split"}));
 }
 
 void CSVImporter::configure(Configuration &config)
@@ -42,6 +44,9 @@ void CSVImporter::configure(Configuration &config)
   file_ = config["file"].str();
   if (file_.empty())
     throw bad_param("importer/csv:file");
+
+  init(cutLongStr(config["headers"].str()));
+  split_ = config["split"].str();
 }
 
 void CSVImporter::reconfigure(const Configuration &config)
@@ -50,11 +55,14 @@ void CSVImporter::reconfigure(const Configuration &config)
 
 void CSVImporter::init(const std::vector<std::string> &headers)
 {
-  headers_ = headers;
+  if (!headers_.size())
+    headers_ = headers;
+  else
+    throw bad_param("importer/csv:headers (attempt to overwrite headers provided in configuration)");
 }
 
 void CSVImporter::open(const std::string &variant)
-{
+{ 
   stream_.open((file_+variant+".csv").c_str());
   
   if (!stream_.good())
@@ -89,7 +97,10 @@ void CSVImporter::open(const std::string &variant)
         for (size_t ii=0; ii != headers_.size(); ++ii)
           if (headers_[ii] == line)
           {
-            order_.push_back(ii);
+            if (split_ == "no_split")
+              order_.push_back(0);
+            else
+              order_.push_back(ii);
             found[ii] = true;
           }
       }
@@ -108,11 +119,17 @@ void CSVImporter::open(const std::string &variant)
 
 bool CSVImporter::read(const std::vector<Vector*> &vars)
 {
-  if (headers_.size() && vars.size() != headers_.size())
+  if (headers_.size() && vars.size() != headers_.size() && split_ == "split")
   {
     ERROR("Variable list does not match header list");
     return false;
-  } 
+  }
+
+  if (vars.size() > 1 && split_ == "no_split")
+  {
+    ERROR("No-split does not match input list");
+    return false;
+  }
   
   std::vector<std::vector<double> > var_vec(vars.size());
 
@@ -159,6 +176,12 @@ bool CSVImporter::read(const std::vector<Vector*> &vars)
   auto jt = vars.begin();
   for (; it != var_vec.end(); ++it, ++jt)
     toVector(*it, **jt);
+
+  if (stream_.peek() != '\n')
+  {
+    std::string line;
+    std::getline(stream_, line);
+  }
   
   return stream_.good();
 }

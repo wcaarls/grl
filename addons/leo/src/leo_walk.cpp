@@ -40,44 +40,45 @@ void LeoBhWalk::parseStateFromTarget(const CLeoState &leoState, Vector &obs, con
   }
 }
 
-void LeoBhWalk::parseActionForTarget(const Vector &action, Vector &target_action, const TargetInterface::ActuatorInterface *actuator)
+void LeoBhWalk::parseActionForTarget(const Action &action, Action &target_action, const TargetInterface::ActuatorInterface *actuator)
 {
-    double actionArm, actionRightHip, actionLeftHip, actionRightKnee, actionLeftKnee, actionRightAnkle, actionLeftAnkle;
+  double actionArm, actionRightHip, actionLeftHip, actionRightKnee, actionLeftKnee, actionRightAnkle, actionLeftAnkle;
 
-    if (actuator->voltage[avRightHipTorque] != -1)
-      actionRightHip = action[ actuator->voltage[avRightHipTorque] ];
-    if (actuator->voltage[avLeftHipTorque] != -1)
-      actionLeftHip = action[ actuator->voltage[avLeftHipTorque] ];
-    if (actuator->voltage[avRightKneeTorque] != -1)
-      actionRightKnee = action[ actuator->voltage[avRightKneeTorque] ];
-    if (actuator->voltage[avLeftKneeTorque] != -1)
-      actionLeftKnee = action[ actuator->voltage[avLeftKneeTorque] ];
-    if (actuator->voltage[avRightAnkleTorque] != -1)
-      actionRightAnkle = action[ actuator->voltage[avRightAnkleTorque] ];
-    if (actuator->voltage[avLeftAnkleTorque] != -1)
-      actionLeftAnkle = action[ actuator->voltage[avLeftAnkleTorque] ];
-    if (actuator->voltage[avLeftArmTorque] != -1)
-      actionArm = action[ actuator->voltage[avLeftArmTorque] ];
+  if (actuator->action[avRightHipAction] != -1)
+    actionRightHip = action[ actuator->action[avRightHipAction] ];
+  if (actuator->action[avLeftHipAction] != -1)
+    actionLeftHip = action[ actuator->action[avLeftHipAction] ];
+  if (actuator->action[avRightKneeAction] != -1)
+    actionRightKnee = action[ actuator->action[avRightKneeAction] ];
+  if (actuator->action[avLeftKneeAction] != -1)
+    actionLeftKnee = action[ actuator->action[avLeftKneeAction] ];
+  if (actuator->action[avRightAnkleAction] != -1)
+    actionRightAnkle = action[ actuator->action[avRightAnkleAction] ];
+  if (actuator->action[avLeftAnkleAction] != -1)
+    actionLeftAnkle = action[ actuator->action[avLeftAnkleAction] ];
+  if (actuator->action[avLeftArmAction] != -1)
+    actionArm = action[ actuator->action[avLeftArmAction] ];
 
-    for (int i = 0; i < actuator->autoActuated.size(); i++)
+  for (int i = 0; i < actuator->autoActuated.size(); i++)
+  {
+    if (actuator->autoActuated[i] == "shoulder")
+      actionArm = grlAutoActuateArm();
+    if (actuator->autoActuated[i] == "stanceknee")
     {
-      if (actuator->autoActuated[i] == "shoulder")
-        actionArm = grlAutoActuateArm();
-      if (actuator->autoActuated[i] == "stanceknee")
-      {
-        // refers to an auto-actuation of the stance leg knee
-        if (stanceLegLeft())
-          actionLeftKnee = grlAutoActuateKnee();
-        else
-          actionRightKnee = grlAutoActuateKnee();
-      }
-       if (actuator->autoActuated[i] == "ankleright")
-         grlAutoActuateRightAnkle(actionRightAnkle);
-       if (actuator->autoActuated[i] == "ankleleft")
-        grlAutoActuateLeftAnkle(actionLeftAnkle);
+      // refers to an auto-actuation of the stance leg knee
+      if (stanceLegLeft())
+        actionLeftKnee = grlAutoActuateKnee();
+      else
+        actionRightKnee = grlAutoActuateKnee();
     }
+     if (actuator->autoActuated[i] == "ankleright")
+       actionRightAnkle = grlAutoActuateRightAnkle();
+     if (actuator->autoActuated[i] == "ankleleft")
+       actionLeftAnkle = grlAutoActuateLeftAnkle();
+  }
 
-    target_action << actionArm, actionRightHip, actionLeftHip, actionRightKnee, actionLeftKnee, actionRightAnkle, actionLeftAnkle;
+  target_action.v << actionArm, actionRightHip, actionLeftHip, actionRightKnee, actionLeftKnee, actionRightAnkle, actionLeftAnkle;
+  target_action.type = action.type;
 }
 
 std::string LeoBhWalk::getProgressReport(double trialTime)
@@ -115,7 +116,7 @@ void LeoBhWalk::parseLeoState(const CLeoState &leoState, Vector &obs)
   parseStateFromTarget(leoState, obs, &interface_.observer);
 }
 
-void LeoBhWalk::parseLeoAction(const Vector &action, Vector &target_action)
+void LeoBhWalk::parseLeoAction(const Action &action, Action &target_action)
 {
   parseActionForTarget(action, target_action, &interface_.actuator);
 }
@@ -130,12 +131,17 @@ void LeoBhWalkSym::parseLeoState(const CLeoState &leoState, Vector &obs)
     parseStateFromTarget(leoState, obs, &interface_.observer_sym);
 }
 
-void LeoBhWalkSym::parseLeoAction(const Vector &action, Vector &target_action)
+void LeoBhWalkSym::parseLeoAction(const Action &action, Action &target_action)
 {
   if (stanceLegLeft())
     parseActionForTarget(action, target_action, &interface_.actuator);
   else
     parseActionForTarget(action, target_action, &interface_.actuator_sym);
+}
+
+std::string LeoBhWalkSym::getProgressReport(double trialTime)
+{
+  return LeoBhWalk::getProgressReport(trialTime);
 }
 
 /////////////////////////////////
@@ -212,8 +218,13 @@ void LeoWalkEnvironment::start(int test, Observation *obs)
 
   bh_->setCurrentSTGState(NULL);
 
+  // set ground contact if it is established
   if (pub_ic_signal_)
-    pub_ic_signal_->set(VectorConstructor(lstNone));
+  {
+    int gc = leoState_.mFootContacts ? lstGroundContact : lstNone;
+    int sl = bh_->stanceLegLeft() ? lstStanceLeft : lstStanceRight;
+    pub_ic_signal_->set(VectorConstructor(gc | sl));
+  }
 }
 
 double LeoWalkEnvironment::step(const Action &action, Observation *obs, double *reward, int *terminal)
@@ -224,11 +235,15 @@ double LeoWalkEnvironment::step(const Action &action, Observation *obs, double *
 
   // Reconstruct a Leo action from a possibly reduced agent action
   bh_->parseLeoAction(action, target_action_);
-//  double auto_actuated_knee_voltage = bh_->grlAutoActuateKnee();
+
+  // ensure that action is always within bounds
+  CRAWL(target_action_);
+  ensure_bounds(&target_action_.v);
 
   // Execute action
   bh_->setPreviousSTGState(&leoState_);
-  CRAWL(target_action_);
+
+  TRACE("Target action " << target_action_);
   double tau = target_env_->step(target_action_, &target_obs_, reward, terminal);
   CRAWL(target_obs_);
 
@@ -261,22 +276,25 @@ double LeoWalkEnvironment::step(const Action &action, Observation *obs, double *
   // signal contact (agent may use this signal to tackle discontinuities)
   if (pub_ic_signal_)
   {
-    if (!bh_->madeFootstep())
-      pub_ic_signal_->set(VectorConstructor(lstNone));
-    else
+    Vector signal;
+    signal.resize(1+2*CLeoBhBase::svNumActions);
+    if (bh_->madeFootstep())
     {
       const TargetInterface ti = bh_->getInterface();
-      Vector ti_actuator, ti_actuator_sym, signal;
-      toVector(ti.actuator.voltage, ti_actuator);
-      toVector(ti.actuator_sym.voltage, ti_actuator_sym);
-      signal.resize(1+2*CLeoBhBase::svNumActions);
-      // pack into a single vector
+      Vector ti_actuator, ti_actuator_sym;
+      toVector(ti.actuator.action, ti_actuator);
+      toVector(ti.actuator_sym.action, ti_actuator_sym);
       if (bh_->stanceLegLeft())
-        signal << VectorConstructor(lstContact), ti_actuator, ti_actuator_sym;
+        signal << VectorConstructor(0), ti_actuator, ti_actuator_sym;
       else
-        signal << VectorConstructor(lstContact), ti_actuator_sym, ti_actuator;
-      pub_ic_signal_->set(signal);
+        signal << VectorConstructor(0), ti_actuator_sym, ti_actuator;
     }
+
+    int gc = leoState_.mFootContacts  ? lstGroundContact : lstNone;
+    int td = bh_->madeFootstep()      ? lstSwlTouchDown  : lstNone;
+    int sl = bh_->stanceLegLeft()     ? lstStanceLeft    : lstStanceRight;
+    signal[0] = gc | td | sl;
+    pub_ic_signal_->set(signal);
   }
 
   LeoBaseEnvironment::step(tau, *reward, *terminal);
@@ -286,7 +304,7 @@ double LeoWalkEnvironment::step(const Action &action, Observation *obs, double *
 
 void LeoWalkEnvironment::report(std::ostream &os) const
 {
-  double trialTime  = test_?time_test_:time_learn_ - time0_;
+  double trialTime  = (test_?time_test_:time_learn_) - time0_;
   os << bh_->getProgressReport(trialTime);
 }
 

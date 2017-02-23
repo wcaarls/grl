@@ -14,6 +14,28 @@ agent/black_box:
     mutability: configuration
     default: 0
     optional: 0
+agent/delayed_td:
+  description: Agent that learns from observed state transitions assuming non-integer values of control delay
+  policy:
+    type: mapping/policy
+    description: Control policy
+    mutability: configuration
+    default: 0
+    optional: 0
+  predictor:
+    type: predictor
+    description: Value function predictor
+    mutability: configuration
+    default: 0
+    optional: 0
+  control_delay:
+    type: double
+    description: "Relative control delay: 0 (no delay) - 1 (one timestep delay) "
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
 agent/dyna:
   description: Agent that learns from both observed and predicted state transitions
   planning_steps:
@@ -124,6 +146,58 @@ agent/leo/fixed:
     mutability: configuration
     default: 0
     optional: 1
+agent/leo/sma:
+  description: State-machine agent for Leo
+  agent_prepare:
+    type: agent
+    description: Prepare agent
+    mutability: configuration
+    default: 0
+    optional: 0
+  agent_standup:
+    type: agent
+    description: Safe standup agent
+    mutability: configuration
+    default: 0
+    optional: 0
+  agent_main:
+    type: agent
+    description: Main agent
+    mutability: configuration
+    default: 0
+    optional: 0
+  upright_trigger:
+    type: trigger
+    description: Trigger which finishes stand-up phase and triggers preparation agent
+    mutability: configuration
+    default: 0
+    optional: 0
+  fc_trigger:
+    type: trigger
+    description: Trigger which checks for foot contact to ensure that robot is prepared to walk
+    mutability: configuration
+    default: 0
+    optional: 0
+  pub_ic_signal:
+    type: signal/vector
+    description: Subscriber to the contact signal
+    mutability: configuration
+    default: 0
+    optional: 1
+agent/leo/sym_wrapper:
+  description: Leo agent that symmetrically wraps angles and controls
+  agent:
+    type: agent
+    description: Target agent with reduced state-action space due to symmetry
+    mutability: configuration
+    default: 0
+    optional: 0
+  sub_ic_signal:
+    type: signal/vector
+    description: Publisher of the initialization and contact signal
+    mutability: configuration
+    default: 0
+    optional: 0
 agent/leo/td:
   description: Leo agent that learns from observed state transitions
   policy:
@@ -456,7 +530,11 @@ agent/zeromq:
     type: communicator
     description: Comunicator which exchanges messages with an actual/virtual environment
     mutability: configuration
+<<<<<<< HEAD
     default: 0x11d2880
+=======
+    default: 0xa88150
+>>>>>>> upstream/master
     optional: 0
   observation_dims:
     type: int.observation_dims
@@ -510,9 +588,10 @@ communicator/zeromq/pub_sub:
     optional: 1
     options:
       - NONE
-      - ZMQ_SYNC_SUB
-      - ZMQ_SYNC_PUB
-      - ZMQ_SYNC_CLI
+      - ZMQ_SUB
+      - ZMQ_PUB
+      - ZMQ_REQ
+      - ZMQ_REP
   sync:
     type: string
     description: Syncronization ip address
@@ -541,18 +620,19 @@ communicator/zeromq/request_reply:
     optional: 1
     options:
       - NONE
-      - ZMQ_SYNC_SUB
-      - ZMQ_SYNC_PUB
-      - ZMQ_SYNC_CLI
+      - ZMQ_SUB
+      - ZMQ_PUB
+      - ZMQ_REQ
+      - ZMQ_REP
   sync:
     type: string
     description: Syncronization ip address
     mutability: configuration
     default: ""
     optional: 1
-  cli:
+  addr:
     type: string
-    description: Client address
+    description: Address
     mutability: configuration
     default: tcp://localhost:5555
     optional: 1
@@ -560,27 +640,27 @@ converter/state_action_converter:
   description: Configurable which is capable of remapping states and actions
   state_in:
     type: string
-    description: string.state_in
+    description: Comma-separated list of state elements in the input vector
     mutability: configuration
-    default: Comma-separated list of state elements in the input vector
+    default: ""
     optional: 1
   state_out:
     type: string
-    description: string.state_out
+    description: Comma-separated list of state elements in the output vector
     mutability: configuration
-    default: Comma-separated list of state elements in the output vector
+    default: ""
     optional: 1
   action_in:
     type: string
-    description: string.action_in
+    description: Comma-separated list of action elements observed in the input vector
     mutability: configuration
-    default: Comma-separated list of action elements observed in the input vector
+    default: ""
     optional: 1
   action_out:
     type: string
-    description: string.action_out
+    description: Comma-separated list of action elements provided in the output vector
     mutability: configuration
-    default: Comma-separated list of action elements provided in the output vector
+    default: ""
     optional: 1
 discretizer/peaked:
   description: Peaked discretizer, with more resolution around center
@@ -727,7 +807,7 @@ environment/communicator:
     description: Convert states and actions if needed
     mutability: configuration
     default: 0
-    optional: 0
+    optional: 1
   communicator:
     type: communicator
     description: Comunicator which exchanges messages with an actual/virtual environment
@@ -772,15 +852,15 @@ environment/leo_squat:
     optional: 0
   observe:
     type: string
-    description: string.observe
+    description: Comma-separated list of state elements observed by an agent
     mutability: configuration
-    default: Comma-separated list of state elements observed by an agent
+    default: ""
     optional: 1
   actuate:
     type: string
-    description: string.actuate
+    description: Comma-separated list of action elements provided by an agent
     mutability: configuration
-    default: Comma-separated list of action elements provided by an agent
+    default: ""
     optional: 1
   exporter:
     type: exporter
@@ -840,15 +920,15 @@ environment/leo_walk:
     optional: 0
   observe:
     type: string
-    description: string.observe
+    description: Comma-separated list of state elements observed by an agent
     mutability: configuration
-    default: Comma-separated list of state elements observed by an agent
+    default: ""
     optional: 1
   actuate:
     type: string
-    description: string.actuate
+    description: Comma-separated list of action elements provided by an agent
     mutability: configuration
-    default: Comma-separated list of action elements provided by an agent
+    default: ""
     optional: 1
   exporter:
     type: exporter
@@ -1361,6 +1441,21 @@ importer/csv:
     mutability: configuration
     default: ""
     optional: 1
+  headers:
+    type: string
+    description: Comma-separated list of imported headers elements
+    mutability: configuration
+    default: ""
+    optional: 1
+  split:
+    type: string
+    description: Allows to import all data into a single variable or split colums across multiple variables
+    mutability: configuration
+    default: no_split
+    optional: 1
+    options:
+      - no_split
+      - split
 mapping/displacement:
   description: Mapping that returns the state displacement effected by a policy
   policy:
@@ -1515,6 +1610,7 @@ mapping/policy/mcts:
     optional: 1
     min: 0
     max: 1.797693134862316e+308
+<<<<<<< HEAD
 mapping/policy/nmpc_sw:
   description: Nonlinear model predictive control policy for the simplest walker using the MUSCOD library
   agent_standup:
@@ -1529,6 +1625,190 @@ mapping/policy/nmpc_sw:
     mutability: configuration
     default: 0
     optional: 0
+=======
+mapping/policy/mhe_nmpc:
+  description: Nonlinear model predictive control policy with moving horizon estimator using the MUSCOD library
+  verbose:
+    type: int
+    description: Verbose mode
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
+  initFeedback:
+    type: int
+    description: Initialize feedback
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
+  action_min:
+    type: vector.action_min
+    description: Lower limit on actions
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  action_max:
+    type: vector.action_max
+    description: Upper limit on actions
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  lua_model:
+    type: string
+    description: Lua model used by MUSCOD
+    mutability: configuration
+    default: ""
+    optional: 1
+  model_name:
+    type: string
+    description: Name of the model in grl
+    mutability: configuration
+    default: ""
+    optional: 1
+  nmpc_model_name:
+    type: string
+    description: Name of MUSCOD NMPC model library
+    mutability: configuration
+    default: ""
+    optional: 1
+  mhe_model_name:
+    type: string
+    description: Name of MUSCOD MHE model library
+    mutability: configuration
+    default: ""
+    optional: 1
+  feedback:
+    type: string
+    description: Choose between a non-treaded and a threaded feedback of NMPC
+    mutability: configuration
+    default: ""
+    optional: 1
+    options:
+      - non-threaded
+      - threaded
+  n_iter:
+    type: int
+    description: Number of iteration
+    mutability: system
+    default: 1
+    optional: 1
+    min: 0
+    max: 2147483647
+mapping/policy/nmpc:
+  description: Nonlinear model predictive control policy using the MUSCOD library
+  verbose:
+    type: int
+    description: Verbose mode
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
+  initFeedback:
+    type: int
+    description: Initialize feedback
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
+  action_min:
+    type: vector.action_min
+    description: Lower limit on actions
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  action_max:
+    type: vector.action_max
+    description: Upper limit on actions
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  lua_model:
+    type: string
+    description: Lua model used by MUSCOD
+    mutability: configuration
+    default: ""
+    optional: 1
+  model_name:
+    type: string
+    description: Name of the model in grl
+    mutability: configuration
+    default: ""
+    optional: 1
+  nmpc_model_name:
+    type: string
+    description: Name of MUSCOD NMPC model library
+    mutability: configuration
+    default: ""
+    optional: 1
+  feedback:
+    type: string
+    description: Choose between a non-treaded and a threaded feedback of NMPC
+    mutability: configuration
+    default: ""
+    optional: 1
+    options:
+      - non-threaded
+      - threaded
+  n_iter:
+    type: int
+    description: Number of iteration
+    mutability: system
+    default: 1
+    optional: 1
+    min: 0
+    max: 2147483647
+mapping/policy/nmpc_th:
+  description: Nonlinear multistep (thread-based) model predictive control policy using the MUSCOD library
+  model_name:
+    type: string
+    description: Name of MUSCOD model library
+    mutability: configuration
+    default: ""
+    optional: 1
+  lua_model:
+    type: string
+    description: Lua model used by MUSCOD
+    mutability: configuration
+    default: ""
+    optional: 1
+  inputs:
+    type: int.observation_dims
+    description: Number of inputs
+    mutability: system
+    default: 0
+    optional: 1
+    min: 1
+    max: 2147483647
+  outputs:
+    type: int.action_dims
+    description: Number of outputs
+    mutability: system
+    default: 0
+    optional: 1
+    min: 1
+    max: 2147483647
+  single_step:
+    type: int
+    description: Run NMPC in single-step mode
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
+  verbose:
+    type: int
+    description: Verbose mode
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
+>>>>>>> upstream/master
 mapping/policy/parameterized/action:
   description: Parameterized policy based on a direct action representation
   sigma:
@@ -1620,7 +1900,7 @@ mapping/policy/parameterized/pidt:
     description: Maps time to setpoints
     mutability: configuration
     default: 0
-    optional: 0
+    optional: 1
   inputs:
     type: int.observation_dims
     description: Number of inputs
@@ -6003,6 +6283,28 @@ trace/enumerated/accumulating:
   description: Accumulating eligibility trace using a queue of projections
 trace/enumerated/replacing:
   description: Replacing eligibility trace using a queue of projections
+trigger:
+  description: Event trigger
+  min:
+    type: vector.observation_min
+    description: Minimum of compartment bounding box
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  max:
+    type: vector.observation_max
+    description: Maximum of compartment bounding box
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  delay:
+    type: double
+    description: Settlement delay for which conditions are continuously fullfilled
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
 visualization/acrobot:
   description: Acrobot visualization
   state:

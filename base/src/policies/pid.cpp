@@ -27,6 +27,8 @@
 
 #include <grl/policies/pid.h>
 
+#define P_IVAN(i, o) ((o)*setpoint_.size()+(i))
+
 #define P(i, o) ((i)*outputs_+(o))
 #define I(i, o) (setpoint_.size()*outputs_+P(i, o))
 #define D(i, o) (2*setpoint_.size()*outputs_+P(i, o))
@@ -64,25 +66,25 @@ void PIDPolicy::configure(Configuration &config)
 
   p_ = config["p"].v();
   if (!p_.size())
-    p_ = ConstantVector(setpoint_.size()*outputs_, 0.);
+    p_ = ConstantLargeVector(setpoint_.size()*outputs_, 0.);
   if (p_.size() != setpoint_.size()*outputs_)
     throw bad_param("policy/pid:p");
 
   i_ = config["i"].v();
   if (!i_.size())
-    i_ = ConstantVector(setpoint_.size()*outputs_, 0.);
+    i_ = ConstantLargeVector(setpoint_.size()*outputs_, 0.);
   if (i_.size() != setpoint_.size()*outputs_)
     throw bad_param("policy/pid:i");
 
   d_ = config["d"].v();
   if (!d_.size())
-    d_ = ConstantVector(setpoint_.size()*outputs_, 0.);
+    d_ = ConstantLargeVector(setpoint_.size()*outputs_, 0.);
   if (d_.size() != setpoint_.size()*outputs_)
     throw bad_param("policy/pid:d");
 
   il_ = config["il"].v();
   if (!il_.size())
-    il_ = ConstantVector(setpoint_.size()*outputs_, std::numeric_limits<double>::infinity());
+    il_ = ConstantLargeVector(setpoint_.size()*outputs_, std::numeric_limits<double>::infinity());
   if (il_.size() != setpoint_.size()*outputs_)
     throw bad_param("policy/pid:il");
 
@@ -95,13 +97,13 @@ void PIDPolicy::reconfigure(const Configuration &config)
 {
   if (config.has("action") && config["action"].str() == "reset")
   {
-    ival_ = ConstantVector(setpoint_.size()*outputs_, 0.);
+    ival_ = ConstantLargeVector(setpoint_.size()*outputs_, 0.);
   }
 }
 
 void PIDPolicy::act(const Observation &in, Action *out) const
 {
-  out->v.resize(outputs_); 
+  out->v.resize(outputs_);
   out->type = atGreedy;
 
   for (size_t oo=0; oo < outputs_; ++oo)
@@ -126,9 +128,12 @@ void PIDPolicy::act(double time, const Observation &in, Action *out)
   if (time == 0.)
   {
     // First action in episode, clear integrator
-    ival_ = ConstantVector(setpoint_.size()*outputs_, 0.);
+    ival_ = ConstantLargeVector(setpoint_.size()*outputs_, 0.);
     prev_in_ = in;
   }
+
+  CRAWL("Setpoint " << setpoint_);
+  CRAWL("Observation " << in.v);
 
   out->v.resize(outputs_); 
   out->type = atGreedy;
@@ -140,12 +145,15 @@ void PIDPolicy::act(double time, const Observation &in, Action *out)
     for (size_t ii=0; ii < setpoint_.size(); ++ii)
     {
       double err = setpoint_[ii] - in[ii];
+      /*
       double acc = fmin(ival_[ii*outputs_+oo] + err, params_[IL(ii, oo)]);
       double diff = in[ii] - prev_in_[ii];
       
       u += params_[P(ii, oo)]*err + params_[I(ii, oo)]*acc + params_[D(ii, oo)]*diff;
       
       ival_[ii*outputs_+oo] = acc;
+      */
+      u += params_[P_IVAN(ii, oo)]*err;
     }
     
     (*out)[oo] = fmin(action_max_[oo], fmax(u, action_min_[oo]));
@@ -157,7 +165,8 @@ void PIDPolicy::act(double time, const Observation &in, Action *out)
 ////////////////////////////////////////////////
 void PIDTrajectoryPolicy::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("trajectory", "mapping", "Maps time to setpoints", trajectory_));
+  config->push_back(CRP("trajectory", "mapping", "Maps time to setpoints", trajectory_, true));
+
   config->push_back(CRP("inputs", "int.observation_dims", "Number of inputs", (int)inputs_, CRP::System, 1));
   config->push_back(CRP("outputs", "int.action_dims", "Number of outputs", (int)outputs_, CRP::System, 1));
 
@@ -176,32 +185,40 @@ void PIDTrajectoryPolicy::configure(Configuration &config)
   action_max_ = config["action_max"].v();
 
   trajectory_ = (Mapping*)config["trajectory"].ptr();
+
   inputs_ = config["inputs"];
   outputs_ = config["outputs"];
 
+  if (outputs_ != action_min_.size() || action_min_.size() != action_max_.size())
+    throw bad_param("policy/pidt:{outputs,action_min,action_max}");
+
   p_ = config["p"].v();
   if (!p_.size())
-    p_ = ConstantVector(inputs_*outputs_, 0.);
+    p_ = ConstantLargeVector(inputs_*outputs_, 0.);
   if (p_.size() && p_.size() != inputs_*outputs_)
     throw bad_param("policy/pidt:p");
+  CRAWL(p_);
 
   i_ = config["i"].v();
   if (!i_.size())
-    i_ = ConstantVector(inputs_*outputs_, 0.);
+    i_ = ConstantLargeVector(inputs_*outputs_, 0.);
   if (i_.size() && i_.size() != inputs_*outputs_)
     throw bad_param("policy/pidt:i");
+  CRAWL(i_);
 
   d_ = config["d"].v();
   if (!d_.size())
-    d_ = ConstantVector(inputs_*outputs_, 0.);
+    d_ = ConstantLargeVector(inputs_*outputs_, 0.);
   if (d_.size() && d_.size() != inputs_*outputs_)
     throw bad_param("policy/pidt:d");
+  CRAWL(d_);
 
   il_ = config["il"].v();
   if (!il_.size())
-    il_ = ConstantVector(inputs_*outputs_, std::numeric_limits<double>::infinity());
+    il_ = ConstantLargeVector(inputs_*outputs_, std::numeric_limits<double>::infinity());
   if (il_.size() && il_.size() != inputs_*outputs_)
     throw bad_param("policy/pidt:il");
+  CRAWL(il_);
 
   params_ = extend(extend(extend(p_, i_), d_), il_);
 
@@ -212,7 +229,7 @@ void PIDTrajectoryPolicy::reconfigure(const Configuration &config)
 {
   if (config.has("action") && config["action"].str() == "reset")
   {
-    ival_ = ConstantVector(inputs_*outputs_, 0.);
+    ival_ = ConstantLargeVector(inputs_*outputs_, 0.);
   }
 }
 
@@ -222,11 +239,15 @@ void PIDTrajectoryPolicy::act(double time, const Observation &in, Action *out)
   trajectory_->read(VectorConstructor(time), &setpoint_);
   
   CRAWL("Setpoint " << setpoint_);
+  CRAWL("Observation " << in.v);
+
+  if (setpoint_.size() != inputs_)
+    throw bad_param("policy/pidt:inputs");
 
   if (time == 0.)
   {
     // First action in episode, clear integrator
-    ival_ = ConstantVector(inputs_*outputs_, 0.);
+    ival_ = ConstantLargeVector(inputs_*outputs_, 0.);
     prev_in_ = in;
   }
 
@@ -240,16 +261,18 @@ void PIDTrajectoryPolicy::act(double time, const Observation &in, Action *out)
     for (size_t ii=0; ii < inputs_; ++ii)
     {
       double err = setpoint_[ii] - in[ii];
-      double acc = fmin(ival_[ii*outputs_+oo] + err, params_[IL(ii, oo)]);
-      double diff = in[ii] - prev_in_[ii];
+//      double acc = fmin(ival_[ii*outputs_+oo] + err, params_[IL(ii, oo)]);
+//      double diff = in[ii] - prev_in_[ii];
+      TRACE(params_[P_IVAN(ii, oo)]);
+      u += params_[P_IVAN(ii, oo)]*err;// + params_[I(ii, oo)]*acc + params_[D(ii, oo)]*diff;
       
-      u += params_[P(ii, oo)]*err + params_[I(ii, oo)]*acc + params_[D(ii, oo)]*diff;
-      
-      ival_[ii*outputs_+oo] = acc;
+//      ival_[ii*outputs_+oo] = acc;
     }
 
     (*out)[oo] = fmin(action_max_[oo], fmax(u, action_min_[oo]));
   }
+
+  CRAWL(*out);
 
   prev_in_ = in;
 }

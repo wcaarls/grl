@@ -125,6 +125,10 @@ inline Vector ConstantVector(size_t sz, double d)
 {
   return Vector::Constant(sz, d);
 }
+inline LargeVector ConstantLargeVector(size_t sz, double d)
+{
+  return LargeVector::Constant(sz, d);
+}
 inline Vector VectorConstructor(double a)
 {
   Vector v(1); v << a; return v;
@@ -328,6 +332,30 @@ inline Vector extend(const Vector &a, const Vector &b)
 {
   Vector c(a.size()+b.size());
   
+  for (size_t ii=0; ii < a.size(); ++ii)
+    c[ii] = a[ii];
+  for (size_t ii=0; ii < b.size(); ++ii)
+    c[a.size()+ii] = b[ii];
+
+  return c;
+}
+/*
+inline LargeVector extend(const LargeVector &a, const Vector &b)
+{
+  LargeVector c(a.size()+b.size());
+
+  for (size_t ii=0; ii < a.size(); ++ii)
+    c[ii] = a[ii];
+  for (size_t ii=0; ii < b.size(); ++ii)
+    c[a.size()+ii] = b[ii];
+
+  return c;
+}
+*/
+inline LargeVector extend(const LargeVector &a, const LargeVector &b)
+{
+  LargeVector c(a.size()+b.size());
+
   for (size_t ii=0; ii < a.size(); ++ii)
     c[ii] = a[ii];
   for (size_t ii=0; ii < b.size(); ++ii)
