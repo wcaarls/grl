@@ -530,11 +530,7 @@ agent/zeromq:
     type: communicator
     description: Comunicator which exchanges messages with an actual/virtual environment
     mutability: configuration
-<<<<<<< HEAD
-    default: 0x11d2880
-=======
-    default: 0xa88150
->>>>>>> upstream/master
+    default: 0
     optional: 0
   observation_dims:
     type: int.observation_dims
@@ -1562,7 +1558,7 @@ mapping/policy/feed_forward:
     type: mapping
     description: Maps time to controls
     mutability: configuration
-    default: 0x20
+    default: 0x1b574d0
     optional: 1
 mapping/policy/mcts:
   description: Monte-Carlo Tree Search policy
@@ -1610,205 +1606,6 @@ mapping/policy/mcts:
     optional: 1
     min: 0
     max: 1.797693134862316e+308
-<<<<<<< HEAD
-mapping/policy/nmpc_sw:
-  description: Nonlinear model predictive control policy for the simplest walker using the MUSCOD library
-  agent_standup:
-    type: agent
-    description: Safe standup agent
-    mutability: configuration
-    default: 0
-    optional: 0
-  agent_learn:
-    type: agent
-    description: Learning agent
-    mutability: configuration
-    default: 0
-    optional: 0
-=======
-mapping/policy/mhe_nmpc:
-  description: Nonlinear model predictive control policy with moving horizon estimator using the MUSCOD library
-  verbose:
-    type: int
-    description: Verbose mode
-    mutability: system
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
-  initFeedback:
-    type: int
-    description: Initialize feedback
-    mutability: system
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
-  action_min:
-    type: vector.action_min
-    description: Lower limit on actions
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  action_max:
-    type: vector.action_max
-    description: Upper limit on actions
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  lua_model:
-    type: string
-    description: Lua model used by MUSCOD
-    mutability: configuration
-    default: ""
-    optional: 1
-  model_name:
-    type: string
-    description: Name of the model in grl
-    mutability: configuration
-    default: ""
-    optional: 1
-  nmpc_model_name:
-    type: string
-    description: Name of MUSCOD NMPC model library
-    mutability: configuration
-    default: ""
-    optional: 1
-  mhe_model_name:
-    type: string
-    description: Name of MUSCOD MHE model library
-    mutability: configuration
-    default: ""
-    optional: 1
-  feedback:
-    type: string
-    description: Choose between a non-treaded and a threaded feedback of NMPC
-    mutability: configuration
-    default: ""
-    optional: 1
-    options:
-      - non-threaded
-      - threaded
-  n_iter:
-    type: int
-    description: Number of iteration
-    mutability: system
-    default: 1
-    optional: 1
-    min: 0
-    max: 2147483647
-mapping/policy/nmpc:
-  description: Nonlinear model predictive control policy using the MUSCOD library
-  verbose:
-    type: int
-    description: Verbose mode
-    mutability: system
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
-  initFeedback:
-    type: int
-    description: Initialize feedback
-    mutability: system
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
-  action_min:
-    type: vector.action_min
-    description: Lower limit on actions
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  action_max:
-    type: vector.action_max
-    description: Upper limit on actions
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  lua_model:
-    type: string
-    description: Lua model used by MUSCOD
-    mutability: configuration
-    default: ""
-    optional: 1
-  model_name:
-    type: string
-    description: Name of the model in grl
-    mutability: configuration
-    default: ""
-    optional: 1
-  nmpc_model_name:
-    type: string
-    description: Name of MUSCOD NMPC model library
-    mutability: configuration
-    default: ""
-    optional: 1
-  feedback:
-    type: string
-    description: Choose between a non-treaded and a threaded feedback of NMPC
-    mutability: configuration
-    default: ""
-    optional: 1
-    options:
-      - non-threaded
-      - threaded
-  n_iter:
-    type: int
-    description: Number of iteration
-    mutability: system
-    default: 1
-    optional: 1
-    min: 0
-    max: 2147483647
-mapping/policy/nmpc_th:
-  description: Nonlinear multistep (thread-based) model predictive control policy using the MUSCOD library
-  model_name:
-    type: string
-    description: Name of MUSCOD model library
-    mutability: configuration
-    default: ""
-    optional: 1
-  lua_model:
-    type: string
-    description: Lua model used by MUSCOD
-    mutability: configuration
-    default: ""
-    optional: 1
-  inputs:
-    type: int.observation_dims
-    description: Number of inputs
-    mutability: system
-    default: 0
-    optional: 1
-    min: 1
-    max: 2147483647
-  outputs:
-    type: int.action_dims
-    description: Number of outputs
-    mutability: system
-    default: 0
-    optional: 1
-    min: 1
-    max: 2147483647
-  single_step:
-    type: int
-    description: Run NMPC in single-step mode
-    mutability: system
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
-  verbose:
-    type: int
-    description: Verbose mode
-    mutability: system
-    default: 0
-    optional: 1
-    min: 0
-    max: 1
->>>>>>> upstream/master
 mapping/policy/parameterized/action:
   description: Parameterized policy based on a direct action representation
   sigma:

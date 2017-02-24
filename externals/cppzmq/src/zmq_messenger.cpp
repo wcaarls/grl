@@ -78,35 +78,6 @@ void ZeromqMessenger::start(int type, const char* primaryAddr, const char* secon
   }
   else if (type_ == ZMQ_REP)
   {
-<<<<<<< HEAD
-    publisher_ = new zmq::socket_t(*context_, ZMQ_REQ);
-    publisher_->connect(pubAddress);
-  }
-  else
-  {
-    // Prepare ZMQ publisher
-    publisher_ = new zmq::socket_t(*context_, ZMQ_PUB);
-    publisher_->bind(pubAddress);
-      publisher_->setsockopt(ZMQ_CONFLATE, &confl, sizeof(confl)); // Keep only last message
-
-      // Prepare ZMQ subscriber
-    mtx_ = new std::mutex();
-    buffer_ = new char(buffer_size_);
-    worker_args args = {context_, subAddress, mtx_, buffer_, buffer_size_};
-    pthread_create(&worker_, NULL, worker_routine, (void*)&args);
-
-    if (flags_ & ZMQ_SYNC_PUB)
-    {
-      syncService_ = new zmq::socket_t(*context_, ZMQ_REP);
-      syncService_->bind(syncAddress);
-    }
-
-    if (flags_ & ZMQ_SYNC_SUB)
-    {
-      //std::cout << "Trying to connect" << std::endl;
-
-      // synchronize with publisher
-=======
     primary_ = new zmq::socket_t(*context_, ZMQ_REP);
     primary_->bind(primaryAddr);
   }
@@ -139,7 +110,7 @@ void ZeromqMessenger::start(int type, const char* primaryAddr, const char* secon
   }
 
   // If syncronization required...
-  if (syncAddress)
+  if (strcmp(syncAddress, "0") != 0)
   {
     if ((type_ == ZMQ_REQ) || (type_ == ZMQ_PUB))
     {
@@ -151,24 +122,12 @@ void ZeromqMessenger::start(int type, const char* primaryAddr, const char* secon
     if ((type_ == ZMQ_REP) || (type_ == ZMQ_SUB))
     {
       // synchronize with a client
->>>>>>> upstream/master
       syncService_ = new zmq::socket_t(*context_, ZMQ_REQ);
       syncService_->connect(syncAddress);
 
       // - send a synchronization request
       zmq::message_t message(0);
       syncService_->send(message);
-<<<<<<< HEAD
-
-      // - wait for synchronization reply
-      zmq::message_t update;
-      syncService_->recv(&update);
-
-      // Third, get our updates and report how many we got
-      //std::cout << "Ready to receive" << std::endl;
-      zmq_close(syncService_);
-    }
-=======
 
       // - wait for synchronization reply
       zmq::message_t update;
@@ -205,7 +164,6 @@ void ZeromqMessenger::sync()
     }
     if (subscribers_ == subscribers_expected_)
       connected_ = true;
->>>>>>> upstream/master
   }
 }
 
@@ -216,21 +174,10 @@ bool ZeromqMessenger::send(const void* data, unsigned int size) const
   return primary_->send(message);
 }
 
-<<<<<<< HEAD
-bool ZeromqMessenger::recv(void *data, int size) const
-=======
 bool ZeromqMessenger::recv(void *data, unsigned int size, int flags) const
->>>>>>> upstream/master
 {
   if ((type_ == ZMQ_REQ) || (type_ == ZMQ_REP))
   {
-<<<<<<< HEAD
-    zmq::message_t reply;
-    publisher_->recv(&reply);
-    memcpy(data, reply.data(), size);
-    return true;
-
-=======
     zmq::message_t msg(size);
     bool received = primary_->recv(&msg, flags);
     if(received)
@@ -244,7 +191,6 @@ bool ZeromqMessenger::recv(void *data, unsigned int size, int flags) const
         std::cout << "Error: (ZeromqMessenger) Incomming message size " << msg.size() << " is different from expected size" << size << std::endl;
     }
     return false;
->>>>>>> upstream/master
   }
   else if ((type_ == ZMQ_PUB) || (type_ == ZMQ_SUB))
   {
@@ -253,12 +199,6 @@ bool ZeromqMessenger::recv(void *data, unsigned int size, int flags) const
       std::cout << "Error: (ZeromqMessenger) Buffer size is too small" << std::endl;
       return false;
     }
-<<<<<<< HEAD
-
-    mtx_->lock();
-    memcpy(data, buffer_, size);
-    mtx_->unlock();
-=======
 
     if (flags & ZMQ_DONTWAIT)
     {
@@ -298,8 +238,6 @@ bool ZeromqMessenger::recv(void *data, unsigned int size, int flags) const
       mtx_->unlock();
       std::cout << "Zeromq timeout!" << std::endl;
     }
-
->>>>>>> upstream/master
     return true;
   }
   return false;

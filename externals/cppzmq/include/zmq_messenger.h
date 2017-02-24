@@ -38,18 +38,11 @@ public:
   ZeromqMessenger() : context_(NULL), primary_(NULL), syncService_(NULL), subscribers_(0), subscribers_expected_(1), mtx_(NULL), buffer_(NULL), buffer_size_(MSG_BUFFER_SIZE), recv_update_(NULL) {}
   ~ZeromqMessenger();
 
-<<<<<<< HEAD
-  void start(const char *pubAddress, const char *subAddress, const char *syncAddress = 0, int flags = 0);
-  void send(const void *data, int size) const;
-  bool recv(void* data, int size) const;
-
-=======
   void start(int type, const char *primaryAddr, const char *secondaryAddr = 0, const char *syncAddress = 0);
   bool send(const void *data, unsigned int size) const;
   bool recv(void* data, unsigned int size, int flags = 0) const;
   void sync();
   bool isConnected() const { return connected_; }
->>>>>>> upstream/master
 };
 
 #endif // ZEROMQ_MESSENGER_H
