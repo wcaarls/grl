@@ -56,7 +56,7 @@ public:
 class ZeromqCommunicator: public Communicator
 {
   public:
-    ZeromqCommunicator() : type_(0) { }
+    ZeromqCommunicator() : sync_(""), role_(0) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -69,7 +69,7 @@ class ZeromqCommunicator: public Communicator
   protected:
     ZeromqMessenger zmq_messenger_;
     std::string sync_;
-    int type_;
+    int role_;
 };
 
 // ZeroMQ publisher-subscriber communication class
@@ -127,12 +127,12 @@ class CommunicatorEnvironment: public Environment
     CSimpleStat computation_stat_;
 };
 
-/// ZeroMQ agent
-class ZeromqAgent : public Agent
+/// An agent which connects GRL to a remote agent
+class CommunicatorAgent : public Agent
 {
   public:
-    TYPEINFO("agent/zeromq", "Zeromq Agent which interects with a python by sending and receiving messages")
-    ZeromqAgent() : action_dims_(1), observation_dims_(1), test_(0) { }
+    TYPEINFO("agent/communicator", "Communicator agent which connects GRL to a remote agent")
+    CommunicatorAgent() : action_dims_(1), observation_dims_(1), test_(0) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -144,12 +144,11 @@ class ZeromqAgent : public Agent
     virtual void step(double tau, const Observation &obs, double reward, Action *action);
     virtual void end(double tau, const Observation &obs, double reward);
 
-
   protected:
     int action_dims_, observation_dims_;
     Vector action_min_, action_max_;
     Communicator *communicator_;
-    double test_;
+    int test_;
 };
 
 }

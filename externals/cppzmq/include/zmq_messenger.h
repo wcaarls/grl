@@ -38,7 +38,7 @@ public:
   ZeromqMessenger() : context_(NULL), primary_(NULL), syncService_(NULL), subscribers_(0), subscribers_expected_(1), mtx_(NULL), buffer_(NULL), buffer_size_(MSG_BUFFER_SIZE), recv_update_(NULL) {}
   ~ZeromqMessenger();
 
-  void start(int type, const char *primaryAddr, const char *secondaryAddr = 0, const char *syncAddress = 0);
+  void start(int type, const char *primaryAddr, const char *secondaryAddr = NULL, const char *syncAddress = NULL);
   bool send(const void *data, unsigned int size) const;
   bool recv(void* data, unsigned int size, int flags = 0) const;
   void sync();

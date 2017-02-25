@@ -31,31 +31,31 @@
 
 using namespace grl;
 
-REGISTER_CONFIGURABLE(ZeromqPubSubCommunicator)
 REGISTER_CONFIGURABLE(CommunicatorEnvironment)
-REGISTER_CONFIGURABLE(ZeromqRequestReplyCommunicator)
-REGISTER_CONFIGURABLE(ZeromqAgent)
+REGISTER_CONFIGURABLE(CommunicatorAgent)
 
+REGISTER_CONFIGURABLE(ZeromqPubSubCommunicator)
+REGISTER_CONFIGURABLE(ZeromqRequestReplyCommunicator)
 
 void ZeromqCommunicator::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("pattern", "Pattern of the zeromq implementation (Pub/Sub, Request/Reply)", "", CRP::Configuration, {"NONE", "ZMQ_SUB", "ZMQ_PUB","ZMQ_REQ","ZMQ_REP"}));
+  config->push_back(CRP("role", "Role of the zeromq (Pub/Sub, Request/Reply)", "", CRP::Configuration, {"NONE", "ZMQ_SUB", "ZMQ_PUB","ZMQ_REQ","ZMQ_REP"}));
   config->push_back(CRP("sync", "Syncronization ip address", sync_));
 }
 
 void ZeromqCommunicator::configure(Configuration &config)
 {
-  std::string type = config["pattern"].str();
+  std::string role = config["role"].str();
   sync_ = config["sync"].str();
 
-  if (type == "ZMQ_SUB")
-    type_ = ZMQ_SUB;
-  if (type == "ZMQ_PUB")
-    type_ = ZMQ_PUB;
-  if (type == "ZMQ_REQ")
-    type_ = ZMQ_REQ;
-  if (type == "ZMQ_REP")
-    type_ = ZMQ_REP;
+  if (role == "ZMQ_SUB")
+    role_ = ZMQ_SUB;
+  if (role == "ZMQ_PUB")
+    role_ = ZMQ_PUB;
+  if (role == "ZMQ_REQ")
+    role_ = ZMQ_REQ;
+  if (role == "ZMQ_REP")
+    role_ = ZMQ_REP;
 }
 
 void ZeromqCommunicator::send(const Vector v) const
@@ -68,12 +68,9 @@ bool ZeromqCommunicator::recv(Vector *v) const
   Vector v_rc;
   v_rc.resize(v->size());
   CRAWL(v_rc.cols());
-  bool rc = zmq_messenger_.recv(reinterpret_cast<void*>(v_rc.data()), v_rc.cols()*sizeof(double), 0);//, ZMQ_DONTWAIT);
+  bool rc = zmq_messenger_.recv(reinterpret_cast<void*>(v_rc.data()), v_rc.cols()*sizeof(double), 0);
   if (rc)
-  {
-    *v = v_rc; // modify content only if data was received
-    //std::cout << std::fixed << std::setprecision(2) << std::right << std::setw(7) << v << std::endl << std::endl;
-  }
+    *v = v_rc;
   return rc;
 }
 
@@ -90,7 +87,7 @@ void ZeromqPubSubCommunicator::configure(Configuration &config)
 {
   ZeromqCommunicator::configure(config);
 
-  // possible addresses
+  // possible Leo addresses
   // zmq_.init("tcp://*:5561", "tcp://192.168.2.210:5562", "tcp://192.168.2.210:5560", ZMQ_SYNC_SUB); // wifi
   // zmq_.init("tcp://*:5561",  "tcp://192.168.1.10:5562",  "tcp://192.168.1.10:5560", ZMQ_SYNC_SUB); // ethernet
 
@@ -98,7 +95,7 @@ void ZeromqPubSubCommunicator::configure(Configuration &config)
   sub_ = config["sub"].str();
 
   // initialize zmq
-  zmq_messenger_.start(type_, pub_.c_str(), sub_.c_str(), sync_.c_str());
+  zmq_messenger_.start(role_, pub_.c_str(), sub_.c_str(), sync_.c_str());
 }
 ////////////////////////////////////////////////////////
 
@@ -115,7 +112,7 @@ void ZeromqRequestReplyCommunicator::configure(Configuration &config)
   addr_ = config["addr"].str();
 
   // initialize zmq
-  zmq_messenger_.start(type_, addr_.c_str(), NULL, sync_.c_str());
+  zmq_messenger_.start(role_, addr_.c_str(), NULL, sync_.c_str());
 }
 
 //////////////////////////////////////////////////////////
@@ -197,17 +194,17 @@ double CommunicatorEnvironment::step(const Action &action, Observation *obs, dou
 }
 
 //////////////////////////////////////////////////////////
-void ZeromqAgent::request(ConfigurationRequest *config)
+void CommunicatorAgent::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("communicator", "communicator", "Comunicator which exchanges messages with an actual/virtual environment", communicator_));
   config->push_back(CRP("observation_dims", "int.observation_dims", "Number of observation dimensions", observation_dims_, CRP::System));
   config->push_back(CRP("action_dims", "int.action_dims", "Number of action dimensions", action_dims_, CRP::System));
   config->push_back(CRP("action_min", "vector.action_min", "Lower limit of action", action_min_, CRP::System));
   config->push_back(CRP("action_max", "vector.action_max", "Upper limit of action", action_max_, CRP::System));
-  config->push_back(CRP("test", "int.test", "Selection of learning/testing agent", test_, CRP::System));
+  config->push_back(CRP("test", "int.test", "Selection of a learning/testing agent role", test_, CRP::System));
 }
 
-void ZeromqAgent::configure(Configuration &config)
+void CommunicatorAgent::configure(Configuration &config)
 {
   // Read configuration
   action_dims_ = config["action_dims"];
@@ -218,39 +215,39 @@ void ZeromqAgent::configure(Configuration &config)
   test_ = config["test"];
 }
 
-void ZeromqAgent::reconfigure(const Configuration &config)
+void CommunicatorAgent::reconfigure(const Configuration &config)
 {
 }
 
-void ZeromqAgent::start(const Observation &obs, Action *action)
+void CommunicatorAgent::start(const Observation &obs, Action *action)
 {
   action->v.resize(action_dims_);
   action->type = atUndefined;
 
-  Vector a(obs.v.cols()+1);
-  a << test_, obs.v;
-  communicator_->send(a);
+  Vector v(obs.v.cols()+1);
+  v << test_, obs.v;
+  communicator_->send(v);
   communicator_->recv(&(action->v));
 }
 
-void ZeromqAgent::step(double tau, const Observation &obs, double reward, Action *action)
+void CommunicatorAgent::step(double tau, const Observation &obs, double reward, Action *action)
 {
   action->v.resize(action_dims_);
   action->type = atUndefined;
   
-  Vector a(obs.v.cols()+3);
-  a << test_, obs.v, reward, 0;
-  communicator_->send(a);
+  Vector v(obs.v.cols()+3);
+  v << test_, obs.v, reward, 0;
+  communicator_->send(v);
   communicator_->recv(&(action->v));
 }
 
-void ZeromqAgent::end(double tau, const Observation &obs, double reward)
+void CommunicatorAgent::end(double tau, const Observation &obs, double reward)
 {
   Vector temp;
 
-  Vector a(obs.v.cols()+3);
-  a << test_, obs.v, reward, 2;
-  communicator_->send(a);
+  Vector v(obs.v.cols()+3);
+  v << test_, obs.v, reward, 2;
+  communicator_->send(v);
   communicator_->recv(&temp);
 }
 

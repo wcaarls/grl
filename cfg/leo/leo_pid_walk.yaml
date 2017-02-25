@@ -15,7 +15,7 @@ experiment:
       type: environment/communicator
       communicator: 
         type: communicator/zeromq/pub_sub
-        pattern: ZMQ_SYNC_SUB
+        role: ZMQ_SYNC_SUB
         sync: tcp://192.168.1.10:5560
         pub: tcp://*:5561
         sub: tcp://192.168.1.10:5562
