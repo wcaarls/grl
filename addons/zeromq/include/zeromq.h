@@ -149,8 +149,7 @@ class ZeromqAgent : public Agent
     int action_dims_, observation_dims_;
     Vector action_min_, action_max_;
     Communicator *communicator_;
-    int test_;
-
+    double test_;
 };
 
 }

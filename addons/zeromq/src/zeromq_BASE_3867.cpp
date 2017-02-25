@@ -39,7 +39,7 @@ REGISTER_CONFIGURABLE(ZeromqAgent)
 
 void ZeromqCommunicator::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("pattern", "Pattern of the zeromq implementation (Pub/Sub, Request/Reply)", "", CRP::Configuration, {"NONE", "ZMQ_SUB", "ZMQ_PUB","ZMQ_REQ","ZMQ_REP"}));
+  config->push_back(CRP("pattern", "Pattern of the zeromq implementation (Pub/Sub, Request/Reply)", "", CRP::Configuration, {"NONE", "ZMQ_SYNC_SUB", "ZMQ_SYNC_PUB","ZMQ_SYNC_CLI"}));
   config->push_back(CRP("sync", "Syncronization ip address", sync_));
 }
 
@@ -48,14 +48,12 @@ void ZeromqCommunicator::configure(Configuration &config)
   std::string type = config["pattern"].str();
   sync_ = config["sync"].str();
 
-  if (type == "ZMQ_SUB")
-    type_ = ZMQ_SUB;
-  if (type == "ZMQ_PUB")
-    type_ = ZMQ_PUB;
-  if (type == "ZMQ_REQ")
-    type_ = ZMQ_REQ;
-  if (type == "ZMQ_REP")
-    type_ = ZMQ_REP;
+  if (type == "ZMQ_SYNC_SUB")
+    pattern_ |= ZMQ_SYNC_SUB;
+  if (type == "ZMQ_SYNC_PUB")
+    pattern_ |= ZMQ_SYNC_PUB;
+  if (type == "ZMQ_SYNC_CLI")
+    pattern_ |= ZMQ_SYNC_CLI;
 }
 
 void ZeromqCommunicator::send(const Vector v) const
@@ -67,8 +65,7 @@ bool ZeromqCommunicator::recv(Vector *v) const
 {
   Vector v_rc;
   v_rc.resize(v->size());
-  CRAWL(v_rc.cols());
-  bool rc = zmq_messenger_.recv(reinterpret_cast<void*>(v_rc.data()), v_rc.cols()*sizeof(double), 0);//, ZMQ_DONTWAIT);
+  bool rc = zmq_messenger_.recv(reinterpret_cast<void*>(v_rc.data()), v_rc.cols()*sizeof(double), ZMQ_NOBLOCK);
   if (rc)
   {
     *v = v_rc; // modify content only if data was received
@@ -98,30 +95,30 @@ void ZeromqPubSubCommunicator::configure(Configuration &config)
   sub_ = config["sub"].str();
 
   // initialize zmq
-  zmq_messenger_.start(type_, pub_.c_str(), sub_.c_str(), sync_.c_str());
+  zmq_messenger_.start(pub_.c_str(), sub_.c_str(), sync_.c_str(), pattern_);
 }
 ////////////////////////////////////////////////////////
 
 void ZeromqRequestReplyCommunicator::request(ConfigurationRequest *config)
 {
   ZeromqCommunicator::request(config);
-  config->push_back(CRP("addr", "Address", addr_));
+  config->push_back(CRP("cli", "Client address", cli_));
 }
 
 void ZeromqRequestReplyCommunicator::configure(Configuration &config)
 {
   ZeromqCommunicator::configure(config);
 
-  addr_ = config["addr"].str();
+  cli_ = config["cli"].str();
 
   // initialize zmq
-  zmq_messenger_.start(type_, addr_.c_str(), NULL, sync_.c_str());
+  zmq_messenger_.start(cli_.c_str(), cli_.c_str(), sync_.c_str(), pattern_);
 }
 
 //////////////////////////////////////////////////////////
 void CommunicatorEnvironment::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("converter", "converter", "Convert states and actions if needed", converter_, true));
+  config->push_back(CRP("converter", "converter", "Convert states and actions if needed", converter_));
   config->push_back(CRP("communicator", "communicator", "Comunicator which exchanges messages with an actual/virtual environment", communicator_));
   config->push_back(CRP("target_obs_dims", "Observation dimension of a target", target_obs_dims_, CRP::System));
   config->push_back(CRP("target_action_dims", "Action dimension of a target", target_action_dims_, CRP::System));
@@ -145,7 +142,6 @@ void CommunicatorEnvironment::configure(Configuration &config)
 
   obs_conv_.resize(target_obs_dims_);
   action_conv_.resize(target_action_dims_);
-  computation_stat_.setBufferLength(500);
 }
 
 void CommunicatorEnvironment::reconfigure(const Configuration &config)
@@ -155,44 +151,23 @@ void CommunicatorEnvironment::reconfigure(const Configuration &config)
 void CommunicatorEnvironment::start(int test, Observation *obs)
 {
   communicator_->recv(&obs_conv_);
-  clock_gettime(CLOCK_MONOTONIC, &computation_begin_);
-  if (converter_)
-    converter_->convert_state(obs_conv_, obs->v);
-  else
-    *obs = obs_conv_;
+  clock_gettime(CLOCK_MONOTONIC, &time_begin_);
+  converter_->convert_state(obs_conv_, obs->v);
   obs->absorbing = false;
 }
 
 double CommunicatorEnvironment::step(const Action &action, Observation *obs, double *reward, int *terminal)
 {
-  if (converter_)
-    converter_->convert_action(action, action_conv_);
-  else
-    action_conv_ = action;
-
-  if (measure_stat_)
-  {
-    timespec computation_end;
-    clock_gettime(CLOCK_MONOTONIC, &computation_end);
-    double computation_delay = (computation_end.tv_sec - computation_begin_.tv_sec)*1.0e6 + (static_cast<double>(computation_end.tv_nsec - computation_begin_.tv_nsec))/1.0e3;
-    computation_stat_.addValue(computation_delay);
-    std::cout << "Computation delay: " << computation_stat_.toStr("us") << std::endl;
-  }
-
+  timespec time_end;
+  converter_->convert_action(action, action_conv_);
   communicator_->send(action_conv_);
-  communicator_->recv(&obs_conv_);
-
-  timespec computation_begin_prev = computation_begin_;
-  clock_gettime(CLOCK_MONOTONIC, &computation_begin_);
-
-  if (converter_)
-    converter_->convert_state(obs_conv_, obs->v);
-  else
-    *obs = obs_conv_;
+  communicator_->recv(&obs_conv_);  // Non-blocking, therefore it gets the most recently transmitted state
+  clock_gettime(CLOCK_MONOTONIC, &time_end);
+  converter_->convert_state(obs_conv_, obs->v);
   obs->absorbing = false;
 
-  double tau = (computation_begin_.tv_sec - computation_begin_prev.tv_sec) + (static_cast<double>(computation_begin_.tv_nsec - computation_begin_prev.tv_nsec))/1.0e9;
-  //std::cout << "stg time: " << tau << std::endl;
+  double tau = (time_end.tv_sec - time_begin_.tv_sec) + (static_cast<double>(time_end.tv_nsec - time_begin_.tv_nsec))/1.0e9;
+  time_begin_ = time_end;
   return tau;
 }
 
@@ -226,10 +201,7 @@ void ZeromqAgent::start(const Observation &obs, Action *action)
 {
   action->v.resize(action_dims_);
   action->type = atUndefined;
-
-  Vector a(obs.v.cols()+1);
-  a << test_, obs.v;
-  communicator_->send(a);
+  communicator_->send(obs.v);
   communicator_->recv(&(action->v));
 }
 
@@ -238,20 +210,20 @@ void ZeromqAgent::step(double tau, const Observation &obs, double reward, Action
   action->v.resize(action_dims_);
   action->type = atUndefined;
   
-  Vector a(obs.v.cols()+3);
-  a << test_, obs.v, reward, 0;
-  communicator_->send(a);
+  Vector v(obs.v.cols()+2);
+  v << test_, obs.v, reward, 1;
+  communicator_->send(v);
   communicator_->recv(&(action->v));
 }
 
 void ZeromqAgent::end(double tau, const Observation &obs, double reward)
 {
-  Vector temp;
+    Vector test;
 
-  Vector a(obs.v.cols()+3);
-  a << test_, obs.v, reward, 2;
-  communicator_->send(a);
-  communicator_->recv(&temp);
+    Vector v(obs.v.cols()+2);
+    v << obs.v,reward,2;
+    communicator_->send(v);
+    communicator_->recv(&test);
 }
 
 

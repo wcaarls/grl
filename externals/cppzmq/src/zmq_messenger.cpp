@@ -110,7 +110,7 @@ void ZeromqMessenger::start(int type, const char* primaryAddr, const char* secon
   }
 
   // If syncronization required...
-  if (syncAddress)
+  if (strcmp(syncAddress, "0") != 0)
   {
     if ((type_ == ZMQ_REQ) || (type_ == ZMQ_PUB))
     {
@@ -238,7 +238,6 @@ bool ZeromqMessenger::recv(void *data, unsigned int size, int flags) const
       mtx_->unlock();
       std::cout << "Zeromq timeout!" << std::endl;
     }
-
     return true;
   }
   return false;

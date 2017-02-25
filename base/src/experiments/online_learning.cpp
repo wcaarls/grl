@@ -154,7 +154,7 @@ void OnlineLearningExperiment::run()
 
         double tau = environment_->step(action, &obs, &reward, &terminal);
 
-        CRAWL(action << " - " << reward << " -> " << obs);
+        CRAWL(action << " - " << reward << " -> " << obs << terminal);
         
         total_reward += reward;
         
