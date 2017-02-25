@@ -160,6 +160,12 @@ agent/leo/sma:
     mutability: configuration
     default: 0
     optional: 0
+  agent_starter:
+    type: agent
+    description: Starting agent
+    mutability: configuration
+    default: 0
+    optional: 1
   agent_main:
     type: agent
     description: Main agent
@@ -175,6 +181,12 @@ agent/leo/sma:
   fc_trigger:
     type: trigger
     description: Trigger which checks for foot contact to ensure that robot is prepared to walk
+    mutability: configuration
+    default: 0
+    optional: 0
+  starter_trigger:
+    type: trigger
+    description: Trigger which initiates a preprogrammed walking at the beginning
     mutability: configuration
     default: 0
     optional: 0
@@ -530,7 +542,7 @@ agent/zeromq:
     type: communicator
     description: Comunicator which exchanges messages with an actual/virtual environment
     mutability: configuration
-    default: 0xa88150
+    default: 0
     optional: 0
   observation_dims:
     type: int.observation_dims

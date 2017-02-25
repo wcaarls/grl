@@ -36,10 +36,12 @@ void LeoStateMachineAgent::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("agent_prepare", "agent", "Prepare agent", agent_prepare_, false));
   config->push_back(CRP("agent_standup", "agent", "Safe standup agent", agent_standup_, false));
+  config->push_back(CRP("agent_starter", "agent", "Starting agent", agent_starter_, true));
   config->push_back(CRP("agent_main", "agent", "Main agent", agent_main_, false));
 
   config->push_back(CRP("upright_trigger", "trigger", "Trigger which finishes stand-up phase and triggers preparation agent", upright_trigger_, false));
   config->push_back(CRP("fc_trigger", "trigger", "Trigger which checks for foot contact to ensure that robot is prepared to walk", foot_contact_trigger_, false));
+  config->push_back(CRP("starter_trigger", "trigger", "Trigger which initiates a preprogrammed walking at the beginning", starter_trigger_, true));
   config->push_back(CRP("pub_ic_signal", "signal/vector", "Subscriber to the contact signal", sub_ic_signal_, true));
 }
 
@@ -47,10 +49,12 @@ void LeoStateMachineAgent::configure(Configuration &config)
 {
   agent_prepare_ = (Agent*)config["agent_prepare"].ptr();
   agent_standup_ = (Agent*)config["agent_standup"].ptr();
+  agent_starter_ = (Agent*)config["agent_starter"].ptr();
   agent_main_ = (Agent*)config["agent_main"].ptr();
 
   upright_trigger_ = (Trigger*)config["upright_trigger"].ptr();
   foot_contact_trigger_ = (Trigger*)config["fc_trigger"].ptr();
+  starter_trigger_ = (Trigger*)config["starter_trigger"].ptr();
   sub_ic_signal_ = (VectorSignal*)config["pub_ic_signal"].ptr();
 }
 
@@ -80,7 +84,10 @@ void LeoStateMachineAgent::step(double tau, const Observation &obs, double rewar
       Vector fc = VectorConstructor(((int)signal[0] & lstGroundContact) != 0);
       if (foot_contact_trigger_->check(time_, fc))
       {
-        agent_ = agent_main_;
+        if (agent_starter_ && starter_trigger_ && !starter_trigger_->check(time_, Vector()))
+          agent_ = agent_starter_;
+        else
+          agent_ = agent_main_;
         agent_->start(obs, action);
         INFO("Contact!");
         return;
@@ -88,9 +95,20 @@ void LeoStateMachineAgent::step(double tau, const Observation &obs, double rewar
     }
   }
 
+  if (agent_ == agent_starter_)
+    if (starter_trigger_->check(time_, Vector()))
+    {
+      agent_starter_->end(tau, obs, reward);
+      agent_ = agent_main_;
+      agent_->start(obs, action);
+      INFO("Main!");
+      return;
+    }
+
   if (agent_ == agent_standup_)
     if (upright_trigger_->check(time_, obs))
     {
+      agent_standup_->end(tau, obs, reward);
       agent_ = agent_prepare_;
       agent_->start(obs, action);
       INFO("Upright!");

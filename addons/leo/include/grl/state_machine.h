@@ -79,10 +79,8 @@ class Trigger : public Configurable
     // Own
     virtual int check(double time, const Vector &obs)
     {
-      if (!min_.size())
-        return 1;
-
-      if (obs.size() != min_.size())
+      // mot specifying min and max sizes allows to implement delays
+      if (min_.size() && obs.size() != min_.size())
         throw bad_param("trigger:{obs,min,max}");
 
       // check if observation is within a box

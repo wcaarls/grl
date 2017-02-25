@@ -43,16 +43,14 @@ class LeoStateMachineAgent : public Agent
     TYPEINFO("agent/leo/sma", "State-machine agent for Leo")
 
   protected:
-    Agent *agent_prepare_;
-    Agent *agent_standup_;
-    Agent *agent_main_;
+    Agent *agent_prepare_, *agent_standup_, *agent_starter_, *agent_main_;
     Agent *agent_;
-    Trigger *upright_trigger_, *foot_contact_trigger_;
+    Trigger *upright_trigger_, *foot_contact_trigger_, *starter_trigger_;
     VectorSignal *sub_ic_signal_;
     double time_;
     
   public:
-    LeoStateMachineAgent() : agent_prepare_(NULL), agent_standup_(NULL), agent_main_(NULL), agent_(NULL), upright_trigger_(NULL), foot_contact_trigger_(NULL), sub_ic_signal_(NULL), time_(0.) { }
+    LeoStateMachineAgent() : agent_prepare_(NULL), agent_standup_(NULL), agent_starter_(NULL), agent_main_(NULL), agent_(NULL), upright_trigger_(NULL), foot_contact_trigger_(NULL), starter_trigger_(NULL), sub_ic_signal_(NULL), time_(0.) { }
   
     // From Configurable    
     virtual void request(ConfigurationRequest *config);

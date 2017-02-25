@@ -56,6 +56,26 @@ experiment:
         action_min: experiment/environment/action_min
         action_max: experiment/environment/action_max
       pub_transition_type: experiment/environment/sub_transition_type
+    agent_starter: 
+      type: agent/leo/fixed
+      policy: 
+        type: mapping/policy/parameterized/pidt
+        trajectory: 
+          type: mapping/timeline
+          importer: 
+            type: importer/csv
+            file: ../src/grl/addons/leo/pid_trajectories/leosim_dsarsa_walk_egreedy_play-test-0-converted
+            headers: time, state0
+            split: no_split
+        inputs: 16
+        outputs: 7
+        p: [0, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20, 0, 0, 0, 0, 0, 0, 0, 0]
+        i: []
+        d: []
+        il: []
+        action_min: experiment/environment/action_min
+        action_max: experiment/environment/action_max
+      pub_transition_type: experiment/environment/sub_transition_type
     agent_main: 
       type: agent/leo/sym_wrapper
       agent: 
@@ -107,11 +127,17 @@ experiment:
       min: [0.9]
       max: [1.1]
       delay: 0.5
+    starter_trigger: 
+      type: trigger
+      min: []
+      max: []
+      delay: 0.6
     pub_ic_signal: experiment/environment/pub_ic_signal
   test_agent: 
     type: agent/leo/sma
     agent_prepare: experiment/agent/agent_prepare
     agent_standup: experiment/agent/agent_standup
+    agent_starter: experiment/agent/agent_starter
     agent_main: 
       type: agent/leo/sym_wrapper
       agent: 
@@ -128,6 +154,7 @@ experiment:
       sub_ic_signal: experiment/environment/pub_ic_signal
     upright_trigger: experiment/agent/upright_trigger
     fc_trigger: experiment/agent/fc_trigger
+    starter_trigger: experiment/agent/starter_trigger
     pub_ic_signal: experiment/environment/pub_ic_signal
   load_file: c2-2/leo_leosim_dsarsa_walk_egreedy-010-mp0-d0-run0
   save_every: never

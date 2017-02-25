@@ -504,7 +504,7 @@ bool CLeoBhWalkSym::isDoomedToFall(CLeoState* state, bool report)
     {
       if (report)
         mLogNoticeLn("[TERMINATION] Torso angle too large");
-      //std::cout << "[TERMINATION] Torso angle too large" << std::endl;
+      std::cout << "[TERMINATION] Torso angle too large" << std::endl;
       return true;
     }
 
@@ -527,7 +527,7 @@ bool CLeoBhWalkSym::isDoomedToFall(CLeoState* state, bool report)
     {
       if (report)
         mLogNoticeLn("[TERMINATION] Stance leg angle too large");
-      //std::cout << "[TERMINATION] Stance leg angle too large" << std::endl;
+      std::cout << "[TERMINATION] Stance leg angle too large" << std::endl;
       return true;
     }
   }
