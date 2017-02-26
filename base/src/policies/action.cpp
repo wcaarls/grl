@@ -71,20 +71,13 @@ void ActionPolicy::reconfigure(const Configuration &config)
 
 void ActionPolicy::act(const Observation &in, Action *out) const
 {
-  Action suggested = *out;
-
   ProjectionPtr p = projector_->project(in);
   representation_->read(p, &out->v);
   out->type = atGreedy;
   
-  TRACE("Suggested: " << suggested);
-  TRACE("Representation: " << *out);
-
   // Some representations may not always return a value.
   if (!out->size())
     *out = (min_+max_)/2;
-
-  const double bound = 3;
   
   for (size_t ii=0; ii < out->size(); ++ii)
   {
@@ -93,16 +86,9 @@ void ActionPolicy::act(const Observation &in, Action *out) const
       (*out)[ii] += RandGen::getNormal(0., sigma_[ii]);
       out->type = atExploratory;
     }
-
+      
     (*out)[ii] = fmin(fmax((*out)[ii], min_[ii]), max_[ii]);
-/*
-    double min = fmax(min_[ii], suggested[ii] - bound);
-    double max = fmin(max_[ii], suggested[ii] + bound);
-
-    (*out)[ii] = fmin(fmax((*out)[ii], min), max);
-*/
   }
-  TRACE("Final: " << *out);
 }
 
 void ActionProbabilityPolicy::request(ConfigurationRequest *config)
