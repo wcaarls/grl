@@ -154,11 +154,9 @@ void OnlineLearningExperiment::run()
 
         double tau = environment_->step(action, &obs, &reward, &terminal);
 
-        CRAWL(action << " - " << reward << " -> " << obs << terminal);
+        CRAWL(action << " - " << reward << " -> " << obs);
         
         total_reward += reward;
-        
-        double t0 = step_timer.elapsed();
 
         if (obs.size())
         {
@@ -172,9 +170,6 @@ void OnlineLearningExperiment::run()
           
           if (!test) ss++;
         }
-
-        //std::cout << "Time = " << step_timer.elapsed() - t0 << std::endl;
-
       } while (!terminal);
 
       if (test_interval_ >= 0)
