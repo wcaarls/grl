@@ -34,10 +34,12 @@ experiment:
         model: experiment/environment/model
         task: experiment/environment/task
       projector: 
-        type: projector/grid
-        input_min: experiment/environment/task/observation_min
-        input_max: experiment/environment/task/observation_max
-        steps: [200, 240]
+        type: projector/grid/index
+        discretizer:
+          type: discretizer/uniform
+          min: experiment/environment/task/observation_min
+          max: experiment/environment/task/observation_max
+          steps: [200, 240]
       representation: 
         type: representation/parameterized/linear
         init_min: [0]
@@ -52,11 +54,7 @@ experiment:
       type: solver/vi
       sweeps: 1
       parallel: 1
-      discretizer: 
-        type: discretizer/uniform
-        min: experiment/environment/task/observation_min
-        max: experiment/environment/task/observation_max
-        steps: experiment/agent/policy/projector/steps
+      discretizer: experiment/agent/policy/projector/discretizer
       predictor: 
         type: predictor/full/vi
         gamma: 0.97

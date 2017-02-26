@@ -39,8 +39,11 @@ class Communicator: public Configurable
 public:
   virtual ~Communicator() { }
 
+  /// Exchange metadata.
+  virtual void setup(const Configuration &in, Configuration *out) { }
+
   /// Send data.
-  virtual void send(const Vector v) const = 0;
+  virtual void send(const Vector &v) const = 0;
 
   /// Receive data.
   virtual bool recv(Vector *v) const = 0;

@@ -90,11 +90,13 @@ add_library(${TARGET} SHARED
             ${SRC}/projectors/grid.cpp
             ${SRC}/projectors/rbf.cpp
             ${SRC}/projectors/multi.cpp
+            ${SRC}/projectors/split.cpp
             ${SRC}/representations/linear.cpp
             ${SRC}/representations/ann.cpp
 #            ${SRC}/representations/dmp.cpp
             ${SRC}/representations/additive.cpp
             ${SRC}/representations/iterative.cpp
+            ${SRC}/representations/dictionary.cpp
             ${SRC}/samplers/greedy.cpp
             ${SRC}/samplers/softmax.cpp
             ${SRC}/samplers/pada.cpp

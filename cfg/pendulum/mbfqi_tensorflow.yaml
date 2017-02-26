@@ -33,13 +33,13 @@ experiment:
         projector: 
           type: projector/identity
       representation: 
-        type: representation/parameterized/ann
+        type: representation/tensorflow
         inputs: experiment/environment/task/observation_dims+experiment/environment/task/action_dims
         outputs: 1
-        hiddens: [100]
-        eta: -0.001
+        file: pendulum_q.pb
       sampler: 
         type: sampler/epsilon_greedy
+        rand_max: 0
         epsilon: [0.5]
     predictor: 
       type: predictor/mbfqi
@@ -52,26 +52,12 @@ experiment:
       representation: experiment/agent/policy/representation
   test_agent: 
     type: agent/fixed
-    policy:
+    policy: 
       type: mapping/policy/value/q
       discretizer: experiment/agent/policy/discretizer
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
       sampler: 
         type: sampler/greedy
+        rand_max: 0
   save_every: never
-visualizer: 
-  type: visualizer/glut
-visualization: 
-  type: visualization/field/policy/value
-  field_dims: [0, 1]
-  input_min: experiment/environment/task/observation_min
-  input_max: experiment/environment/task/observation_max
-  points: 65536
-  savepoints: 1048576
-  state: experiment/state
-  projection: mean
-  policy: experiment/test_agent/policy
-visualization2: 
-  type: visualization/pendulum
-  state: experiment/environment/state

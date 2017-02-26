@@ -31,7 +31,7 @@
 #define GRL_EIGEN_VECTOR
 
 #ifdef GRL_EIGEN_VECTOR
-#include <eigen3/Eigen/Dense>
+#include <Eigen/Dense>
 #endif 
 
 #include <vector>
@@ -339,8 +339,8 @@ inline Vector extend(const Vector &a, const Vector &b)
 
   return c;
 }
-/*
-inline LargeVector extend(const LargeVector &a, const Vector &b)
+
+inline LargeVector extend(const Vector &a, const LargeVector &b)
 {
   LargeVector c(a.size()+b.size());
 
@@ -351,7 +351,7 @@ inline LargeVector extend(const LargeVector &a, const Vector &b)
 
   return c;
 }
-*/
+
 inline LargeVector extend(const LargeVector &a, const LargeVector &b)
 {
   LargeVector c(a.size()+b.size());

@@ -43,6 +43,11 @@ void UniformDiscretizer::request(const std::string &role, ConfigurationRequest *
     config->push_back(CRP("min", "vector.observation_min", "Lower limit", min_, CRP::System));
     config->push_back(CRP("max", "vector.observation_max", "Upper limit", max_, CRP::System));
   }
+  else if (role == "pair")
+  {
+    config->push_back(CRP("min", "vector.observation_min+vector.action_min", "Lower input dimension limit", min_, CRP::System));
+    config->push_back(CRP("max", "vector.observation_max+vector.action_max", "Upper input dimension limit", max_, CRP::System));
+  }
   else
   {
     config->push_back(CRP("min", "Lower limit", min_, CRP::System));
@@ -145,33 +150,27 @@ Vector UniformDiscretizer::at(size_t idx) const
   return out;
 }
 
-size_t UniformDiscretizer::discretize(Vector *vec) const
+size_t UniformDiscretizer::discretize(const Vector &vec) const
 {
-  double steps = 1;
-  double offset = 0;
+  size_t steps = 1, offset = 0;
 
-  for (int dd=0; dd < steps_.size(); ++dd)
+  for (size_t dd=0; dd < steps_.size(); ++dd)
   {
     double nearest = values_[dd][0];
     size_t nearest_vv = 0;
     for (size_t vv=1; vv < steps_[dd]; ++vv)
     {
-      if (fabs(nearest-(*vec)[dd]) > fabs(values_[dd][vv]-(*vec)[dd]))
+      if (fabs(nearest-vec[dd]) > fabs(values_[dd][vv]-vec[dd]))
       {
         nearest = values_[dd][vv];
         nearest_vv = vv;
       }
     }
-    (*vec)[dd] = nearest;
 
     // calculating offset
     offset += nearest_vv*steps;
     steps *= steps_[dd];
   }
 
-  // offset = sample_[0] + sample_[1]*steps_[0] + sample_[2]*steps_[0]*steps_[1];
-  return static_cast<size_t>(round(offset));
+  return offset;
 }
-
-
-

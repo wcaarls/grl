@@ -29,79 +29,44 @@
 
 using namespace grl;
 
-REGISTER_CONFIGURABLE(GridProjector)
+REGISTER_CONFIGURABLE(GridIndexProjector)
+REGISTER_CONFIGURABLE(GridPositionProjector)
 
 void GridProjector::request(const std::string &role, ConfigurationRequest *config)
 {
-  if (role == "observation")
-  {
-    config->push_back(CRP("input_min", "vector.observation_min", "Lower input dimension limit", min_, CRP::System));
-    config->push_back(CRP("input_max", "vector.observation_max", "Upper input dimension limit", max_, CRP::System));
-  }
-  else if (role == "action")
-  {
-    config->push_back(CRP("input_min", "vector.action_min", "Lower input dimension limit", min_, CRP::System));
-    config->push_back(CRP("input_max", "vector.action_max", "Upper input dimension limit", max_, CRP::System));
-  }
-  else if (role == "pair")
-  {
-    config->push_back(CRP("input_min", "vector.observation_min+vector.action_min", "Lower input dimension limit", min_, CRP::System));
-    config->push_back(CRP("input_max", "vector.observation_max+vector.action_max", "Upper input dimension limit", max_, CRP::System));
-  }
+  if (role.size())
+    config->push_back(CRP("discretizer", "discretizer." + role, "Discretizer", discretizer_));
   else
-  {
-    config->push_back(CRP("input_min", "Lower input dimension limit", min_, CRP::System));
-    config->push_back(CRP("input_max", "Upper input dimension limit", max_, CRP::System));
-  }
-
-  config->push_back(CRP("steps", "Grid cells per dimension", steps_, CRP::Configuration));
+    config->push_back(CRP("discretizer", "discretizer", "Discretizer", discretizer_));
+  
   config->push_back(CRP("memory", "int.memory", "Grid size", CRP::Provided));
 }
 
 void GridProjector::configure(Configuration &config)
 {
-  min_ = config["input_min"].v();
-  if (!min_.size())
-    throw bad_param("projector/grid:min");
-
-  max_ = config["input_max"].v();
-  if (!max_.size())
-    throw bad_param("projector/grid:max");
-
-  steps_ = config["steps"].v();
-  if (!steps_.size())
-    throw bad_param("projector/grid:steps");
-
-  if (min_.size() != max_.size() || min_.size() != steps_.size())
-    throw bad_param("projector/grid:{min,max,steps}");
-
-  delta_ = (max_-min_)/(steps_-1);
+  discretizer_ = (Discretizer*)config["discretizer"].ptr();
   
-  config.set("memory", (int)prod(steps_));
+  config.set("memory", discretizer_->size());
 }
 
 void GridProjector::reconfigure(const Configuration &config)
 {
 }
 
-ProjectionPtr GridProjector::project(const Vector &in) const
+ProjectionPtr GridIndexProjector::project(const Vector &in) const
 {
-  if (in.size() != min_.size())
-    throw bad_param("projector/grid:{min,max,steps}");
-
   IndexProjection *p = new IndexProjection();
   p->indices.resize(1);
   
-  size_t index = 0;
+  p->indices[0] = discretizer_->discretize(in);
 
-  size_t ff = 1;
-  for (size_t dd=0; dd < steps_.size(); ++dd)
-  {
-    size_t v = round(std::min(std::max((in[dd]-min_[dd])/delta_[dd], 0.), steps_[dd]-1.));
-    index += ff*v;
-    ff *= steps_[dd];
-  }
+  return ProjectionPtr(p);
+}
 
-  p->indices[0] = index;
+ProjectionPtr GridPositionProjector::project(const Vector &in) const
+{
+  VectorProjection *p = new VectorProjection();
+  p->vector = discretizer_->at(discretizer_->discretize(in));
+
   return ProjectionPtr(p);
 }

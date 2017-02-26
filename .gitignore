@@ -38,3 +38,4 @@ build/
 debug/
 release/
 doc/html/
+addons/tensorflow/lib

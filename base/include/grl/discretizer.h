@@ -84,9 +84,9 @@ class Discretizer : public Configurable
     virtual Vector at(size_t idx) const { return at(Vector(), idx); }
     virtual Vector at(const Vector &point, size_t idx) const { return at(idx); }
 
-    /// Finds the most closest discrete vector to 'vec' in L1 sense per element
-    /// Returns an offset and a discretized vector
-    virtual size_t discretize(Vector *vec) const = 0;
+    /// Finds the closest point to vec.
+    /// NOTE: should take point argument, like other member functions.
+    virtual size_t discretize(const Vector &vec) const = 0;
 };
 
 }

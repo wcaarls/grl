@@ -34,29 +34,17 @@ REGISTER_CONFIGURABLE(MonomialProjector)
 
 void MonomialProjector::request(const std::string &role, ConfigurationRequest *config)
 {
-  if (role == "observation")
-    config->push_back(CRP("inputs", "int.observation_dims", "Number of input dimensions", (int)inputs_, CRP::System));
-  else if (role == "action")
-    config->push_back(CRP("inputs", "int.action_dims", "Number of input dimensions", (int)inputs_, CRP::System));
-  else if (role == "pair")
-    config->push_back(CRP("inputs", "int.observation_dims+int.action_dims", "Number of input dimensions", (int)inputs_, CRP::System));
-  else
-    config->push_back(CRP("inputs", "Number of input dimensions", (int)inputs_, CRP::System));
-
   config->push_back(CRP("operating_input", "Origin", operating_input_, CRP::Configuration));
-  
   config->push_back(CRP("degree", "Maximum degree of monomials", (int)degree_, CRP::Configuration, 0, 10));
-  
   config->push_back(CRP("memory", "int.memory", "Feature vector size", CRP::Provided));
 }
 
 void MonomialProjector::configure(Configuration &config)
 {
-  inputs_ = config["inputs"];
   degree_ = config["degree"];
   operating_input_ = config["operating_input"].v();
   
-  memory_ = fact(degree_+inputs_)/(fact(degree_)*fact(inputs_));
+  memory_ = fact(degree_+operating_input_.size())/(fact(degree_)*fact(operating_input_.size()));
   
   config.set("memory", memory_);
 }
@@ -67,11 +55,10 @@ void MonomialProjector::reconfigure(const Configuration &config)
 
 ProjectionPtr MonomialProjector::project(const Vector &in) const
 {
+  if (operating_input_.size() != in.size())
+    throw bad_param("projector/monomial:operating_input");
+
   VectorProjection *p = new VectorProjection();
-  
-  if (in.size() != inputs_)
-    throw bad_param("projector/monomial:inputs");
-    
   Vector oin = in-operating_input_;
 
   p->vector.resize(memory_);
@@ -84,11 +71,11 @@ ProjectionPtr MonomialProjector::project(const Vector &in) const
   if (degree_ > 0)
   {
     // Degree 1
-    for (size_t dd=0; dd < inputs_; ++dd)
+    for (size_t dd=0; dd < in.size(); ++dd)
       p->vector[ii++] = oin[dd];
   
     size_t last=1;
-    IndexVector count = IndexVector::Ones(inputs_);
+    IndexVector count = IndexVector::Ones(in.size());
     
     // Other degrees
     for (size_t oo=2; oo <= degree_; ++oo)
@@ -96,7 +83,7 @@ ProjectionPtr MonomialProjector::project(const Vector &in) const
       size_t total=ii-last;
       last = ii;
       
-      for (size_t dd=0; dd < inputs_; ++dd)
+      for (size_t dd=0; dd < in.size(); ++dd)
       {
         for (size_t jj=last-total; jj < last; ++jj)
           p->vector[ii++] = p->vector[jj]*oin[dd];

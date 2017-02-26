@@ -1,11 +1,11 @@
-/** \file uniform.h
- * \brief Uniform discretizer header file.
+/** \file split.h
+ * \brief Split projector header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-01-22
+ * \date      2017-02-09
  *
  * \copyright \verbatim
- * Copyright (c) 2015, Wouter Caarls
+ * Copyright (c) 2017, Wouter Caarls
  * All rights reserved.
  *
  * This file is part of GRL, the Generic Reinforcement Learning library.
@@ -25,41 +25,40 @@
  * \endverbatim
  */
 
-#ifndef GRL_UNIFORM_DISCRETIZER_H_
-#define GRL_UNIFORM_DISCRETIZER_H_
+#ifndef GRL_SPLIT_PROJECTOR_H_
+#define GRL_SPLIT_PROJECTOR_H_
 
-#include <grl/configurable.h>
 #include <grl/discretizer.h>
+#include <grl/projector.h>
 
 namespace grl
 {
 
-/// Uniform discretization
-class UniformDiscretizer : public Discretizer
+/// Splits a vector projection into distinct features according to a single-element index projection
+class SplitProjector : public Projector
 {
   public:
-    TYPEINFO("discretizer/uniform", "Uniform discretizer")
-
+    TYPEINFO("projector/split", "Splits a feature vector into distinct sets")
+    
   protected:
-    Vector min_, max_, steps_;
-  
-    std::vector<LargeVector> values_;
+    Vector index_;
+    Discretizer *discretizer_;
+    Projector* projector_;
+    size_t projector_memory_;
 
   public:
+    SplitProjector() : discretizer_(NULL), projector_(NULL), projector_memory_(0) { }
+  
     // From Configurable
     virtual void request(const std::string &role, ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
-    
-    // From Discretizer
-    virtual iterator begin() const;
-    virtual size_t size() const;
-    virtual void inc(iterator *it) const;
-    virtual Vector get(const iterator &it) const;
-    virtual Vector at(size_t idx) const;
-    virtual size_t discretize(const Vector &vec) const;
+
+    // From Projector
+    virtual ProjectionLifetime lifetime() const { return projector_->lifetime(); }
+    virtual ProjectionPtr project(const Vector &in) const;
 };
 
 }
 
-#endif /* GRL_UNIFORM_DISCRETIZER_H_ */
+#endif /* GRL_SPLIT_PROJECTOR_H_ */

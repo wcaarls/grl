@@ -29,22 +29,18 @@
 #define GRL_GRID_PROJECTOR_H_
 
 #include <grl/projector.h>
+#include <grl/discretizer.h>
 
 namespace grl
 {
 
-/// Standard discretization.
+/// Projects onto a grid
 class GridProjector : public Projector
 {
-  public:
-    TYPEINFO("projector/grid", "Standard discretization")
-    
   protected:
-    Vector min_, max_, steps_, delta_;
+    Discretizer* discretizer_;
     
   public:
-    GridProjector() { }
-  
     // From Configurable
     virtual void request(const std::string &role, ConfigurationRequest *config);
     virtual void configure(Configuration &config);
@@ -52,6 +48,27 @@ class GridProjector : public Projector
 
     // From Projector
     virtual ProjectionLifetime lifetime() const { return plIndefinite; }
+};
+
+/// Project to linear grid index.
+class GridIndexProjector : public GridProjector
+{
+  public:
+    TYPEINFO("projector/grid/index", "Discretizes continuous input to a linear grid index")
+    
+  public:
+    // From Projector
+    virtual ProjectionPtr project(const Vector &in) const;
+};
+
+/// Project to discretized position.
+class GridPositionProjector : public GridProjector
+{
+  public:
+    TYPEINFO("projector/grid/position", "Discretizes continuous input to a grid center position")
+    
+  public:
+    // From Projector
     virtual ProjectionPtr project(const Vector &in) const;
 };
 

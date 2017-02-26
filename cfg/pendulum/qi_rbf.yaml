@@ -65,22 +65,30 @@ experiment:
   save_every: never
 visualizer: 
   type: visualizer/glut
-visualization: 
-  type: visualization/field/policy/value
+vis_value:
+  type: visualization/slice
   field_dims: [0, 1]
   input_min: experiment/environment/task/observation_min
   input_max: experiment/environment/task/observation_max
   points: 65536
   savepoints: 1048576
   state: experiment/state
-  projection: mean
-  policy: 
-    type: policy/value/q
-    discretizer: experiment/agent/policy/discretizer
-    projector: experiment/agent/policy/projector
-    representation: experiment/agent/policy/representation
-    sampler: 
-      type: sampler/greedy
-vispend: 
-  type: visualization/pendulum
+  mapping: 
+    type: mapping/value
+    policy:
+      type: policy/value/q
+      discretizer: experiment/agent/policy/discretizer
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+      sampler: 
+        type: sampler/greedy
+vis_policy: 
+  type: visualization/slice
+  field_dims: [0, 1]
+  input_min: experiment/environment/task/observation_min
+  input_max: experiment/environment/task/observation_max
+  output_dim: 0
+  points: 65536
+  savepoints: 1048576
   state: experiment/state
+  mapping: vis_value/mapping/policy

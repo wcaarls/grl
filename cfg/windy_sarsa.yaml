@@ -21,10 +21,12 @@ experiment:
         max: experiment/environment/task/action_max
         steps: [4]
       projector: 
-        type: projector/grid
-        input_min: experiment/environment/task/observation_min+experiment/environment/task/action_min
-        input_max: experiment/environment/task/observation_max+experiment/environment/task/action_max
-        steps: [ 10, 7, 4 ]
+        type: projector/grid/index
+        discretizer:
+          type: discretizer/uniform
+          min: experiment/environment/task/observation_min+experiment/environment/task/action_min
+          max: experiment/environment/task/observation_max+experiment/environment/task/action_max
+          steps: [ 10, 7, 4 ]
       representation: 
         type: representation/parameterized/linear
         init_min: [0]
@@ -60,7 +62,7 @@ visualizer:
 visualization: 
   type: visualization/field/policy/value
   field_dims: [0, 1]
-  input_min: [0, 0]
+  input_min: [-1, -1]
   input_max: [10, 7]
   points: 65536
   savepoints: 1048576

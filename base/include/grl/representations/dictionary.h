@@ -1,11 +1,11 @@
-/** \file llr.h
- * \brief Locally weighted regression representation header file.
+/** \file dictionary.h
+ * \brief Dictionary representation header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-01-22
+ * \date      2017-01-27
  *
  * \copyright \verbatim
- * Copyright (c) 2015, Wouter Caarls
+ * Copyright (c) 2017, Wouter Caarls
  * All rights reserved.
  *
  * This file is part of GRL, the Generic Reinforcement Learning library.
@@ -25,53 +25,48 @@
  * \endverbatim
  */
 
-#ifndef GRL_LLR_REPRESENTATION_H_
-#define GRL_LLR_REPRESENTATION_H_
+#ifndef GRL_DICTIONARY_REPRESENTATION_H_
+#define GRL_DICTIONARY_REPRESENTATION_H_
 
-#include <Eigen/Dense>
-
-#include <grl/projector.h>
+#include <map>
 #include <grl/representation.h>
 
 namespace grl
 {
 
-/// Locally linear regression.
-class LLRRepresentation : public Representation
+/// Average of feature activations.
+class DictionaryRepresentation : public Representation
 {
   public:
-    TYPEINFO("representation/llr", "Performs locally linear regression through samples")
-    
-    typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> Matrix;
-    typedef Eigen::Matrix<double, 1, Eigen::Dynamic>              RowVector;
-    typedef Eigen::Matrix<double, Eigen::Dynamic, 1>              ColumnVector;
+    TYPEINFO("representation/dictionary", "Stores examples as key-value pairs in a dictionary")
     
   protected:
-    SampleProjector *projector_;
-    double ridge_regression_factor_;
-    size_t outputs_, order_;
-    Vector min_, max_, input_nominals_, output_nominals_;
+    std::map<Vector, Vector, std::function<bool(const Vector&,const Vector&)> > dict_;
 
   public:
-    LLRRepresentation() : projector_(NULL), ridge_regression_factor_(0.00001), outputs_(1), order_(1) { }
+    DictionaryRepresentation() : dict_(vless)
+    {
+    }
   
     // From Configurable
     virtual void request(const std::string &role, ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
+    virtual DictionaryRepresentation &copy(const Configurable &obj);
   
     // From Representation
     virtual double read(const ProjectionPtr &projection, Vector *result, Vector *stddev) const;
     virtual void write(const ProjectionPtr projection, const Vector &target, const Vector &alpha);
     virtual void update(const ProjectionPtr projection, const Vector &delta);
-    virtual void finalize();
-    virtual grl::Matrix jacobian(const ProjectionPtr projection) const;
     
   protected:
-    void getMatrices(const SampleProjection *p, Matrix *A, Matrix *b) const;
-    Matrix estimateModel(const Matrix &A) const;
+    static bool vless(const Vector &a, const Vector &b)
+    {
+      return std::lexicographical_compare(a.data(),a.data()+a.size(),
+                                          b.data(),b.data()+b.size());
+    }
 };
 
 }
 
-#endif /* GRL_LLR_REPRESENTATION_H_ */
+#endif /* GRL_DICTIONARY_REPRESENTATION_H_ */

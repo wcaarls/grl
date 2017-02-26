@@ -126,6 +126,9 @@ ProjectionPtr FourierProjector::project(const Vector &in) const
         break;
     }
   }  
+  
+  // Add nonzero DC component even for odd parity
+  p->vector[0] = 1.;
 
   return ProjectionPtr(p);
 }

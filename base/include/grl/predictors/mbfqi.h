@@ -29,7 +29,7 @@
 #define GRL_MBFQI_PREDICTOR_H_
 
 #include <grl/predictor.h>
-#include <grl/mapping.h>
+#include <grl/discretizer.h>
 #include <grl/projector.h>
 #include <grl/representation.h>
 
@@ -52,8 +52,8 @@ class MBFQIPredictor : public Predictor
     };
     
   protected:
-    double alpha_, gamma_;
-    Mapping *target_;
+    double gamma_;
+    Discretizer *discretizer_;
     Projector *projector_;
     Representation *representation_;
     
@@ -63,7 +63,7 @@ class MBFQIPredictor : public Predictor
     size_t minibatch_size_, update_counter_;
 
   public:
-    MBFQIPredictor() : alpha_(1.0), gamma_(0.97), target_(NULL), projector_(NULL), representation_(NULL), max_samples_(100000), update_interval_(10), minibatch_size_(64), update_counter_(0) { }
+    MBFQIPredictor() : gamma_(0.97), discretizer_(NULL), projector_(NULL), representation_(NULL), max_samples_(100000), update_interval_(10), minibatch_size_(64), update_counter_(0) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);

@@ -28,7 +28,7 @@
 #ifndef GRL_LQR_SOLVER_H_
 #define GRL_LQR_SOLVER_H_
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Eigen>
 
 #include <grl/solver.h>
 #include <grl/environments/observation.h>

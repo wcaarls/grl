@@ -40,11 +40,11 @@ class MonomialProjector : public Projector
     TYPEINFO("projector/monomial", "Monomial basis function projector")
     
   protected:
-    size_t inputs_, degree_, memory_;
+    size_t degree_, memory_;
     Vector operating_input_;
 
   public:
-    MonomialProjector() : inputs_(1), degree_(1), memory_(0) { }
+    MonomialProjector() : degree_(1), memory_(0) { }
 
     // From Configurable
     virtual void request(const std::string &role, ConfigurationRequest *config);

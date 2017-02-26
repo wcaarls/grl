@@ -107,7 +107,7 @@ size_t OrnsteinUhlenbeckSampler::sample(double time, const LargeVector &values, 
   // add noise to a signal
   evolve_noise();
   Vector action_new = mix_signal_noise(discretizer_->at(offset), noise_);
-  offset = discretizer_->discretize(&action_new);
+  offset = discretizer_->discretize(action_new);
 
   if (pub_sub_ou_state_)
     pub_sub_ou_state_->set(noise_);
@@ -129,7 +129,8 @@ void ACOrnsteinUhlenbeckSampler::configure(Configuration &config)
   OrnsteinUhlenbeckSampler::configure(config);
   epsilon_ = config["epsilon"];
 
-  offset_ = discretizer_->discretize(&center_);
+  offset_ = discretizer_->discretize(center_);
+  center_ = discretizer_->at(offset_);
 
   if (pub_sub_ou_state_)
     pub_sub_ou_state_->set(center_);
@@ -160,7 +161,7 @@ size_t ACOrnsteinUhlenbeckSampler::sample(double time, const LargeVector &values
       smp_vec[i] = smp_vec[i] + theta_[i] * (center_[i] - smp_vec[i])+ sigma_[i] * rand_->getNormal(0, 1);
     TRACE(smp_vec);
 
-    offset_ = discretizer_->discretize(&smp_vec);
+    offset_ = discretizer_->discretize(smp_vec);
     TRACE(offset_);
   }
   else
@@ -216,7 +217,7 @@ size_t EpsilonOrnsteinUhlenbeckSampler::sample(double time, const LargeVector &v
     Vector action_new = mix_signal_noise(discretizer_->at(offset), noise_);
     TRACE(action_new);
 
-    offset = discretizer_->discretize(&action_new);
+    offset = discretizer_->discretize(action_new);
   }
 
   if (pub_sub_ou_state_)
@@ -270,7 +271,7 @@ size_t PadaOrnsteinUhlenbeckSampler::sample(double time, const LargeVector &valu
   /////////////////
   // Testing
   size_t offset_orig = offset;
-  offset = discretizer_->discretize(&action_new);
+  offset = discretizer_->discretize(action_new);
   if (offset_orig != offset)
   {
     TRACE("OU noise affected PADA choise. This is correct if it happens once in a while.");
@@ -279,7 +280,7 @@ size_t PadaOrnsteinUhlenbeckSampler::sample(double time, const LargeVector &valu
   }
   /////////////////
 
-  offset = discretizer_->discretize(&action_new);
+  offset = discretizer_->discretize(action_new);
   CRAWL(offset);
 
   // Inform pada sampler about the previous action (discretized)
