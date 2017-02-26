@@ -5,7 +5,7 @@
  *      Author: Erik Schuitema
  */
 
-#include "Statistics.h"
+#include <grl/statistics.h>
 #include <math.h>
 #include <float.h>
 #include <algorithm>

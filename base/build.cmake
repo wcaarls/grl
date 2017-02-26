@@ -8,6 +8,7 @@ add_library(${TARGET} SHARED
             ${SRC}/predictor.cpp
             ${SRC}/random_generator.cpp
             ${SRC}/signal.cpp
+            ${SRC}/statistics.cpp
             ${SRC}/agents/fixed.cpp
             ${SRC}/agents/black_box.cpp
             ${SRC}/agents/td.cpp
@@ -19,6 +20,7 @@ add_library(${TARGET} SHARED
             ${SRC}/agents/voluntary.cpp
             ${SRC}/agents/solver.cpp
             ${SRC}/agents/filtering.cpp
+            ${SRC}/agents/communicator_agent.cpp
             ${SRC}/discretizers/uniform.cpp
             ${SRC}/discretizers/peaked.cpp
             ${SRC}/discretizers/split.cpp
@@ -40,6 +42,7 @@ add_library(${TARGET} SHARED
             ${SRC}/environments/flyer2d.cpp
             ${SRC}/environments/puddle.cpp
             ${SRC}/environments/mountain.cpp
+            ${SRC}/environments/communicator_env.cpp
             ${SRC}/experiments/approx_test.cpp
             ${SRC}/experiments/online_learning.cpp
             ${SRC}/experiments/batch_learning.cpp

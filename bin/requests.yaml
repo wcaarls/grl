@@ -587,7 +587,7 @@ behavior/leo_walk:
 behavior/leo_walk_sym:
   description: Leo walking behavior with symmetrical switchers of observations
 communicator/zeromq/pub_sub:
-  description: A zeromq class capable to establish a link by events and send messages asynchronously (publisher/subscriber)
+  description: Zeromq class to establish a link by sending messages asynchronously (publisher/subscriber)
   role:
     type: string
     description: Role of the zeromq (Pub/Sub, Request/Reply)
@@ -619,7 +619,7 @@ communicator/zeromq/pub_sub:
     default: tcp://192.168.1.10:5562
     optional: 1
 communicator/zeromq/request_reply:
-  description: A zeromq class capable to establish a link by events and send messages asynchronously (request/reply)
+  description: Zeromq class to establish a link by sending messages synchronously (request/reply)
   role:
     type: string
     description: Role of the zeromq (Pub/Sub, Request/Reply)
@@ -859,6 +859,14 @@ environment/communicator:
   target_action_dims:
     type: int
     description: Action dimension of a target
+    mutability: system
+    default: 0
+    optional: 1
+    min: 0
+    max: 2147483647
+  benchmark_delays:
+    type: int
+    description: Observation dimension of a target
     mutability: system
     default: 0
     optional: 1
