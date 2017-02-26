@@ -27,11 +27,9 @@
 
 #include <grl/policies/pid.h>
 
-#define P_IVAN(i, o) ((o)*setpoint_.size()+(i))
-
-#define P(i, o) ((i)*outputs_+(o))
-#define I(i, o) (setpoint_.size()*outputs_+P(i, o))
-#define D(i, o) (2*setpoint_.size()*outputs_+P(i, o))
+#define P(i, o)  ((o)*setpoint_.size()+(i))
+#define I(i, o)  (1*setpoint_.size()*outputs_+P(i, o))
+#define D(i, o)  (2*setpoint_.size()*outputs_+P(i, o))
 #define IL(i, o) (3*setpoint_.size()*outputs_+P(i, o))
 
 using namespace grl;
@@ -44,7 +42,7 @@ void PIDPolicy::request(ConfigurationRequest *config)
   config->push_back(CRP("setpoint", "Setpoint", setpoint_, CRP::Online));
   config->push_back(CRP("outputs", "int.action_dims", "Number of outputs", (int)outputs_, CRP::System, 1));
   
-  config->push_back(CRP("p", "P gains ([in1_out1, ..., in1_outN, ..., inN_out1, ..., inN_outN])", p_, CRP::Online));
+  config->push_back(CRP("p", "P gains ([out1_in1, ..., out1_inN, ..., outN_in1, ..., outN_inN])", p_, CRP::Online));
   config->push_back(CRP("i", "I gains", i_, CRP::Online));
   config->push_back(CRP("d", "D gains (use P gain on velocity instead, if available)", d_, CRP::Online));
   config->push_back(CRP("il", "Integration limits", il_, CRP::Online));
@@ -63,6 +61,9 @@ void PIDPolicy::configure(Configuration &config)
     throw bad_param("policy/pid:setpoint");
     
   outputs_ = config["outputs"];
+
+  if (action_min_.size() != action_max_.size() || action_max_.size() != outputs_)
+    throw bad_param("policy/pid:{action_min,action_max,outputs}");
 
   p_ = config["p"].v();
   if (!p_.size())
@@ -145,15 +146,12 @@ void PIDPolicy::act(double time, const Observation &in, Action *out)
     for (size_t ii=0; ii < setpoint_.size(); ++ii)
     {
       double err = setpoint_[ii] - in[ii];
-      /*
       double acc = fmin(ival_[ii*outputs_+oo] + err, params_[IL(ii, oo)]);
       double diff = in[ii] - prev_in_[ii];
       
       u += params_[P(ii, oo)]*err + params_[I(ii, oo)]*acc + params_[D(ii, oo)]*diff;
       
       ival_[ii*outputs_+oo] = acc;
-      */
-      u += params_[P_IVAN(ii, oo)]*err;
     }
     
     (*out)[oo] = fmin(action_max_[oo], fmax(u, action_min_[oo]));
@@ -170,7 +168,7 @@ void PIDTrajectoryPolicy::request(ConfigurationRequest *config)
   config->push_back(CRP("inputs", "int.observation_dims", "Number of inputs", (int)inputs_, CRP::System, 1));
   config->push_back(CRP("outputs", "int.action_dims", "Number of outputs", (int)outputs_, CRP::System, 1));
 
-  config->push_back(CRP("p", "P gains ([in1_out1, ..., in1_outN, ..., inN_out1, ..., inN_outN])", p_, CRP::Online));
+  config->push_back(CRP("p", "P gains ([out1_in1, ..., out1_inN, ..., outN_in1, ..., outN_inN])", p_, CRP::Online));
   config->push_back(CRP("i", "I gains", i_, CRP::Online));
   config->push_back(CRP("d", "D gains (use P gain on velocity instead, if available)", d_, CRP::Online));
   config->push_back(CRP("il", "Integration limits", il_, CRP::Online));
@@ -189,8 +187,8 @@ void PIDTrajectoryPolicy::configure(Configuration &config)
   inputs_ = config["inputs"];
   outputs_ = config["outputs"];
 
-  if (outputs_ != action_min_.size() || action_min_.size() != action_max_.size())
-    throw bad_param("policy/pidt:{outputs,action_min,action_max}");
+  if (action_min_.size() != action_max_.size() || action_max_.size() != outputs_)
+    throw bad_param("policy/pid:{action_min,action_max,outputs}");
 
   p_ = config["p"].v();
   if (!p_.size())
@@ -261,12 +259,12 @@ void PIDTrajectoryPolicy::act(double time, const Observation &in, Action *out)
     for (size_t ii=0; ii < inputs_; ++ii)
     {
       double err = setpoint_[ii] - in[ii];
-//      double acc = fmin(ival_[ii*outputs_+oo] + err, params_[IL(ii, oo)]);
-//      double diff = in[ii] - prev_in_[ii];
-      TRACE(params_[P_IVAN(ii, oo)]);
-      u += params_[P_IVAN(ii, oo)]*err;// + params_[I(ii, oo)]*acc + params_[D(ii, oo)]*diff;
+      double acc = fmin(ival_[ii*outputs_+oo] + err, params_[IL(ii, oo)]);
+      double diff = in[ii] - prev_in_[ii];
+
+      u += params_[P(ii, oo)]*err + params_[I(ii, oo)]*acc + params_[D(ii, oo)]*diff;
       
-//      ival_[ii*outputs_+oo] = acc;
+      ival_[ii*outputs_+oo] = acc;
     }
 
     (*out)[oo] = fmin(action_max_[oo], fmax(u, action_min_[oo]));

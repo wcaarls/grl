@@ -22,14 +22,18 @@ experiment:
     optimizer: 
       type: optimizer/cma
       population: 0
+      sigma: [ 1 ]
       policy: 
-        type: policy/parameterized/pid
-        setpoint: [ 0,0,0,0 ]
+        type: mapping/policy/parameterized/pid
+        setpoint: [0, 0, 0, 0]
         outputs: experiment/environment/task/action_dims
-        p: [  ]
-        i: [  ]
-        d: [  ]
-        il: [  ]
+        p: []
+        i: []
+        d: []
+        il: []
+        action_min: experiment/environment/task/action_min
+        action_max: experiment/environment/task/action_max
   test_agent: 
     type: agent/fixed
     policy: experiment/agent/optimizer/policy
+  save_every: never

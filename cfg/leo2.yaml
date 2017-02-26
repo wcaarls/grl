@@ -12,13 +12,15 @@ experiment:
   agent: 
     type: agent/fixed
     policy: 
-      type: policy/parameterized/pid
+      type: mapping/policy/parameterized/pid
       setpoint: [3.14, 0]
       outputs: 1
       p: [0.5, 0]
       i: [0, 0]
       d: [0, 0]
       il: [0, 0]
+      action_min: experiment/environment/task/action_min
+      action_max: experiment/environment/task/action_max
   test_agent: experiment/agent
 visualizer: 
   type: visualizer/glut

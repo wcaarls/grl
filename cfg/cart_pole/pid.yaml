@@ -19,14 +19,17 @@ experiment:
   agent: 
     type: agent/fixed
     policy: 
-      type: policy/parameterized/pid
-      setpoint: [ 0, 0, 0, 0 ]
+      type: mapping/policy/parameterized/pid
+      setpoint: [0, 0, 0, 0]
       outputs: experiment/environment/task/action_dims
       p: [-10, -50, -6, -10]
-      i: [  ]
-      d: [  ]
-      il: [  ]
+      i: []
+      d: []
+      il: []
+      action_min: experiment/environment/task/action_min
+      action_max: experiment/environment/task/action_max
   test_agent: experiment/agent
+  save_every: never
 visualizer: 
   type: visualizer/glut
 visualization: 
