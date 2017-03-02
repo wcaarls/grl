@@ -46,10 +46,10 @@ void CLeoBhBase::fillLeoState(const Vector &obs, const Vector &action, CLeoState
   leoState.mJointAngles[ljAnkleLeft]  = obs[svLeftAnkleAngle];
   leoState.mJointSpeeds[ljAnkleLeft]	= mJointSpeedFilter[ljAnkleLeft].filter(obs[svLeftAnkleAngleRate]);
 
-  leoState.mFootContacts  = obs[svRightToeContact]  ? LEO_FOOTSENSOR_RIGHT_TOE  : 0;
-  leoState.mFootContacts |= obs[svRightHeelContact] ? LEO_FOOTSENSOR_RIGHT_HEEL : 0;
-  leoState.mFootContacts |= obs[svLeftToeContact]   ? LEO_FOOTSENSOR_LEFT_TOE   : 0;
-  leoState.mFootContacts |= obs[svLeftHeelContact]  ? LEO_FOOTSENSOR_LEFT_HEEL  : 0;
+  leoState.mFootContacts  = obs[svRightToeContact] > 0.5  ? LEO_FOOTSENSOR_RIGHT_TOE  : 0;
+  leoState.mFootContacts |= obs[svRightHeelContact] > 0.5 ? LEO_FOOTSENSOR_RIGHT_HEEL : 0;
+  leoState.mFootContacts |= obs[svLeftToeContact] > 0.5  ? LEO_FOOTSENSOR_LEFT_TOE   : 0;
+  leoState.mFootContacts |= obs[svLeftHeelContact] >0.5 ? LEO_FOOTSENSOR_LEFT_HEEL  : 0;
 
   // required for the correct energy calculation in the reward function
   if (action.size())
@@ -163,7 +163,9 @@ LeoBaseEnvironment::LeoBaseEnvironment() :
   time_test_(0),
   time_learn_(0),
   time0_(0),
-  sub_transition_type_(NULL)
+  pub_ic_signal_(NULL),
+  sub_transition_type_(NULL),
+  measurement_noise_(0)
 {
 }
 
@@ -177,6 +179,8 @@ void LeoBaseEnvironment::request(ConfigurationRequest *config)
   config->push_back(CRP("actuate", "Comma-separated list of action elements provided by an agent", ""));
   config->push_back(CRP("exporter", "exporter", "Optional exporter for transition log (supports time, state, observation, action, reward, terminal)", exporter_, true));
   config->push_back(CRP("sub_transition_type", "signal/vector", "Subscriber to the transition type", sub_transition_type_, true));
+  config->push_back(CRP("pub_ic_signal", "signal/vector", "Publisher of the initialization and contact signal", pub_ic_signal_, true));
+  config->push_back(CRP("measurement_noise", "Additive measurement noise", (double)measurement_noise_, CRP::Configuration));
 
   config->push_back(CRP("observation_dims", "int.observation_dims", "Number of observation dimensions", CRP::Provided));
   config->push_back(CRP("observation_min", "vector.observation_min", "Lower limit on observations", CRP::Provided));
@@ -193,6 +197,8 @@ void LeoBaseEnvironment::configure(Configuration &config)
 
   bh_ = (CLeoBhBase*)config["behavior"].ptr();
   sub_transition_type_ = (VectorSignal*)config["sub_transition_type"].ptr();
+  pub_ic_signal_ = (VectorSignal*)config["pub_ic_signal"].ptr();
+  measurement_noise_ = config["measurement_noise"];
 
   // Setup path to a configuration file
   xml_ = config["xml"].str();
@@ -203,7 +209,7 @@ void LeoBaseEnvironment::configure(Configuration &config)
 
   exporter_ = (Exporter*) config["exporter"].ptr();
   if (exporter_)
-    exporter_->init({"time", "state0", "state1", "action", "reward", "terminal", "transition_type"});
+    exporter_->init({"time", "state0", "state1", "action", "reward", "terminal", "transition_type", "contact"});
 
   // Process configuration of Leo
   CXMLConfiguration xmlConfig;
@@ -274,9 +280,11 @@ void LeoBaseEnvironment::step(double tau, double reward, int terminal)
   if (exporter_)
   {
     // transition type
-    LargeVector tt;
+    Vector tt, ic;
     if (sub_transition_type_)
       tt = sub_transition_type_->get();
+    if (pub_ic_signal_)
+      ic = VectorConstructor(pub_ic_signal_->get()[0]);
 
     std::vector<double> s0(bh_->getPreviousSTGState()->mJointAngles, bh_->getPreviousSTGState()->mJointAngles + ljNumJoints);
     std::vector<double> v0(bh_->getPreviousSTGState()->mJointSpeeds, bh_->getPreviousSTGState()->mJointSpeeds + ljNumJoints);
@@ -289,7 +297,7 @@ void LeoBaseEnvironment::step(double tau, double reward, int terminal)
     toVector(a, av);
 
     exporter_->write({grl::VectorConstructor(time), s0v,  s1v,
-                      av, grl::VectorConstructor(reward), grl::VectorConstructor(terminal), tt
+                      av, grl::VectorConstructor(reward), grl::VectorConstructor(terminal), tt, ic
                      });
   }
 
@@ -389,6 +397,13 @@ void LeoBaseEnvironment::ensure_bounds(Vector *action) const
       (*action)[i] = fmin(fmax((*action)[i], -max_torque), max_torque);
     }
   }
+}
+
+void LeoBaseEnvironment::add_measurement_noise(Vector *state) const
+{
+  Rand rd;
+  for (size_t ii=0; ii < state->size(); ++ii)
+    (*state)[ii] += rd.getUniform(-measurement_noise_, measurement_noise_);
 }
 
 int LeoBaseEnvironment::findVarIdx(const std::vector<CGenericStateVar> &genericStates, std::string query) const

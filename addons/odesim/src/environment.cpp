@@ -204,7 +204,7 @@ double ODESTGEnvironment::step(const Action &action, Observation *obs, double *r
   
   if (!listener_.waitForNewState())
     throw Exception("Error getting next state from simulator");
-    
+
   obs->v.resize(sensors_.size());
   for (size_t ii=0; ii < sensors_.size(); ++ii)
     (*obs)[ii] = sensors_[ii].evaluate(listener_.getState());

@@ -61,7 +61,6 @@ class LeoWalkEnvironment: public LeoBaseEnvironment
     
   protected:
     int requested_action_dims_;
-    VectorSignal *pub_ic_signal_;
 };
 
 }

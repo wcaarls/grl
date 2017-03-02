@@ -234,7 +234,7 @@ agent/leo/sma:
     mutability: configuration
     default: 0
     optional: 1
-  pub_ic_signal:
+  sub_ic_signal:
     type: signal/vector
     description: Subscriber to the contact signal
     mutability: configuration
@@ -936,6 +936,20 @@ environment/leo_squat:
     mutability: configuration
     default: 0
     optional: 1
+  pub_ic_signal:
+    type: signal/vector
+    description: Publisher of the initialization and contact signal
+    mutability: configuration
+    default: 0
+    optional: 1
+  measurement_noise:
+    type: double
+    description: Additive measurement noise
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
   observation_dims:
     type: int.observation_dims
     description: Number of observation dimensions
@@ -1004,6 +1018,20 @@ environment/leo_walk:
     mutability: configuration
     default: 0
     optional: 1
+  pub_ic_signal:
+    type: signal/vector
+    description: Publisher of the initialization and contact signal
+    mutability: configuration
+    default: 0
+    optional: 1
+  measurement_noise:
+    type: double
+    description: Additive measurement noise
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 1
   observation_dims:
     type: int.observation_dims
     description: Number of observation dimensions
@@ -1028,12 +1056,6 @@ environment/leo_walk:
     type: vector.action_max
     description: Upper limit on actions
     mutability: provided
-  pub_ic_signal:
-    type: signal/vector
-    description: Publisher of the initialization and contact signal
-    mutability: configuration
-    default: 0
-    optional: 1
 environment/modeled:
   description: Environment that uses a state transition model internally
   model:
@@ -1624,7 +1646,7 @@ mapping/policy/feed_forward:
     type: mapping
     description: Maps time to controls
     mutability: configuration
-    default: 0x2086100
+    default: 0x1220100
     optional: 1
 mapping/policy/mcts:
   description: Monte-Carlo Tree Search policy

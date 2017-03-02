@@ -147,20 +147,17 @@ std::string LeoBhWalkSym::getProgressReport(double trialTime)
 /////////////////////////////////
 
 LeoWalkEnvironment::LeoWalkEnvironment()
-  : pub_ic_signal_(NULL)
 {
 }
 
 void LeoWalkEnvironment::request(ConfigurationRequest *config)
 {
   LeoBaseEnvironment::request(config);
-  config->push_back(CRP("pub_ic_signal", "signal/vector", "Publisher of the initialization and contact signal", pub_ic_signal_, true));
 }
 
 void LeoWalkEnvironment::configure(Configuration &config)
 {
   LeoBaseEnvironment::configure(config);
-  pub_ic_signal_ = (VectorSignal*)config["pub_ic_signal"].ptr();
 
   // Augmenting state with a direction indicator variable, e.g: sit down or stand up
   const TargetInterface &interface = bh_->getInterface();
@@ -201,6 +198,9 @@ void LeoWalkEnvironment::start(int test, Observation *obs)
   LeoBaseEnvironment::start(test);
 
   target_env_->start(test_, &target_obs_);
+
+  add_measurement_noise(&target_obs_.v);
+  CRAWL(target_obs_);
 
   // Parse obs into CLeoState (Start with left leg being the stance leg)
   bh_->fillLeoState(target_obs_, Vector(), leoState_);
@@ -245,6 +245,9 @@ double LeoWalkEnvironment::step(const Action &action, Observation *obs, double *
 
   TRACE("Target action " << target_action_);
   double tau = target_env_->step(target_action_, &target_obs_, reward, terminal);
+  CRAWL(target_obs_);
+
+  add_measurement_noise(&target_obs_.v);
   CRAWL(target_obs_);
 
   // Filter joint speeds

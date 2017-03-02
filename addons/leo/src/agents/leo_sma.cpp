@@ -42,7 +42,7 @@ void LeoStateMachineAgent::request(ConfigurationRequest *config)
   config->push_back(CRP("upright_trigger", "trigger", "Trigger which finishes stand-up phase and triggers preparation agent", upright_trigger_, false));
   config->push_back(CRP("fc_trigger", "trigger", "Trigger which checks for foot contact to ensure that robot is prepared to walk", foot_contact_trigger_, false));
   config->push_back(CRP("starter_trigger", "trigger", "Trigger which initiates a preprogrammed walking at the beginning", starter_trigger_, true));
-  config->push_back(CRP("pub_ic_signal", "signal/vector", "Subscriber to the contact signal", sub_ic_signal_, true));
+  config->push_back(CRP("sub_ic_signal", "signal/vector", "Subscriber to the contact signal", sub_ic_signal_, true));
 }
 
 void LeoStateMachineAgent::configure(Configuration &config)
@@ -55,7 +55,7 @@ void LeoStateMachineAgent::configure(Configuration &config)
   upright_trigger_ = (Trigger*)config["upright_trigger"].ptr();
   foot_contact_trigger_ = (Trigger*)config["fc_trigger"].ptr();
   starter_trigger_ = (Trigger*)config["starter_trigger"].ptr();
-  sub_ic_signal_ = (VectorSignal*)config["pub_ic_signal"].ptr();
+  sub_ic_signal_ = (VectorSignal*)config["sub_ic_signal"].ptr();
 }
 
 void LeoStateMachineAgent::reconfigure(const Configuration &config)
@@ -85,11 +85,16 @@ void LeoStateMachineAgent::step(double tau, const Observation &obs, double rewar
       if (foot_contact_trigger_->check(time_, fc))
       {
         if (agent_starter_ && starter_trigger_ && !starter_trigger_->check(time_, Vector()))
+        {
           agent_ = agent_starter_;
+          INFO("Starter!");
+        }
         else
+        {
           agent_ = agent_main_;
+          INFO("Main direct!");
+        }
         agent_->start(obs, action);
-        INFO("Contact!");
         return;
       }
     }

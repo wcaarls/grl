@@ -33,7 +33,7 @@ def main():
     parser.add_argument('filename')
     args = parser.parse_args()
 
-    data = np.loadtxt(args.filename, skiprows=45, delimiter=',')
+    data = np.loadtxt(args.filename, skiprows=44, delimiter=',')
     ts = data[:, 0]       # time
     xs = data[:, 1:17]    # states
     nxs = np.empty(xs.shape)

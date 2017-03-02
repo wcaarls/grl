@@ -193,14 +193,17 @@ class LeoBaseEnvironment: public Environment
     Observation target_obs_;
     Action target_action_;
     Vector target_action_min_, target_action_max_;
+    VectorSignal *pub_ic_signal_;
 
     // Exporter
     Exporter *exporter_;
     int test_;
     double time_test_, time_learn_, time0_;
+    double measurement_noise_;
 
   protected:
     void ensure_bounds(Vector *action) const;
+    void add_measurement_noise(Vector *state) const;
 
     int findVarIdx(const std::vector<CGenericStateVar> &genericStates, std::string query) const;
 

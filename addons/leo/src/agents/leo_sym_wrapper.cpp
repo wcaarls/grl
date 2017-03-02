@@ -119,6 +119,8 @@ int LeoSymWrapperAgent::stanceLegLeft() const
     else
       signal << signal[0], ti_actuator_sym, ti_actuator;
     sub_ic_signal_->set(signal);
+
+    INFO("LeoSymWrapperAgent : TouchDown");
   }
 
   return stl;

@@ -36,7 +36,7 @@
 		<s>surface</s>
 	</strings>
 	<appLogLevel info="2" warn="4" err="5">0</appLogLevel>
-  <loglevel info="2" warn="4" err="5">error</loglevel>
+        <loglevel info="2" warn="4" err="5">error</loglevel>
 	<learner>
 		<lifeTime comment="in seconds">36000</lifeTime>
 		<autoSavePolicy>true</autoSavePolicy>
