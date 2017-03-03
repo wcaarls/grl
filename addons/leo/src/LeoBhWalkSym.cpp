@@ -75,10 +75,6 @@ CLeoBhWalkSym::CLeoBhWalkSym(ISTGActuation *actuationInterface):
   mMultiResScaleFact            = -1.0;
   mContinueAfterFall            = false;
 
-//  mNumActionsPerJoint        = 7;
-//  mScaleFactVoltage        = 0.2;
-
-  // Set mPreviousAction to 0.0 - this is the initialization value of the torques in the simulator, and probably close to the real robot's situation (although it doesn't matter much)
   for (int iAction=0; iAction<LEOBHWALKSYM_MAX_NUM_ACTIONS; iAction++)
     mPreviousAction[iAction] = 0.0;
 }
@@ -114,12 +110,6 @@ bool CLeoBhWalkSym::readConfig(const CConfigSection &xmlRoot)
   configresult &= mLogAssert(configNode.get("preprogrammedShoulderAngle", &mPreProgShoulderAngle));
   configresult &= mLogAssert(configNode.get("preprogrammedAnkleAngle", &mPreProgAnkleAngle));
 
-  // ivan: The following values are not found in XML
-  //mLogAssert(configNode.get("preprogrammedStanceKneeAngle", &mPreProgStanceKneeAngle));
-  //mLogAssert(configNode.get("preprogrammedEarlySwingTime", &mPreProgEarlySwingTime));
-  //mLogAssert(configNode.get("preprogrammedExploreRate", &mPreProgExploreRate));
-
-
   double timeSeconds = 0;
   configresult &= mLogAssert(configNode.get("trialTimeoutSeconds", &timeSeconds));
   mTrialTimeout = (uint64_t)(timeSeconds*1E6);
@@ -138,15 +128,8 @@ bool CLeoBhWalkSym::readConfig(const CConfigSection &xmlRoot)
   configresult &= mLogAssert(configNode.get("scaleFactKneeStanceAngleRate",	&mScaleFactKneeStanceAngleRate));
   configresult &= mLogAssert(configNode.get("scaleFactKneeSwingAngle", 		&mScaleFactKneeSwingAngle));
   configresult &= mLogAssert(configNode.get("scaleFactKneeSwingAngleRate",	&mScaleFactKneeSwingAngleRate));
-
   configresult &= mLogAssert(configNode.get("continueAfterFall",	&mContinueAfterFall));
-
-
-
   configNode.get("multiResScaleFact", &mMultiResScaleFact);
-
-//  configresult &= mLogAssert(configNode.get("numActionsPerJoint", &mNumActionsPerJoint));
-//  configresult &= mLogAssert(configNode.get("scaleFactVoltage",	&mScaleFactVoltage));
 
   /////////////
   configNode = xmlRoot.section("ode");
@@ -422,7 +405,7 @@ double CLeoBhWalkSym::calculateReward()
   if (mFootContactNum <= 1)
     reward += -2;
 
-  // Footstep reward (calculation is a little bit more complicated -> separate function)
+  // Footstep reward
   reward += getFootstepReward();
 
   // Foot clearance reward
@@ -453,8 +436,9 @@ double CLeoBhWalkSym::calculateReward()
   }
 
   // Reward for keeping torso upright
-  double torsoReward = mRwTorsoUpright * 1.0/(1.0 + (getCurrentSTGState()->mJointAngles[ljTorso] - mRwTorsoUprightAngle)*(getCurrentSTGState()->mJointAngles[ljTorso] - mRwTorsoUprightAngle)/(mRwTorsoUprightAngleMargin*mRwTorsoUprightAngleMargin));
-  //mLogInfoLn("Torso upright reward: " << torsoReward);
+  //double torsoReward = mRwTorsoUpright * 1.0/(1.0 + (getCurrentSTGState()->mJointAngles[ljTorso] - mRwTorsoUprightAngle)*(getCurrentSTGState()->mJointAngles[ljTorso] - mRwTorsoUprightAngle)/(mRwTorsoUprightAngleMargin*mRwTorsoUprightAngleMargin));
+  double torsoReward = mRwTorsoUpright * pow((getCurrentSTGState()->mJointAngles[ljTorso] - mRwTorsoUprightAngle), 2) / pow(mRwTorsoUprightAngleMargin, 2);
+  mLogDebugLn("Torso upright reward: " << torsoReward);
   reward += torsoReward;
 
   // Penalty for both feet touching the floor
