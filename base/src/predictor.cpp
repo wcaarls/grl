@@ -32,7 +32,7 @@ using namespace grl;
 
 void Predictor::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("importer", "importer", "Optional importer for pre-training", importer_, true));
+  config->push_back(CRP("importer", "importer.static", "Optional importer for pre-training", importer_, true));
   config->push_back(CRP("exporter", "exporter", "Optional exporter for transition log (supports observation, action, reward, next_observation, next_action)", exporter_, true));
 }
 

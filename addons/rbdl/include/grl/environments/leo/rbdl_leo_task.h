@@ -40,14 +40,14 @@ enum RbdlLeoState
   rlsAnkleAngle,
   rlsKneeAngle,
   rlsHipAngle,
-  rlsArmAngle,                    // might not be used
+//  rlsArmAngle,                    // might not be used
 
-  rlsDofDim = rlsArmAngle + 1,
+  rlsDofDim = rlsHipAngle + 1,
 
   rlsAnkleAngleRate = rlsDofDim,
   rlsKneeAngleRate,
   rlsHipAngleRate,
-  rlsArmAngleRate,                // might not be used
+//  rlsArmAngleRate,                // might not be used
 
   rlsTime,
   rlsRefRootZ,

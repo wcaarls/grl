@@ -96,7 +96,7 @@ ProjectionPtr MultiProjector::project(const Vector &in) const
         if (ii==dd)
           vp->vector = extend(vp->vector, vp2->vector);
         else
-          vp->vector = extend(vp->vector, ConstantVector(vp2->vector.size(), 0.));
+          vp->vector = extend(vp->vector, ConstantLargeVector(vp2->vector.size(), 0.));
       }
     
       return ProjectionPtr(vp);

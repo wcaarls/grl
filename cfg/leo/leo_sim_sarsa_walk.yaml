@@ -10,7 +10,7 @@ experiment:
     type: environment/leo_walk
     behavior: 
       type: behavior/leo_walk_sym
-    xml: ../../leo/cfg/leo_walk.xml
+    xml: ../../leo/cfg/rx28_vc_leo_walk.xml
     target_env: 
       type: environment/ode
       xml: ../../xml

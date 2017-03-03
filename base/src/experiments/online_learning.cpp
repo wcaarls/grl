@@ -157,7 +157,7 @@ void OnlineLearningExperiment::run()
         CRAWL(action << " - " << reward << " -> " << obs);
         
         total_reward += reward;
-        
+
         if (obs.size())
         {
           if (terminal == 2)

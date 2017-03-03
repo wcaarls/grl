@@ -75,12 +75,12 @@ size_t PadaSampler::sample(double time, const LargeVector &values, ActionType *a
 
   // any action at start
   Vector delta = delta_;
-  if (time == 0.0)
+/*  if (time == 0.0)
   {
     for (int ii = 0; ii < delta.size(); ii++)
       delta[ii] = DBL_MAX;
   }
-
+*/
   // bound possible actions
   LargeVector filtered;
   std::vector<size_t> idx;

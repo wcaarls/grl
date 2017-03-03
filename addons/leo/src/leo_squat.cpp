@@ -229,11 +229,11 @@ void CLeoBhSquat::parseLeoState(const CLeoState &leoState, Vector &obs)
   //std::cout << "Hip height: " << hip_height_ << std::endl;
 }
 
-void CLeoBhSquat::parseLeoAction(const Vector &action, Vector &target_action)
+void CLeoBhSquat::parseLeoAction(const Action &action, Action &target_action)
 {
   for (int i = 0; i < target_action.size(); i++)
-    if (interface_.actuator.voltage[i] != -1)
-      target_action[i] = action( interface_.actuator.voltage[i] );
+    if (interface_.actuator.action[i] != -1)
+      target_action[i] = action[ interface_.actuator.action[i] ];
 
   for (int i = 0; i < interface_.actuator.autoActuated.size(); i++)
   {

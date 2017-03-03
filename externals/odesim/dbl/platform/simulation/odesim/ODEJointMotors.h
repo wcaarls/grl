@@ -28,41 +28,22 @@ class CODEJointMotor: public CODELoggable
 {
 	protected:
 		CODEJoint*		mpJoint;
-		int				mAxisIndex;	// Determines which joint axis this motor actuates (joints can have several axes)
+    int           mAxisIndex;	// Determines which joint axis this motor actuates (joints can have several axes)
 
 	public:
 		CODEJointMotor(CODEJoint* joint);
 		virtual ~CODEJointMotor() { }
 
-		virtual void	setTorque(double torque)	{}
+    virtual void    setTorque(double torque)    {}
 		virtual double  getTorque()                 {return 0;}
-		virtual void	setForce(double force)		{}
-                virtual double  getForce()                  {return 0;}
-		virtual void	setVoltage(double voltage)	{}	// WARNING: This function does not have to be implemented
+    virtual void    setForce(double force)      {}
+    virtual double  getForce()                  {return 0;}
+    virtual void    setVoltage(double voltage)	{}	// WARNING: This function does not have to be implemented
 		virtual double  getVoltage()                {return 0;}
 
-		virtual void	setInitialCondition()		{}	// Updates the internal state of the motor according to the initial state of the connected bodies
-		virtual void	update(double stepTime)	{}
-		virtual bool	readConfig(const CConfigSection &configSection);
-};
-
-// Simple motor that outputs the torque that you want.
-// Extra options: linear damping (proportional to the joint velocity)
-class CODETorqueMotor: public CODEJointMotor
-{
-	protected:
-		double	mTorque;
-		double	mLinearDamping;	// Damping proportional to the joint's angular velocity
-
-	public:
-		CODETorqueMotor(CODEJoint* joint);
-		virtual ~CODETorqueMotor() { }
-
-		void	setTorque(double torque);
-		double  getTorque()			{return mTorque;}
-		double	getLinearDamping()	{return mLinearDamping;}
-		void	update(double stepTime);
-		bool	readConfig(const CConfigSection &configSection);
+    virtual void    setInitialCondition()       {}	// Updates the internal state of the motor according to the initial state of the connected bodies
+    virtual void    update(double stepTime)     {}
+    virtual bool    readConfig(const CConfigSection &configSection);
 };
 
 // Simple motor that outputs the force that you want.
@@ -77,11 +58,11 @@ class CODEForceMotor: public CODEJointMotor
 		CODEForceMotor(CODEJoint* joint);
 		virtual ~CODEForceMotor() { }
 
-		void	setForce(double torque);
-		double  getForce()			{return mForce;}
-		double	getLinearDamping()	{return mLinearDamping;}
-		void	update(double stepTime);
-		bool	readConfig(const CConfigSection &configSection);
+    void    setForce(double torque);
+    double  getForce()                {return mForce;}
+    double	getLinearDamping()        {return mLinearDamping;}
+    void    update(double stepTime);
+    bool    readConfig(const CConfigSection &configSection);
 };
 
 // Current-controlled servo motor
@@ -109,7 +90,7 @@ class CODEServoMotor: public CODEJointMotor
 		double	mGearboxEfficiency;	// Number between 0 and 1
 		double	mSupplyVoltage;
 
-		int		mPrintMod;	// DEBUG var
+    int     mPrintMod;	// DEBUG var
 
 		double	updateVDisc(double stepTime);	// Returns the torque that was applied to the virtual motor disc
 
@@ -117,12 +98,12 @@ class CODEServoMotor: public CODEJointMotor
 		CODEServoMotor(CODEJoint* joint);
 		virtual ~CODEServoMotor();
 
-		void	setVoltage(double voltage);
+    void    setVoltage(double voltage);
 		double  getVoltage() {return mVoltage;}
-		void	setTorque(double torque);
-		void	update(double stepTime);
-		void	setInitialCondition();
-		bool	readConfig(const CConfigSection &configSection);
+    void    setTorque(double torque);
+    void    update(double stepTime);
+    void    setInitialCondition();
+    bool    readConfig(const CConfigSection &configSection);
 };
 
 // This class was originally created to implement the 'endless turn mode' of the Dynamixel.
@@ -132,6 +113,26 @@ class CODEDynamixel: public CODEServoMotor
 	public:
 		CODEDynamixel(CODEJoint* joint);
 		virtual ~CODEDynamixel();
+};
+
+// Simple motor that outputs the torque that you want.
+// Extra options: linear damping (proportional to the joint velocity)
+class CODETorqueMotor: public CODEServoMotor //CODEJointMotor
+{
+  protected:
+    double	mTorque;
+    double	mLinearDamping;	// Damping proportional to the joint's angular velocity
+    double  mStallTorque;
+
+  public:
+    CODETorqueMotor(CODEJoint* joint);
+    virtual ~CODETorqueMotor() { }
+
+    void    setTorque(double torque);
+    double  getTorque()               {return mTorque;}
+    double	getLinearDamping()        {return mLinearDamping;}
+    void    update(double stepTime);
+    bool    readConfig(const CConfigSection &configSection);
 };
 
 // Global class factory function //

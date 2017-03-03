@@ -52,7 +52,6 @@ class OnlineLearningExperiment : public Experiment
     std::string identity_, output_, load_file_;
     std::string save_every_;
 
-
   public:
     OnlineLearningExperiment() : agent_(NULL), test_agent_(NULL), environment_(NULL), state_(NULL), action_(NULL), curve_(NULL), runs_(1), trials_(0), steps_(0), test_interval_(-1), rate_(0), save_every_("never")  { }
 

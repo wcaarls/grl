@@ -27,9 +27,9 @@
 
 #include <grl/policies/pid.h>
 
-#define P(i, o) ((i)*outputs_+(o))
-#define I(i, o) (setpoint_.size()*outputs_+P(i, o))
-#define D(i, o) (2*setpoint_.size()*outputs_+P(i, o))
+#define P(i, o)  ((o)*setpoint_.size()+(i))
+#define I(i, o)  (1*setpoint_.size()*outputs_+P(i, o))
+#define D(i, o)  (2*setpoint_.size()*outputs_+P(i, o))
 #define IL(i, o) (3*setpoint_.size()*outputs_+P(i, o))
 
 using namespace grl;
@@ -42,7 +42,7 @@ void PIDPolicy::request(ConfigurationRequest *config)
   config->push_back(CRP("setpoint", "Setpoint", setpoint_, CRP::Online));
   config->push_back(CRP("outputs", "int.action_dims", "Number of outputs", (int)outputs_, CRP::System, 1));
   
-  config->push_back(CRP("p", "P gains ([in1_out1, ..., in1_outN, ..., inN_out1, ..., inN_outN])", p_, CRP::Online));
+  config->push_back(CRP("p", "P gains ([out1_in1, ..., out1_inN, ..., outN_in1, ..., outN_inN])", p_, CRP::Online));
   config->push_back(CRP("i", "I gains", i_, CRP::Online));
   config->push_back(CRP("d", "D gains (use P gain on velocity instead, if available)", d_, CRP::Online));
   config->push_back(CRP("il", "Integration limits", il_, CRP::Online));
@@ -62,27 +62,30 @@ void PIDPolicy::configure(Configuration &config)
     
   outputs_ = config["outputs"];
 
+  if (action_min_.size() != action_max_.size() || action_max_.size() != outputs_)
+    throw bad_param("policy/pid:{action_min,action_max,outputs}");
+
   p_ = config["p"].v();
   if (!p_.size())
-    p_ = ConstantVector(setpoint_.size()*outputs_, 0.);
+    p_ = ConstantLargeVector(setpoint_.size()*outputs_, 0.);
   if (p_.size() != setpoint_.size()*outputs_)
     throw bad_param("policy/pid:p");
 
   i_ = config["i"].v();
   if (!i_.size())
-    i_ = ConstantVector(setpoint_.size()*outputs_, 0.);
+    i_ = ConstantLargeVector(setpoint_.size()*outputs_, 0.);
   if (i_.size() != setpoint_.size()*outputs_)
     throw bad_param("policy/pid:i");
 
   d_ = config["d"].v();
   if (!d_.size())
-    d_ = ConstantVector(setpoint_.size()*outputs_, 0.);
+    d_ = ConstantLargeVector(setpoint_.size()*outputs_, 0.);
   if (d_.size() != setpoint_.size()*outputs_)
     throw bad_param("policy/pid:d");
 
   il_ = config["il"].v();
   if (!il_.size())
-    il_ = ConstantVector(setpoint_.size()*outputs_, std::numeric_limits<double>::infinity());
+    il_ = ConstantLargeVector(setpoint_.size()*outputs_, std::numeric_limits<double>::infinity());
   if (il_.size() != setpoint_.size()*outputs_)
     throw bad_param("policy/pid:il");
 
@@ -95,13 +98,13 @@ void PIDPolicy::reconfigure(const Configuration &config)
 {
   if (config.has("action") && config["action"].str() == "reset")
   {
-    ival_ = ConstantVector(setpoint_.size()*outputs_, 0.);
+    ival_ = ConstantLargeVector(setpoint_.size()*outputs_, 0.);
   }
 }
 
 void PIDPolicy::act(const Observation &in, Action *out) const
 {
-  out->v.resize(outputs_); 
+  out->v.resize(outputs_);
   out->type = atGreedy;
 
   for (size_t oo=0; oo < outputs_; ++oo)
@@ -126,7 +129,7 @@ void PIDPolicy::act(double time, const Observation &in, Action *out)
   if (time == 0.)
   {
     // First action in episode, clear integrator
-    ival_ = ConstantVector(setpoint_.size()*outputs_, 0.);
+    ival_ = ConstantLargeVector(setpoint_.size()*outputs_, 0.);
     prev_in_ = in;
   }
 
@@ -158,10 +161,11 @@ void PIDPolicy::act(double time, const Observation &in, Action *out)
 void PIDTrajectoryPolicy::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("trajectory", "mapping", "Maps time to setpoints", trajectory_));
+
   config->push_back(CRP("inputs", "int.observation_dims", "Number of inputs", (int)inputs_, CRP::System, 1));
   config->push_back(CRP("outputs", "int.action_dims", "Number of outputs", (int)outputs_, CRP::System, 1));
 
-  config->push_back(CRP("p", "P gains ([in1_out1, ..., in1_outN, ..., inN_out1, ..., inN_outN])", p_, CRP::Online));
+  config->push_back(CRP("p", "P gains ([out1_in1, ..., out1_inN, ..., outN_in1, ..., outN_inN])", p_, CRP::Online));
   config->push_back(CRP("i", "I gains", i_, CRP::Online));
   config->push_back(CRP("d", "D gains (use P gain on velocity instead, if available)", d_, CRP::Online));
   config->push_back(CRP("il", "Integration limits", il_, CRP::Online));
@@ -176,30 +180,34 @@ void PIDTrajectoryPolicy::configure(Configuration &config)
   action_max_ = config["action_max"].v();
 
   trajectory_ = (Mapping*)config["trajectory"].ptr();
+
   inputs_ = config["inputs"];
   outputs_ = config["outputs"];
 
+  if (action_min_.size() != action_max_.size() || action_max_.size() != outputs_)
+    throw bad_param("policy/pid:{action_min,action_max,outputs}");
+
   p_ = config["p"].v();
   if (!p_.size())
-    p_ = ConstantVector(inputs_*outputs_, 0.);
+    p_ = ConstantLargeVector(inputs_*outputs_, 0.);
   if (p_.size() && p_.size() != inputs_*outputs_)
     throw bad_param("policy/pidt:p");
 
   i_ = config["i"].v();
   if (!i_.size())
-    i_ = ConstantVector(inputs_*outputs_, 0.);
+    i_ = ConstantLargeVector(inputs_*outputs_, 0.);
   if (i_.size() && i_.size() != inputs_*outputs_)
     throw bad_param("policy/pidt:i");
 
   d_ = config["d"].v();
   if (!d_.size())
-    d_ = ConstantVector(inputs_*outputs_, 0.);
+    d_ = ConstantLargeVector(inputs_*outputs_, 0.);
   if (d_.size() && d_.size() != inputs_*outputs_)
     throw bad_param("policy/pidt:d");
 
   il_ = config["il"].v();
   if (!il_.size())
-    il_ = ConstantVector(inputs_*outputs_, std::numeric_limits<double>::infinity());
+    il_ = ConstantLargeVector(inputs_*outputs_, std::numeric_limits<double>::infinity());
   if (il_.size() && il_.size() != inputs_*outputs_)
     throw bad_param("policy/pidt:il");
 
@@ -212,7 +220,7 @@ void PIDTrajectoryPolicy::reconfigure(const Configuration &config)
 {
   if (config.has("action") && config["action"].str() == "reset")
   {
-    ival_ = ConstantVector(inputs_*outputs_, 0.);
+    ival_ = ConstantLargeVector(inputs_*outputs_, 0.);
   }
 }
 
@@ -221,12 +229,13 @@ void PIDTrajectoryPolicy::act(double time, const Observation &in, Action *out)
   // Read current setpoint from the trajectory
   trajectory_->read(VectorConstructor(time), &setpoint_);
   
-  CRAWL("Setpoint " << setpoint_);
+  if (setpoint_.size() != inputs_)
+    throw bad_param("policy/pidt:inputs");
 
   if (time == 0.)
   {
     // First action in episode, clear integrator
-    ival_ = ConstantVector(inputs_*outputs_, 0.);
+    ival_ = ConstantLargeVector(inputs_*outputs_, 0.);
     prev_in_ = in;
   }
 
@@ -242,7 +251,7 @@ void PIDTrajectoryPolicy::act(double time, const Observation &in, Action *out)
       double err = setpoint_[ii] - in[ii];
       double acc = fmin(ival_[ii*outputs_+oo] + err, params_[IL(ii, oo)]);
       double diff = in[ii] - prev_in_[ii];
-      
+
       u += params_[P(ii, oo)]*err + params_[I(ii, oo)]*acc + params_[D(ii, oo)]*diff;
       
       ival_[ii*outputs_+oo] = acc;

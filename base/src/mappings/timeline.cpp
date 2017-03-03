@@ -33,7 +33,7 @@ REGISTER_CONFIGURABLE(TimelineMapping)
 
 void TimelineMapping::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("importer", "importer", "Importer with time as the first column", importer_));
+  config->push_back(CRP("importer", "importer.dynamic", "Importer with time as the first column", importer_));
 }
 
 void TimelineMapping::configure(Configuration &config)
@@ -42,8 +42,15 @@ void TimelineMapping::configure(Configuration &config)
   importer_->open();
   
   Vector line;
-  while (importer_->read({&line}))
+  while (importer_->read(&line))
+  {
+    if (data_.size() && data_[data_.size()-1].size() != line.size())
+    {
+      ERROR("Data vectors should be of equal size");
+      throw bad_param("mapping/timeline:importer");
+    }
     data_.push_back(line);
+  }
     
   if (data_.empty())
   {
@@ -97,7 +104,7 @@ double TimelineMapping::read(const Vector &in, Vector *result) const
   }
 
   // Remove time  
-  for (size_t ii=0; ii < data_.size()-1; ++ii)
+  for (size_t ii=0; ii < result->size(); ++ii)
     (*result)[ii] = v[ii+1];
     
   return (*result)[0];

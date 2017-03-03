@@ -71,7 +71,7 @@ CODESim::CODESim():
 	mGravityX			= mGravityY = mGravityZ = 0;
 	mGlobalERP			= 0.2;
 	mGlobalCFM			= 0.0;
-	mTotalStepTime		= 0.1;
+  mTotalStepTime = mStepTime = 0.1;
 	mStepDelay			= 0;
 	mRealtime			= false;
 	mSubsamplingFactor	= 1;
@@ -121,24 +121,24 @@ CODEObject* CODESim::resolveObject(const std::string &objectName)
 	return foundObject;
 }
 
-double CODESim::getStepTime()
+double CODESim::getTotalStepTime()
 {
-	return mTotalStepTime;
+  return mTotalStepTime;
 }
 
-void CODESim::setTiming(double totalStepTime, int subsamplingFactor)
+void CODESim::setTiming(double stepTime, int subsamplingFactor)
 {
-	mTotalStepTime		= totalStepTime;
+  mStepTime		= stepTime;
 	mSubsamplingFactor	= subsamplingFactor;
 
-	mLogDebugLn("Simulator step time set to " << getPartialStepTime() << "*" << getSubsamplingFactor() << " = " << getStepTime());
+  mLogDebugLn("Simulator step time set to " << getPartialStepTime() << "*" << getSubsamplingFactor() << " = " << getTotalStepTime());
 }
 
 void CODESim::setSubsamplingFactor(const int subsamplingFactor)
 {
 	mSubsamplingFactor = subsamplingFactor;
 
-	mLogDebugLn("Simulator step time set to " << getPartialStepTime() << "*" << getSubsamplingFactor() << " = " << getStepTime());
+  mLogDebugLn("Simulator step time set to " << getPartialStepTime() << "*" << getSubsamplingFactor() << " = " << getTotalStepTime());
 }
 
 int CODESim::getSubsamplingFactor()
@@ -209,7 +209,7 @@ void CODESim::incrementTime()
 {
 	for (unsigned int i=0; i<mTimers.size(); i++)
 		if (mTimers[i].enabled)
-			mTimers[i].time += mTotalStepTime;
+      mTimers[i].time += mStepTime;
 }
 
 void CODESim::addObject(CODEObject *pObject)
@@ -227,7 +227,8 @@ bool CODESim::readConfig(const CConfigSection &configSection, bool noObjects)
 	// Clear everything before reading a new configuration
 	clearAll();
 
-	configresult &= mLogAssert(configSection.get("steptime", &mTotalStepTime));
+  configresult &= mLogAssert(configSection.get("steptime", &mTotalStepTime));
+  mStepTime = mTotalStepTime; // have them equal at initialization, i.e. assume no control delays
 	configresult &= mLogAssert(configSection.get("subsamplingfactor",  &mSubsamplingFactor));
 
 	// Missing gravity information should not turn configResult into false

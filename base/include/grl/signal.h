@@ -76,7 +76,7 @@ class Signal : public Configurable
 };
 
 /// Encapsulates a vector (e.g. system state).
-class VectorSignal : public Signal<LargeVector>
+class VectorSignal : public Signal<Vector> // Do we need to have large vector here?
 {
   public:
     TYPEINFO("signal/vector", "Vector-based signal (state, observation, etc.)");

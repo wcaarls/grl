@@ -7,6 +7,10 @@
 \usepackage[usenames,dvipsnames]{color}
 \usepackage{graphicx}
 \usepackage{float}
+\usepackage{alphalph,etoolbox}
+\appto\appendix{% patch \appendix so \AlphAlph is used
+  \renewcommand\thesection{\AlphAlph{\value{section}}}%
+}
 
 \newcommand{\inp}[1]{\texttt{\underline{#1}}}
 \newcommand{\txt}[1]{\texttt{#1}}

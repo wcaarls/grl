@@ -36,7 +36,7 @@ class Importer : public Configurable
 {
   public:
     /// Register header names of variables that will be read.
-    virtual void init(const std::vector<std::string> &list) = 0;
+    virtual void init(const std::vector<std::string> &headers) = 0;
 
     /// Open a file.
     virtual void open(const std::string &variant="") = 0;
@@ -46,7 +46,14 @@ class Importer : public Configurable
      * 
      * The variable list should correspond to the header name.
      */
-    virtual bool read(const std::vector<Vector*> &list) = 0;
+    virtual bool read(const std::vector<Vector*> &vars) = 0;
+
+    /**
+     * \brief Read a line into a single variable.
+     * 
+     * Reads all specified headers.
+     */
+    virtual bool read(Vector *var) = 0;
 };
 
 class CSVImporter : public Importer
@@ -56,23 +63,23 @@ class CSVImporter : public Importer
     
   protected:
     std::string file_;
+    std::string fields_;
     
     std::ifstream stream_;
-    std::vector<size_t> order_;
+    std::vector<int> order_;
     std::vector<std::string> headers_;
 
   public:
-    CSVImporter() { }
-  
     // From Configurable
-    virtual void request(ConfigurationRequest *config);
+    virtual void request(const std::string &role, ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
 
     // From Importer
-    virtual void init(const std::vector<std::string> &list);
+    virtual void init(const std::vector<std::string> &headers);
     virtual void open(const std::string &variant="");
-    virtual bool read(const std::vector<Vector*> &list);
+    virtual bool read(const std::vector<Vector*> &vars);
+    virtual bool read(Vector *var);
 };
 
 }

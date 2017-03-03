@@ -22,7 +22,7 @@ experiment:
         steps: [4]
       projector: 
         type: projector/grid/position
-        discretizer:
+        discretizer: 
           type: discretizer/uniform
           min: experiment/environment/task/observation_min+experiment/environment/task/action_min
           max: experiment/environment/task/observation_max+experiment/environment/task/action_max
@@ -33,8 +33,8 @@ experiment:
         outputs: 1
         communicator: 
           type: communicator/zeromq/request_reply
-          pattern: ZMQ_SYNC_CLI
-          cli: tcp://localhost:5556
+          role: ZMQ_REQ
+          addr: tcp://localhost:5556
       sampler: 
         type: sampler/epsilon_greedy
         rand_max: 0

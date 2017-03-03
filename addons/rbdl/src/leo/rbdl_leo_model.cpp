@@ -145,9 +145,9 @@ double LeoSquattingSandboxModel::step(const Vector &action, Vector *next)
   // auto-actuate arm
   if (action.size() == target_dof_-1)
   {
-    double armVoltage = (14.0/3.3) * 5.0*(-0.26 - state_[rlsArmAngle]);
-    armVoltage = fmin(10.7, fmax(armVoltage, -10.7)); // ensure voltage within limits
-    action_step_ << action, armVoltage;
+    //double armVoltage = (14.0/3.3) * 5.0*(-0.26 - state_[rlsArmAngle]);
+    //armVoltage = fmin(10.7, fmax(armVoltage, -10.7)); // ensure voltage within limits
+    //action_step_ << action, armVoltage;
   }
   else
     action_step_ << action;

@@ -53,10 +53,7 @@ class CLeoBhWalkSym: public CSTGAgentQLeo
     double        mScaleFactKneeSwingAngle;
     double        mScaleFactKneeSwingAngleRate;
     double        mMultiResScaleFact;         // If > 0, multi-resolution tile coding will be used with an additional layer, uniformly scaled with this factor (state space only, not action space)
-
-    // Action space settings
-    int           mNumActionsPerJoint;
-    double        mScaleFactVoltage;
+    bool          mContinueAfterFall;
 
     // Termination variables
     uint64_t      mTrialTimeout;              // Trial timeout time in microseconds
@@ -84,7 +81,9 @@ class CLeoBhWalkSym: public CSTGAgentQLeo
     double        mFootstepLength;
     double        mLastFootstepLength;
     double        mFootClearance;             // Distance of a swing leg to a floor
+    double        mLeftAnklePos, mRightAnklePos;
     uint64_t      mSwingTime;                 // Time since last footstep [us]
+    int           mFootContactNum;
 
     // Performance variables
     int           mNumFootsteps;              // Number of footsteps since last reset

@@ -46,21 +46,34 @@ void CLeoBhBase::fillLeoState(const Vector &obs, const Vector &action, CLeoState
   leoState.mJointAngles[ljAnkleLeft]  = obs[svLeftAnkleAngle];
   leoState.mJointSpeeds[ljAnkleLeft]	= mJointSpeedFilter[ljAnkleLeft].filter(obs[svLeftAnkleAngleRate]);
 
-  leoState.mFootContacts  = obs[svRightToeContact]?LEO_FOOTSENSOR_RIGHT_TOE:0;
-  leoState.mFootContacts |= obs[svRightHeelContact]?LEO_FOOTSENSOR_RIGHT_HEEL:0;
-  leoState.mFootContacts |= obs[svLeftToeContact]?LEO_FOOTSENSOR_LEFT_TOE:0;
-  leoState.mFootContacts |= obs[svLeftHeelContact]?LEO_FOOTSENSOR_LEFT_HEEL:0;
+  leoState.mFootContacts  = obs[svRightToeContact] > 0.5  ? LEO_FOOTSENSOR_RIGHT_TOE  : 0;
+  leoState.mFootContacts |= obs[svRightHeelContact] > 0.5 ? LEO_FOOTSENSOR_RIGHT_HEEL : 0;
+  leoState.mFootContacts |= obs[svLeftToeContact] > 0.5  ? LEO_FOOTSENSOR_LEFT_TOE   : 0;
+  leoState.mFootContacts |= obs[svLeftHeelContact] >0.5 ? LEO_FOOTSENSOR_LEFT_HEEL  : 0;
 
   // required for the correct energy calculation in the reward function
   if (action.size())
   {
-    leoState.mActuationVoltages[ljShoulder]   = action[avLeftArmTorque];
-    leoState.mActuationVoltages[ljHipRight]   = action[avRightHipTorque];
-    leoState.mActuationVoltages[ljHipLeft]    = action[avLeftHipTorque];
-    leoState.mActuationVoltages[ljKneeRight]  = action[avRightKneeTorque];
-    leoState.mActuationVoltages[ljKneeLeft]   = action[avLeftKneeTorque];
-    leoState.mActuationVoltages[ljAnkleRight] = action[avRightAnkleTorque];
-    leoState.mActuationVoltages[ljAnkleLeft]  = action[avLeftAnkleTorque];
+    if (interface_.actuator.mode == amVoltage)
+    {
+      leoState.mActuationVoltages[ljShoulder]   = action[avLeftArmAction];
+      leoState.mActuationVoltages[ljHipRight]   = action[avRightHipAction];
+      leoState.mActuationVoltages[ljHipLeft]    = action[avLeftHipAction];
+      leoState.mActuationVoltages[ljKneeRight]  = action[avRightKneeAction];
+      leoState.mActuationVoltages[ljKneeLeft]   = action[avLeftKneeAction];
+      leoState.mActuationVoltages[ljAnkleRight] = action[avRightAnkleAction];
+      leoState.mActuationVoltages[ljAnkleLeft]  = action[avLeftAnkleAction];
+    }
+    else if (interface_.actuator.mode == amTorque)
+    {
+      leoState.mActuationTorques[ljShoulder]   = action[avLeftArmAction];
+      leoState.mActuationTorques[ljHipRight]   = action[avRightHipAction];
+      leoState.mActuationTorques[ljHipLeft]    = action[avLeftHipAction];
+      leoState.mActuationTorques[ljKneeRight]  = action[avRightKneeAction];
+      leoState.mActuationTorques[ljKneeLeft]   = action[avLeftKneeAction];
+      leoState.mActuationTorques[ljAnkleRight] = action[avRightAnkleAction];
+      leoState.mActuationTorques[ljAnkleLeft]  = action[avLeftAnkleAction];
+    }
   }
 }
 
@@ -150,7 +163,9 @@ LeoBaseEnvironment::LeoBaseEnvironment() :
   time_test_(0),
   time_learn_(0),
   time0_(0),
-  sub_transition_type_(NULL)
+  pub_ic_signal_(NULL),
+  sub_transition_type_(NULL),
+  measurement_noise_(0)
 {
 }
 
@@ -160,10 +175,12 @@ void LeoBaseEnvironment::request(ConfigurationRequest *config)
 
   config->push_back(CRP("xml", "XML configuration filename", xml_));
   config->push_back(CRP("target_env", "environment", "Interaction environment", target_env_));
-  config->push_back(CRP("observe", "string.observe", "Comma-separated list of state elements observed by an agent"));
-  config->push_back(CRP("actuate", "string.actuate", "Comma-separated list of action elements provided by an agent"));
+  config->push_back(CRP("observe", "Comma-separated list of state elements observed by an agent", ""));
+  config->push_back(CRP("actuate", "Comma-separated list of action elements provided by an agent", ""));
   config->push_back(CRP("exporter", "exporter", "Optional exporter for transition log (supports time, state, observation, action, reward, terminal)", exporter_, true));
   config->push_back(CRP("sub_transition_type", "signal/vector", "Subscriber to the transition type", sub_transition_type_, true));
+  config->push_back(CRP("pub_ic_signal", "signal/vector", "Publisher of the initialization and contact signal", pub_ic_signal_, true));
+  config->push_back(CRP("measurement_noise", "Additive measurement noise", (double)measurement_noise_, CRP::Configuration));
 
   config->push_back(CRP("observation_dims", "int.observation_dims", "Number of observation dimensions", CRP::Provided));
   config->push_back(CRP("observation_min", "vector.observation_min", "Lower limit on observations", CRP::Provided));
@@ -180,6 +197,8 @@ void LeoBaseEnvironment::configure(Configuration &config)
 
   bh_ = (CLeoBhBase*)config["behavior"].ptr();
   sub_transition_type_ = (VectorSignal*)config["sub_transition_type"].ptr();
+  pub_ic_signal_ = (VectorSignal*)config["pub_ic_signal"].ptr();
+  measurement_noise_ = config["measurement_noise"];
 
   // Setup path to a configuration file
   xml_ = config["xml"].str();
@@ -190,7 +209,7 @@ void LeoBaseEnvironment::configure(Configuration &config)
 
   exporter_ = (Exporter*) config["exporter"].ptr();
   if (exporter_)
-    exporter_->init({"time", "state0", "state1", "action", "reward", "terminal", "transition_type"});
+    exporter_->init({"time", "state0", "state1", "action", "reward", "terminal", "transition_type", "contact"});
 
   // Process configuration of Leo
   CXMLConfiguration xmlConfig;
@@ -246,14 +265,26 @@ void LeoBaseEnvironment::step(double tau, double reward, int terminal)
   // Export & debug
   std::vector<double> s1(leoState_.mJointAngles, leoState_.mJointAngles + ljNumJoints);
   std::vector<double> v1(leoState_.mJointSpeeds, leoState_.mJointSpeeds + ljNumJoints);
-  std::vector<double> a(leoState_.mActuationVoltages, leoState_.mActuationVoltages + ljNumDynamixels);
+  std::vector<double> a;
+  if (bh_->getActuationInterface()->getActuationMode() == amVoltage)
+    std::copy(&(leoState_.mActuationVoltages[0]), &(leoState_.mActuationVoltages[ljNumDynamixels]), std::back_inserter(a));
+  else if (bh_->getActuationInterface()->getActuationMode() == amTorque)
+    std::copy(&(leoState_.mActuationTorques[0]), &(leoState_.mActuationTorques[ljNumDynamixels]), std::back_inserter(a));
+
+  CRAWL("State angles: " << s1);
+  CRAWL("State velocities: " << v1);
+  CRAWL("Contacts: " << (int)leoState_.mFootContacts);
+  CRAWL("Full action: " << a);
+  CRAWL("Reward: " << reward);
 
   if (exporter_)
   {
     // transition type
-    LargeVector tt;
+    Vector tt, ic;
     if (sub_transition_type_)
       tt = sub_transition_type_->get();
+    if (pub_ic_signal_)
+      ic = VectorConstructor(pub_ic_signal_->get()[0]);
 
     std::vector<double> s0(bh_->getPreviousSTGState()->mJointAngles, bh_->getPreviousSTGState()->mJointAngles + ljNumJoints);
     std::vector<double> v0(bh_->getPreviousSTGState()->mJointSpeeds, bh_->getPreviousSTGState()->mJointSpeeds + ljNumJoints);
@@ -266,15 +297,9 @@ void LeoBaseEnvironment::step(double tau, double reward, int terminal)
     toVector(a, av);
 
     exporter_->write({grl::VectorConstructor(time), s0v,  s1v,
-                      av, grl::VectorConstructor(reward), grl::VectorConstructor(terminal), tt
+                      av, grl::VectorConstructor(reward), grl::VectorConstructor(terminal), tt, ic
                      });
   }
-
-  CRAWL("State angles: " << s1);
-  CRAWL("State velocities: " << v1);
-  CRAWL("Contacts: " << (int)leoState_.mFootContacts);
-  CRAWL("Full action: " << a);
-  CRAWL("Reward: " << reward);
 
   time += tau;
 }
@@ -343,6 +368,44 @@ void LeoBaseEnvironment::configParseObservations(Configuration &config, const st
   bh_->setObserverInterface(int_observer, int_observer_sym);
 }
 
+void LeoBaseEnvironment::ensure_bounds(Vector *action) const
+{
+  // value function without bounds leosim_sarsa_walk_egreedy-run0-nb-_experiment_agent_policy_representation.dat
+  for (int i = 0; i < action->size(); i++)
+  {
+    // first apply formal bounds on action
+    (*action)[i] = fmin(fmax((*action)[i], target_action_min_[i]), target_action_max_[i]);
+
+    if (bh_->getActuationMode() == amTorque)
+    {
+      // second apply Power Supply bound (we cannot supply voltages higher then power supply)
+      double omega;
+      if (bh_->getPreviousSTGState()->isValid())  // We don't have a previous state at the beginning of a trial
+        omega = 0.5*(bh_->getCurrentSTGState()->mJointSpeeds[i] + bh_->getPreviousSTGState()->mJointSpeeds[i]);
+      else
+        omega = bh_->getCurrentSTGState()->mJointSpeeds[i];
+
+      double max_torque = fabs(DXL_TORQUE_CONST*DXL_GEARBOX_RATIO*(LEO_MAX_DXL_VOLTAGE-DXL_TORQUE_CONST*DXL_GEARBOX_RATIO*omega)/DXL_RESISTANCE);
+
+      if (fabs((*action)[i]) > max_torque)
+      {
+        double I = (*action)[i] / (DXL_TORQUE_CONST*DXL_GEARBOX_RATIO);
+        double U = I*DXL_RESISTANCE + DXL_TORQUE_CONST*DXL_GEARBOX_RATIO*omega;
+        //std::cout << "[ensure_bounds] Voltage " << U << " exeeded maximum value;" <<std::endl;
+      }
+
+      (*action)[i] = fmin(fmax((*action)[i], -max_torque), max_torque);
+    }
+  }
+}
+
+void LeoBaseEnvironment::add_measurement_noise(Vector *state) const
+{
+  Rand rd;
+  for (size_t ii=0; ii < state->size(); ++ii)
+    (*state)[ii] += rd.getUniform(-measurement_noise_, measurement_noise_);
+}
+
 int LeoBaseEnvironment::findVarIdx(const std::vector<CGenericStateVar> &genericStates, std::string query) const
 {
   std::vector<CGenericStateVar>::const_iterator gState = genericStates.begin();
@@ -380,7 +443,7 @@ void LeoBaseEnvironment::configParseActions(Configuration &config, const std::ve
   TargetInterface::ActuatorInterface int_actuator, int_actuator_sym;
   std::vector<std::string> actuateList = cutLongStr(config["actuate"].str());
   fillActuate(actuators, actuateList, int_actuator);
-  TRACE("Actuate '" << int_actuator.voltage << "'"); // array which maps target_environment action vector to an agent action vector
+  TRACE("Actuate '" << int_actuator.action << "'"); // array which maps target_environment action vector to an agent action vector
   action_dims_ = actuateList.size();
 
   // mirror left and right legs
@@ -398,9 +461,9 @@ void LeoBaseEnvironment::configParseActions(Configuration &config, const std::ve
   fillActuate(actuators, actuateList_sym, int_actuator_sym);
 
   // mask observation min/max vectors
-  Vector target_action_min, target_action_max, action_min, action_max;
-  config.get("action_min", target_action_min);
-  config.get("action_max", target_action_max);
+  Vector action_min, action_max;
+  config.get("action_min", target_action_min_);
+  config.get("action_max", target_action_max_);
   action_min.resize(action_dims_);
   action_max.resize(action_dims_);
 
@@ -409,12 +472,12 @@ void LeoBaseEnvironment::configParseActions(Configuration &config, const std::ve
     // if we actuate a few joints by the same value, as "knee" from 'actuateList' will actuate both left and right knees
     double min = -std::numeric_limits<double>::max();
     double max = +std::numeric_limits<double>::max();
-    for (int i = 0; i < int_actuator.voltage.size(); i++)
+    for (int i = 0; i < int_actuator.action.size(); i++)
     {
-      if (int_actuator.voltage[i] == j)
+      if (int_actuator.action[i] == j)
       {
-        max = fmin(target_action_max[i], max);
-        min = fmax(target_action_min[i], min);
+        max = fmin(target_action_max_[i], max);
+        min = fmax(target_action_min_[i], min);
       }
     }
 
@@ -433,6 +496,7 @@ void LeoBaseEnvironment::configParseActions(Configuration &config, const std::ve
 
   // Prepare actuator indexes for easy connection between actions of the target environment and agent actions
   bh_->setActuatorInterface(int_actuator, int_actuator_sym);
+  bh_->setActuationMode(int_actuator.mode);
 }
 
 void LeoBaseEnvironment::fillObserve(const std::vector<CGenericStateVar> &genericStates,
@@ -475,8 +539,8 @@ void LeoBaseEnvironment::fillActuate(const std::vector<CGenericActionVar> &gener
                                      const std::vector<std::string> &actuateList,
                                      TargetInterface::ActuatorInterface &int_actuator) const
 {
-  int_actuator.voltage.resize(genericAction.size());
-  for (int i = 0; i < int_actuator.voltage.size(); i++) int_actuator.voltage[i] = -1;
+  int_actuator.action.resize(genericAction.size());
+  for (int i = 0; i < int_actuator.action.size(); i++) int_actuator.action[i] = -1;
   std::vector<std::string>::const_iterator listMember = actuateList.begin();
   std::vector<CGenericActionVar>::const_iterator gAction;
   std::string::const_iterator it;
@@ -495,7 +559,7 @@ void LeoBaseEnvironment::fillActuate(const std::vector<CGenericActionVar> &gener
       {
         it += listMember->size(); // point at the end of substring
         INFO("Adding to the actuation vector: " << name);
-        int_actuator.voltage[i] = j;
+        int_actuator.action[i] = j;
         found = true;
       }
     }
@@ -511,12 +575,12 @@ void LeoBaseEnvironment::fillActuate(const std::vector<CGenericActionVar> &gener
         if (name.find("kneeleft") != std::string::npos)
         {
           INFO("Adding to the actuation vector: " << "kneeleft");
-          int_actuator.voltage[i] = j;
+          int_actuator.action[i] = j;
         }
         if (name.find("kneeright") != std::string::npos)
         {
           INFO("Adding to the actuation vector: " << "kneeright");
-          int_actuator.voltage[i] = j;
+          int_actuator.action[i] = j;
         }
       }
 
@@ -535,9 +599,10 @@ void LeoBaseEnvironment::fillActuate(const std::vector<CGenericActionVar> &gener
     }
   }
 
-  for (int i = 0; i < int_actuator.voltage.size(); i++)
+  // Adding auto-actuated joints
+  for (int i = 0; i < int_actuator.action.size(); i++)
   {
-    if (int_actuator.voltage[i] == -1)
+    if (int_actuator.action[i] == -1)
     {
       std::string name = genericAction[i].name();
       std::replace( name.begin(), name.end(), '.', ' ');
@@ -546,4 +611,16 @@ void LeoBaseEnvironment::fillActuate(const std::vector<CGenericActionVar> &gener
       INFO("Adding auto-actuated joint '" << cuttedName[1] << "'");
     }
   }
+
+  // Assign actuation mode, should be common between all joints
+  gAction = genericAction.begin();
+  ESTGActuationMode actuationMode = gAction->mode();
+  for (gAction++; gAction < genericAction.end(); gAction++)
+    if (actuationMode != gAction->mode())
+    {
+      ERROR("Actuation mode is not coherent between joints, e.g. '" << gAction->name() << "'");
+      throw bad_param("leobase:actuationMode");
+    }
+  int_actuator.mode = actuationMode;
+  INFO("Actuation mode " << int_actuator.mode);
 }

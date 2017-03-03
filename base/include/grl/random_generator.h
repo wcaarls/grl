@@ -112,7 +112,7 @@ class RandomGeneratorNormal : public RandomGenerator
 class RandomGeneratorOrnsteinUhlenbeck : public RandomGenerator
 {
   public:
-    TYPEINFO("random_generator/ornstein_uhlenbeck", "Ornstein–Uhlenbeck Random generator")
+    TYPEINFO("random_generator/ornstein_uhlenbeck", "Ornstein-Uhlenbeck Random generator")
 
   public:
     RandomGeneratorOrnsteinUhlenbeck() : center_(0.), theta_(0.05), sigma_(0.15) { rand_ = new RandGen(); }

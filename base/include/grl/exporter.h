@@ -37,7 +37,7 @@ class Exporter : public Configurable
 {
   public:
     /// Register header names of variables that will be written.
-    virtual void init(const std::vector<std::string> &list) = 0;
+    virtual void init(const std::vector<std::string> &headers) = 0;
     
     /// Open a file.
     virtual void open(const std::string &variant="", bool append=true) = 0;
@@ -47,7 +47,7 @@ class Exporter : public Configurable
      * 
      * The variable list should correspond to the header name.
      */
-    virtual void write(const std::vector<Vector> &list) = 0;
+    virtual void write(const std::vector<Vector> &vars) = 0;
 
     /**
      * \brief Append to a line.

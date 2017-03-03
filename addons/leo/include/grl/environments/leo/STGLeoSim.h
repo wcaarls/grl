@@ -15,12 +15,17 @@ class CSTGLeoSim: public ISTGLeoActuation
 {
 	protected:
     double				mMotorJointVoltages[ljNumDynamixels];
+    double				mMotorJointTorques[ljNumDynamixels];
 
 	public:
     CSTGLeoSim() {}
-    void          setJointVoltage(int jointIndex, double voltage);					// Voltage in [V]
+    void          setJointVoltage(int jointIndex, double voltage);				// in [V]
     double        getJointVoltage(int jointIndex);
     double        getJointMaxVoltage(int jointIndex);
+
+    void          setJointTorque(int jointIndex, double torque);					// in [Nm]
+    double        getJointTorque(int jointIndex);
+//    double        getJointMaxVoltage(int jointIndex);
 };
 
 #endif /* STGLEOSIM_H_ */

@@ -100,13 +100,12 @@ void ActionACPredictor::update(const Transition &transition)
   // (SARSA) obtain tile indices that point to previous observations
   ProjectionPtr cp = critic_projector_->project(transition.prev_obs);
   ProjectionPtr ap = actor_projector_->project(transition.prev_obs);
-  Vector v, u, delta_u, target_u;
+  Vector v, u, target_u;
   
   double target = transition.reward;
   if (transition.action.size())
     target += gamma_*critic_representation_->read(critic_projector_->project(transition.obs), &v);
   double delta = target - critic_representation_->read(cp, &v);
-  
   // Add LLR sample to DB of samples
   critic_representation_->write(cp, VectorConstructor(target), alpha_);
   if (critic_trace_)

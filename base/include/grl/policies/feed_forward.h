@@ -43,7 +43,7 @@ class FeedForwardPolicy : public Policy
     Mapping *controls_;
 
   public:
-    FeedForwardPolicy() { }
+    FeedForwardPolicy() : controls_(NULL) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);

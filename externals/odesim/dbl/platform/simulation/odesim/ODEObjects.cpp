@@ -281,10 +281,10 @@ bool CODEObject::init(dWorld& world)
 
 	return true;	// Do we want to return something else? Can we ever fail?
 }
-
+/*
 void CODEObject::genRandState(std::map<std::string, double> &jointMap)
 {
-  const double C = 1*0.087263889; // 0.087263889 = +/- 5 deg
+  const double C = 4*0.087263889; // 0.087263889 = +/- 5 deg
   double r1 = mRand.getUniform(-C, C);
   double r2 = mRand.getUniform(0, 2*C); // knee cannot be bended outside
   double r3 = mRand.getUniform(-C, C);
@@ -298,6 +298,34 @@ void CODEObject::genRandState(std::map<std::string, double> &jointMap)
   jointMap[std::string("footleft")] = 0;
   jointMap[std::string("footright")] = 0;
   jointMap[std::string("arm")] = r3;
+}
+*/
+
+void CODEObject::genRandState(std::map<std::string, double> &jointMap)
+{
+  const double C = 1*0.087263889; // 0.087263889 = +/- 5 deg
+
+  jointMap[std::string("virtualBoom")] = 0;
+
+  double dt = mRand.getUniform(-C, C);
+  jointMap[std::string("torso")] = dt;
+
+  double dhl = mRand.getUniform(-C, C)+dt;
+  double dhr = mRand.getUniform(-C, C)+dt;
+  jointMap[std::string("upperlegleft")] = dhl;
+  jointMap[std::string("upperlegright")] = dhr;
+
+  double dkl = mRand.getUniform(0, 2*C)+dhl; // knee cannot bend out
+  double dkr = mRand.getUniform(0, 2*C)+dhr;
+  jointMap[std::string("lowerlegleft")] = dkl;
+  jointMap[std::string("lowerlegright")] = dkr;
+
+  double dal = mRand.getUniform(-C, C)+dkl;
+  double dar = mRand.getUniform(-C, C)+dkr;
+  jointMap[std::string("footleft")] = 0;
+  jointMap[std::string("footright")] = dar;
+
+  jointMap[std::string("arm")] = mRand.getUniform(-C, C);
 }
 
 void CODEObject::setInitialCondition(bool randomize)

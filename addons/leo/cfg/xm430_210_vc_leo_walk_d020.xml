@@ -11,19 +11,19 @@
 		<foamtiles>3</foamtiles>
 		<!-- Initial condition for learning, all angles measured with respect to gravity  -->
 		<!-- Don't let the torso lean too much forward; it helps balancing in the beginning -->
-		<leftupperlegICangle sitting="-1.05" standing="-0.1">-0.1</leftupperlegICangle>
-		<rightupperlegICangle sitting="-1.05" standing="-0.1">-0.1</rightupperlegICangle>
-		<leftlowerlegICangle sitting="0.85" standing="0.1">0.1</leftlowerlegICangle>
-		<rightlowerlegICangle sitting="0.85" standing="0.1">0.1</rightlowerlegICangle>
-		<leftfootICangle sitting="0" standing="0">0</leftfootICangle>
-		<rightfootICangle sitting="0" standing="0">0</rightfootICangle>
-		<torsoICangle sitting="0.55" standing="0.1">0.1</torsoICangle>
+		<leftupperlegICangle>0</leftupperlegICangle>
+		<rightupperlegICangle oldvalue="-0.72">-0.72</rightupperlegICangle>
+		<leftlowerlegICangle>0</leftlowerlegICangle>
+		<rightlowerlegICangle oldvalue="0.55">0.55</rightlowerlegICangle>
+		<leftfootICangle>0.0</leftfootICangle>
+		<rightfootICangle oldvalue="rightlowerlegICangle">rightlowerlegICangle</rightfootICangle>
+		<torsoICangle oldvalue="0.35">0.1</torsoICangle>
 		<leofloorheightdata>0.0410;0.0415;0.0415;0.042;0.0425;0.0425;0.043;0.0435;0.0435;0.0435;0.0435;0.044;0.044;0.044;0.044;0.044;0.044;0.0435;0.0435;0.0435;0.044;0.044;0.0445;0.0445;0.0445;0.045;0.045;0.045;0.0455;0.0455;0.0455;0.0455;0.0455;0.0455;0.0455;0.0455;0.0455;0.0455;0.0455;0.0455;0.045;0.045;0.045;0.0445;0.0445;0.0445;0.0445;0.0445;0.0445;0.0445;0.0445;0.044;0.0435;0.0435;0.0435;0.044;0.044;0.0445;0.0445;0.0445;0.0445;0.0445;0.0445;0.0445;0.0445;0.0445;0.0445;0.0435;0.0435;0.043;0.043;0.0425;0.0425;0.0425;0.042;0.042;0.0415;0.0415;0.0415;0.0415;0.0415;0.0415;0.0415;0.0415;0.0415;0.0415;0.0415;0.0415;0.0415;0.042;0.0425;0.0425;0.0425;0.0425;0.0425;0.043;0.043;0.0435;0.043;0.043;0.043;0.0425;0.0425;0.0425;0.042;0.0415;0.0415;0.041;0.0405;0.0405;0.0395;0.0395;0.039;0.0385;0.0385;0.0385;0.0385;0.0385;0.0385;0.0385;0.0385;0.0385;0.0385;0.038;0.0375;0.0375;0.037;0.037;0.0365;0.0365;0.0365;0.036;0.0355;0.036;0.0355;0.0355;0.0355;0.0355;0.0355;0.0355;0.0355;0.0355;0.0355;0.035;0.035;0.0345;0.0345;0.0345;0.0345;0.0345;0.034;0.034;0.034;0.0345;0.0345;0.035;0.0355;0.0355;0.0355;0.036;0.036;0.0365;0.0365;0.037;0.037;0.0375;0.0372;0.0372;0.037;0.037;0.037;0.0375;0.0375;0.038;0.0385;0.039;0.0395;0.04;0.0405;0.041;0.0415;0.0415;0.0415;0.0415;0.0415;0.0415;0.041;0.0405;0.0405;0.0405;0.0405;0.0405;0.0405;0.0405;0.0405;0.0405;0.0405;0.0405;0.0405;0.0405;0.0405;0.0405;0.0405;0.0405;0.0405;0.041;0.041;0.0415;0.0415;0.0415;0.042;0.042;0.0415;0.0415;0.041;0.041;0.0405;0.0405;0.04;0.0395;0.0395;0.039;0.0385;0.0385;0.0385;0.039;0.039;0.0395;0.0395;0.0395;0.04;0.04;0.04;0.04;0.0395;0.04;0.0395;0.0395;0.0395;0.0395;0.039;0.0385;0.0385;0.038;0.038;0.038;0.038;0.0385;0.0385;0.0385;0.0385;0.039;0.038;0.038;0.0395;0.0395;0.0395;0.04;0.04;0.04;0.04;0.04;0.04;0.04;0.04;0.04;0.0405;0.0405;0.0405;0.0405;0.041</leofloorheightdata>
 		<leofloorradius>1.72</leofloorradius>
 		<leofloorlength>2*pi*leofloorradius</leofloorlength>
 		<startheight>0.0410</startheight>
 		<ctrlFrequency>30.0</ctrlFrequency>
-		<maxtorque max="10.7">10.7</maxtorque>
+		<maxvoltage comment="10.7*80%">8.56</maxvoltage>
 	</constants>
 	<strings comment="These strings will not generate parser warnings; they are assumed to be spelled correctly when spelled this way.">
 		<!-- booleans -->
@@ -83,10 +83,11 @@
 		<rewardHipAngleChange>0.0</rewardHipAngleChange>
 		<rewardDoubleStance>0.0</rewardDoubleStance>
 		<rewardStanceSwingFootDist>0.0</rewardStanceSwingFootDist>
-		<rewardTorsoUpright>0.1</rewardTorsoUpright>
-		<rewardTorsoUprightAngle lastvalue="-0.15">0</rewardTorsoUprightAngle>
+		<rewardTorsoUpright>0.0</rewardTorsoUpright>
+		<rewardTorsoUprightAngle lastvalue="-0.15">-0.15</rewardTorsoUprightAngle>
 		<rewardTorsoUprightAngleMargin definition="angle deviation [rad] for which reward is 50%">0.1</rewardTorsoUprightAngleMargin>
-		<trialTimeoutSeconds>9.99</trialTimeoutSeconds>
+		<trialTimeoutSeconds>25</trialTimeoutSeconds>
+		<continueAfterFall>false</continueAfterFall>
 	
 		<!-- state space -->
 		<scaleFactTorsoAngle>2.0*3.58</scaleFactTorsoAngle>
@@ -100,10 +101,10 @@
 		<scaleFactKneeSwingAngle>3.58</scaleFactKneeSwingAngle>
 		<scaleFactKneeSwingAngleRate>0.10</scaleFactKneeSwingAngleRate>
 
-		<!-- action space -->
+		<!-- action space 
 		<numActionsPerJoint>7</numActionsPerJoint>
 		<scaleFactVoltage>0.15</scaleFactVoltage>
-	
+	-->
 		<!-- pre-programmed walking controller settings -->
 		<preprogrammedTorsoAngle>-0.09</preprogrammedTorsoAngle>
 		<preprogrammedHipAngle>0.680</preprogrammedHipAngle>
@@ -138,8 +139,8 @@
 		</statevar>
 		<statevar comment="Left arm angle rate">
 			<expression>robot.shoulder.anglerate</expression>
-			<min>-10*pi</min>
-			<max>10*pi</max>
+			<min>-2.9*pi</min>
+			<max>2.9*pi</max>
 		</statevar>
 		<statevar comment="Right hip angle">
 			<expression>robot.hipright.angle</expression>
@@ -148,8 +149,8 @@
 		</statevar>
 		<statevar comment="Right hip angle rate">
 			<expression>robot.hipright.anglerate</expression>
-			<min>-10*pi</min>
-			<max>10*pi</max>
+			<min>-2.9*pi</min>
+			<max>2.9*pi</max>
 		</statevar>
 		<statevar comment="Left hip angle">
 			<expression>robot.hipleft.angle</expression>
@@ -158,8 +159,8 @@
 		</statevar>
 		<statevar comment="Left hip angle rate">
 			<expression>robot.hipleft.anglerate</expression>
-			<min>-10*pi</min>
-			<max>10*pi</max>
+			<min>-2.9*pi</min>
+			<max>2.9*pi</max>
 		</statevar>
 		<statevar comment="Right knee angle">
 			<expression>robot.kneeright.angle</expression>
@@ -168,8 +169,8 @@
 		</statevar>
 		<statevar comment="Right knee angle rate">
 			<expression>robot.kneeright.anglerate</expression>
-			<min>-10*pi</min>
-			<max>10*pi</max>
+			<min>-2.9*pi</min>
+			<max>2.9*pi</max>
 		</statevar>
 		<statevar comment="Left knee angle">
 			<expression>robot.kneeleft.angle</expression>
@@ -178,8 +179,8 @@
 		</statevar>
 		<statevar comment="Left knee angle rate">
 			<expression>robot.kneeleft.anglerate</expression>
-			<min>-10*pi</min>
-			<max>10*pi</max>
+			<min>-2.9*pi</min>
+			<max>2.9*pi</max>
 		</statevar>
 		<statevar comment="Right ankle angle">
 			<expression>robot.ankleright.angle</expression>
@@ -188,8 +189,8 @@
 		</statevar>
 		<statevar comment="Right ankle angle rate">
 			<expression>robot.ankleright.anglerate</expression>
-			<min>-10*pi</min>
-			<max>10*pi</max>
+			<min>-2.9*pi</min>
+			<max>2.9*pi</max>
 		</statevar>
 		<statevar comment="Left ankle angle">
 			<expression>robot.ankleleft.angle</expression>
@@ -198,8 +199,8 @@
 		</statevar>
 		<statevar comment="Left ankle angle rate">
 			<expression>robot.ankleleft.anglerate</expression>
-			<min>-10*pi</min>
-			<max>10*pi</max>
+			<min>-2.9*pi</min>
+			<max>2.9*pi</max>
 		</statevar>
 		<statevar comment="Right toes contact">
 			<expression>robot.toeright.contact</expression>
@@ -222,47 +223,47 @@
 			<max>1</max>
 		</statevar>
 
-		<actionvar comment="Shoulder torque">
+		<actionvar comment="Shoulder voltage">
 		    <variable>robot.shoulder.voltage</variable>
 		    <expression>x</expression>
-		    <min>-maxtorque</min>
-		    <max>maxtorque</max>
+		    <min>-maxvoltage</min>
+		    <max>maxvoltage</max>
 		</actionvar>
-		<actionvar comment="Right hip torque">
+		<actionvar comment="Right hip voltage">
 		    <variable>robot.hipright.voltage</variable>
 		    <expression>x</expression>
-		    <min>-maxtorque</min>
-		    <max>maxtorque</max>
+		    <min>-maxvoltage</min>
+		    <max>maxvoltage</max>
 		</actionvar>
-		<actionvar comment="Left hip torque">
+		<actionvar comment="Left hip voltage">
 		    <variable>robot.hipleft.voltage</variable>
 		    <expression>x</expression>
-		    <min>-maxtorque</min>
-		    <max>maxtorque</max>
+		    <min>-maxvoltage</min>
+		    <max>maxvoltage</max>
 		</actionvar>
-		<actionvar comment="Right knee torque">
+		<actionvar comment="Right knee voltage">
 		    <variable>robot.kneeright.voltage</variable>
 		    <expression>x</expression>
-		    <min>-maxtorque</min>
-		    <max>maxtorque</max>
+		    <min>-maxvoltage</min>
+		    <max>maxvoltage</max>
 		</actionvar>
-		<actionvar comment="Left knee torque">
+		<actionvar comment="Left knee voltage">
 		    <variable>robot.kneeleft.voltage</variable>
 		    <expression>x</expression>
-		    <min>-maxtorque</min>
-		    <max>maxtorque</max>
+		    <min>-maxvoltage</min>
+		    <max>maxvoltage</max>
 		</actionvar>
-		<actionvar comment="Right ankle torque">
+		<actionvar comment="Right ankle voltage">
 		    <variable>robot.ankleright.voltage</variable>
 		    <expression>x</expression>
-		    <min>-maxtorque</min>
-		    <max>maxtorque</max>
+		    <min>-maxvoltage</min>
+		    <max>maxvoltage</max>
 		</actionvar>
-		<actionvar comment="Left ankle torque">
+		<actionvar comment="Left ankle voltage">
 		    <variable>robot.ankleleft.voltage</variable>
 		    <expression>x</expression>
-		    <min>-maxtorque</min>
-		    <max>maxtorque</max>
+		    <min>-maxvoltage</min>
+		    <max>maxvoltage</max>
 		</actionvar>
 	</policy>
 	<ode>
@@ -273,10 +274,10 @@
 		<!-- The main reason why the step time has to be so small is the relatively low mass/inertia of the feet -->
 		<!-- Unfortunately, it doesn't help to, e.g., disable DC motor inertia simulation, change globalK/D, etc. -->
 		<subsamplingfactor>167</subsamplingfactor>
-		<actuationdelay>0.000</actuationdelay>
+		<actuationdelay comment="in seconds">0.020</actuationdelay>
 		<!-- Merge this configuration with leo's ODE configuration -->
 		<include>
-			<filename>leoconfig.xml</filename>
+			<filename>xm430_210_vc_leoconfig.xml</filename>
 			<path>ode/</path>
 		</include>
 		<object>

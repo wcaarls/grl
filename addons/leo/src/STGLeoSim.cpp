@@ -36,3 +36,17 @@ double CSTGLeoSim::getJointMaxVoltage(int jointIndex)
 	else
     return 0;
 }
+
+double CSTGLeoSim::getJointTorque(int jointIndex)
+{
+  if (jointIndex >= 0 && jointIndex < ljNumDynamixels)
+    return mMotorJointTorques[jointIndex];
+  else
+    return 0;
+}
+
+void CSTGLeoSim::setJointTorque(int jointIndex, double torque)
+{
+  if (jointIndex >= 0 && jointIndex < ljNumDynamixels)
+    mMotorJointTorques[jointIndex] = torque;
+}
