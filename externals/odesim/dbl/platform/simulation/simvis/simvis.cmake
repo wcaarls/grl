@@ -14,5 +14,5 @@ TARGET_LINK_LIBRARIES(${TARGET} dbl_simvis)
 IF (NOT __SIMVIS_CMAKE_INCLUDED)
   SET(__SIMVIS_CMAKE_INCLUDED 1)
 
-  ADD_SUBDIRECTORY(${WORKSPACE_DIR}/dbl/platform/simulation/simvis)
+  ADD_SUBDIRECTORY(${WORKSPACE_DIR}/dbl/platform/simulation/simvis ${CMAKE_BINARY_DIR}/externals/dbl/platform/simulation/simvis)
 ENDIF (NOT __SIMVIS_CMAKE_INCLUDED)

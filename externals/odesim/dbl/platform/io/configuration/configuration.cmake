@@ -13,5 +13,5 @@ TARGET_LINK_LIBRARIES(${TARGET} dbl_configuration)
 IF (NOT __CONFIGURATION_CMAKE_INCLUDED)
   SET(__CONFIGURATION_CMAKE_INCLUDED 1)
 
-  ADD_SUBDIRECTORY(${WORKSPACE_DIR}/dbl/platform/io/configuration)
+  ADD_SUBDIRECTORY(${WORKSPACE_DIR}/dbl/platform/io/configuration ${CMAKE_BINARY_DIR}/externals/dbl/platform/io/configuration)
 ENDIF (NOT __CONFIGURATION_CMAKE_INCLUDED)

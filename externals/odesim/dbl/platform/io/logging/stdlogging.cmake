@@ -12,5 +12,5 @@ TARGET_LINK_LIBRARIES(${TARGET} dbl_stdlogging)
 IF (NOT __STDLOGGING_CMAKE_INCLUDED)
   SET(__STDLOGGING_CMAKE_INCLUDED 1)
 
-  ADD_SUBDIRECTORY(${WORKSPACE_DIR}/dbl/platform/io/logging/std)
+  ADD_SUBDIRECTORY(${WORKSPACE_DIR}/dbl/platform/io/logging/std ${CMAKE_BINARY_DIR}/externals/dbl/platform/io/logging/std)
 ENDIF (NOT __STDLOGGING_CMAKE_INCLUDED)

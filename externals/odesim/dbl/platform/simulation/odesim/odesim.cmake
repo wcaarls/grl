@@ -24,5 +24,5 @@ ENDIF (ODE_LIB)
 IF (NOT __ODESIM_CMAKE_INCLUDED)
   SET(__ODESIM_CMAKE_INCLUDED 1)
 
-  ADD_SUBDIRECTORY(${WORKSPACE_DIR}/dbl/platform/simulation/odesim)
+  ADD_SUBDIRECTORY(${WORKSPACE_DIR}/dbl/platform/simulation/odesim ${CMAKE_BINARY_DIR}/externals/dbl/platform/simulation/odesim)
 ENDIF (NOT __ODESIM_CMAKE_INCLUDED)

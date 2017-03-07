@@ -29,7 +29,7 @@ IF (WITH_GUI)
   IF (NOT __QT_CMAKE_INCLUDED)
     SET(__QT_CMAKE_INCLUDED 1)
 
-    ADD_SUBDIRECTORY(${WORKSPACE_DIR}/dbl/platform/gui/qt)
+    ADD_SUBDIRECTORY(${WORKSPACE_DIR}/dbl/platform/gui/qt ${CMAKE_BINARY_DIR}/externals/dbl/platform/gui/qt)
   ENDIF (NOT __QT_CMAKE_INCLUDED)
 ENDIF (WITH_GUI)
 
