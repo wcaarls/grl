@@ -1,10 +1,8 @@
-#cc_library(
-cc_inc_library(
+cc_library(
     name = "grl",
-#    srcs = ["lib/libgrl.so"],
+    srcs = ["lib/libgrl.so"],
     hdrs = glob(["include/grl/**/*.h", "include/yaml-cpp/**/*.h"]),
-#    strip_include_prefix = "include",
-    prefix = "include",
+    strip_include_prefix = "include",
 )
 
 cc_binary(
