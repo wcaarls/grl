@@ -352,6 +352,18 @@ inline LargeVector extend(const Vector &a, const LargeVector &b)
   return c;
 }
 
+inline LargeVector extend(const LargeVector &a, const Vector &b)
+{
+  LargeVector c(a.size()+b.size());
+
+  for (size_t ii=0; ii < a.size(); ++ii)
+    c[ii] = a[ii];
+  for (size_t ii=0; ii < b.size(); ++ii)
+    c[a.size()+ii] = b[ii];
+
+  return c;
+}
+
 inline LargeVector extend(const LargeVector &a, const LargeVector &b)
 {
   LargeVector c(a.size()+b.size());

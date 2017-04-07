@@ -66,10 +66,10 @@ class EpsilonGreedySampler : public GreedySampler
 
   protected:
     LargeVector epsilon_, distribution_;
-    double distribution_sum_;
+    double distribution_sum_, decay_, decay_rate_, decay_min_;
 
   public:
-    EpsilonGreedySampler() : distribution_sum_(0)
+    EpsilonGreedySampler() : distribution_sum_(0), decay_(1), decay_rate_(1), decay_min_(0)
     {
       epsilon_ = VectorConstructor(0.05);
     }
@@ -80,6 +80,7 @@ class EpsilonGreedySampler : public GreedySampler
     virtual void reconfigure(const Configuration &config);
   
     // From Sampler
+    virtual size_t sample(double time, const LargeVector &values, ActionType *tt=NULL);
     virtual size_t sample(const LargeVector &values, ActionType *tt=NULL) const;
     virtual void distribution(const LargeVector &values, LargeVector *distribution) const;
     

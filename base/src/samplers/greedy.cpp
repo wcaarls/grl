@@ -33,13 +33,11 @@ REGISTER_CONFIGURABLE(EpsilonGreedySampler)
 
 void GreedySampler::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("rand_max", "In case of multiple maximumum values select a random index among them", rand_max_, CRP::Configuration, 0, 1));
 }
 
 void GreedySampler::configure(Configuration &config)
 {
   rand_ = new Rand();
-  rand_max_ = config["rand_max"];
 }
 
 void GreedySampler::reconfigure(const Configuration &config)
@@ -48,27 +46,33 @@ void GreedySampler::reconfigure(const Configuration &config)
 
 size_t GreedySampler::sample(const LargeVector &values, ActionType *at) const
 {
-  size_t mai = 0;
-
-  for (size_t ii=1; ii < values.size(); ++ii)
-    if (values[ii] > values[mai])
-      mai = ii;
-
-  if (rand_max_)
-  {
-    LargeVector same_values = ConstantVector(values.size(), 0);
-    size_t jj = 0;
-    for (size_t ii=0; ii < values.size(); ++ii)
-      if (values[ii] == values[mai])
-        same_values[jj++] = ii;
-
-    if (jj != 0)
-      mai = same_values[rand_->getInteger(jj)];
-  }
-
   if (at)
     *at = atGreedy;
-  return mai;
+  
+  size_t mai = 0, man = 1;
+  for (size_t ii=1; ii < values.size(); ++ii)
+  {
+    if (values[ii] > values[mai])
+    {
+      mai = ii;
+      man = 1;
+    }
+    else if (values[ii] == values[mai])
+      man++;
+  }
+  
+  if (man > 1)
+  {
+    // Multiple indices with same maximum value. Choose randomly.
+    size_t ii = mai;
+    for (int jj = rand_->getInteger(man); jj >=0; ++ii)
+      if (values[ii] == values[mai])
+        --jj;
+
+    return ii-1;
+  }
+  else
+    return mai;
 }
 
 void GreedySampler::distribution(const LargeVector &values, LargeVector *distribution) const
@@ -81,6 +85,8 @@ void EpsilonGreedySampler::request(ConfigurationRequest *config)
 {
   GreedySampler::request(config);
   config->push_back(CRP("epsilon", "Exploration rate (can be defined per action)", epsilon_, CRP::Online));
+  config->push_back(CRP("decay_rate", "Multiplicative decay factor per episode", decay_rate_, CRP::Configuration));
+  config->push_back(CRP("decay_min", "Minimum decay (eps_min = eps*decay_min)", decay_min_, CRP::Configuration));
 }
 
 void EpsilonGreedySampler::configure(Configuration &config)
@@ -88,6 +94,9 @@ void EpsilonGreedySampler::configure(Configuration &config)
   GreedySampler::configure(config);
   
   epsilon_ = config["epsilon"].v();
+  decay_rate_ = config["decay_rate"];
+  decay_min_ = config["decay_min"];
+  decay_ = 1;
   
   if (epsilon_.size() < 1)
     throw bad_param("sampler/epsilon_greedy:epsilon");
@@ -111,6 +120,16 @@ void EpsilonGreedySampler::reconfigure(const Configuration &config)
     distribution_ = calculateBaseDistribution(epsilon_);
     distribution_sum_ = distribution_.sum();
   }
+  
+  if (config.has("action") && config["action"].str() == "reset")
+    decay_ = 1;
+}
+
+size_t EpsilonGreedySampler::sample(double time, const LargeVector &values, ActionType *at)
+{
+  if (time == 0.)
+    decay_ = fmax(decay_*decay_rate_, decay_min_);
+  return sample(values, at);
 }
 
 size_t EpsilonGreedySampler::sample(const LargeVector &values, ActionType *at) const
@@ -125,7 +144,7 @@ size_t EpsilonGreedySampler::sample(const LargeVector &values, ActionType *at) c
     // Find number of eligible actions
     size_t eligible=0;
     for (size_t ii=0; ii < epsilon_.size(); ++ii)
-      if (r < epsilon_[ii])
+      if (r < decay_*epsilon_[ii])
         eligible++;
         
     if (eligible > 0)
@@ -133,7 +152,7 @@ size_t EpsilonGreedySampler::sample(const LargeVector &values, ActionType *at) c
       // Chose one randomly
       size_t ri = rand_->getInteger(eligible);
       for (size_t ii=0; ii < epsilon_.size(); ++ii)
-        if (r < epsilon_[ii])
+        if (r < decay_*epsilon_[ii])
           if (!ri--)
           {
             if (at)
@@ -142,7 +161,7 @@ size_t EpsilonGreedySampler::sample(const LargeVector &values, ActionType *at) c
           }
     }
   }
-  else if (r < epsilon_[0])
+  else if (r < decay_*epsilon_[0])
   {
     if (at)
       *at = atExploratory;
@@ -156,8 +175,8 @@ void EpsilonGreedySampler::distribution(const LargeVector &values, LargeVector *
 {
   if (epsilon_.size() > 1)
   {
-    *distribution = distribution_;
-    (*distribution)[GreedySampler::sample(values)] += 1 - distribution_sum_;
+    *distribution = decay_*distribution_;
+    (*distribution)[GreedySampler::sample(values)] += 1 - decay_*distribution_sum_;
   }
   else
   {
@@ -166,8 +185,8 @@ void EpsilonGreedySampler::distribution(const LargeVector &values, LargeVector *
     for (size_t ii=0; ii < values.size(); ++ii)
     {
       if ((*distribution)[ii] == 1)
-        (*distribution)[ii] = 1-epsilon_[0];
-      (*distribution)[ii] += epsilon_[0]/values.size();
+        (*distribution)[ii] = 1-decay_*epsilon_[0];
+      (*distribution)[ii] += decay_*epsilon_[0]/values.size();
     }
   }
 }
