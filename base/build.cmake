@@ -80,6 +80,7 @@ add_library(${TARGET} SHARED
             ${SRC}/predictors/advantage.cpp
             ${SRC}/predictors/multi.cpp
             ${SRC}/predictors/dpg.cpp
+            ${SRC}/predictors/lspi.cpp
             ${SRC}/projectors/identity.cpp
             ${SRC}/projectors/normalizing.cpp
             ${SRC}/projectors/peaked.cpp

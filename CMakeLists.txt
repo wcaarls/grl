@@ -16,7 +16,7 @@ include_directories(${EIGEN3_INCLUDE_DIRS})
 
 # Use OpenMP if available
 find_package(OpenMP)
-set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-std=c++0x -Wall -Wextra -Wno-sign-compare -Wno-unused-parameter -Wno-variadic-macros -Wno-pedantic ${OpenMP_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-pipe -std=c++0x -Wall -Wextra -Wno-sign-compare -Wno-unused-parameter -Wno-variadic-macros -Wno-pedantic ${OpenMP_CXX_FLAGS}")
 
 # List of modules to build
 set(MODULES base

@@ -79,7 +79,7 @@ struct IndexProjection : public Projection
   virtual VectorProjection vector(size_t size)
   {
     VectorProjection vp;
-    vp.vector.resize(size);
+    vp.vector = Vector::Zero(size);
 
     if (weights.empty())
       for (size_t ii=0; ii < indices.size(); ++ii)
