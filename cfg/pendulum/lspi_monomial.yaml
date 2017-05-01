@@ -24,20 +24,24 @@ experiment:
       type: discretizer/uniform
       min: experiment/task/action_min
       max: experiment/task/action_max
-      steps: [ 3 ]
+      steps: [3]
     projector: 
-      type: projector/rbf
-      input_min: experiment/task/observation_min+experiment/task/action_min
-      input_max: experiment/task/observation_max+experiment/task/action_max
-      steps: [ 11, 11, 3 ]
+      type: projector/split
+      index: [ 0, 0, 1 ]
+      discretizer: experiment/predictor/discretizer
+      projector: 
+        type: projector/monomial
+        operating_input: [ 0, 0 ]
+        degree: 10
+      projector_memory: experiment/predictor/projector/projector/memory
     representation: 
       type: representation/parameterized/linear
-      init_min: [ 0 ]
-      init_max: [ 1 ]
+      init_min: [0]
+      init_max: [1]
       memory: experiment/predictor/projector/memory
       outputs: 1
-      output_min: [  ]
-      output_max: [  ]
+      output_min: []
+      output_max: []
   test_agent: 
     type: agent/fixed
     policy: 

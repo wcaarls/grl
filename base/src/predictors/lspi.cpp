@@ -109,7 +109,7 @@ void LSPIPredictor::finalize()
 
 void LSPIPredictor::rebuild()
 {
-  Eigen::SparseMatrix<double> As(representation_->size(), representation_->size());
+  Matrix As = Matrix::Zero(representation_->size(), representation_->size());
   ColumnVector b = ColumnVector::Zero(representation_->size());
 
   CRAWL("LSPI initialization");
@@ -138,7 +138,7 @@ void LSPIPredictor::rebuild()
       }
     }
       
-    As = As + t.phi * t.phi.transpose();
+    As += t.phi * t.phi.transpose();
     b += t.phi * t.transition.reward;
   }
   
@@ -146,7 +146,7 @@ void LSPIPredictor::rebuild()
   {
     CRAWL("LSPI iteration " << ii << ": constructing");
     
-    Eigen::SparseMatrix<double> A = As;
+    Matrix A = As;
     
     for (size_t jj=0; jj < transitions_.size(); ++jj)
     {
@@ -201,9 +201,6 @@ void LSPIPredictor::rebuild()
     
     // Solve
     CRAWL("LSPI iteration " << ii << ": solving");
-    Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int> > solver;
-    
-    solver.compute(A);
-    representation_->params() = solver.solve(b).array();
+    representation_->params() = A.partialPivLu().solve(b).array();
   }
 }
