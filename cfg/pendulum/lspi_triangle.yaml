@@ -1,0 +1,67 @@
+experiment: 
+  type: experiment/batch_learning
+  runs: 1
+  batches: 10
+  batch_size: 10000
+  rate: 0
+  model: 
+    type: model/dynamical
+    control_step: 0.03
+    integration_steps: 5
+    dynamics: 
+      type: dynamics/pendulum
+  task: 
+    type: task/pendulum/swingup
+    timeout: 2.99
+    randomization: 0
+  predictor: 
+    type: predictor/lspi
+    gamma: 0.97
+    transitions: 100000
+    iterations: 10
+    macro_batch_size: 1
+    discretizer: 
+      type: discretizer/uniform
+      min: experiment/task/action_min
+      max: experiment/task/action_max
+      steps: [ 3 ]
+    projector: 
+      type: projector/rbf/triangle
+      input_min: experiment/task/observation_min+experiment/task/action_min
+      input_max: experiment/task/observation_max+experiment/task/action_max
+      steps: [ 11, 11, 3 ]
+    representation: 
+      type: representation/parameterized/linear
+      init_min: [ 0 ]
+      init_max: [ 1 ]
+      memory: experiment/predictor/projector/memory
+      outputs: 1
+      output_min: [  ]
+      output_max: [  ]
+  test_agent: 
+    type: agent/fixed
+    policy: 
+      type: mapping/policy/value/q
+      discretizer: experiment/predictor/discretizer
+      projector: experiment/predictor/projector
+      representation: experiment/predictor/representation
+      sampler: 
+        type: sampler/greedy
+  observation_min: experiment/task/observation_min
+  observation_max: experiment/task/observation_max
+  action_min: experiment/task/action_min
+  action_max: experiment/task/action_max
+visualizer: 
+  type: visualizer/glut
+visualization: 
+  type: visualization/field/policy/value
+  field_dims: [0, 1]
+  input_min: experiment/task/observation_min
+  input_max: experiment/task/observation_max
+  points: 262144
+  savepoints: 1048576
+  projection: mean
+  policy: experiment/test_agent/policy
+visualization2: 
+  type: visualization/pendulum
+  state: experiment/state

@@ -1,5 +1,5 @@
 /** \file rbf.h
- * \brief Triangular RBF projector header file.
+ * \brief RBF projector header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
  * \date      2016-11-29
@@ -33,12 +33,8 @@
 namespace grl
 {
 
-/// Standard discretization.
 class RBFProjector : public Projector
 {
-  public:
-    TYPEINFO("projector/rbf", "Projection on a grid of triangular radial basis functions")
-    
   protected:
     Vector min_, max_, steps_, delta_;
     IndexVector stride_;
@@ -53,6 +49,35 @@ class RBFProjector : public Projector
 
     // From Projector
     virtual ProjectionLifetime lifetime() const { return plIndefinite; }
+};
+
+class TriangleRBFProjector : public RBFProjector
+{
+  public:
+    TYPEINFO("projector/rbf/triangle", "Projection on a grid of triangular radial basis functions")
+    
+  public:
+    // From Projector
+    virtual ProjectionPtr project(const Vector &in) const;
+};
+
+class GaussianRBFProjector : public RBFProjector
+{
+  public:
+    TYPEINFO("projector/rbf/gauss", "Projection on a grid of Gaussian radial basis functions")
+    
+  protected:
+    double cutoff_, sigma_;
+
+  public:
+    GaussianRBFProjector() : cutoff_(0.001), sigma_(1) { }
+    
+    // From Configurable
+    virtual void request(const std::string &role, ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+
+    // From Projector
     virtual ProjectionPtr project(const Vector &in) const;
 };
 

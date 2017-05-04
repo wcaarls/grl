@@ -27,9 +27,12 @@
 
 #include <grl/projectors/rbf.h>
 
+#define EPS 0.00001
+
 using namespace grl;
 
-REGISTER_CONFIGURABLE(RBFProjector)
+REGISTER_CONFIGURABLE(TriangleRBFProjector)
+REGISTER_CONFIGURABLE(GaussianRBFProjector)
 
 void RBFProjector::request(const std::string &role, ConfigurationRequest *config)
 {
@@ -55,7 +58,7 @@ void RBFProjector::request(const std::string &role, ConfigurationRequest *config
   }
 
   config->push_back(CRP("steps", "Basis functions per dimension", steps_, CRP::Configuration));
-  config->push_back(CRP("memory", "int.memory", "RBF size", CRP::Provided));
+  config->push_back(CRP("memory", "int.memory", "Feature vector size", CRP::Provided));
 }
 
 void RBFProjector::configure(Configuration &config)
@@ -93,10 +96,10 @@ void RBFProjector::reconfigure(const Configuration &config)
 {
 }
 
-ProjectionPtr RBFProjector::project(const Vector &in) const
+ProjectionPtr TriangleRBFProjector::project(const Vector &in) const
 {
   if (in.size() != min_.size())
-    throw bad_param("projector/rbf:{min,max,steps}");
+    throw bad_param("projector/rbf/triangle:{min,max,steps}");
     
   // Number of activated basis functions
   size_t acts = pow(2, steps_.size());
@@ -141,6 +144,67 @@ ProjectionPtr RBFProjector::project(const Vector &in) const
     
     p->indices[ii] = index + diff;
     p->weights[ii] = w;
+  }
+  
+  return ProjectionPtr(p);
+}
+
+void GaussianRBFProjector::request(const std::string &role, ConfigurationRequest *config)
+{
+  RBFProjector::request(role, config);
+
+  config->push_back(CRP("sigma", "Standard deviation normalized to rbf spacing", sigma_, CRP::Configuration));
+  config->push_back(CRP("cutoff", "Activation cutoff", cutoff_, CRP::Configuration));
+}
+
+void GaussianRBFProjector::configure(Configuration &config)
+{
+  RBFProjector::configure(config);
+  
+  sigma_ = config["sigma"];
+  cutoff_ = config["cutoff"];
+}
+
+void GaussianRBFProjector::reconfigure(const Configuration &config)
+{
+  RBFProjector::reconfigure(config);
+}
+
+ProjectionPtr GaussianRBFProjector::project(const Vector &in) const
+{
+  if (in.size() != min_.size())
+    throw bad_param("projector/rbf/gaussian:{min,max,steps}");
+
+  int rbfs = prod(steps_);
+  double sigmasq = sigma_*sigma_;
+  double cutoff_distsq = -sigmasq*std::log(cutoff_);
+
+  IndexProjection *p = new IndexProjection;
+  p->indices.reserve(rbfs);
+  p->weights.reserve(rbfs);
+  
+  // Iterate over all basis functions
+  Vector inmin = (min_-in)/delta_, inmax = (max_-in)/delta_;
+  Vector diff = inmin;
+  for (int ii=0; ii < rbfs; ++ii)
+  {
+    double distsq = dot(diff, diff);
+    
+    if (distsq < cutoff_distsq)
+    {
+      p->indices.push_back(ii);
+      p->weights.push_back(exp(-distsq/sigmasq));
+    }
+            
+    for (int dd=0; dd < steps_.size(); ++dd)
+    {
+      diff[dd] = diff[dd] + 1;
+      
+      if (diff[dd] > (inmax[dd]+EPS))
+        diff[dd] = inmin[dd];
+      else
+        break;
+    }
   }
   
   return ProjectionPtr(p);
