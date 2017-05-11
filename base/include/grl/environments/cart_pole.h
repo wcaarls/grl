@@ -46,8 +46,11 @@ class CartPoleDynamics : public Dynamics
 
   public:
     double g_, mass_cart_, mass_pole_, total_mass_, length_,pole_mass_length_, force_mag_, tau_;
+    int end_stop_;
   
   public:
+    CartPoleDynamics() : end_stop_(1) { }
+  
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
@@ -65,11 +68,11 @@ class CartPoleSwingupTask : public Task
   
   public:
     double T_;
-    int shaping_, randomization_, end_stop_penalty_;
+    int shaping_, randomization_, action_penalty_, end_stop_penalty_;
     double gamma_;
   
   public:
-    CartPoleSwingupTask() : T_(9.99), shaping_(0), randomization_(0), end_stop_penalty_(1), gamma_(1.0) { }
+    CartPoleSwingupTask() : T_(9.99), shaping_(0), randomization_(0), action_penalty_(0), end_stop_penalty_(1), gamma_(1.0) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);
