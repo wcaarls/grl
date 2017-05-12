@@ -41,10 +41,10 @@ namespace grl
 {
 
 /// Off-policy value function predictor that converges with function approximation
-class GGQPredictor : public Predictor
+class GGQPredictor : public CriticPredictor
 {
   public:
-    TYPEINFO("predictor/ggq", "Greedy-GQ off-policy value function predictor")
+    TYPEINFO("predictor/critic/ggq", "Greedy-GQ off-policy value function predictor")
 
   protected:
     double alpha_, eta_, gamma_;
@@ -61,8 +61,10 @@ class GGQPredictor : public Predictor
     virtual void reconfigure(const Configuration &config);
     
     // From Predictor
-    virtual void update(const Transition &transition);
     virtual void finalize();
+
+    // From CriticPredictor
+    virtual double criticize(const Transition &transition);
 };
 
 }

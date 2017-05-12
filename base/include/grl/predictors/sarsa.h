@@ -41,10 +41,10 @@ namespace grl
 {
 
 /// Value function predictor using the taken action.
-class SARSAPredictor : public Predictor
+class SARSAPredictor : public CriticPredictor
 {
   public:
-    TYPEINFO("predictor/sarsa", "SARSA on-policy value function predictor")
+    TYPEINFO("predictor/critic/sarsa", "SARSA on-policy value function predictor")
 
   protected:
     double alpha_, gamma_, lambda_;
@@ -61,15 +61,17 @@ class SARSAPredictor : public Predictor
     virtual void reconfigure(const Configuration &config);
     
     // From Predictor
-    virtual void update(const Transition &transition);
     virtual void finalize();
+
+    // From CriticPredictor
+    virtual double criticize(const Transition &transition);
 };
 
 /// Value function predictor using the distribution of a QPolicy.
-class ExpectedSARSAPredictor : public Predictor
+class ExpectedSARSAPredictor : public CriticPredictor
 {
   public:
-    TYPEINFO("predictor/expected_sarsa", "Expected SARSA low-variance on-policy value function predictor")
+    TYPEINFO("predictor/critic/expected_sarsa", "Expected SARSA low-variance on-policy value function predictor")
 
   protected:
     double alpha_, gamma_, lambda_;
@@ -87,8 +89,10 @@ class ExpectedSARSAPredictor : public Predictor
     virtual void reconfigure(const Configuration &config);
 
     // From Predictor
-    virtual void update(const Transition &transition);
     virtual void finalize();
+
+    // From CriticPredictor
+    virtual double criticize(const Transition &transition);
 };
 
 }

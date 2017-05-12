@@ -22,21 +22,23 @@ experiment:
     planning_steps: 200
     planning_horizon: 100
     policy: 
-      type: policy/value/q
+      type: mapping/policy/value/q
       discretizer: 
         type: discretizer/uniform
         min: experiment/environment/task/action_min
         max: experiment/environment/task/action_max
         steps: [3]
-      projector: 
-        type: projector/sample/ann
-        samples: 4000
-        neighbors: 8
-        locality: 1
-        bucket_size: 10
-        error_bound: 0.01
-        scaling: []
-        inputs: experiment/environment/task/observation_dims+experiment/environment/task/action_dims
+      projector:
+        type: projector/pre/scaling
+        scaling: [1, 0.1, 1]
+        projector: 
+          type: projector/sample/ann
+          samples: 10000
+          neighbors: 12
+          locality: 1
+          bucket_size: 10
+          error_bound: 0.01
+          inputs: experiment/environment/task/observation_dims+experiment/environment/task/action_dims
       representation: 
         type: representation/llr
         ridge: 1e-05
@@ -46,12 +48,12 @@ experiment:
         outputs: 1
         output_min: []
         output_max: []
-        projector: experiment/agent/policy/projector
+        projector: experiment/agent/policy/projector/projector
       sampler: 
         type: sampler/epsilon_greedy
         epsilon: 0.05
     predictor: 
-      type: predictor/sarsa
+      type: predictor/critic/sarsa
       alpha: 0.2
       gamma: 0.97
       lambda: 0.65
@@ -67,14 +69,16 @@ experiment:
       observation_min: experiment/environment/task/observation_min
       observation_max: experiment/environment/task/observation_max
       projector: 
-        type: projector/sample/ann
-        samples: 10000
-        neighbors: 12
-        locality: 1
-        bucket_size: 10
-        error_bound: 0.01
-        scaling: []
-        inputs: experiment/environment/task/observation_dims+experiment/environment/task/action_dims
+        type: projector/pre/scaling
+        scaling: [1, 0.1, 1]
+        projector: 
+          type: projector/sample/ann
+          samples: 10000
+          neighbors: 12
+          locality: 1
+          bucket_size: 10
+          error_bound: 0.01
+          inputs: experiment/environment/task/observation_dims+experiment/environment/task/action_dims
       representation: 
         type: representation/llr
         ridge: 1e-05
@@ -84,7 +88,7 @@ experiment:
         outputs: experiment/environment/task/observation_dims+2
         output_min: []
         output_max: []
-        projector: experiment/agent/model/projector
+        projector: experiment/agent/model/projector/projector
     model_predictor: 
       type: predictor/model
       differential: 1
@@ -95,14 +99,11 @@ experiment:
       type: agent/td
       policy: experiment/agent/policy
       predictor: 
-        type: predictor/sarsa
+        type: predictor/critic/sarsa
         alpha: 0.02
         gamma: 0.97
-        lambda: 0
         projector: experiment/agent/policy/projector
         representation: experiment/agent/policy/representation
-        trace: 
-          type: trace/enumerated/replacing
   test_agent: 
     type: agent/fixed
     policy: 
@@ -121,7 +122,7 @@ visualization:
   field_max: experiment/environment/task/observation_max
   output_dim: 0
   points: 65536
-  projector: experiment/agent/policy/projector
+  projector: experiment/agent/policy/projector/projector
 visualization2: 
   type: visualization/field/mapping
   field_dims: [0, 1]

@@ -20,7 +20,7 @@ experiment:
   agent: 
     type: agent/fixed
     policy: 
-      type: policy/mcts
+      type: mapping/policy/mcts
       model: 
         type: observation_model/fixed
         model: experiment/environment/model

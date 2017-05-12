@@ -46,7 +46,7 @@ experiment:
   test_agent: 
     type: agent/fixed
     policy: 
-      type: policy/value/q
+      type: mapping/policy/value/q
       discretizer: experiment/predictor/discretizer
       projector: experiment/predictor/projector
       representation: experiment/predictor/representation

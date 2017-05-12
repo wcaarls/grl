@@ -41,10 +41,10 @@ namespace grl
 {
 
 /// Value function predictor using state-values.
-class TDPredictor : public Predictor
+class TDPredictor : public CriticPredictor
 {
   public:
-    TYPEINFO("predictor/td", "TD value function predictor")
+    TYPEINFO("predictor/critic/td", "TD value function predictor")
 
   protected:
     double alpha_, gamma_, lambda_;
@@ -62,8 +62,10 @@ class TDPredictor : public Predictor
     virtual void reconfigure(const Configuration &config);
     
     // From Predictor
-    virtual void update(const Transition &transition);
     virtual void finalize();
+
+    // From CriticPredictor
+    virtual double criticize(const Transition &transition);
 };
 
 }

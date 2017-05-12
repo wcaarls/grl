@@ -33,7 +33,7 @@ REGISTER_CONFIGURABLE(AdvantagePredictor)
 
 void AdvantagePredictor::request(ConfigurationRequest *config)
 {
-  Predictor::request(config);
+  CriticPredictor::request(config);
   
   config->push_back(CRP("alpha", "Learning rate", alpha_));
   config->push_back(CRP("gamma", "Discount rate", gamma_));
@@ -48,7 +48,7 @@ void AdvantagePredictor::request(ConfigurationRequest *config)
 
 void AdvantagePredictor::configure(Configuration &config)
 {
-  Predictor::configure(config);
+  CriticPredictor::configure(config);
   
   discretizer_ = (Discretizer*)config["discretizer"].ptr();
 
@@ -64,13 +64,13 @@ void AdvantagePredictor::configure(Configuration &config)
 
 void AdvantagePredictor::reconfigure(const Configuration &config)
 {
-  Predictor::reconfigure(config);
+  CriticPredictor::reconfigure(config);
   
   if (config.has("action") && config["action"].str() == "reset")
     finalize();
 }
 
-void AdvantagePredictor::update(const Transition &transition)
+double AdvantagePredictor::criticize(const Transition &transition)
 {
   Predictor::update(transition);
 
@@ -115,11 +115,13 @@ void AdvantagePredictor::update(const Transition &transition)
   }
   
   representation_->finalize();
+
+  return target;
 }
 
 void AdvantagePredictor::finalize()
 {
-  Predictor::finalize();
+  CriticPredictor::finalize();
   
   if (trace_)
     trace_->clear();

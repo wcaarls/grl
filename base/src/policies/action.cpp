@@ -35,6 +35,8 @@ REGISTER_CONFIGURABLE(ActionProbabilityPolicy)
 void ActionPolicy::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("sigma", "Standard deviation of exploration distribution", sigma_, CRP::Configuration));
+  config->push_back(CRP("decay_rate", "Multiplicative decay factor per episode", decay_rate_, CRP::Configuration));
+  config->push_back(CRP("decay_min", "Minimum decay (sigma_min = sigma*decay_min)", decay_min_, CRP::Configuration));
   
   config->push_back(CRP("output_min", "vector.action_min", "Lower limit on outputs", min_, CRP::System));
   config->push_back(CRP("output_max", "vector.action_max", "Upper limit on outputs", max_, CRP::System));
@@ -49,6 +51,9 @@ void ActionPolicy::configure(Configuration &config)
   representation_ = (Representation*)config["representation"].ptr();
   
   sigma_ = config["sigma"].v();
+  decay_rate_ = config["decay_rate"];
+  decay_min_ = config["decay_min"];
+  decay_ = 1.;
   min_ = config["output_min"].v();
   max_ = config["output_max"].v();
   
@@ -67,6 +72,15 @@ void ActionPolicy::configure(Configuration &config)
 
 void ActionPolicy::reconfigure(const Configuration &config)
 {
+  if (config.has("action") && config["action"].str() == "reset")
+    decay_ = 1;
+}
+
+void ActionPolicy::act(double time, const Observation &in, Action *out)
+{
+  if (time == 0.)
+    decay_ = fmax(decay_*decay_rate_, decay_min_);
+  return act(in, out);
 }
 
 void ActionPolicy::act(const Observation &in, Action *out) const
@@ -83,7 +97,7 @@ void ActionPolicy::act(const Observation &in, Action *out) const
   {
     if (sigma_[ii])
     {
-      (*out)[ii] += RandGen::getNormal(0., sigma_[ii]);
+      (*out)[ii] += RandGen::getNormal(0., sigma_[ii]*decay_);
       out->type = atExploratory;
     }
       

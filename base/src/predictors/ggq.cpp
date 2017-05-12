@@ -33,7 +33,7 @@ REGISTER_CONFIGURABLE(GGQPredictor)
 
 void GGQPredictor::request(ConfigurationRequest *config)
 {
-  Predictor::request(config);
+  CriticPredictor::request(config);
 
   config->push_back(CRP("alpha", "Learning rate", alpha_));
   config->push_back(CRP("eta", "Relative secondary learning rate (actual is alpha*eta)", eta_));
@@ -46,7 +46,7 @@ void GGQPredictor::request(ConfigurationRequest *config)
 
 void GGQPredictor::configure(Configuration &config)
 {
-  Predictor::configure(config);
+  CriticPredictor::configure(config);
   
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (Representation*)config["representation"].ptr();
@@ -59,11 +59,10 @@ void GGQPredictor::configure(Configuration &config)
 
 void GGQPredictor::reconfigure(const Configuration &config)
 {
-  Predictor::reconfigure(config);
-  
+  CriticPredictor::reconfigure(config);
 }
 
-void GGQPredictor::update(const Transition &transition)
+double GGQPredictor::criticize(const Transition &transition)
 {
   Predictor::update(transition);
 
@@ -105,9 +104,11 @@ void GGQPredictor::update(const Transition &transition)
     representation_->update(phi_next, VectorConstructor(-alpha_*gamma_*dotwphi, 0.));
     
   representation_->finalize();
+  
+  return target;
 }
 
 void GGQPredictor::finalize()
 {
-  Predictor::finalize();
+  CriticPredictor::finalize();
 }

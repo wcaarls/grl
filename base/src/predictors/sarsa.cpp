@@ -34,7 +34,7 @@ REGISTER_CONFIGURABLE(ExpectedSARSAPredictor)
 
 void SARSAPredictor::request(ConfigurationRequest *config)
 {
-  Predictor::request(config);
+  CriticPredictor::request(config);
   
   config->push_back(CRP("alpha", "Learning rate", alpha_));
   config->push_back(CRP("gamma", "Discount rate", gamma_));
@@ -47,7 +47,7 @@ void SARSAPredictor::request(ConfigurationRequest *config)
 
 void SARSAPredictor::configure(Configuration &config)
 {
-  Predictor::configure(config);
+  CriticPredictor::configure(config);
   
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (Representation*)config["representation"].ptr();
@@ -60,13 +60,13 @@ void SARSAPredictor::configure(Configuration &config)
 
 void SARSAPredictor::reconfigure(const Configuration &config)
 {
-  Predictor::reconfigure(config);
+  CriticPredictor::reconfigure(config);
   
   if (config.has("action") && config["action"].str() == "reset")
     finalize();
 }
 
-void SARSAPredictor::update(const Transition &transition)
+double SARSAPredictor::criticize(const Transition &transition)
 {
   Predictor::update(transition);
 
@@ -87,11 +87,13 @@ void SARSAPredictor::update(const Transition &transition)
   }
   
   representation_->finalize();
+  
+  return target;
 }
 
 void SARSAPredictor::finalize()
 {
-  Predictor::finalize();
+  CriticPredictor::finalize();
   
   if (trace_)
     trace_->clear();
@@ -99,7 +101,7 @@ void SARSAPredictor::finalize()
 
 void ExpectedSARSAPredictor::request(ConfigurationRequest *config)
 {
-  Predictor::request(config);
+  CriticPredictor::request(config);
   
   config->push_back(CRP("alpha", "Learning rate", alpha_));
   config->push_back(CRP("gamma", "Discount rate", gamma_));
@@ -113,7 +115,7 @@ void ExpectedSARSAPredictor::request(ConfigurationRequest *config)
 
 void ExpectedSARSAPredictor::configure(Configuration &config)
 {
-  Predictor::configure(config);
+  CriticPredictor::configure(config);
   
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (Representation*)config["representation"].ptr();
@@ -127,11 +129,10 @@ void ExpectedSARSAPredictor::configure(Configuration &config)
 
 void ExpectedSARSAPredictor::reconfigure(const Configuration &config)
 {
-  Predictor::reconfigure(config);
-  
+  CriticPredictor::reconfigure(config);
 }
 
-void ExpectedSARSAPredictor::update(const Transition &transition)
+double ExpectedSARSAPredictor::criticize(const Transition &transition)
 {
   Predictor::update(transition);
 
@@ -153,11 +154,13 @@ void ExpectedSARSAPredictor::update(const Transition &transition)
   }
   
   representation_->finalize();
+  
+  return target;
 }
 
 void ExpectedSARSAPredictor::finalize()
 {
-  Predictor::finalize();
+  CriticPredictor::finalize();
   
   if (trace_)
     trace_->clear();

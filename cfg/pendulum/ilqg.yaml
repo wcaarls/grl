@@ -24,7 +24,7 @@ experiment:
     type: agent/solver
     interval: 1
     policy: 
-      type: policy/sample_feedback
+      type: mapping/policy/sample_feedback
       output_min: experiment/environment/task/action_min
       output_max: experiment/environment/task/action_max
     solver: 

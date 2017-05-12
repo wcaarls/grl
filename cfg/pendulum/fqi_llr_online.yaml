@@ -20,21 +20,23 @@ experiment:
   agent: 
     type: agent/td
     policy: 
-      type: policy/value/q
+      type: mapping/policy/value/q
       discretizer: 
         type: discretizer/uniform
         min: experiment/environment/task/action_min
         max: experiment/environment/task/action_max
         steps: [3]
       projector: 
-        type: projector/sample/ann
-        samples: 100000
-        neighbors: 20
-        locality: 2
-        bucket_size: 10
-        error_bound: 0.01
+        type: projector/pre/scaling
         scaling: [1, 0.1, 1]
-        inputs: experiment/environment/task/observation_dims+experiment/environment/task/action_dims
+        projector:
+          type: projector/sample/ann
+          samples: 100000
+          neighbors: 20
+          locality: 2
+          bucket_size: 10
+          error_bound: 0.01
+          inputs: experiment/environment/task/observation_dims+experiment/environment/task/action_dims
       representation: 
         type: representation/llr
         ridge: 1e-05
@@ -44,7 +46,7 @@ experiment:
         outputs: 1
         output_min: []
         output_max: []
-        projector: experiment/agent/policy/projector
+        projector: experiment/agent/policy/projector/projector
       sampler: 
         type: sampler/epsilon_greedy
         epsilon: 0.05
@@ -61,7 +63,7 @@ experiment:
   test_agent: 
     type: agent/fixed
     policy: 
-      type: policy/value/q
+      type: mapping/policy/value/q
       discretizer: experiment/agent/policy/discretizer
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
@@ -76,7 +78,7 @@ visualization:
   field_max: [6.28, 3.76]
   output_dim: 0
   points: 65536
-  projector: experiment/agent/policy/projector
+  projector: experiment/agent/policy/projector/projector
 visualization2: 
   type: visualization/pendulum
   state: experiment/environment/state

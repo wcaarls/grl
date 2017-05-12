@@ -33,7 +33,7 @@ REGISTER_CONFIGURABLE(TDPredictor)
 
 void TDPredictor::request(ConfigurationRequest *config)
 {
-  Predictor::request(config);
+  CriticPredictor::request(config);
   
   config->push_back(CRP("alpha", "Learning rate", alpha_));
   config->push_back(CRP("gamma", "Discount rate", gamma_));
@@ -46,7 +46,7 @@ void TDPredictor::request(ConfigurationRequest *config)
 
 void TDPredictor::configure(Configuration &config)
 {
-  Predictor::configure(config);
+  CriticPredictor::configure(config);
   
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (Representation*)config["representation"].ptr();
@@ -59,17 +59,17 @@ void TDPredictor::configure(Configuration &config)
 
 void TDPredictor::reconfigure(const Configuration &config)
 {
-  Predictor::reconfigure(config);
+  CriticPredictor::reconfigure(config);
   
   if (config.has("action") && config["action"].str() == "reset")
     finalize();
 }
 
-void TDPredictor::update(const Transition &transition)
+double TDPredictor::criticize(const Transition &transition)
 {
   Predictor::update(transition);
 
-  ProjectionPtr p = projector_->project(transition.obs);
+  ProjectionPtr p = projector_->project(transition.prev_obs);
   Vector v;
 
   double target = transition.reward;
@@ -86,11 +86,13 @@ void TDPredictor::update(const Transition &transition)
   }
   
   representation_->finalize();
+  
+  return delta;
 }
 
 void TDPredictor::finalize()
 {
-  Predictor::finalize();
+  CriticPredictor::finalize();
   
   if (trace_)
     trace_->clear();

@@ -27,7 +27,7 @@ experiment:
         max: experiment/environment/task/action_max
         steps: [3]
     predictor: 
-      type: predictor/ggq
+      type: predictor/critic/ggq
       alpha: 0.2
       eta: 0.01
       gamma: 0.97
@@ -46,7 +46,7 @@ experiment:
         output_min: []
         output_max: []
       policy: 
-        type: policy/value/q
+        type: mapping/policy/value/q
         discretizer: experiment/agent/policy/discretizer
         projector: experiment/agent/predictor/projector
         representation: experiment/agent/predictor/representation

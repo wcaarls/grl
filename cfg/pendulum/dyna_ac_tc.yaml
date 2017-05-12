@@ -22,7 +22,7 @@ experiment:
     planning_steps: 200
     planning_horizon: 100
     policy: 
-      type: policy/action
+      type: mapping/policy/action
       sigma: [1]
       output_min: experiment/environment/task/action_min
       output_max: experiment/environment/task/action_max
@@ -42,25 +42,25 @@ experiment:
         output_max: experiment/environment/task/action_max
     predictor: 
       type: predictor/ac/action
-      alpha: 0.1
-      beta: 0.005
-      gamma: 0.97
-      lambda: 0.65
-      critic_projector: experiment/agent/policy/projector
-      critic_representation: 
-        type: representation/parameterized/linear
-        init_min: [0]
-        init_max: [1]
-        memory: experiment/agent/policy/projector/memory
-        outputs: 1
-        output_min: []
-        output_max: []
-      critic_trace: 
-        type: trace/enumerated/replacing
-      actor_projector: experiment/agent/policy/projector
-      actor_representation: experiment/agent/policy/representation
-      actor_trace: 
-        type: trace/enumerated/replacing
+      alpha: 0.005
+      critic:
+        type: predictor/critic/td
+        alpha: 0.1
+        gamma: 0.97
+        lambda: 0.65
+        projector: experiment/agent/policy/projector
+        representation: 
+          type: representation/parameterized/linear
+          init_min: [0]
+          init_max: [1]
+          memory: experiment/agent/policy/projector/memory
+          outputs: 1
+          output_min: []
+          output_max: []
+        trace: 
+          type: trace/enumerated/replacing
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
     model: 
       type: observation_model/approximated
       control_step: experiment/environment/model/control_step
@@ -98,22 +98,19 @@ experiment:
       policy: experiment/agent/policy
       predictor: 
         type: predictor/ac/action
-        alpha: 0.01
-        beta: 0.0005
-        gamma: 0.97
-        lambda: 0
-        critic_projector: experiment/agent/predictor/critic_projector
-        critic_representation: experiment/agent/predictor/critic_representation
-        critic_trace: 
-          type: trace/enumerated/replacing
-        actor_projector: experiment/agent/policy/projector
-        actor_representation: experiment/agent/policy/representation
-        actor_trace: 
-          type: trace/enumerated/replacing
+        alpha: 0.0005
+        critic:
+          type: predictor/critic/td
+          alpha: 0.01
+          gamma: 0.97
+          projector: experiment/agent/predictor/critic/projector
+          representation: experiment/agent/predictor/critic/representation
+        projector: experiment/agent/policy/projector
+        representation: experiment/agent/policy/representation
   test_agent: 
     type: agent/fixed
     policy: 
-      type: policy/action
+      type: mapping/policy/action
       sigma: []
       output_min: experiment/environment/task/action_min
       output_max: experiment/environment/task/action_max
@@ -130,7 +127,7 @@ visualization:
   projection: mean
   output_dim: 0
   projector: experiment/agent/policy/projector
-  representation: experiment/agent/predictor/critic_representation
+  representation: experiment/agent/predictor/critic/representation
 visualization2: 
   type: visualization/field/value
   field_dims: [0, 1]

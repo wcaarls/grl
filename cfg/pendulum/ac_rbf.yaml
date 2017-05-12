@@ -20,12 +20,12 @@ experiment:
   agent: 
     type: agent/td
     policy: 
-      type: policy/action
+      type: mapping/policy/action
       sigma: [1]
       output_min: experiment/environment/task/action_min
       output_max: experiment/environment/task/action_max
       projector: 
-        type: projector/rbf
+        type: projector/rbf/triangle
         input_min: experiment/environment/task/observation_min
         input_max: experiment/environment/task/observation_max
         steps: [ 31, 31 ]
@@ -39,26 +39,26 @@ experiment:
         output_max: experiment/environment/task/action_max
     predictor: 
       type: predictor/ac/action
-      alpha: 0.2
-      beta: 0.01
-      gamma: 0.97
-      update_method: proportional
-      step_limit: []
-      critic_projector: experiment/agent/policy/projector
-      critic_representation: 
-        type: representation/parameterized/linear
-        init_min: [0]
-        init_max: [1]
-        memory: experiment/agent/predictor/critic_projector/memory
-        outputs: 1
-        output_min: []
-        output_max: []
-      actor_projector: experiment/agent/policy/projector
-      actor_representation: experiment/agent/policy/representation
+      alpha: 0.01
+      critic:
+        type: predictor/critic/td
+        alpha: 0.2
+        gamma: 0.97
+        projector: experiment/agent/policy/projector
+        representation: 
+          type: representation/parameterized/linear
+          init_min: [0]
+          init_max: [1]
+          memory: experiment/agent/predictor/critic/projector/memory
+          outputs: 1
+          output_min: []
+          output_max: []
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
   test_agent: 
     type: agent/fixed
     policy: 
-      type: policy/action
+      type: mapping/policy/action
       sigma: []
       output_min: experiment/environment/task/action_min
       output_max: experiment/environment/task/action_max
@@ -88,5 +88,5 @@ visualization2:
   state: experiment/state
   projection: mean
   output_dim: 0
-  projector: experiment/agent/predictor/critic_projector
-  representation: experiment/agent/predictor/critic_representation
+  projector: experiment/agent/predictor/critic/projector
+  representation: experiment/agent/predictor/critic/representation

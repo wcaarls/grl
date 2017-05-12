@@ -33,7 +33,7 @@ REGISTER_CONFIGURABLE(QVPredictor)
 
 void QVPredictor::request(ConfigurationRequest *config)
 {
-  Predictor::request(config);
+  CriticPredictor::request(config);
 
   config->push_back(CRP("alpha", "State-action value learning rate", alpha_));
   config->push_back(CRP("beta", "State value learning rate", beta_));
@@ -49,7 +49,7 @@ void QVPredictor::request(ConfigurationRequest *config)
 
 void QVPredictor::configure(Configuration &config)
 {
-  Predictor::configure(config);
+  CriticPredictor::configure(config);
   
   q_projector_ = (Projector*)config["q_projector"].ptr();
   q_representation_ = (Representation*)config["q_representation"].ptr();
@@ -65,13 +65,13 @@ void QVPredictor::configure(Configuration &config)
 
 void QVPredictor::reconfigure(const Configuration &config)
 {
-  Predictor::reconfigure(config);
+  CriticPredictor::reconfigure(config);
   
   if (config.has("action") && config["action"].str() == "reset")
     finalize();
 }
 
-void QVPredictor::update(const Transition &transition)
+double QVPredictor::criticize(const Transition &transition)
 {
   Predictor::update(transition);
 
@@ -101,11 +101,13 @@ void QVPredictor::update(const Transition &transition)
   
   q_representation_->finalize();
   v_representation_->finalize();
+  
+  return delta;
 }
 
 void QVPredictor::finalize()
 {
-  Predictor::finalize();
+  CriticPredictor::finalize();
   
   if (trace_)
     trace_->clear();

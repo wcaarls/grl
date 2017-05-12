@@ -39,13 +39,18 @@ experiment:
         output_max: experiment/environment/task/action_max
     predictor: 
       type: predictor/ac/action
-      alpha: 0.01
+      alpha: 0.001
       critic:
-        type: predictor/critic/td
+        type: predictor/critic/sarsa
         alpha: 0.2
         gamma: 0.97
         lambda: 0.65
-        projector: experiment/agent/policy/projector
+        projector:
+          type: projector/tile_coding
+          tilings: 16
+          memory: 8388608
+          resolution: [0.31415, 3.1415, 1]
+          wrapping: [6.283, 0, 0]
         representation: 
           type: representation/parameterized/linear
           init_min: [0]
@@ -81,8 +86,8 @@ visualization:
 visualization2: 
   type: visualization/field/value
   field_dims: [0, 1]
-  input_min: experiment/environment/task/observation_min
-  input_max: experiment/environment/task/observation_max
+  input_min: experiment/environment/task/observation_min + experiment/environment/task/action_min
+  input_max: experiment/environment/task/observation_max + experiment/environment/task/action_max
   points: 65536
   projection: mean
   output_dim: 0

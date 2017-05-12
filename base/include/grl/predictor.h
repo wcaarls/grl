@@ -58,6 +58,18 @@ class Predictor : public Configurable
     virtual void finalize();
 };
 
+class CriticPredictor : public Predictor
+{
+  public:
+    virtual void update(const Transition &transition)
+    {
+      criticize(transition);
+    }
+    
+    /// Update the estimation. Returns reinforcement signal for actor.
+    virtual double criticize(const Transition &transition) = 0;
+};
+
 }
 
 #endif /* GRL_PREDICTOR_H_ */

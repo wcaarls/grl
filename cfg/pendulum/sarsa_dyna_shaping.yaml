@@ -22,7 +22,7 @@ experiment:
     shaping_function: 
       type: mapping/value
       policy: 
-        type: policy/value/q
+        type: mapping/policy/value/q
         discretizer: 
           type: discretizer/uniform
           min: experiment/environment/environment/task/action_min
@@ -51,7 +51,7 @@ experiment:
     planning_horizon: 100
     threads: 0
     policy: 
-      type: policy/value/q
+      type: mapping/policy/value/q
       discretizer: experiment/environment/shaping_function/policy/discretizer
       projector: experiment/environment/shaping_function/policy/projector
       representation: 
@@ -66,7 +66,7 @@ experiment:
         type: sampler/epsilon_greedy
         epsilon: 0.05
     predictor: 
-      type: predictor/sarsa
+      type: predictor/critic/sarsa
       alpha: 0.2
       gamma: experiment/environment/gamma
       lambda: 0.65
@@ -84,15 +84,18 @@ experiment:
       observation_max: experiment/environment/environment/task/observation_max
       stddev_limit: 1
       projector: 
-        type: projector/sample/ann
-        samples: 10000
-        neighbors: 12
-        locality: 1
-        interval: 10
-        incremental: 1
-        bucket_size: 10
-        error_bound: 0.1
-        inputs: experiment/environment/environment/task/observation_dims+experiment/environment/environment/task/action_dims
+        type: projector/pre/scaling
+        scaling: [1, 0.1, 1]
+        projector:
+          type: projector/sample/ann
+          samples: 10000
+          neighbors: 12
+          locality: 1
+          interval: 10
+          incremental: 1
+          bucket_size: 10
+          error_bound: 0.1
+          inputs: experiment/environment/environment/task/observation_dims+experiment/environment/environment/task/action_dims
       representation: 
         type: representation/llr
         ridge: 1e-05
@@ -102,7 +105,7 @@ experiment:
         outputs: experiment/environment/environment/task/observation_dims+2
         output_min: []
         output_max: []
-        projector: experiment/agent/model/projector
+        projector: experiment/agent/model/projector/projector
     model_predictor: 
       type: predictor/model
       differential: 1
@@ -112,24 +115,21 @@ experiment:
     model_agent: 
       type: agent/td
       policy: 
-        type: policy/value/q
+        type: mapping/policy/value/q
         discretizer: experiment/environment/shaping_function/policy/discretizer
         projector: experiment/environment/shaping_function/policy/projector
         representation: experiment/environment/shaping_function/policy/representation
         sampler: experiment/agent/policy/sampler
       predictor: 
-        type: predictor/sarsa
+        type: predictor/critic/sarsa
         alpha: 0.02
         gamma: 0.97
-        lambda: 0
         projector: experiment/environment/shaping_function/policy/projector
         representation: experiment/environment/shaping_function/policy/representation
-        trace: 
-          type: trace/enumerated/replacing
   test_agent: 
     type: agent/fixed
     policy: 
-      type: policy/value/q
+      type: mapping/policy/value/q
       discretizer: experiment/environment/shaping_function/policy/discretizer
       projector: experiment/environment/shaping_function/policy/projector
       representation: experiment/agent/policy/representation

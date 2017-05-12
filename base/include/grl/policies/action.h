@@ -47,9 +47,10 @@ class ActionPolicy : public Policy
     Representation *representation_;
     
     Vector min_, max_, sigma_;
+    double decay_rate_, decay_min_, decay_;
 
   public:
-    ActionPolicy() : projector_(NULL), representation_(NULL) { }
+    ActionPolicy() : projector_(NULL), representation_(NULL), decay_rate_(1), decay_min_(0), decay_(1) { }
     
     // From Configurable  
     virtual void request(ConfigurationRequest *config);
@@ -57,6 +58,7 @@ class ActionPolicy : public Policy
     virtual void reconfigure(const Configuration &config);
 
     // From Policy
+    virtual void act(double time, const Observation &in, Action *out);
     virtual void act(const Observation &in, Action *out) const;
 };
 

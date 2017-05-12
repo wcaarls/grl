@@ -39,10 +39,10 @@ namespace grl
 {
 
 /// Value function predictor that emphasizes within-state action-value differences.
-class AdvantagePredictor : public Predictor
+class AdvantagePredictor : public CriticPredictor
 {
   public:
-    TYPEINFO("predictor/advantage", "Advantage learning off-policy value function predictor")
+    TYPEINFO("predictor/critic/advantage", "Advantage learning off-policy value function predictor")
 
   protected:
     double alpha_, gamma_, lambda_, kappa_;
@@ -62,8 +62,10 @@ class AdvantagePredictor : public Predictor
     virtual void reconfigure(const Configuration &config);
     
     // From Predictor
-    virtual void update(const Transition &transition);
     virtual void finalize();
+
+    // From CriticPredictor
+    virtual double criticize(const Transition &transition);
 };
 
 }

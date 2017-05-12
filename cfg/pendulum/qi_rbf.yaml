@@ -21,14 +21,14 @@ experiment:
     type: agent/solver
     interval: 1
     policy: 
-      type: policy/value/q
+      type: mapping/policy/value/q
       discretizer: 
         type: discretizer/uniform
         min: experiment/environment/task/action_min
         max: experiment/environment/task/action_max
         steps: [3]
       projector: 
-        type: projector/rbf
+        type: projector/rbf/triangle
         input_min: experiment/environment/task/observation_min+experiment/environment/task/action_min
         input_max: experiment/environment/task/observation_max+experiment/environment/task/action_max
         steps: [101, 101, 3]
@@ -76,7 +76,7 @@ vis_value:
   mapping: 
     type: mapping/value
     policy:
-      type: policy/value/q
+      type: mapping/policy/value/q
       discretizer: experiment/agent/policy/discretizer
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation

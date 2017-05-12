@@ -10,7 +10,7 @@ environment:
     type: task/pendulum/swingup
     timeout: 2.99
 policy: 
-  type: policy/value/q
+  type: mapping/policy/value/q
   discretizer: 
     type: discretizer/uniform
     min: environment/task/action_min
@@ -68,7 +68,7 @@ experiment:
       type: agent/td
       policy: /policy
       predictor: 
-        type: predictor/sarsa
+        type: predictor/critic/sarsa
         alpha: 0.2
         gamma: 0.97
         lambda: 0.65
@@ -79,7 +79,7 @@ experiment:
     test_agent: 
       type: agent/fixed
       policy: 
-        type: policy/value/q
+        type: mapping/policy/value/q
         discretizer: policy/discretizer
         projector: policy/projector
         representation: policy/representation

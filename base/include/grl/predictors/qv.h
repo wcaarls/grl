@@ -46,10 +46,10 @@ namespace grl
  * From Wiering, 2005,
  * "QV(\lambda)-learning: A New On-policy Reinforcement Learning Algorithm"
  */
-class QVPredictor : public Predictor
+class QVPredictor : public CriticPredictor
 {
   public:
-    TYPEINFO("predictor/qv", "QV on-policy value function predictor")
+    TYPEINFO("predictor/critic/qv", "QV on-policy value function predictor")
 
   protected:
     double alpha_, beta_, gamma_, lambda_;
@@ -65,10 +65,12 @@ class QVPredictor : public Predictor
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
-    
+
     // From Predictor
-    virtual void update(const Transition &transition);
     virtual void finalize();
+    
+    // From CriticPredictor
+    virtual double criticize(const Transition &transition);
 };
 
 }
