@@ -66,7 +66,7 @@ void SARSAPredictor::reconfigure(const Configuration &config)
     finalize();
 }
 
-double SARSAPredictor::criticize(const Transition &transition)
+double SARSAPredictor::criticize(const Transition &transition, const Action &action)
 {
   Predictor::update(transition);
 
@@ -87,8 +87,11 @@ double SARSAPredictor::criticize(const Transition &transition)
   }
   
   representation_->finalize();
-  
-  return target;
+
+  if (action.size())  
+    return target - representation_->read(projector_->project(transition.prev_obs, action), &q);
+  else
+    return 0;
 }
 
 void SARSAPredictor::finalize()
@@ -132,7 +135,7 @@ void ExpectedSARSAPredictor::reconfigure(const Configuration &config)
   CriticPredictor::reconfigure(config);
 }
 
-double ExpectedSARSAPredictor::criticize(const Transition &transition)
+double ExpectedSARSAPredictor::criticize(const Transition &transition, const Action &action)
 {
   Predictor::update(transition);
 
@@ -155,7 +158,10 @@ double ExpectedSARSAPredictor::criticize(const Transition &transition)
   
   representation_->finalize();
   
-  return target;
+  if (action.size())  
+    return target - representation_->read(projector_->project(transition.prev_obs, action), &q);
+  else
+    return 0;
 }
 
 void ExpectedSARSAPredictor::finalize()

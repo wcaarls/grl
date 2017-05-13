@@ -65,7 +65,7 @@ class AdvantagePredictor : public CriticPredictor
     virtual void finalize();
 
     // From CriticPredictor
-    virtual double criticize(const Transition &transition);
+    virtual double criticize(const Transition &transition, const Action &action);
 };
 
 }

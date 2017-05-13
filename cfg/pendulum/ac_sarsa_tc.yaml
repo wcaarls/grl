@@ -39,7 +39,7 @@ experiment:
         output_max: experiment/environment/task/action_max
     predictor: 
       type: predictor/ac/action
-      alpha: 0.001
+      alpha: 0.005
       critic:
         type: predictor/critic/sarsa
         alpha: 0.2

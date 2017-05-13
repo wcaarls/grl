@@ -65,7 +65,7 @@ void TDPredictor::reconfigure(const Configuration &config)
     finalize();
 }
 
-double TDPredictor::criticize(const Transition &transition)
+double TDPredictor::criticize(const Transition &transition, const Action &action)
 {
   Predictor::update(transition);
 

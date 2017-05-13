@@ -70,7 +70,7 @@ void AdvantagePredictor::reconfigure(const Configuration &config)
     finalize();
 }
 
-double AdvantagePredictor::criticize(const Transition &transition)
+double AdvantagePredictor::criticize(const Transition &transition, const Action &action)
 {
   Predictor::update(transition);
 

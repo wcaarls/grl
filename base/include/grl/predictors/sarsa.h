@@ -64,7 +64,7 @@ class SARSAPredictor : public CriticPredictor
     virtual void finalize();
 
     // From CriticPredictor
-    virtual double criticize(const Transition &transition);
+    virtual double criticize(const Transition &transition, const Action &action);
 };
 
 /// Value function predictor using the distribution of a QPolicy.
@@ -92,7 +92,7 @@ class ExpectedSARSAPredictor : public CriticPredictor
     virtual void finalize();
 
     // From CriticPredictor
-    virtual double criticize(const Transition &transition);
+    virtual double criticize(const Transition &transition, const Action &action);
 };
 
 }

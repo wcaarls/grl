@@ -79,18 +79,19 @@ void ActionACPredictor::update(const Transition &transition)
     else
       throw bad_param("predictor/ac:step_limit");
   }
+
+  ProjectionPtr ap = projector_->project(transition.prev_obs);
   
-  double critique = critic_->criticize(transition);
+  Vector u;
+  representation_->read(ap, &u);
+  
+  if (!u.size())
+    u = ConstantVector(transition.prev_action.size(), 0.);
+  
+  double critique = critic_->criticize(transition, u);
   
   if (update_method_[0] == 'p' || critique > 0)
   {
-    ProjectionPtr ap = projector_->project(transition.prev_obs);
-    
-    Vector u, target_u;
-    representation_->read(ap, &u);
-    
-    if (!u.size())
-      u = ConstantVector(transition.prev_action.size(), 0.);
     Vector delta = (transition.prev_action.v - u);
     
     if (update_method_[0] == 'p')
@@ -100,7 +101,7 @@ void ActionACPredictor::update(const Transition &transition)
       for (size_t ii=0; ii < delta.size(); ++ii)
         delta[ii] = fmin(fmax(delta[ii], -step_limit_[ii]), step_limit_[ii]);
 
-    target_u = u + delta;
+    Vector target_u = u + delta;
 
     representation_->write(ap, target_u, alpha_);
     representation_->finalize();

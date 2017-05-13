@@ -63,11 +63,11 @@ class CriticPredictor : public Predictor
   public:
     virtual void update(const Transition &transition)
     {
-      criticize(transition);
+      criticize(transition, Action());
     }
     
     /// Update the estimation. Returns reinforcement signal for actor.
-    virtual double criticize(const Transition &transition) = 0;
+    virtual double criticize(const Transition &transition, const Action &action) = 0;
 };
 
 }

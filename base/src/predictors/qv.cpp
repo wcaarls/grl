@@ -71,7 +71,7 @@ void QVPredictor::reconfigure(const Configuration &config)
     finalize();
 }
 
-double QVPredictor::criticize(const Transition &transition)
+double QVPredictor::criticize(const Transition &transition, const Action &action)
 {
   Predictor::update(transition);
 

@@ -62,7 +62,7 @@ void GGQPredictor::reconfigure(const Configuration &config)
   CriticPredictor::reconfigure(config);
 }
 
-double GGQPredictor::criticize(const Transition &transition)
+double GGQPredictor::criticize(const Transition &transition, const Action &action)
 {
   Predictor::update(transition);
 
