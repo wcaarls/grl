@@ -30,6 +30,7 @@
 using namespace grl;
 
 REGISTER_CONFIGURABLE(QVPredictor)
+REGISTER_CONFIGURABLE(AVPredictor)
 
 void QVPredictor::request(ConfigurationRequest *config)
 {
@@ -106,6 +107,88 @@ double QVPredictor::criticize(const Transition &transition, const Action &action
 }
 
 void QVPredictor::finalize()
+{
+  CriticPredictor::finalize();
+  
+  if (trace_)
+    trace_->clear();
+}
+
+void AVPredictor::request(ConfigurationRequest *config)
+{
+  CriticPredictor::request(config);
+
+  config->push_back(CRP("alpha", "State-action advantage learning rate", alpha_));
+  config->push_back(CRP("beta", "State value learning rate", beta_));
+  config->push_back(CRP("gamma", "Discount rate", gamma_));
+  config->push_back(CRP("lambda", "Trace decay rate", lambda_));
+
+  config->push_back(CRP("a_projector", "projector.pair", "Projects observation-action pairs onto representation space", a_projector_));
+  config->push_back(CRP("a_representation", "representation.value/action", "State-action advantage representation (A)", a_representation_));
+  config->push_back(CRP("v_projector", "projector.observation", "Projects observations onto representation space", v_projector_));
+  config->push_back(CRP("v_representation", "representation.value/state", "State value representation (V)", v_representation_));
+  config->push_back(CRP("trace", "trace", "Trace of projections", trace_, true));
+}
+
+void AVPredictor::configure(Configuration &config)
+{
+  CriticPredictor::configure(config);
+  
+  a_projector_ = (Projector*)config["a_projector"].ptr();
+  a_representation_ = (Representation*)config["a_representation"].ptr();
+  v_projector_ = (Projector*)config["v_projector"].ptr();
+  v_representation_ = (Representation*)config["v_representation"].ptr();
+  trace_ = (Trace*)config["trace"].ptr();
+  
+  alpha_ = config["alpha"];
+  beta_ = config["beta"];
+  gamma_ = config["gamma"];
+  lambda_ = config["lambda"];
+}
+
+void AVPredictor::reconfigure(const Configuration &config)
+{
+  CriticPredictor::reconfigure(config);
+  
+  if (config.has("action") && config["action"].str() == "reset")
+    finalize();
+}
+
+double AVPredictor::criticize(const Transition &transition, const Action &action)
+{
+  Predictor::update(transition);
+
+  ProjectionPtr ap = a_projector_->project(transition.prev_obs, transition.prev_action);
+  ProjectionPtr vp = v_projector_->project(transition.prev_obs);
+  
+  Vector res;
+  double vnext = v_representation_->read(v_projector_->project(transition.obs), &res);
+
+  // Calculate target value
+  double target = transition.reward;
+  if (transition.action.size())
+    target += gamma_*vnext;
+  double delta = target - v_representation_->read(vp, &res);
+
+  // A update  
+  a_representation_->write(ap, VectorConstructor(delta), alpha_);
+
+  // V update
+  v_representation_->write(vp, VectorConstructor(target), beta_);
+  
+  if (trace_)
+  {
+    v_representation_->update(*trace_, VectorConstructor(beta_*delta), gamma_*lambda_);
+    trace_->add(vp, gamma_*lambda_);
+  }
+  
+  a_representation_->finalize();
+  v_representation_->finalize();
+  
+  return delta;
+}
+
+void AVPredictor::finalize()
 {
   CriticPredictor::finalize();
   

@@ -73,6 +73,33 @@ class QVPredictor : public CriticPredictor
     virtual double criticize(const Transition &transition, const Action &action);
 };
 
+class AVPredictor : public CriticPredictor
+{
+  public:
+    TYPEINFO("predictor/critic/av", "AV on-policy advantage function predictor")
+
+  protected:
+    double alpha_, beta_, gamma_, lambda_;
+    
+    Projector *v_projector_, *a_projector_;
+    Representation *v_representation_, *a_representation_;
+    Trace *trace_;
+
+  public:
+    AVPredictor() : alpha_(0.2), beta_(0.1), gamma_(0.97), lambda_(0.65), v_projector_(NULL), a_projector_(NULL), v_representation_(NULL), a_representation_(NULL), trace_(NULL) { }
+  
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+
+    // From Predictor
+    virtual void finalize();
+    
+    // From CriticPredictor
+    virtual double criticize(const Transition &transition, const Action &action);
+};
+
 }
 
 #endif /* GRL_QV_PREDICTOR_H_ */

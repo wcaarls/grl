@@ -153,7 +153,7 @@ void GaussianRBFProjector::request(const std::string &role, ConfigurationRequest
 {
   RBFProjector::request(role, config);
 
-  config->push_back(CRP("sigma", "Standard deviation normalized to rbf spacing", sigma_, CRP::Configuration));
+  config->push_back(CRP("sigma", "Standard deviation normalized to rbf spacing", sigma_, CRP::Configuration, 0., DBL_MAX));
   config->push_back(CRP("cutoff", "Activation cutoff", cutoff_, CRP::Configuration));
 }
 
