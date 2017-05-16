@@ -33,6 +33,7 @@
 #include <grl/policy.h>
 #include <grl/exporter.h>
 #include <grl/mapping.h>
+#include <grl/discretizer.h>
 
 namespace grl
 {
@@ -113,6 +114,67 @@ class Task : public Configurable
 
     /// Progress report.
     virtual void report(std::ostream &os, const Vector &state) const { }
+};
+
+class ExpandingTask : public Task
+{
+  public:
+    TYPEINFO("task/pre/expanding", "Expands discrete into continuous actions")
+
+  protected:
+    Task *task_;
+    Discretizer *discretizer_;
+
+  public:
+    ExpandingTask() : task_(NULL), discretizer_(NULL) { }
+  
+    virtual void request(ConfigurationRequest *config)
+    {
+      config->push_back(CRP("task", "task", "Downstream task", task_));
+      config->push_back(CRP("discretizer", "discretizer.action", "Discretizer to convert discrete into continuous action", discretizer_, true));
+    }
+
+    virtual void configure(Configuration &config)
+    {
+      task_ = (Task*) config["task"].ptr();
+      discretizer_ = (Discretizer*) config["discretizer"].ptr();
+    }
+    
+    virtual void start(int test, Vector *state) const
+    {
+      task_->start(test, state);
+    }
+    
+    virtual bool actuate(const Vector &state, const Action &action, Vector *actuation) const
+    {
+      *actuation = discretizer_->at(action.v[0]);
+      return true;
+    }
+    
+    virtual void observe(const Vector &state, Observation *obs, int *terminal) const
+    {
+      task_->observe(state, obs, terminal);
+    }
+    
+    virtual void evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const
+    {
+      task_->evaluate(state, discretizer_->at(action.v[0]), next, reward);
+    }
+    
+    virtual bool invert(const Observation &obs, Vector *state) const
+    {
+      return task_->invert(obs, state);
+    }
+    
+    virtual Matrix rewardHessian(const Vector &state, const Action &action) const
+    {
+      return task_->rewardHessian(state, discretizer_->at(action.v[0]));
+    }
+    
+    virtual void report(std::ostream &os, const Vector &state) const
+    {
+      task_->report(os, state);
+    }
 };
 
 /// Task that regulates to a goal state.

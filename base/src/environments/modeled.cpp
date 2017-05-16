@@ -29,6 +29,7 @@
 
 using namespace grl;
 
+REGISTER_CONFIGURABLE(ExpandingTask)
 REGISTER_CONFIGURABLE(ModeledEnvironment)
 REGISTER_CONFIGURABLE(DynamicalModel)
 
