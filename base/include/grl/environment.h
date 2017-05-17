@@ -122,20 +122,23 @@ class ExpandingTask : public Task
     TYPEINFO("task/pre/expanding", "Expands discrete into continuous actions")
 
   protected:
+    bool observe_;
     Task *task_;
     Discretizer *discretizer_;
 
   public:
-    ExpandingTask() : task_(NULL), discretizer_(NULL) { }
+    ExpandingTask() : observe_(true), task_(NULL), discretizer_(NULL) { }
   
     virtual void request(ConfigurationRequest *config)
     {
+      config->push_back(CRP("observe", "Pass observations instead of states to discretizer", observe_));
       config->push_back(CRP("task", "task", "Downstream task", task_));
       config->push_back(CRP("discretizer", "discretizer.action", "Discretizer to convert discrete into continuous action", discretizer_, true));
     }
 
     virtual void configure(Configuration &config)
     {
+      observe_ = config["observe"];
       task_ = (Task*) config["task"].ptr();
       discretizer_ = (Discretizer*) config["discretizer"].ptr();
     }
@@ -147,7 +150,15 @@ class ExpandingTask : public Task
     
     virtual bool actuate(const Vector &state, const Action &action, Vector *actuation) const
     {
-      *actuation = discretizer_->at(action.v[0]);
+      if (observe_)
+      {
+        Observation observation;
+        int terminal;
+        observe(state, &observation, &terminal);
+        *actuation = discretizer_->at(observation, action.v[0]);
+      }
+      else
+        *actuation = discretizer_->at(state, action.v[0]);
       return true;
     }
     
@@ -158,7 +169,15 @@ class ExpandingTask : public Task
     
     virtual void evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const
     {
-      task_->evaluate(state, discretizer_->at(action.v[0]), next, reward);
+      if (observe_)
+      {
+        Observation observation;
+        int terminal;
+        observe(state, &observation, &terminal);
+        task_->evaluate(state, discretizer_->at(observation, action.v[0]), next, reward);
+      }
+      else
+        task_->evaluate(state, discretizer_->at(state, action.v[0]), next, reward);
     }
     
     virtual bool invert(const Observation &obs, Vector *state) const
@@ -168,7 +187,15 @@ class ExpandingTask : public Task
     
     virtual Matrix rewardHessian(const Vector &state, const Action &action) const
     {
-      return task_->rewardHessian(state, discretizer_->at(action.v[0]));
+      if (observe_)
+      {
+        Observation observation;
+        int terminal;
+        observe(state, &observation, &terminal);
+        return task_->rewardHessian(state, discretizer_->at(observation, action.v[0]));
+      }
+      else
+        return task_->rewardHessian(state, discretizer_->at(state, action.v[0]));
     }
     
     virtual void report(std::ostream &os, const Vector &state) const
