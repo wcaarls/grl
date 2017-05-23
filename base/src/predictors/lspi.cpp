@@ -109,7 +109,7 @@ void LSPIPredictor::finalize()
 
 void LSPIPredictor::rebuild()
 {
-  Matrix As = Matrix::Zero(representation_->size(), representation_->size());
+  Matrix As = RowVector::Ones(representation_->size()).asDiagonal()*0.00001;
   ColumnVector b = ColumnVector::Zero(representation_->size());
 
   CRAWL("LSPI initialization");
