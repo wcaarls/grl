@@ -32,7 +32,7 @@ experiment:
         steps: [3]
       epsilon: 0.05
       horizon: 20
-      budget: 0.1
+      budget: 0.05
   test_agent: experiment/agent
 visualizer: 
   type: visualizer/glut
@@ -46,3 +46,9 @@ visualization:
 visualization2: 
   type: visualization/pendulum
   state: experiment/environment/state
+visualization3: 
+  type: visualization/trajectory
+  input_dims: [0, 1]
+  input_min: experiment/environment/task/observation_min
+  input_max: experiment/environment/task/observation_max
+  trajectory: experiment/agent/policy/trajectory

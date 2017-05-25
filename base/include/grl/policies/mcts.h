@@ -150,6 +150,7 @@ class MCTSPolicy : public Policy
   protected:
     ObservationModel *model_;
     Discretizer *discretizer_;
+    MatrixSignal *trajectory_;
     
     double gamma_, epsilon_;
     size_t horizon_;
@@ -159,7 +160,7 @@ class MCTSPolicy : public Policy
     mutable MCTSNode *root_, *trunk_;
 
   public:
-    MCTSPolicy() : model_(NULL), discretizer_(NULL), gamma_(1.), epsilon_(0.05), horizon_(100), budget_(0.05), root_(NULL), trunk_(NULL)
+    MCTSPolicy() : model_(NULL), discretizer_(NULL), trajectory_(NULL), gamma_(1.), epsilon_(0.05), horizon_(100), budget_(0.05), root_(NULL), trunk_(NULL)
     {
     }
 

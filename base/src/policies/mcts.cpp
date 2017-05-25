@@ -41,6 +41,8 @@ void MCTSPolicy::request(ConfigurationRequest *config)
   config->push_back(CRP("epsilon", "Exploration rate", epsilon_, CRP::Online, 0., DBL_MAX));
   config->push_back(CRP("horizon", "Planning horizon", (int)horizon_, CRP::Online));
   config->push_back(CRP("budget", "Computational budget", budget_, CRP::Online, 0., DBL_MAX));
+
+  config->push_back(CRP("trajectory", "signal/matrix", "Predicted trajectory", CRP::Provided));
 }
 
 void MCTSPolicy::configure(Configuration &config)
@@ -52,6 +54,9 @@ void MCTSPolicy::configure(Configuration &config)
   epsilon_ = config["epsilon"];
   horizon_ = config["horizon"];
   budget_ = config["budget"];
+
+  trajectory_ = new MatrixSignal();
+  config.set("trajectory", trajectory_);
 }
 
 void MCTSPolicy::reconfigure(const Configuration &config)
@@ -152,4 +157,16 @@ void MCTSPolicy::act(double time, const Observation &in, Action *out)
 
     TRACE("Selected random action " << *out);
   }
+
+  // Publish trajectory
+  size_t sz = 0;
+  for (MCTSNode *node = trunk_; node->children() == discretizer_->size(node->state()); node = node->select(0))
+    sz++;
+
+  Matrix trajectory(trunk_->state().size(), sz);
+  size_t ii = 0;
+  for (MCTSNode *node = trunk_; node->children() == discretizer_->size(node->state()); node = node->select(0))
+    trajectory.col(ii++) = node->state().matrix();
+    
+  trajectory_->set(trajectory);
 }
