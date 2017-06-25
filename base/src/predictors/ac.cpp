@@ -44,6 +44,7 @@ void ActionACPredictor::request(ConfigurationRequest *config)
   config->push_back(CRP("projector", "projector.observation", "Projects observations onto actor representation space", projector_));
   config->push_back(CRP("representation", "representation.action", "Action representation", representation_));
   config->push_back(CRP("critic", "predictor/critic", "Critic predictor", critic_));
+  config->push_back(CRP("applied_action", "signal/vector.action", "Optional applied action to use for actor update", applied_action_, true));
 }
 
 void ActionACPredictor::configure(Configuration &config)
@@ -53,6 +54,7 @@ void ActionACPredictor::configure(Configuration &config)
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (Representation*)config["representation"].ptr();
   critic_ = (CriticPredictor*)config["critic"].ptr();
+  applied_action_ = (VectorSignal*)config["applied_action"].ptr();
   
   alpha_ = config["alpha"];
   
@@ -92,7 +94,13 @@ void ActionACPredictor::update(const Transition &transition)
   
   if (update_method_[0] == 'p' || critique > 0)
   {
-    Vector delta = (transition.prev_action.v - u);
+    Vector delta;
+    
+    /// NOTE: assumes update is called before current action is applied.
+    if (applied_action_)
+      delta = applied_action_->get() - u;
+    else
+      delta = transition.prev_action.v - u;
     
     if (update_method_[0] == 'p')
       delta = critique * delta;

@@ -125,15 +125,18 @@ class ExpandingTask : public Task
     bool observe_;
     Task *task_;
     Discretizer *discretizer_;
+    VectorSignal *applied_action_;
 
   public:
-    ExpandingTask() : observe_(true), task_(NULL), discretizer_(NULL) { }
+    ExpandingTask() : observe_(true), task_(NULL), discretizer_(NULL), applied_action_(NULL) { }
   
     virtual void request(ConfigurationRequest *config)
     {
       config->push_back(CRP("observe", "Pass observations instead of states to discretizer", observe_));
       config->push_back(CRP("task", "task", "Downstream task", task_));
       config->push_back(CRP("discretizer", "discretizer.action", "Discretizer to convert discrete into continuous action", discretizer_, true));
+
+      config->push_back(CRP("applied_action", "signal/vector.action", "Continuous action applied to downstream task", CRP::Provided));
     }
 
     virtual void configure(Configuration &config)
@@ -141,6 +144,9 @@ class ExpandingTask : public Task
       observe_ = config["observe"];
       task_ = (Task*) config["task"].ptr();
       discretizer_ = (Discretizer*) config["discretizer"].ptr();
+      
+      applied_action_ = new VectorSignal();
+      config.set("applied_action", applied_action_);
     }
     
     virtual void start(int test, Vector *state) const
@@ -159,6 +165,8 @@ class ExpandingTask : public Task
       }
       else
         *actuation = discretizer_->at(state, action.v[0]);
+        
+      applied_action_->set(*actuation);
       return true;
     }
     

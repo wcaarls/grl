@@ -34,6 +34,7 @@
 #include <grl/policy.h>
 #include <grl/discretizer.h>
 #include <grl/mapping.h>
+#include <grl/signal.h>
 
 namespace grl
 {
@@ -48,6 +49,7 @@ class ActionACPredictor : public Predictor
     Projector *projector_;
     Representation *representation_;
     CriticPredictor *critic_;
+    VectorSignal *applied_action_;
 
     double alpha_;
     
@@ -57,7 +59,7 @@ class ActionACPredictor : public Predictor
     Vector min_, max_;
 
   public:  
-    ActionACPredictor() : projector_(NULL), representation_(NULL), critic_(NULL),
+    ActionACPredictor() : projector_(NULL), representation_(NULL), critic_(NULL), applied_action_(NULL),
                           alpha_(0.01), update_method_("proportional") { }
 
     // From Configurable
