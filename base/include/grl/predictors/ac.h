@@ -72,6 +72,30 @@ class ActionACPredictor : public Predictor
     virtual void finalize();
 };
 
+/// Actor-critic predictor for expanded \link ActionPolicy ActionPolicies \endlink.
+class ExpandedActionACPredictor : public ActionACPredictor
+{
+  public:
+    TYPEINFO("predictor/ac/action/expanded", "Actor-critic predictor for expanded direct action policies")
+
+  protected:
+    Vector discrete_action_;
+    VectorSignal *continuous_action_;
+
+  public:  
+    ExpandedActionACPredictor() : continuous_action_(NULL) { }
+
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+    
+    // From Predictor
+    virtual void update(const Transition &transition);
+    virtual void finalize();
+};
+
+
 /// Actor-critic predictor for \link ActionProbabilityPolicy ActionProbabilityPolicies \endlink.
 class ProbabilityACPredictor : public Predictor
 {

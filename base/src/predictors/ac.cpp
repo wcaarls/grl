@@ -30,6 +30,7 @@
 using namespace grl;
 
 REGISTER_CONFIGURABLE(ActionACPredictor)
+REGISTER_CONFIGURABLE(ExpandedActionACPredictor)
 REGISTER_CONFIGURABLE(ProbabilityACPredictor)
 
 void ActionACPredictor::request(ConfigurationRequest *config)
@@ -44,7 +45,6 @@ void ActionACPredictor::request(ConfigurationRequest *config)
   config->push_back(CRP("projector", "projector.observation", "Projects observations onto actor representation space", projector_));
   config->push_back(CRP("representation", "representation.action", "Action representation", representation_));
   config->push_back(CRP("critic", "predictor/critic", "Critic predictor", critic_));
-  config->push_back(CRP("applied_action", "signal/vector.action", "Optional applied action to use for actor update", applied_action_, true));
 }
 
 void ActionACPredictor::configure(Configuration &config)
@@ -54,7 +54,6 @@ void ActionACPredictor::configure(Configuration &config)
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (Representation*)config["representation"].ptr();
   critic_ = (CriticPredictor*)config["critic"].ptr();
-  applied_action_ = (VectorSignal*)config["applied_action"].ptr();
   
   alpha_ = config["alpha"];
   
@@ -94,13 +93,7 @@ void ActionACPredictor::update(const Transition &transition)
   
   if (update_method_[0] == 'p' || critique > 0)
   {
-    Vector delta;
-    
-    /// NOTE: assumes update is called before current action is applied.
-    if (applied_action_)
-      delta = applied_action_->get() - u;
-    else
-      delta = transition.prev_action.v - u;
+    Vector delta = transition.prev_action.v - u;
     
     if (update_method_[0] == 'p')
       delta = critique * delta;
@@ -119,6 +112,74 @@ void ActionACPredictor::update(const Transition &transition)
 void ActionACPredictor::finalize()
 {
   Predictor::finalize();
+}
+
+void ExpandedActionACPredictor::request(ConfigurationRequest *config)
+{
+  ActionACPredictor::request(config);
+
+  config->push_back(CRP("discrete_action", "vector", "Discrete action that expands to continuous actor action", discrete_action_));
+  config->push_back(CRP("continuous_action", "signal/vector.action", "Expanded action signal to use for actor update", continuous_action_));
+}
+
+void ExpandedActionACPredictor::configure(Configuration &config)
+{
+  ActionACPredictor::configure(config);
+  
+  discrete_action_ = config["discrete_action"].v();
+  continuous_action_ = (VectorSignal*) config["continuous_action"].ptr();
+}
+
+void ExpandedActionACPredictor::reconfigure(const Configuration &config)
+{
+  ActionACPredictor::reconfigure(config);
+}
+
+void ExpandedActionACPredictor::update(const Transition &transition)
+{
+  Predictor::update(transition);
+  
+  Vector pa = continuous_action_->get();
+
+  if (step_limit_.size() && step_limit_.size() != pa.size())
+  {
+    if (step_limit_.size() == 1)
+      step_limit_ = ConstantVector(pa.size(), step_limit_[0]);
+    else
+      throw bad_param("predictor/ac:step_limit");
+  }
+    
+  ProjectionPtr ap = projector_->project(transition.prev_obs);
+  
+  Vector u;
+  representation_->read(ap, &u);
+  
+  if (!u.size())
+    u = ConstantVector(pa.size(), 0.);
+  
+  double critique = critic_->criticize(transition, discrete_action_);
+  
+  if (update_method_[0] == 'p' || critique > 0)
+  {
+    Vector delta = pa - u;
+    
+    if (update_method_[0] == 'p')
+      delta = critique * delta;
+      
+    if (step_limit_.size())
+      for (size_t ii=0; ii < delta.size(); ++ii)
+        delta[ii] = fmin(fmax(delta[ii], -step_limit_[ii]), step_limit_[ii]);
+
+    Vector target_u = u + delta;
+    
+    representation_->write(ap, target_u, alpha_);
+    representation_->finalize();
+  }
+}
+
+void ExpandedActionACPredictor::finalize()
+{
+  ActionACPredictor::finalize();
 }
 
 void ProbabilityACPredictor::request(ConfigurationRequest *config)

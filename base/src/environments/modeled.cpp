@@ -29,7 +29,6 @@
 
 using namespace grl;
 
-REGISTER_CONFIGURABLE(ExpandingTask)
 REGISTER_CONFIGURABLE(ModeledEnvironment)
 REGISTER_CONFIGURABLE(DynamicalModel)
 
@@ -39,7 +38,8 @@ void ModeledEnvironment::request(ConfigurationRequest *config)
   config->push_back(CRP("task", "task", "Task to perform in the environment (should match model)", task_));
   config->push_back(CRP("exporter", "exporter", "Optional exporter for transition log (supports time, state, observation, action, reward, terminal)", exporter_, true));
 
-  config->push_back(CRP("state", "signal/vector", "Current state of the model", CRP::Provided));
+  config->push_back(CRP("state", "signal/vector.state", "Current state of the model", CRP::Provided));
+  config->push_back(CRP("action", "signal/vector.action", "Last action applied to the model", CRP::Provided));
 }
 
 void ModeledEnvironment::configure(Configuration &config)
@@ -53,8 +53,10 @@ void ModeledEnvironment::configure(Configuration &config)
     exporter_->init({"time", "state", "observation", "action", "reward", "terminal"});
   
   state_obj_ = new VectorSignal();
+  action_obj_ = new VectorSignal();
   
   config.set("state", state_obj_);
+  config.set("action", action_obj_);
 }
 
 void ModeledEnvironment::reconfigure(const Configuration &config)
@@ -115,6 +117,7 @@ double ModeledEnvironment::step(const Action &action, Observation *obs, double *
   state_ = next;
   obs_ = *obs;
   state_obj_->set(state_);
+  action_obj_->set(action);
   
   return tau;
 }

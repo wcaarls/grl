@@ -116,102 +116,6 @@ class Task : public Configurable
     virtual void report(std::ostream &os, const Vector &state) const { }
 };
 
-class ExpandingTask : public Task
-{
-  public:
-    TYPEINFO("task/pre/expanding", "Expands discrete into continuous actions")
-
-  protected:
-    bool observe_;
-    Task *task_;
-    Discretizer *discretizer_;
-    VectorSignal *applied_action_;
-
-  public:
-    ExpandingTask() : observe_(true), task_(NULL), discretizer_(NULL), applied_action_(NULL) { }
-  
-    virtual void request(ConfigurationRequest *config)
-    {
-      config->push_back(CRP("observe", "Pass observations instead of states to discretizer", observe_));
-      config->push_back(CRP("task", "task", "Downstream task", task_));
-      config->push_back(CRP("discretizer", "discretizer.action", "Discretizer to convert discrete into continuous action", discretizer_, true));
-
-      config->push_back(CRP("applied_action", "signal/vector.action", "Continuous action applied to downstream task", CRP::Provided));
-    }
-
-    virtual void configure(Configuration &config)
-    {
-      observe_ = config["observe"];
-      task_ = (Task*) config["task"].ptr();
-      discretizer_ = (Discretizer*) config["discretizer"].ptr();
-      
-      applied_action_ = new VectorSignal();
-      config.set("applied_action", applied_action_);
-    }
-    
-    virtual void start(int test, Vector *state) const
-    {
-      task_->start(test, state);
-    }
-    
-    virtual bool actuate(const Vector &state, const Action &action, Vector *actuation) const
-    {
-      if (observe_)
-      {
-        Observation observation;
-        int terminal;
-        observe(state, &observation, &terminal);
-        *actuation = discretizer_->at(observation, action.v[0]);
-      }
-      else
-        *actuation = discretizer_->at(state, action.v[0]);
-        
-      applied_action_->set(*actuation);
-      return true;
-    }
-    
-    virtual void observe(const Vector &state, Observation *obs, int *terminal) const
-    {
-      task_->observe(state, obs, terminal);
-    }
-    
-    virtual void evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const
-    {
-      if (observe_)
-      {
-        Observation observation;
-        int terminal;
-        observe(state, &observation, &terminal);
-        task_->evaluate(state, discretizer_->at(observation, action.v[0]), next, reward);
-      }
-      else
-        task_->evaluate(state, discretizer_->at(state, action.v[0]), next, reward);
-    }
-    
-    virtual bool invert(const Observation &obs, Vector *state) const
-    {
-      return task_->invert(obs, state);
-    }
-    
-    virtual Matrix rewardHessian(const Vector &state, const Action &action) const
-    {
-      if (observe_)
-      {
-        Observation observation;
-        int terminal;
-        observe(state, &observation, &terminal);
-        return task_->rewardHessian(state, discretizer_->at(observation, action.v[0]));
-      }
-      else
-        return task_->rewardHessian(state, discretizer_->at(state, action.v[0]));
-    }
-    
-    virtual void report(std::ostream &os, const Vector &state) const
-    {
-      task_->report(os, state);
-    }
-};
-
 /// Task that regulates to a goal state.
 class RegulatorTask : public Task
 {
@@ -333,14 +237,14 @@ class ModeledEnvironment : public Environment
     Task *task_;
     Vector state_;
     Observation obs_;
-    VectorSignal *state_obj_;
+    VectorSignal *state_obj_, *action_obj_;
     Exporter *exporter_;
     
     int test_;
     double time_test_, time_learn_;
 
   public:
-    ModeledEnvironment() : model_(NULL), task_(NULL), state_obj_(NULL), exporter_(NULL), test_(false), time_test_(0.), time_learn_(0.) { }
+    ModeledEnvironment() : model_(NULL), task_(NULL), state_obj_(NULL), action_obj_(NULL), exporter_(NULL), test_(false), time_test_(0.), time_learn_(0.) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);

@@ -1,8 +1,8 @@
-/** \file displacement.h
- * \brief Policy displacement mapping definition.
+/** \file remapping.h
+ * \brief Remapping agent header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2017-01-13
+ * \date      2017-06-26
  *
  * \copyright \verbatim
  * Copyright (c) 2017, Wouter Caarls
@@ -25,39 +25,40 @@
  * \endverbatim
  */
 
-#ifndef GRL_DISPLACEMENT_MAPPING_H_
-#define GRL_DISPLACEMENT_MAPPING_H_
+#ifndef GRL_REMAPPING_AGENT_H_
+#define GRL_REMAPPING_AGENT_H_
 
-#include <grl/mapping.h>
+#include <grl/agent.h>
 #include <grl/policy.h>
-#include <grl/environments/observation.h>
+#include <grl/signal.h>
 
 namespace grl
 {
 
-class DisplacementMapping : public Mapping
+/// Agent that remaps actions.
+class RemappingAgent : public Agent
 {
   public:
-    TYPEINFO("mapping/displacement", "Mapping that returns the state displacement effected by a policy")
+    TYPEINFO("agent/remapping", "Agent that remaps actions")
 
   protected:
-    Policy *policy_;
-    ObservationModel *model_;
-      
+    Agent *agent_;
+    Mapping *mapping_;
+    
   public:
-    DisplacementMapping() : policy_(NULL), model_(NULL)
-    {
-    }
+    RemappingAgent() : agent_(NULL), mapping_(NULL) { }
   
-    // From Configurable
+    // From Configurable    
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
 
-    // From Mapping
-    virtual double read(const Vector &in, Vector *result) const;
+    // From Agent
+    virtual void start(const Observation &obs, Action *action);
+    virtual void step(double tau, const Observation &obs, double reward, Action *action);
+    virtual void end(double tau, const Observation &obs, double reward);
 };
 
 }
 
-#endif /* GRL_DISPLACEMENT_MAPPING_H_ */
+#endif /* GRL_REMAPPING_AGENT_H_ */

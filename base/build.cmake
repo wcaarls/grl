@@ -21,6 +21,7 @@ add_library(${TARGET} SHARED
             ${SRC}/agents/solver.cpp
             ${SRC}/agents/filtering.cpp
             ${SRC}/agents/communicator.cpp
+            ${SRC}/agents/remapping.cpp
             ${SRC}/discretizers/uniform.cpp
             ${SRC}/discretizers/peaked.cpp
             ${SRC}/discretizers/split.cpp
@@ -55,6 +56,7 @@ add_library(${TARGET} SHARED
             ${SRC}/mappings/timeline.cpp
             ${SRC}/mappings/puddle.cpp
             ${SRC}/mappings/displacement.cpp
+            ${SRC}/mappings/expanding.cpp
             ${SRC}/optimizers/rwa.cpp
             ${SRC}/policies/random.cpp
             ${SRC}/policies/action.cpp

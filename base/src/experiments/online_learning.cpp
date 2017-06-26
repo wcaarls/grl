@@ -48,8 +48,8 @@ void OnlineLearningExperiment::request(ConfigurationRequest *config)
   config->push_back(CRP("agent", "agent", "Agent", agent_));
   config->push_back(CRP("test_agent", "agent", "Agent to use in test trials", agent_, true));
   
-  config->push_back(CRP("state", "signal/vector", "Current observed state of the environment", CRP::Provided));
-  config->push_back(CRP("action", "signal/vector", "Current action applied to the environment", CRP::Provided));
+  config->push_back(CRP("state", "signal/vector.observation", "Current observed state of the environment", CRP::Provided));
+  config->push_back(CRP("action", "signal/vector.action", "Last action applied to the environment", CRP::Provided));
   config->push_back(CRP("curve", "signal/vector", "Learning curve", CRP::Provided));
 
   config->push_back(CRP("load_file", "Load policy filename", load_file_));

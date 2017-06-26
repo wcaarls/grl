@@ -1,8 +1,8 @@
-/** \file displacement.h
- * \brief Policy displacement mapping definition.
+/** \file expanding.h
+ * \brief Expanding mapping definition.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2017-01-13
+ * \date      2017-06-26
  *
  * \copyright \verbatim
  * Copyright (c) 2017, Wouter Caarls
@@ -25,8 +25,8 @@
  * \endverbatim
  */
 
-#ifndef GRL_DISPLACEMENT_MAPPING_H_
-#define GRL_DISPLACEMENT_MAPPING_H_
+#ifndef GRL_EXPANDING_MAPPING_H_
+#define GRL_EXPANDING_MAPPING_H_
 
 #include <grl/mapping.h>
 #include <grl/policy.h>
@@ -35,17 +35,17 @@
 namespace grl
 {
 
-class DisplacementMapping : public Mapping
+class ExpandingMapping : public Mapping
 {
   public:
-    TYPEINFO("mapping/displacement", "Mapping that returns the state displacement effected by a policy")
+    TYPEINFO("mapping/expanding", "Mapping that expands discrete into continuous actions")
 
   protected:
     Policy *policy_;
-    ObservationModel *model_;
+    Discretizer *discretizer_;
       
   public:
-    DisplacementMapping() : policy_(NULL), model_(NULL)
+    ExpandingMapping() : policy_(NULL), discretizer_(NULL)
     {
     }
   
@@ -60,4 +60,4 @@ class DisplacementMapping : public Mapping
 
 }
 
-#endif /* GRL_DISPLACEMENT_MAPPING_H_ */
+#endif /* GRL_EXPANDING_MAPPING_H_ */
