@@ -29,7 +29,92 @@
 
 using namespace grl;
 
+REGISTER_CONFIGURABLE(QPredictor)
 REGISTER_CONFIGURABLE(AdvantagePredictor)
+
+void QPredictor::request(ConfigurationRequest *config)
+{
+  CriticPredictor::request(config);
+  
+  config->push_back(CRP("alpha", "Learning rate", alpha_));
+  config->push_back(CRP("gamma", "Discount rate", gamma_));
+  config->push_back(CRP("lambda", "Trace decay rate", lambda_));
+
+  config->push_back(CRP("discretizer", "discretizer.action", "Action discretizer", discretizer_));
+  config->push_back(CRP("projector", "projector.pair", "Projects observation-action pairs onto representation space", projector_));
+  config->push_back(CRP("representation", "representation.value/action", "Q-value representation", representation_));
+  config->push_back(CRP("trace", "trace", "Trace of projections", trace_, true));
+}
+
+void QPredictor::configure(Configuration &config)
+{
+  CriticPredictor::configure(config);
+  
+  discretizer_ = (Discretizer*)config["discretizer"].ptr();
+  projector_ = (Projector*)config["projector"].ptr();
+  representation_ = (Representation*)config["representation"].ptr();
+  trace_ = (Trace*)config["trace"].ptr();
+  
+  alpha_ = config["alpha"];
+  gamma_ = config["gamma"];
+  lambda_ = config["lambda"];
+}
+
+void QPredictor::reconfigure(const Configuration &config)
+{
+  CriticPredictor::reconfigure(config);
+  
+  if (config.has("action") && config["action"].str() == "reset")
+    finalize();
+}
+
+double QPredictor::criticize(const Transition &transition, const Action &action)
+{
+  Predictor::update(transition);
+
+  std::vector<Vector> variants;
+  std::vector<ProjectionPtr> actions;
+
+  ProjectionPtr p = projector_->project(transition.prev_obs, transition.prev_action);
+  Vector q;
+  
+  double target = transition.reward;
+  if (transition.action.size())
+  {
+    discretizer_->options(transition.obs, &variants);
+    projector_->project(transition.obs, variants, &actions);
+    double v=-std::numeric_limits<double>::infinity();
+    for (size_t kk=0; kk < variants.size(); ++kk)
+      v = fmax(v, representation_->read(actions[kk], &q));
+      
+    target += gamma_*v;
+  }          
+  double delta = target - representation_->read(p, &q);
+  
+  representation_->write(p, VectorConstructor(target), alpha_);
+  
+  // TODO: Should clear trace on exploration
+  if (trace_)
+  {
+    representation_->update(*trace_, VectorConstructor(alpha_*delta), gamma_*lambda_);
+    trace_->add(p, gamma_*lambda_);
+  }
+  
+  representation_->finalize();
+
+  if (action.size())  
+    return target - representation_->read(projector_->project(transition.prev_obs, action), &q);
+  else
+    return 0;
+}
+
+void QPredictor::finalize()
+{
+  CriticPredictor::finalize();
+  
+  if (trace_)
+    trace_->clear();
+}
 
 void AdvantagePredictor::request(ConfigurationRequest *config)
 {

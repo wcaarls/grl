@@ -38,6 +38,36 @@
 namespace grl
 {
 
+/// Value function predictor using the best next action.
+class QPredictor : public CriticPredictor
+{
+  public:
+    TYPEINFO("predictor/critic/q", "Q-learning off-policy value function predictor")
+
+  protected:
+    double alpha_, gamma_, lambda_;
+    Discretizer *discretizer_;
+    Projector *projector_;
+    Representation *representation_;
+    Trace *trace_;
+    
+    std::vector<Vector> variants_;
+
+  public:
+    QPredictor() : alpha_(0.2), gamma_(0.97), lambda_(0.65), discretizer_(NULL), projector_(NULL), representation_(NULL), trace_(NULL) { }
+  
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+    
+    // From Predictor
+    virtual void finalize();
+
+    // From CriticPredictor
+    virtual double criticize(const Transition &transition, const Action &action);
+};
+
 /// Value function predictor that emphasizes within-state action-value differences.
 class AdvantagePredictor : public CriticPredictor
 {
