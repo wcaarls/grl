@@ -160,8 +160,8 @@ class ParameterizedRepresentation : public Representation
     /// Returns constant parameter vector.
     virtual const LargeVector &params() const = 0;
     
-    /// Returns parameter vector.
-    virtual LargeVector &params() = 0;
+    /// Sets parameter vector.
+    virtual void setParams(const LargeVector &params) = 0;
 };
 
 }

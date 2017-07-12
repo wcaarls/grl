@@ -201,6 +201,6 @@ void LSPIPredictor::rebuild()
     
     // Solve
     CRAWL("LSPI iteration " << ii << ": solving");
-    representation_->params() = A.partialPivLu().solve(b).array();
+    representation_->setParams(A.partialPivLu().solve(b).array());
   }
 }

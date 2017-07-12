@@ -65,7 +65,7 @@ class PIDPolicy : public ParameterizedPolicy
     // From ParameterizedPolicy
     virtual size_t size() const { return params_.size(); }
     virtual const LargeVector &params() const { return params_; }
-    virtual LargeVector &params() { return params_; }
+    virtual void setParams(const LargeVector &params) { params_ = params; }
 };
 
 /// PID trajectory policy
@@ -97,7 +97,7 @@ class PIDTrajectoryPolicy : public ParameterizedPolicy
     // From ParameterizedPolicy
     virtual size_t size() const { return params_.size(); }
     virtual const LargeVector &params() const { return params_; }
-    virtual LargeVector &params() { return params_; }
+    virtual void setParams(const LargeVector &params) { params_ = params; }
 };
 
 }

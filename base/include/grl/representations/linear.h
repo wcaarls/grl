@@ -72,9 +72,9 @@ class LinearRepresentation : public ParameterizedRepresentation
       return params_;
     }
     
-    virtual LargeVector &params()
+    virtual void setParams(const LargeVector &params)
     {
-      return params_;
+      params_ = params;
     }
 };
 

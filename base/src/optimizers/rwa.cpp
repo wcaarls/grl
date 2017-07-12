@@ -78,9 +78,12 @@ void RWAOptimizer::reconfigure(const Configuration &config)
     for (size_t ii=0; ii < lambda_; ++ii)
     {
       population_[ii] = Individual((ParameterizedPolicy*)prototype_->clone(), 0);
-    
+
+      LargeVector x = xstart;
       for (size_t jj=0; jj < params_; ++jj)
-        population_[ii].first->params()[jj] = xstart[jj] + RandGen::get()*sigma_[jj];
+        x[jj] += RandGen::getNormal(0., sigma_[jj]);
+        
+      population_[ii].first->setParams(x);
     }
         
     best_reward_ = 0;
@@ -97,7 +100,7 @@ void RWAOptimizer::report(size_t ii, double reward)
     INFO(population_[index_+ii].first->params() << " = " << reward);
     
     best_reward_ = reward;
-    memcpy(policy_->params().data(), population_[index_+ii].first->params().data(), params_*sizeof(double));
+    policy_->setParams(population_[index_+ii].first->params());
   }
   else
     TRACE(population_[index_+ii].first->params() << " = " << reward);
@@ -132,8 +135,11 @@ void RWAOptimizer::report(size_t ii, double reward)
     {
       population_[index_+ii] = Individual((ParameterizedPolicy*)prototype_->clone(), 0);
 
+      LargeVector x = xstart;
       for (size_t jj=0; jj < params_; ++jj)
-        population_[index_+ii].first->params()[jj] = RandGen::getNormal(xstart[jj], sigma_[jj]);
+        x += RandGen::getNormal(0., sigma_[jj]);
+
+      population_[index_+ii].first->setParams(x);
     }
   }
 }

@@ -92,9 +92,16 @@ class ANNRepresentation : public ParameterizedRepresentation
       return params_;
     }
     
-    virtual LargeVector &params()
+    virtual void setParams(const LargeVector &params)
     {
-      return params_;
+      if (params.size() != params_.size())
+      {
+        ERROR("Parameter vector size mismatch");
+        return;
+      }
+      
+      params_ = params;
+      remap();
     }
 
   protected:
@@ -111,6 +118,16 @@ class ANNRepresentation : public ParameterizedRepresentation
     }
     
     void backprop(const Matrix &in, const Matrix &out);
+    
+    void remap()
+    {
+      size_t sz = 0;
+      for (size_t ii=1; ii < layers_.size(); ++ii)
+      {
+        new (&layers_[ii].W) Eigen::Map<Eigen::MatrixXd>(&params_.data()[sz], layers_[ii-1].size+1, layers_[ii].size);
+        sz += (layers_[ii-1].size+1)*layers_[ii].size;
+      }
+    }
 };
 
 }

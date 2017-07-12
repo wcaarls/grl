@@ -94,8 +94,8 @@ class ParameterizedPolicy : public Policy
     /// Returns constant policy parameter vector.
     virtual const LargeVector &params() const = 0;
     
-    /// Returns policy parameter vector.
-    virtual LargeVector &params() = 0;
+    /// Sets policy parameter vector.
+    virtual void setParams(const LargeVector &params) = 0;
 };
 
 }

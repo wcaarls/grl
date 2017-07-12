@@ -61,7 +61,7 @@ class ParameterizedActionPolicy : public ParameterizedPolicy
     // From ParameterizedPolicy
     virtual size_t size() const { return representation_->size(); }
     virtual const LargeVector &params() const { return representation_->params(); }
-    virtual LargeVector &params() { return representation_->params(); }
+    virtual void setParams(const LargeVector &params) { representation_->setParams(params); }
     
 };
 

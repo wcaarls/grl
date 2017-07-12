@@ -82,8 +82,12 @@ void CMAOptimizer::reconfigure(const Configuration &config)
     // Sample initial population
     double *const *pop = cmaes_SamplePopulation(&evo_);
     
+    LargeVector x(params_);
     for (size_t ii=0; ii < population_; ++ii)
-      memcpy(policies_[ii]->params().data(), pop[ii], params_*sizeof(double));
+    {
+      memcpy(x.data(), pop[ii], params_*sizeof(double));
+      policies_[ii]->setParams(x);
+    }
       
     best_reward_ = -std::numeric_limits<double>::infinity();
   }
@@ -96,7 +100,7 @@ void CMAOptimizer::report(size_t ii, double reward)
     INFO(policies_[ii]->params() << " = " << reward);
     
     best_reward_ = reward;
-    memcpy(policy_->params().data(), policies_[ii]->params().data(), params_*sizeof(double));
+    policy_->setParams(policies_[ii]->params());
   }
   else
     TRACE(policies_[ii]->params() << " = " << reward);
@@ -117,7 +121,11 @@ void CMAOptimizer::report(size_t ii, double reward)
     // Sample next population
     double *const *pop = cmaes_SamplePopulation(&evo_);
 
+    LargeVector x(params_);
     for (size_t ii=0; ii < population_; ++ii)
-      memcpy(policies_[ii]->params().data(), pop[ii], params_*sizeof(double));
+    {
+      memcpy(x.data(), pop[ii], params_*sizeof(double));
+      policies_[ii]->setParams(x);
+    }
   }
 }

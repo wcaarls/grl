@@ -111,9 +111,13 @@ bool LQRSolver::solve()
     {
       TRACE("Feedback gain matrix:\n" << L);
       
+      LargeVector params(L.cols()*L.rows());
+      
       for (size_t ii=0; ii < (size_t)L.cols(); ++ii)
         for (size_t oo=0; oo < (size_t)L.rows(); ++oo)
-          policy_->params()[ii*(size_t)L.rows()+oo] = L(oo, ii);
+          params[ii*(size_t)L.rows()+oo] = L(oo, ii);
+          
+      policy_->setParams(params);
     }
     else
     {
