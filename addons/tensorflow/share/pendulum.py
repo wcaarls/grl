@@ -20,4 +20,8 @@ model.compile(loss='mean_squared_error', optimizer=SGD())
 model.model._make_train_function()
 model.model._make_predict_function()
 
+# Make sure weight assign placeholders are created
+weights = model.get_weights()
+model.set_weights(weights)
+
 tf.train.write_graph(get_session().graph.as_graph_def(), './', 'pendulum_q.pb', as_text=False)

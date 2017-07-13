@@ -47,6 +47,8 @@ class TensorFlowRepresentation : public Representation
   protected:
     int inputs_, outputs_;
     std::string file_, input_layer_, output_layer_, output_target_, sample_weights_, learning_phase_, init_node_, update_node_;
+    std::vector<std::string> weights_read_, weights_write_, weights_node_;
+    mutable std::vector<tensorflow::TensorShape> weights_shape_;
     
     tensorflow::GraphDef graph_def_;
     tensorflow::Session* session_;
@@ -54,6 +56,8 @@ class TensorFlowRepresentation : public Representation
     
     tensorflow::Tensor input_, output_, target_;
     size_t counter_;
+    
+    mutable LargeVector params_;
 
   public:
     TensorFlowRepresentation() : inputs_(1), outputs_(1), counter_(0) { }
@@ -75,6 +79,11 @@ class TensorFlowRepresentation : public Representation
     virtual void enqueue(const ProjectionPtr &projection, const Vector &target);
     virtual void read(Matrix *out);
     virtual void write();
+    
+    // From ParameterizedRepresentation
+    virtual size_t size() const;
+    virtual const LargeVector &params() const;
+    virtual void setParams(const LargeVector &params);
 };
 
 }

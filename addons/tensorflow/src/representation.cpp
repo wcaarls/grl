@@ -93,7 +93,7 @@ void TensorFlowRepresentation::configure(Configuration &config)
     ERROR(load_graph_status.ToString());
     throw bad_param("representation/tensorflow:file");
   }
-  
+
   for (int i = 0; i < graph_def_.node_size(); i++)
   {
     auto n = graph_def_.node(i);
@@ -118,6 +118,13 @@ void TensorFlowRepresentation::configure(Configuration &config)
 
     if (output_layer_.empty() && n.name() == "group_deps_1")
       output_layer_ = n.input(0).substr(1);
+      
+    if (n.op() == "Assign" && n.input_size() == 2 && n.input(1).find("Placeholder") != std::string::npos)
+    {
+      weights_node_.push_back(n.name());
+      weights_read_.push_back(n.input(0) + "/read");
+      weights_write_.push_back(n.input(1));
+    }
   }
   
   if (input_layer_.empty())
@@ -131,13 +138,16 @@ void TensorFlowRepresentation::configure(Configuration &config)
 
   if (update_node_.empty())
     throw bad_param("representation/tensorflow:update_node");
-
+    
   INFO("Model loaded");
   INFO("  Input layer placeholder   : " << input_layer_);
   INFO("  Output layer tensor       : " << output_layer_);
   INFO("  Target placeholder        : " << output_target_);
   INFO("  Sample weights placeholder: " << sample_weights_);
   INFO("  Learning phase placeholder: " << learning_phase_);
+  INFO("  Weight tensors            : " << weights_read_);
+  INFO("  Weight placeholders       : " << weights_write_);
+  INFO("  Weight nodes              : " << weights_node_);
   INFO("  Init node                 : " << init_node_);
   INFO("  Update node               : " << update_node_);
   
@@ -161,11 +171,19 @@ void TensorFlowRepresentation::reconfigure(const Configuration &config)
     }
     
     batch_.clear();
+    
+    // Get parameter vector size
+    params();
   }
 }
 
+// Not reentrant
 TensorFlowRepresentation &TensorFlowRepresentation::copy(const Configurable &obj)
 {
+  const TensorFlowRepresentation &tfr = dynamic_cast<const TensorFlowRepresentation&>(obj);
+  
+  setParams(tfr.params());
+
   return *this;
 }
 
@@ -377,5 +395,73 @@ void TensorFlowRepresentation::write()
   if (!run_status.ok()) {
     ERROR(run_status.ToString());
     throw Exception("Could not run learning graph");
+  }
+}
+
+size_t TensorFlowRepresentation::size() const
+{
+  return params_.size();
+}
+
+const LargeVector &TensorFlowRepresentation::params() const
+{
+  std::vector<Tensor> weights;
+  
+  Status run_status = session_->Run({}, {weights_read_}, {}, &weights);
+  if (!run_status.ok()) {
+    ERROR(run_status.ToString());
+    throw Exception("Could not run weight reading graph");
+  }
+  
+  size_t n = 0;
+  weights_shape_.clear();
+  for (size_t ii=0; ii < weights.size(); ++ii)
+  {
+    weights_shape_.push_back(weights[ii].shape());
+    n += weights[ii].NumElements();
+  }
+  
+  params_.resize(n);
+  
+  n = 0;
+  for (size_t ii=0; ii < weights.size(); ++ii)
+  {
+    auto weight_map = weights[ii].flat<float>();
+    for (size_t jj=0; jj < weight_map.dimension(0); ++jj)
+      params_[n+jj] = weight_map(jj);
+    n += weight_map.dimension(0);
+  }
+
+  return params_;
+}
+
+void TensorFlowRepresentation::setParams(const LargeVector &params)
+{
+  if (params.size() != params_.size())
+  {
+    ERROR("Parameter vector size mismatch");
+    return;
+  }
+
+  params_ = params;
+  
+  std::vector<std::pair<std::string, tensorflow::Tensor>> weights;
+  
+  size_t n=0;
+  for (size_t ii=0; ii < weights_shape_.size(); ++ii)
+  {
+    Tensor w = Tensor(tensorflow::DT_FLOAT, weights_shape_[ii]);
+    auto w_map = w.flat<float>();
+    for (size_t jj=0; jj < w_map.dimension(0); ++jj)
+      w_map(jj) = params_[n+jj];
+    n += w_map.dimension(0);
+
+    weights.push_back({weights_write_[ii], w});
+  }
+  
+  Status run_status = session_->Run(weights, {}, {weights_node_}, NULL);
+  if (!run_status.ok()) {
+    ERROR(run_status.ToString());
+    throw Exception("Could not run weight writing graph");
   }
 }
