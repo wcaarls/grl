@@ -68,6 +68,51 @@ void QPredictor::reconfigure(const Configuration &config)
     finalize();
 }
 
+void QPredictor::update(std::vector<Transition*> transitions)
+{
+  Matrix q;
+  std::vector<Vector> variants;
+  std::vector<ProjectionPtr> projections;
+  
+  // Assume all states have the same number of actions
+  size_t vs = discretizer_->size(transitions[0]->prev_obs);
+  
+  size_t qs = 0;
+  for (size_t ii=0; ii < transitions.size(); ++ii)
+    if (!transitions[ii]->obs.absorbing)
+      qs += vs;
+    
+  representation_->batchRead(qs);
+  for (size_t ii=0; ii < transitions.size(); ++ii)
+    if (!transitions[ii]->obs.absorbing)
+    {
+      discretizer_->options(transitions[ii]->obs, &variants);
+      projector_->project(transitions[ii]->obs, variants, &projections);
+      
+      for (size_t jj=0; jj < vs; ++jj)
+        representation_->enqueue(projections[jj]);
+    }
+  representation_->read(&q);
+  
+  qs = 0;
+  representation_->batchWrite(transitions.size());
+  for (size_t ii=0; ii < transitions.size(); ++ii)
+  {
+    double target = transitions[ii]->reward;
+  
+    if (!transitions[ii]->obs.absorbing)
+    {
+      double v = q(qs++, 0);
+      for (size_t kk=1; kk < vs; ++kk)
+        v = fmax(v, q(qs++, 0));
+      target += gamma_*v;
+    }
+      
+    representation_->enqueue(projector_->project(transitions[ii]->prev_obs, transitions[ii]->prev_action), VectorConstructor(target));
+  }
+  representation_->write();
+}
+
 double QPredictor::criticize(const Transition &transition, const Action &action)
 {
   Predictor::update(transition);

@@ -47,6 +47,7 @@ class Discretizer : public Configurable
     
     virtual void options(const Vector &point, std::vector<Vector> *out) const
     {
+      out->clear();
       out->reserve(size(point));
       for (iterator it=begin(point); it != end(); ++it)
         out->push_back(*it);

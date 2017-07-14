@@ -37,10 +37,10 @@ namespace grl
 {
 
 /// Average of feature activations.
-class TensorFlowRepresentation : public Representation
+class TensorFlowRepresentation : public ParameterizedRepresentation
 {
   public:
-    TYPEINFO("representation/tensorflow", "TensorFlow representation")
+    TYPEINFO("representation/parameterized/tensorflow", "TensorFlow representation")
     
     typedef std::pair<Vector, Vector> Sample;
     
@@ -54,7 +54,7 @@ class TensorFlowRepresentation : public Representation
     tensorflow::Session* session_;
     std::vector<Sample> batch_;
     
-    tensorflow::Tensor input_, output_, target_;
+    tensorflow::Tensor input_, target_;
     size_t counter_;
     
     mutable LargeVector params_;
@@ -74,7 +74,8 @@ class TensorFlowRepresentation : public Representation
     virtual void update(const ProjectionPtr projection, const Vector &delta);
     virtual void finalize();
 
-    virtual void batch(size_t sz);
+    virtual void batchRead(size_t sz);
+    virtual void batchWrite(size_t sz);
     virtual void enqueue(const ProjectionPtr &projection);
     virtual void enqueue(const ProjectionPtr &projection, const Vector &target);
     virtual void read(Matrix *out);

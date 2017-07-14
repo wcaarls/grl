@@ -92,11 +92,11 @@ void ANNRepresentation::reconfigure(const Configuration &config)
       sz += (layers_[ii-1].size+1)*layers_[ii].size;
     params_ = Vector::Random(sz)*0.01;
     
-    // Map parameters onto layer weights
-    remap();
-    
+    sz = 0;
     for (size_t ii=1; ii < layers_.size(); ++ii)
     {
+      new (&layers_[ii].W) Eigen::Map<Eigen::MatrixXd>(&params_.data()[sz], layers_[ii-1].size+1, layers_[ii].size);
+      
       layers_[ii].delta = layers_[ii].activation = Matrix();
       layers_[ii].Delta = Matrix::Zero(layers_[ii-1].size+1, layers_[ii].size);
       layers_[ii].eta = Matrix::Ones(layers_[ii-1].size+1, layers_[ii].size);
@@ -105,6 +105,8 @@ void ANNRepresentation::reconfigure(const Configuration &config)
         layers_[ii].eta *= 0.1;
        
       layers_[ii].prev_Delta = Matrix::Zero(layers_[ii-1].size+1, layers_[ii].size);
+
+      sz += (layers_[ii-1].size+1)*layers_[ii].size;
     }
     
     error_ = 0;

@@ -100,8 +100,7 @@ class ANNRepresentation : public ParameterizedRepresentation
         return;
       }
       
-      params_ = params;
-      remap();
+      memcpy(params_.data(), params.data(), params_.size()*sizeof(double));
     }
 
   protected:
@@ -118,16 +117,6 @@ class ANNRepresentation : public ParameterizedRepresentation
     }
     
     void backprop(const Matrix &in, const Matrix &out);
-    
-    void remap()
-    {
-      size_t sz = 0;
-      for (size_t ii=1; ii < layers_.size(); ++ii)
-      {
-        new (&layers_[ii].W) Eigen::Map<Eigen::MatrixXd>(&params_.data()[sz], layers_[ii-1].size+1, layers_[ii].size);
-        sz += (layers_[ii-1].size+1)*layers_[ii].size;
-      }
-    }
 };
 
 }

@@ -91,14 +91,19 @@ class Representation : public Configurable
       return Matrix();
     }
 
-    /// Starts a batch operation.
-    virtual void batch(size_t sz)
+    /// Starts a batch read operation.
+    virtual void batchRead(size_t sz)
     {
       // Make sure other threads can't interrupt our batch
       pthread_mutex_lock(&mutex_);
     
       batch_.clear();
       batch_.reserve(sz);
+    }
+
+    /// Starts a batch write operation.
+    virtual void batchWrite(size_t sz)
+    {
     }
     
     /// Enqueues a batch read operation, to be read later.

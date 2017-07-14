@@ -299,10 +299,16 @@ void TensorFlowRepresentation::finalize()
   batch_.clear();
 }
 
-void TensorFlowRepresentation::batch(size_t sz)
+void TensorFlowRepresentation::batchRead(size_t sz)
 {
   input_ = Tensor(tensorflow::DT_FLOAT, TensorShape({(int)sz, (int)inputs_}));
-  output_ = Tensor(tensorflow::DT_FLOAT, TensorShape({(int)sz, (int)outputs_}));
+  
+  counter_ = 0;
+}
+
+void TensorFlowRepresentation::batchWrite(size_t sz)
+{
+  input_ = Tensor(tensorflow::DT_FLOAT, TensorShape({(int)sz, (int)inputs_}));
   target_ = Tensor(tensorflow::DT_FLOAT, TensorShape({(int)sz, (int)outputs_}));
   
   counter_ = 0;

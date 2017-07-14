@@ -14,6 +14,7 @@ add_library(${TARGET} SHARED
             ${SRC}/agents/td.cpp
             ${SRC}/agents/delayed_td.cpp
             ${SRC}/agents/dyna.cpp
+            ${SRC}/agents/replay.cpp
             ${SRC}/agents/sequential.cpp
             ${SRC}/agents/smdp_master.cpp
             ${SRC}/agents/compartmentalized.cpp
@@ -102,6 +103,7 @@ add_library(${TARGET} SHARED
             ${SRC}/representations/iterative.cpp
             ${SRC}/representations/dictionary.cpp
             ${SRC}/representations/communicator.cpp
+            ${SRC}/representations/duplex.cpp
             ${SRC}/samplers/greedy.cpp
             ${SRC}/samplers/softmax.cpp
             ${SRC}/samplers/pada.cpp

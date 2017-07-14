@@ -53,8 +53,19 @@ class Predictor : public Configurable
     
     /// Update the estimation.
     virtual void update(const Transition &transition);
+
+    /// Update the estimation for a batch of transitions.
+    /// NOTE: these are not necessarily part of the same trajectory.
+    virtual void update(std::vector<Transition*> transitions)
+    {
+      for (size_t ii=0; ii < transitions.size(); ++ii)
+      {
+        update(*transitions[ii]);
+        finalize();
+      }
+    }
     
-    /// Signal completion of a set of updates (episode or batch).
+    /// Signal completion of an episode.
     virtual void finalize();
 };
 

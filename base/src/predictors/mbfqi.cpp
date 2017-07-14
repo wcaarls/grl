@@ -104,7 +104,7 @@ void MBFQIPredictor::update(const Transition &transition)
   t.target = t.transition.reward;
     
   // Accumulate gradients
-  representation_->batch(minibatch_size_);
+  representation_->batchWrite(minibatch_size_);
   
   for (size_t jj=0; jj < minibatch_size_; ++jj)
   {
@@ -145,7 +145,7 @@ void MBFQIPredictor::rebuild()
   // Assume this is state-independent
   size_t actions = discretizer_->size();
   
-  representation_->batch(minibatch_size_ * update_interval_ * actions);
+  representation_->batchRead(minibatch_size_ * update_interval_ * actions);
     
   Rand *rand = RandGen::instance();
   

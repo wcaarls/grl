@@ -66,6 +66,35 @@ void SARSAPredictor::reconfigure(const Configuration &config)
     finalize();
 }
 
+void SARSAPredictor::update(std::vector<Transition*> transitions)
+{
+  Matrix q;
+  
+  size_t qs = 0;
+  for (size_t ii=0; ii < transitions.size(); ++ii)
+    if (!transitions[ii]->obs.absorbing)
+      qs++;
+    
+  representation_->batchRead(qs);
+  for (size_t ii=0; ii < transitions.size(); ++ii)
+    if (!transitions[ii]->obs.absorbing)
+      representation_->enqueue(projector_->project(transitions[ii]->obs, transitions[ii]->action));
+  representation_->read(&q);
+  
+  qs = 0;
+  representation_->batchWrite(transitions.size());
+  for (size_t ii=0; ii < transitions.size(); ++ii)
+  {
+    double target = transitions[ii]->reward;
+  
+    if (!transitions[ii]->obs.absorbing)
+      target += gamma_*q(qs++, 0);
+      
+    representation_->enqueue(projector_->project(transitions[ii]->prev_obs, transitions[ii]->prev_action), VectorConstructor(target));
+  }
+  representation_->write();
+}
+
 double SARSAPredictor::criticize(const Transition &transition, const Action &action)
 {
   Predictor::update(transition);

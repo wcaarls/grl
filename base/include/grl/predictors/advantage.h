@@ -62,6 +62,7 @@ class QPredictor : public CriticPredictor
     virtual void reconfigure(const Configuration &config);
     
     // From Predictor
+    virtual void update(std::vector<Transition*> transitions);
     virtual void finalize();
 
     // From CriticPredictor
