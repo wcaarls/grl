@@ -233,8 +233,6 @@ void ExpandedActionACPredictor::update(const Transition &transition)
 
 void ExpandedActionACPredictor::update(const std::vector<const Transition*> &transitions)
 {
-  Predictor::update(transitions);
-  
   if (step_limit_.size() && step_limit_.size() != transitions[0]->obs.u.size())
   {
     if (step_limit_.size() == 1)
@@ -260,25 +258,28 @@ void ExpandedActionACPredictor::update(const std::vector<const Transition*> &tra
       if (critique[ii] > 0)
         us++;
       
-  representation_->batchWrite(us);
-  for (size_t ii=0; ii < transitions.size(); ++ii)
+  if (us > 0)
   {
-    if (update_method_[0] == 'p' || critique[ii] > 0)
+    representation_->batchWrite(us);
+    for (size_t ii=0; ii < transitions.size(); ++ii)
     {
-      Vector delta = transitions[ii]->obs.u - u.row(ii).array();
-      
-      if (update_method_[0] == 'p')
-        delta = critique[ii] * delta;
+      if (update_method_[0] == 'p' || critique[ii] > 0)
+      {
+        Vector delta = transitions[ii]->obs.u - u.row(ii).array();
         
-      if (step_limit_.size())
-        for (size_t ii=0; ii < delta.size(); ++ii)
-          delta[ii] = fmin(fmax(delta[ii], -step_limit_[ii]), step_limit_[ii]);
+        if (update_method_[0] == 'p')
+          delta = critique[ii] * delta;
+          
+        if (step_limit_.size())
+          for (size_t ii=0; ii < delta.size(); ++ii)
+            delta[ii] = fmin(fmax(delta[ii], -step_limit_[ii]), step_limit_[ii]);
 
-      Vector target_u = u.row(ii).array() + delta;
-      representation_->enqueue(projector_->project(transitions[ii]->prev_obs), target_u);
+        Vector target_u = u.row(ii).array() + delta;
+        representation_->enqueue(projector_->project(transitions[ii]->prev_obs), target_u);
+      }
     }
+    representation_->write();
   }
-  representation_->write();
 }
 
 void ExpandedActionACPredictor::finalize()
