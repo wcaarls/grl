@@ -106,6 +106,7 @@ double ModeledEnvironment::step(const Action &action, Observation *obs, double *
   
   task_->observe(next, obs, terminal);
   task_->evaluate(state_, action, next, reward);
+  obs->u = action.v;
 
   double &time = test_?time_test_:time_learn_;
   

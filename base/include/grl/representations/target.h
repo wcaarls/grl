@@ -1,5 +1,5 @@
-/** \file duplex.h
- * \brief Duplex representation header file.
+/** \file target.h
+ * \brief Target representation header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
  * \date      2017-07-13
@@ -25,26 +25,26 @@
  * \endverbatim
  */
 
-#ifndef GRL_DUPLEX_REPRESENTATION_H_
-#define GRL_DUPLEX_REPRESENTATION_H_
+#ifndef GRL_TARGET_REPRESENTATION_H_
+#define GRL_TARGET_REPRESENTATION_H_
 
 #include <grl/representation.h>
 
 namespace grl
 {
 
-/// Linear combination of two representations
-class DuplexRepresentation : public Representation
+/// Representation that periodically updates a target representation.
+class TargetRepresentation : public Representation
 {
   public:
-    TYPEINFO("representation/duplex", "Representation that periodically synchronizes a separate target representation used for reads")
+    TYPEINFO("representation/target", "Representation that periodically updates a target representation")
 
   protected:
     ParameterizedRepresentation* representation_, *target_representation_;
     int interval_, count_;
     
   public:
-    DuplexRepresentation() : representation_(NULL), target_representation_(NULL), interval_(100)
+    TargetRepresentation() : representation_(NULL), target_representation_(NULL), interval_(100)
     {
     }
     
@@ -56,12 +56,12 @@ class DuplexRepresentation : public Representation
     // From Representation
     virtual double read(const ProjectionPtr &projection, Vector *result) const
     {
-      return target_representation_->read(projection, result);
+      return representation_->read(projection, result);
     }
     
     virtual double read(const ProjectionPtr &projection, Vector *result, Vector *stddev) const
     {
-      return target_representation_->read(projection, result, stddev);
+      return representation_->read(projection, result, stddev);
     }
     
     virtual void write(const ProjectionPtr projection, const Vector &target, double alpha=1.)
@@ -98,7 +98,7 @@ class DuplexRepresentation : public Representation
     
     virtual void batchRead(size_t sz)
     {
-      target_representation_->batchRead(sz);
+      representation_->batchRead(sz);
     }
     
     virtual void batchWrite(size_t sz)
@@ -108,7 +108,7 @@ class DuplexRepresentation : public Representation
     
     virtual void enqueue(const ProjectionPtr &projection)
     {
-      target_representation_->enqueue(projection);
+      representation_->enqueue(projection);
     }
     
     virtual void enqueue(const ProjectionPtr &projection, const Vector &target)
@@ -118,7 +118,7 @@ class DuplexRepresentation : public Representation
     
     virtual void read(Matrix *out)
     {
-      target_representation_->read(out);
+      representation_->read(out);
     }
     
     virtual void write()
@@ -134,4 +134,4 @@ class DuplexRepresentation : public Representation
 
 }
 
-#endif /* GRL_DUPLEX_REPRESENTATION_H_ */
+#endif /* GRL_TARGET_REPRESENTATION_H_ */

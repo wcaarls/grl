@@ -69,6 +69,7 @@ class ActionACPredictor : public Predictor
     
     // From Predictor
     virtual void update(const Transition &transition);
+    virtual void update(const std::vector<const Transition*> &transitions);
     virtual void finalize();
 };
 
@@ -80,10 +81,9 @@ class ExpandedActionACPredictor : public ActionACPredictor
 
   protected:
     Vector discrete_action_;
-    VectorSignal *continuous_action_;
 
   public:  
-    ExpandedActionACPredictor() : continuous_action_(NULL) { }
+    ExpandedActionACPredictor() { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -92,6 +92,7 @@ class ExpandedActionACPredictor : public ActionACPredictor
     
     // From Predictor
     virtual void update(const Transition &transition);
+    virtual void update(const std::vector<const Transition*> &transitions);
     virtual void finalize();
 };
 

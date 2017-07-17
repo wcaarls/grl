@@ -56,7 +56,7 @@ class Predictor : public Configurable
 
     /// Update the estimation for a batch of transitions.
     /// NOTE: these are not necessarily part of the same trajectory.
-    virtual void update(std::vector<Transition*> transitions)
+    virtual void update(const std::vector<const Transition*> &transitions)
     {
       for (size_t ii=0; ii < transitions.size(); ++ii)
       {
@@ -76,9 +76,40 @@ class CriticPredictor : public Predictor
     {
       criticize(transition, Action());
     }
+
+    virtual void update(const std::vector<const Transition*> &transitions)
+    {
+      criticize(transitions, std::vector<const Action*>());
+    }
     
     /// Update the estimation. Returns reinforcement signal for actor.
     virtual double criticize(const Transition &transition, const Action &action) = 0;
+
+    /// Update the estimation for a batch of transitions.
+    /// NOTE: these are not necessarily part of the same trajectory.
+    virtual LargeVector criticize(const std::vector<const Transition*> &transitions, const std::vector<const Action*> &actions)
+    {
+      LargeVector critique(transitions.size());
+      
+      if (actions.size())
+      {
+        for (size_t ii=0; ii < transitions.size(); ++ii)
+        {
+          critique[ii] = criticize(*transitions[ii], *actions[ii]);
+          finalize();
+        }
+      }
+      else
+      {
+        for (size_t ii=0; ii < transitions.size(); ++ii)
+        {
+          criticize(*transitions[ii], Action());
+          finalize();
+        }
+      }
+      
+      return critique;
+    }
 };
 
 }

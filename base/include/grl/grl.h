@@ -43,7 +43,7 @@ enum ActionType { atUndefined, atExploratory, atGreedy };
 
 struct Observation
 {
-  Vector v;
+  Vector v, u;
   bool absorbing;
   
   Observation() { }

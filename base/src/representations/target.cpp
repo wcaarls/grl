@@ -1,5 +1,5 @@
-/** \file duplex.cpp
- * \brief Duplex representation source file.
+/** \file target.cpp
+ * \brief Target representation source file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
  * \date      2017-07-13
@@ -25,39 +25,44 @@
  * \endverbatim
  */
 
-#include <grl/representations/duplex.h>
+#include <grl/stacktrace.h>
+#include <grl/representations/target.h>
 
 using namespace grl;
 
-REGISTER_CONFIGURABLE(DuplexRepresentation)
+REGISTER_CONFIGURABLE(TargetRepresentation)
 
-void DuplexRepresentation::request(const std::string &role, ConfigurationRequest *config)
+void TargetRepresentation::request(const std::string &role, ConfigurationRequest *config)
 {
   config->push_back(CRP("representation", "representation/parameterized." + role, "Downstream representation", representation_));
-  config->push_back(CRP("interval", "Synchronization interval (number of writes; 0=never synchronize)", interval_, CRP::Configuration));
+  config->push_back(CRP("interval", "Update interval (number of writes; 0=never update)", interval_, CRP::Configuration));
+  
+  config->push_back(CRP("target", "representation/parameterized." + role, "Target representation", CRP::Provided));
 }
 
-void DuplexRepresentation::configure(Configuration &config)
+void TargetRepresentation::configure(Configuration &config)
 {
   representation_ = (ParameterizedRepresentation*)config["representation"].ptr();
   interval_ = config["interval"];
   
   target_representation_ = (ParameterizedRepresentation*)representation_->clone();
+  config.set("target", target_representation_);
+  
   synchronize();
 }
 
-void DuplexRepresentation::reconfigure(const Configuration &config)
+void TargetRepresentation::reconfigure(const Configuration &config)
 {
   synchronize();
 }
 
-void DuplexRepresentation::synchronize()
+void TargetRepresentation::synchronize()
 {
   target_representation_->setParams(representation_->params());
   count_ = 0;
 }
 
-void DuplexRepresentation::checkSynchronize()
+void TargetRepresentation::checkSynchronize()
 {
   count_++;
   if (interval_ && count_ >= interval_)

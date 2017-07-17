@@ -48,13 +48,13 @@ class QPredictor : public CriticPredictor
     double alpha_, gamma_, lambda_;
     Discretizer *discretizer_;
     Projector *projector_;
-    Representation *representation_;
+    Representation *representation_, *target_representation_;
     Trace *trace_;
     
     std::vector<Vector> variants_;
 
   public:
-    QPredictor() : alpha_(0.2), gamma_(0.97), lambda_(0.65), discretizer_(NULL), projector_(NULL), representation_(NULL), trace_(NULL) { }
+    QPredictor() : alpha_(0.2), gamma_(0.97), lambda_(0.65), discretizer_(NULL), projector_(NULL), representation_(NULL), target_representation_(NULL), trace_(NULL) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -62,11 +62,11 @@ class QPredictor : public CriticPredictor
     virtual void reconfigure(const Configuration &config);
     
     // From Predictor
-    virtual void update(std::vector<Transition*> transitions);
     virtual void finalize();
 
     // From CriticPredictor
     virtual double criticize(const Transition &transition, const Action &action);
+    virtual LargeVector criticize(const std::vector<const Transition*> &transitions, const std::vector<const Action*> &actions);
 };
 
 /// Value function predictor that emphasizes within-state action-value differences.

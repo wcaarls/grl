@@ -22,11 +22,8 @@ experiment:
     replay_steps: 64
     batch_size: 64
     threads: 0
-    predictor: 
-      type: predictor/critic/q
-      alpha: 0.2
-      gamma: 0.97
-      lambda: 0.65
+    policy: 
+      type: mapping/policy/value/q
       discretizer:
         type: discretizer/uniform
         min: experiment/environment/task/action_min
@@ -39,22 +36,26 @@ experiment:
         projector: 
           type: projector/identity
       representation:
-        type: representation/duplex
+        type: representation/target
         representation: 
           type: representation/parameterized/ann
           inputs: experiment/environment/task/observation_dims+experiment/environment/task/action_dims
           outputs: 1
-          hiddens: [100]
+          hiddens: 100
           eta: -0.001
         interval: 1000
-    policy: 
-      type: mapping/policy/value/q
-      discretizer: experiment/agent/predictor/discretizer
-      projector: experiment/agent/predictor/projector
-      representation: experiment/agent/predictor/representation/representation
       sampler: 
         type: sampler/epsilon_greedy
         epsilon: 0.5
+    predictor: 
+      type: predictor/critic/q
+      alpha: 0.2
+      gamma: 0.97
+      lambda: 0.65
+      discretizer: experiment/agent/policy/discretizer
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+      target_representation: experiment/agent/policy/representation/target
   test_agent: 
     type: agent/fixed
     policy: 
@@ -67,7 +68,18 @@ experiment:
   save_every: never
 visualizer: 
   type: visualizer/glut
-visualization: 
+policy_visualization: 
+  type: visualization/field/mapping
+  field_dims: [0, 1]
+  input_min: experiment/environment/task/observation_min
+  input_max: experiment/environment/task/observation_max
+  points: 65536
+  savepoints: 1048576
+  state: experiment/state
+  projection: mean
+  mapping: experiment/test_agent/policy
+  output_dim: 0
+value_visualization: 
   type: visualization/field/policy/value
   field_dims: [0, 1]
   input_min: experiment/environment/task/observation_min
@@ -86,8 +98,8 @@ target_visualization:
   projection: mean
   policy:
     type: mapping/policy/value/q
-    discretizer: experiment/agent/policy/discretizer
-    projector: experiment/agent/policy/projector
-    representation: experiment/agent/predictor/representation
+    discretizer: experiment/test_agent/policy/discretizer
+    projector: experiment/test_agent/policy/projector
+    representation: experiment/test_agent/policy/representation/target
     sampler: 
       type: sampler/greedy

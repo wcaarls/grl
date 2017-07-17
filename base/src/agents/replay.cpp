@@ -125,7 +125,7 @@ void ReplayAgent::replay()
     if (batch_size_ > 1)
     {
       // Sample minibatch
-      std::vector<Transition*> batch(batch_size_);
+      std::vector<const Transition*> batch(batch_size_);
       for (size_t ii=0; ii < batch_size_; ++ii)
         batch[ii] = &transitions_[RandGen::getInteger(transitions_.size())];
         

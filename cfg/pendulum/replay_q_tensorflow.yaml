@@ -22,11 +22,8 @@ experiment:
     replay_steps: 64
     batch_size: 64
     threads: 0
-    predictor: 
-      type: predictor/critic/q
-      alpha: 0.2
-      gamma: 0.97
-      lambda: 0.65
+    policy: 
+      type: mapping/policy/value/q
       discretizer:
         type: discretizer/uniform
         min: experiment/environment/task/action_min
@@ -39,21 +36,25 @@ experiment:
         projector: 
           type: projector/identity
       representation:
-        type: representation/duplex
+        type: representation/target
         representation: 
           type: representation/parameterized/tensorflow
           inputs: experiment/environment/task/observation_dims+experiment/environment/task/action_dims
           outputs: 1
           file: pendulum_q.pb
         interval: 1000
-    policy: 
-      type: mapping/policy/value/q
-      discretizer: experiment/agent/predictor/discretizer
-      projector: experiment/agent/predictor/projector
-      representation: experiment/agent/predictor/representation/representation
       sampler: 
         type: sampler/epsilon_greedy
         epsilon: 0.5
+    predictor: 
+      type: predictor/critic/q
+      alpha: 0.2
+      gamma: 0.97
+      lambda: 0.65
+      discretizer: experiment/agent/policy/discretizer
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+      target_representation: experiment/agent/policy/representation/target
   test_agent: 
     type: agent/fixed
     policy: 
@@ -87,6 +88,6 @@ target_visualization:
     type: mapping/policy/value/q
     discretizer: experiment/agent/policy/discretizer
     projector: experiment/agent/policy/projector
-    representation: experiment/agent/predictor/representation
+    representation: experiment/agent/policy/representation/target
     sampler: 
       type: sampler/greedy

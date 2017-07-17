@@ -103,7 +103,7 @@ add_library(${TARGET} SHARED
             ${SRC}/representations/iterative.cpp
             ${SRC}/representations/dictionary.cpp
             ${SRC}/representations/communicator.cpp
-            ${SRC}/representations/duplex.cpp
+            ${SRC}/representations/target.cpp
             ${SRC}/samplers/greedy.cpp
             ${SRC}/samplers/softmax.cpp
             ${SRC}/samplers/pada.cpp

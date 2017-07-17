@@ -109,6 +109,64 @@ void ActionACPredictor::update(const Transition &transition)
   }
 }
 
+void ActionACPredictor::update(const std::vector<const Transition*> &transitions)
+{
+  if (step_limit_.size() && step_limit_.size() != transitions[0]->prev_action.size())
+  {
+    if (step_limit_.size() == 1)
+      step_limit_ = ConstantVector(transitions[0]->prev_action.size(), step_limit_[0]);
+    else
+      throw bad_param("predictor/ac:step_limit");
+  }
+    
+  Matrix u;
+  representation_->batchRead(transitions.size());
+  for (size_t ii=0; ii < transitions.size(); ++ii)
+    representation_->enqueue(projector_->project(transitions[ii]->prev_obs));
+  representation_->read(&u);
+
+  std::vector<Action> action_objs(transitions.size());
+  std::vector<const Action*> actions(transitions.size());
+  for (size_t ii=0; ii < transitions.size(); ++ii)
+  {
+    action_objs[ii] = u.row(ii).array();
+    actions[ii] = &action_objs[ii];
+  }
+  
+  LargeVector critique = critic_->criticize(transitions, actions);
+  
+  size_t us=0;
+  if (update_method_[0] == 'p')
+    us = transitions.size();
+  else
+    for (size_t ii=0; ii < transitions.size(); ++ii)
+      if (critique[ii] > 0)
+        us++;
+        
+  if (us > 0)
+  {
+    representation_->batchWrite(us);
+    for (size_t ii=0; ii < transitions.size(); ++ii)
+    {
+      if (update_method_[0] == 'p' || critique[ii] > 0)
+      {
+        Vector delta = transitions[ii]->prev_action.v - actions[ii]->v;
+        
+        if (update_method_[0] == 'p')
+          delta = critique[ii] * delta;
+          
+        if (step_limit_.size())
+          for (size_t ii=0; ii < delta.size(); ++ii)
+            delta[ii] = fmin(fmax(delta[ii], -step_limit_[ii]), step_limit_[ii]);
+
+        Vector target_u = actions[ii]->v + delta;
+        representation_->enqueue(projector_->project(transitions[ii]->prev_obs), target_u);
+      }
+    }
+    representation_->write();
+  }
+}
+
 void ActionACPredictor::finalize()
 {
   Predictor::finalize();
@@ -119,7 +177,6 @@ void ExpandedActionACPredictor::request(ConfigurationRequest *config)
   ActionACPredictor::request(config);
 
   config->push_back(CRP("discrete_action", "vector", "Discrete action that expands to continuous actor action", discrete_action_));
-  config->push_back(CRP("continuous_action", "signal/vector.action", "Expanded action signal to use for actor update", continuous_action_));
 }
 
 void ExpandedActionACPredictor::configure(Configuration &config)
@@ -127,7 +184,6 @@ void ExpandedActionACPredictor::configure(Configuration &config)
   ActionACPredictor::configure(config);
   
   discrete_action_ = config["discrete_action"].v();
-  continuous_action_ = (VectorSignal*) config["continuous_action"].ptr();
 }
 
 void ExpandedActionACPredictor::reconfigure(const Configuration &config)
@@ -139,12 +195,10 @@ void ExpandedActionACPredictor::update(const Transition &transition)
 {
   Predictor::update(transition);
   
-  Vector pa = continuous_action_->get();
-
-  if (step_limit_.size() && step_limit_.size() != pa.size())
+  if (step_limit_.size() && step_limit_.size() != transition.obs.u.size())
   {
     if (step_limit_.size() == 1)
-      step_limit_ = ConstantVector(pa.size(), step_limit_[0]);
+      step_limit_ = ConstantVector(transition.obs.u.size(), step_limit_[0]);
     else
       throw bad_param("predictor/ac:step_limit");
   }
@@ -155,13 +209,13 @@ void ExpandedActionACPredictor::update(const Transition &transition)
   representation_->read(ap, &u);
   
   if (!u.size())
-    u = ConstantVector(pa.size(), 0.);
+    u = ConstantVector(transition.obs.u.size(), 0.);
   
   double critique = critic_->criticize(transition, discrete_action_);
   
   if (update_method_[0] == 'p' || critique > 0)
   {
-    Vector delta = pa - u;
+    Vector delta = transition.obs.u - u;
     
     if (update_method_[0] == 'p')
       delta = critique * delta;
@@ -175,6 +229,56 @@ void ExpandedActionACPredictor::update(const Transition &transition)
     representation_->write(ap, target_u, alpha_);
     representation_->finalize();
   }
+}
+
+void ExpandedActionACPredictor::update(const std::vector<const Transition*> &transitions)
+{
+  Predictor::update(transitions);
+  
+  if (step_limit_.size() && step_limit_.size() != transitions[0]->obs.u.size())
+  {
+    if (step_limit_.size() == 1)
+      step_limit_ = ConstantVector(transitions[0]->obs.u.size(), step_limit_[0]);
+    else
+      throw bad_param("predictor/ac:step_limit");
+  }
+    
+  Matrix u;
+  representation_->batchRead(transitions.size());
+  for (size_t ii=0; ii < transitions.size(); ++ii)
+    representation_->enqueue(projector_->project(transitions[ii]->prev_obs));
+  representation_->read(&u);
+  
+  Action a = discrete_action_;
+  LargeVector critique = critic_->criticize(transitions, std::vector<const Action*>(transitions.size(), &a));
+  
+  size_t us=0;
+  if (update_method_[0] == 'p')
+    us = transitions.size();
+  else
+    for (size_t ii=0; ii < transitions.size(); ++ii)
+      if (critique[ii] > 0)
+        us++;
+      
+  representation_->batchWrite(us);
+  for (size_t ii=0; ii < transitions.size(); ++ii)
+  {
+    if (update_method_[0] == 'p' || critique[ii] > 0)
+    {
+      Vector delta = transitions[ii]->obs.u - u.row(ii).array();
+      
+      if (update_method_[0] == 'p')
+        delta = critique[ii] * delta;
+        
+      if (step_limit_.size())
+        for (size_t ii=0; ii < delta.size(); ++ii)
+          delta[ii] = fmin(fmax(delta[ii], -step_limit_[ii]), step_limit_[ii]);
+
+      Vector target_u = u.row(ii).array() + delta;
+      representation_->enqueue(projector_->project(transitions[ii]->prev_obs), target_u);
+    }
+  }
+  representation_->write();
 }
 
 void ExpandedActionACPredictor::finalize()
