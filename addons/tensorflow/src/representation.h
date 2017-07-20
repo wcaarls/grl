@@ -45,9 +45,9 @@ class TensorFlowRepresentation : public ParameterizedRepresentation
     typedef std::pair<Vector, Vector> Sample;
     
   protected:
-    int inputs_, outputs_;
+    int inputs_, targets_;
     std::string file_, input_layer_, output_layer_, output_target_, sample_weights_, learning_phase_, init_node_, update_node_;
-    std::vector<std::string> weights_read_, weights_write_, weights_node_;
+    std::vector<std::string> outputs_read_, weights_read_, weights_write_, weights_node_;
     mutable std::vector<tensorflow::TensorShape> weights_shape_;
     
     tensorflow::GraphDef graph_def_;
@@ -60,7 +60,7 @@ class TensorFlowRepresentation : public ParameterizedRepresentation
     mutable LargeVector params_;
 
   public:
-    TensorFlowRepresentation() : inputs_(1), outputs_(1), counter_(0) { }
+    TensorFlowRepresentation() : inputs_(1), targets_(1), counter_(0) { }
   
     // From Configurable
     virtual void request(const std::string &role, ConfigurationRequest *config);

@@ -58,6 +58,7 @@ void TargetRepresentation::reconfigure(const Configuration &config)
 
 void TargetRepresentation::synchronize()
 {
+  TRACE("Synchronizing target representation");
   target_representation_->setParams(representation_->params());
   count_ = 0;
 }

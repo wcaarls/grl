@@ -43,12 +43,12 @@ class IterativeRepresentation : public Representation
     typedef std::vector<Sample> SampleVector;
     
   protected:
-    int epochs_, cumulative_;
+    int epochs_, cumulative_, batch_size_;
     Representation* representation_;
     SampleVector samples_;
     
   public:
-    IterativeRepresentation() : epochs_(5000), cumulative_(1), representation_(NULL) { }
+    IterativeRepresentation() : epochs_(5000), cumulative_(1), batch_size_(0), representation_(NULL) { }
     
     // From Configurable
     virtual void request(const std::string &role, ConfigurationRequest *config);

@@ -43,7 +43,7 @@ void QPredictor::request(ConfigurationRequest *config)
   config->push_back(CRP("discretizer", "discretizer.action", "Action discretizer", discretizer_));
   config->push_back(CRP("projector", "projector.pair", "Projects observation-action pairs onto representation space", projector_));
   config->push_back(CRP("representation", "representation.value/action", "Q-value representation", representation_));
-  config->push_back(CRP("target_representation", "representation.value/action", "Option representation for calculating targets", target_representation_, true));
+  config->push_back(CRP("target_representation", "representation.value/action", "Optional representation for calculating targets", target_representation_, true));
   config->push_back(CRP("trace", "trace", "Trace of projections", trace_, true));
 }
 

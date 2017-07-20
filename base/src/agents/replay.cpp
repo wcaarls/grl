@@ -120,6 +120,14 @@ void ReplayAgent::report(std::ostream &os)
 
 void ReplayAgent::replay()
 {
+  if (transitions_.size() < 2*batch_size_)
+  {
+    total_replay_steps_ = total_control_steps_*replay_steps_;
+    return;
+  }
+  else if (transitions_.size() == 2*batch_size_)
+    INFO("Starting replay");
+
   while (total_replay_steps_ < total_control_steps_*replay_steps_)
   {
     if (batch_size_ > 1)

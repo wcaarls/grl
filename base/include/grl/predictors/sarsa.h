@@ -61,7 +61,7 @@ class SARSAPredictor : public CriticPredictor
     virtual void reconfigure(const Configuration &config);
     
     // From Predictor
-    virtual void update(std::vector<Transition*> transitions);
+    virtual void update(const std::vector<const Transition*> &transitions);
     virtual void finalize();
 
     // From CriticPredictor

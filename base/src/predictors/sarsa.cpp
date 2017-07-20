@@ -66,7 +66,7 @@ void SARSAPredictor::reconfigure(const Configuration &config)
     finalize();
 }
 
-void SARSAPredictor::update(std::vector<Transition*> transitions)
+void SARSAPredictor::update(const std::vector<const Transition*> &transitions)
 {
   Matrix q;
   

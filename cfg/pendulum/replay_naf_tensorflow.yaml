@@ -1,0 +1,121 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 0
+  steps: 0
+  rate: 0
+  test_interval: 10
+  environment: 
+    type: environment/modeled
+    model: 
+      type: model/dynamical
+      control_step: 0.03
+      integration_steps: 5
+      dynamics: 
+        type: dynamics/pendulum
+    task: 
+      type: task/pendulum/swingup
+      timeout: 2.99
+      randomization: 1
+  agent: 
+    type: agent/replay
+    replay_steps: 1000
+    batch_size: 100
+    threads: 0
+    policy: 
+      type: mapping/policy/filtering
+      observation_idx: [0, 1, -1]
+      action_idx: [0]
+      policy: 
+        type: mapping/policy/action
+        sigma: 1
+        decay_rate: 1
+        decay_min: 0
+        output_min: experiment/environment/task/action_min++[0, 0, 0, 0, 0, 0]
+        output_max: experiment/environment/task/action_max++[0, 0, 0, 0, 0, 0]
+        projector: 
+          type: projector/identity
+        representation: 
+          type: representation/target
+          representation: 
+            type: representation/parameterized/tensorflow
+            inputs: experiment/environment/task/observation_dims+experiment/environment/task/action_dims
+            targets: experiment/environment/task/action_dims
+            file: pendulum_naf.pb
+            output_layer: mu/mul, V/BiasAdd
+          interval: 10000
+    predictor: 
+      type: predictor/naf
+      gamma: 0.97
+      projector: experiment/agent/policy/policy/projector
+      representation: experiment/agent/policy/policy/representation
+      target_representation: experiment/agent/policy/policy/representation/target
+  test_agent: 
+    type: agent/fixed
+    policy: 
+      type: mapping/policy/filtering
+      observation_idx: [0, 1, -1]
+      action_idx: [0]
+      policy: 
+        type: mapping/policy/action
+        sigma: 0
+        decay_rate: 1
+        decay_min: 0
+        output_min: experiment/environment/task/action_min++[0, 0, 0, 0 ,0 ,0]
+        output_max: experiment/environment/task/action_max++[0, 0, 0, 0 ,0, 0]
+        projector: experiment/agent/policy/policy/projector
+        representation: experiment/agent/policy/policy/representation
+  save_every: never
+visualizer: 
+  type: visualizer/glut
+policy_visualization: 
+  type: visualization/slice
+  field_dims: [0, 1]
+  input_min: experiment/environment/task/observation_min
+  input_max: experiment/environment/task/observation_max
+  operating_point: []
+  output_dim: 0
+  points: 65536
+  state: experiment/state
+  mapping: 
+    type: mapping/filtering
+    input_idx: [0, 1, -1]
+    output_idx: [0]
+    mapping: 
+      type: mapping/represented
+      projector: experiment/agent/policy/policy/projector
+      representation: experiment/agent/policy/policy/representation
+value_visualization: 
+  type: visualization/slice
+  field_dims: [0, 1]
+  input_min: experiment/environment/task/observation_min
+  input_max: experiment/environment/task/observation_max
+  operating_point: []
+  output_dim: 0
+  points: 65536
+  state: experiment/state
+  mapping: 
+    type: mapping/filtering
+    input_idx: [0, 1, -1]
+    output_idx: [1]
+    mapping: 
+      type: mapping/represented
+      projector: experiment/agent/policy/policy/projector
+      representation: experiment/agent/policy/policy/representation
+target_value_visualization: 
+  type: visualization/slice
+  field_dims: [0, 1]
+  input_min: experiment/environment/task/observation_min
+  input_max: experiment/environment/task/observation_max
+  operating_point: []
+  output_dim: 0
+  points: 65536
+  state: experiment/state
+  mapping: 
+    type: mapping/filtering
+    input_idx: [0, 1, -1]
+    output_idx: [1]
+    mapping: 
+      type: mapping/represented
+      projector: experiment/agent/policy/policy/projector
+      representation: experiment/agent/policy/policy/representation/target

@@ -71,6 +71,11 @@ class PendulumSwingupTask : public Task
 
     // From Task
     virtual void start(int test, Vector *state) const;
+    virtual bool actuate(const Vector &state, const Action &action, Vector *actuation) const
+    {
+      *actuation = VectorConstructor(fmin(fmax(action[0], -3), 3));
+      return true;
+    }
     virtual void observe(const Vector &state, Observation *obs, int *terminal) const;
     virtual void evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const;
     virtual bool invert(const Observation &obs, Vector *state) const;

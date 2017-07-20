@@ -35,6 +35,7 @@ void IterativeRepresentation::request(const std::string &role, ConfigurationRequ
 {
   config->push_back(CRP("epochs", "Learning epochs", epochs_, CRP::Configuration));
   config->push_back(CRP("cumulative", "Add to training set instead of replacing it", cumulative_, CRP::Configuration, 0, 1));
+  config->push_back(CRP("batch_size", "Batch size for gradient estimation (0=entire dataset)", batch_size_, CRP::Configuration, 0, INT_MAX));
 
   config->push_back(CRP("representation", "representation." + role, "Downstream representation", representation_));
 }
@@ -43,6 +44,7 @@ void IterativeRepresentation::configure(Configuration &config)
 {
   epochs_ = config["epochs"];
   cumulative_ = config["cumulative"];
+  batch_size_ = config["batch_size"];
   representation_ = (Representation*)config["representation"].ptr();
   
   reset();
@@ -79,8 +81,18 @@ void IterativeRepresentation::finalize()
   {
     CRAWL("Epoch " << ii);
   
-    for (size_t jj=0; jj < samples_.size(); ++jj)
-      representation_->write(samples_[jj].first, samples_[jj].second, alpha);
+    if (batch_size_)
+    {
+      for (size_t jj=0; jj < batch_size_; ++jj)
+      {
+        const Sample &sample = samples_[RandGen::getInteger(samples_.size())];
+        representation_->write(sample.first, sample.second, alpha);
+      }
+    }
+    else
+      for (size_t jj=0; jj < samples_.size(); ++jj)
+        representation_->write(samples_[jj].first, samples_[jj].second, alpha);
+        
     representation_->finalize();
   }
   

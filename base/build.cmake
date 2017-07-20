@@ -58,6 +58,7 @@ add_library(${TARGET} SHARED
             ${SRC}/mappings/puddle.cpp
             ${SRC}/mappings/displacement.cpp
             ${SRC}/mappings/expanding.cpp
+            ${SRC}/mappings/filtering.cpp
             ${SRC}/optimizers/rwa.cpp
             ${SRC}/policies/random.cpp
             ${SRC}/policies/action.cpp
@@ -85,6 +86,7 @@ add_library(${TARGET} SHARED
             ${SRC}/predictors/dpg.cpp
             ${SRC}/predictors/lspi.cpp
             ${SRC}/predictors/reinforce.cpp
+            ${SRC}/predictors/naf.cpp
             ${SRC}/projectors/identity.cpp
             ${SRC}/projectors/normalizing.cpp
             ${SRC}/projectors/peaked.cpp

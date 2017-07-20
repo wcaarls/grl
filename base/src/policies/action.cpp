@@ -89,9 +89,14 @@ void ActionPolicy::act(const Observation &in, Action *out) const
   representation_->read(p, &out->v);
   out->type = atGreedy;
   
+  CRAWL("mean action: " << out->v);
+  
   // Some representations may not always return a value.
   if (!out->size())
     *out = (min_+max_)/2;
+  
+  if (sigma_.size() != out->size())
+    throw bad_param("policy/action:{output_min,output_max}");
   
   for (size_t ii=0; ii < out->size(); ++ii)
   {
