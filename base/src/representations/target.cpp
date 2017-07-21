@@ -35,7 +35,7 @@ REGISTER_CONFIGURABLE(TargetRepresentation)
 void TargetRepresentation::request(const std::string &role, ConfigurationRequest *config)
 {
   config->push_back(CRP("representation", "representation/parameterized." + role, "Downstream representation", representation_));
-  config->push_back(CRP("interval", "Update interval (number of writes; 0=never update)", interval_, CRP::Configuration));
+  config->push_back(CRP("interval", "Update interval (number of writes; 0=never update, <0=exp.mov.av.)", interval_, CRP::Configuration, 0., DBL_MAX));
   
   config->push_back(CRP("target", "representation/parameterized." + role, "Target representation", CRP::Provided));
 }
@@ -58,14 +58,24 @@ void TargetRepresentation::reconfigure(const Configuration &config)
 
 void TargetRepresentation::synchronize()
 {
-  TRACE("Synchronizing target representation");
-  target_representation_->setParams(representation_->params());
-  count_ = 0;
+  if (interval_ < 1)
+  {
+    LargeVector tparams = target_representation_->params(),
+                params  = representation_->params();
+    
+    target_representation_->setParams(interval_*params + (1-interval_)*tparams);
+  }
+  else
+  {
+    TRACE("Synchronizing target representation");
+    target_representation_->setParams(representation_->params());
+    count_ = 0;
+  }
 }
 
 void TargetRepresentation::checkSynchronize()
 {
   count_++;
-  if (interval_ && count_ >= interval_)
+  if (interval_ && (interval_ < 1 || count_ >= interval_))
     synchronize();
 }

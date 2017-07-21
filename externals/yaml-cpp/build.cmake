@@ -9,7 +9,7 @@ execute_process(
 )
 
 execute_process(
-  COMMAND ${CMAKE_COMMAND} -E tar xf ${SRC}/../share/95bb6a18f9523b46499e9b870ef4b8e4d8068fbb.zip
+  COMMAND ${CMAKE_COMMAND} -E tar xf ${SRC}/../share/yaml-cpp-master.zip
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
 
@@ -19,14 +19,8 @@ execute_process(
 )
 
 execute_process(
-  COMMAND mv yaml-cpp externals/yaml-cpp
+  COMMAND mv yaml-cpp-master externals/yaml-cpp
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-)
-
-execute_process(
-  COMMAND cat ${SRC}/../share/fake_map.patch
-  COMMAND patch -p1
-  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/externals/yaml-cpp
 )
 
 execute_process(

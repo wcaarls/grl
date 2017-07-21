@@ -41,7 +41,8 @@ class TargetRepresentation : public Representation
 
   protected:
     ParameterizedRepresentation* representation_, *target_representation_;
-    int interval_, count_;
+    double interval_;
+    int count_;
     
   public:
     TargetRepresentation() : representation_(NULL), target_representation_(NULL), interval_(100)

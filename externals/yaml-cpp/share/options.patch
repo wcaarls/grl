@@ -1,7 +1,7 @@
 diff -rNu yaml-cpp/CMakeLists.txt yaml-cpp.no-boost/CMakeLists.txt
 --- yaml-cpp/CMakeLists.txt	1969-12-31 21:00:00.000000000 -0300
 +++ yaml-cpp.no-boost/CMakeLists.txt	2015-01-22 19:26:01.000000000 -0200
-@@ -33,14 +33,14 @@
+@@ -38,14 +38,14 @@
  ### Project options
  ###
  ## Project stuff
@@ -19,7 +19,7 @@ diff -rNu yaml-cpp/CMakeLists.txt yaml-cpp.no-boost/CMakeLists.txt
  
  # --> Apple
  option(APPLE_UNIVERSAL_BIN "Apple: Build universal binary" OFF)
-@@ -175,7 +175,7 @@
+@@ -186,7 +186,7 @@
  		set(GCC_EXTRA_OPTIONS "${GCC_EXTRA_OPTIONS} ${FLAG_TESTED}")
  	endif()
  	#

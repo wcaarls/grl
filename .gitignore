@@ -39,3 +39,4 @@ debug/
 release/
 doc/html/
 addons/tensorflow/lib
+results/
