@@ -605,6 +605,9 @@ class SharedVariable : public SharedVariableInterface<T>
     {
       return SharedVariableReference<T>(this);
     }
+    
+    SharedVariable(const SharedVariable &&rhs) : data_(rhs.data_), owner_(rhs.owner_), sequence_(rhs.sequence_),
+      rwlock_(rhs.rwlock_), mutex_(rhs.mutex_), condition_(rhs.condition_), key_(rhs.key_) { }
 
   private:
     /// Deny copying.
