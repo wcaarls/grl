@@ -47,15 +47,6 @@ double MultiAgentEnvironment::step(const Action &action, Observation *obs, doubl
 }
 
 // ThreadedMultiAgentEnvironment
-// TODO: Missing correct start/termination handling
-// TODO: Actually, this can never work because we cannot be sure whether the start is from
-// TODO: another agent in this run, or a new run. There is no guarantee that all agents
-// TODO: will start before the run is over.
-
-// SOLUTION: DON'T ALLOW EXPERIMENT TO STOP ENVIRONMENT MID-EPISODE. MUST RUN TO COMPLETION. START() WAITS FOR ALL AGENTS TO RETURN TO STOPPED STATE BEFORE STARTING.
-
-// MAYBE WAIT FOR THREAD TO EXIT AND START AGAIN?
-
 void ThreadedMultiAgentEnvironment::start(int agent_id, int test, Observation *obs)
 {
   grl_assert(*agent_id_ < state_.size());

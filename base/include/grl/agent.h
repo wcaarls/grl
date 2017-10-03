@@ -57,6 +57,51 @@ class Agent : public Configurable
     virtual void report(std::ostream &os) { }
 };
 
+/// Agent for associative tasks, that only uses immediate rewards.
+class AssociativeAgent : public Configurable
+{
+  private:
+    double time_;
+    Observation prev_obs_;
+    Action prev_action_;
+
+  public:
+    AssociativeAgent() : time_(0) { }
+    virtual ~AssociativeAgent() { }
+    
+    virtual void start(const Observation &obs, Action *action)
+    {
+      time_ = 0;
+      act(time_, obs, action);
+      
+      prev_obs_ = obs;
+      prev_action_ = *action;
+    }
+    
+    virtual void step(double tau, const Observation &obs, double reward, Action *action)
+    {
+      time_ += tau;
+      act(time_, obs, action);
+    
+      update(prev_obs_, prev_action_, reward);
+
+      prev_obs_ = obs;
+      prev_action_ = *action;
+    }
+    
+    virtual void end(double tau, const Observation &obs, double reward)
+    {
+      update(prev_obs_, prev_action_, reward);
+    }
+    
+  public:
+    /// Get agent action.
+    virtual void act(double time, const Observation &obs, Action *action) = 0;
+    
+    /// Update reward estimates.
+    virtual void update(const Observation &obs, const Action &action, double reward) = 0;
+};
+
 /// Agent that is aware of its validity and can be used in conjunction with other agents.
 class SubAgent : public Agent
 {
