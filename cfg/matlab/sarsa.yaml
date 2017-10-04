@@ -1,7 +1,7 @@
 agent:
   type: agent/td
   predictor:
-    type: predictor/sarsa
+    type: predictor/critic/sarsa
     alpha: 0.2
     gamma: 0.97
     lambda: 0.65
