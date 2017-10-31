@@ -130,6 +130,11 @@ void PendulumSwingupTask::evaluate(const Vector &state, const Action &action, co
   if (a > M_PI) a -= 2*M_PI;
 
   *reward = -5*pow(a, 2) - 0.1*pow(next[1], 2) - 1*pow(action[0], 2);
+  
+  // Normalize reward per timestep.
+  // TODO: make this work for inverted states
+  if (state[2] != next[2])
+    *reward *= (next[2]-state[2])/0.03;
 }
 
 bool PendulumSwingupTask::invert(const Observation &obs, Vector *state) const

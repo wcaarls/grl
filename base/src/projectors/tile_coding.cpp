@@ -25,6 +25,7 @@
  * \endverbatim
  */
 
+#include <iomanip>
 #include <grl/projectors/tile_coding.h>
 
 using namespace grl;
@@ -70,7 +71,10 @@ void TileCodingProjector::configure(Configuration &config)
     scaling_[ii] = tilings_/resolution_[ii];
     wrapping_[ii] *= scaling_[ii];
     if (fabs(wrapping_[ii]-round(wrapping_[ii])) > 0.001)
+    {
+      ERROR("Scaled wrapping for dimension " << ii << " (" << std::fixed << std::setprecision(5) << wrapping_[ii] << ") is not an integer");
       throw bad_param("projector/tile_coding:wrapping");
+    }
     wrapping_[ii] = round(wrapping_[ii]);
   }
 }

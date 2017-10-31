@@ -36,6 +36,7 @@
 
 #include <vector>
 #include <iostream>
+#include <iomanip>
 
 #include <math.h>
 #include <string.h>
@@ -48,7 +49,7 @@ inline std::ostream& operator << (std::ostream& os, const std::vector<T>& v)
   os << "[ ";
   for (size_t ii=0; ii < v.size(); ++ii)
   {
-    os << v[ii];
+    os << std::setprecision(std::numeric_limits<double>::max_digits10) << v[ii];
     if (ii < v.size()-1)
       os << ", ";
   }
@@ -511,7 +512,7 @@ class Matrix
         os << "[ ";
         for (size_t cc=0; cc < m.cols(); ++cc)
         {
-          os << m(rr, cc);
+          os << std::setprecision(std::numeric_limits<double>::max_digits10) << m(rr, cc);
           if (cc < m.cols()-1)
             os << ", ";
         }

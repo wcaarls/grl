@@ -35,6 +35,7 @@
 
 #include <sstream>
 #include <fstream>
+#include <iomanip>
 
 #include <grl/vector.h>
 #include <grl/stacktrace.h>
@@ -90,7 +91,7 @@ class ConfigurationParameter
     ConfigurationParameter(T value)
     {
       std::ostringstream oss;
-      oss << value;
+      oss << std::setprecision(std::numeric_limits<double>::max_digits10) << value;
       value_ = oss.str();
     }
 
