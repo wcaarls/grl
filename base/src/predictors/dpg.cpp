@@ -40,8 +40,10 @@ void DPGPredictor::request(ConfigurationRequest *config)
   config->push_back(CRP("beta_a", "Actor learning rate", beta_a_));
   config->push_back(CRP("gamma", "Discount rate", gamma_));
   config->push_back(CRP("lambda", "Trace decay rate", lambda_));
+  
+  config->push_back(CRP("target", "Policy target", target_, CRP::Configuration, {"on-policy", "off-policy"}));
 
-  config->push_back(CRP("projector", "projector.state", "Projects observations onto representation spaces", projector_));
+  config->push_back(CRP("projector", "projector.observation", "Projects observations onto representation spaces", projector_));
   config->push_back(CRP("critic_representation", "representation.value/state", "State value function representation", critic_representation_));
   config->push_back(CRP("critic_trace", "trace", "Trace of critic projections", critic_trace_, true));
   config->push_back(CRP("advantage_representation", "representation", "Local advantage model representation (one output per action dimension)", advantage_representation_));
@@ -63,6 +65,12 @@ void DPGPredictor::configure(Configuration &config)
   beta_a_ = config["beta_a"];
   gamma_ = config["gamma"];
   lambda_ = config["lambda"];
+  target_ = config["target"].str();
+  
+  if (target_ == "on-policy")
+    policy_target_ = OnPolicyTarget;
+  else
+    policy_target_ = OffPolicyTarget;
 }
 
 void DPGPredictor::reconfigure(const Configuration &config)
@@ -93,15 +101,21 @@ void DPGPredictor::update(const Transition &transition)
   if (transition.action.size())
   {
     ProjectionPtr pp = projector_->project(transition.obs);
-    Vector mup, qp;
-    
-    actor_representation_->read(pp, &mup);
-    advantage_representation_->read(pp, &qp);
     double vp = critic_representation_->read(pp, &_);
+    delta += gamma_ * vp;
+  
+    if (policy_target_ == OnPolicyTarget)
+    {
+      Vector mup, qp;
     
-    // Same thing as above, but for next state.
-    Vector amup = transition.action.v - mup;
-    delta += gamma_*(dot(qp, amup) + vp);
+      actor_representation_->read(pp, &mup);
+      advantage_representation_->read(pp, &qp);
+    
+      // For on-policy critic update, adjust for advantage of taken
+      // action over policy action
+      Vector amup = transition.action.v - mup;
+      delta += gamma_*dot(qp, amup);
+    }
   }
   
   // The actor moves towards the advantage gradient w.r.t the action

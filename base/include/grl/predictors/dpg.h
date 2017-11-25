@@ -41,15 +41,18 @@ class DPGPredictor : public Predictor
 {
   public:
     TYPEINFO("predictor/dpg", "Deterministic policy gradient predictor")
+    enum PolicyTarget {OnPolicyTarget, OffPolicyTarget};
 
   protected:
     double alpha_, beta_v_, beta_a_, gamma_, lambda_;
     Projector *projector_;
     Representation *advantage_representation_, *critic_representation_, *actor_representation_;
     Trace *critic_trace_;
+    std::string target_;
+    PolicyTarget policy_target_;
 
   public:
-    DPGPredictor() : alpha_(0.2), beta_v_(0.1), beta_a_(0.01), gamma_(0.97), lambda_(0.65), projector_(NULL), advantage_representation_(NULL), critic_representation_(NULL), actor_representation_(NULL), critic_trace_(NULL) { }
+    DPGPredictor() : alpha_(0.2), beta_v_(0.1), beta_a_(0.01), gamma_(0.97), lambda_(0.65), projector_(NULL), advantage_representation_(NULL), critic_representation_(NULL), actor_representation_(NULL), critic_trace_(NULL), target_("on-policy"), policy_target_(OnPolicyTarget) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);
