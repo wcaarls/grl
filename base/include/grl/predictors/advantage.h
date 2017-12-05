@@ -48,13 +48,13 @@ class QPredictor : public CriticPredictor
     double alpha_, gamma_, lambda_;
     Discretizer *discretizer_;
     Projector *projector_;
-    Representation *representation_, *target_representation_;
+    Representation *representation_;
     Trace *trace_;
     
     std::vector<Vector> variants_;
 
   public:
-    QPredictor() : alpha_(0.2), gamma_(0.97), lambda_(0.65), discretizer_(NULL), projector_(NULL), representation_(NULL), target_representation_(NULL), trace_(NULL) { }
+    QPredictor() : alpha_(0.2), gamma_(0.97), lambda_(0.65), discretizer_(NULL), projector_(NULL), representation_(NULL), trace_(NULL) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);

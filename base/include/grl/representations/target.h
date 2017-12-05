@@ -80,11 +80,13 @@ class TargetRepresentation : public Representation
     virtual void update(const ProjectionPtr projection, const Vector &delta)
     {
       representation_->update(projection, delta);
+      checkSynchronize();
     }
     
     virtual void update(const Trace &trace, const Vector &delta, double e=1.)
     {
       representation_->update(trace, delta, e);
+      checkSynchronize();
     }
     
     virtual void finalize()
@@ -126,6 +128,11 @@ class TargetRepresentation : public Representation
     {
       representation_->write();
       checkSynchronize();
+    }
+    
+    virtual Representation *target()
+    {
+      return target_representation_;
     }
     
   protected:

@@ -153,6 +153,12 @@ class Representation : public Configurable
 
       pthread_mutex_unlock(&mutex_);
     }
+    
+    /// Returns the representation to use when calculating targets.
+    virtual Representation *target()
+    {
+      return this;
+    }
 };
 
 /// Representation that allows for parameter access.

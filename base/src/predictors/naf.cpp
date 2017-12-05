@@ -39,7 +39,6 @@ void NAFPredictor::request(ConfigurationRequest *config)
 
   config->push_back(CRP("projector", "projector.pair", "Projects observation-action pairs onto representation space", projector_));
   config->push_back(CRP("representation", "representation.value/action", "Combined (action, state value) representation", representation_));
-  config->push_back(CRP("target_representation", "representation.value/action", "Representation for calculating targets", target_representation_));
 }
 
 void NAFPredictor::configure(Configuration &config)
@@ -48,7 +47,6 @@ void NAFPredictor::configure(Configuration &config)
   
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (Representation*)config["representation"].ptr();
-  target_representation_ = (Representation*)config["target_representation"].ptr();
   
   gamma_ = config["gamma"];
 }
@@ -68,13 +66,13 @@ void NAFPredictor::update(const std::vector<const Transition*> &transitions)
     if (!transitions[ii]->obs.absorbing)
       vs++;
   
-  target_representation_->batchRead(vs);
+  representation_->target()->batchRead(vs);
   for (size_t ii=0; ii < transitions.size(); ++ii)
     if (!transitions[ii]->obs.absorbing)
     {
-      target_representation_->enqueue(projector_->project(transitions[ii]->obs, transitions[ii]->action));
+      representation_->target()->enqueue(projector_->project(transitions[ii]->obs, transitions[ii]->action));
     }
-  target_representation_->read(&v);
+  representation_->target()->read(&v);
   
   vs = 0;
   representation_->batchWrite(transitions.size());

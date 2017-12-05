@@ -101,15 +101,15 @@ void DPGPredictor::update(const Transition &transition)
   if (transition.action.size())
   {
     ProjectionPtr pp = projector_->project(transition.obs);
-    double vp = critic_representation_->read(pp, &_);
+    double vp = critic_representation_->target()->read(pp, &_);
     delta += gamma_ * vp;
   
     if (policy_target_ == OnPolicyTarget)
     {
       Vector mup, qp;
     
-      actor_representation_->read(pp, &mup);
-      advantage_representation_->read(pp, &qp);
+      actor_representation_->target()->read(pp, &mup);
+      advantage_representation_->target()->read(pp, &qp);
     
       // For on-policy critic update, adjust for advantage of taken
       // action over policy action

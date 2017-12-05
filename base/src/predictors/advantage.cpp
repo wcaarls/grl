@@ -43,7 +43,6 @@ void QPredictor::request(ConfigurationRequest *config)
   config->push_back(CRP("discretizer", "discretizer.action", "Action discretizer", discretizer_));
   config->push_back(CRP("projector", "projector.pair", "Projects observation-action pairs onto representation space", projector_));
   config->push_back(CRP("representation", "representation.value/action", "Q-value representation", representation_));
-  config->push_back(CRP("target_representation", "representation.value/action", "Optional representation for calculating targets", target_representation_, true));
   config->push_back(CRP("trace", "trace", "Trace of projections", trace_, true));
 }
 
@@ -54,11 +53,7 @@ void QPredictor::configure(Configuration &config)
   discretizer_ = (Discretizer*)config["discretizer"].ptr();
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (Representation*)config["representation"].ptr();
-  target_representation_ = (Representation*)config["target_representation"].ptr();
   trace_ = (Trace*)config["trace"].ptr();
-  
-  if (!target_representation_)
-    target_representation_ = representation_;
   
   alpha_ = config["alpha"];
   gamma_ = config["gamma"];
@@ -90,7 +85,7 @@ double QPredictor::criticize(const Transition &transition, const Action &action)
     projector_->project(transition.obs, variants, &actions);
     double v=-std::numeric_limits<double>::infinity();
     for (size_t kk=0; kk < variants.size(); ++kk)
-      v = fmax(v, target_representation_->read(actions[kk], &q));
+      v = fmax(v, representation_->target()->read(actions[kk], &q));
       
     target += gamma_*v;
   }          
@@ -129,7 +124,7 @@ LargeVector QPredictor::criticize(const std::vector<const Transition*> &transiti
     if (!transitions[ii]->obs.absorbing)
       qs += vs;
     
-  target_representation_->batchRead(qs);
+  representation_->target()->batchRead(qs);
   for (size_t ii=0; ii < transitions.size(); ++ii)
     if (!transitions[ii]->obs.absorbing)
     {
@@ -137,9 +132,9 @@ LargeVector QPredictor::criticize(const std::vector<const Transition*> &transiti
       projector_->project(transitions[ii]->obs, variants, &projections);
       
       for (size_t jj=0; jj < vs; ++jj)
-        target_representation_->enqueue(projections[jj]);
+        representation_->target()->enqueue(projections[jj]);
     }
-  target_representation_->read(&q);
+  representation_->target()->read(&q);
     
   if (actions.size())
   {
