@@ -247,6 +247,50 @@ inline size_t sample(const LargeVector &dist)
   return sample(dist, sum);
 }
 
+/// Sample from distribution, without replacement 
+inline IndexVector sample(const LargeVector &dist, size_t n)
+{
+  IndexVector chosen(n);
+  
+  if (n >= dist.size())
+  {
+    for (size_t ii=0; ii < n; ++ii)
+      chosen[ii] = ii;
+    return chosen;
+  }
+
+  IndexVector selected(dist.size());
+  for (size_t ii=0; ii < dist.size(); ++ii)
+    selected[ii] = 0;
+    
+  double sum=0;
+  for (size_t ii=0; ii < dist.size(); ++ii)
+    sum += dist[ii];
+    
+  for (size_t kk=0; kk < n; ++kk)
+  {
+    double r = RandGen::get()*sum;
+    double v = 0;
+
+    for (size_t ii=0; ii < dist.size(); ++ii)
+    {
+      if (!selected[ii])
+      {
+        v += dist[ii];
+        if (r <= v)
+        {
+          sum -= dist[ii];
+          chosen[kk] = ii;
+          selected[ii] = 1;
+          break;
+        }
+      }
+    }
+  }
+  
+  return chosen;
+}
+
 template <class T>
 class FIFOSampler
 {

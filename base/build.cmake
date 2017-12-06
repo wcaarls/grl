@@ -88,6 +88,7 @@ add_library(${TARGET} SHARED
             ${SRC}/predictors/lspi.cpp
             ${SRC}/predictors/reinforce.cpp
             ${SRC}/predictors/naf.cpp
+            ${SRC}/predictors/snapping.cpp
             ${SRC}/projectors/identity.cpp
             ${SRC}/projectors/normalizing.cpp
             ${SRC}/projectors/peaked.cpp

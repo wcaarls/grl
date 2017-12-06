@@ -1,8 +1,8 @@
-/** \file naf.h
- * \brief NAF and Expected NAF predictors header file.
+/** \file snapping.h
+ * \brief Predictor that snaps updates to grid centers header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2017-07-18
+ * \date      2017-12-05
  *
  * \copyright \verbatim
  * Copyright (c) 2017, Wouter Caarls
@@ -25,46 +25,45 @@
  * \endverbatim
  */
 
-#ifndef GRL_NAF_PREDICTOR_H_
-#define GRL_NAF_PREDICTOR_H_
+#ifndef GRL_SNAPPING_PREDICTOR_H_
+#define GRL_SNAPPING_PREDICTOR_H_
 
-#include <grl/configurable.h>
 #include <grl/predictor.h>
-#include <grl/projector.h>
-#include <grl/representation.h>
-#include <grl/trace.h>
-#include <grl/policy.h>
-#include <grl/policies/q.h>
-#include <grl/mapping.h>
+#include <grl/discretizer.h>
+#include <grl/environments/observation.h>
 
 namespace grl
 {
 
-/// Value function predictor using Normalized Advantage Features.
-class NAFPredictor : public Predictor
+/// Predictor that snaps updates to grid centers.
+class SnappingPredictor : public Predictor
 {
   public:
-    TYPEINFO("predictor/naf", "Value function predictor using Normalized Advantage Features")
-
+    TYPEINFO("predictor/snapping", "Snaps updates to grid centers")
+    
   protected:
-    double gamma_;
-    Projector *projector_;
-    Representation *representation_;
-
+    Discretizer *discretizer_;
+    ObservationModel *model_;
+    Predictor *predictor_;
+    
+    Vector min_, max_, steps_, delta_;
+    IndexVector stride_;
+    
+    size_t centers_;
+    
   public:
-    NAFPredictor() : gamma_(0.97), projector_(NULL), representation_(NULL) { }
+    SnappingPredictor() : discretizer_(NULL), model_(NULL), predictor_(NULL), centers_(0) { }
   
-    // From Configurable
+    // From Configurable    
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
-    
+
     // From Predictor
-    virtual void update(const Transition &transition) { throw Exception("Incremental update not supported"); }
-    virtual void update(const std::vector<const Transition*> &transitions);
-    virtual void finalize();
+    virtual void update(const Transition &transition);
+    virtual void finalize() { }
 };
 
 }
 
-#endif /* GRL_NAF_PREDICTOR_H_ */
+#endif /* GRL_SNAPPING_PREDICTOR_H_ */
