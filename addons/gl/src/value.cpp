@@ -49,6 +49,12 @@ void ValueVisualization::request(ConfigurationRequest *config)
 
 void ValueVisualization::configure(Configuration &config)
 {
+  if (!Visualizer::instance())
+  {
+    WARNING("visualization/field/value requires a configured visualizer to run");
+    return;
+  }
+
   FieldVisualization::configure(config);
   
   dim_ = config["output_dim"];
@@ -88,7 +94,11 @@ void PolicyValueVisualization::request(ConfigurationRequest *config)
 
 void PolicyValueVisualization::configure(Configuration &config)
 {
-  FieldVisualization::configure(config);
+  if (!Visualizer::instance())
+  {
+    WARNING("visualization/field/policy requires a configured visualizer to run");
+    return;
+  }
   
   policy_ = (ValuePolicy*)config["policy"].ptr();
   

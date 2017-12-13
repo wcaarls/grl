@@ -47,6 +47,12 @@ void MappingVisualization::request(ConfigurationRequest *config)
 
 void MappingVisualization::configure(Configuration &config)
 {
+  if (!Visualizer::instance())
+  {
+    WARNING("visualization/field/mapping requires a configured visualizer to run");
+    return;
+  }
+  
   FieldVisualization::configure(config);
   
   mapping_ = (Mapping*)config["mapping"].ptr();

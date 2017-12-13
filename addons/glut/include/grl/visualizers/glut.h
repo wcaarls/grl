@@ -62,7 +62,7 @@ class GLUTVisualizer : public Visualizer
     
     // From Visualizer
     virtual void createWindow(Visualization *window, const char *name);
-    virtual void destroyWindow(Visualization *window, bool glutDestroy=true);
+    virtual void destroyWindow(Visualization *window);
     virtual void refreshWindow(Visualization *window);
     
     virtual void setTitle(const char *name);
@@ -87,6 +87,7 @@ class GLUTVisualizer : public Visualizer
     void run();
     static GLUTVisualizer *glutInstance() { return dynamic_cast<GLUTVisualizer*>(instance()); }
     Visualization *getCurrentWindow();
+    void destroyWindow(Visualization *window, bool glutDestroy);
     
     // Delegates
 
@@ -149,6 +150,19 @@ class GLUTVisualizer : public Visualizer
       Visualization* window = glutInstance()->getCurrentWindow();
       if (window)
         window->click(button, state, x, y);
+    }
+    
+    static void error(const char *fmt, va_list ap)
+    {
+      char errmsg[PATH_MAX];
+      std::ostringstream oss;
+      
+      vsnprintf(errmsg, PATH_MAX, fmt, ap);
+      oss << errmsg;
+      grl::log(0, oss);
+      pthread_mutex_unlock(&glutInstance()->mutex_);
+      glutInstance()->instance_ = NULL;
+      pthread_exit(NULL);
     }
 };
 

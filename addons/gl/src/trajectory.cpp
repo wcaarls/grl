@@ -46,7 +46,10 @@ void TrajectoryVisualization::request(ConfigurationRequest *config)
 void TrajectoryVisualization::configure(Configuration &config)
 {
   if (!Visualizer::instance())
-    throw Exception("visualization/trajectory requires a configured visualizer to run");
+  {
+    WARNING("visualization/trajectory requires a configured visualizer to run");
+    return;
+  }
 
   trajectory_ = (MatrixSignal*)config["trajectory"].ptr();
 

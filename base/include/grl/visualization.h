@@ -120,7 +120,7 @@ class Visualizer : public Configurable
     virtual void createWindow(Visualization *window, const char *name) = 0;
     
     /// Called by a Visualization to destroy its window.
-    virtual void destroyWindow(Visualization *window, bool glutDestroy=true) = 0;
+    virtual void destroyWindow(Visualization *window) = 0;
     
     /// Called by a Visualization to refresh its window.
     virtual void refreshWindow(Visualization *window) = 0;

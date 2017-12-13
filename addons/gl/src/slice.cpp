@@ -52,7 +52,10 @@ void SliceVisualization::request(ConfigurationRequest *config)
 void SliceVisualization::configure(Configuration &config)
 {
   if (!Visualizer::instance())
-    throw Exception("visualization/slice requires a configured visualizer to run");
+  {
+    WARNING("visualization/slice requires a configured visualizer to run");
+    return;
+  }
 
   dims_ = config["field_dims"].v();
   if (dims_.size() != 2)

@@ -49,7 +49,10 @@ void StateVisualization::request(ConfigurationRequest *config)
 void StateVisualization::configure(Configuration &config)
 {
   if (!Visualizer::instance())
-    throw Exception("visualization/state requires a configured visualizer to run");
+  {
+    WARNING("visualization/state requires a configured visualizer to run");
+    return;
+  }
 
   state_ = (VectorSignal*)config["state"].ptr();
 

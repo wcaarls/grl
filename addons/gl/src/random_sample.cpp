@@ -51,7 +51,10 @@ void RandomSampleVisualization::request(ConfigurationRequest *config)
 void RandomSampleVisualization::configure(Configuration &config)
 {
   if (!Visualizer::instance())
-    throw Exception("visualization/sample/random requires a configured visualizer to run");
+  {
+    WARNING("visualization/sample/random requires a configured visualizer to run");
+    return;
+  }
 
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (Representation*)config["representation"].ptr();

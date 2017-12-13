@@ -56,7 +56,10 @@ void FieldVisualization::request(ConfigurationRequest *config)
 void FieldVisualization::configure(Configuration &config)
 {
   if (!Visualizer::instance())
-    throw Exception("visualization/field requires a configured visualizer to run");
+  {
+    WARNING("visualization/field requires a configured visualizer to run");
+    return;
+  }
     
   state_ = (VectorSignal*)config["state"].ptr();
 

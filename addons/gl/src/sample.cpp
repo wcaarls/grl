@@ -50,7 +50,10 @@ void SampleVisualization::request(ConfigurationRequest *config)
 void SampleVisualization::configure(Configuration &config)
 {
   if (!Visualizer::instance())
-    throw Exception("visualization/sample requires a configured visualizer to run");
+  {
+    WARNING("visualization/field/sample requires a configured visualizer to run");
+    return;
+  }
 
   projector_ = (SampleProjector*)config["projector"].ptr();
 

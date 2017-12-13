@@ -49,6 +49,8 @@ void GLUTVisualizer::configure(Configuration &config)
   pthread_mutex_init(&mutex_, NULL);
   pthread_mutex_lock(&mutex_);
   pthread_create(&thread_, NULL, run, NULL);
+  pthread_mutex_lock(&mutex_);
+  pthread_mutex_unlock(&mutex_);
 }
 
 void GLUTVisualizer::reconfigure(const Configuration &config)
@@ -72,24 +74,10 @@ void GLUTVisualizer::createWindow(Visualization *window, const char *name)
   pthread_mutex_unlock(&mutex_);
 }
     
-void GLUTVisualizer::destroyWindow(Visualization *window, bool glutDestroy)
+void GLUTVisualizer::destroyWindow(Visualization *window)
 {
   pthread_mutex_lock(&mutex_);
-      
-  WindowMap::iterator it=windows_.begin();
-      
-  while (it != windows_.end())
-  {
-    if (it->second == window)
-    {
-      if (glutDestroy)
-        glutDestroyWindow(it->first);
-      windows_.erase(it++);
-    }
-    else
-      ++it;
-  }
-      
+  destroyWindow(window, true);
   pthread_mutex_unlock(&mutex_);
 }
 
@@ -181,6 +169,7 @@ void GLUTVisualizer::run()
       
   strncpy(argv1, "GLUTVisualizer", 256);
   
+  glutInitErrorFunc(error);
   glutInit(&argc, argv);
   glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
   glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_CONTINUE_EXECUTION);
@@ -231,3 +220,21 @@ Visualization *GLUTVisualizer::getCurrentWindow()
   else
     return NULL;
 }
+
+void GLUTVisualizer::destroyWindow(Visualization *window, bool glutDestroy)
+{
+  WindowMap::iterator it=windows_.begin();
+      
+  while (it != windows_.end())
+  {
+    if (it->second == window)
+    {
+      if (glutDestroy)
+        glutDestroyWindow(it->first);
+      windows_.erase(it++);
+    }
+    else
+      ++it;
+  }
+}
+
