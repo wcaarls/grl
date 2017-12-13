@@ -84,7 +84,7 @@ void ActionACPredictor::update(const Transition &transition)
   ProjectionPtr ap = projector_->project(transition.prev_obs);
   
   Vector u;
-  representation_->read(ap, &u);
+  representation_->target()->read(ap, &u);
   
   if (!u.size())
     u = ConstantVector(transition.prev_action.size(), 0.);
@@ -120,10 +120,10 @@ void ActionACPredictor::update(const std::vector<const Transition*> &transitions
   }
     
   Matrix u;
-  representation_->batchRead(transitions.size());
+  representation_->target()->batchRead(transitions.size());
   for (size_t ii=0; ii < transitions.size(); ++ii)
-    representation_->enqueue(projector_->project(transitions[ii]->prev_obs));
-  representation_->read(&u);
+    representation_->target()->enqueue(projector_->project(transitions[ii]->prev_obs));
+  representation_->target()->read(&u);
 
   std::vector<Action> action_objs(transitions.size());
   std::vector<const Action*> actions(transitions.size());
@@ -206,7 +206,7 @@ void ExpandedActionACPredictor::update(const Transition &transition)
   ProjectionPtr ap = projector_->project(transition.prev_obs);
   
   Vector u;
-  representation_->read(ap, &u);
+  representation_->target()->read(ap, &u);
   
   if (!u.size())
     u = ConstantVector(transition.obs.u.size(), 0.);
@@ -242,10 +242,10 @@ void ExpandedActionACPredictor::update(const std::vector<const Transition*> &tra
   }
     
   Matrix u;
-  representation_->batchRead(transitions.size());
+  representation_->target()->batchRead(transitions.size());
   for (size_t ii=0; ii < transitions.size(); ++ii)
-    representation_->enqueue(projector_->project(transitions[ii]->prev_obs));
-  representation_->read(&u);
+    representation_->target()->enqueue(projector_->project(transitions[ii]->prev_obs));
+  representation_->target()->read(&u);
   
   Action a = discrete_action_;
   LargeVector critique = critic_->criticize(transitions, std::vector<const Action*>(transitions.size(), &a));
