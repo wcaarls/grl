@@ -689,6 +689,14 @@ class Configurable
       return c;
     }
     
+    ConfigurationParameter operator[](const std::string &path) const
+    {
+      if (configurator_)
+        return (*configurator_)[path];
+      else
+        throw Exception(Configurable::path() + ": Parameter '" + path + "' not set");
+    }
+    
   protected:
     /// Configurable-specific log writer (also logs class name).
     inline void log(unsigned char level, const std::ostringstream &oss) const

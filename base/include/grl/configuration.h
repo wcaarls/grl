@@ -192,12 +192,12 @@ class ConfigurationParameter
       return value_;
     }
     
-    void *ptr() const
+    class Configurable *ptr() const
     {
       void *value;
       if (!get(value))
         throw Exception("Parameter type mismatch while converting '" + value_ + "' to pointer");
-      return value;
+      return (Configurable*)value;
     }
 };
 
