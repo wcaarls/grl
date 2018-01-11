@@ -38,6 +38,7 @@ REGISTER_CONFIGURABLE(OnlineLearningExperiment)
 void OnlineLearningExperiment::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("runs", "Number of separate learning runs to perform", runs_, CRP::Configuration, 1));
+  config->push_back(CRP("run_offset", "Run offset to start at", (int)run_offset_));
   config->push_back(CRP("trials", "Number of episodes per learning run", (int)trials_));
   config->push_back(CRP("steps", "Number of steps per learning run", (int)steps_));
   config->push_back(CRP("rate", "Control step frequency in Hz", (int)rate_, CRP::Online));
@@ -63,6 +64,7 @@ void OnlineLearningExperiment::configure(Configuration &config)
   environment_ = (Environment*)config["environment"].ptr();
   
   runs_ = config["runs"];
+  run_offset_ = config["run_offset"];
   trials_ = config["trials"];
   steps_ = config["steps"];
   rate_ = config["rate"];
@@ -101,7 +103,7 @@ void OnlineLearningExperiment::run()
     ofs.close();
   }
 
-  for (size_t rr=0; rr < runs_; ++rr)
+  for (size_t rr=run_offset_; rr < runs_+run_offset_; ++rr)
   {
     if (!output_.empty())
     {
@@ -226,7 +228,7 @@ void OnlineLearningExperiment::run()
     if (ofs.is_open())
       ofs.close();
       
-    if (rr < runs_ - 1)
+    if (rr < runs_ + run_offset_ - 1)
       reset();
   }
 }

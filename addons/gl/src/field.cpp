@@ -87,7 +87,8 @@ void FieldVisualization::configure(Configuration &config)
   // Allocate texture
   data_ = (unsigned char*) malloc(texpoints_*3*sizeof(unsigned char));
   
-  TRACE("Calculating " << dimpoints_ << "x" << dimpoints_ << " (" << texpoints_ << ") texture from " << points_ << " points with spacing " << (state_max_-state_min_)/(dimpoints_-1));}
+  TRACE("Calculating " << dimpoints_ << "x" << dimpoints_ << " (" << texpoints_ << ") texture from " << points_ << " points with spacing " << (state_max_-state_min_)/(dimpoints_-1));
+}
 
 void FieldVisualization::reconfigure(const Configuration &config)
 {
@@ -197,7 +198,7 @@ void FieldVisualization::run()
           v = -std::numeric_limits<float>::infinity();
           break;
       }
-    
+      
       for (int jj=0; jj < points_/texpoints_; ++jj)
       {
         switch (projection_)

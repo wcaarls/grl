@@ -100,6 +100,8 @@ void PolicyValueVisualization::configure(Configuration &config)
     return;
   }
   
+  FieldVisualization::configure(config);
+
   policy_ = (ValuePolicy*)config["policy"].ptr();
   
   // Create window  

@@ -46,14 +46,14 @@ class OnlineLearningExperiment : public Experiment
     Environment *environment_;
     VectorSignal *state_, *action_, *curve_;
 
-    size_t runs_, trials_, steps_;
+    size_t runs_, run_offset_, trials_, steps_;
     int test_interval_;
     double rate_;
     std::string identity_, output_, load_file_;
     std::string save_every_;
 
   public:
-    OnlineLearningExperiment() : agent_(NULL), test_agent_(NULL), environment_(NULL), state_(NULL), action_(NULL), curve_(NULL), runs_(1), trials_(0), steps_(0), test_interval_(-1), rate_(0), save_every_("never")  { }
+    OnlineLearningExperiment() : agent_(NULL), test_agent_(NULL), environment_(NULL), state_(NULL), action_(NULL), curve_(NULL), runs_(1), run_offset_(0), trials_(0), steps_(0), test_interval_(-1), rate_(0), save_every_("never")  { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
