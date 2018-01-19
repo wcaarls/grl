@@ -1,10 +1,11 @@
 experiment: 
   type: experiment/online_learning
-  runs: 10
+  runs: 1
   trials: 1000
   steps: 0
   rate: 0
   test_interval: 10
+  output: kappa
   environment: 
     type: environment/modeled
     model: 
@@ -20,7 +21,7 @@ experiment:
   agent: 
     type: agent/td
     policy: 
-      type: policy/discrete/q
+      type: mapping/policy/value/q
       discretizer: 
         type: discretizer/uniform
         min: experiment/environment/task/action_min
@@ -44,7 +45,7 @@ experiment:
         type: sampler/epsilon_greedy
         epsilon: 0.05
     predictor: 
-      type: predictor/advantage
+      type: predictor/critic/advantage
       alpha: 0.2
       gamma: 0.97
       lambda: 0.65
@@ -57,7 +58,7 @@ experiment:
   test_agent: 
     type: agent/fixed
     policy: 
-      type: policy/discrete/q
+      type: mapping/policy/value/q
       discretizer: experiment/agent/policy/discretizer
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
