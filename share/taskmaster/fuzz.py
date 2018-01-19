@@ -59,19 +59,18 @@ def get_jobs(last=None, cfg='experiments.yaml'):
           stream.close()
           stream = file(agent)
           merge(conf, yaml.load(stream))
-          yield os.path.basename(env)[4:-5] + "_" + os.path.basename(agent)[6:-5], conf, exp
+          for job in get_experiment_jobs(os.path.basename(env)[4:-5] + "_" + os.path.basename(agent)[6:-5], conf, exp):
+            yield job
     else:
       # Specific file, possibly with wildcards
       for f in glob.glob(exp["file"]):
         stream = file(f)
         conf = yaml.load(stream)
         stream.close()
-        yield os.path.basename(f), conf, exp
-  
-def handle_job(job):
-  name, conf, e = job
-  
-  conf = copy.deepcopy(conf)
+        for job in get_experiment_jobs(os.path.basename(f), conf, exp):
+          yield job
+
+def get_experiment_jobs(name, conf, e):
   indices = [0] * len(e["parameters"])
   
   # Iterate over variable combinations
@@ -82,20 +81,14 @@ def handle_job(job):
       value = value.replace("$@", name)
       for i in range(len(e["parameters"])):
         value = value.replace("$%d" % i, str(e["parameters"][i]["values"][indices[i]]))
-      print c["name"], " -> ", value
       set(conf, c["name"], value)
       
     for i in range(len(e["parameters"])):
       p = e["parameters"][i]
       set(conf, p["name"], p["values"][indices[i]])
       
-    # Run
-    tmp = "/tmp/grl." + str(os.getpid()) + ".yaml"
-    outfile = file(tmp, 'w')
-    yaml.dump(conf, outfile)
-    outfile.close()
-    os.system("grld " + tmp)
-    os.remove(tmp)
+    # Enqueue job
+    yield conf
     
     # Increment
     for i in range(len(e["parameters"])):
@@ -108,3 +101,12 @@ def handle_job(job):
     # Stop when we're back at the beginning
     if cmp(indices, [0] * len(indices)) == 0:
       break
+  
+def handle_job(conf):
+    # Run
+    tmp = "/tmp/grl." + str(os.getpid()) + ".yaml"
+    outfile = file(tmp, 'w')
+    yaml.dump(conf, outfile)
+    outfile.close()
+    os.system("grld " + tmp)
+    os.remove(tmp)
