@@ -71,6 +71,7 @@ def get_jobs(last=None, cfg='experiments.yaml'):
           yield job
 
 def get_experiment_jobs(name, conf, e):
+  conf = copy.deepcopy(conf)
   indices = [0] * len(e["parameters"])
   
   # Iterate over variable combinations
@@ -88,7 +89,7 @@ def get_experiment_jobs(name, conf, e):
       set(conf, p["name"], p["values"][indices[i]])
       
     # Enqueue job
-    yield conf
+    yield copy.deepcopy(conf)
     
     # Increment
     for i in range(len(e["parameters"])):
@@ -104,6 +105,8 @@ def get_experiment_jobs(name, conf, e):
   
 def handle_job(conf):
     # Run
+    print conf["experiment"]["output"]
+    
     tmp = "/tmp/grl." + str(os.getpid()) + ".yaml"
     outfile = file(tmp, 'w')
     yaml.dump(conf, outfile)
