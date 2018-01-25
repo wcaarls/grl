@@ -82,6 +82,8 @@ def get_experiment_jobs(name, conf, e):
       value = value.replace("$@", name)
       for i in range(len(e["parameters"])):
         value = value.replace("$%d" % i, str(e["parameters"][i]["values"][indices[i]]))
+      for i in range(len(e["parameters"])):
+        value = value.replace("#%d" % i, str(indices[i]))
       set(conf, c["name"], value)
       
     for i in range(len(e["parameters"])):
