@@ -289,6 +289,8 @@ std::string ParameterConfigurator::localize(const std::string &id, const Configu
     return id;
 }
 
+#define OPERATORS "+*"
+
 std::string ParameterConfigurator::str() const
 {
   std::string v = value_, id, expv;
@@ -327,57 +329,70 @@ std::string ParameterConfigurator::str() const
 
   // Do some light math
   size_t c;
-  while ((c=expv.find('+')) != std::string::npos)
-  {
+  while ((c=strcspn(expv.c_str(), OPERATORS)) < expv.size()) {
     std::string left, right;
     size_t start=c, end=c+1;
-    char vector_add = 0;
-    
-    if (c+1 < expv.size() && expv[c+1] == '+')
+    int double_op = 0;
+
+    // Recognize ++ for vector extension
+    if (c+1 < expv.size() && expv[c] == expv[c+1])
     {
-      vector_add = 1;
+      double_op = 1;
       end++;
       c++;
     }
-    
+
     // Right
-    for (size_t ii=c+1; ii < expv.size() && expv[ii] != '+'; ++ii, ++end)
+    for (size_t ii=c+1; ii < expv.size() && !strchr(OPERATORS, expv[ii]); ++ii, ++end)
       right.push_back(expv[ii]);
 
     // Left
-    for (int ii=c-1-vector_add; ii >= 0 && expv[ii] != '+'; --ii, --start)
+    for (int ii=c-1-double_op; ii >= 0 && !strchr(OPERATORS, expv[ii]); --ii, --start)
       left.push_back(expv[ii]);
 
     std::reverse(left.begin(), left.end());
-    
+
     if (left.empty() || right.empty())
       break;
-      
-    // Parse values
-    std::istringstream issa, issb;
-    std::vector<double> a_in, b_in, c_out;
 
-    issa.str(left);  issa >> a_in;
-    issb.str(right); issb >> b_in;
-    
-    LargeVector a, b, c;
-    toVector(a_in, a);
-    toVector(b_in, b);
-    
+    // Parse values
+    std::istringstream issx, issy;
+    std::vector<double> x_in, y_in, z_out;
+
+    issx.str(left);  issx >> x_in;
+    issy.str(right); issy >> y_in;
+
+    LargeVector x, y, z;
+    toVector(x_in, x);
+    toVector(y_in, y);
+
     // Perform operation
-    if (a.size() == 1 && b.size() == 1 && !vector_add) c = a + b;
-    else                                               c = extend(a, b);
-    
-    fromVector(c, c_out);
-    
+    switch (expv[c])
+    {
+      case '+':
+        // TODO: Rationalize this to only extend vectors when using ++ operator
+        if (x.size() == 1 && y.size() == 1 && !double_op) z = x + y;
+        else                                              z = extend(x, y);
+        break;
+      case '*':
+        if (x.size() == 1)             z = x[0] * y;
+        else if (y.size() == 1)        z = x * y[0];
+        else if (x.size() == y.size()) z = x * y;
+        else
+          ERROR("Cannot multiply " << x_in << " and " << y_in << ": vector size mismatch");
+        break;
+    }
+
+    fromVector(z, z_out);
+
     // Replace in original string
     std::ostringstream oss;
-    if (c.size() == 1) oss << c_out[0];
-    else               oss << c_out;
-    
+    if (z.size() == 1) oss << z_out[0];
+    else               oss << z_out;
+
     expv.replace(start, end-start, oss.str());
   }
-  
+
   return expv;
 }
 
