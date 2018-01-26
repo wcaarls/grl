@@ -29,6 +29,17 @@ def set(conf, item, value):
     
   return conf
 
+def get(conf, item):
+  # Strip leading /
+  if item[0] == '/':
+    item = item[1:]
+    
+  path = item.split('/')
+  if len(path) == 1:
+    return conf[path[0]]
+  else:
+    return get(conf[path[0]], '/'.join(path[1:]))
+
 def merge(base, new):
   if isinstance(base,dict) and isinstance(new,dict):
     for k,v in new.iteritems():
@@ -78,7 +89,7 @@ def get_experiment_jobs(name, conf, e):
   while True:
     # Construct configuration for this combination
     for c in e["configuration"]:
-      value = c["value"]
+      value = str(c["value"])
       value = value.replace("$@", name)
       for i in range(len(e["parameters"])):
         value = value.replace("$%d" % i, str(e["parameters"][i]["values"][indices[i]]))
@@ -88,7 +99,9 @@ def get_experiment_jobs(name, conf, e):
       
     for i in range(len(e["parameters"])):
       p = e["parameters"][i]
-      set(conf, p["name"], p["values"][indices[i]])
+      value = str(p["values"][indices[i]])
+      value = value.replace("$*", str(get(conf, p["name"])))
+      set(conf, p["name"], value)
       
     # Enqueue job
     yield copy.deepcopy(conf)
