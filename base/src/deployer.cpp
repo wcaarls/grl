@@ -25,6 +25,8 @@
  * \endverbatim
  */
 
+#include <sys/time.h>
+
 #include <grl/grl.h>
 #include <grl/configurable.h>
 #include <grl/experiment.h>
@@ -71,8 +73,12 @@ int main(int argc, char **argv)
   }
   else
   {
-    srand(time(NULL));
-    srand48(time(NULL));
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    long unsigned int tseed = tv.tv_sec ^ tv.tv_usec ^ getpid();
+  
+    srand(tseed);
+    srand48(tseed);
   }
   
   // Load plugins
