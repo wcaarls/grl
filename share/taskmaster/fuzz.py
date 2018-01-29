@@ -82,40 +82,56 @@ def get_jobs(last=None, cfg='experiments.yaml'):
           yield job
 
 def get_experiment_jobs(name, conf, e):
-  conf = copy.deepcopy(conf)
-  indices = [0] * len(e["parameters"])
+  orig = copy.deepcopy(conf)
+  hasparams = e.has_key("parameters")
+  hasconfig = e.has_key("configuration") 
+  
+  if hasparams:
+    indices = [0] * len(e["parameters"])
   
   # Iterate over variable combinations
   while True:
     # Construct configuration for this combination
-    for c in e["configuration"]:
-      value = str(c["value"])
-      value = value.replace("$@", name)
-      for i in range(len(e["parameters"])):
-        value = value.replace("$%d" % i, str(e["parameters"][i]["values"][indices[i]]))
-      for i in range(len(e["parameters"])):
-        value = value.replace("#%d" % i, str(indices[i]))
-      set(conf, c["name"], value)
+    conf = copy.deepcopy(orig)
+    
+    if hasconfig:
+      # Non-cycling configuration parameters
+      for c in e["configuration"]:
+        value = str(c["value"])
+        value = value.replace("$@", name)
+        
+        if hasparams:
+          for i in range(len(e["parameters"])):
+            value = value.replace("$%d" % i, str(e["parameters"][i]["values"][indices[i]]))
+          for i in range(len(e["parameters"])):
+            value = value.replace("#%d" % i, str(indices[i]))
+        set(conf, c["name"], value)
       
-    for i in range(len(e["parameters"])):
-      p = e["parameters"][i]
-      value = str(p["values"][indices[i]])
-      value = value.replace("$*", str(get(conf, p["name"])))
-      set(conf, p["name"], value)
+    if hasparams:
+      # Cycling configuration parameters
+      for i in range(len(e["parameters"])):
+        p = e["parameters"][i]
+        value = str(p["values"][indices[i]])
+        value = value.replace("$*", str(get(conf, p["name"])))
+        set(conf, p["name"], value)
       
     # Enqueue job
-    yield copy.deepcopy(conf)
+    yield conf
     
-    # Increment
-    for i in range(len(e["parameters"])):
-      indices[i] = indices[i] + 1
-      if indices[i] == len(e["parameters"][i]["values"]):
-        indices[i] = 0
-      else:
+    if hasparams:
+      # Increment
+      for i in range(len(e["parameters"])):
+        indices[i] = indices[i] + 1
+        if indices[i] == len(e["parameters"][i]["values"]):
+          indices[i] = 0
+        else:
+          break
+
+      # Stop when we're back at the beginning
+      if cmp(indices, [0] * len(indices)) == 0:
         break
-    
-    # Stop when we're back at the beginning
-    if cmp(indices, [0] * len(indices)) == 0:
+    else:
+      # No parameters to cycle though, just exit
       break
   
 def handle_job(conf):

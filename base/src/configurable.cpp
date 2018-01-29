@@ -387,6 +387,8 @@ std::string ParameterConfigurator::str() const
 
     // Replace in original string
     std::ostringstream oss;
+    oss << std::setprecision(std::numeric_limits<double>::max_digits10);
+    
     if (z.size() == 1) oss << z_out[0];
     else               oss << z_out;
 
