@@ -58,7 +58,7 @@ void RPCEnvExperiment::reconfigure(const Configuration &config)
   config.get("port", port_);
 }
 
-void RPCEnvExperiment::run()
+LargeVector RPCEnvExperiment::run()
 {
   struct sockaddr_in myaddr, agentaddr;
   int yes = 1, fd;
@@ -104,6 +104,8 @@ void RPCEnvExperiment::run()
     writeChar(terminal);
     writeDouble(tau);
   }
+
+  return LargeVector();
 }
 
 void RPCEnvExperiment::writeChar(unsigned char c)

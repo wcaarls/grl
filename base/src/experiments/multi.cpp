@@ -63,11 +63,13 @@ void MultiExperiment::reconfigure(const Configuration &config)
 {
 }
 
-void MultiExperiment::run()
+LargeVector MultiExperiment::run()
 {
   for (size_t ii=0; ii < instances_; ++ii)
     experiments_[ii]->start();
     
   for (size_t ii=0; ii < instances_; ++ii)
     experiments_[ii]->join();
+
+  return LargeVector();
 }

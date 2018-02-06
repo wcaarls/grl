@@ -60,7 +60,7 @@ class ApproxTestExperiment : public Experiment
     virtual void reconfigure(const Configuration &config);
 
     // From Experiment
-    virtual void run();
+    virtual LargeVector run();
 };
 
 }

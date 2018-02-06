@@ -66,8 +66,10 @@ void ApproxTestExperiment::reconfigure(const Configuration &config)
 {
 }
 
-void ApproxTestExperiment::run()
+LargeVector ApproxTestExperiment::run()
 {
+  LargeVector result(test_samples_);
+
   for (size_t ii=0; ii < train_samples_; ++ii)
   {
     Vector in = RandGen::getVector(min_.size()), out;
@@ -118,5 +120,8 @@ void ApproxTestExperiment::run()
     } 
         
     (*os) << e << std::endl;
+    result[ii] = e;
   }
+
+  return result;
 }

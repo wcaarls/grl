@@ -84,12 +84,15 @@ void BatchLearningExperiment::reconfigure(const Configuration &config)
   config.get("rate", rate_);
 }
 
-void BatchLearningExperiment::run()
+LargeVector BatchLearningExperiment::run()
 {
   std::ofstream ofs;
+  std::vector<double> curve;
 
   for (size_t rr=0; rr < runs_; ++rr)
   {
+    curve.clear();
+
     if (output_.size())
     {
       std::ostringstream oss;
@@ -177,6 +180,7 @@ void BatchLearningExperiment::run()
       std::ostringstream oss;
       oss << std::setw(15) << bb << std::setw(15) << bb*batch_size_ << std::setw(15) << total_reward;
       test_agent_->report(oss);
+      curve.push_back(total_reward);
         
       INFO(oss.str());
       if (ofs.is_open())
@@ -189,4 +193,9 @@ void BatchLearningExperiment::run()
     if (rr < runs_ - 1)
       reset();
   }
+
+  LargeVector result;
+  toVector(curve, result);
+
+  return result;
 }

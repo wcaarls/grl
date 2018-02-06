@@ -61,7 +61,7 @@ class RPCEnvExperiment : public Experiment
     virtual void reconfigure(const Configuration &config);
 
     // From Experiment
-    virtual void run();
+    virtual LargeVector run();
 
   protected:
     void writeChar(unsigned char c);

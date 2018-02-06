@@ -39,8 +39,8 @@ class Experiment : public Configurable
   public:
     virtual ~Experiment() { }
     
-    /// Start the experiment.
-    virtual void run() = 0;
+    /// Start the experiment. Returns learning curve.
+    virtual LargeVector run() = 0;
 };
 
 }

@@ -91,9 +91,10 @@ void OnlineLearningExperiment::reconfigure(const Configuration &config)
   config.get("identity", identity_);
 }
 
-void OnlineLearningExperiment::run()
+LargeVector OnlineLearningExperiment::run()
 {
   std::ofstream ofs;
+  std::vector<double> curve;
   
   // Store configuration with output
   if (!output_.empty())
@@ -105,6 +106,8 @@ void OnlineLearningExperiment::run()
 
   for (size_t rr=run_offset_; rr < runs_+run_offset_; ++rr)
   {
+    curve.clear();
+
     if (!output_.empty())
     {
       std::ostringstream oss;
@@ -183,6 +186,7 @@ void OnlineLearningExperiment::run()
           agent_->report(oss);
           environment_->report(oss);
           curve_->set(VectorConstructor(total_reward));
+          curve.push_back(total_reward);
         
           INFO(oss.str());
           if (ofs.is_open())
@@ -196,7 +200,8 @@ void OnlineLearningExperiment::run()
         agent_->report(oss);
         environment_->report(oss);
         curve_->set(VectorConstructor(total_reward));
-        
+        curve.push_back(total_reward);
+
         INFO(oss.str());
         if (ofs.is_open())
           ofs << oss.str() << std::endl;
@@ -231,4 +236,9 @@ void OnlineLearningExperiment::run()
     if (rr < runs_ + run_offset_ - 1)
       reset();
   }
+
+  LargeVector result;
+  toVector(curve, result);
+
+  return result;
 }

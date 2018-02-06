@@ -138,6 +138,12 @@ add_executable(${TARGET} ${SRC}/deployer.cpp)
 grl_link_libraries(${TARGET} base)
 install(TARGETS ${TARGET} DESTINATION ${GRL_BIN_DESTINATION})
 
+# Worker
+set (TARGET grlw)
+add_executable(${TARGET} ${SRC}/worker.cpp)
+grl_link_libraries(${TARGET} base)
+install(TARGETS ${TARGET} DESTINATION ${GRL_BIN_DESTINATION})
+
 FIND_PACKAGE (Lua51)
 
 if (LUA51_FOUND)
