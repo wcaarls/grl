@@ -76,32 +76,31 @@ int makeConnection(const char *_host)
     return -1;
   }
 
-  struct sockaddr_in addr;
-  bzero((char *) &addr, sizeof(addr));
-  addr.sin_family = AF_INET;
-
-  struct hostent *server;
-  server = gethostbyname(host);
-  if (!server)
+  struct addrinfo *ai;
+  if (getaddrinfo(host, NULL, NULL, &ai) < 0)
   {
     ERROR("Could not resolve hostname '" << host << "': " << strerror(errno));
     close(fd);
     return -1;
   }
+  
+  struct sockaddr_in *addr = (struct sockaddr_in*) ai->ai_addr;
 
-  bcopy((char *)server->h_addr, (char *)&addr.sin_addr.s_addr, server->h_length);
   if (*port)
-    addr.sin_port = htons(atoi(port));
+    addr->sin_port = htons(atoi(port));
   else
-    addr.sin_port = htons(3373);
+    addr->sin_port = htons(3373);
 
-  TRACE("Connecting to " << inet_ntoa(addr.sin_addr) << ":" << ntohs(addr.sin_port));
-  if (connect(fd,(struct sockaddr *) &addr,sizeof(addr)) < 0)
+  TRACE("Connecting to " << inet_ntoa(addr->sin_addr) << ":" << ntohs(addr->sin_port));
+  if (connect(fd,(struct sockaddr *) addr,sizeof(*addr)) < 0)
   {
     TRACE("Could not connect to server: " << strerror(errno));
+    freeaddrinfo(ai);
     close(fd);
     return -1;
   }
+  
+  freeaddrinfo(ai);
 
   return fd;
 }

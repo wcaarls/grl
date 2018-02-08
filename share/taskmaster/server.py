@@ -45,7 +45,6 @@ class Server():
 def read(w, regret):
   """Read worker result, returning either simple or cumulative regret"""
   data = [float(v) for v in w.makefile().readlines()]
-  w.shutdown(socket.SHUT_RDWR)
   w.close()
   
   if regret == 'simple':
@@ -54,7 +53,7 @@ def read(w, regret):
   elif regret == 'cumulative':
     return sum(data)
   else:
-    raise "Unknown regret type", regret
+    raise Exception("Unknown regret type " + regret)
 
 if __name__ == '__main__':
   server = Server(3373)

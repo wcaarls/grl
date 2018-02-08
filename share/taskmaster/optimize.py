@@ -3,7 +3,7 @@
 # Run with 'tm-run fuzz.py 2 cfg=experiments.yaml'
 # NOTE: Assumes the grl deployer (grld) can be found on the path
 
-import yaml, collections, sys, copy, string, server, math
+import yaml, collections, sys, copy, string, server, math, random
 
 srv = server.Server()
 _mapping_tag = yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG
@@ -57,19 +57,56 @@ def line_search(conf, param, values, repetitions, regret):
     
   return vresults
   
-def optimize(cfg):
-  stream = open(cfg, 'r')
-  spec = yaml.load(stream)
-  stream.close()
-  
-  file = spec["file"]
-  stream = open(file, 'r')
-  conf = yaml.load(stream)
-  stream.close()
-  
+def random_optimize(cfg, spec, conf):
+  print "Random search"
+
+  bestscore = -100000
+  bestout = cfg[:-5] + '-best.yaml'
   it = 0
   
-  for round in range(5):
+  while it < spec["rounds"]:
+    workers = []
+    for i in range(max(1, int(100/spec["repetitions"]))):
+      for p in spec["parameters"]:
+        set(conf, p["name"], p["values"][random.randrange(len(p["values"]))])
+      confstr = yaml.dump(conf)
+      
+      print "Submitting new configuration"
+      workers.append((conf, [srv.submit(confstr) for r in range(spec["repetitions"])]))
+
+    for (c, cworkers) in workers:
+      results = [server.read(w, spec["regret"]) for w in cworkers]
+      
+      avg = sum(results)/len(results)
+      stddev = math.sqrt(sum([(r-avg)**2 for r in results])/(len(results)-1))
+      stderr = stddev/math.sqrt(len(results))
+      
+      resconf = {}
+      resconf["mean"] = avg
+      resconf["stddev"] = stddev
+      resconf["stderr"] = stderr
+      c["results"] = resconf
+      
+      outfile = cfg[:-5] + '-' + str(it) + '.yaml'
+      stream = open(outfile, 'w')
+      yaml.dump(c, stream)
+      stream.close()
+      
+      score = avg-1.96*stderr
+      
+      if score > bestscore:
+        print "Found new best lower confidence margin", score
+        bestscore = score
+        stream = open(bestout, 'w')
+        yaml.dump(conf, stream)
+        stream.close()
+
+      it += 1
+
+def line_optimize(cfg, spec, conf):
+  it = 0
+  
+  for round in range(spec["rounds"]):
     for p in spec["parameters"]:
       results = line_search(conf, p["name"], p["values"], spec["repetitions"], spec["regret"])
       
@@ -105,7 +142,22 @@ def optimize(cfg):
     # Stopping criterion?
 
 if __name__ == '__main__':
+  cfg = 'optimize.yaml'
   if len(sys.argv) > 1:
-    optimize(sys.argv[1])
+    cfg = sys.argv[1]
+
+  stream = open(cfg, 'r')
+  spec = yaml.load(stream)
+  stream.close()
+  
+  file = spec["file"]
+  stream = open(file, 'r')
+  conf = yaml.load(stream)
+  stream.close()
+  
+  if spec["algorithm"] == 'line':
+    line_optimize(cfg, spec, conf)
+  elif spec["algorithm"] == 'random':
+    random_optimize(cfg, spec, conf)
   else:
-    optimize('optimize.yaml')
+    raise Exception("Unknown optimization algorithm " + spec["algorithm"])
