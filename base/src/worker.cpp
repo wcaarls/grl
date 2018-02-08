@@ -62,7 +62,18 @@ int makeConnection(const char *_host)
 
   int optval = 1;
   int fd = socket(AF_INET, SOCK_STREAM, 0);
-  setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof optval);
+  
+  if (fd < 0)
+  {
+    ERROR("Could not open socket: " << strerror(errno));
+    return -1;
+  }
+  
+  if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof optval) < 0)
+  {
+    ERROR("Could not set socket options: " << strerror(errno));
+    return -1;
+  }
 
   struct sockaddr_in addr;
   bzero((char *) &addr, sizeof(addr));
@@ -72,7 +83,7 @@ int makeConnection(const char *_host)
   server = gethostbyname(host);
   if (!server)
   {
-    ERROR("Could not resolve hostname '" << host << "'");
+    ERROR("Could not resolve hostname '" << host << "': " << strerror(errno));
     return -1;
   }
 
@@ -83,7 +94,7 @@ int makeConnection(const char *_host)
     addr.sin_port = htons(3373);
 
   TRACE("Connecting to " << inet_ntoa(addr.sin_addr) << ":" << ntohs(addr.sin_port));
-  if (::connect(fd,(struct sockaddr *) &addr,sizeof(addr)) < 0)
+  if (connect(fd,(struct sockaddr *) &addr,sizeof(addr)) < 0)
   {
     TRACE("Could not connect to server: " << strerror(errno));
     return -1;

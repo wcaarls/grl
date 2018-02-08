@@ -17,14 +17,16 @@ class Server():
     s.bind(('', self.port))
     s.listen(100)
     
+    print "Server listening for connections on port", self.port
+    
     try:
-      while 1:
+      while True:
         c, _ = s.accept()
         with self.condition:
           self.workers.append(c)
           self.condition.notify()
-    except:
-      pass
+    except e:
+      raise e
 
   def submit(self, conf):
     """ Submit job to available worker"""
@@ -40,11 +42,19 @@ class Server():
     # Return stream for reading by submitter
     return w
 
-def read(w):
-  """Read worker result, returning average of last 5% of data"""
+def read(w, regret):
+  """Read worker result, returning either simple or cumulative regret"""
   data = [float(v) for v in w.makefile().readlines()]
-  sample = int(len(data)/20)
-  return sum(data[-sample:])/sample
+  w.shutdown(socket.SHUT_RDWR)
+  w.close()
+  
+  if regret == 'simple':
+    sample = int(len(data)/20)
+    return sum(data[-sample:])/sample
+  elif regret == 'cumulative':
+    return sum(data)
+  else:
+    raise "Unknown regret type", regret
 
 if __name__ == '__main__':
   server = Server(3373)

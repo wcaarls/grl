@@ -30,28 +30,28 @@ def set(conf, item, value):
     
   return conf
 
-def line_search(conf, param, values, repetitions):
-  print "Optimizing ", param
+def line_search(conf, param, values, repetitions, regret):
+  print "Optimizing", param
 
   vworkers = {}
   for v in values:
     newconf = copy.deepcopy(conf)
     set(newconf, param, v)
-    confstr = yaml.dump(conf)
+    confstr = yaml.dump(newconf)
     
     vworkers[v] = [srv.submit(confstr) for r in range(repetitions)]
     
-    print "Submitted ", v
+    print "Submitted", v
   
   vresults = {}
   for value, workers in vworkers.iteritems():
-    results = [server.read(w) for w in workers]
-    
-    print value, results
+    results = [server.read(w, regret) for w in workers]
     
     avg = sum(results)/len(results)
     stddev = math.sqrt(sum([(r-avg)**2 for r in results])/(len(results)-1))
     stderr = stddev/math.sqrt(len(results))
+    
+    print value, (avg, stddev, stderr)
 
     vresults[value] = (avg, stddev, stderr)
     
@@ -67,18 +67,40 @@ def optimize(cfg):
   conf = yaml.load(stream)
   stream.close()
   
-  while True:
+  it = 0
+  
+  for round in range(5):
     for p in spec["parameters"]:
-      results = line_search(conf, p["name"], p["values"], spec["repetitions"])
-      
-      print p["name"], results
+      results = line_search(conf, p["name"], p["values"], spec["repetitions"], spec["regret"])
       
       means = [avg for (avg, stddev, stderr) in results.values()]
       best = [v for v, (avg, stddev, stderr) in results.items() if avg == max(means)]
+      
+      print "Chose", best[0]
     
       set(conf, p["name"], best[0])
       
-      print yaml.dump(conf)
+      resconf = {}
+      resconf["parameter"] = p["name"]
+      resconf["values"] = [v for v, (avg, stddev, stderr) in results.items()]
+      resconf["mean"] = [avg for v, (avg, stddev, stderr) in results.items()]
+      resconf["stddev"] = [stddev for v, (avg, stddev, stderr) in results.items()]
+      resconf["stderr"] = [stderr for v, (avg, stddev, stderr) in results.items()]
+      
+      bestconf = {}
+      bestconf["value"] = best[0]
+      bestconf["mean"] = results[best[0]][0]
+      bestconf["stddev"] = results[best[0]][1]
+      bestconf["stderr"] = results[best[0]][2]
+      
+      resconf["best"] = bestconf
+      conf["results"] = resconf
+      
+      outfile = cfg[:-5] + '-' + str(it) + '.yaml'
+      stream = open(outfile, 'w')
+      yaml.dump(conf, stream)
+      stream.close()
+      it += 1
     
     # Stopping criterion?
 
