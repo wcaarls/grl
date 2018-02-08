@@ -72,6 +72,7 @@ int makeConnection(const char *_host)
   if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof optval) < 0)
   {
     ERROR("Could not set socket options: " << strerror(errno));
+    close(fd);
     return -1;
   }
 
@@ -84,6 +85,7 @@ int makeConnection(const char *_host)
   if (!server)
   {
     ERROR("Could not resolve hostname '" << host << "': " << strerror(errno));
+    close(fd);
     return -1;
   }
 
@@ -97,6 +99,7 @@ int makeConnection(const char *_host)
   if (connect(fd,(struct sockaddr *) &addr,sizeof(addr)) < 0)
   {
     TRACE("Could not connect to server: " << strerror(errno));
+    close(fd);
     return -1;
   }
 
