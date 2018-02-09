@@ -1,6 +1,7 @@
 import yaml
-import yaml.constructor
 import itertools
+import threading
+import socket
 
 try:
     # included in standard lib from Python 2.7
@@ -10,42 +11,72 @@ except ImportError:
     # it's available on PyPI
     from ordereddict import OrderedDict
 
-# https://gist.github.com/enaeseth/844388
-class OrderedDictYAMLLoader(yaml.Loader):
-    """
-    A YAML loader that loads mappings into ordered dictionaries.
-    """
+_mapping_tag = yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG
 
-    def __init__(self, *args, **kwargs):
-        yaml.Loader.__init__(self, *args, **kwargs)
+def dict_representer(dumper, data):
+  return dumper.represent_dict(data.iteritems())
+    
+def dict_constructor(loader, node):
+  return OrderedDict(loader.construct_pairs(node))
+        
+yaml.add_representer(OrderedDict, dict_representer)
+yaml.add_constructor(_mapping_tag, dict_constructor)
 
-        self.add_constructor(u'tag:yaml.org,2002:map', type(self).construct_yaml_map)
-        self.add_constructor(u'tag:yaml.org,2002:omap', type(self).construct_yaml_map)
+class Server():
+  def __init__(self, port=3373):
+    """Spawn thread to listen to connections"""
+    self.port = port
+    self.workers = []
+    self.condition = threading.Condition()
+    self.thread = threading.Thread(target=Server.thread, args=[self])
+    self.thread.daemon = True
+    self.thread.start()
 
-    def construct_yaml_map(self, node):
-        data = OrderedDict()
-        yield data
-        value = self.construct_mapping(node)
-        data.update(value)
+  def thread(self):
+    """Listen to connections, adding them to available workers"""
+    s = socket.socket()
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    s.bind(('', self.port))
+    s.listen(100)
+    
+    print "Server listening for connections on port", self.port
+    
+    try:
+      while True:
+        c, _ = s.accept()
+        with self.condition:
+          self.workers.append(c)
+          self.condition.notify()
+    except e:
+      raise e
 
-    def construct_mapping(self, node, deep=False):
-        if isinstance(node, yaml.MappingNode):
-            self.flatten_mapping(node)
-        else:
-            raise yaml.constructor.ConstructorError(None, None,
-                'expected a mapping node, but found %s' % node.id, node.start_mark)
+  def submit(self, conf):
+    """ Submit job to available worker"""
+    # Wait for available worker
+    with self.condition:
+      while len(self.workers) == 0:
+        self.condition.wait()
+      w = self.workers.pop()
+    
+    # Send configuration
+    w.send(conf + '\0')
+    
+    # Return stream for reading by submitter
+    return w
 
-        mapping = OrderedDict()
-        for key_node, value_node in node.value:
-            key = self.construct_object(key_node, deep=deep)
-            try:
-                hash(key)
-            except TypeError, exc:
-                raise yaml.constructor.ConstructorError('while constructing a mapping',
-                    node.start_mark, 'found unacceptable key (%s)' % exc, key_node.start_mark)
-            value = self.construct_object(value_node, deep=deep)
-            mapping[key] = value
-        return mapping
+def readWorker(w, regret):
+  """Read worker result, returning either simple or cumulative regret"""
+  data = [float(v) for v in w.makefile().readlines()]
+  w.close()
+  
+  if regret == 'simple':
+    sample = int(len(data)/20)
+    return sum(data[-sample:])/sample
+  elif regret == 'cumulative':
+    return sum(data)
+  else:
+    raise Exception("Unknown regret type " + regret)
+
 
 def splittype(type):
   """Splits type into base and role."""
@@ -111,3 +142,17 @@ def findparams(params, type):
     matches.append('+'.join(element))
 
   return sorted(list(set(matches)))
+
+def setparam(conf, param, value):
+  """Set parameter in configuration to value"""
+  # Strip leading /
+  if param[0] == '/':
+    param = param[1:]
+    
+  path = param.split('/')
+  if len(path) == 1:
+    conf[path[0]] = value
+  else:
+    setparam(conf[path[0]], '/'.join(path[1:]), value)
+    
+  return conf

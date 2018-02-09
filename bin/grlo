@@ -1,34 +1,10 @@
-# Example for testing multiple configurations in parallel with Taskmaster
-# See https://github.com/dcramer/taskmaster
-# Run with 'tm-run fuzz.py 2 cfg=experiments.yaml'
-# NOTE: Assumes the grl deployer (grld) can be found on the path
+#!/usr/bin/python
+# Hyperparameter optimization
 
-import yaml, collections, sys, copy, string, server, math, random
+import yaml, sys, copy, string, math, random
+from grllib import *
 
-srv = server.Server()
-_mapping_tag = yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG
-
-def dict_representer(dumper, data):
-  return dumper.represent_dict(data.iteritems())
-    
-def dict_constructor(loader, node):
-  return collections.OrderedDict(loader.construct_pairs(node))
-        
-yaml.add_representer(collections.OrderedDict, dict_representer)
-yaml.add_constructor(_mapping_tag, dict_constructor)
-
-def set(conf, item, value):
-  # Strip leading /
-  if item[0] == '/':
-    item = item[1:]
-    
-  path = item.split('/')
-  if len(path) == 1:
-    conf[path[0]] = value
-  else:
-    set(conf[path[0]], '/'.join(path[1:]), value)
-    
-  return conf
+srv = Server()
 
 def line_search(conf, param, values, repetitions, regret):
   print "Optimizing", param
@@ -36,7 +12,7 @@ def line_search(conf, param, values, repetitions, regret):
   vworkers = {}
   for v in values:
     newconf = copy.deepcopy(conf)
-    set(newconf, param, v)
+    setparam(newconf, param, v)
     confstr = yaml.dump(newconf)
     
     vworkers[v] = [srv.submit(confstr) for r in range(repetitions)]
@@ -45,7 +21,7 @@ def line_search(conf, param, values, repetitions, regret):
   
   vresults = {}
   for value, workers in vworkers.iteritems():
-    results = [server.read(w, regret) for w in workers]
+    results = [readWorker(w, regret) for w in workers]
     
     avg = sum(results)/len(results)
     stddev = math.sqrt(sum([(r-avg)**2 for r in results])/(len(results)-1))
@@ -68,14 +44,14 @@ def random_optimize(cfg, spec, conf):
     workers = []
     for i in range(max(1, int(100/spec["repetitions"]))):
       for p in spec["parameters"]:
-        set(conf, p["name"], p["values"][random.randrange(len(p["values"]))])
+        setparam(conf, p["name"], p["values"][random.randrange(len(p["values"]))])
       confstr = yaml.dump(conf)
       
       print "Submitting new configuration"
       workers.append((conf, [srv.submit(confstr) for r in range(spec["repetitions"])]))
 
     for (c, cworkers) in workers:
-      results = [server.read(w, spec["regret"]) for w in cworkers]
+      results = [readWorker(w, spec["regret"]) for w in cworkers]
       
       avg = sum(results)/len(results)
       stddev = math.sqrt(sum([(r-avg)**2 for r in results])/(len(results)-1))
@@ -115,7 +91,7 @@ def line_optimize(cfg, spec, conf):
       
       print "Chose", best[0]
     
-      set(conf, p["name"], best[0])
+      setparam(conf, p["name"], best[0])
       
       resconf = {}
       resconf["parameter"] = p["name"]
