@@ -32,6 +32,75 @@ def line_search(conf, param, values, repetitions, regret):
     vresults[value] = (avg, stddev, stderr)
     
   return vresults
+
+def staged_optimize(cfg, spec, conf):
+  print "Staged random search"
+
+  for round in range(spec["rounds"]):
+    # Create initial configurations
+    pop = []
+    runs = 1
+    max_runs = 100
+    fact = 10
+    repetitions = spec["repetitions"]
+    
+    for i in range(repetitions):
+      newconf = copy.deepcopy(conf)
+      for p in spec["parameters"]:
+        setparam(newconf, p["name"], p["values"][random.randrange(len(p["values"]))])
+      pop.append(newconf)
+  
+    while True:
+      print "Submitting", repetitions, "configurations with", runs, "runs each"
+    
+      # Submit jobs
+      workers = [(c, [srv.submit(yaml.dump(c)) for r in range(runs)]) for c in pop]
+      
+      # Gather results
+      results = []  
+      for (c, cworkers) in workers:
+        cresults = [readWorker(w, spec["regret"]) for w in cworkers]
+        
+        avg = sum(cresults)/len(cresults)
+        
+        if len(cresults) > 1:
+          stddev = math.sqrt(sum([(r-avg)**2 for r in cresults])/(len(cresults)-1))
+          stderr = stddev/math.sqrt(len(cresults))
+        else:
+          stddev = 0
+          stderr = 0
+          
+        results.append((c, avg, stddev, stderr))
+        
+        # Save
+        resconf = {}
+        resconf["runs"] = runs
+        resconf["mean"] = avg
+        resconf["stddev"] = stddev
+        resconf["stderr"] = stderr
+        c["results"] = resconf
+        
+        outfile = cfg[:-5] + '-' + str(round) + '-' + str(runs) + '-' + str(len(results)-1) + '.yaml'
+        stream = open(outfile, 'w')
+        yaml.dump(c, stream)
+        stream.close()
+        
+      # Sieve
+      results = sorted(results, key=lambda (c, avg, stddev, stderr): avg-1.96*stderr, reverse=True)
+      if len(results) >= fact:
+        results = results[0:len(results)/fact]
+        
+      print "Best result has score", results[0][1]-1.96*results[0][3]
+      
+      pop = [c for (c, avg, stddev, stderr) in results]
+      
+      if runs == max_runs:
+        break
+      
+      runs *= fact
+      if runs > max_runs:
+        runs = max_runs
+      repetitions = int(spec["repetitions"]/runs)
   
 def random_optimize(cfg, spec, conf):
   print "Random search"
@@ -43,12 +112,13 @@ def random_optimize(cfg, spec, conf):
   while it < spec["rounds"]:
     workers = []
     for i in range(max(1, int(100/spec["repetitions"]))):
+      newconf = copy.deepcopy(conf)
       for p in spec["parameters"]:
-        setparam(conf, p["name"], p["values"][random.randrange(len(p["values"]))])
-      confstr = yaml.dump(conf)
+        setparam(newconf, p["name"], p["values"][random.randrange(len(p["values"]))])
+      confstr = yaml.dump(newconf)
       
       print "Submitting new configuration"
-      workers.append((conf, [srv.submit(confstr) for r in range(spec["repetitions"])]))
+      workers.append((newconf, [srv.submit(confstr) for r in range(spec["repetitions"])]))
 
     for (c, cworkers) in workers:
       results = [readWorker(w, spec["regret"]) for w in cworkers]
@@ -135,5 +205,7 @@ if __name__ == '__main__':
     line_optimize(cfg, spec, conf)
   elif spec["algorithm"] == 'random':
     random_optimize(cfg, spec, conf)
+  elif spec["algorithm"] == 'staged':
+    staged_optimize(cfg, spec, conf)
   else:
     raise Exception("Unknown optimization algorithm " + spec["algorithm"])
