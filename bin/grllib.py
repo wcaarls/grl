@@ -143,7 +143,7 @@ def findparams(params, type):
 
   return sorted(list(set(matches)))
 
-def setparam(conf, param, value):
+def setconf(conf, param, value):
   """Set parameter in configuration to value"""
   # Strip leading /
   if param[0] == '/':
@@ -153,6 +153,29 @@ def setparam(conf, param, value):
   if len(path) == 1:
     conf[path[0]] = value
   else:
-    setparam(conf[path[0]], '/'.join(path[1:]), value)
+    setconf(conf[path[0]], '/'.join(path[1:]), value)
     
   return conf
+
+def getconf(conf, param):
+  """Get parameter value in configuration"""
+  # Strip leading /
+  if param[0] == '/':
+    param = param[1:]
+    
+  path = param.split('/')
+  if len(path) == 1:
+    return conf[path[0]]
+  else:
+    return getconf(conf[path[0]], '/'.join(path[1:]))
+
+def mergeconf(base, new):
+  """Merge configurations"""
+  if isinstance(base,dict) and isinstance(new,dict):
+    for k,v in new.iteritems():
+      if k not in base:
+        base[k] = v
+      else:
+        base[k] = merge(base[k],v)
+
+  return base

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # Hyperparameter optimization
 
-import yaml, sys, copy, string, math, random
+import yaml, sys, os, copy, string, math, random, glob
 from grllib import *
 
 srv = Server()
@@ -12,7 +12,7 @@ def line_search(conf, param, values, repetitions, regret):
   vworkers = {}
   for v in values:
     newconf = copy.deepcopy(conf)
-    setparam(newconf, param, v)
+    setconf(newconf, param, v)
     confstr = yaml.dump(newconf)
     
     vworkers[v] = [srv.submit(confstr) for r in range(repetitions)]
@@ -33,7 +33,299 @@ def line_search(conf, param, values, repetitions, regret):
     
   return vresults
 
-def staged_optimize(cfg, spec, conf):
+def replacement_optimize(base, spec, conf):
+  print "Replacement search"
+
+  pop = []
+  for r in range(spec["rounds"]):
+    print "Submitting new batch"
+    
+    # Repeat best half
+    pop = pop[len(pop)/2:]
+    
+    # Resample rest
+    for i in range(spec["repetitions"]-len(pop)):
+      newconf = copy.deepcopy(conf)
+      for p in spec["parameters"]:
+        setconf(newconf, p["name"], p["values"][random.randrange(len(p["values"]))])
+      pop.append((newconf, 0, 0))
+    
+    workers = [srv.submit(yaml.dump(c)) for (c, n, a) in pop]
+    
+    print "Gathering results"
+    
+    for i in range(len(workers)):
+      (c, n, a) = pop[i]
+      pop[i] = (c, n+1, (a*n+readWorker(workers[i], spec["regret"]))/(n+1))
+      
+    pop = sorted(pop, key=lambda (c, n, a): a)
+
+    print "Population", [(a, n) for (c, n, a) in pop]
+    
+    # Save population
+    for p in range(len(pop)):
+      (c, n, a) = pop[p]
+      resconf = {}
+      resconf["runs"] = n
+      resconf["mean"] = a
+      c["results"] = resconf
+          
+      outfile = base + '-' + str(p) + '.yaml'
+      stream = open(outfile, 'w')
+      yaml.dump(c, stream)
+      stream.close()
+
+# http://web.archive.org/web/20141202110307/https://www.seor.gmu.edu/~cchen9/ocbacode.txt
+def ocba(n, mean, var, budget):
+  """This subroutine implements the optimal computation budget allocation (OCBA) 
+     algorithm presented in Chen et al. (2000) in the J of DEDS. It determines
+     how many additional runs each design should have for next iteration of 
+     simulations."""
+
+  # the number of designs
+  nd = len(n)
+  
+  # the simulation budget
+  budget += sum(n)
+  
+  # Ni/Ns
+  ratio = [0.0]*nd
+  
+  # 1:Yes; 0:No
+  morerun = [1]*nd
+  
+  # Number of additional runs
+  an = [0]*nd
+  
+  # calculate ratio of Ni/Ns
+  ratio[1] = 1.0
+  for i in range(2, nd):
+    # MAX problem
+    temp = (mean[1]-mean[0])/(mean[i]-mean[0])
+    ratio[i] = temp**2*var[i]/var[1]
+  temp = 0
+  for i in range(1, nd):
+    temp += (ratio[i]**2/var[i])
+  ratio[0] = math.sqrt(var[0]*temp)
+  
+  budget1 = budget
+  
+  more_alloc = 1
+  while more_alloc:
+    more_alloc = 0
+    ratio_s = sum([m*r for (m,r) in zip(morerun, ratio)])
+    
+    for i in range(nd):
+      if morerun[i]:
+        an[i] = int(budget1/ratio_s*ratio[i])
+        
+        # disable those designs which have been run too much
+        if an[i]<n[i]:
+          an[i] = n[i]
+          morerun[i] = 0
+          more_alloc = 1
+          
+    if more_alloc:
+      budget1 = budget - sum([(1-m)*a for (m,a) in zip(morerun, an)])
+      
+  # calculate the difference
+  budget1 = sum(an)
+  
+  # give the difference to design b
+  an[0] += budget-budget1
+  
+  an = [(a-o) for (a, o) in zip(an, n)]
+  
+  return an
+
+# https://math.stackexchange.com/questions/178334/the-probability-of-one-gaussian-larger-than-another
+def pgreater(muX, varX, muY, varY):
+  return 0.5*math.erfc((muX-muY)/(math.sqrt(2*(varX+varY))))
+
+def prod(xs):
+  return reduce(lambda x, y: x*y, xs)
+
+# Lin and Lee, "A new approach to discrete stochastic optimization problems", 2006
+def linlee_optimize(base, spec, conf):
+  print "Lin-Lee optimization"
+
+  Delta = spec["repetitions"]
+  n0    = 5
+  g     = 0.01
+  
+  if Delta%n0 != 0:
+    raise Exception("Repetitions should evenly divide %d for Lin-Lee optimization" % (n0))
+  
+  # Initial population
+  pop = {}
+  for i in range(Delta/n0):
+    c = copy.deepcopy(conf)
+    for p in spec["parameters"]:
+      setconf(c, p["name"], p["values"][random.randrange(len(p["values"]))])
+    pop[c] = (0, 0, 0, n0)
+  
+  for round in range(spec["rounds"]):
+    print "Submitting jobs for round", round
+  
+    # Submit jobs
+    jobs = [(c, [srv.submit(yaml.dump(c)) for i in range(a)]) for (c, (t0, t1, t2, a)) in pop.iteritems()]
+    
+    print "Gathering results"
+
+    # Gather
+    for (c, workers) in jobs:
+      results = [readWorker(w, spec["regret"]) for w in workers]
+      (t0, t1, t2, a) = pop[c]
+      t0 += len(results)
+      t1 += sum(results)
+      t2 += sum([r**2 for r in results])
+      
+      pop[c] = (t0, t1, t2, 0)
+
+    popl = sorted([(c, r) for (c, r) in pop.iteritems()], key=lambda (c, (t0, t1, t2, a)): t1/t0, reverse=True)
+    M = len(popl)
+    
+    print [r for (c, r) in popl]
+    
+    n = [t0 for (c, (t0, t1, t2, a)) in popl]
+    mean = [-t1/t0 for (c, (t0, t1, t2, a)) in popl]
+    var = [t2/t0 - (t1/t0)**2 for (c, (t0, t1, t2, a)) in popl]
+    
+    # Save best result
+    (c, r) = popl[0]
+    resconf = {}
+    resconf["runs"] = n[0]
+    resconf["mean"] = mean[0]
+    resconf["stddev"] = math.sqrt(var[0])
+    resconf["stderr"] = math.sqrt(var[0])/math.sqrt(n[0])
+    saveconf = copy.deepcopy(c)
+    saveconf["results"] = resconf
+        
+    outfile = base + '-' + str(round) + '.yaml'
+    stream = open(outfile, 'w')
+    yaml.dump(saveconf, stream)
+    stream.close()
+    
+    # Calculate additional runs per configuration
+    an = ocba(n, mean, var, Delta)
+    
+    # Total runs if we did this
+    np = [(n1+an1) for (n1, an1) in zip(n, an)]
+    
+    r_depth = prod([pgreater(mean[0], var[0]/np[0], m, v/np1) for (m, v, np1) in zip(mean, var, np)]) / \
+              prod([pgreater(mean[0], var[0]/n[0], m, v/n1) for (m, v, n1) in zip(mean, var, n)])
+
+    r_breadth = (1 - (1 - g)**(M+Delta/n0))/(1-(1-g)**M)
+    
+    if r_depth > r_breadth:
+      print "Applying additional runs"
+      
+      print an
+      
+      # Apply additional runs
+      for i in range(len(popl)):
+        (c, (t0, t1, t2, a)) = popl[i]
+        pop[c] = (t0, t1, t2, an[i])
+    else:
+      print "Sampling additional configurations"
+      # Sample additional configurations
+      for i in range(Delta/n0):
+        c = copy.deepcopy(conf)
+        for p in spec["parameters"]:
+          setconf(c, p["name"], p["values"][random.randrange(len(p["values"]))])
+        r = (0, 0, 0, n0)
+        if c in pop:
+          (t0, t1, t2, a) = pop[c]
+          r = (t0, t1, t2, n0)
+        pop[c] = r
+
+def ucb1_optimize(base, spec, conf):
+  print "UCB1 search"
+
+  for round in range(spec["rounds"]):
+    # Create initial configurations (arms)
+    pop = []
+    batch = 24
+    
+    for i in range(spec["repetitions"]):
+      newconf = copy.deepcopy(conf)
+      for p in spec["parameters"]:
+        setconf(newconf, p["name"], p["values"][random.randrange(len(p["values"]))])
+      pop.append(newconf)
+      
+    # Submit first evaluations
+    print "Submitting first", spec["repetitions"], "evaluations"
+    
+    # Submit jobs
+    workers = [(c, srv.submit(yaml.dump(c))) for c in pop]
+      
+    print "Gathering results"
+    
+    print workers[0][1].gettimeout()
+
+    # Gather results
+    pop = sorted([(c, 1, readWorker(w, spec["regret"])) for (c, w) in workers], key=lambda (c, n, a): a)
+    
+    print "Population", [a for (c, n, a) in pop]
+    
+    # Start optimizing
+    t0 = spec["repetitions"]
+    while pop[-1][1] < 100:
+      # Calculate standard deviation amoung best half
+      subpop = pop[-len(pop)/5:]
+      avg = sum([a for (c, n, a) in subpop])/len(subpop)
+      var = sum([(a-avg)**2 for (c, n, a) in subpop])/(len(subpop)-1)
+
+      print "Starting new batch (variance", var, ")"
+      
+      newpop = copy.deepcopy(pop)
+      
+      workers = []
+      for t in xrange(t0, t0+batch):
+        # Calculate upper confidence bounds
+        ucb = [a + math.sqrt(var*math.log(t/n)) for (c, n, a) in newpop]
+
+        # Find configuration with highest upper confidence bound
+        bi = max(xrange(len(ucb)), key=ucb.__getitem__)
+        
+        # Evaluate
+        workers.append((bi, srv.submit(yaml.dump(pop[bi][0]))))
+        
+        # Simulate getting mean for that configuration
+        (c, n, a) = newpop[bi]
+        newpop[bi] = (c, n+1, a)
+        
+      print "Submitted batch", [i for (i, w) in workers]
+      
+      # Gather results  
+      for (i, w) in workers:
+        (c, n, a) = pop[i]
+        try:
+          pop[i] = (c, n+1, (n*a+readWorker(w, spec["regret"]))/(n+1))
+        except:
+          print "Cannot read worker for configuration", i
+          print yaml.dump(c)
+          raise
+        
+      pop = sorted(pop, key=lambda (c, n, a): a)
+
+      print "Population", [a for (c, n, a) in pop]
+
+      # Save best result
+      (c, n, a) = pop[-1]
+      resconf = {}
+      resconf["runs"] = n
+      resconf["mean"] = a
+      c["results"] = resconf
+          
+      outfile = base + '-' + str(round) + '-' + str(t0) + '.yaml'
+      stream = open(outfile, 'w')
+      yaml.dump(c, stream)
+      stream.close()
+      
+      t0 += batch
+
+def staged_optimize(base, spec, conf):
   print "Staged random search"
 
   for round in range(spec["rounds"]):
@@ -47,7 +339,7 @@ def staged_optimize(cfg, spec, conf):
     for i in range(repetitions):
       newconf = copy.deepcopy(conf)
       for p in spec["parameters"]:
-        setparam(newconf, p["name"], p["values"][random.randrange(len(p["values"]))])
+        setconf(newconf, p["name"], p["values"][random.randrange(len(p["values"]))])
       pop.append(newconf)
   
     while True:
@@ -56,6 +348,8 @@ def staged_optimize(cfg, spec, conf):
       # Submit jobs
       workers = [(c, [srv.submit(yaml.dump(c)) for r in range(runs)]) for c in pop]
       
+      print "Gathering results"
+
       # Gather results
       results = []  
       for (c, cworkers) in workers:
@@ -80,7 +374,7 @@ def staged_optimize(cfg, spec, conf):
         resconf["stderr"] = stderr
         c["results"] = resconf
         
-        outfile = cfg[:-5] + '-' + str(round) + '-' + str(runs) + '-' + str(len(results)-1) + '.yaml'
+        outfile = base + '-' + str(round) + '-' + str(runs) + '-' + str(len(results)-1) + '.yaml'
         stream = open(outfile, 'w')
         yaml.dump(c, stream)
         stream.close()
@@ -102,11 +396,11 @@ def staged_optimize(cfg, spec, conf):
         runs = max_runs
       repetitions = int(spec["repetitions"]/runs)
   
-def random_optimize(cfg, spec, conf):
+def random_optimize(base, spec, conf):
   print "Random search"
 
   bestscore = -100000
-  bestout = cfg[:-5] + '-best.yaml'
+  bestout = base + '-best.yaml'
   it = 0
   
   while it < spec["rounds"]:
@@ -114,7 +408,7 @@ def random_optimize(cfg, spec, conf):
     for i in range(max(1, int(100/spec["repetitions"]))):
       newconf = copy.deepcopy(conf)
       for p in spec["parameters"]:
-        setparam(newconf, p["name"], p["values"][random.randrange(len(p["values"]))])
+        setconf(newconf, p["name"], p["values"][random.randrange(len(p["values"]))])
       confstr = yaml.dump(newconf)
       
       print "Submitting new configuration"
@@ -133,7 +427,7 @@ def random_optimize(cfg, spec, conf):
       resconf["stderr"] = stderr
       c["results"] = resconf
       
-      outfile = cfg[:-5] + '-' + str(it) + '.yaml'
+      outfile = base + '-' + str(it) + '.yaml'
       stream = open(outfile, 'w')
       yaml.dump(c, stream)
       stream.close()
@@ -149,7 +443,7 @@ def random_optimize(cfg, spec, conf):
 
       it += 1
 
-def line_optimize(cfg, spec, conf):
+def line_optimize(base, spec, conf):
   it = 0
   
   for round in range(spec["rounds"]):
@@ -161,7 +455,7 @@ def line_optimize(cfg, spec, conf):
       
       print "Chose", best[0]
     
-      setparam(conf, p["name"], best[0])
+      setconf(conf, p["name"], best[0])
       
       resconf = {}
       resconf["parameter"] = p["name"]
@@ -179,13 +473,29 @@ def line_optimize(cfg, spec, conf):
       resconf["best"] = bestconf
       conf["results"] = resconf
       
-      outfile = cfg[:-5] + '-' + str(it) + '.yaml'
+      outfile = base + '-' + str(it) + '.yaml'
       stream = open(outfile, 'w')
       yaml.dump(conf, stream)
       stream.close()
       it += 1
     
     # Stopping criterion?
+
+def optimize(base, spec, conf):
+  if spec["algorithm"] == 'line':
+    line_optimize(base, spec, conf)
+  elif spec["algorithm"] == 'random':
+    random_optimize(base, spec, conf)
+  elif spec["algorithm"] == 'staged':
+    staged_optimize(base, spec, conf)
+  elif spec["algorithm"] == 'ucb1':
+    ucb1_optimize(base, spec, conf)
+  elif spec["algorithm"] == 'replacement':
+    replacement_optimize(base, spec, conf)
+  elif spec["algorithm"] == 'linlee':
+    linlee_optimize(base, spec, conf)
+  else:
+    raise Exception("Unknown optimization algorithm " + spec["algorithm"])
 
 if __name__ == '__main__':
   cfg = 'optimize.yaml'
@@ -197,15 +507,22 @@ if __name__ == '__main__':
   stream.close()
   
   file = spec["file"]
-  stream = open(file, 'r')
-  conf = yaml.load(stream)
-  stream.close()
-  
-  if spec["algorithm"] == 'line':
-    line_optimize(cfg, spec, conf)
-  elif spec["algorithm"] == 'random':
-    random_optimize(cfg, spec, conf)
-  elif spec["algorithm"] == 'staged':
-    staged_optimize(cfg, spec, conf)
+  if file == "all":
+    # All combinations of agents and environments in current directory
+    for env in glob.glob('env_*.yaml'):
+      for agent in glob.glob('agent_*.yaml'):
+        stream = open(env)
+        conf = yaml.load(stream)
+        stream.close()
+        stream = open(agent)
+        mergeconf(conf, yaml.load(stream))
+        
+        optimize(os.path.basename(env)[4:-5] + "_" + os.path.basename(agent)[6:-5], spec, conf)
   else:
-    raise Exception("Unknown optimization algorithm " + spec["algorithm"])
+    # Specific file, possibly with wildcards
+    for f in glob.glob(file):
+      stream = open(f)
+      conf = yaml.load(stream)
+      stream.close()
+    
+      optimize(os.path.basename(f)[:-5], spec, conf)
