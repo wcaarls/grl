@@ -32,6 +32,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <sys/types.h>
@@ -45,6 +46,17 @@
 #include <grl/experiment.h>
 
 #define BUFSIZE (16*1024)
+
+#define SETSOCKOPT(s, level, optname, optval)\
+do {\
+  int ov = optval;\
+  if (setsockopt(s, level, optname, &ov, sizeof ov) < 0)\
+  {\
+    ERROR("Could not set socket option " #optname ": " << strerror(errno));\
+    close(s);\
+    return -1;\
+  }\
+} while (0);
 
 using namespace grl;
 using namespace std;
@@ -60,7 +72,6 @@ int makeConnection(const char *_host)
   else
     port = &host[strlen(host)];
 
-  int optval = 1;
   int fd = socket(AF_INET, SOCK_STREAM, 0);
   
   if (fd < 0)
@@ -69,12 +80,11 @@ int makeConnection(const char *_host)
     return -1;
   }
   
-  if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof optval) < 0)
-  {
-    ERROR("Could not set socket options: " << strerror(errno));
-    close(fd);
-    return -1;
-  }
+  SETSOCKOPT(fd, SOL_SOCKET, SO_REUSEADDR, 1);
+  SETSOCKOPT(fd, SOL_SOCKET, SO_KEEPALIVE, 1);
+  SETSOCKOPT(fd, SOL_TCP, TCP_KEEPCNT, 120);
+  SETSOCKOPT(fd, SOL_TCP, TCP_KEEPIDLE, 60);
+  SETSOCKOPT(fd, SOL_TCP, TCP_KEEPINTVL, 60);
 
   struct addrinfo *ai;
   if (getaddrinfo(host, NULL, NULL, &ai) < 0)

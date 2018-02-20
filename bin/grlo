@@ -165,7 +165,7 @@ def linlee_optimize(base, spec, conf):
     pop[c] = (0, 0, 0, n0)
   
   for round in range(spec["rounds"]):
-    print "Submitting jobs for round", round
+    print "Submitting jobs for", base, "round", round, "of", spec["rounds"]
   
     # Submit jobs
     jobs = [(c, [srv.submit(yaml.dump(c)) for i in range(a)]) for (c, (t0, t1, t2, a)) in pop.iteritems()]
@@ -481,21 +481,30 @@ def line_optimize(base, spec, conf):
     
     # Stopping criterion?
 
-def optimize(base, spec, conf):
-  if spec["algorithm"] == 'line':
+def optimize(base, spec_, conf):
+  # Replace $* in parameter values
+  spec = copy.deepcopy(spec_)
+  for p in spec["parameters"]:
+    for i in range(len(p["values"])):
+      value = str(p["values"][i])
+      p["values"][i] = value.replace("$*", str(getconf(conf, p["name"])))
+
+  algorithm = spec["algorithm"]
+
+  if algorithm == 'line':
     line_optimize(base, spec, conf)
-  elif spec["algorithm"] == 'random':
+  elif algorithm == 'random':
     random_optimize(base, spec, conf)
-  elif spec["algorithm"] == 'staged':
+  elif algorithm == 'staged':
     staged_optimize(base, spec, conf)
-  elif spec["algorithm"] == 'ucb1':
+  elif algorithm == 'ucb1':
     ucb1_optimize(base, spec, conf)
-  elif spec["algorithm"] == 'replacement':
+  elif algorithm == 'replacement':
     replacement_optimize(base, spec, conf)
-  elif spec["algorithm"] == 'linlee':
+  elif algorithm == 'linlee':
     linlee_optimize(base, spec, conf)
   else:
-    raise Exception("Unknown optimization algorithm " + spec["algorithm"])
+    raise Exception("Unknown optimization algorithm " + algorithm)
 
 if __name__ == '__main__':
   cfg = 'optimize.yaml'
