@@ -85,6 +85,7 @@ class ActionProbabilityPolicy : public Policy
   
     // From Policy
     virtual void act(const Observation &in, Action *out) const;
+    virtual void distribution(const Observation &in, const Action &prev, LargeVector *out) const;
 };
 
 }

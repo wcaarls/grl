@@ -106,3 +106,11 @@ void VPolicy::act(const Observation &in, Action *out) const
   *out = discretizer_->at(in, action);
   out->type = at;
 }
+
+void VPolicy::distribution(const Observation &in, const Action &prev, LargeVector *out) const
+{
+  LargeVector v;
+
+  values(in, &v);
+  sampler_->distribution(v, out);
+}

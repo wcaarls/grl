@@ -62,6 +62,12 @@ class Policy : public Mapping
       return act(in, out);
     }
     
+    /// Returns the probability of taking a discrete policy's actions in a certain state.
+    virtual void distribution(const Observation &in, const Action &prev, LargeVector *out) const
+    {
+      throw Exception("Policy does not support reading action distribution");
+    }
+    
     // From Mapping
     virtual double read(const Vector &in, Vector *result) const
     {

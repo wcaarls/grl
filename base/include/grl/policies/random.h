@@ -72,6 +72,7 @@ class RandomDiscretePolicy : public Policy
 
     // From Policy
     virtual void act(const Observation &in, Action *out) const;
+    virtual void distribution(const Observation &obs, const Action &prev, LargeVector *result) const;
 };
 
 }

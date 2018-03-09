@@ -111,8 +111,8 @@ void ActionPolicy::act(const Observation &in, Action *out) const
 void ActionProbabilityPolicy::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("discretizer", "discretizer", "Action discretizer", discretizer_));
-  config->push_back(CRP("projector", "projector", "Projects observation-action pairs onto representation space", projector_));
-  config->push_back(CRP("representation", "representation", "Action-probability representation", representation_));
+  config->push_back(CRP("projector", "projector.pair", "Projects observation-action pairs onto representation space", projector_));
+  config->push_back(CRP("representation", "representation.value/action", "Action-probability representation", representation_));
 }
 
 void ActionProbabilityPolicy::configure(Configuration &config)
@@ -142,4 +142,23 @@ void ActionProbabilityPolicy::act(const Observation &in, Action *out) const
     
   *out = variants[sample(dist)];
   out->type = atExploratory;
+}
+
+void ActionProbabilityPolicy::distribution(const Observation &in, const Action &prev, LargeVector *out) const
+{
+  std::vector<Vector> variants;
+  std::vector<ProjectionPtr> projections;
+  
+  discretizer_->options(in, &variants);
+  projector_->project(in, variants, &projections);
+
+  out->resize(variants.size());
+
+  Vector v;
+  double total=0.;
+  
+  for (size_t ii=0; ii < variants.size(); ++ii)
+   total += (*out)[ii] = representation_->read(projections[ii], &v);
+   
+  (*out) /= total;
 }

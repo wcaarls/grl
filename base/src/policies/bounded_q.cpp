@@ -67,6 +67,26 @@ void BoundedQPolicy::act(double time, const Observation &in, Action *out)
     QPolicy::act(in, out);
 }
 
+void BoundedQPolicy::distribution(const Observation &in, const Action &prev, LargeVector *out) const
+{
+  if (prev.size())
+  {
+    LargeVector qvalues, filtered, dist;
+    std::vector<size_t> idx;
+  
+    values(in, &qvalues);
+    filter(in, prev, qvalues, &filtered, &idx);
+
+    sampler_->distribution(filtered, &dist);
+    
+    *out = ConstantVector(qvalues.size(), 0.);
+    for (size_t ii=0; ii != filtered.size(); ++ii)
+      (*out)[idx[ii]] = dist[ii];
+  }
+  else
+    QPolicy::distribution(in, prev, out);
+}
+
 /**
  * Returns both the Q values of the valid actions, and
  * an index array such that filtered[ii] = qvalues[idx[ii]]

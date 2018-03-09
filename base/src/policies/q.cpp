@@ -54,15 +54,14 @@ void QPolicy::reconfigure(const Configuration &config)
 
 double QPolicy::value(const Observation &in) const
 {
-  LargeVector qvalues, distribution;
+  LargeVector qvalues, dist;
   double v=0;
   
   values(in, &qvalues);
+  sampler_->distribution(qvalues, &dist);
   
-  sampler_->distribution(qvalues, &distribution);
-  
-  for (size_t ii=0; ii < qvalues.size(); ++ii)
-    v += qvalues[ii]*distribution[ii];
+  for (size_t ii=0; ii < dist.size(); ++ii)
+    v += qvalues[ii]*dist[ii];
     
   return v;
 }
@@ -109,4 +108,12 @@ void QPolicy::act(double time, const Observation &in, Action *out)
 
   *out = discretizer_->at(in, action);
   out->type = at;
+}
+
+void QPolicy::distribution(const Observation &in, const Action &prev, LargeVector *out) const
+{
+  LargeVector qvalues;
+
+  values(in, &qvalues);
+  sampler_->distribution(qvalues, out);
 }

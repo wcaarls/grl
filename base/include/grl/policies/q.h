@@ -60,6 +60,7 @@ class QPolicy : public ValuePolicy
     // From Policy
     virtual void act(const Observation &in, Action *out) const;
     virtual void act(double time, const Observation &in, Action *out);
+    virtual void distribution(const Observation &in, const Action &prev, LargeVector *out) const;
     
     // From ValuePolicy
     virtual double value(const Observation &in) const;

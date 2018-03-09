@@ -50,6 +50,7 @@ class BoundedQPolicy : public QPolicy
 
     // From QPolicy
     virtual void act(double time, const Observation &in, Action *out);
+    virtual void distribution(const Observation &in, const Action &prev, LargeVector *out) const;
     
   protected:
     /// Filter out actions that lie outside bounds.

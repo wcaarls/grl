@@ -80,3 +80,11 @@ void RandomDiscretePolicy::act(const Observation &in, Action *out) const
   *out = discretizer_->at(in, RandGen::getInteger(discretizer_->size(in)));
   out->type = atExploratory;
 }
+
+void RandomDiscretePolicy::distribution(const Observation &in, const Action &prev, LargeVector *out) const
+{
+  out->resize(discretizer_->size(in));
+  
+  for (size_t ii=0; ii != discretizer_->size(in); ++ii)
+    (*out)[ii] = 1./discretizer_->size(in);
+}
