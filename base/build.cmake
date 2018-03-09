@@ -60,6 +60,7 @@ add_library(${TARGET} SHARED
             ${SRC}/mappings/displacement.cpp
             ${SRC}/mappings/expanding.cpp
             ${SRC}/mappings/filtering.cpp
+            ${SRC}/mappings/image.cpp
             ${SRC}/optimizers/rwa.cpp
             ${SRC}/policies/random.cpp
             ${SRC}/policies/action.cpp

@@ -38,7 +38,7 @@ void MountainDynamics::request(ConfigurationRequest *config)
   config->push_back(CRP("gravity", "Gravitational acceleration", g_, CRP::Configuration, 0., DBL_MAX));
   config->push_back(CRP("friction", "Coefficient of viscous friction between car and ground", mu_, CRP::Configuration, 0., DBL_MAX));
   config->push_back(CRP("stiffness", "Spring constant of walls", k_, CRP::Configuration, 0., DBL_MAX));
-  config->push_back(CRP("map", "mapping/puddle", "Height map", map_));
+  config->push_back(CRP("map", "mapping", "Height map", map_));
 }
 
 void MountainDynamics::configure(Configuration &config)
@@ -88,11 +88,38 @@ void MountainDynamics::eom(const Vector &state, const Vector &actuation, Vector 
   xd->resize(5);
   
   // Velocity/acceleration is defined along ground
-  (*xd)[0] = cos(angle[0])*state[2];
-  (*xd)[1] = cos(angle[1])*state[3];
-  (*xd)[2] = (actuation[0] - mu_*state[2])/m_ - g_*sin(angle[0]);
-  (*xd)[3] = (actuation[1] - mu_*state[3])/m_ - g_*sin(angle[1]);
+  (*xd)[0] = state[2];
+  (*xd)[1] = state[3];
   (*xd)[4] = 1;
+
+  double xdot = state[2], ydot = state[3], ux = actuation[0], uy = actuation[1];
+  double ax = angle[0], ay = angle[1];
+  double a;
+  
+/*
+  double Fg = m_*g_, Fp, Fn, Ff, Fr;
+  double vx = xdot/cos(ax), vy = ydot/cos(ay);
+  Fp = Fg*sin(ax);
+  Fn = Fg*cos(ax);
+  Ff = mu_*Fn*vx;
+  Fr = ux-Ff-Fp;
+  a  = Fr/m_;
+*/  
+
+  a = ux/m_-g_*(mu_*xdot+sin(ax));
+  (*xd)[2] = a*cos(ax);
+
+/*
+  Fp = Fg*sin(ay);
+  Fn = Fg*cos(ay);
+  Ff = mu_*Fn*vy;
+  Fr = uy-Ff-Fp;
+  a  = Fr/m_;
+*/
+  a = uy/m_-g_*(mu_*ydot+sin(ay));
+  (*xd)[3] = a*cos(ay);
+  
+//  NOTICE(state.head(2) << " -> " << angle << " -> [" << -g_*(sin(ax)) << ", " << -g_*(sin(ay)) << "]");
   
   // Don't fall off the world
   if (state[0] < 0)
