@@ -38,6 +38,46 @@
 
 namespace grl {
 
+class Configurable;
+
+class ConfigurableList
+{
+  protected:
+    std::vector<Configurable*> objects_;
+    
+  public:
+    void push_back(Configurable* obj)
+    {
+      objects_.push_back(obj);
+    }
+    
+    size_t size()
+    {
+      return objects_.size();
+    }
+    
+    Configurable *operator[](int index)
+    {
+      return objects_[index];
+    }
+};
+
+template<class T>
+class TypedConfigurableList : public ConfigurableList
+{
+  public:
+    TypedConfigurableList<T>& operator=(const ConfigurableList &other)
+    {
+      ConfigurableList::operator=(other);
+      return *this;
+    }
+  
+    T *operator[](int index)
+    {
+      return (T*)objects_[index];
+    }
+};
+
 /// Parameter requested by a Configurable object.
 struct CRP
 {
@@ -51,8 +91,16 @@ struct CRP
   
   /// Request for a Configurable object.
   CRP(std::string _name, std::string _type, std::string _description,
-      class Configurable *_value, bool _optional=false) :
+      Configurable *_value, bool _optional=false) :
     name(_name), type(_type), description(_description), mutability(Configuration), optional(_optional)
+  {
+    setValue(_value);
+  }
+ 
+  /// Request for a list of Configurable objects.
+  CRP(std::string _name, std::string _type, std::string _description,
+      ConfigurableList *_value, bool _optional=false) :
+    name(_name), type("[" + _type + "]"), description(_description), mutability(Configuration), optional(_optional)
   {
     setValue(_value);
   }
@@ -469,6 +517,27 @@ inline std::ostream& operator<<(std::ostream& os, const Configurator& obj)
   os << obj.yaml();
   return os;
 }
+
+class ListConfigurator : public Configurator
+{
+  protected:
+    ConfigurableList object_;
+
+  public:
+    ListConfigurator(const std::string &element, Configurator *parent=NULL) : Configurator(element, parent) { }
+  
+    virtual std::string str() const
+    {
+      std::ostringstream oss;
+      oss << &object_;
+    
+      return oss.str();
+    }
+    
+    virtual ListConfigurator *instantiate(Configurator *parent=NULL) const;
+    virtual ListConfigurator &deepcopy(const Configurator &c) { Configurator::deepcopy(c); return *this; }
+    virtual bool validate(const CRP &crp) const;
+};
 
 class ReferenceConfigurator : public Configurator
 {

@@ -153,6 +153,19 @@ Configurator *grl::loadYAML(const std::string &file, const std::string &element,
     
     return cfg;
   }
+  else if (node.IsSequence() && node.size() > 0 && node[0].IsMap())
+  {
+    ListConfigurator *cfg = new ListConfigurator(element, parent);
+    
+    for (size_t ii=0; ii < node.size(); ++ii)
+    {
+      std::ostringstream oss;
+      oss << ii;
+      loadYAML(file, oss.str(), cfg, node[ii]);
+    }
+      
+    return cfg;
+  }
   else
   {
     std::string value = YAMLToString(node);
@@ -178,6 +191,47 @@ Configurator *grl::loadYAML(const std::string &file, const std::string &element,
     }
   }
 }      
+
+/// *** ListConfigurator ***
+
+ListConfigurator *ListConfigurator::instantiate(Configurator *parent) const
+{
+  if (!parent)
+    parent = parent_;
+
+  ListConfigurator *cfg = new ListConfigurator(element_, parent);
+
+  for (ConfiguratorList::const_iterator ii=children_.begin(); ii != children_.end(); ++ii)
+    if (!(*ii)->instantiate(cfg))
+      return NULL;
+      
+  // Populate ConfigurableList in instantiated configurator
+  for (ConfiguratorList::const_iterator ii=cfg->children_.begin(); ii != cfg->children_.end(); ++ii)
+    cfg->object_.push_back((*ii)->ptr());
+
+  return cfg;
+}
+
+bool ListConfigurator::validate(const CRP &crp) const
+{
+  // Check for list type
+  if (crp.type.empty() || crp.type.front() != '[' || crp.type.back() != ']')
+  {
+    ERROR("Parameter " << path() << " should not be a single object");
+    return false;
+  }
+
+  // Adjust request type to remove brackets
+  CRP ccrp = crp;
+  ccrp.type = ccrp.type.substr(1, ccrp.type.size()-2);
+  
+  // Validate all children with same CRP
+  for (ConfiguratorList::const_iterator ii=children_.begin(); ii != children_.end(); ++ii)
+    if (!(*ii)->validate(ccrp))
+      return false;
+      
+  return true;
+}
 
 /// *** ReferenceConfigurator ***
 
@@ -653,7 +707,6 @@ ObjectConfigurator* ObjectConfigurator::instantiate(Configurator *parent) const
     if (request[ii].mutability == CRP::Provided)
     {
       TRACE(path() << "/" << key << ": " << config[key].str() << " (provided)");
-    
       if (type == "int" || type == "double" || type == "vector" || type == "string")
       {
         new ParameterConfigurator(key, config[key].str(), oc, true);
