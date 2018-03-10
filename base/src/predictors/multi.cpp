@@ -33,14 +33,12 @@ REGISTER_CONFIGURABLE(MultiPredictor)
 
 void MultiPredictor::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("predictor1", "predictor", "First downstream predictor", predictor_[0]));
-  config->push_back(CRP("predictor2", "predictor", "Second downstream predictor", predictor_[1]));
+  config->push_back(CRP("predictor", "predictor", "First downstream predictor", &predictor_));
 }
 
 void MultiPredictor::configure(Configuration &config)
 {
-  predictor_[0] = (Predictor*) config["predictor1"].ptr();
-  predictor_[1] = (Predictor*) config["predictor2"].ptr();
+  predictor_ = *((ConfigurableList*)config["predictor"].ptr());
 }
 
 void MultiPredictor::reconfigure(const Configuration &config)

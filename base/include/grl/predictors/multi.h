@@ -40,15 +40,9 @@ class MultiPredictor : public Predictor
     TYPEINFO("predictor/multi", "Updates multiple predictors")
 
   protected:
-    std::vector<Predictor*> predictor_;
+    TypedConfigurableList<Predictor> predictor_;
 
   public:
-    MultiPredictor() : predictor_(2)
-    {
-      predictor_[0] = NULL;
-      predictor_[1] = NULL;
-    }
-  
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);

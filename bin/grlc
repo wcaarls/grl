@@ -5,7 +5,7 @@ from Tkinter import *
 from ttk import *
 from functools import partial
 import StringIO
-import os, inspect, sys, subprocess, time, signal
+import os, inspect, sys, subprocess, time, signal, copy
 
 from grllib import *
 from tooltip import *
@@ -191,7 +191,11 @@ class GrlSubObject:
     self.frame = Frame(parent.frame)
     self.frame.grid(column=1, row=row, sticky=NW+E)
     self.frame.grid_columnconfigure(0, weight=1)
-    self.obj = GrlObject(self, spec)
+    
+    if spec["type"] and spec["type"][0] == '[':
+      self.obj = GrlObjectList(self, spec)
+    else:
+      self.obj = GrlObject(self, spec)
     
   def refresh(self, path):
     self.obj.refresh(path + "/" + self.name)
@@ -216,6 +220,107 @@ class GrlSubObject:
 
   def path(self):
     return self.parent.path() + "/" + self.name
+  
+class GrlObjectList:
+  """List of objects. Contains frames for ObjectListItems and add button."""
+  def __init__(self, parent, spec):
+    self.parent = parent
+    self.spec = copy.deepcopy(spec)
+    self.spec["type"] = self.spec["type"][1:-1]
+    self.row = 0
+    self.frame = parent.frame
+    
+    self.addbutton = Button(
+          self.frame, text="+", command=self.add
+          )
+    self.addbutton.grid(column=2, row=99, sticky=S)
+
+    self.objlist = list()
+    self.add()
+    
+  def add(self, event=None):
+    obj = GrlObjectListItem(self, self.row)
+    self.objlist.append(obj)
+    self.row = self.row + 1
+    
+    obj.row = len(self.objlist)-1
+    self.refresh(self.path())
+    
+  def remove(self, child):
+    child.destroy()
+    self.objlist.remove(child)
+    
+    for o in range(len(self.objlist)):
+      self.objlist[o].row = o
+      
+    app.refresh()
+
+  def refresh(self, path):
+    for o in range(len(self.objlist)):
+      self.objlist[o].refresh(path)
+    
+  def destroy(self):
+    self.addbutton.destroy()
+    for obj in self.objlist:
+      obj.destroy()
+    
+  def write(self, output, indent):
+    print >>output, '\n',
+    for obj in self.objlist:
+      obj.write(output, indent)
+    
+  def load(self, config):
+    for obj in self.objlist:
+      obj.destroy()
+    self.objlist = list()
+  
+    for item in config:
+      self.add()
+      self.objlist[-1].load(item)
+      
+  def path(self):
+    return self.parent.path()
+
+class GrlObjectListItem:
+  """Item in an object list. Contains frame for Object and remove button."""
+  def __init__(self, parent, row):
+    self.parent = parent
+    self.row = row
+    
+    self.frame = Frame(parent.frame)
+    self.frame.grid(column=1, row=row, sticky=NW+E)
+    self.frame.grid_columnconfigure(0, weight=1)
+    self.obj = GrlObject(self, parent.spec)
+    
+    self.removebutton = Button(
+          parent.frame, text="-", command=partial(parent.remove, self)
+          )
+    self.removebutton.grid(column=2, row=row, sticky=S)
+    
+  def refresh(self, path):
+    if len(self.parent.objlist) > 1:
+      self.removebutton.state(['!disabled'])
+    else:
+      self.removebutton.state(['disabled'])
+  
+    self.obj.refresh(path + "/" + str(self.row))
+    
+  def destroy(self):
+    self.removebutton.grid_forget()
+    self.removebutton.destroy()
+    self.obj.destroy()
+    self.frame.grid_forget()
+    self.frame.destroy()
+    
+  def write(self, output, indent):
+    print >>output, ''.ljust(indent) + '-',
+    self.obj.write(output, indent+2)
+    
+  def load(self, config):
+    self.obj.load(config)
+      
+  def path(self):
+    return self.parent.path() + "/" + str(self.row)
   
 class GrlObject:
   """Object. Contains type selector and frame for all subobjects."""
