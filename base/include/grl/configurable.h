@@ -498,13 +498,22 @@ class Configurator
       std::string str;
       if (!element_.empty())
       {
-        str = std::string(2*depth, ' ') + element_ + ":\n";
+        str = std::string(2*depth, ' ');
+      
+        char *endptr;
+        strtol(element_.c_str(), &endptr, 10);
+        
+        // Purely numeric elements are converted into a sequence
+        if (!*endptr)
+          str += "-\n";
+        else
+          str += element_ + ":\n";
         depth++;
       }
       
       for (ConfiguratorList::const_iterator ii=children_.begin(); ii != children_.end(); ++ii)
         if (!(*ii)->provided_)
-          str = str + (*ii)->yaml(depth);
+          str += (*ii)->yaml(depth);
         
       return str;
     }
