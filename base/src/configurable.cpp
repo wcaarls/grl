@@ -153,7 +153,8 @@ Configurator *grl::loadYAML(const std::string &file, const std::string &element,
     
     return cfg;
   }
-  else if (node.IsSequence() && node.size() > 0 && node[0].IsMap())
+  else if (node.IsSequence() && node.size() > 0 &&
+           std::isnan(node[0].as<double>(std::numeric_limits<double>::quiet_NaN())))
   {
     ListConfigurator *cfg = new ListConfigurator(element, parent);
     

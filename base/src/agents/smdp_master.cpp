@@ -41,8 +41,8 @@ void SMDPMasterAgent::request(ConfigurationRequest *config)
   config->push_back(CRP("control_step", "double.control_step", "Characteristic step time on which gamma is defined", tau_, CRP::System));
 
   config->push_back(CRP("predictor", "predictor", "Optional (model) predictor", predictor_, true));
-  config->push_back(CRP("agent1", "agent/sub", "First subagent", agent_[0]));
-  config->push_back(CRP("agent2", "agent/sub", "Second subagent", agent_[1]));
+  
+  config->push_back(CRP("agent", "agent/sub", "Subagents", &agent_));
 }
 
 void SMDPMasterAgent::configure(Configuration &config)
@@ -51,14 +51,19 @@ void SMDPMasterAgent::configure(Configuration &config)
   tau_ = config["control_step"];
 
   predictor_ = (Predictor*)config["predictor"].ptr();
-  agent_[0] = (SubAgent*)config["agent1"].ptr();
-  agent_[1] = (SubAgent*)config["agent2"].ptr();
+  agent_ = *(ConfigurableList*)config["agent"].ptr();
+  
+  if (agent_.size() < 1)
+    throw bad_param("agent/master:agent");
+    
+  time_ = std::vector<double>(agent_.size(), -1.);
+  reward_ = std::vector<double>(agent_.size(), 0.);
 }
 
 void SMDPMasterAgent::reconfigure(const Configuration &config)
 {
   if (config.has("action") && config["action"].str() == "reset")
-    time_[0] = time_[1] = -1;
+    time_ = std::vector<double>(agent_.size(), -1.);
 }
 
 void SMDPMasterAgent::start(const Observation &obs, Action *action)
@@ -176,7 +181,7 @@ void PredicatedMasterAgent::runSubAgents(double time, const Observation &obs, Ac
 
 void RandomMasterAgent::runSubAgents(double time, const Observation &obs, Action *action)
 {
-  // Run random agent[H
+  // Run random agent
   size_t idx = RandGen::getInteger(agent_.size());
   runSubAgent(idx, time, obs, action);
 }

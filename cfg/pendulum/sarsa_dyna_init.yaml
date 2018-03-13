@@ -37,23 +37,24 @@ experiment:
         wrapping: [6.283, 0, 0]
       representation: 
         type: representation/additive
-        representation1: 
-          type: representation/parameterized/linear
-          init_min: [0]
-          init_max: [1]
-          memory: experiment/agent/policy/projector/memory
-          outputs: 1
-          output_min: []
-          output_max: []
-        representation2: 
-          type: representation/parameterized/linear
-          init_min: [0]
-          init_max: [1]
-          memory: experiment/agent/policy/projector/memory
-          outputs: 1
-          output_min: []
-          output_max: []
-        learning: 2
+        learning: 1
+        representation:
+          -
+            type: representation/parameterized/linear
+            init_min: [0]
+            init_max: [1]
+            memory: experiment/agent/policy/projector/memory
+            outputs: 1
+            output_min: []
+            output_max: []
+          -
+            type: representation/parameterized/linear
+            init_min: [0]
+            init_max: [1]
+            memory: experiment/agent/policy/projector/memory
+            outputs: 1
+            output_min: []
+            output_max: []
       sampler: 
         type: sampler/epsilon_greedy
         epsilon: 0.05
@@ -110,14 +111,14 @@ experiment:
         type: mapping/policy/value/q
         discretizer: experiment/agent/policy/discretizer
         projector: experiment/agent/policy/projector
-        representation: experiment/agent/policy/representation/representation1
+        representation: experiment/agent/policy/representation/representation/0
         sampler: experiment/agent/policy/sampler
       predictor: 
         type: predictor/critic/sarsa
         alpha: 0.02
         gamma: 0.97
         projector: experiment/agent/policy/projector
-        representation: experiment/agent/policy/representation/representation1
+        representation: experiment/agent/policy/representation/representation/0
   test_agent: 
     type: agent/fixed
     policy: 
@@ -130,7 +131,7 @@ experiment:
   save_every: never
 visualizer: 
   type: visualizer/glut
-visualization: 
+combined: 
   type: visualization/field/policy/value
   field_dims: [0, 1]
   input_min: experiment/environment/task/observation_min
@@ -139,7 +140,7 @@ visualization:
   savepoints: 1048576
   projection: mean
   policy: experiment/test_agent/policy
-visualization2: 
+model: 
   type: visualization/field/policy/value
   field_dims: [0, 1]
   input_min: experiment/environment/task/observation_min
@@ -151,10 +152,10 @@ visualization2:
     type: policy/value/q
     discretizer: experiment/agent/policy/discretizer
     projector: experiment/agent/policy/projector
-    representation: experiment/agent/policy/representation/representation1
+    representation: experiment/agent/policy/representation/representation/0
     sampler: 
       type: sampler/greedy
-visualization3: 
+real: 
   type: visualization/field/policy/value
   field_dims: [0, 1]
   input_min: experiment/environment/task/observation_min
@@ -166,6 +167,6 @@ visualization3:
     type: policy/value/q
     discretizer: experiment/agent/policy/discretizer
     projector: experiment/agent/policy/projector
-    representation: experiment/agent/policy/representation/representation2
+    representation: experiment/agent/policy/representation/representation/1
     sampler: 
       type: sampler/greedy

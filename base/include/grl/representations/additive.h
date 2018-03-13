@@ -40,11 +40,11 @@ class AdditiveRepresentation : public Representation
     TYPEINFO("representation/additive", "Linear combination of two representations")
 
   protected:
-    Representation* representation1_, *representation2_;
+    TypedConfigurableList<Representation> representation_;
     int learning_;
     
   public:
-    AdditiveRepresentation() : representation1_(NULL), representation2_(NULL), learning_(0)
+    AdditiveRepresentation() : learning_(0)
     {
     }
     

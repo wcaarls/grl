@@ -39,19 +39,14 @@ class SMDPMasterAgent : public Agent
 {
   protected:
     Predictor *predictor_;
-    std::vector<SubAgent*> agent_;
+    TypedConfigurableList<SubAgent> agent_;
     std::vector<double> time_, reward_;
     double gamma_, tau_, prev_time_;
     Observation prev_obs_;
     Action prev_action_;
     
   public:
-    SMDPMasterAgent() : predictor_(0), agent_(2), time_(2), reward_(2), gamma_(0.97), tau_(0.05), prev_time_(0)
-    {
-      agent_[0] = agent_[1] = NULL;
-      time_[0] = time_[1] = -1;
-      reward_[0] = reward_[1] = 0.;
-    }
+    SMDPMasterAgent() : predictor_(0), gamma_(0.97), tau_(0.05), prev_time_(0) { }
   
     // From Configurable    
     virtual void request(ConfigurationRequest *config);

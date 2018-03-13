@@ -33,17 +33,18 @@ REGISTER_CONFIGURABLE(AdditiveRepresentation)
 
 void AdditiveRepresentation::request(const std::string &role, ConfigurationRequest *config)
 {
-  config->push_back(CRP("representation1", "representation." + role, "First representation", representation1_));
-  config->push_back(CRP("representation2", "representation." + role, "Second representation", representation2_));
+  config->push_back(CRP("learning", "Which representation to learn (-1=all)", learning_, CRP::Configuration, -1));
 
-  config->push_back(CRP("learning", "Which representation to learn (0=both)", learning_, CRP::Configuration, 0, 2));
+  config->push_back(CRP("representation", "representation." + role, "Downstream representations", &representation_));
 }
 
 void AdditiveRepresentation::configure(Configuration &config)
 {
-  representation1_ = (Representation*)config["representation1"].ptr();
-  representation2_ = (Representation*)config["representation2"].ptr();
   learning_ = config["learning"];
+  representation_ = *(ConfigurableList*)config["representation"].ptr();
+  
+  if (representation_.size() < 1)
+    throw bad_param("representation/additive:representation");
 }
 
 void AdditiveRepresentation::reconfigure(const Configuration &config)
@@ -52,52 +53,71 @@ void AdditiveRepresentation::reconfigure(const Configuration &config)
 
 double AdditiveRepresentation::read(const ProjectionPtr &projection, Vector *result, Vector *stddev) const
 {
-  Vector res1, stddev1, res2, stddev2;
-  representation1_->read(projection, &res1, &stddev1);
-  representation2_->read(projection, &res2, &stddev2);
+  Vector newres, newstddev;
+
+  representation_[0]->read(projection, result, stddev);
+  if (stddev)
+    *stddev *= *stddev;
   
-  *result = res1+res2;
+  for (size_t ii=1; ii != representation_.size(); ++ii)
+  {
+    representation_[ii]->read(projection, &newres, &newstddev);
+    
+    *result += newres;
+    if (stddev)
+      *stddev += newstddev * newstddev;
+  }
   
   if (stddev)
-    *stddev = sqrt(stddev1*stddev1+stddev2*stddev2);
+    *stddev = sqrt(*stddev);
   
   return (*result)[0];
 }
 
 void AdditiveRepresentation::write(const ProjectionPtr projection, const Vector &target, const Vector &alpha)
 {
-  Vector v;
-
-  switch (learning_)
+  if (learning_ < 0 || representation_.size() < 2)
   {
-    case 0:
-      representation1_->write(projection, target/2, alpha/2);
-      representation2_->write(projection, target/2, alpha/2);
-      break;
-    case 1:
-      representation2_->read(projection, &v);
-      representation1_->write(projection, target-v, alpha);
-      break;
-    case 2:
-      representation1_->read(projection, &v);
-      representation2_->write(projection, target-v, alpha);
-      break;
+    // Write to all downstream representations
+    for (size_t ii=0; ii != representation_.size(); ++ii)
+      representation_[ii]->write(projection, target/representation_.size(), alpha/representation_.size());
+  }
+  else if (learning_ < representation_.size())
+  {
+    // Write to only a specific representation
+    Vector newtarget = target, v;
+    for (size_t ii=0; ii != representation_.size(); ++ii)
+      if (ii != learning_)
+      {
+        representation_[ii]->read(projection, &v);
+        newtarget -= v;
+      }
+    
+    representation_[learning_]->write(projection, newtarget, alpha);
+  }
+  else
+  {
+    ERROR("Learning representation " << learning_ << " out of bounds");
+    throw bad_param("representation/additive:learning");
   }
 }
 
 void AdditiveRepresentation::update(const ProjectionPtr projection, const Vector &delta)
 {
-  switch (learning_)
+  if (learning_ < 0)
   {
-    case 0:
-      representation1_->update(projection, delta/2);
-      representation2_->update(projection, delta/2);
-      break;
-    case 1:
-      representation1_->update(projection, delta);
-      break;
-    case 2:
-      representation2_->update(projection, delta);
-      break;
+    // Update all downstream representations
+    for (size_t ii=0; ii != representation_.size(); ++ii)
+      representation_[ii]->update(projection, delta/representation_.size());
+  }
+  else if (learning_ < representation_.size())
+  {
+    // Update only a specific representation
+    representation_[learning_]->update(projection, delta);
+  }
+  else
+  {
+    ERROR("Learning representation " << learning_ << " out of bounds");
+    throw bad_param("representation/additive:learning");
   }
 }
