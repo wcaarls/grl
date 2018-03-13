@@ -1,11 +1,11 @@
 /** \file multi.h
- * \brief Multi projector header file.
+ * \brief Policy combiner header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2016-12-06
+ * \date      2018-03-13
  *
  * \copyright \verbatim
- * Copyright (c) 2016, Wouter Caarls
+ * Copyright (c) 2018, Wouter Caarls
  * All rights reserved.
  *
  * This file is part of GRL, the Generic Reinforcement Learning library.
@@ -25,44 +25,43 @@
  * \endverbatim
  */
 
-#ifndef GRL_MULTI_PROJECTOR_H_
-#define GRL_MULTI_PROJECTOR_H_
+#ifndef GRL_MULTI_POLICY_H_
+#define GRL_MULTI_POLICY_H_
 
-#include <grl/projector.h>
+#include <grl/policy.h>
+#include <grl/discretizer.h>
 
 namespace grl
 {
 
-/// Preprocesses projection onto a normalized [0, 1] vector
-class MultiProjector : public Projector
+/// Policy that combines two or more sub-policies using different strategies
+class MultiPolicy : public Policy
 {
   public:
-    TYPEINFO("projector/multi", "Combines multiple projections")
+    TYPEINFO("mapping/policy/multi", "Combines multiple policies")
     
+    enum CombinationStrategy {csAddProbabilities};
+
   protected:
-    int dim_;
-    Vector memory_;
-    TypedConfigurableList<Projector> projector_;
+    std::string strategy_str_;
+    CombinationStrategy strategy_;
+    Discretizer *discretizer_;
+    TypedConfigurableList<Policy> policy_;
 
   public:
-    MultiProjector() : dim_(-1) { }
-
+    MultiPolicy() { }
+  
     // From Configurable
-    virtual void request(const std::string &role, ConfigurationRequest *config);
+    virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
 
-    // From Projector
-    virtual ProjectionLifetime lifetime() const
-    {
-      ProjectionLifetime result = projector_[0]->lifetime();
-      for (size_t ii=0; ii != projector_.size(); ++ii)
-        result = std::max(result, projector_[ii]->lifetime());
-      return result;
-    }
-    virtual ProjectionPtr project(const Vector &in) const;
+    // From Policy
+    virtual void act(const Observation &in, Action *out) const;
+    virtual void act(double time, const Observation &in, Action *out);
+    virtual void distribution(const Observation &in, const Action &prev, LargeVector *out) const;
 };
 
 }
 
-#endif /* GRL_MULTI_PROJECTOR_H_ */
+#endif /* GRL_MULTI_POLICY_H_ */

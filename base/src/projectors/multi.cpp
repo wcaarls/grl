@@ -35,8 +35,7 @@ REGISTER_CONFIGURABLE(MultiProjector)
 void MultiProjector::request(const std::string &role, ConfigurationRequest *config)
 {
   config->push_back(CRP("dim", "int", "Indicator dimension (-1=union)", dim_));
-  config->push_back(CRP("projector1", "projector." + role, "First downstream projector", projector_[0]));
-  config->push_back(CRP("projector2", "projector." + role, "Second downstream projector", projector_[1]));
+  config->push_back(CRP("projector", "projector." + role, "Downstream projectors", &projector_));
 
   config->push_back(CRP("memories", "vector.memory", "Memory of downstream projectors", memory_));
   config->push_back(CRP("memory", "int.memory", "Feature vector size", CRP::Provided));
@@ -47,8 +46,7 @@ void MultiProjector::configure(Configuration &config)
   dim_ = config["dim"];
   memory_ = config["memories"].v();
 
-  projector_[0] = (Projector*) config["projector1"].ptr();
-  projector_[1] = (Projector*) config["projector2"].ptr();
+  projector_ = *(ConfigurableList*) config["projector"].ptr();
   
   config.set("memory", (int)sum(memory_));
 }

@@ -74,6 +74,7 @@ add_library(${TARGET} SHARED
             ${SRC}/policies/ucb.cpp
             ${SRC}/policies/state_feedback.cpp
             ${SRC}/policies/noise.cpp
+            ${SRC}/policies/multi.cpp
             ${SRC}/predictors/model.cpp
             ${SRC}/predictors/sarsa.cpp
             ${SRC}/predictors/ggq.cpp

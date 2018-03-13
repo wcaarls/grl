@@ -51,12 +51,22 @@ class ConfigurableList
       objects_.push_back(obj);
     }
     
-    size_t size()
+    size_t size() const
     {
       return objects_.size();
     }
     
+    bool empty() const
+    {
+      return objects_.empty();
+    }
+    
     Configurable *operator[](int index)
+    {
+      return objects_[index];
+    }
+    
+    const Configurable *operator[](int index) const
     {
       return objects_[index];
     }
@@ -75,6 +85,11 @@ class TypedConfigurableList : public ConfigurableList
     T *operator[](int index)
     {
       return (T*)objects_[index];
+    }
+    
+    const T *operator[](int index) const
+    {
+      return (const T*)objects_[index];
     }
 };
 
