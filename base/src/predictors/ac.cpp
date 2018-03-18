@@ -339,6 +339,39 @@ void ProbabilityACPredictor::update(const Transition &transition)
 {
   Predictor::update(transition);
 
+  /*
+    Predictor::update(transition);
+
+  ProjectionPtr qp = q_projector_->project(transition.prev_obs, transition.prev_action);
+  ProjectionPtr vp = v_projector_->project(transition.prev_obs);
+  
+  Vector res;
+  double vnext = v_representation_->read(v_projector_->project(transition.obs), &res);
+
+  // Calculate target value
+  double target = transition.reward;
+  if (transition.action.size())
+    target += gamma_*vnext;
+  double delta = target - v_representation_->read(vp, &res);
+
+  // Q update  
+  q_representation_->write(qp, VectorConstructor(target), alpha_);
+  
+  // V update
+  v_representation_->write(vp, VectorConstructor(target), beta_);
+  
+  if (trace_)
+  {
+    v_representation_->update(*trace_, VectorConstructor(beta_*delta), gamma_*lambda_);
+    trace_->add(vp, gamma_*lambda_);
+  }
+  
+  q_representation_->finalize();
+  v_representation_->finalize();
+  
+  return delta;
+   */
+  
   throw Exception("ProbabilityACPredictor::update not implemented");
 }
 

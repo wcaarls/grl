@@ -33,7 +33,7 @@ REGISTER_CONFIGURABLE(MultiPolicy)
 
 void MultiPolicy::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("strategy", "Combination strategy", strategy_str_, CRP::Configuration, {"add_probabilities"}));
+  config->push_back(CRP("strategy", "Combination strategy", strategy_str_, CRP::Configuration, {"add_probabilities", "multiply_probabilities"}));
   config->push_back(CRP("discretizer", "discretizer.action", "Action discretizer", discretizer_));
   config->push_back(CRP("policy", "mapping/policy", "Sub-policies", &policy_));
 }
@@ -43,6 +43,8 @@ void MultiPolicy::configure(Configuration &config)
   strategy_str_ = config["strategy"].str();
   if (strategy_str_ == "add_probabilities")
     strategy_ = csAddProbabilities;
+  else if (strategy_str_ == "multiply_probabilities")
+    strategy_ = csMultiplyProbabilities;
   else
     throw bad_param("mapping/policy/multi:strategy");
 
@@ -96,11 +98,13 @@ void MultiPolicy::distribution(const Observation &in, const Action &prev, LargeV
 {
   LargeVector dist;
   
+  // rgo std::cout << "\nMultiPolicy::distribution LIXO" << policy_.size() << " policy_[0]: " << policy_[0] << " - out - " << (*out) << std::endl;
   // Get first policy probabilities
   policy_[0]->distribution(in, prev, out);
   
   for (size_t ii=1; ii != policy_.size(); ++ii)
   {
+    // rgo std::cout << "MultiPolicy::distribution " << policy_.size() << " policy_[0]: " << policy_[0] <<   " policy_[ii] " << policy_[ii] << std::endl;
     // Add subsequent policies' probabilities according to chosen strategy
     policy_[ii]->distribution(in, prev, &dist);
     if (dist.size() != out->size())
@@ -111,11 +115,18 @@ void MultiPolicy::distribution(const Observation &in, const Action &prev, LargeV
     
     for (size_t jj=0; jj < dist.size(); ++jj)
     {
+      // rgo std::cout << "strategy_ dist.size()" << dist.size() << std::endl;
       switch (strategy_)
       {
         case csAddProbabilities:
-          (*out)[jj] += dist[jj];
+	  // rgo std::cout << "strategy_ - jj: " << jj << " - out: " << (*out)[jj] << " - dist[jj]: " << dist[jj] << std::endl;
+          (*out)[jj] = ((*out)[jj] + dist[jj])/2;
+	  break;
+	case csMultiplyProbabilities:
+	  (*out)[jj] *= dist[jj];
+	  break;
       }
     }
   }
+  // rgo std::cout << "out: " << (*out) << std::endl;
 }
