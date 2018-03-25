@@ -339,40 +339,35 @@ void ProbabilityACPredictor::update(const Transition &transition)
 {
   Predictor::update(transition);
 
-  /*
-    Predictor::update(transition);
-
-  ProjectionPtr qp = q_projector_->project(transition.prev_obs, transition.prev_action);
-  ProjectionPtr vp = v_projector_->project(transition.prev_obs);
+  ProjectionPtr ap = actor_projector_->project(transition.prev_obs, transition.prev_action);
+  std::cout << "ap: " << ap << " - *ap: " << ap* << endl;
+  ProjectionPtr vp = critic_projector_->project(transition.prev_obs);
   
   Vector res;
-  double vnext = v_representation_->read(v_projector_->project(transition.obs), &res);
+  double vnext = critic_representation_->read(critic_projector_->project(transition.obs), &res);
 
   // Calculate target value
   double target = transition.reward;
   if (transition.action.size())
     target += gamma_*vnext;
-  double delta = target - v_representation_->read(vp, &res);
+  double delta = target - critic_representation_->read(vp, &res);
 
-  // Q update  
-  q_representation_->write(qp, VectorConstructor(target), alpha_);
+  // Actor that maps states to a preference value for each action 
+  actor_representation_->write(ap, VectorConstructor(target), alpha_);
   
   // V update
-  v_representation_->write(vp, VectorConstructor(target), beta_);
+  critic_representation_->write(vp, VectorConstructor(target), beta_);
   
-  if (trace_)
+  if (critic_trace_)
   {
-    v_representation_->update(*trace_, VectorConstructor(beta_*delta), gamma_*lambda_);
-    trace_->add(vp, gamma_*lambda_);
+    critic_representation_->update(*critic_trace_, VectorConstructor(beta_*delta), gamma_*lambda_);
+    critic_trace_->add(vp, gamma_*lambda_);
   }
   
-  q_representation_->finalize();
-  v_representation_->finalize();
+  //q_representation_->finalize();
+  critic_representation_->finalize();
   
-  return delta;
-   */
-  
-  throw Exception("ProbabilityACPredictor::update not implemented");
+  //throw Exception("ProbabilityACPredictor::update not implemented");
 }
 
 void ProbabilityACPredictor::finalize()
