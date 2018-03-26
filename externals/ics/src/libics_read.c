@@ -145,14 +145,14 @@ static Ics_Error GetIcsSeparators (FILE* fi, char* seps)
 static Ics_Error GetIcsVersion (FILE* fi, char const* seps, int* ver)
 {
    ICSINIT;
-   char* word;
+   char* word, *saveptr;
    char line[ICS_LINE_LENGTH];
 
    ICSTR( IcsFGetStr (line, ICS_LINE_LENGTH, fi, seps[1]) == NULL, IcsErr_FReadIcs );
-   word = strtok (line, seps);
+   word = strtok_r (line, seps, &saveptr);
    ICSTR( word == NULL, IcsErr_NotIcsFile );
    ICSTR( strcmp (word, ICS_VERSION) != 0, IcsErr_NotIcsFile );
-   word = strtok (NULL , seps);
+   word = strtok_r (NULL , seps, &saveptr);
    ICSTR( word == NULL, IcsErr_NotIcsFile );
    if (strcmp (word, "1.0") == 0) {
       *ver = 1;
@@ -170,11 +170,11 @@ static Ics_Error GetIcsVersion (FILE* fi, char const* seps, int* ver)
 static Ics_Error GetIcsFileName (FILE* fi, char const* seps)
 {
    ICSINIT;
-   char* word;
+   char* word, *saveptr;
    char line[ICS_LINE_LENGTH];
 
    ICSTR( IcsFGetStr (line, ICS_LINE_LENGTH, fi, seps[1]) == NULL, IcsErr_FReadIcs );
-   word = strtok (line, seps);
+   word = strtok_r (line, seps, &saveptr);
    ICSTR( word == NULL, IcsErr_NotIcsFile );
    ICSTR( strcmp (word, ICS_FILENAME) != 0, IcsErr_NotIcsFile );
    /* The rest of the line is discarded */
@@ -202,29 +202,29 @@ static Ics_Error GetIcsCat (char* str, char const* seps, Ics_Token* Cat,
                             Ics_Token* SubCat, Ics_Token* SubSubCat)
 {
    ICSINIT;
-   char* token, buffer[ICS_LINE_LENGTH];
+   char* token, buffer[ICS_LINE_LENGTH], *saveptr;
    *SubCat = *SubSubCat = ICSTOK_NONE;
 
    IcsStrCpy (buffer, str, ICS_LINE_LENGTH);
-   token = strtok (buffer, seps);
+   token = strtok_r (buffer, seps, &saveptr);
    *Cat = GetIcsToken (token, &G_Categories);
    ICSTR( *Cat == ICSTOK_NONE, IcsErr_MissCat );
    if ((*Cat != ICSTOK_HISTORY) && (*Cat != ICSTOK_END)) {
-      token = strtok (NULL, seps);
+      token = strtok_r (NULL, seps, &saveptr);
       *SubCat = GetIcsToken (token, &G_SubCategories);
       ICSTR( *SubCat == ICSTOK_NONE, IcsErr_MissSubCat );
       if (*SubCat == ICSTOK_SPARAMS) {
-         token = strtok (NULL, seps);
+         token = strtok_r (NULL, seps, &saveptr);
          *SubSubCat = GetIcsToken (token, &G_SubSubCategories);
          ICSTR( *SubSubCat == ICSTOK_NONE , IcsErr_MissSensorSubSubCat );
       }
    }
 
    /* Copy the remaining stuff into 'str' */
-   if ((token = strtok (NULL, seps)) != NULL) {
+   if ((token = strtok_r (NULL, seps, &saveptr)) != NULL) {
       strcpy (str, token);
    }
-   while ((token = strtok (NULL, seps)) != NULL) {
+   while ((token = strtok_r (NULL, seps, &saveptr)) != NULL) {
       IcsAppendChar (str, seps[0]);
       strcat (str, token);
    }
@@ -238,7 +238,7 @@ Ics_Error IcsReadIcs (Ics_Header* IcsStruct, char const* filename, int forcename
    ICS_INIT_LOCALE;
    FILE* fp;
    int end = 0, ii, jj, bits;
-   char seps[3], *ptr, *data;
+   char seps[3], *ptr, *data, *saveptr;
    char line[ICS_LINE_LENGTH];
    Ics_Token cat, subCat, subSubCat;
    /* These are temporary buffers to hold the data read until it is
@@ -283,7 +283,7 @@ Ics_Error IcsReadIcs (Ics_Header* IcsStruct, char const* filename, int forcename
    while (!end && !error && (IcsFGetStr (line, ICS_LINE_LENGTH, fp, seps[1]) != NULL)) {
       if (GetIcsCat (line, seps, &cat, &subCat, &subSubCat) != IcsErr_Ok)
          continue;
-      ptr = strtok (line, seps);
+      ptr = strtok_r (line, seps, &saveptr);
       ii = 0;
       switch (cat) {
          case ICSTOK_END:
@@ -322,13 +322,13 @@ Ics_Error IcsReadIcs (Ics_Header* IcsStruct, char const* filename, int forcename
                case ICSTOK_ORDER:
                   while (ptr!= NULL && ii < ICS_MAXDIM+1) {
                      IcsStrCpy (Order[ii++], ptr, ICS_STRLEN_TOKEN);
-                     ptr = strtok (NULL, seps);
+                     ptr = strtok_r (NULL, seps, &saveptr);
                   }
                   break;
                case ICSTOK_SIZES:
                   while (ptr!= NULL && ii < ICS_MAXDIM+1) {
                      Sizes[ii++] = IcsStrToSize (ptr);
-                     ptr = strtok (NULL, seps);
+                     ptr = strtok_r (NULL, seps, &saveptr);
                   }
                   break;
                case ICSTOK_COORD:
@@ -398,7 +398,7 @@ Ics_Error IcsReadIcs (Ics_Header* IcsStruct, char const* filename, int forcename
                case ICSTOK_BYTEO:
                   while (ptr!= NULL && ii < ICS_MAX_IMEL_SIZE) {
                      IcsStruct->ByteOrder[ii++] = atoi (ptr);
-                     ptr = strtok (NULL, seps);
+                     ptr = strtok_r (NULL, seps, &saveptr);
                   }
                   break;
                default:
@@ -411,25 +411,25 @@ Ics_Error IcsReadIcs (Ics_Header* IcsStruct, char const* filename, int forcename
                case ICSTOK_ORIGIN:
                   while (ptr!= NULL && ii < ICS_MAXDIM+1) {
                      Origin[ii++] = atof (ptr);
-                     ptr = strtok (NULL, seps);
+                     ptr = strtok_r (NULL, seps, &saveptr);
                   }
                   break;
                case ICSTOK_SCALE:
                   while (ptr!= NULL && ii < ICS_MAXDIM+1) {
                      Scale[ii++] = atof (ptr);
-                     ptr = strtok (NULL, seps);
+                     ptr = strtok_r (NULL, seps, &saveptr);
                   }
                   break;
                case ICSTOK_UNITS:
                   while (ptr!= NULL && ii < ICS_MAXDIM+1) {
                      IcsStrCpy (Unit[ii++], ptr, ICS_STRLEN_TOKEN);
-                     ptr = strtok (NULL, seps);
+                     ptr = strtok_r (NULL, seps, &saveptr);
                   }
                   break;
                case ICSTOK_LABELS:
                   while (ptr!= NULL && ii < ICS_MAXDIM+1) {
                      IcsStrCpy (Label[ii++], ptr, ICS_STRLEN_TOKEN);
-                     ptr = strtok (NULL, seps);
+                     ptr = strtok_r (NULL, seps, &saveptr);
                   }
                   break;
                default:
@@ -438,7 +438,7 @@ Ics_Error IcsReadIcs (Ics_Header* IcsStruct, char const* filename, int forcename
             break;
          case ICSTOK_HISTORY:
             if (ptr != NULL) {
-               data = strtok (NULL, seps+1); /* This will get the rest of the line */
+               data = strtok_r (NULL, seps+1, &saveptr); /* This will get the rest of the line */
                if (data == NULL) { /* data is not allowed to be "", but ptr is */
                   data = ptr;
                   ptr = "";
@@ -482,25 +482,25 @@ Ics_Error IcsReadIcs (Ics_Header* IcsStruct, char const* filename, int forcename
                      case ICSTOK_PINHRAD:
                         while (ptr != NULL && ii < ICS_MAX_LAMBDA) {
                            IcsStruct->PinholeRadius[ii++] = atof (ptr);
-                           ptr = strtok (NULL, seps);
+                           ptr = strtok_r (NULL, seps, &saveptr);
                         }
                         break;
                      case ICSTOK_LAMBDEX:
                         while (ptr != NULL && ii < ICS_MAX_LAMBDA) {
                            IcsStruct->LambdaEx[ii++] = atof (ptr);
-                           ptr = strtok (NULL, seps);
+                           ptr = strtok_r (NULL, seps, &saveptr);
                         }
                         break;
                      case ICSTOK_LAMBDEM:
                         while (ptr != NULL && ii < ICS_MAX_LAMBDA) {
                            IcsStruct->LambdaEm[ii++] = atof (ptr);
-                           ptr = strtok (NULL, seps);
+                           ptr = strtok_r (NULL, seps, &saveptr);
                         }
                         break;
                      case ICSTOK_PHOTCNT:
                         while (ptr != NULL && ii < ICS_MAX_LAMBDA) {
                            IcsStruct->ExPhotonCnt[ii++] = atoi (ptr);
-                           ptr = strtok(NULL, seps);
+                           ptr = strtok_r(NULL, seps, &saveptr);
                         }
                         break;
                      case ICSTOK_REFRIME:
