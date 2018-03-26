@@ -22,7 +22,7 @@ experiment:
     type: agent/td
     policy: 
       type: mapping/policy/multi
-      strategy: add_probabilities
+      strategy: policy_strategy_add_prob
       discretizer: 
         type: discretizer/uniform
         min: experiment/environment/task/action_min
@@ -60,8 +60,8 @@ experiment:
             tilings: 16
             memory: 8388608
             safe: 0
-            resolution: [ 3.1415, 31.415, 3 ]
-            wrapping: [ 6.283, 0, 0 ]
+            resolution: [3.1415, 31.415, 3]
+            wrapping: [6.283, 0, 0]
           representation: 
             type: representation/parameterized/linear
             init_min: [0]
@@ -100,7 +100,7 @@ experiment:
     type: agent/fixed
     policy: 
       type: mapping/policy/multi
-      strategy: add_probabilities
+      strategy: policy_strategy_add_prob
       discretizer: experiment/agent/policy/discretizer
       policy: 
         - 
@@ -122,7 +122,7 @@ visualizer:
   type: visualizer/glut
 fine: 
   type: visualization/field/policy/value
-  field_dims: [ 0, 1 ]
+  field_dims: [0, 1]
   input_min: experiment/environment/task/observation_min
   input_max: experiment/environment/task/observation_max
   points: 65536
@@ -132,7 +132,7 @@ fine:
   policy: experiment/test_agent/policy/policy/0
 coarse: 
   type: visualization/field/policy/value
-  field_dims: [ 0, 1 ]
+  field_dims: [0, 1]
   input_min: experiment/environment/task/observation_min
   input_max: experiment/environment/task/observation_max
   points: 65536

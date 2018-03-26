@@ -33,7 +33,7 @@ REGISTER_CONFIGURABLE(MultiPolicy)
 
 void MultiPolicy::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("strategy", "Combination strategy", strategy_str_, CRP::Configuration, {"add_probabilities", "multiply_probabilities"}));
+  config->push_back(CRP("strategy", "Combination strategy", strategy_str_, CRP::Configuration, {"policy_strategy_add_prob", "policy_strategy_multiply_prob", "policy_strategy_majority_voting_prob", "policy_strategy_rank_voting_prob"}));
   config->push_back(CRP("discretizer", "discretizer.action", "Action discretizer", discretizer_));
   config->push_back(CRP("policy", "mapping/policy", "Sub-policies", &policy_));
 }
@@ -41,10 +41,14 @@ void MultiPolicy::request(ConfigurationRequest *config)
 void MultiPolicy::configure(Configuration &config)
 {
   strategy_str_ = config["strategy"].str();
-  if (strategy_str_ == "add_probabilities")
+  if (strategy_str_ == "policy_strategy_add_prob")
     strategy_ = csAddProbabilities;
-  else if (strategy_str_ == "multiply_probabilities")
+  else if (strategy_str_ == "policy_strategy_multiply_prob")
     strategy_ = csMultiplyProbabilities;
+  else if (strategy_str_ == "policy_strategy_majority_voting_prob")
+    strategy_ = csMajorityVotingProbabilities;
+  else if (strategy_str_ == "policy_strategy_rank_voting_prob")
+    strategy_ = csRankVotingProbabilities;
   else
     throw bad_param("mapping/policy/multi:strategy");
 
@@ -74,6 +78,8 @@ void MultiPolicy::act(const Observation &in, Action *out) const
     throw bad_param("mapping/policy/multi:policy");
   }
 
+  std::cout << "MultiPolicy::act::variants: " << variants << std::endl; //#rgo
+  std::cout << "MultiPolicy::act::variants[" << action << "]: " << variants[action] << std::endl; //#rgo
   *out = variants[action];
   
   // Actually, this may be different per policy. Just to be on the safe side,
@@ -98,13 +104,14 @@ void MultiPolicy::distribution(const Observation &in, const Action &prev, LargeV
 {
   LargeVector dist;
   
-  // rgo std::cout << "\nMultiPolicy::distribution LIXO" << policy_.size() << " policy_[0]: " << policy_[0] << " - out - " << (*out) << std::endl;
+  // rgo std::cout << "\nMultiPolicy::distribution LIXO" << policy_.size() << " policy_[0]: " << policy_[0] << " - out - " << (*out) << std::endl; //#rgo
   // Get first policy probabilities
   policy_[0]->distribution(in, prev, out);
+  // rgo std::cout << "\nMultiPolicy::distribution" << " in: " << (in) << " ;prev - " << (prev) << " ;out - " << (*out) << std::endl; //#rgo
   
   for (size_t ii=1; ii != policy_.size(); ++ii)
   {
-    // rgo std::cout << "MultiPolicy::distribution " << policy_.size() << " policy_[0]: " << policy_[0] <<   " policy_[ii] " << policy_[ii] << std::endl;
+    // rgo std::cout << "MultiPolicy::distribution " << policy_.size() << " policy_[0]: " << policy_[0] <<   " policy_[ii] " << policy_[ii] << std::endl; //#rgo
     // Add subsequent policies' probabilities according to chosen strategy
     policy_[ii]->distribution(in, prev, &dist);
     if (dist.size() != out->size())
@@ -113,20 +120,38 @@ void MultiPolicy::distribution(const Observation &in, const Action &prev, LargeV
       throw bad_param("mapping/policy/multi:policy");
     }
     
-    for (size_t jj=0; jj < dist.size(); ++jj)
+    // rgo std::cout << "strategy_ dist.size()" << dist.size() << std::endl; //#rgo
+    switch (strategy_)
     {
-      // rgo std::cout << "strategy_ dist.size()" << dist.size() << std::endl;
-      switch (strategy_)
-      {
-        case csAddProbabilities:
-	  // rgo std::cout << "strategy_ - jj: " << jj << " - out: " << (*out)[jj] << " - dist[jj]: " << dist[jj] << std::endl;
+      case csAddProbabilities:
+        for (size_t jj=0; jj < dist.size(); ++jj)
+        {
+          // rgo std::cout << "strategy_ - jj: " << jj << " - out: " << (*out)[jj] << " - dist[jj]: " << dist[jj] << std::endl; //#rgo
           (*out)[jj] = ((*out)[jj] + dist[jj])/2;
-	  break;
-	case csMultiplyProbabilities:
-	  (*out)[jj] *= dist[jj];
-	  break;
-      }
+        }
+        break;
+        
+      case csMultiplyProbabilities: 
+        for (size_t jj=0; jj < dist.size(); ++jj)
+        {
+          (*out)[jj] *= dist[jj];
+        }
+        break;
+        
+      case csMajorityVotingProbabilities:
+        for (size_t jj=0; jj < dist.size(); ++jj)
+        {
+            if ((*out)[jj] == dist[jj])
+                (*out)[jj] = 1;
+            else
+                (*out)[jj] = 0;
+        }
+        break;
+        
+      case csRankVotingProbabilities:
+        
+            break;
     }
   }
-  // rgo std::cout << "out: " << (*out) << std::endl;
+  // rgo std::cout << "out: " << (*out) << std::endl; //#rgo
 }

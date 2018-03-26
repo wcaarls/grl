@@ -575,51 +575,6 @@
               <in>vector.h</in>
               <in>visualization.h</in>
             </df>
-            <df name="yaml-cpp">
-              <df name="contrib">
-                <in>anchordict.h</in>
-                <in>graphbuilder.h</in>
-              </df>
-              <df name="node">
-                <df name="detail">
-                  <in>bool_type.h</in>
-                  <in>impl.h</in>
-                  <in>iterator.h</in>
-                  <in>iterator_fwd.h</in>
-                  <in>memory.h</in>
-                  <in>node.h</in>
-                  <in>node_data.h</in>
-                  <in>node_iterator.h</in>
-                  <in>node_ref.h</in>
-                </df>
-                <in>convert.h</in>
-                <in>emit.h</in>
-                <in>impl.h</in>
-                <in>iterator.h</in>
-                <in>node.h</in>
-                <in>parse.h</in>
-                <in>ptr.h</in>
-                <in>type.h</in>
-              </df>
-              <in>anchor.h</in>
-              <in>binary.h</in>
-              <in>dll.h</in>
-              <in>emitfromevents.h</in>
-              <in>emitter.h</in>
-              <in>emitterdef.h</in>
-              <in>emittermanip.h</in>
-              <in>emitterstyle.h</in>
-              <in>eventhandler.h</in>
-              <in>exceptions.h</in>
-              <in>mark.h</in>
-              <in>noncopyable.h</in>
-              <in>null.h</in>
-              <in>ostream_wrapper.h</in>
-              <in>parser.h</in>
-              <in>stlemitter.h</in>
-              <in>traits.h</in>
-              <in>yaml.h</in>
-            </df>
           </df>
           <df name="lib">
             <df name="addons">
@@ -628,8 +583,6 @@
                   <df name="grl">
                     <df name="environments">
                       <df name="odesim">
-                        <in>moc_dialog.cxx</in>
-                        <in>moc_environment.cxx</in>
                       </df>
                     </df>
                   </df>
@@ -838,6 +791,8 @@
                     </df>
                   </df>
                 </df>
+              </df>
+              <df name="Progress">
               </df>
               <df name="protobuffer.dir">
               </df>
@@ -1430,7 +1385,6 @@
             </df>
             <in>drl_messages.pb.cc</in>
             <in>drl_messages.pb.h</in>
-            <in>ui_odesim_dialog.h</in>
           </df>
           <df name="share">
           </df>
@@ -2882,6 +2836,8 @@
         <gdb_interceptlist>
           <gdbinterceptoptions gdb_all="false" gdb_unhandled="true" gdb_unexpected="true"/>
         </gdb_interceptlist>
+        <gdb_signals>
+        </gdb_signals>
         <gdb_options>
           <DebugOptions>
           </DebugOptions>
@@ -2896,8 +2852,10 @@
           <runcommandpicklistitem>"${OUTPUT_PATH}"</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" ../cfg/pendulum/sarsa_tc.yaml</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" ../cfg/pendulum/sarsa_multipol_all.add.rgo.yaml</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" ../cfg/pendulum/sarsa_multi_tc.yaml</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" ../cfg/pendulum/sarsa_multipol_tc.yaml</runcommandpicklistitem>
         </runcommandpicklist>
-        <runcommand>"${OUTPUT_PATH}" ../cfg/pendulum/sarsa_multipol_all.add.rgo.yaml</runcommand>
+        <runcommand>"${OUTPUT_PATH}" ../cfg/pendulum/sarsa_multipol_tc.yaml</runcommand>
         <rundir>build</rundir>
         <buildfirst>false</buildfirst>
         <terminal-type>0</terminal-type>
