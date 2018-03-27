@@ -215,12 +215,12 @@ def linlee_optimize(base, spec, conf):
     outfile = base + '-' + str(round) + '.txt'
     stream = open(outfile, 'w')
     for p in spec["parameters"]:
-      print >>stream, "'"+p["name"]+"',",
+      print >>stream, '"'+p["name"]+'",',
     print >>stream, "runs, mean, stddev, stderr"
     
     for (c, r) in pop.iteritems():
       for p in spec["parameters"]:
-        print >>stream, "'"+str(getconf(c, p["name"]))+"',",
+        print >>stream, '"'+str(getconf(c, p["name"]))+'",',
       (t0, t1, t2, a) = pop[c]
       m = t1/t0
       v = t2/t0 - (t1/t0)**2
