@@ -340,7 +340,7 @@ void ProbabilityACPredictor::update(const Transition &transition)
   Predictor::update(transition);
 
   ProjectionPtr ap = actor_projector_->project(transition.prev_obs, transition.prev_action);
-  std::cout << "ap: " << ap <<  std::endl; //" - *ap: " << (*ap) <<
+  //rgo std::cout << "ap: " << ap <<  std::endl; //" - *ap: " << (*ap) <<
   ProjectionPtr vp = critic_projector_->project(transition.prev_obs);
   
   Vector res;
@@ -351,12 +351,15 @@ void ProbabilityACPredictor::update(const Transition &transition)
   if (transition.action.size())
     target += gamma_*vnext;
   double delta = target - critic_representation_->read(vp, &res);
-
-  // Actor that maps states to a preference value for each action 
-  actor_representation_->write(ap, VectorConstructor(target), alpha_);
   
   // V update
   critic_representation_->write(vp, VectorConstructor(target), beta_);
+  
+  // Actor that maps states to a preference value for each action   
+  double p = actor_representation_->read(ap, &res);
+    
+  //actor_representation_->write(ap, VectorConstructor(p + alpha_*delta), 1);  
+  actor_representation_->write(ap, VectorConstructor(target), alpha_);  
   
   if (critic_trace_)
   {
