@@ -10,14 +10,13 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/home/renatargo/PycharmProjects/grl/base/src/deployer.cpp</file>
             <file>file:/home/renatargo/PycharmProjects/grl/base/src/policies/multi.cpp</file>
-            <file>file:/home/renatargo/PycharmProjects/grl/base/src/policies/action.cpp</file>
-            <file>file:/home/renatargo/PycharmProjects/grl/base/src/representations/linear.cpp</file>
-            <file>file:/home/renatargo/PycharmProjects/grl/addons/tensorflow/include/grl/converter.h</file>
+            <file>file:/home/renatargo/PycharmProjects/grl/base/src/deployer.cpp</file>
             <file>file:/home/renatargo/PycharmProjects/grl/base/include/grl/utils.h</file>
-            <file>file:/home/renatargo/PycharmProjects/grl/base/src/predictors/sarsa.cpp</file>
-            <file>file:/home/renatargo/PycharmProjects/grl/base/src/predictors/ac.cpp</file>
+            <file>file:/home/renatargo/PycharmProjects/grl/base/src/samplers/greedy.cpp</file>
+            <file>file:/home/renatargo/PycharmProjects/grl/base/include/grl/policies/multi.h</file>
+            <file>file:/home/renatargo/PycharmProjects/grl/base/src/samplers/softmax.cpp</file>
+            <file>file:/home/renatargo/PycharmProjects/grl/base/src/policies/q.cpp</file>
         </group>
     </open-files>
 </project-private>

@@ -78,8 +78,8 @@ void MultiPolicy::act(const Observation &in, Action *out) const
     throw bad_param("mapping/policy/multi:policy");
   }
 
-  std::cout << "MultiPolicy::act::variants: " << variants << std::endl; //#rgo
-  std::cout << "MultiPolicy::act::variants[" << action << "]: " << variants[action] << std::endl; //#rgo
+  // rgo std::cout << "MultiPolicy::act::variants: " << variants << std::endl; //#rgo
+  // rgo std::cout << "MultiPolicy::act::variants[" << action << "]: " << variants[action] << std::endl; //#rgo
   *out = variants[action];
   
   // Actually, this may be different per policy. Just to be on the safe side,
@@ -103,55 +103,208 @@ void MultiPolicy::act(double time, const Observation &in, Action *out)
 void MultiPolicy::distribution(const Observation &in, const Action &prev, LargeVector *out) const
 {
   LargeVector dist;
+  LargeVector param_choice;
   
-  // rgo std::cout << "\nMultiPolicy::distribution LIXO" << policy_.size() << " policy_[0]: " << policy_[0] << " - out - " << (*out) << std::endl; //#rgo
-  // Get first policy probabilities
-  policy_[0]->distribution(in, prev, out);
+  
   // rgo std::cout << "\nMultiPolicy::distribution" << " in: " << (in) << " ;prev - " << (prev) << " ;out - " << (*out) << std::endl; //#rgo
-  
-  for (size_t ii=1; ii != policy_.size(); ++ii)
+ 
+  switch (strategy_)
   {
-    // rgo std::cout << "MultiPolicy::distribution " << policy_.size() << " policy_[0]: " << policy_[0] <<   " policy_[ii] " << policy_[ii] << std::endl; //#rgo
-    // Add subsequent policies' probabilities according to chosen strategy
-    policy_[ii]->distribution(in, prev, &dist);
-    if (dist.size() != out->size())
-    {
-      ERROR("Subpolicy " << ii << " has incompatible number of actions");
-      throw bad_param("mapping/policy/multi:policy");
-    }
-    
-    // rgo std::cout << "strategy_ dist.size()" << dist.size() << std::endl; //#rgo
-    switch (strategy_)
-    {
-      case csAddProbabilities:
+    case csAddProbabilities:
+
+      policy_[0]->distribution(in, prev, out);
+      param_choice = LargeVector::Zero(out->size());
+      //out = LargeVector::Zero(param_choice->size());
+
+      for (size_t ii=0; ii != policy_.size(); ++ii)
+      {
+        // rgo std::cout << "MultiPolicy::distribution " << policy_.size() << " policy_[0]: " << policy_[0] <<   " policy_[ii] " << policy_[ii] << std::endl; //#rgo
+        // Add subsequent policies' probabilities according to chosen strategy
+        policy_[ii]->distribution(in, prev, &dist);
+        if (dist.size() != out->size())
+        {
+          ERROR("Subpolicy " << ii << " has incompatible number of actions");
+          throw bad_param("mapping/policy/multi:policy");
+        }
+
+        // rgo std::cout << "strategy_ dist.size()" << dist.size() << std::endl; //#rgo
         for (size_t jj=0; jj < dist.size(); ++jj)
         {
           // rgo std::cout << "strategy_ - jj: " << jj << " - out: " << (*out)[jj] << " - dist[jj]: " << dist[jj] << std::endl; //#rgo
-          (*out)[jj] = ((*out)[jj] + dist[jj])/2;
+          param_choice[jj] += dist[jj];
         }
-        break;
+      }
+      
+      //std::cout << "MultiPolicy::param_choice: " << param_choice << std::endl;
+      other_selection(param_choice, out);
+      //std::cout << "MultiPolicy::out: " << (*out) << "\n" << std::endl;
+      
+      break;
         
-      case csMultiplyProbabilities: 
+    case csMultiplyProbabilities:
+        
+      policy_[0]->distribution(in, prev, out);
+      param_choice = LargeVector::Ones(out->size());
+
+      for (size_t ii=0; ii != policy_.size(); ++ii)
+      {
+        // rgo std::cout << "MultiPolicy::distribution " << policy_.size() << " policy_[0]: " << policy_[0] <<   " policy_[ii] " << policy_[ii] << std::endl; //#rgo
+        // Add subsequent policies' probabilities according to chosen strategy
+        policy_[ii]->distribution(in, prev, &dist);
+        if (dist.size() != out->size())
+        {
+          ERROR("Subpolicy " << ii << " has incompatible number of actions");
+          throw bad_param("mapping/policy/multi:policy");
+        }
+
         for (size_t jj=0; jj < dist.size(); ++jj)
         {
-          (*out)[jj] *= dist[jj];
+          param_choice[jj] *= dist[jj];
         }
-        break;
+      }
+      
+      //std::cout << "MultiPolicy::param_choice: " << param_choice << std::endl;
+      other_selection(param_choice, out);
+      //std::cout << "MultiPolicy::out: " << (*out) << "\n" << std::endl;
+      
+      break;
         
-      case csMajorityVotingProbabilities:
+    case csMajorityVotingProbabilities:
+      
+      policy_[0]->distribution(in, prev, out);
+      param_choice = LargeVector::Zero(out->size());
+        
+      for (size_t ii=0; ii != policy_.size(); ++ii)
+      {
+        policy_[ii]->distribution(in, prev, &dist);
+        if (dist.size() != out->size())
+        {
+          ERROR("Subpolicy " << ii << " has incompatible number of actions");
+          throw bad_param("mapping/policy/multi:policy");
+        }
+                
+        double p_best_ind = 0.0;
+        short i_ind = dist.size() - 1;
+        // rgo std::cout << "\nMultiPolicy::dist: " << dist << std::endl;
         for (size_t jj=0; jj < dist.size(); ++jj)
         {
-            if ((*out)[jj] == dist[jj])
-                (*out)[jj] = 1;
-            else
-                (*out)[jj] = 0;
+          // rgo std::cout << "MultiPolicy::prob_ind[" << jj << "]{" << prob_ind[jj]<< "} > p_best_ind{" << p_best_ind << std::endl;
+          if (dist[jj] > p_best_ind)
+          {
+            p_best_ind = dist[jj];
+            i_ind = jj;
+          }
+          // rgo std::cout << "MultiPolicy::p_best_ind{" << p_best_ind << "} = i_ind: " << i_ind << std::endl;
         }
-        break;
+        param_choice[i_ind] += 1;
+      }
+      
+      // rgo std::cout << "MultiPolicy::param_choice: " << param_choice << std::endl;
+      
+      softmax(param_choice, out);
+      
+      // rgo std::cout << "MultiPolicy::out: " << (*out) << std::endl;
+      
+      break;
         
-      case csRankVotingProbabilities:
-        
-            break;
-    }
+    case csRankVotingProbabilities:
+
+      break;
+  }      
+}
+
+void MultiPolicy::softmax(const LargeVector &values, LargeVector *distribution) const
+{
+  LargeVector v = LargeVector::Zero(values.size());
+  for (size_t ii=0; ii < values.size(); ++ii)
+    if (std::isnan(values[ii]))
+      ERROR("SoftmaxSampler: NaN value in Boltzmann distribution 1");
+
+  distribution->resize(values.size());
+  const double threshold = -100;
+
+  // Find max_power and min_power, and center of feasible powers
+  double max_power = -DBL_MAX;
+  for (size_t ii=0; ii < values.size(); ++ii)
+  {
+    double p = values[ii]/tau_;
+    max_power = (max_power < p) ? p : max_power;
   }
-  // rgo std::cout << "out: " << (*out) << std::endl; //#rgo
+  double min_power = max_power + threshold;
+  double center = (max_power+min_power)/2.0;
+
+  // Discard powers from interval [0.0; threshold] * max_power
+  double sum = 0;
+  for (size_t ii=0; ii < values.size(); ++ii)
+  {
+    double p = values[ii]/tau_;
+    if (p > min_power)
+    {
+      p -= center;
+      v[ii] = exp(p);
+      sum += v[ii];
+      (*distribution)[ii] = 1;
+
+      if (std::isnan(v[ii]))
+        ERROR("SoftmaxSampler: NaN value in Boltzmann distribution 2");
+    }
+    else
+      (*distribution)[ii] = 0;
+  }
+
+  for (size_t ii=0; ii < values.size(); ++ii)
+  {
+    (*distribution)[ii] *= v[ii]/sum;
+    if (std::isnan((*distribution)[ii]))
+      ERROR("SoftmaxSampler: NaN value in Boltzmann distribution 4");
+  }
+}
+
+void MultiPolicy::other_selection(const LargeVector &values, LargeVector *distribution) const
+{
+  
+  
+  LargeVector v = LargeVector::Zero(values.size());
+  for (size_t ii=0; ii < values.size(); ++ii)
+    if (std::isnan(values[ii]))
+      ERROR("OtherSelectionMultiPolicy: NaN value in  distribution 1");
+
+  distribution->resize(values.size());
+  const double threshold = -100;
+
+  // Find max_power and min_power, and center of feasible powers
+  double max_power = -DBL_MAX;
+  for (size_t ii=0; ii < values.size(); ++ii)
+  {
+    double p = 1.0/tau_;
+    max_power = (max_power < p) ? p : max_power;
+  }
+  double min_power = max_power + threshold;
+  double center = (max_power+min_power)/2.0;
+
+  // Discard powers from interval [0.0; threshold] * max_power
+  double sum = 0;
+  for (size_t ii=0; ii < values.size(); ++ii)
+  {
+    double p = 1.0/tau_;
+    if (p > min_power)
+    {
+      p -= center;
+      v[ii] = pow(values[ii], p);
+      sum += v[ii];
+      (*distribution)[ii] = 1;
+
+      if (std::isnan(v[ii]))
+        ERROR("OtherSelectionMultiPolicy: NaN value in  distribution 2");
+    }
+    else
+      (*distribution)[ii] = 0;
+  }
+
+  for (size_t ii=0; ii < values.size(); ++ii)
+  {
+    (*distribution)[ii] *= v[ii]/sum;
+    if (std::isnan((*distribution)[ii]))
+      ERROR("OtherSelectionMultiPolicy: NaN value in  distribution 4");
+  }
 }

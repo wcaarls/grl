@@ -47,9 +47,10 @@ class MultiPolicy : public Policy
     CombinationStrategy strategy_;
     Discretizer *discretizer_;
     TypedConfigurableList<Policy> policy_;
+    double tau_;
 
   public:
-    MultiPolicy() { }
+    MultiPolicy() : tau_(0.8) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -60,6 +61,8 @@ class MultiPolicy : public Policy
     virtual void act(const Observation &in, Action *out) const;
     virtual void act(double time, const Observation &in, Action *out);
     virtual void distribution(const Observation &in, const Action &prev, LargeVector *out) const;
+    virtual void softmax(const LargeVector &values, LargeVector *distribution) const;
+    virtual void other_selection(const LargeVector &values, LargeVector *distribution) const;
 };
 
 }

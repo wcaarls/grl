@@ -2900,10 +2900,11 @@
           <runcommandpicklistitem>"${OUTPUT_PATH}" ../cfg/pendulum/sarsa_multipol_all.add.rgo.yaml</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" ../cfg/pendulum/sarsa_multi_tc.yaml</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" ../cfg/pendulum/sarsa_multipol_tc.yaml</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" ../cfg/pendulum/sarsa_multipol_tc.majority.rgo.yaml</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" sarsa_multipol_tc.majority.rgo.yaml</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" ../cfg/pendulum/ac_sarsa_tc.rgo.ac_probability.yaml</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" ../cfg/pendulum/sarsa_multipol_tc.majority.rgo.yaml</runcommandpicklistitem>
         </runcommandpicklist>
-        <runcommand>"${OUTPUT_PATH}" ../cfg/pendulum/ac_sarsa_tc.rgo.ac_probability.yaml</runcommand>
+        <runcommand>"${OUTPUT_PATH}" ../cfg/pendulum/sarsa_multipol_tc.majority.rgo.yaml</runcommand>
         <rundir>build</rundir>
         <buildfirst>false</buildfirst>
         <terminal-type>0</terminal-type>

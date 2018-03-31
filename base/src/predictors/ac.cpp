@@ -356,10 +356,9 @@ void ProbabilityACPredictor::update(const Transition &transition)
   critic_representation_->write(vp, VectorConstructor(target), beta_);
   
   // Actor that maps states to a preference value for each action   
-  double p = actor_representation_->read(ap, &res);
-    
-  //actor_representation_->write(ap, VectorConstructor(p + alpha_*delta), 1);  
-  actor_representation_->write(ap, VectorConstructor(target), alpha_);  
+  double a_repr = actor_representation_->read(ap, &res);
+  
+  actor_representation_->write(ap, VectorConstructor(a_repr + alpha_*delta), 1);  
   
   if (critic_trace_)
   {
@@ -369,6 +368,7 @@ void ProbabilityACPredictor::update(const Transition &transition)
   
   //q_representation_->finalize();
   critic_representation_->finalize();
+  actor_representation_->finalize();
   
   //throw Exception("ProbabilityACPredictor::update not implemented");
 }

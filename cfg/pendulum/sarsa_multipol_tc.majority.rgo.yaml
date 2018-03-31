@@ -117,22 +117,22 @@ experiment:
           representation: experiment/agent/policy/policy/1/representation
           sampler: 
             type: sampler/greedy
-  save_every: never
+  save_every: run
 visualizer: 
   type: visualizer/glut
 fine: 
   type: visualization/field/policy/value
   field_dims: [0, 1]
   input_min: experiment/environment/task/observation_min
-  input_max: experiment/environment/task/observation_max
+  input_max: experiment/environment/task/observation_min
   points: 65536
   savepoints: 1048576
   state: experiment/state
   projection: mean
-  policy: experiment/test_agent/policy/policy/0
+  policy: experiment/test_agent/policy/policy/1
 coarse: 
   type: visualization/field/policy/value
-  field_dims: [0, 1]
+  field_dims: [ 0, 1 ]
   input_min: experiment/environment/task/observation_min
   input_max: experiment/environment/task/observation_max
   points: 65536
