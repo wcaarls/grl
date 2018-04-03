@@ -340,7 +340,6 @@ void ProbabilityACPredictor::update(const Transition &transition)
   Predictor::update(transition);
 
   ProjectionPtr ap = actor_projector_->project(transition.prev_obs, transition.prev_action);
-  //rgo std::cout << "ap: " << ap <<  std::endl; //" - *ap: " << (*ap) <<
   ProjectionPtr vp = critic_projector_->project(transition.prev_obs);
   
   Vector res;
