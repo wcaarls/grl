@@ -34,6 +34,8 @@ REGISTER_CONFIGURABLE(MultiPolicy)
 void MultiPolicy::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("strategy", "Combination strategy", strategy_str_, CRP::Configuration, {"policy_strategy_add_prob", "policy_strategy_multiply_prob", "policy_strategy_majority_voting_prob", "policy_strategy_rank_voting_prob"}));
+  //TODO: rgo
+  config->push_back(CRP("tau", "Temperature of Boltzmann distribution", tau_));
   config->push_back(CRP("discretizer", "discretizer.action", "Action discretizer", discretizer_));
   config->push_back(CRP("policy", "mapping/policy", "Sub-policies", &policy_));
 }
@@ -52,6 +54,8 @@ void MultiPolicy::configure(Configuration &config)
   else
     throw bad_param("mapping/policy/multi:strategy");
 
+  tau_ = config["tau"];
+  
   discretizer_ = (Discretizer*)config["discretizer"].ptr();
   
   policy_ = *(ConfigurableList*)config["policy"].ptr();
@@ -78,8 +82,6 @@ void MultiPolicy::act(const Observation &in, Action *out) const
     throw bad_param("mapping/policy/multi:policy");
   }
 
-  // rgo std::cout << "MultiPolicy::act::variants: " << variants << std::endl; //#rgo
-  // rgo std::cout << "MultiPolicy::act::variants[" << action << "]: " << variants[action] << std::endl; //#rgo
   *out = variants[action];
   
   // Actually, this may be different per policy. Just to be on the safe side,
@@ -105,20 +107,15 @@ void MultiPolicy::distribution(const Observation &in, const Action &prev, LargeV
   LargeVector dist;
   LargeVector param_choice;
   
-  
-  // rgo std::cout << "\nMultiPolicy::distribution" << " in: " << (in) << " ;prev - " << (prev) << " ;out - " << (*out) << std::endl; //#rgo
- 
   switch (strategy_)
   {
     case csAddProbabilities:
 
       policy_[0]->distribution(in, prev, out);
       param_choice = LargeVector::Zero(out->size());
-      //out = LargeVector::Zero(param_choice->size());
-
+      
       for (size_t ii=0; ii != policy_.size(); ++ii)
       {
-        // rgo std::cout << "MultiPolicy::distribution " << policy_.size() << " policy_[0]: " << policy_[0] <<   " policy_[ii] " << policy_[ii] << std::endl; //#rgo
         // Add subsequent policies' probabilities according to chosen strategy
         policy_[ii]->distribution(in, prev, &dist);
         if (dist.size() != out->size())
@@ -127,18 +124,13 @@ void MultiPolicy::distribution(const Observation &in, const Action &prev, LargeV
           throw bad_param("mapping/policy/multi:policy");
         }
 
-        // rgo std::cout << "strategy_ dist.size()" << dist.size() << std::endl; //#rgo
         for (size_t jj=0; jj < dist.size(); ++jj)
-        {
-          // rgo std::cout << "strategy_ - jj: " << jj << " - out: " << (*out)[jj] << " - dist[jj]: " << dist[jj] << std::endl; //#rgo
           param_choice[jj] += dist[jj];
-        }
       }
       
-      //std::cout << "MultiPolicy::param_choice: " << param_choice << std::endl;
-      other_selection(param_choice, out);
-      //std::cout << "MultiPolicy::out: " << (*out) << "\n" << std::endl;
-      
+      CRAWL("MultiPolicy::param_choice: " << param_choice);
+      normalized_function(param_choice, out);
+      CRAWL("MultiPolicy::out: " << (*out) << "\n");
       break;
         
     case csMultiplyProbabilities:
@@ -148,8 +140,7 @@ void MultiPolicy::distribution(const Observation &in, const Action &prev, LargeV
 
       for (size_t ii=0; ii != policy_.size(); ++ii)
       {
-        // rgo std::cout << "MultiPolicy::distribution " << policy_.size() << " policy_[0]: " << policy_[0] <<   " policy_[ii] " << policy_[ii] << std::endl; //#rgo
-        // Add subsequent policies' probabilities according to chosen strategy
+        // Multiply subsequent policies' probabilities according to chosen strategy
         policy_[ii]->distribution(in, prev, &dist);
         if (dist.size() != out->size())
         {
@@ -158,14 +149,12 @@ void MultiPolicy::distribution(const Observation &in, const Action &prev, LargeV
         }
 
         for (size_t jj=0; jj < dist.size(); ++jj)
-        {
           param_choice[jj] *= dist[jj];
-        }
       }
       
-      //std::cout << "MultiPolicy::param_choice: " << param_choice << std::endl;
-      other_selection(param_choice, out);
-      //std::cout << "MultiPolicy::out: " << (*out) << "\n" << std::endl;
+      CRAWL("MultiPolicy::param_choice: " << param_choice);
+      normalized_function(param_choice, out);
+      CRAWL("MultiPolicy::out: " << (*out) << "\n");
       
       break;
         
@@ -185,26 +174,20 @@ void MultiPolicy::distribution(const Observation &in, const Action &prev, LargeV
                 
         double p_best_ind = 0.0;
         short i_ind = dist.size() - 1;
-        // rgo std::cout << "\nMultiPolicy::dist: " << dist << std::endl;
         for (size_t jj=0; jj < dist.size(); ++jj)
         {
-          // rgo std::cout << "MultiPolicy::prob_ind[" << jj << "]{" << prob_ind[jj]<< "} > p_best_ind{" << p_best_ind << std::endl;
           if (dist[jj] > p_best_ind)
           {
             p_best_ind = dist[jj];
             i_ind = jj;
           }
-          // rgo std::cout << "MultiPolicy::p_best_ind{" << p_best_ind << "} = i_ind: " << i_ind << std::endl;
         }
         param_choice[i_ind] += 1;
       }
       
-      // rgo std::cout << "MultiPolicy::param_choice: " << param_choice << std::endl;
-      
+      CRAWL("MultiPolicy::param_choice: " << param_choice);
       softmax(param_choice, out);
-      
-      // rgo std::cout << "MultiPolicy::out: " << (*out) << std::endl;
-      
+      CRAWL("MultiPolicy::out: " << (*out));
       break;
         
     case csRankVotingProbabilities:
@@ -260,7 +243,7 @@ void MultiPolicy::softmax(const LargeVector &values, LargeVector *distribution) 
   }
 }
 
-void MultiPolicy::other_selection(const LargeVector &values, LargeVector *distribution) const
+void MultiPolicy::normalized_function(const LargeVector &values, LargeVector *distribution) const
 {
   
   
@@ -294,11 +277,12 @@ void MultiPolicy::other_selection(const LargeVector &values, LargeVector *distri
       sum += v[ii];
       (*distribution)[ii] = 1;
 
-      if (std::isnan(v[ii]))
+      if (std::isnan(v[ii])) 
         ERROR("OtherSelectionMultiPolicy: NaN value in  distribution 2");
     }
-    else
+    else {
       (*distribution)[ii] = 0;
+    }
   }
 
   for (size_t ii=0; ii < values.size(); ++ii)
@@ -308,3 +292,4 @@ void MultiPolicy::other_selection(const LargeVector &values, LargeVector *distri
       ERROR("OtherSelectionMultiPolicy: NaN value in  distribution 4");
   }
 }
+

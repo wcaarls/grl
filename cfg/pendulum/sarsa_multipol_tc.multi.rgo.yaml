@@ -109,14 +109,20 @@ experiment:
           projector: experiment/agent/policy/policy/0/projector
           representation: experiment/agent/policy/policy/0/representation
           sampler: 
-            type: sampler/greedy
+            type: sampler/epsilon_greedy
+            epsilon: [ 0.001 ]
+            decay_rate: 1
+            decay_min: 0
         - 
           type: mapping/policy/value/q
           discretizer: experiment/agent/policy/discretizer
           projector: experiment/agent/policy/policy/1/projector
           representation: experiment/agent/policy/policy/1/representation
           sampler: 
-            type: sampler/greedy
+            type: sampler/epsilon_greedy
+            epsilon: [ 0.001 ]
+            decay_rate: 1
+            decay_min: 0
   save_every: never
 visualizer: 
   type: visualizer/glut

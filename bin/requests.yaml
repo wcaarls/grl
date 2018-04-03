@@ -330,7 +330,7 @@ agent/master/exclusive:
     type: "[agent/sub]"
     description: Subagents
     mutability: configuration
-    default: 0xdd5448
+    default: 0x2623c58
     optional: 0
 agent/master/predicated:
   description: Master agent in which execution is predicated on preceding agent confidence
@@ -360,7 +360,7 @@ agent/master/predicated:
     type: "[agent/sub]"
     description: Subagents
     mutability: configuration
-    default: 0xdd5448
+    default: 0x2623c58
     optional: 0
 agent/master/random:
   description: Master agent that chooses sub-agents randomly
@@ -390,7 +390,7 @@ agent/master/random:
     type: "[agent/sub]"
     description: Subagents
     mutability: configuration
-    default: 0xdd5448
+    default: 0x2623c58
     optional: 0
 agent/master/sequential:
   description: Master agent that executes sub-agents sequentially
@@ -620,64 +620,6 @@ behavior/leo_walk:
   description: Leo walking behavior without symmetrical switchers of observations
 behavior/leo_walk_sym:
   description: Leo walking behavior with symmetrical switchers of observations
-communicator/zeromq/pub_sub:
-  description: Zeromq class to establish a link by sending messages asynchronously (publisher/subscriber)
-  role:
-    type: string
-    description: Role of the zeromq (Pub/Sub, Request/Reply)
-    mutability: configuration
-    default: ""
-    optional: 1
-    options:
-      - NONE
-      - ZMQ_SUB
-      - ZMQ_PUB
-      - ZMQ_REQ
-      - ZMQ_REP
-  sync:
-    type: string
-    description: Syncronization ip address
-    mutability: configuration
-    default: ""
-    optional: 1
-  pub:
-    type: string
-    description: Publisher address
-    mutability: configuration
-    default: tcp://*:5561
-    optional: 1
-  sub:
-    type: string
-    description: subscriber address
-    mutability: configuration
-    default: tcp://192.168.1.10:5562
-    optional: 1
-communicator/zeromq/request_reply:
-  description: Zeromq class to establish a link by sending messages synchronously (request/reply)
-  role:
-    type: string
-    description: Role of the zeromq (Pub/Sub, Request/Reply)
-    mutability: configuration
-    default: ""
-    optional: 1
-    options:
-      - NONE
-      - ZMQ_SUB
-      - ZMQ_PUB
-      - ZMQ_REQ
-      - ZMQ_REP
-  sync:
-    type: string
-    description: Syncronization ip address
-    mutability: configuration
-    default: ""
-    optional: 1
-  addr:
-    type: string
-    description: Address
-    mutability: configuration
-    default: tcp://localhost:5555
-    optional: 1
 converter/state_action_converter:
   description: Configurable which is capable of remapping states and actions
   state_in:
@@ -1826,17 +1768,25 @@ mapping/policy/multi:
       - policy_strategy_multiply_prob
       - policy_strategy_majority_voting_prob
       - policy_strategy_rank_voting_prob
+  tau:
+    type: double
+    description: Temperature of Boltzmann distribution
+    mutability: configuration
+    default: 0.1
+    optional: 1
+    min: 0
+    max: 1
   discretizer:
     type: discretizer.action
     description: Action discretizer
     mutability: configuration
-    default: 0x64
+    default: 0
     optional: 0
   policy:
     type: "[mapping/policy]"
     description: Sub-policies
     mutability: configuration
-    default: 0xf54090
+    default: 0x279a930
     optional: 0
 mapping/policy/parameterized/action:
   description: Parameterized policy based on a direct action representation
@@ -3763,7 +3713,7 @@ predictor/multi:
     type: "[predictor]"
     description: First downstream predictor
     mutability: configuration
-    default: 0x1150c90
+    default: 0x2918110
     optional: 0
 predictor/naf:
   description: Value function predictor using Normalized Advantage Features
@@ -3988,7 +3938,7 @@ projector/multi:
     type: "[projector.]"
     description: Downstream projectors
     mutability: configuration
-    default: 0x11a5b40
+    default: 0x29e81e0
     optional: 0
   memories:
     type: vector.memory
@@ -4396,7 +4346,7 @@ representation/additive:
     type: "[representation.]"
     description: Downstream representations
     mutability: configuration
-    default: 0x120b890
+    default: 0x2a4d640
     optional: 0
 representation/communicator:
   description: Interface to an out-of-process representation
@@ -7377,7 +7327,7 @@ projector/multi.observation:
     type: "[projector.observation]"
     description: Downstream projectors
     mutability: configuration
-    default: 0x153af60
+    default: 0x2d7d910
     optional: 0
   memories:
     type: vector.memory
@@ -7713,7 +7663,7 @@ representation/additive.action:
     type: "[representation.action]"
     description: Downstream representations
     mutability: configuration
-    default: 0x158aa60
+    default: 0x2dccdb0
     optional: 0
 representation/communicator.action:
   description: Interface to an out-of-process representation
@@ -8018,7 +7968,7 @@ projector/multi.pair:
     type: "[projector.pair]"
     description: Downstream projectors
     mutability: configuration
-    default: 0x15e8330
+    default: 0x2e2a3c0
     optional: 0
   memories:
     type: vector.memory
@@ -8354,7 +8304,7 @@ representation/additive.value/action:
     type: "[representation.value/action]"
     description: Downstream representations
     mutability: configuration
-    default: 0x1637890
+    default: 0x2e79d50
     optional: 0
 representation/communicator.value/action:
   description: Interface to an out-of-process representation
@@ -8578,7 +8528,7 @@ representation/additive.value/state:
     type: "[representation.value/state]"
     description: Downstream representations
     mutability: configuration
-    default: 0x1676610
+    default: 0x2eb7ae0
     optional: 0
 representation/communicator.value/state:
   description: Interface to an out-of-process representation
@@ -8816,7 +8766,7 @@ representation/additive.transition:
     type: "[representation.transition]"
     description: Downstream representations
     mutability: configuration
-    default: 0x16c3410
+    default: 0x2ef55b0
     optional: 0
 representation/communicator.transition:
   description: Interface to an out-of-process representation

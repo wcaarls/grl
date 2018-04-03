@@ -50,7 +50,7 @@ class MultiPolicy : public Policy
     double tau_;
 
   public:
-    MultiPolicy() : tau_(0.8) { }
+    MultiPolicy() : tau_(0.1) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -62,7 +62,7 @@ class MultiPolicy : public Policy
     virtual void act(double time, const Observation &in, Action *out);
     virtual void distribution(const Observation &in, const Action &prev, LargeVector *out) const;
     virtual void softmax(const LargeVector &values, LargeVector *distribution) const;
-    virtual void other_selection(const LargeVector &values, LargeVector *distribution) const;
+    virtual void normalized_function(const LargeVector &values, LargeVector *distribution) const;
 };
 
 }
