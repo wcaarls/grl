@@ -39,7 +39,7 @@ experiment:
         type: sampler/epsilon_greedy
         epsilon: 0.1
     predictor: 
-      type: predictor/sarsa
+      type: predictor/critic/sarsa
       alpha: 0.1
       gamma: 1.0
       lambda: 0
