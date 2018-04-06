@@ -22,8 +22,7 @@ experiment:
     type: agent/td
     policy: 
       type: mapping/policy/multi
-      strategy: policy_strategy_add_prob
-      tau: 0.1
+      strategy: policy_strategy_multiply_prob
       discretizer: 
         type: discretizer/uniform
         min: experiment/environment/task/action_min
@@ -101,8 +100,7 @@ experiment:
     type: agent/fixed
     policy: 
       type: mapping/policy/multi
-      strategy: policy_strategy_add_prob
-      tau: 0.1
+      strategy: policy_strategy_multiply_prob
       discretizer: experiment/agent/policy/discretizer
       policy: 
         - 
@@ -111,14 +109,20 @@ experiment:
           projector: experiment/agent/policy/policy/0/projector
           representation: experiment/agent/policy/policy/0/representation
           sampler: 
-            type: sampler/greedy
+            type: sampler/epsilon_greedy
+            epsilon: [ 0.001 ]
+            decay_rate: 1
+            decay_min: 0
         - 
           type: mapping/policy/value/q
           discretizer: experiment/agent/policy/discretizer
           projector: experiment/agent/policy/policy/1/projector
           representation: experiment/agent/policy/policy/1/representation
           sampler: 
-            type: sampler/greedy
+            type: sampler/epsilon_greedy
+            epsilon: [ 0.001 ]
+            decay_rate: 1
+            decay_min: 0
   save_every: never
 visualizer: 
   type: visualizer/glut

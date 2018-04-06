@@ -352,24 +352,21 @@ void ProbabilityACPredictor::update(const Transition &transition)
   double delta = target - critic_representation_->read(vp, &res);
   
   // V update
-  critic_representation_->write(vp, VectorConstructor(target), beta_);
+  critic_representation_->write(vp, VectorConstructor(target), alpha_);
   
   // Actor that maps states to a preference value for each action   
-  double a_repr = actor_representation_->read(ap, &res);
+  double a_pref = actor_representation_->read(ap, &res);
   
-  actor_representation_->write(ap, VectorConstructor(a_repr + alpha_*delta), 1);  
+  actor_representation_->write(ap, VectorConstructor(a_pref + beta_*delta), 1);  
   
   if (critic_trace_)
   {
-    critic_representation_->update(*critic_trace_, VectorConstructor(beta_*delta), gamma_*lambda_);
+    critic_representation_->update(*critic_trace_, VectorConstructor(alpha_*delta), gamma_*lambda_);
     critic_trace_->add(vp, gamma_*lambda_);
   }
   
-  //q_representation_->finalize();
   critic_representation_->finalize();
   actor_representation_->finalize();
-  
-  //throw Exception("ProbabilityACPredictor::update not implemented");
 }
 
 void ProbabilityACPredictor::finalize()

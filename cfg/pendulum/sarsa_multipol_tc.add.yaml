@@ -23,7 +23,6 @@ experiment:
     policy: 
       type: mapping/policy/multi
       strategy: policy_strategy_add_prob
-      tau: 0.1
       discretizer: 
         type: discretizer/uniform
         min: experiment/environment/task/action_min
@@ -102,7 +101,6 @@ experiment:
     policy: 
       type: mapping/policy/multi
       strategy: policy_strategy_add_prob
-      tau: 0.1
       discretizer: experiment/agent/policy/discretizer
       policy: 
         - 
