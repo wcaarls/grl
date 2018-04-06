@@ -222,7 +222,7 @@ void MultiPolicy::distribution(const Observation &in, const Action &prev, LargeV
           CRAWL("MultiPolicy::policy: " << ii);
           CRAWL("MultiPolicy::rank_weights: " << rank_weights);
           CRAWL("\nMultiPolicy::param_choice: " << param_choice << '\n');
-          param_choice[jj] += rank_weights[jj] * dist[jj];
+          param_choice[jj] += rank_weights[jj];
           CRAWL("\nMultiPolicy::param_choice: " << param_choice << '\n');
         }
       }
