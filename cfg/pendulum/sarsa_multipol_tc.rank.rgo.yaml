@@ -22,7 +22,7 @@ experiment:
     type: agent/td
     policy: 
       type: mapping/policy/multi
-      strategy: policy_strategy_majority_voting_prob
+      strategy: policy_strategy_rank_voting_prob
       tau: 0.1
       discretizer: 
         type: discretizer/uniform
@@ -101,7 +101,7 @@ experiment:
     type: agent/fixed
     policy: 
       type: mapping/policy/multi
-      strategy: policy_strategy_majority_voting_prob
+      strategy: policy_strategy_rank_voting_prob
       tau: 0.1
       discretizer: experiment/agent/policy/discretizer
       policy: 

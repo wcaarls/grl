@@ -188,10 +188,49 @@ void MultiPolicy::distribution(const Observation &in, const Action &prev, LargeV
       CRAWL("MultiPolicy::param_choice: " << param_choice);
       softmax(param_choice, out);
       CRAWL("MultiPolicy::out: " << (*out));
+      
       break;
         
     case csRankVotingProbabilities:
-
+      
+      LargeVector rank_weights;
+      
+      policy_[0]->distribution(in, prev, out);
+      param_choice = LargeVector::Zero(out->size());
+        
+      for (size_t ii=0; ii != policy_.size(); ++ii)
+      {
+        policy_[ii]->distribution(in, prev, &dist);
+        if (dist.size() != out->size())
+        {
+          ERROR("Subpolicy " << ii << " has incompatible number of actions");
+          throw bad_param("mapping/policy/multi:policy");
+        }
+        
+        CRAWL("MultiPolicy::dist: " << dist);
+        //raking        
+        rank_weights = LargeVector::Ones(out->size());
+        for (size_t jj=0; jj < dist.size(); ++jj)
+        {
+          
+          for (size_t kk = 0; kk < dist.size(); kk++)
+          {
+            if(dist[jj] > dist[kk])
+              ++rank_weights[jj];
+            CRAWL("MultiPolicy::dist[: " << jj << "](" << dist[jj] << ") > dist [" << kk << "](" << dist[kk] << "): rank_weights[" << jj << "]("  << rank_weights[jj] << ")");
+          }
+          CRAWL("MultiPolicy::policy: " << ii);
+          CRAWL("MultiPolicy::rank_weights: " << rank_weights);
+          CRAWL("\nMultiPolicy::param_choice: " << param_choice << '\n');
+          param_choice[jj] += rank_weights[jj] * dist[jj];
+          CRAWL("\nMultiPolicy::param_choice: " << param_choice << '\n');
+        }
+      }
+      
+      CRAWL("\nMultiPolicy::param_choice: " << param_choice << '\n');
+      softmax(param_choice, out);
+      CRAWL("MultiPolicy::out: " << (*out));
+      
       break;
   }      
 }
