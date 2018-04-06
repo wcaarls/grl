@@ -22,7 +22,7 @@ experiment:
     type: agent/td
     policy: 
       type: mapping/policy/multi
-      strategy: policy_strategy_add_prob
+      strategy: policy_strategy_majority_voting_prob
       tau: 0.1
       discretizer: 
         type: discretizer/uniform
@@ -101,7 +101,7 @@ experiment:
     type: agent/fixed
     policy: 
       type: mapping/policy/multi
-      strategy: policy_strategy_add_prob
+      strategy: policy_strategy_majority_voting_prob
       tau: 0.1
       discretizer: experiment/agent/policy/discretizer
       policy: 
@@ -119,7 +119,7 @@ experiment:
           representation: experiment/agent/policy/policy/1/representation
           sampler: 
             type: sampler/greedy
-  save_every: never
+  save_every: run
 visualizer: 
   type: visualizer/glut
 fine: 

@@ -1,6 +1,7 @@
 experiment: 
   type: experiment/online_learning
   runs: 1
+  run_offset: 0
   trials: 0
   steps: 0
   rate: 0
@@ -13,37 +14,39 @@ experiment:
       integration_steps: 5
       restitution: 0.5
       radius: 0.01
+      maze: 0
     task: 
       type: task/pinball/movement
       tolerance: 0.05
   agent: 
     type: agent/td
     policy: 
-      type: policy/value/q
+      type: mapping/policy/value/q
       discretizer: 
         type: discretizer/uniform
         min: experiment/environment/task/action_min
         max: experiment/environment/task/action_max
-        steps: [2, 2]
+        steps: [  2,2]
       projector: 
         type: projector/tile_coding
         tilings: 16
         memory: 8388608
+        safe: 0
         resolution: [0.1, 0.1, 0.1, 0.1, 1, 1]
-        wrapping: []
+        wrapping: [  ]
       representation: 
         type: representation/parameterized/linear
-        init_min: [0]
-        init_max: [1]
+        init_min: [ 0 ]
+        init_max: [ 1 ]
         memory: experiment/agent/policy/projector/memory
         outputs: 1
-        output_min: []
-        output_max: []
+        output_min: [  ]
+        output_max: [  ]
       sampler: 
         type: sampler/softmax
         tau: 0.5
     predictor: 
-      type: predictor/sarsa
+      type: predictor/critic/sarsa
       alpha: 0.8
       gamma: 0.99
       lambda: 0.8
@@ -54,12 +57,13 @@ experiment:
   test_agent: 
     type: agent/fixed
     policy: 
-      type: policy/value/q
+      type: mapping/policy/value/q
       discretizer: experiment/agent/policy/discretizer
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
       sampler: 
         type: sampler/greedy
+  save_every: never
 visualizer: 
   type: visualizer/glut
 visualization: 
@@ -68,9 +72,8 @@ visualization:
   input_min: experiment/environment/task/observation_min
   input_max: experiment/environment/task/observation_max
   points: 65536
+  savepoints: 1048576
   projection: mean
-  projector: experiment/agent/policy/projector
-  representation: experiment/agent/policy/representation
   policy: experiment/test_agent/policy
 visualization2: 
   type: visualization/pinball

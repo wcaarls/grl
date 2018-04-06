@@ -339,7 +339,34 @@ void ProbabilityACPredictor::update(const Transition &transition)
 {
   Predictor::update(transition);
 
-  throw Exception("ProbabilityACPredictor::update not implemented");
+  ProjectionPtr ap = actor_projector_->project(transition.prev_obs, transition.prev_action);
+  ProjectionPtr vp = critic_projector_->project(transition.prev_obs);
+  
+  Vector res;
+  double vnext = critic_representation_->read(critic_projector_->project(transition.obs), &res);
+
+  // Calculate target value
+  double target = transition.reward;
+  if (transition.action.size())
+    target += gamma_*vnext;
+  double delta = target - critic_representation_->read(vp, &res);
+  
+  // V update
+  critic_representation_->write(vp, VectorConstructor(target), alpha_);
+  
+  // Actor that maps states to a preference value for each action   
+  double a_pref = actor_representation_->read(ap, &res);
+  
+  actor_representation_->write(ap, VectorConstructor(a_pref + beta_*delta), 1);  
+  
+  if (critic_trace_)
+  {
+    critic_representation_->update(*critic_trace_, VectorConstructor(alpha_*delta), gamma_*lambda_);
+    critic_trace_->add(vp, gamma_*lambda_);
+  }
+  
+  critic_representation_->finalize();
+  actor_representation_->finalize();
 }
 
 void ProbabilityACPredictor::finalize()

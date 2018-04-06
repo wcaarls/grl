@@ -1,5 +1,3 @@
-agent/associative/router:
-  description: Agent to make routing decisions
 agent/black_box:
   description: Agent that learns from the cumulative reward of complete rollouts
   episodes:
@@ -328,17 +326,11 @@ agent/master/exclusive:
     mutability: configuration
     default: 0
     optional: 1
-  agent1:
-    type: agent/sub
-    description: First subagent
+  agent:
+    type: "[agent/sub]"
+    description: Subagents
     mutability: configuration
-    default: 0
-    optional: 0
-  agent2:
-    type: agent/sub
-    description: Second subagent
-    mutability: configuration
-    default: 0
+    default: 0x23d3c58
     optional: 0
 agent/master/predicated:
   description: Master agent in which execution is predicated on preceding agent confidence
@@ -364,17 +356,11 @@ agent/master/predicated:
     mutability: configuration
     default: 0
     optional: 1
-  agent1:
-    type: agent/sub
-    description: First subagent
+  agent:
+    type: "[agent/sub]"
+    description: Subagents
     mutability: configuration
-    default: 0
-    optional: 0
-  agent2:
-    type: agent/sub
-    description: Second subagent
-    mutability: configuration
-    default: 0
+    default: 0x23d3c58
     optional: 0
 agent/master/random:
   description: Master agent that chooses sub-agents randomly
@@ -400,17 +386,11 @@ agent/master/random:
     mutability: configuration
     default: 0
     optional: 1
-  agent1:
-    type: agent/sub
-    description: First subagent
+  agent:
+    type: "[agent/sub]"
+    description: Subagents
     mutability: configuration
-    default: 0
-    optional: 0
-  agent2:
-    type: agent/sub
-    description: Second subagent
-    mutability: configuration
-    default: 0
+    default: 0x23d3c58
     optional: 0
 agent/master/sequential:
   description: Master agent that executes sub-agents sequentially
@@ -640,64 +620,6 @@ behavior/leo_walk:
   description: Leo walking behavior without symmetrical switchers of observations
 behavior/leo_walk_sym:
   description: Leo walking behavior with symmetrical switchers of observations
-communicator/zeromq/pub_sub:
-  description: Zeromq class to establish a link by sending messages asynchronously (publisher/subscriber)
-  role:
-    type: string
-    description: Role of the zeromq (Pub/Sub, Request/Reply)
-    mutability: configuration
-    default: ""
-    optional: 1
-    options:
-      - NONE
-      - ZMQ_SUB
-      - ZMQ_PUB
-      - ZMQ_REQ
-      - ZMQ_REP
-  sync:
-    type: string
-    description: Syncronization ip address
-    mutability: configuration
-    default: ""
-    optional: 1
-  pub:
-    type: string
-    description: Publisher address
-    mutability: configuration
-    default: tcp://*:5561
-    optional: 1
-  sub:
-    type: string
-    description: subscriber address
-    mutability: configuration
-    default: tcp://192.168.1.10:5562
-    optional: 1
-communicator/zeromq/request_reply:
-  description: Zeromq class to establish a link by sending messages synchronously (request/reply)
-  role:
-    type: string
-    description: Role of the zeromq (Pub/Sub, Request/Reply)
-    mutability: configuration
-    default: ""
-    optional: 1
-    options:
-      - NONE
-      - ZMQ_SUB
-      - ZMQ_PUB
-      - ZMQ_REQ
-      - ZMQ_REP
-  sync:
-    type: string
-    description: Syncronization ip address
-    mutability: configuration
-    default: ""
-    optional: 1
-  addr:
-    type: string
-    description: Address
-    mutability: configuration
-    default: tcp://localhost:5555
-    optional: 1
 converter/state_action_converter:
   description: Configurable which is capable of remapping states and actions
   state_in:
@@ -851,7 +773,7 @@ dynamics/mountain:
     min: 0
     max: 1.797693134862316e+308
   map:
-    type: mapping/puddle
+    type: mapping
     description: Height map
     mutability: configuration
     default: 0
@@ -934,26 +856,6 @@ environment/communicator:
     optional: 1
     min: 0
     max: 2147483647
-environment/leo2:
-  description: LEO/2 environment
-  port:
-    type: string
-    description: Device ID of FTDI usb-to-serial converter
-    mutability: configuration
-    default: i:0x0403:0x6001
-    optional: 1
-  bps:
-    type: int
-    description: Bit rate
-    mutability: configuration
-    default: 57600
-    optional: 1
-    min: 0
-    max: 2147483647
-  state:
-    type: state
-    description: Current state of the robot
-    mutability: provided
 environment/leo_squat:
   description: Leo squatting environment
   behavior:
@@ -1414,26 +1316,6 @@ experiment/batch_learning:
     type: signal/vector
     description: Current observed state of the environment
     mutability: provided
-experiment/cache:
-  description: Cache network experiment
-  network:
-    type: string
-    description: Network description file
-    mutability: configuration
-    default: ""
-    optional: 1
-  events:
-    type: string
-    description: Event description file
-    mutability: configuration
-    default: ""
-    optional: 1
-  agent:
-    type: agent/associative
-    description: Router agent prototype
-    mutability: configuration
-    default: 0
-    optional: 0
 experiment/multi:
   description: Run multiple experiments in parallel
   instances:
@@ -1673,6 +1555,26 @@ mapping/filtering:
     mutability: configuration
     default: 0
     optional: 0
+mapping/image:
+  description: Mapping read from an ICS image file
+  file:
+    type: string
+    description: ICS image file name
+    mutability: configuration
+    default: ""
+    optional: 1
+  min:
+    type: vector
+    description: Lower domain limit
+    mutability: configuration
+    default: "[ 0, 0 ]"
+    optional: 1
+  max:
+    type: vector
+    description: Upper domain limit
+    mutability: configuration
+    default: "[ 1, 1 ]"
+    optional: 1
 mapping/multisine:
   description: Sum of sines mapping
   inputs:
@@ -1756,13 +1658,13 @@ mapping/policy/action_probability:
     default: 0
     optional: 0
   projector:
-    type: projector
+    type: projector.pair
     description: Projects observation-action pairs onto representation space
     mutability: configuration
     default: 0
     optional: 0
   representation:
-    type: representation
+    type: representation.value/action
     description: Action-probability representation
     mutability: configuration
     default: 0
@@ -1853,6 +1755,39 @@ mapping/policy/mcts:
     type: signal/matrix
     description: Predicted trajectory
     mutability: provided
+mapping/policy/multi:
+  description: Combines multiple policies
+  strategy:
+    type: string
+    description: Combination strategy
+    mutability: configuration
+    default: ""
+    optional: 1
+    options:
+      - policy_strategy_add_prob
+      - policy_strategy_multiply_prob
+      - policy_strategy_majority_voting_prob
+      - policy_strategy_rank_voting_prob
+  tau:
+    type: double
+    description: Temperature of Boltzmann distribution
+    mutability: configuration
+    default: 0.1
+    optional: 1
+    min: 0
+    max: 1
+  discretizer:
+    type: discretizer.action
+    description: Action discretizer
+    mutability: configuration
+    default: 0
+    optional: 0
+  policy:
+    type: "[mapping/policy]"
+    description: Sub-policies
+    mutability: configuration
+    default: 0x254a930
+    optional: 0
 mapping/policy/parameterized/action:
   description: Parameterized policy based on a direct action representation
   sigma:
@@ -3774,17 +3709,11 @@ predictor/model:
     optional: 0
 predictor/multi:
   description: Updates multiple predictors
-  predictor1:
-    type: predictor
+  predictor:
+    type: "[predictor]"
     description: First downstream predictor
     mutability: configuration
-    default: 0
-    optional: 0
-  predictor2:
-    type: predictor
-    description: Second downstream predictor
-    mutability: configuration
-    default: 0
+    default: 0x26c8110
     optional: 0
 predictor/naf:
   description: Value function predictor using Normalized Advantage Features
@@ -4005,17 +3934,11 @@ projector/multi:
     optional: 1
     min: 0
     max: 2147483647
-  projector1:
-    type: projector.
-    description: First downstream projector
+  projector:
+    type: "[projector.]"
+    description: Downstream projectors
     mutability: configuration
-    default: 0
-    optional: 0
-  projector2:
-    type: projector.
-    description: Second downstream projector
-    mutability: configuration
-    default: 0
+    default: 0x27981e0
     optional: 0
   memories:
     type: vector.memory
@@ -4411,26 +4334,20 @@ random_generator/uniform_integer:
     max: 2147483647
 representation/additive:
   description: Linear combination of two representations
-  representation1:
-    type: representation.
-    description: First representation
-    mutability: configuration
-    default: 0
-    optional: 0
-  representation2:
-    type: representation.
-    description: Second representation
-    mutability: configuration
-    default: 0
-    optional: 0
   learning:
     type: int
-    description: Which representation to learn (0=both)
+    description: Which representation to learn (-1=all)
     mutability: configuration
     default: 0
     optional: 1
-    min: 0
-    max: 2
+    min: -1
+    max: 2147483647
+  representation:
+    type: "[representation.]"
+    description: Downstream representations
+    mutability: configuration
+    default: 0x27fd640
+    optional: 0
 representation/communicator:
   description: Interface to an out-of-process representation
   inputs:
@@ -4618,72 +4535,6 @@ representation/parameterized/linear:
     description: Upper output limit
     mutability: system
     default: "[  ]"
-    optional: 1
-representation/parameterized/tensorflow:
-  description: TensorFlow representation
-  inputs:
-    type: int
-    description: Number of input dimensions
-    mutability: system
-    default: 1
-    optional: 1
-    min: 1
-    max: 2147483647
-  targets:
-    type: int
-    description: Number of target dimensions
-    mutability: system
-    default: 1
-    optional: 1
-    min: 1
-    max: 2147483647
-  file:
-    type: string
-    description: TensorFlow graph stored in binary protocol buffer
-    mutability: configuration
-    default: ""
-    optional: 1
-  input_layer:
-    type: string
-    description: Name of input layer placeholders
-    mutability: configuration
-    default: ""
-    optional: 1
-  output_layer:
-    type: string
-    description: Name of output layer tensors
-    mutability: configuration
-    default: ""
-    optional: 1
-  target:
-    type: string
-    description: Name of output layer target placeholders
-    mutability: configuration
-    default: ""
-    optional: 1
-  sample_weights:
-    type: string
-    description: Name of sample weights placeholder
-    mutability: configuration
-    default: ""
-    optional: 1
-  learning_phase:
-    type: string
-    description: Name of learning phase placeholder
-    mutability: configuration
-    default: ""
-    optional: 1
-  init_node:
-    type: string
-    description: Name of node to run to initialize weights
-    mutability: configuration
-    default: ""
-    optional: 1
-  update_node:
-    type: string
-    description: Name of node to run to update weights
-    mutability: configuration
-    default: ""
     optional: 1
 representation/target:
   description: Representation that periodically updates a target representation
@@ -7213,80 +7064,6 @@ visualization/slice:
     mutability: configuration
     default: 0
     optional: 0
-visualization/slice/displacement:
-  description: Visualizes a slice of a displacement mapping
-  field_dims:
-    type: vector
-    description: Dimensions to visualize
-    mutability: online
-    default: "[ 0, 1 ]"
-    optional: 1
-  input_min:
-    type: vector
-    description: Lower input dimension limit
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  input_max:
-    type: vector
-    description: Upper input dimension limit
-    mutability: system
-    default: "[  ]"
-    optional: 1
-  operating_point:
-    type: vector
-    description: Fixed values for non-visualized dimensions
-    mutability: online
-    default: "[  ]"
-    optional: 1
-  output_dim:
-    type: int
-    description: Output dimension to visualize
-    mutability: online
-    default: 0
-    optional: 1
-    min: 0
-    max: 2147483647
-  points:
-    type: int
-    description: Number of points to evaluate
-    mutability: configuration
-    default: 65536
-    optional: 1
-    min: 0
-    max: 2147483647
-  state:
-    type: signal/vector
-    description: Optional current state to overlay
-    mutability: configuration
-    default: 0
-    optional: 1
-  action:
-    type: signal/vector
-    description: Optional current action to overlay
-    mutability: configuration
-    default: 0
-    optional: 1
-  mapping:
-    type: mapping
-    description: Mapping to visualize
-    mutability: configuration
-    default: 0
-    optional: 0
-  vectors:
-    type: int
-    description: Number of displacement vectors to visualize
-    mutability: configuration
-    default: 1024
-    optional: 1
-    min: 0
-    max: 2147483647
-  displacement:
-    type: mapping
-    description: Displacement mapping to visualize
-    mutability: configuration
-    default: 0
-    optional: 0
 visualization/state:
   description: Plots state values
   input_dims:
@@ -7546,17 +7323,11 @@ projector/multi.observation:
     optional: 1
     min: 0
     max: 2147483647
-  projector1:
-    type: projector.observation
-    description: First downstream projector
+  projector:
+    type: "[projector.observation]"
+    description: Downstream projectors
     mutability: configuration
-    default: 0
-    optional: 0
-  projector2:
-    type: projector.observation
-    description: Second downstream projector
-    mutability: configuration
-    default: 0
+    default: 0x2b2d910
     optional: 0
   memories:
     type: vector.memory
@@ -7880,26 +7651,20 @@ projector/tile_coding.observation:
     optional: 1
 representation/additive.action:
   description: Linear combination of two representations
-  representation1:
-    type: representation.action
-    description: First representation
-    mutability: configuration
-    default: 0
-    optional: 0
-  representation2:
-    type: representation.action
-    description: Second representation
-    mutability: configuration
-    default: 0
-    optional: 0
   learning:
     type: int
-    description: Which representation to learn (0=both)
+    description: Which representation to learn (-1=all)
     mutability: configuration
     default: 0
     optional: 1
-    min: 0
-    max: 2
+    min: -1
+    max: 2147483647
+  representation:
+    type: "[representation.action]"
+    description: Downstream representations
+    mutability: configuration
+    default: 0x2b7cdb0
+    optional: 0
 representation/communicator.action:
   description: Interface to an out-of-process representation
   inputs:
@@ -8088,72 +7853,6 @@ representation/parameterized/linear.action:
     mutability: system
     default: "[  ]"
     optional: 1
-representation/parameterized/tensorflow.action:
-  description: TensorFlow representation
-  inputs:
-    type: int.observation_dims
-    description: Number of input dimensions
-    mutability: system
-    default: 1
-    optional: 1
-    min: 1
-    max: 2147483647
-  targets:
-    type: int.action_dims
-    description: Number of target dimensions
-    mutability: system
-    default: 1
-    optional: 1
-    min: 1
-    max: 2147483647
-  file:
-    type: string
-    description: TensorFlow graph stored in binary protocol buffer
-    mutability: configuration
-    default: ""
-    optional: 1
-  input_layer:
-    type: string
-    description: Name of input layer placeholders
-    mutability: configuration
-    default: ""
-    optional: 1
-  output_layer:
-    type: string
-    description: Name of output layer tensors
-    mutability: configuration
-    default: ""
-    optional: 1
-  target:
-    type: string
-    description: Name of output layer target placeholders
-    mutability: configuration
-    default: ""
-    optional: 1
-  sample_weights:
-    type: string
-    description: Name of sample weights placeholder
-    mutability: configuration
-    default: ""
-    optional: 1
-  learning_phase:
-    type: string
-    description: Name of learning phase placeholder
-    mutability: configuration
-    default: ""
-    optional: 1
-  init_node:
-    type: string
-    description: Name of node to run to initialize weights
-    mutability: configuration
-    default: ""
-    optional: 1
-  update_node:
-    type: string
-    description: Name of node to run to update weights
-    mutability: configuration
-    default: ""
-    optional: 1
 representation/target.action:
   description: Representation that periodically updates a target representation
   representation:
@@ -8265,17 +7964,11 @@ projector/multi.pair:
     optional: 1
     min: 0
     max: 2147483647
-  projector1:
-    type: projector.pair
-    description: First downstream projector
+  projector:
+    type: "[projector.pair]"
+    description: Downstream projectors
     mutability: configuration
-    default: 0
-    optional: 0
-  projector2:
-    type: projector.pair
-    description: Second downstream projector
-    mutability: configuration
-    default: 0
+    default: 0x2bda3c0
     optional: 0
   memories:
     type: vector.memory
@@ -8599,26 +8292,20 @@ projector/tile_coding.pair:
     optional: 1
 representation/additive.value/action:
   description: Linear combination of two representations
-  representation1:
-    type: representation.value/action
-    description: First representation
-    mutability: configuration
-    default: 0
-    optional: 0
-  representation2:
-    type: representation.value/action
-    description: Second representation
-    mutability: configuration
-    default: 0
-    optional: 0
   learning:
     type: int
-    description: Which representation to learn (0=both)
+    description: Which representation to learn (-1=all)
     mutability: configuration
     default: 0
     optional: 1
-    min: 0
-    max: 2
+    min: -1
+    max: 2147483647
+  representation:
+    type: "[representation.value/action]"
+    description: Downstream representations
+    mutability: configuration
+    default: 0x2c29d50
+    optional: 0
 representation/communicator.value/action:
   description: Interface to an out-of-process representation
   inputs:
@@ -8807,72 +8494,6 @@ representation/parameterized/linear.value/action:
     mutability: system
     default: "[  ]"
     optional: 1
-representation/parameterized/tensorflow.value/action:
-  description: TensorFlow representation
-  inputs:
-    type: int.observation_dims+int.action_dims
-    description: Number of input dimensions
-    mutability: system
-    default: 1
-    optional: 1
-    min: 1
-    max: 2147483647
-  targets:
-    type: int
-    description: Number of target dimensions
-    mutability: system
-    default: 1
-    optional: 1
-    min: 1
-    max: 2147483647
-  file:
-    type: string
-    description: TensorFlow graph stored in binary protocol buffer
-    mutability: configuration
-    default: ""
-    optional: 1
-  input_layer:
-    type: string
-    description: Name of input layer placeholders
-    mutability: configuration
-    default: ""
-    optional: 1
-  output_layer:
-    type: string
-    description: Name of output layer tensors
-    mutability: configuration
-    default: ""
-    optional: 1
-  target:
-    type: string
-    description: Name of output layer target placeholders
-    mutability: configuration
-    default: ""
-    optional: 1
-  sample_weights:
-    type: string
-    description: Name of sample weights placeholder
-    mutability: configuration
-    default: ""
-    optional: 1
-  learning_phase:
-    type: string
-    description: Name of learning phase placeholder
-    mutability: configuration
-    default: ""
-    optional: 1
-  init_node:
-    type: string
-    description: Name of node to run to initialize weights
-    mutability: configuration
-    default: ""
-    optional: 1
-  update_node:
-    type: string
-    description: Name of node to run to update weights
-    mutability: configuration
-    default: ""
-    optional: 1
 representation/target.value/action:
   description: Representation that periodically updates a target representation
   representation:
@@ -8895,26 +8516,20 @@ representation/target.value/action:
     mutability: provided
 representation/additive.value/state:
   description: Linear combination of two representations
-  representation1:
-    type: representation.value/state
-    description: First representation
-    mutability: configuration
-    default: 0
-    optional: 0
-  representation2:
-    type: representation.value/state
-    description: Second representation
-    mutability: configuration
-    default: 0
-    optional: 0
   learning:
     type: int
-    description: Which representation to learn (0=both)
+    description: Which representation to learn (-1=all)
     mutability: configuration
     default: 0
     optional: 1
-    min: 0
-    max: 2
+    min: -1
+    max: 2147483647
+  representation:
+    type: "[representation.value/state]"
+    description: Downstream representations
+    mutability: configuration
+    default: 0x2c67ae0
+    optional: 0
 representation/communicator.value/state:
   description: Interface to an out-of-process representation
   inputs:
@@ -9103,72 +8718,6 @@ representation/parameterized/linear.value/state:
     mutability: system
     default: "[  ]"
     optional: 1
-representation/parameterized/tensorflow.value/state:
-  description: TensorFlow representation
-  inputs:
-    type: int.observation_dims
-    description: Number of input dimensions
-    mutability: system
-    default: 1
-    optional: 1
-    min: 1
-    max: 2147483647
-  targets:
-    type: int
-    description: Number of target dimensions
-    mutability: system
-    default: 1
-    optional: 1
-    min: 1
-    max: 2147483647
-  file:
-    type: string
-    description: TensorFlow graph stored in binary protocol buffer
-    mutability: configuration
-    default: ""
-    optional: 1
-  input_layer:
-    type: string
-    description: Name of input layer placeholders
-    mutability: configuration
-    default: ""
-    optional: 1
-  output_layer:
-    type: string
-    description: Name of output layer tensors
-    mutability: configuration
-    default: ""
-    optional: 1
-  target:
-    type: string
-    description: Name of output layer target placeholders
-    mutability: configuration
-    default: ""
-    optional: 1
-  sample_weights:
-    type: string
-    description: Name of sample weights placeholder
-    mutability: configuration
-    default: ""
-    optional: 1
-  learning_phase:
-    type: string
-    description: Name of learning phase placeholder
-    mutability: configuration
-    default: ""
-    optional: 1
-  init_node:
-    type: string
-    description: Name of node to run to initialize weights
-    mutability: configuration
-    default: ""
-    optional: 1
-  update_node:
-    type: string
-    description: Name of node to run to update weights
-    mutability: configuration
-    default: ""
-    optional: 1
 representation/target.value/state:
   description: Representation that periodically updates a target representation
   representation:
@@ -9205,26 +8754,20 @@ importer/csv.dynamic:
     optional: 1
 representation/additive.transition:
   description: Linear combination of two representations
-  representation1:
-    type: representation.transition
-    description: First representation
-    mutability: configuration
-    default: 0
-    optional: 0
-  representation2:
-    type: representation.transition
-    description: Second representation
-    mutability: configuration
-    default: 0
-    optional: 0
   learning:
     type: int
-    description: Which representation to learn (0=both)
+    description: Which representation to learn (-1=all)
     mutability: configuration
     default: 0
     optional: 1
-    min: 0
-    max: 2
+    min: -1
+    max: 2147483647
+  representation:
+    type: "[representation.transition]"
+    description: Downstream representations
+    mutability: configuration
+    default: 0x2ca55b0
+    optional: 0
 representation/communicator.transition:
   description: Interface to an out-of-process representation
   inputs:
@@ -9412,72 +8955,6 @@ representation/parameterized/linear.transition:
     description: Upper output limit
     mutability: system
     default: "[  ]"
-    optional: 1
-representation/parameterized/tensorflow.transition:
-  description: TensorFlow representation
-  inputs:
-    type: int.observation_dims+int.action_dims
-    description: Number of input dimensions
-    mutability: system
-    default: 1
-    optional: 1
-    min: 1
-    max: 2147483647
-  targets:
-    type: int.observation_dims+2
-    description: Number of target dimensions
-    mutability: system
-    default: 1
-    optional: 1
-    min: 1
-    max: 2147483647
-  file:
-    type: string
-    description: TensorFlow graph stored in binary protocol buffer
-    mutability: configuration
-    default: ""
-    optional: 1
-  input_layer:
-    type: string
-    description: Name of input layer placeholders
-    mutability: configuration
-    default: ""
-    optional: 1
-  output_layer:
-    type: string
-    description: Name of output layer tensors
-    mutability: configuration
-    default: ""
-    optional: 1
-  target:
-    type: string
-    description: Name of output layer target placeholders
-    mutability: configuration
-    default: ""
-    optional: 1
-  sample_weights:
-    type: string
-    description: Name of sample weights placeholder
-    mutability: configuration
-    default: ""
-    optional: 1
-  learning_phase:
-    type: string
-    description: Name of learning phase placeholder
-    mutability: configuration
-    default: ""
-    optional: 1
-  init_node:
-    type: string
-    description: Name of node to run to initialize weights
-    mutability: configuration
-    default: ""
-    optional: 1
-  update_node:
-    type: string
-    description: Name of node to run to update weights
-    mutability: configuration
-    default: ""
     optional: 1
 representation/target.transition:
   description: Representation that periodically updates a target representation
