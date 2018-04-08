@@ -1,0 +1,13 @@
+syntax = "proto2";
+
+package grl;
+
+message NodeDef {
+  required string name = 1;
+  required string op = 2;
+  repeated string input = 3;
+};
+
+message GraphDef {
+  repeated NodeDef node = 1;
+};

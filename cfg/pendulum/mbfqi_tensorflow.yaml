@@ -1,6 +1,7 @@
 experiment: 
   type: experiment/online_learning
   runs: 1
+  run_offset: 0
   trials: 0
   steps: 0
   rate: 0
@@ -35,12 +36,13 @@ experiment:
       representation: 
         type: representation/parameterized/tensorflow
         inputs: experiment/environment/task/observation_dims+experiment/environment/task/action_dims
-        outputs: 1
+        targets: 1
         file: pendulum_q.pb
       sampler: 
         type: sampler/epsilon_greedy
-        rand_max: 0
         epsilon: [0.5]
+        decay_rate: 1
+        decay_min: 0
     predictor: 
       type: predictor/mbfqi
       gamma: 0.97
@@ -59,5 +61,18 @@ experiment:
       representation: experiment/agent/policy/representation
       sampler: 
         type: sampler/greedy
-        rand_max: 0
   save_every: never
+visualizer: 
+  type: visualizer/glut
+visualization: 
+  type: visualization/slice
+  field_dims: [0, 1]
+  input_min: experiment/environment/task/observation_min
+  input_max: experiment/environment/task/observation_max
+  operating_point: [  ]
+  output_dim: 0
+  points: 65536
+  state: experiment/state
+  mapping: 
+    type: mapping/value
+    policy: experiment/test_agent/policy
