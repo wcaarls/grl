@@ -148,7 +148,7 @@ def prod(xs):
 # Lin and Lee, "A new approach to discrete stochastic optimization problems", 2006
 def linlee_optimize(base, spec, conf):
   print "Lin-Lee optimization"
-
+  
   Delta = spec["repetitions"]
   n0    = 5
   g     = 0.01
@@ -191,19 +191,41 @@ def linlee_optimize(base, spec, conf):
     mean = [-t1/t0 for (c, (t0, t1, t2, a)) in popl]
     var = [t2/t0 - (t1/t0)**2 for (c, (t0, t1, t2, a)) in popl]
     
+    # Avoid division by zero for zero variance results
+    minvar = min([v for v in var if v > 0])
+    var = [max(minvar, v) for v in var]
+    
     # Save best result
     (c, r) = popl[0]
     resconf = {}
     resconf["runs"] = n[0]
-    resconf["mean"] = mean[0]
+    resconf["mean"] = -mean[0]
     resconf["stddev"] = math.sqrt(var[0])
     resconf["stderr"] = math.sqrt(var[0])/math.sqrt(n[0])
     saveconf = copy.deepcopy(c)
     saveconf["results"] = resconf
-        
+
+    # Write out best configuration        
     outfile = base + '-' + str(round) + '.yaml'
     stream = open(outfile, 'w')
     yaml.dump(saveconf, stream)
+    stream.close()
+
+    # Write out population
+    outfile = base + '-' + str(round) + '.txt'
+    stream = open(outfile, 'w')
+    for p in spec["parameters"]:
+      print >>stream, '"'+p["name"]+'",',
+    print >>stream, "runs, mean, stddev, stderr"
+    
+    for (c, r) in pop.iteritems():
+      for p in spec["parameters"]:
+        print >>stream, '"'+str(getconf(c, p["name"]))+'",',
+      (t0, t1, t2, a) = pop[c]
+      m = t1/t0
+      v = t2/t0 - (t1/t0)**2
+      
+      print >>stream, t0, ",", m, ",", math.sqrt(v), ",", math.sqrt(v)/math.sqrt(t0)
     stream.close()
     
     # Calculate additional runs per configuration

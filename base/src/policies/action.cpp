@@ -110,7 +110,7 @@ void ActionPolicy::act(const Observation &in, Action *out) const
 
 void ActionProbabilityPolicy::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("discretizer", "discretizer", "Action discretizer", discretizer_));
+  config->push_back(CRP("discretizer", "discretizer.action", "Action discretizer", discretizer_));
   config->push_back(CRP("projector", "projector.pair", "Projects observation-action pairs onto representation space", projector_));
   config->push_back(CRP("representation", "representation.value/action", "Action-probability representation", representation_));
 }

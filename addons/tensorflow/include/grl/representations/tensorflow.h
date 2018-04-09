@@ -29,7 +29,7 @@
 #define GRL_TENSORFLOW_REPRESENTATION_H_
 
 #include <list>
-#include "tensorflow/core/public/session.h"
+#include <tensorflow/c/c_api.h>
 
 #include <grl/representation.h>
 
@@ -43,18 +43,43 @@ class TensorFlowRepresentation : public ParameterizedRepresentation
     TYPEINFO("representation/parameterized/tensorflow", "TensorFlow representation")
     
     typedef std::pair<Vector, Vector> Sample;
+    class Shape
+    {
+      protected:
+        std::vector<int64_t> dims_;
+        
+      public:
+        Shape(std::vector<int64_t> dims) : dims_(dims) { }
+        Shape(TF_Tensor* tensor)
+        {
+          for (size_t ii=0; ii != TF_NumDims(tensor); ++ii)
+            dims_.push_back(TF_Dim(tensor, ii));
+        }
+        
+        const int64_t *dims() const { return dims_.data(); }
+        int num_dims() const { return dims_.size(); }
+        
+        size_t size() const
+        {
+          size_t sz=1;
+          for (size_t ii=0; ii != dims_.size(); ++ii)
+            sz *= dims_[ii];
+            
+          return sz;
+        }
+    };
     
   protected:
     int inputs_, targets_;
     std::string file_, input_layer_, output_layer_, output_target_, sample_weights_, learning_phase_, init_node_, update_node_;
     std::vector<std::string> outputs_read_, weights_read_, weights_write_, weights_node_;
-    mutable std::vector<tensorflow::TensorShape> weights_shape_;
+    mutable std::vector<Shape> weights_shape_;
     
-    tensorflow::GraphDef graph_def_;
-    tensorflow::Session* session_;
+    TF_Graph* graph_;
+    TF_Session* session_;
     std::vector<Sample> batch_;
     
-    tensorflow::Tensor input_, target_;
+    TF_Tensor* input_, *target_;
     size_t counter_;
     
     mutable LargeVector params_;

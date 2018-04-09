@@ -75,6 +75,8 @@ def readWorker(w, regret):
   
   if regret == 'simple':
     sample = int(len(data)/20)
+    if sample == 0:
+      raise Exception("Worker did not return data")
     return sum(data[-sample:])/sample
   elif regret == 'cumulative':
     return sum(data)

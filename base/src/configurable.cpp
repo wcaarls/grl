@@ -218,7 +218,7 @@ bool ListConfigurator::validate(const CRP &crp) const
   // Check for list type
   if (crp.type.empty() || crp.type.front() != '[' || crp.type.back() != ']')
   {
-    ERROR("Parameter " << path() << " should not be a single object");
+    ERROR("Parameter " << path() << " should be a single object");
     return false;
   }
 

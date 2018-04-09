@@ -121,11 +121,11 @@ class RegulatorTask : public Task
 {
   protected:
     Vector start_, goal_, stddev_, q_, r_;
-    std::string function_;
+    std::string q_function_, r_function_;
     double p_;
 
   public:
-    RegulatorTask() : function_("quadratic"), p_(0.01) { }
+    RegulatorTask() : q_function_("quadratic"), r_function_("quadratic"), p_(0.01) { }
     
     void request(ConfigurationRequest *config)
     {
@@ -136,7 +136,8 @@ class RegulatorTask : public Task
       config->push_back(CRP("stddev", "Starting state standard deviation", stddev_));
       config->push_back(CRP("q", "Q (state cost) matrix diagonal", q_));
       config->push_back(CRP("r", "R (action cost) matrix diagonal", r_));
-      config->push_back(CRP("function", "Cost function style", function_, CRP::Configuration, {"quadratic", "absolute", "sqrt"}));
+      config->push_back(CRP("function", "Cost function style", q_function_, CRP::Configuration, {"quadratic", "absolute", "sqrt"}));
+      config->push_back(CRP("r_function", "R cost function style", r_function_, CRP::Configuration, {"quadratic", "absolute", "sqrt"}));
       config->push_back(CRP("smoothing", "Cost function smoothing parameter", p_));
     }
 
@@ -147,7 +148,8 @@ class RegulatorTask : public Task
       stddev_ = config["stddev"].v();
       q_ = config["q"].v();
       r_ = config["r"].v();
-      function_ = config["function"].str();
+      q_function_ = config["function"].str();
+      r_function_ = config["r_function"].str();
       p_ = config["smoothing"];
 
       if (!start_.size())
@@ -189,22 +191,18 @@ class RegulatorTask : public Task
 
       *reward = 0.;
       
-      if (function_[0] == 'q')
+      if (q_function_[0] == 'q')
       {
         // Quadratic
         for (size_t ii=0; ii < q_.size(); ++ii)
           *reward -= 0.5*q_[ii]*pow(state[ii]-goal_[ii], 2);
-        for (size_t ii=0; ii < r_.size(); ++ii)
-          *reward -= 0.5*r_[ii]*pow(action[ii], 2);
       }
-      else if (function_[0] == 'a')
+      else if (q_function_[0] == 'a')
       {
         // Absolute
         // Smooth: (x^2 + p^2)^(1/2) - p
         for (size_t ii=0; ii < q_.size(); ++ii)
           *reward -= q_[ii]*(sqrt(pow(state[ii]-goal_[ii], 2) + p_*p_) - p_);
-        for (size_t ii=0; ii < r_.size(); ++ii)
-          *reward -= r_[ii]*(sqrt(pow(action[ii], 2) + p_*p_) - p_);
       }
       else
       {
@@ -212,6 +210,25 @@ class RegulatorTask : public Task
         // Smooth: (x^2 + p^2)^(1/4) - p^(1/2)
         for (size_t ii=0; ii < q_.size(); ++ii)
           *reward -= q_[ii]*(sqrt(sqrt(pow(state[ii]-goal_[ii], 2) + p_*p_)) - sqrt(p_));
+      }
+
+      if (r_function_[0] == 'q')
+      {
+        // Quadratic
+        for (size_t ii=0; ii < r_.size(); ++ii)
+          *reward -= 0.5*r_[ii]*pow(action[ii], 2);
+      }
+      else if (r_function_[0] == 'a')
+      {
+        // Absolute
+        // Smooth: (x^2 + p^2)^(1/2) - p
+        for (size_t ii=0; ii < r_.size(); ++ii)
+          *reward -= r_[ii]*(sqrt(pow(action[ii], 2) + p_*p_) - p_);
+      }
+      else
+      {
+        // Square root
+        // Smooth: (x^2 + p^2)^(1/4) - p^(1/2)
         for (size_t ii=0; ii < r_.size(); ++ii)
           *reward -= r_[ii]*(sqrt(sqrt(pow(action[ii], 2) + p_*p_)) - sqrt(p_));
       }
@@ -219,7 +236,7 @@ class RegulatorTask : public Task
 
     Matrix rewardHessian(const Vector &state, const Action &action) const
     {
-      if (function_[0] == 'q')
+      if (q_function_[0] == 'q' && r_function_[0] == 'q')
         return diagonal(-extend(q_, r_));
       else
         return Matrix();

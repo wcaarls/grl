@@ -76,7 +76,7 @@ static void loadPlugins1(const std::string &pattern)
   for (size_t ii=0; ii < globbuf.gl_pathc; ++ii)
   { 
     NOTICE("Loading plugin '" << globbuf.gl_pathv[ii] << "'");
-    if (!dlopen(globbuf.gl_pathv[ii], RTLD_NOW|RTLD_LOCAL))
+    if (!dlopen(globbuf.gl_pathv[ii], RTLD_NOW|RTLD_LOCAL|RTLD_DEEPBIND))
       ERROR("Error loading plugin '" << globbuf.gl_pathv[ii] << "': " << dlerror());
   } 
 }
