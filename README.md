@@ -53,8 +53,16 @@ sudo apt-get install python-yaml python-tk
 For the zeromq addon, additionally install
 ```
 sudo apt-get install libprotoc-dev protobuf-compiler libsodium-dev
-Then download a recent (> 4.0.0) version of zeromq and run './configure, make, make install'
 ```
+Then download a recent (> 4.0.0) version of zeromq and run './configure, make, make install'
+
+For the tensorflow addon, additionall install
+
+```
+sudo apt-get install libprotoc-dev protobuf-compiler
+```
+Then download TensorFlow for C from https://www.tensorflow.org/install/install_c
+in a place that can be found by the compiler and runtime environment.
 
 # Setup
 ```
