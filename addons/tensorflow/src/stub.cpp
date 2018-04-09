@@ -48,6 +48,6 @@ void init()
 
   NOTICE("Loading dependent plugin '" << path << "'");
   
-  if (!dlopen(path.c_str(), RTLD_NOW|RTLD_LOCAL))
+  if (!dlopen(path.c_str(), RTLD_NOW|RTLD_LOCAL|RTLD_DEEPBIND))
     ERROR("Error loading tensorflow '" << path << "': " << dlerror());
 }

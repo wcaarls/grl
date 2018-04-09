@@ -36,25 +36,24 @@ experiment:
         projector: 
           type: projector/identity
       representation:
-        type: representation/target
-        representation: 
-          type: representation/parameterized/tensorflow
-          inputs: experiment/environment/task/observation_dims+experiment/environment/task/action_dims
-          outputs: 1
-          file: pendulum_q.pb
-        interval: 1000
+        type: representation/parameterized/tensorflow
+        inputs: experiment/environment/task/observation_dims+experiment/environment/task/action_dims
+        outputs: 1
+        file: pendulum_q.pb
       sampler: 
         type: sampler/epsilon_greedy
         epsilon: 0.5
     predictor: 
       type: predictor/critic/q
-      alpha: 0.2
+      alpha: 0.1
       gamma: 0.97
       lambda: 0.65
       discretizer: experiment/agent/policy/discretizer
       projector: experiment/agent/policy/projector
-      representation: experiment/agent/policy/representation
-      target_representation: experiment/agent/policy/representation/target
+      representation:
+        type: representation/target
+        interval: 1000
+        representation: experiment/agent/policy/representation
   test_agent: 
     type: agent/fixed
     policy: 
@@ -92,6 +91,6 @@ target_visualization:
       type: mapping/policy/value/q
       discretizer: experiment/agent/policy/discretizer
       projector: experiment/agent/policy/projector
-      representation: experiment/agent/policy/representation/target
+      representation: experiment/agent/predictor/representation/target
       sampler: 
         type: sampler/greedy
