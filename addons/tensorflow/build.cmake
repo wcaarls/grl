@@ -21,6 +21,7 @@ if (PROTOBUF_FOUND AND TENSORFLOW_FOUND)
   add_library(${TARGET} SHARED
               ${PROTO_SOURCES}
               ${SRC}/tensorflow.cpp
+              ${SRC}/naf.cpp
              )
 
   # Add dependencies

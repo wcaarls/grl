@@ -75,6 +75,7 @@ add_library(${TARGET} SHARED
             ${SRC}/policies/state_feedback.cpp
             ${SRC}/policies/noise.cpp
             ${SRC}/policies/multi.cpp
+#            ${SRC}/predictors/naf.cpp
             ${SRC}/predictors/model.cpp
             ${SRC}/predictors/sarsa.cpp
             ${SRC}/predictors/ggq.cpp
@@ -89,7 +90,6 @@ add_library(${TARGET} SHARED
             ${SRC}/predictors/dpg.cpp
             ${SRC}/predictors/lspi.cpp
             ${SRC}/predictors/reinforce.cpp
-            ${SRC}/predictors/naf.cpp
             ${SRC}/predictors/snapping.cpp
             ${SRC}/projectors/identity.cpp
             ${SRC}/projectors/normalizing.cpp
@@ -109,7 +109,6 @@ add_library(${TARGET} SHARED
             ${SRC}/representations/iterative.cpp
             ${SRC}/representations/dictionary.cpp
             ${SRC}/representations/communicator.cpp
-            ${SRC}/representations/target.cpp
             ${SRC}/samplers/greedy.cpp
             ${SRC}/samplers/softmax.cpp
             ${SRC}/samplers/pada.cpp

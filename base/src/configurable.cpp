@@ -618,7 +618,7 @@ ObjectConfigurator::~ObjectConfigurator()
   }
 }
 
-ObjectConfigurator* ObjectConfigurator::instantiate(Configurator *parent) const
+ObjectConfigurator* ObjectConfigurator::instantiate(std::vector<std::string> suppressions, Configurator *parent) const
 {
   if (provided_)
     throw Exception(path() + ": tried to instantiate a provided object");
@@ -646,7 +646,7 @@ ObjectConfigurator* ObjectConfigurator::instantiate(Configurator *parent) const
   {
     if ((*cc)->provided())
       continue;
-  
+      
     // Instantiate
     Configurator *nc = (*cc)->instantiate(oc);
     if (!nc)
@@ -692,6 +692,12 @@ ObjectConfigurator* ObjectConfigurator::instantiate(Configurator *parent) const
           ERROR("Required parameter " << path() << "/" << key << " is undefined");
           return NULL;
         }
+      }
+      else if (std::find(suppressions.begin(), suppressions.end(), key) != suppressions.end())
+      {
+        // Set value of suppressions to default
+        TRACE(path() << "/" << key << ": " << request[ii].value << " (suppressed)");
+        config.set(key, request[ii].value);
       }
     }
   }

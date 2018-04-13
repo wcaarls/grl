@@ -31,11 +31,120 @@
 #include "graph.pb.h"
 
 using namespace grl;
+using namespace TF;
 
 REGISTER_CONFIGURABLE(TensorFlowRepresentation)
 
+Shape::Shape(TF_Tensor* tensor)
+{
+  for (size_t ii=0; ii != TF_NumDims(tensor); ++ii)
+    dims_.push_back(TF_Dim(tensor, ii));
+}
+
+Tensor::Tensor(TF_Tensor* tensor)
+{
+  tensor_ = tensor;
+  data_ = (float*)TF_TensorData(tensor_);
+  if (TF_NumDims(tensor_) > 1)
+    stride_ = TF_Dim(tensor_, TF_NumDims(tensor_)-1);
+  else
+    stride_ = 0;
+}
+
+Tensor::Tensor(const Shape &shape)
+{
+  tensor_ = TF_AllocateTensor(TF_FLOAT, shape.dims(), shape.num_dims(), shape.size() * sizeof(float));
+  data_ = (float*)TF_TensorData(tensor_);
+  if (shape.num_dims() > 1)
+    stride_ = shape.dims()[shape.num_dims()-1];
+  else
+    stride_ = 0;
+}
+
+Tensor::Tensor(const Vector &v, Shape shape)
+{
+  if (!shape.size())
+    shape = Shape(v);
+    
+  if (shape.size() != v.size())
+    throw Exception("Requested tensor shape does not match vector size");
+    
+  tensor_ = TF_AllocateTensor(TF_FLOAT, shape.dims(), shape.num_dims(), shape.size() * sizeof(float));
+  float *data = (float*)TF_TensorData(tensor_);
+  for (size_t ii=0; ii < shape.size(); ++ii)
+    data[ii] = v[ii];
+    
+  data_ = (float*)TF_TensorData(tensor_);
+  if (shape.num_dims() > 1)
+    stride_ = shape.dims()[shape.num_dims()-1];
+  else
+    stride_ = 0;
+}
+
+Tensor::Tensor(const Matrix &m, Shape shape)
+{
+  if (!shape.size())
+    shape = Shape(m);
+    
+  if (shape.size() != m.size())
+    throw Exception("Requested tensor shape does not match matrix size");
+    
+  tensor_ = TF_AllocateTensor(TF_FLOAT, shape.dims(), shape.num_dims(), shape.size() * sizeof(float));
+  float *data = (float*)TF_TensorData(tensor_);
+  for (size_t ii=0; ii < m.rows(); ++ii)
+    for (size_t jj=0; jj < m.cols(); ++jj)
+      data[ii*m.cols()+jj] = m(ii, jj);
+
+  data_ = (float*)TF_TensorData(tensor_);
+  if (shape.num_dims() > 1)
+    stride_ = shape.dims()[shape.num_dims()-1];
+  else
+    stride_ = 0;
+}
+
+Tensor::~Tensor()
+{
+  if (tensor_)
+    TF_DeleteTensor(tensor_);
+}
+
+Tensor::operator Vector()
+{
+  size_t sz = shape().size();
+  Vector v = Vector(sz);
+  
+  float *data = (float*)TF_TensorData(tensor_);
+  for (size_t ii=0; ii < sz; ++ii)
+    v[ii] = data[ii];
+    
+  return v;
+}
+
+Tensor::operator Matrix()
+{
+  Shape s = Shape();
+  
+  if (s.num_dims() != 2)
+    throw Exception("Tried to read non-matrix tensor as matrix");
+  
+  Matrix m = Matrix(s.dims()[0], s.dims()[1]);
+  float *data = (float*)TF_TensorData(tensor_);
+  for (size_t ii=0; ii < m.rows(); ++ii)
+    for (size_t jj=0; jj < m.cols(); ++jj)
+      m(ii, jj) = data[ii+m.cols()*jj];
+      
+  return m;
+}
+
+float *Tensor::data()
+{
+  return (float*) TF_TensorData(tensor_);
+}
+
 void TensorFlowRepresentation::request(const std::string &role, ConfigurationRequest *config)
 {
+  ParameterizedRepresentation::request(role, config);
+
   if (role == "action")
   {
     config->push_back(CRP("inputs", "int.observation_dims", "Number of input dimensions", (int)inputs_, CRP::System, 1));
@@ -60,7 +169,7 @@ void TensorFlowRepresentation::request(const std::string &role, ConfigurationReq
   
   config->push_back(CRP("input_layer", "Name of input layer placeholders", input_layer_));
   config->push_back(CRP("output_layer", "Name of output layer tensors", output_layer_));
-  config->push_back(CRP("target", "Name of output layer target placeholders", output_target_));
+  config->push_back(CRP("output_target", "Name of output layer target placeholders", output_target_));
   config->push_back(CRP("sample_weights", "Name of sample weights placeholder", sample_weights_));
   config->push_back(CRP("learning_phase", "Name of learning phase placeholder", learning_phase_));
 
@@ -70,13 +179,15 @@ void TensorFlowRepresentation::request(const std::string &role, ConfigurationReq
 
 void TensorFlowRepresentation::configure(Configuration &config)
 {
+  ParameterizedRepresentation::configure(config);
+
   inputs_ = config["inputs"];
   targets_ = config["targets"];
   file_ = config["file"].str();
   
   input_layer_ = config["input_layer"].str();
   output_layer_ = config["output_layer"].str();
-  output_target_ = config["target"].str();
+  output_target_ = config["output_target"].str();
   sample_weights_ = config["sample_weights"].str();
   learning_phase_ = config["learning_phase"].str();
 
@@ -202,6 +313,8 @@ void TensorFlowRepresentation::configure(Configuration &config)
 
 void TensorFlowRepresentation::reconfigure(const Configuration &config)
 {
+  ParameterizedRepresentation::reconfigure(config);
+
   if (config.has("action") && config["action"].str() == "reset")
   {
     if (!init_node_.empty())
@@ -227,6 +340,7 @@ void TensorFlowRepresentation::reconfigure(const Configuration &config)
     }
     
     batch_.clear();
+    synchronize();
     
     // Get parameter vector size
     params();
@@ -419,6 +533,7 @@ void TensorFlowRepresentation::finalize()
     TF_DeleteTensor(input_val[ii]);
   TF_DeleteStatus(tf_status);
 
+  checkSynchronize();
   batch_.clear();
 }
 
@@ -426,7 +541,7 @@ void TensorFlowRepresentation::batchRead(size_t sz)
 {
   // Allocate input tensor
   int64_t shape[] = {(int)sz, (int)inputs_};
-  input_ = TF_AllocateTensor(TF_FLOAT, shape, 2, sz * inputs_ * sizeof(float));
+  batch_input_ = TF_AllocateTensor(TF_FLOAT, shape, 2, sz * inputs_ * sizeof(float));
   
   counter_ = 0;
 }
@@ -435,11 +550,11 @@ void TensorFlowRepresentation::batchWrite(size_t sz)
 {
   // Allocate input tensor
   int64_t input_shape[] = {(int)sz, (int)inputs_};
-  input_ = TF_AllocateTensor(TF_FLOAT, input_shape, 2, sz * inputs_ * sizeof(float));
+  batch_input_ = TF_AllocateTensor(TF_FLOAT, input_shape, 2, sz * inputs_ * sizeof(float));
   
   // Allocate target tensor
   int64_t target_shape[] = {(int)sz, (int)targets_};
-  target_ = TF_AllocateTensor(TF_FLOAT, target_shape, 2, sz * targets_ * sizeof(float));
+  batch_target_ = TF_AllocateTensor(TF_FLOAT, target_shape, 2, sz * targets_ * sizeof(float));
   
   counter_ = 0;
 }
@@ -451,7 +566,7 @@ void TensorFlowRepresentation::enqueue(const ProjectionPtr &projection)
   if (vp)
   {
     // Convert input to tensor
-    float *data = (float*)TF_TensorData(input_) + counter_*inputs_;
+    float *data = (float*)TF_TensorData(batch_input_) + counter_*inputs_;
     for (size_t ii=0; ii < inputs_; ++ii)
       data[ii] = vp->vector[ii];
 
@@ -468,12 +583,12 @@ void TensorFlowRepresentation::enqueue(const ProjectionPtr &projection, const Ve
   if (vp)
   {
     // Convert input to tensor
-    float *data = (float*)TF_TensorData(input_) + counter_*inputs_;
+    float *data = (float*)TF_TensorData(batch_input_) + counter_*inputs_;
     for (size_t ii=0; ii < inputs_; ++ii)
       data[ii] = vp->vector[ii];
 
     // Convert target to tensor
-    data = (float*)TF_TensorData(target_) + counter_*targets_;
+    data = (float*)TF_TensorData(batch_target_) + counter_*targets_;
     for (size_t ii=0; ii < targets_; ++ii)
       data[ii] = target[ii];
 
@@ -487,7 +602,7 @@ void TensorFlowRepresentation::read(Matrix *out)
 {
   // Prepare SessionRun inputs
   std::vector<TF_Output>  input_ops {{TF_GraphOperationByName(graph_, input_layer_.c_str()), 0}};
-  std::vector<TF_Tensor*> input_val {input_};
+  std::vector<TF_Tensor*> input_val {batch_input_};
     
   if (!learning_phase_.empty())
   {
@@ -552,7 +667,7 @@ void TensorFlowRepresentation::write()
   // Prepare SessionRun inputs
   std::vector<TF_Output> input_ops  {{TF_GraphOperationByName(graph_, input_layer_.c_str()), 0},
                                      {TF_GraphOperationByName(graph_, output_target_.c_str()), 0}};
-  std::vector<TF_Tensor*> input_val {input_, target_};
+  std::vector<TF_Tensor*> input_val {batch_input_, batch_target_};
                                       
   if (!learning_phase_.empty())
   {
@@ -596,6 +711,7 @@ void TensorFlowRepresentation::write()
     TF_DeleteTensor(input_val[ii]);
   TF_DeleteStatus(tf_status);
   
+  checkSynchronize();
 //  NOTICE("write to:\n" << (input_.tensor<float, 2>()));
 //  NOTICE("target:\n" << (target_.tensor<float, 2>()));
 }
@@ -706,4 +822,71 @@ void TensorFlowRepresentation::setParams(const LargeVector &params)
   for (size_t ii=0; ii < input_val.size(); ++ii)
     TF_DeleteTensor(input_val[ii]);
   TF_DeleteStatus(tf_status);
+}
+
+void TensorFlowRepresentation::SessionRun(const std::vector<std::pair<std::string, TensorPtr> > &inputs, const std::vector<std::string> &outputs, const std::vector<std::string> &ops, std::vector<TensorPtr> *results, bool learn)
+{
+  std::vector<TF_Output> input_ops(inputs.size()), output_ops(outputs.size());
+  std::vector<TF_Tensor*> input_val(inputs.size()), output_val(outputs.size()), input_del;
+  std::vector<TF_Operation*> operations(ops.size());
+  
+  for (size_t ii=0; ii != inputs.size(); ++ii)
+  {
+    input_ops[ii] = {TF_GraphOperationByName(graph_, inputs[ii].first.c_str()), 0};
+    input_val[ii] = *inputs[ii].second;
+  }
+  
+  if (!learning_phase_.empty())
+  {
+    // Prepare learning phase tensor
+    TF_Tensor *learning = TF_AllocateTensor(TF_BOOL, NULL, 0, sizeof(bool));
+    *((bool*)TF_TensorData(learning)) = learn;
+
+    input_ops.push_back({TF_GraphOperationByName(graph_, learning_phase_.c_str()), 0});
+    input_val.push_back(learning);
+    input_del.push_back(learning);
+  }
+  if (!sample_weights_.empty() && learn)
+  {
+    // Prepare sample weight tensor
+    Shape shape = inputs[0].second->shape();
+    TF_Tensor *weights = TF_AllocateTensor(TF_FLOAT, shape.dims(), 1, shape.dims()[0] * sizeof(float));
+    float *data = (float*)TF_TensorData(weights);
+    for (size_t ii=0; ii < shape.dims()[0]; ++ii)
+      data[ii] = 1.;
+
+    input_ops.push_back({TF_GraphOperationByName(graph_, sample_weights_.c_str()), 0});
+    input_val.push_back(weights);
+    input_del.push_back(weights);
+  }
+
+  for (size_t ii=0; ii != outputs.size(); ++ii)
+    output_ops[ii] = {TF_GraphOperationByName(graph_, outputs[ii].c_str()), 0};
+
+  for (size_t ii=0; ii != ops.size(); ++ii)
+    operations[ii] = TF_GraphOperationByName(graph_, ops[ii].c_str());
+  
+  TF_Status *tf_status = TF_NewStatus();
+  TF_SessionRun(session_, 0,
+                input_ops.data(), input_val.data(), input_ops.size(),
+                output_ops.data(), output_val.data(), output_ops.size(),
+                operations.data(), operations.size(),
+                0, tf_status);
+
+  if (TF_GetCode(tf_status) != TF_OK)
+  {
+    ERROR(TF_Message(tf_status));
+    throw Exception("Could not run custom TensorFlow graph");
+  }
+  
+  results->resize(output_val.size());
+  for (size_t ii=0; ii != outputs.size(); ++ii)
+    (*results)[ii] = TensorPtr(new Tensor(output_val[ii]));
+    
+  for (size_t ii=0; ii != input_del.size(); ++ii)
+    TF_DeleteTensor(input_del[ii]);
+  TF_DeleteStatus(tf_status);
+  
+  if (learn)
+    checkSynchronize();
 }
