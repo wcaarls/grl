@@ -29,76 +29,14 @@
 #define GRL_TENSORFLOW_REPRESENTATION_H_
 
 #include <list>
-#include <tensorflow/c/c_api.h>
 
 #include <grl/representation.h>
 
+#include "tensorflow_api.h"
+
 namespace grl
 {
-
-namespace TF
-{
-class Shape
-{
-  protected:
-    std::vector<int64_t> dims_;
-    
-  public:
-    Shape() { }
-    Shape(std::initializer_list<int64_t> dims) : dims_(dims) { }
-    Shape(std::vector<int64_t> dims) : dims_(dims) { }
-    Shape(const Vector &v) : dims_(v.size()) { }
-    Shape(const Matrix &m) : dims_ {m.rows(), m.cols()} { }
-    Shape(TF_Tensor* tensor);
-    
-    const int64_t *dims() const { return dims_.data(); }
-    int num_dims() const { return dims_.size(); }
-    
-    size_t size() const
-    {
-      size_t sz=1;
-      for (size_t ii=0; ii != dims_.size(); ++ii)
-        sz *= dims_[ii];
-        
-      return sz;
-    }
-};
-
-class Tensor
-{
-  protected:
-    TF_Tensor *tensor_;
-    float *data_;
-    size_t stride_;
-    
-  public:
-    Tensor() : tensor_(NULL), data_(NULL), stride_(0) { }
-    Tensor(TF_Tensor* tensor);
-    Tensor(const Shape &shape);
-    Tensor(const Vector &v, Shape shape=Shape());
-    Tensor(const Matrix &m, Shape shape=Shape());
-    
-    ~Tensor();
-    
-    float operator ()(size_t i) const { return data_[i]; }
-    float &operator ()(size_t i) { return data_[i]; }
-    float operator ()(size_t r, size_t c) const { return data_[r*stride_+c]; }
-    float &operator ()(size_t r, size_t c) { return data_[r*stride_+c]; }
-    operator TF_Tensor*() { return tensor_; }
-    operator Vector();
-    operator Matrix();
-    
-    Shape shape() { return Shape(tensor_); }
-    float *data();
-    
-  private:
-    Tensor &operator=(const Tensor&) { return *this; }
-};
-
-typedef struct std::shared_ptr<Tensor> TensorPtr;
-}
-
-/// Average of feature activations.
+/// Representation using a TensorFlow graph.
 class TensorFlowRepresentation : public ParameterizedRepresentation
 {
   public:
