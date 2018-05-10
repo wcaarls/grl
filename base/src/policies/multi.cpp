@@ -33,7 +33,7 @@ REGISTER_CONFIGURABLE(MultiPolicy)
 
 void MultiPolicy::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("strategy", "Combination strategy", strategy_str_, CRP::Configuration, {"policy_strategy_add_prob", "policy_strategy_multiply_prob", "policy_strategy_majority_voting_prob", "policy_strategy_rank_voting_prob"}));
+  config->push_back(CRP("strategy", "Combination strategy", strategy_str_, CRP::Configuration, {"policy_strategy_add_prob", "policy_strategy_multiply_prob", "policy_strategy_majority_voting_prob", "policy_strategy_rank_voting_prob", "policy_strategy_binning_prob", "policy_strategy_density_based_prob", "policy_strategy_data_center_prob"}));
   config->push_back(CRP("tau", "Temperature of Boltzmann distribution", tau_));
   config->push_back(CRP("discretizer", "discretizer.action", "Action discretizer", discretizer_));
   config->push_back(CRP("policy", "mapping/policy", "Sub-policies", &policy_));
@@ -50,6 +50,12 @@ void MultiPolicy::configure(Configuration &config)
     strategy_ = csMajorityVotingProbabilities;
   else if (strategy_str_ == "policy_strategy_rank_voting_prob")
     strategy_ = csRankVotingProbabilities;
+  else if (strategy_str_ == "policy_strategy_binning_prob")
+    strategy_ = csBinningProbabilities;
+  else if (strategy_str_ == "policy_strategy_density_based_prob")
+    strategy_ = csDensityBasedProbabilities;
+  else if (strategy_str_ == "policy_strategy_data_center_prob")
+    strategy_ = csDataCenterProbabilities;
   else
     throw bad_param("mapping/policy/multi:strategy");
 
@@ -219,6 +225,7 @@ void MultiPolicy::distribution(const Observation &in, const Action &prev, LargeV
       break;
         
     case csRankVotingProbabilities:
+      {
       
       LargeVector rank_weights;
       
@@ -260,7 +267,21 @@ void MultiPolicy::distribution(const Observation &in, const Action &prev, LargeV
       CRAWL("\nMultiPolicy::param_choice: " << param_choice << '\n');
       softmax(param_choice, out);
       CRAWL("MultiPolicy::out: " << (*out));
+      }
+      break;
       
+    case csBinningProbabilities:
+      policy_[0]->distribution(in, prev, out);
+      std::cout << "MultiPolicy::csBinningProbabilities::policy[0] (*out) - " << (*out) << std::endl;
+      throw Exception("MultiPolicy::csBinningProbabilities::update not implemented");
+      break;
+      
+    case csDensityBasedProbabilities:
+      throw Exception("MultiPolicy::csDensityBasedProbabilities::update not implemented");
+      break;
+      
+    case csDataCenterProbabilities:
+      throw Exception("MultiPolicy::csDataCenterProbabilities::update not implemented");
       break;
   }      
 }
