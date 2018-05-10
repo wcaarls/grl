@@ -22,7 +22,7 @@ experiment:
     type: agent/td
     policy: 
       type: mapping/policy/multi
-      strategy: policy_strategy_add_prob
+      strategy: policy_strategy_rank_voting_prob
       tau: 0.1
       discretizer: 
         type: discretizer/uniform
@@ -54,23 +54,27 @@ experiment:
             decay_rate: 1
             decay_min: 0
         - 
-          type: mapping/policy/action_probability
-          discretizer: experiment/agent/policy/discretizer
+          type: mapping/policy/action
+          sigma: []
+          decay_rate: 1
+          decay_min: 0
+          output_min: experiment/environment/task/action_min
+          output_max: experiment/environment/task/action_max
           projector: 
             type: projector/tile_coding
             tilings: 16
             memory: 8388608
             safe: 0
-            resolution: [0.31415, 3.1415, 1]
-            wrapping: [6.283, 0, 0]
+            resolution: [0.31415, 3.1415]
+            wrapping: [6.283, 0]
           representation: 
             type: representation/parameterized/linear
             init_min: [0]
             init_max: [1]
             memory: experiment/agent/policy/policy/1/projector/memory
-            outputs: 1
-            output_min: []
-            output_max: []
+            outputs: experiment/environment/task/action_dims
+            output_min: experiment/environment/task/action_min
+            output_max: experiment/environment/task/action_max
     predictor: 
       type: predictor/multi
       predictor: 
@@ -84,36 +88,39 @@ experiment:
           trace: 
             type: trace/enumerated/replacing
         - 
-          type: predictor/ac/probability
-          alpha: 0.2
-          beta: 0.1
-          gamma: 0.97
-          lambda: 0.65
-          critic_projector: 
-            type: projector/tile_coding
-            tilings: 16
-            memory: 8388608
-            safe: 0
-            resolution: [0.31415, 3.1415]
-            wrapping: [6.283, 0]
-          critic_representation: 
-            type: representation/parameterized/linear
-            init_min: [0]
-            init_max: [1]
-            memory: 8388608
-            outputs: 1
-            output_min: []
-            output_max: []
-          critic_trace: 
-            type: trace/enumerated/replacing
-          actor_projector: experiment/agent/policy/policy/1/projector
-          actor_representation: experiment/agent/policy/policy/1/representation
-          discretizer: experiment/agent/policy/discretizer
+          type: predictor/ac/action
+          alpha: 0.01
+          update_method: proportional
+          step_limit: []
+          projector: experiment/agent/policy/policy/1/projector
+          representation: experiment/agent/policy/policy/1/representation
+          critic: 
+            type: predictor/critic/sarsa
+            alpha: 0.2
+            gamma: 0.97
+            lambda: 0.65
+            projector: 
+              type: projector/tile_coding
+              tilings: 16
+              memory: 8388608
+              safe: 0
+              resolution: [ 0.31415, 3.1415, 1 ]
+              wrapping: [ 6.283, 0, 0 ]
+            representation: 
+              type: representation/parameterized/linear
+              init_min: [ 0 ]
+              init_max: [ 1 ]
+              memory: 8388608
+              outputs: 1
+              output_min: experiment/environment/task/action_min
+              output_max: experiment/environment/task/action_max
+            trace: 
+              type: trace/enumerated/replacing
   test_agent: 
     type: agent/fixed
     policy: 
       type: mapping/policy/multi
-      strategy: policy_strategy_add_prob
+      strategy: policy_strategy_rank_voting_prob
       tau: experiment/agent/policy/tau
       discretizer: experiment/agent/policy/discretizer
       policy: 
@@ -125,24 +132,29 @@ experiment:
           sampler: 
             type: sampler/greedy
         - 
-          type: mapping/policy/action_probability
-          discretizer: experiment/agent/policy/discretizer
+          type: mapping/policy/action
+          sigma: [  ]
+          decay_rate: 1
+          decay_min: 0
+          output_min: experiment/environment/task/action_min
+          output_max: experiment/environment/task/action_max
           projector: experiment/agent/policy/policy/1/projector
           representation: experiment/agent/policy/policy/1/representation
   save_every: never
 visualizer: 
   type: visualizer/glut
-ac_probability_value: 
+ac_value: 
   type: visualization/field/value
   field_dims: [0, 1]
   input_min: experiment/environment/task/observation_min
   input_max: experiment/environment/task/observation_max
   points: 65536
   savepoints: 1048576
+  state: experiment/state
   projection: mean
   output_dim: 0
-  projector: experiment/agent/predictor/predictor/1/critic_projector
-  representation: experiment/agent/predictor/predictor/1/critic_representation
+  projector: experiment/agent/policy/policy/1/projector
+  representation: experiment/agent/policy/policy/1/representation
 ac_visibility_mapping: 
   type: visualization/field/mapping
   field_dims: [0, 1]

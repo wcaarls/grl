@@ -156,10 +156,15 @@ def setconf(conf, param, value):
     param = param[1:]
     
   path = param.split('/')
+  try:
+    item = int(path[0])
+  except:
+    item = path[0]
+  
   if len(path) == 1:
-    conf[path[0]] = value
+    conf[item] = value
   else:
-    setconf(conf[path[0]], '/'.join(path[1:]), value)
+    setconf(conf[item], '/'.join(path[1:]), value)
     
   return conf
 
@@ -170,10 +175,16 @@ def getconf(conf, param):
     param = param[1:]
     
   path = param.split('/')
+  
+  try:
+    item = int(path[0])
+  except:
+    item = path[0]
+  
   if len(path) == 1:
-    return conf[path[0]]
+    return conf[item]
   else:
-    return getconf(conf[path[0]], '/'.join(path[1:]))
+    return getconf(conf[item], '/'.join(path[1:]))
 
 def mergeconf(base, new):
   """Merge configurations"""

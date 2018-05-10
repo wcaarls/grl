@@ -1,0 +1,242 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  run_offset: 0
+  trials: 0
+  steps: 400000
+  rate: 0
+  test_interval: 10
+  environment: 
+    type: environment/modeled
+    model: 
+      type: model/dynamical
+      control_step: 0.03
+      integration_steps: 5
+      dynamics: 
+        type: dynamics/pendulum
+    task: 
+      type: task/pendulum/swingup
+      timeout: 2.99
+      randomization: 0
+  agent: 
+    type: agent/td
+    policy: 
+      type: mapping/policy/multi
+      strategy: policy_strategy_multiply_prob
+      tau: 0.1
+      discretizer: 
+        type: discretizer/uniform
+        min: experiment/environment/task/action_min
+        max: experiment/environment/task/action_max
+        steps: [3]
+      policy: 
+        - 
+          type: mapping/policy/value/q
+          discretizer: experiment/agent/policy/discretizer
+          projector: 
+            type: projector/tile_coding
+            tilings: 16
+            memory: 8388608
+            safe: 1
+            resolution: [0.31415, 3.1415, 3]
+            wrapping: [6.283, 0, 0]
+          representation: 
+            type: representation/parameterized/linear
+            init_min: [0]
+            init_max: [1]
+            memory: experiment/agent/policy/policy/0/projector/memory
+            outputs: 1
+            output_min: []
+            output_max: []
+          sampler: 
+            type: sampler/epsilon_greedy
+            epsilon: [0.05]
+            decay_rate: 1
+            decay_min: 0
+        - 
+          type: mapping/policy/action_probability
+          discretizer: experiment/agent/policy/discretizer
+          projector: 
+            type: projector/tile_coding
+            tilings: 16
+            memory: 8388608
+            safe: 1
+            resolution: [0.31415, 3.1415, 1]
+            wrapping: [6.283, 0, 0]
+          representation: 
+            type: representation/parameterized/linear
+            init_min: [0]
+            init_max: [1]
+            memory: experiment/agent/policy/policy/1/projector/memory
+            outputs: 1
+            output_min: []
+            output_max: []
+          sampler: 
+            type: sampler/softmax
+            tau: 1
+        - 
+          type: mapping/policy/value/q
+          discretizer: experiment/agent/policy/discretizer
+          projector: 
+            type: projector/tile_coding
+            tilings: 16
+            memory: 8388608
+            safe: 1
+            resolution: experiment/agent/policy/policy/0/projector/resolution
+            wrapping: experiment/agent/policy/policy/0/projector/wrapping
+          representation: 
+            type: representation/parameterized/linear
+            init_min: [0]
+            init_max: [1]
+            memory: 8388608
+            outputs: 1
+            output_min: []
+            output_max: []
+          sampler: 
+            type: sampler/epsilon_greedy
+            epsilon: [0.05]
+            decay_rate: 1
+            decay_min: 0
+        - 
+          type: mapping/policy/value/q
+          discretizer: experiment/agent/policy/discretizer
+          projector: 
+            type: projector/tile_coding
+            tilings: 16
+            memory: 8388608
+            safe: 1
+            resolution: experiment/agent/policy/policy/0/projector/resolution
+            wrapping: experiment/agent/policy/policy/0/projector/wrapping
+          representation: 
+            type: representation/parameterized/linear
+            init_min: [0]
+            init_max: [1]
+            memory: 8388608
+            outputs: 1
+            output_min: []
+            output_max: []
+          sampler: 
+            type: sampler/epsilon_greedy
+            epsilon: [0.05]
+            decay_rate: 1
+            decay_min: 0
+    predictor: 
+      type: predictor/multi
+      predictor: 
+        - 
+          type: predictor/critic/sarsa
+          alpha: 0.2
+          gamma: 0.97
+          lambda: 0.65
+          projector: experiment/agent/policy/policy/0/projector
+          representation: experiment/agent/policy/policy/0/representation
+          trace: 
+            type: trace/enumerated/replacing
+        - 
+          type: predictor/ac/probability
+          alpha: 0.2
+          beta: 0.1
+          gamma: 0.97
+          lambda: 0.65
+          critic_projector: 
+            type: projector/tile_coding
+            tilings: 16
+            memory: 8388608
+            safe: 1
+            resolution: [0.31415, 3.1415]
+            wrapping: [6.283, 0]
+          critic_representation: 
+            type: representation/parameterized/linear
+            init_min: [0]
+            init_max: [1]
+            memory: 8388608
+            outputs: 1
+            output_min: []
+            output_max: []
+          critic_trace: 
+            type: trace/enumerated/replacing
+          actor_projector: experiment/agent/policy/policy/1/projector
+          actor_representation: experiment/agent/policy/policy/1/representation
+          discretizer: experiment/agent/policy/discretizer
+        - 
+          type: predictor/critic/qv
+          alpha: 0.2
+          beta: 0.1
+          gamma: 0.97
+          lambda: 0.65
+          q_projector: experiment/agent/policy/policy/2/projector
+          q_representation: experiment/agent/policy/policy/2/representation
+          v_projector: 
+            type: projector/tile_coding
+            tilings: 16
+            memory: 8388608
+            safe: 1
+            resolution: experiment/agent/predictor/predictor/1/critic_projector/resolution
+            wrapping: experiment/agent/predictor/predictor/1/critic_projector/wrapping
+          v_representation: 
+            type: representation/parameterized/linear
+            init_min: [0]
+            init_max: [1]
+            memory: 8388608
+            outputs: 1
+            output_min: []
+            output_max: []
+          trace: 
+            type: trace/enumerated/replacing
+        - 
+          type: predictor/critic/q
+          alpha: 0.2
+          gamma: 0.97
+          lambda: 0.65
+          discretizer: experiment/agent/policy/discretizer
+          projector: experiment/agent/policy/policy/3/projector
+          representation: experiment/agent/policy/policy/3/representation
+          trace: 
+            type: trace/enumerated/replacing
+  test_agent: 
+    type: agent/fixed
+    policy: 
+      type: mapping/policy/multi
+      strategy: experiment/agent/policy/strategy
+      tau: experiment/agent/policy/tau
+      discretizer: experiment/agent/policy/discretizer
+      policy: 
+        - 
+          type: mapping/policy/value/q
+          discretizer: experiment/agent/policy/discretizer
+          projector: experiment/agent/policy/policy/0/projector
+          representation: experiment/agent/policy/policy/0/representation
+          sampler: 
+            type: sampler/epsilon_greedy
+            epsilon: [ 0.050000000000000003 ]
+            decay_rate: 1
+            decay_min: 0
+        - 
+          type: mapping/policy/action_probability
+          discretizer: experiment/agent/policy/discretizer
+          projector: experiment/agent/policy/policy/1/projector
+          representation: experiment/agent/policy/policy/1/representation
+          sampler: 
+            type: sampler/softmax
+            tau: 1
+        - 
+          type: mapping/policy/value/q
+          discretizer: experiment/agent/policy/discretizer
+          projector: experiment/agent/policy/policy/2/projector
+          representation: experiment/agent/policy/policy/2/representation
+          sampler: 
+            type: sampler/epsilon_greedy
+            epsilon: [ 0.050000000000000003 ]
+            decay_rate: 1
+            decay_min: 0
+        - 
+          type: mapping/policy/value/q
+          discretizer: experiment/agent/policy/discretizer
+          projector: experiment/agent/policy/policy/3/projector
+          representation: experiment/agent/policy/policy/3/representation
+          sampler: 
+            type: sampler/epsilon_greedy
+            epsilon: [ 0.050000000000000003 ]
+            decay_rate: 1
+            decay_min: 0
+  save_every: never
