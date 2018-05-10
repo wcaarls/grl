@@ -25,6 +25,8 @@
  * \endverbatim
  */
 
+#include <unistd.h>
+
 #include <GL/gl.h>
 #include <GL/glu.h>
 
@@ -72,7 +74,7 @@ void SliceVisualization::configure(Configuration &config)
     throw bad_param("visualization/slice:operating_point");
   
   dim_ = config["output_dim"];
-  points_ = pow((int)sqrt(config["points"]), 2);
+  points_ = pow((int)sqrt((double)config["points"]), 2);
   state_ = (VectorSignal*)config["state"].ptr();
   action_ = (VectorSignal*)config["action"].ptr();
   mapping_ = (Mapping*)config["mapping"].ptr();

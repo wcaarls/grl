@@ -25,6 +25,8 @@
  * \endverbatim
  */
 
+#include <unistd.h>
+
 #include <grl/environments/multi_agent.h>
 
 using namespace grl;
