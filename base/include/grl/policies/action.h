@@ -32,6 +32,7 @@
 #include <grl/projector.h>
 #include <grl/representation.h>
 #include <grl/discretizer.h>
+#include <grl/sampler.h>
 
 namespace grl
 {
@@ -72,11 +73,16 @@ class ActionProbabilityPolicy : public Policy
     Discretizer *discretizer_;
     Projector *projector_;
     Representation *representation_;
+    Sampler *sampler_;
     
     std::vector<Vector> variants_;
 
   public:
-    ActionProbabilityPolicy() : discretizer_(NULL), projector_(NULL), representation_(NULL) { }
+    ActionProbabilityPolicy() : discretizer_(NULL), projector_(NULL), representation_(NULL), sampler_(NULL) { }
+    ~ActionProbabilityPolicy()
+    {
+      if (sampler_) delete sampler_;
+    }
   
     // From Configurable  
     virtual void request(ConfigurationRequest *config);
@@ -86,6 +92,9 @@ class ActionProbabilityPolicy : public Policy
     // From Policy
     virtual void act(const Observation &in, Action *out) const;
     virtual void distribution(const Observation &in, const Action &prev, LargeVector *out) const;
+    
+  protected:
+    virtual void values(const Observation &in, LargeVector *out) const;
 };
 
 }

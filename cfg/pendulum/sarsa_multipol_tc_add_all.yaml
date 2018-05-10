@@ -37,7 +37,7 @@ experiment:
             type: projector/tile_coding
             tilings: 16
             memory: 8388608
-            safe: 0
+            safe: 1
             resolution: [0.31415, 3.1415, 3]
             wrapping: [6.283, 0, 0]
           representation: 
@@ -60,7 +60,7 @@ experiment:
             type: projector/tile_coding
             tilings: 16
             memory: 8388608
-            safe: 0
+            safe: 1
             resolution: [0.31415, 3.1415, 1]
             wrapping: [6.283, 0, 0]
           representation: 
@@ -71,6 +71,52 @@ experiment:
             outputs: 1
             output_min: []
             output_max: []
+        - 
+          type: mapping/policy/value/q
+          discretizer: experiment/agent/policy/discretizer
+          projector: 
+            type: projector/tile_coding
+            tilings: 16
+            memory: 8388608
+            safe: 1
+            resolution: experiment/agent/policy/policy/0/projector/resolution
+            wrapping: experiment/agent/policy/policy/0/projector/wrapping
+          representation: 
+            type: representation/parameterized/linear
+            init_min: [ 0 ]
+            init_max: [ 1 ]
+            memory: 8388608
+            outputs: 1
+            output_min: [  ]
+            output_max: [  ]
+          sampler: 
+            type: sampler/epsilon_greedy
+            epsilon: [ 0.050000000000000003 ]
+            decay_rate: 1
+            decay_min: 0
+        - 
+          type: mapping/policy/value/q
+          discretizer: experiment/agent/policy/discretizer
+          projector: 
+            type: projector/tile_coding
+            tilings: 16
+            memory: 8388608
+            safe: 1
+            resolution: experiment/agent/policy/policy/0/projector/resolution
+            wrapping: experiment/agent/policy/policy/0/projector/wrapping
+          representation: 
+            type: representation/parameterized/linear
+            init_min: [ 0 ]
+            init_max: [ 1 ]
+            memory: 8388608
+            outputs: 1
+            output_min: [  ]
+            output_max: [  ]
+          sampler: 
+            type: sampler/epsilon_greedy
+            epsilon: [ 0.050000000000000003 ]
+            decay_rate: 1
+            decay_min: 0
     predictor: 
       type: predictor/multi
       predictor: 
@@ -93,7 +139,7 @@ experiment:
             type: projector/tile_coding
             tilings: 16
             memory: 8388608
-            safe: 0
+            safe: 1
             resolution: [0.31415, 3.1415]
             wrapping: [6.283, 0]
           critic_representation: 
@@ -109,6 +155,41 @@ experiment:
           actor_projector: experiment/agent/policy/policy/1/projector
           actor_representation: experiment/agent/policy/policy/1/representation
           discretizer: experiment/agent/policy/discretizer
+        - 
+          type: predictor/critic/qv
+          alpha: 0.2
+          beta: 0.1
+          gamma: 0.97
+          lambda: 0.65
+          q_projector: experiment/agent/policy/policy/2/projector
+          q_representation: experiment/agent/policy/policy/2/representation
+          v_projector: 
+            type: projector/tile_coding
+            tilings: 16
+            memory: 8388608
+            safe: 1
+            resolution: experiment/agent/predictor/predictor/1/critic_projector/resolution
+            wrapping: experiment/agent/predictor/predictor/1/critic_projector/wrapping
+          v_representation: 
+            type: representation/parameterized/linear
+            init_min: [ 0 ]
+            init_max: [ 1 ]
+            memory: 8388608
+            outputs: 1
+            output_min: [  ]
+            output_max: [  ]
+          trace: 
+            type: trace/enumerated/replacing
+        - 
+          type: predictor/critic/q
+          alpha: 0.2
+          gamma: 0.97
+          lambda: 0.65
+          discretizer: experiment/agent/policy/discretizer
+          projector: experiment/agent/policy/policy/3/projector
+          representation: experiment/agent/policy/policy/3/representation
+          trace: 
+            type: trace/enumerated/replacing
   test_agent: 
     type: agent/fixed
     policy: 
@@ -129,6 +210,20 @@ experiment:
           discretizer: experiment/agent/policy/discretizer
           projector: experiment/agent/policy/policy/1/projector
           representation: experiment/agent/policy/policy/1/representation
+        - 
+          type: mapping/policy/value/q
+          discretizer: experiment/agent/policy/discretizer
+          projector: experiment/agent/policy/policy/2/projector
+          representation: experiment/agent/policy/policy/2/representation
+          sampler: 
+            type: sampler/greedy
+        - 
+          type: mapping/policy/value/q
+          discretizer: experiment/agent/policy/discretizer
+          projector: experiment/agent/policy/policy/3/projector
+          representation: experiment/agent/policy/policy/3/representation
+          sampler: 
+            type: sampler/greedy
   save_every: never
 visualizer: 
   type: visualizer/glut
@@ -153,7 +248,7 @@ ac_visibility_mapping:
   projection: mean
   mapping: experiment/test_agent/policy/policy/1
   output_dim: 0
-q_value: 
+sarsa_value: 
   type: visualization/field/policy/value
   field_dims: [0, 1]
   input_min: experiment/environment/task/observation_min
@@ -163,3 +258,23 @@ q_value:
   state: experiment/state
   projection: mean
   policy: experiment/agent/policy/policy/0
+qv_value: 
+  type: visualization/field/policy/value
+  field_dims: [ 0, 1 ]
+  input_min: experiment/environment/task/observation_min
+  input_max: experiment/environment/task/observation_max
+  points: 65536
+  savepoints: 1048576
+  state: experiment/state
+  projection: mean
+  policy: experiment/test_agent/policy/policy/2
+q_value: 
+  type: visualization/field/policy/value
+  field_dims: [ 0, 1 ]
+  input_min: experiment/environment/task/observation_min
+  input_max: experiment/environment/task/observation_max
+  points: 65536
+  savepoints: 1048576
+  state: experiment/state
+  projection: mean
+  policy: experiment/test_agent/policy/policy/3
