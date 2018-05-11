@@ -29,57 +29,32 @@
 #define GRL_TENSORFLOW_REPRESENTATION_H_
 
 #include <list>
-#include <tensorflow/c/c_api.h>
 
 #include <grl/representation.h>
 
+#include "tensorflow_api.h"
+
 namespace grl
 {
-
-/// Average of feature activations.
+/// Representation using a TensorFlow graph.
 class TensorFlowRepresentation : public ParameterizedRepresentation
 {
   public:
     TYPEINFO("representation/parameterized/tensorflow", "TensorFlow representation")
     
     typedef std::pair<Vector, Vector> Sample;
-    class Shape
-    {
-      protected:
-        std::vector<int64_t> dims_;
-        
-      public:
-        Shape(std::vector<int64_t> dims) : dims_(dims) { }
-        Shape(TF_Tensor* tensor)
-        {
-          for (size_t ii=0; ii != TF_NumDims(tensor); ++ii)
-            dims_.push_back(TF_Dim(tensor, ii));
-        }
-        
-        const int64_t *dims() const { return dims_.data(); }
-        int num_dims() const { return dims_.size(); }
-        
-        size_t size() const
-        {
-          size_t sz=1;
-          for (size_t ii=0; ii != dims_.size(); ++ii)
-            sz *= dims_[ii];
-            
-          return sz;
-        }
-    };
     
   protected:
     int inputs_, targets_;
     std::string file_, input_layer_, output_layer_, output_target_, sample_weights_, learning_phase_, init_node_, update_node_;
     std::vector<std::string> outputs_read_, weights_read_, weights_write_, weights_node_;
-    mutable std::vector<Shape> weights_shape_;
+    mutable std::vector<TF::Shape> weights_shape_;
     
     TF_Graph* graph_;
     TF_Session* session_;
     std::vector<Sample> batch_;
     
-    TF_Tensor* input_, *target_;
+    TF_Tensor* batch_input_, *batch_target_;
     size_t counter_;
     
     mutable LargeVector params_;
@@ -110,6 +85,24 @@ class TensorFlowRepresentation : public ParameterizedRepresentation
     virtual size_t size() const;
     virtual const LargeVector &params() const;
     virtual void setParams(const LargeVector &params);
+    virtual TensorFlowRepresentation *target()
+    {
+      return dynamic_cast<TensorFlowRepresentation*>(ParameterizedRepresentation::target());
+    }
+    
+    TF::TensorPtr tensor(TF::Shape shape) const
+    {
+      return TF::TensorPtr(new TF::Tensor(shape));
+    }
+    TF::TensorPtr tensor(const Vector &v, TF::Shape shape=TF::Shape()) const
+    {
+      return TF::TensorPtr(new TF::Tensor(v, shape));
+    }
+    TF::TensorPtr tensor(const Matrix &m, TF::Shape shape=TF::Shape()) const
+    {
+      return TF::TensorPtr(new TF::Tensor(m, shape));
+    }
+    void SessionRun(const std::vector<std::pair<std::string, TF::TensorPtr> > &inputs, const std::vector<std::string> &outputs, const std::vector<std::string> &ops, std::vector<TF::TensorPtr> *results, bool learn=false);
 };
 
 }

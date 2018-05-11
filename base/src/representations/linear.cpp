@@ -34,6 +34,8 @@ REGISTER_CONFIGURABLE(LinearRepresentation)
 
 void LinearRepresentation::request(const std::string &role, ConfigurationRequest *config)
 {
+  ParameterizedRepresentation::request(role, config);
+
   config->push_back(CRP("init_min", "Lower initial value limit", init_min_));
   config->push_back(CRP("init_max", "Upper initial value limit", init_max_));
 
@@ -61,6 +63,8 @@ void LinearRepresentation::request(const std::string &role, ConfigurationRequest
 
 void LinearRepresentation::configure(Configuration &config)
 {
+  ParameterizedRepresentation::configure(config);
+
   memory_ = config["memory"];
   outputs_ = config["outputs"];
   
@@ -96,6 +100,8 @@ void LinearRepresentation::configure(Configuration &config)
 
 void LinearRepresentation::reconfigure(const Configuration &config)
 {
+  ParameterizedRepresentation::reconfigure(config);
+
   if (config.has("action"))
   {
     if (config["action"].str() == "reset")
@@ -109,6 +115,8 @@ void LinearRepresentation::reconfigure(const Configuration &config)
       for (size_t ii=0; ii < memory_; ++ii)
         for (size_t jj=0; jj < outputs_; ++jj)  
           params_[ii*outputs_+jj] = rand->getUniform(init_min_[jj], init_max_[jj]);
+          
+      synchronize();
     }
     else if (config["action"].str() == "load")
     {
@@ -139,6 +147,7 @@ void LinearRepresentation::reconfigure(const Configuration &config)
         return;
       }
       fclose(f);
+      synchronize();
     }
     else if (config["action"].str() == "save")
     {
@@ -285,4 +294,6 @@ void LinearRepresentation::update(const ProjectionPtr projection, const Vector &
     else
       throw Exception("representation/parameterized/linear requires a projector returning IndexProjection or VectorProjection");
   }
+  
+  checkSynchronize();
 }

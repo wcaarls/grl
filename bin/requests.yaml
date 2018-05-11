@@ -20,7 +20,7 @@ agent/communicator:
     type: communicator
     description: Comunicator which exchanges messages with an actual/virtual environment
     mutability: configuration
-    default: 0xb52160
+    default: 0x255c7e0
     optional: 0
   observation_dims:
     type: int.observation_dims
@@ -330,7 +330,7 @@ agent/master/exclusive:
     type: "[agent/sub]"
     description: Subagents
     mutability: configuration
-    default: 0xbab498
+    default: 0x25b5478
     optional: 0
 agent/master/predicated:
   description: Master agent in which execution is predicated on preceding agent confidence
@@ -360,7 +360,7 @@ agent/master/predicated:
     type: "[agent/sub]"
     description: Subagents
     mutability: configuration
-    default: 0xbab498
+    default: 0x25b5478
     optional: 0
 agent/master/random:
   description: Master agent that chooses sub-agents randomly
@@ -390,7 +390,7 @@ agent/master/random:
     type: "[agent/sub]"
     description: Subagents
     mutability: configuration
-    default: 0xbab498
+    default: 0x25b5478
     optional: 0
 agent/master/sequential:
   description: Master agent that executes sub-agents sequentially
@@ -1727,6 +1727,12 @@ mapping/policy/action_probability:
     mutability: configuration
     default: 0
     optional: 0
+  sampler:
+    type: sampler
+    description: Samples actions from action-values
+    mutability: configuration
+    default: 0
+    optional: 0
 mapping/policy/discrete/random:
   description: Policy that chooses discrete random actions
   discretizer:
@@ -1826,9 +1832,6 @@ mapping/policy/multi:
       - policy_strategy_multiply_prob
       - policy_strategy_majority_voting_prob
       - policy_strategy_rank_voting_prob
-      - policy_strategy_binning_prob
-      - policy_strategy_density_based_prob
-      - policy_strategy_data_center_prob
   tau:
     type: double
     description: Temperature of Boltzmann distribution
@@ -1847,7 +1850,7 @@ mapping/policy/multi:
     type: "[mapping/policy]"
     description: Sub-policies
     mutability: configuration
-    default: 0xd30390
+    default: 0x273bcb0
     optional: 0
 mapping/policy/parameterized/action:
   description: Parameterized policy based on a direct action representation
@@ -3774,7 +3777,7 @@ predictor/multi:
     type: "[predictor]"
     description: First downstream predictor
     mutability: configuration
-    default: 0xeee240
+    default: 0x29328a0
     optional: 0
 predictor/naf:
   description: Value function predictor using Normalized Advantage Features
@@ -3999,7 +4002,7 @@ projector/multi:
     type: "[projector.]"
     description: Downstream projectors
     mutability: configuration
-    default: 0xf7e250
+    default: 0x2989670
     optional: 0
   memories:
     type: vector.memory
@@ -4407,7 +4410,7 @@ representation/additive:
     type: "[representation.]"
     description: Downstream representations
     mutability: configuration
-    default: 0xfe35d0
+    default: 0x29eeb50
     optional: 0
 representation/communicator:
   description: Interface to an out-of-process representation
@@ -7468,7 +7471,7 @@ projector/multi.observation:
     type: "[projector.observation]"
     description: Downstream projectors
     mutability: configuration
-    default: 0x1325bc0
+    default: 0x2d31070
     optional: 0
   memories:
     type: vector.memory
@@ -7804,7 +7807,7 @@ representation/additive.action:
     type: "[representation.action]"
     description: Downstream representations
     mutability: configuration
-    default: 0x1375100
+    default: 0x2d80560
     optional: 0
 representation/communicator.action:
   description: Interface to an out-of-process representation
@@ -8109,7 +8112,7 @@ projector/multi.pair:
     type: "[projector.pair]"
     description: Downstream projectors
     mutability: configuration
-    default: 0x13d2ad0
+    default: 0x2dddf20
     optional: 0
   memories:
     type: vector.memory
@@ -8445,7 +8448,7 @@ representation/additive.value/action:
     type: "[representation.value/action]"
     description: Downstream representations
     mutability: configuration
-    default: 0x1422080
+    default: 0x2e2d430
     optional: 0
 representation/communicator.value/action:
   description: Interface to an out-of-process representation
@@ -8669,7 +8672,7 @@ representation/additive.value/state:
     type: "[representation.value/state]"
     description: Downstream representations
     mutability: configuration
-    default: 0x1460ea0
+    default: 0x2e6c2b0
     optional: 0
 representation/communicator.value/state:
   description: Interface to an out-of-process representation
@@ -8907,7 +8910,7 @@ representation/additive.transition:
     type: "[representation.transition]"
     description: Downstream representations
     mutability: configuration
-    default: 0x149d8c0
+    default: 0x2ea8cd0
     optional: 0
 representation/communicator.transition:
   description: Interface to an out-of-process representation

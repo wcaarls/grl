@@ -25,6 +25,7 @@
  * \endverbatim
  */
 
+#include <unistd.h>
 #include <sys/time.h>
 
 #include <grl/grl.h>

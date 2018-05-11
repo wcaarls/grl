@@ -37,6 +37,8 @@
 #include <grl/policies/q.h>
 #include <grl/mapping.h>
 
+#include <grl/representations/tensorflow.h>
+
 namespace grl
 {
 
@@ -49,7 +51,8 @@ class NAFPredictor : public Predictor
   protected:
     double gamma_;
     Projector *projector_;
-    Representation *representation_;
+    TensorFlowRepresentation *representation_;
+    std::string input_, value_, target_, update_;
 
   public:
     NAFPredictor() : gamma_(0.97), projector_(NULL), representation_(NULL) { }

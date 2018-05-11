@@ -34,6 +34,8 @@ REGISTER_CONFIGURABLE(ANNRepresentation)
 
 void ANNRepresentation::request(const std::string &role, ConfigurationRequest *config)
 {
+  ParameterizedRepresentation::request(role, config);
+  
   if (role == "action")
   {
     config->push_back(CRP("inputs", "int.observation_dims", "Number of input dimensions", (int)inputs_, CRP::System, 1));
@@ -61,6 +63,8 @@ void ANNRepresentation::request(const std::string &role, ConfigurationRequest *c
 
 void ANNRepresentation::configure(Configuration &config)
 {
+  ParameterizedRepresentation::configure(config);
+
   inputs_ = config["inputs"];
   outputs_ = config["outputs"];
   hiddens_ = config["hiddens"].v();
@@ -111,6 +115,8 @@ void ANNRepresentation::reconfigure(const Configuration &config)
     
     error_ = 0;
     samples_ = 0;
+    
+    synchronize();
   }
 }
 
@@ -216,6 +222,8 @@ void ANNRepresentation::finalize()
   }
   
   CRAWL("Error: " << error_/samples_);
+  
+  checkSynchronize();
   
   error_ = 0;
   samples_ = 0;

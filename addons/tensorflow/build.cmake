@@ -1,3 +1,6 @@
+# Setup build environment
+set(TARGET addon_tensorflow)
+
 find_package(Protobuf)
 check_library_exists(tensorflow TF_Version "" TENSORFLOW_FOUND)
 find_path(TENSORFLOW_INCLUDE_DIRS tensorflow/c/c_api.h)
@@ -5,22 +8,15 @@ find_path(TENSORFLOW_INCLUDE_DIRS tensorflow/c/c_api.h)
 if (PROTOBUF_FOUND AND TENSORFLOW_FOUND)
   message("-- Building TensorFlow addon")
 
-  # Build stub
-  set(TARGET addon_tensorflow)
-  add_library(${TARGET} SHARED
-              ${SRC}/stub.cpp
-             )
-  grl_link_libraries(${TARGET} base)
-  install(TARGETS ${TARGET} DESTINATION ${GRL_LIB_DESTINATION})
-
   # Generate protobuf headers
   protobuf_generate_cpp(PROTO_SOURCES PROTO_HEADERS ${SRC}/../share/graph.proto)
 
   # Build library
-  set(TARGET 2addon_tensorflow)
   add_library(${TARGET} SHARED
+              ${SRC}/tensorflow_api.cpp
               ${PROTO_SOURCES}
               ${SRC}/tensorflow.cpp
+              ${SRC}/naf.cpp
              )
 
   # Add dependencies

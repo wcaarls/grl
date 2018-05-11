@@ -667,7 +667,12 @@ class ObjectConfigurator : public Configurator
       return object_;
     }
     
-    virtual ObjectConfigurator *instantiate(Configurator *parent=NULL) const;
+    virtual ObjectConfigurator *instantiate(Configurator *parent=NULL) const
+    {
+      return instantiate({}, parent);
+    }
+    
+    virtual ObjectConfigurator *instantiate(std::vector<std::string> suppressions, Configurator *parent=NULL) const;
     virtual ObjectConfigurator &deepcopy(const Configurator &c);
     virtual bool validate(const CRP &crp) const;
     virtual void reconfigure(const Configuration &config, bool recursive=false);
@@ -770,14 +775,14 @@ class Configurable
       return *this;
     }
 
-    Configurable *reinstantiate() const
+    Configurable *reinstantiate(std::vector<std::string> suppressions={}) const
     {
-      return configurator_->instantiate()->ptr();
+      return configurator_->instantiate(suppressions)->ptr();
     }
     
-    Configurable *clone() const
+    Configurable *clone(std::vector<std::string> suppressions={}) const
     {
-      Configurable *c = reinstantiate();
+      Configurable *c = reinstantiate(suppressions);
       c->deepcopy(*this);
       return c;
     }

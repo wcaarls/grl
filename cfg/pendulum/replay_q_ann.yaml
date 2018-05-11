@@ -36,13 +36,11 @@ experiment:
         projector: 
           type: projector/identity
       representation:
-        type: representation/target
-        representation: 
-          type: representation/parameterized/ann
-          inputs: experiment/environment/task/observation_dims+experiment/environment/task/action_dims
-          outputs: 1
-          hiddens: 100
-          eta: -0.001
+        type: representation/parameterized/ann
+        inputs: experiment/environment/task/observation_dims+experiment/environment/task/action_dims
+        outputs: 1
+        hiddens: 100
+        eta: -0.001
         interval: 1000
       sampler: 
         type: sampler/epsilon_greedy

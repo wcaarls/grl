@@ -164,7 +164,49 @@ class Representation : public Configurable
 /// Representation that allows for parameter access.
 class ParameterizedRepresentation : public Representation
 {
+  protected:
+    double interval_;
+    int count_;
+    ParameterizedRepresentation *target_;
+
   public:
+    ParameterizedRepresentation() : interval_(0), count_(0), target_(NULL) { }
+    ~ParameterizedRepresentation()
+    {
+      if (target_)
+        delete target_;
+    }
+    
+    // From Configurable
+    void request(const std::string &role, ConfigurationRequest *config)
+    {
+      config->push_back(CRP("interval", "Target representation update interval (number of writes; 0=never update, <0=exp.mov.av.)", interval_, CRP::Configuration, 0., DBL_MAX));
+
+      config->push_back(CRP("target", d_type() + "." + role, "Target representation", CRP::Provided));
+    }
+    
+    void configure(Configuration &config)
+    {
+      interval_ = config["interval"];
+      
+      if (interval_)
+      {
+        target_ = (ParameterizedRepresentation*) reinstantiate({"interval"});
+        config.set("target", target_);
+      }
+      else
+        config.set("target", this);
+    }
+
+    // From Representation
+    virtual ParameterizedRepresentation *target()
+    {
+      if (!interval_)
+        return this;
+      else
+        return target_;
+    }
+
     /// Returns number of parameters.
     virtual size_t size() const = 0;
     
@@ -173,6 +215,31 @@ class ParameterizedRepresentation : public Representation
     
     /// Sets parameter vector.
     virtual void setParams(const LargeVector &params) = 0;
+    
+  protected:
+    void synchronize(bool force=true)
+    {
+      if (!interval_)
+        return;
+    
+      if (interval_ < 1 && !force)
+      {
+        target_->setParams(interval_*params() + (1-interval_)*target_->params());
+      }
+      else
+      {
+        TRACE("Synchronizing target representation");
+        target_->setParams(params());
+        count_ = 0;
+      }
+    }
+    
+    void checkSynchronize()
+    {
+      count_++;
+      if (interval_ && (interval_ < 1 || count_ >= interval_))
+        synchronize(false);
+    }
 };
 
 }

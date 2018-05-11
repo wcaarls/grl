@@ -36,6 +36,7 @@ experiment:
         projector: 
           type: projector/identity
       representation:
+        interval: 1000
         type: representation/parameterized/tensorflow
         inputs: experiment/environment/task/observation_dims+experiment/environment/task/action_dims
         outputs: 1
@@ -50,10 +51,7 @@ experiment:
       lambda: 0.65
       discretizer: experiment/agent/policy/discretizer
       projector: experiment/agent/policy/projector
-      representation:
-        type: representation/target
-        interval: 1000
-        representation: experiment/agent/policy/representation
+      representation: experiment/agent/policy/representation
   test_agent: 
     type: agent/fixed
     policy: 
