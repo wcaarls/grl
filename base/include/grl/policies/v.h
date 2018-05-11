@@ -42,7 +42,7 @@ namespace grl
 class VPolicy : public ValuePolicy
 {
   public:
-    TYPEINFO("mapping/policy/value/v", "State-value based policy")
+    TYPEINFO("mapping/policy/discrete/value/v", "State-value based policy")
 
   protected:
     Discretizer *discretizer_;
@@ -63,6 +63,8 @@ class VPolicy : public ValuePolicy
 
     // From Policy
     virtual void act(const Observation &in, Action *out) const;
+    
+    // From DiscretePolicy
     virtual void distribution(const Observation &in, const Action &prev, LargeVector *out) const;
     
     // From ValuePolicy

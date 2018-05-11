@@ -37,11 +37,11 @@
 namespace grl
 {
 
-/// Policy based on the upper confidence bounf of an action-value Representation.
-class UCBPolicy : public Policy
+/// Policy based on the upper confidence bound of an action-value Representation.
+class UCBPolicy : public ValuePolicy
 {
   public:
-    TYPEINFO("mapping/policy/value/q/ucb", "UCB1 policy")
+    TYPEINFO("mapping/policy/discrete/value/ucb", "UCB1 policy")
 
   protected:
     Discretizer *discretizer_;
@@ -60,6 +60,15 @@ class UCBPolicy : public Policy
     // From Policy
     virtual void act(const Observation &in, Action *out) const;
     virtual void act(double time, const Observation &in, Action *out);
+    
+    // From DiscretePolicy
+    virtual void distribution(const Observation &in, const Action &prev, LargeVector *out) const;
+    
+    // From ValuePolicy
+    virtual double value(const Observation &in) const;
+
+  protected:
+    virtual void values(const Observation &in, LargeVector *out) const;
 };
 
 }

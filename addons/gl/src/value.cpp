@@ -89,7 +89,7 @@ void PolicyValueVisualization::request(ConfigurationRequest *config)
 {
   FieldVisualization::request(config);
 
-  config->push_back(CRP("policy", "mapping/policy/value", "Value based control policy", policy_));
+  config->push_back(CRP("policy", "mapping/policy/discrete/value", "Value based control policy", policy_));
 }
 
 void PolicyValueVisualization::configure(Configuration &config)

@@ -41,7 +41,7 @@ namespace grl
 class QPolicy : public ValuePolicy
 {
   public:
-    TYPEINFO("mapping/policy/value/q", "Q-value based policy")
+    TYPEINFO("mapping/policy/discrete/value/q", "Q-value based policy")
 
   protected:
     Discretizer *discretizer_;
@@ -60,6 +60,8 @@ class QPolicy : public ValuePolicy
     // From Policy
     virtual void act(const Observation &in, Action *out) const;
     virtual void act(double time, const Observation &in, Action *out);
+    
+    // From DiscretePolicy
     virtual void distribution(const Observation &in, const Action &prev, LargeVector *out) const;
     
     // From ValuePolicy

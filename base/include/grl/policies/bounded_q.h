@@ -37,7 +37,7 @@ namespace grl
 class BoundedQPolicy : public QPolicy
 {
   public:
-    TYPEINFO("mapping/policy/value/q/bounded", "Q-value based policy with bounded action deltas")
+    TYPEINFO("mapping/policy/discrete/value/q/bounded", "Q-value based policy with bounded action deltas")
 
   protected:
     Vector bound_;
@@ -48,8 +48,10 @@ class BoundedQPolicy : public QPolicy
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
 
-    // From QPolicy
+    // From Policy
     virtual void act(double time, const Observation &in, Action *out);
+    
+    // From DiscretePolicy
     virtual void distribution(const Observation &in, const Action &prev, LargeVector *out) const;
     
   protected:
