@@ -33,8 +33,7 @@ REGISTER_CONFIGURABLE(MultiPolicy)
 
 void MultiPolicy::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("strategy", "Combination strategy", strategy_str_, CRP::Configuration, {"policy_strategy_add_prob", "policy_strategy_multiply_prob", "policy_strategy_majority_voting_prob", "policy_strategy_rank_voting_prob"}));
-  //TODO: rgo
+  config->push_back(CRP("strategy", "Combination strategy", strategy_str_, CRP::Configuration, {"policy_strategy_add_prob", "policy_strategy_multiply_prob", "policy_strategy_majority_voting_prob", "policy_strategy_rank_voting_prob", "policy_strategy_binning_prob", "policy_strategy_density_based_prob", "policy_strategy_data_center_prob"}));
   config->push_back(CRP("tau", "Temperature of Boltzmann distribution", tau_));
   config->push_back(CRP("discretizer", "discretizer.action", "Action discretizer", discretizer_));
   config->push_back(CRP("policy", "mapping/policy", "Sub-policies", &policy_));
@@ -51,6 +50,12 @@ void MultiPolicy::configure(Configuration &config)
     strategy_ = csMajorityVotingProbabilities;
   else if (strategy_str_ == "policy_strategy_rank_voting_prob")
     strategy_ = csRankVotingProbabilities;
+  else if (strategy_str_ == "policy_strategy_binning_prob")
+    strategy_ = csBinningProbabilities;
+  else if (strategy_str_ == "policy_strategy_density_based_prob")
+    strategy_ = csDensityBasedProbabilities;
+  else if (strategy_str_ == "policy_strategy_data_center_prob")
+    strategy_ = csDataCenterProbabilities;
   else
     throw bad_param("mapping/policy/multi:strategy");
 
@@ -114,10 +119,22 @@ void MultiPolicy::distribution(const Observation &in, const Action &prev, LargeV
       policy_[0]->distribution(in, prev, out);
       param_choice = LargeVector::Zero(out->size());
       
+      for (size_t ii = 0; ii != out->size(); ++ii) {
+        if (std::isnan((*out)[ii]))
+        {
+          ERROR("MultiPolicy::param_choice::csAddProbabilities policy_[0] out(ii:" << ii << ") " << (*out)[ii]);
+          for (size_t kk=0; kk < out->size(); ++kk)
+            ERROR("MultiPolicy::dist::csAddProbabilities out(kk:" << kk << ") " << (*out)[kk]);
+        }
+      }
+      
       for (size_t ii=0; ii != policy_.size(); ++ii)
       {
         // Add subsequent policies' probabilities according to chosen strategy
         policy_[ii]->distribution(in, prev, &dist);
+        
+        CRAWL("MultiPolicy::dist: " << dist);
+        
         if (dist.size() != out->size())
         {
           ERROR("Subpolicy " << ii << " has incompatible number of actions");
@@ -125,10 +142,20 @@ void MultiPolicy::distribution(const Observation &in, const Action &prev, LargeV
         }
 
         for (size_t jj=0; jj < dist.size(); ++jj)
+        {
           param_choice[jj] += dist[jj];
+        
+          if (std::isnan(param_choice[jj]))
+          {
+            ERROR("MultiPolicy::param_choice::csAddProbabilities (jj:" << jj << ") " << param_choice[jj]);
+            for (size_t kk=0; kk < dist.size(); ++kk)
+              ERROR("MultiPolicy::dist::csAddProbabilities (kk:" << kk << ") " << dist[kk]);
+          }
+        }
       }
       
       CRAWL("MultiPolicy::param_choice: " << param_choice);
+      
       normalized_function(param_choice, out);
       CRAWL("MultiPolicy::out: " << (*out) << "\n");
       break;
@@ -142,6 +169,9 @@ void MultiPolicy::distribution(const Observation &in, const Action &prev, LargeV
       {
         // Multiply subsequent policies' probabilities according to chosen strategy
         policy_[ii]->distribution(in, prev, &dist);
+        
+        CRAWL("MultiPolicy::dist: " << dist);
+        
         if (dist.size() != out->size())
         {
           ERROR("Subpolicy " << ii << " has incompatible number of actions");
@@ -166,6 +196,9 @@ void MultiPolicy::distribution(const Observation &in, const Action &prev, LargeV
       for (size_t ii=0; ii != policy_.size(); ++ii)
       {
         policy_[ii]->distribution(in, prev, &dist);
+        
+        CRAWL("MultiPolicy::dist: " << dist);
+        
         if (dist.size() != out->size())
         {
           ERROR("Subpolicy " << ii << " has incompatible number of actions");
@@ -192,6 +225,7 @@ void MultiPolicy::distribution(const Observation &in, const Action &prev, LargeV
       break;
         
     case csRankVotingProbabilities:
+      {
       
       LargeVector rank_weights;
       
@@ -201,6 +235,9 @@ void MultiPolicy::distribution(const Observation &in, const Action &prev, LargeV
       for (size_t ii=0; ii != policy_.size(); ++ii)
       {
         policy_[ii]->distribution(in, prev, &dist);
+        
+        CRAWL("MultiPolicy::dist: " << dist);
+        
         if (dist.size() != out->size())
         {
           ERROR("Subpolicy " << ii << " has incompatible number of actions");
@@ -230,7 +267,21 @@ void MultiPolicy::distribution(const Observation &in, const Action &prev, LargeV
       CRAWL("\nMultiPolicy::param_choice: " << param_choice << '\n');
       softmax(param_choice, out);
       CRAWL("MultiPolicy::out: " << (*out));
+      }
+      break;
       
+    case csBinningProbabilities:
+      policy_[0]->distribution(in, prev, out);
+      std::cout << "MultiPolicy::csBinningProbabilities::policy[0] (*out) - " << (*out) << std::endl;
+      throw Exception("MultiPolicy::csBinningProbabilities::update not implemented");
+      break;
+      
+    case csDensityBasedProbabilities:
+      throw Exception("MultiPolicy::csDensityBasedProbabilities::update not implemented");
+      break;
+      
+    case csDataCenterProbabilities:
+      throw Exception("MultiPolicy::csDataCenterProbabilities::update not implemented");
       break;
   }      
 }
@@ -283,13 +334,11 @@ void MultiPolicy::softmax(const LargeVector &values, LargeVector *distribution) 
 }
 
 void MultiPolicy::normalized_function(const LargeVector &values, LargeVector *distribution) const
-{
-  
-  
+{  
   LargeVector v = LargeVector::Zero(values.size());
   for (size_t ii=0; ii < values.size(); ++ii)
     if (std::isnan(values[ii]))
-      ERROR("OtherSelectionMultiPolicy: NaN value in  distribution 1");
+      ERROR("normalized_function: NaN value in  distribution 1");
 
   distribution->resize(values.size());
   const double threshold = -100;
@@ -317,7 +366,7 @@ void MultiPolicy::normalized_function(const LargeVector &values, LargeVector *di
       (*distribution)[ii] = 1;
 
       if (std::isnan(v[ii])) 
-        ERROR("OtherSelectionMultiPolicy: NaN value in  distribution 2");
+        ERROR("normalized_function: NaN value in  distribution 2");
     }
     else {
       (*distribution)[ii] = 0;
@@ -328,7 +377,6 @@ void MultiPolicy::normalized_function(const LargeVector &values, LargeVector *di
   {
     (*distribution)[ii] *= v[ii]/sum;
     if (std::isnan((*distribution)[ii]))
-      ERROR("OtherSelectionMultiPolicy: NaN value in  distribution 4");
+      ERROR("normalized_function: NaN value in  distribution 4");
   }
 }
-

@@ -25,6 +25,8 @@
  * \endverbatim
  */
 
+#include <grl/samplers/softmax.h>
+
 #include <grl/policies/action.h>
 
 using namespace grl;
@@ -121,6 +123,12 @@ void ActionProbabilityPolicy::configure(Configuration &config)
   
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (Representation*)config["representation"].ptr();
+  
+  sampler_ = new SoftmaxSampler();
+  Configuration sampler_config;
+  sampler_config.set("tau", 1.0);
+  sampler_->configure(sampler_config);
+  
 }
 
 void ActionProbabilityPolicy::reconfigure(const Configuration &config)
@@ -144,21 +152,37 @@ void ActionProbabilityPolicy::act(const Observation &in, Action *out) const
   out->type = atExploratory;
 }
 
-void ActionProbabilityPolicy::distribution(const Observation &in, const Action &prev, LargeVector *out) const
+void ActionProbabilityPolicy::values(const Observation &in, LargeVector *out) const
 {
+  // 'projections' contains list of neighbours around state 'in' and any possible action. Number of projections is equal to number of possible actions.
   std::vector<Vector> variants;
   std::vector<ProjectionPtr> projections;
-  
+
   discretizer_->options(in, &variants);
   projector_->project(in, variants, &projections);
 
   out->resize(variants.size());
-
-  Vector v;
-  double total=0.;
-  
+  Vector value;
   for (size_t ii=0; ii < variants.size(); ++ii)
-   total += (*out)[ii] = representation_->read(projections[ii], &v);
-   
-  (*out) /= total;
+    (*out)[ii] = representation_->read(projections[ii], &value); // reading approximated values
+}
+
+void ActionProbabilityPolicy::distribution(const Observation &in, const Action &prev, LargeVector *out) const
+{
+  
+
+  LargeVector apvalues;
+
+  values(in, &apvalues);
+  sampler_->distribution(apvalues, out);
+
+  for (size_t ii=0; ii < out->size(); ++ii) 
+  {
+   if (std::isnan((*out)[ii]))
+   {
+     ERROR("rgo action::ActionProbabilityPolicy::distribution:: (*distribution)(ii:" << ii << ") " << (*out)[ii]);
+     for (size_t kk=0; kk < out->size(); ++kk)
+       ERROR("rgo action::ActionProbabilityPolicy::distribution:: (*distribution)(kk:" << kk << ") " << (*out)[kk]);
+   }
+  }  
 }
