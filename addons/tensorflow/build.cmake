@@ -17,6 +17,7 @@ if (PROTOBUF_FOUND AND TENSORFLOW_FOUND)
               ${PROTO_SOURCES}
               ${SRC}/tensorflow.cpp
               ${SRC}/naf.cpp
+              ${SRC}/ddpg.cpp
              )
 
   # Add dependencies

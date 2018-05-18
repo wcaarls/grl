@@ -1,4 +1,6 @@
 #include <memory>
+#include <iostream>
+
 #include <grl/vector.h>
 
 #define TF_DECLARE(x) extern TF_##x x
@@ -117,6 +119,12 @@ namespace TF
           sz *= dims_[ii];
           
         return sz;
+      }
+      
+      friend std::ostream& operator<<(std::ostream& os, const Shape& shape)
+      {
+        os << shape.dims_;
+        return os;
       }
   };
 

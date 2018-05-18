@@ -876,6 +876,26 @@ void TensorFlowRepresentation::SessionRun(const std::vector<std::pair<std::strin
   if (TF::GetCode(tf_status) != TF_OK)
   {
     ERROR(TF::Message(tf_status));
+    
+    if (inputs.size())
+    {
+      ERROR("Inputs");
+      for (size_t ii=0; ii != inputs.size(); ++ii)
+        ERROR(" - " << inputs[ii].first << ": shape " << inputs[ii].second->shape()); 
+    }
+    if (outputs.size())
+    {
+      ERROR("Outputs");
+      for (size_t ii=0; ii != outputs.size(); ++ii)
+        ERROR(" - " << outputs[ii]);
+    }
+    if (ops.size())
+    {
+      ERROR("Operations");
+      for (size_t ii=0; ii != ops.size(); ++ii)
+        ERROR(" - " << ops[ii]);
+    }
+
     throw Exception("Could not run custom TensorFlow graph");
   }
   
