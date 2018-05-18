@@ -94,7 +94,7 @@ void BoundedQPolicy::distribution(const Observation &in, const Action &prev, Lar
 void BoundedQPolicy::filter(const Vector &in, const Vector &prev_out, const LargeVector &qvalues, LargeVector *filtered, std::vector<size_t> *idx) const
 {
   if (prev_out.size() != bound_.size())
-    throw bad_param("mapping/policy/value/q/bounded:bound");
+    throw bad_param("mapping/policy/discrete/value/q/bounded:bound");
     
   idx->clear();
   idx->reserve(qvalues.size());

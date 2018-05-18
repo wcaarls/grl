@@ -62,12 +62,6 @@ class Policy : public Mapping
       return act(in, out);
     }
     
-    /// Returns the probability of taking a discrete policy's actions in a certain state.
-    virtual void distribution(const Observation &in, const Action &prev, LargeVector *out) const
-    {
-      throw Exception("Policy does not support reading action distribution");
-    }
-    
     // From Mapping
     virtual double read(const Vector &in, Vector *result) const
     {
@@ -82,8 +76,16 @@ class Policy : public Mapping
     }
 };
 
+/// A discrete action policy
+class DiscretePolicy : public Policy
+{
+  public:
+    /// Returns the probability of taking a discrete policy's actions in a certain state.
+    virtual void distribution(const Observation &in, const Action &prev, LargeVector *out) const = 0;
+};
+
 /// A policy based on Q or V values.
-class ValuePolicy : public Policy
+class ValuePolicy : public DiscretePolicy
 {
   public:
     /// Returns the expected value of the action taken in state 'in'

@@ -10,7 +10,7 @@ environment:
     type: task/pendulum/swingup
     timeout: 2.99
 policy: 
-  type: mapping/policy/value/q
+  type: mapping/policy/discrete/value/q
   discretizer: 
     type: discretizer/uniform
     min: environment/task/action_min
@@ -79,7 +79,7 @@ experiment:
     test_agent: 
       type: agent/fixed
       policy: 
-        type: mapping/policy/value/q
+        type: mapping/policy/discrete/value/q
         discretizer: policy/discretizer
         projector: policy/projector
         representation: policy/representation

@@ -56,12 +56,13 @@ void UCBPolicy::reconfigure(const Configuration &config)
 {
 }
 
-void UCBPolicy::act(const Observation &in, Action *out) const
+void UCBPolicy::values(const Observation &in, LargeVector *out) const
 {
   std::vector<Vector> variants;
   discretizer_->options(in, &variants);
+  out->resize(variants.size());
 
-  LargeVector qvalues(variants.size()), visits(variants.size());
+  LargeVector visits(variants.size());
   double state_visits = 0;
   std::vector<ProjectionPtr> projections;
   projector_->project(in, variants, &projections);
@@ -70,25 +71,32 @@ void UCBPolicy::act(const Observation &in, Action *out) const
   
   for (size_t ii=0; ii < variants.size(); ++ii)
   {
-    qvalues[ii] = representation_->read(projections[ii], &value);
+    (*out)[ii] = representation_->read(projections[ii], &value);
     visits[ii] = visit_representation_->read(projections[ii], &value);
     state_visits += visits[ii];
   }
   
   state_visits = std::log(state_visits);
   
-  size_t action = 0;
   for (size_t ii=0; ii < variants.size(); ++ii)
   {
     // UCB1 exploration term
-    qvalues[ii] += 2*c_p_*sqrt(state_visits/fmax(1, visits[ii]));
+    (*out)[ii] += 2*c_p_*sqrt(state_visits/fmax(1, visits[ii]));
+  }
+}
+
+void UCBPolicy::act(const Observation &in, Action *out) const
+{
+  LargeVector qvalues;
+  size_t action=0;
   
+  values(in, &qvalues);
+  for (size_t ii=1; ii < qvalues.size(); ++ii)
     if (qvalues[ii] > qvalues[action])
       action = ii;
-  }
-  
-  *out = variants[action];
-  out->type = atGreedy;
+    
+  *out = discretizer_->at(in, action);
+  out->type = atExploratory;
 }
 
 void UCBPolicy::act(double time, const Observation &in, Action *out)
@@ -101,4 +109,34 @@ void UCBPolicy::act(double time, const Observation &in, Action *out)
   double visits = visit_representation_->read(projection, &v);
   visit_representation_->write(projection, VectorConstructor(visits+1));
   visit_representation_->finalize();
+}
+
+void UCBPolicy::distribution(const Observation &in, const Action &prev, LargeVector *out) const
+{
+  LargeVector qvalues;
+  size_t action=0;
+  
+  values(in, &qvalues);
+  out->resize(qvalues.size());
+  
+  for (size_t ii=1; ii < qvalues.size(); ++ii)
+  {
+    (*out)[ii] = 0;
+    if (qvalues[ii] > qvalues[action])
+      action = ii;
+  }
+  
+  (*out)[action] = 1;
+}
+
+double UCBPolicy::value(const Observation &in) const
+{
+  LargeVector qvalues;
+  values(in, &qvalues);
+
+  double v = qvalues[0];
+  for (size_t ii=1; ii < qvalues.size(); ++ii)
+    v = fmax(v, qvalues[ii]);    
+    
+  return v;
 }

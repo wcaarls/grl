@@ -21,7 +21,7 @@ experiment:
   agent: 
     type: agent/td
     policy: 
-      type: mapping/policy/action_probability
+      type: mapping/policy/discrete/action_probability
       discretizer: 
         type: discretizer/uniform
         min: experiment/environment/task/action_min
@@ -75,7 +75,7 @@ experiment:
   test_agent: 
     type: agent/fixed
     policy: 
-      type: mapping/policy/action_probability
+      type: mapping/policy/discrete/action_probability
       discretizer: experiment/agent/predictor/discretizer
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation

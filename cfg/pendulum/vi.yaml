@@ -21,7 +21,7 @@ experiment:
     type: agent/solver
     interval: 1
     policy: 
-      type: policy/value/v
+      type: policy/discrete/value/v
       gamma: 0.97
       discretizer: 
         type: discretizer/uniform

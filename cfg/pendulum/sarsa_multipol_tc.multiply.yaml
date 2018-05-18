@@ -21,7 +21,7 @@ experiment:
   agent: 
     type: agent/td
     policy: 
-      type: mapping/policy/multi
+      type: mapping/policy/discrete/multi
       strategy: policy_strategy_multiply_prob
       discretizer: 
         type: discretizer/uniform
@@ -30,7 +30,7 @@ experiment:
         steps: [3]
       policy: 
         - 
-          type: mapping/policy/value/q
+          type: mapping/policy/discrete/value/q
           discretizer: experiment/agent/policy/discretizer
           projector: 
             type: projector/tile_coding
@@ -53,7 +53,7 @@ experiment:
             decay_rate: 1
             decay_min: 0
         - 
-          type: mapping/policy/value/q
+          type: mapping/policy/discrete/value/q
           discretizer: experiment/agent/policy/discretizer
           projector: 
             type: projector/tile_coding
@@ -99,12 +99,12 @@ experiment:
   test_agent: 
     type: agent/fixed
     policy: 
-      type: mapping/policy/multi
+      type: mapping/policy/discrete/multi
       strategy: policy_strategy_multiply_prob
       discretizer: experiment/agent/policy/discretizer
       policy: 
         - 
-          type: mapping/policy/value/q
+          type: mapping/policy/discrete/value/q
           discretizer: experiment/agent/policy/discretizer
           projector: experiment/agent/policy/policy/0/projector
           representation: experiment/agent/policy/policy/0/representation
@@ -114,7 +114,7 @@ experiment:
             decay_rate: 1
             decay_min: 0
         - 
-          type: mapping/policy/value/q
+          type: mapping/policy/discrete/value/q
           discretizer: experiment/agent/policy/discretizer
           projector: experiment/agent/policy/policy/1/projector
           representation: experiment/agent/policy/policy/1/representation
