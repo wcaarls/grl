@@ -23,7 +23,7 @@ experiment:
     batch_size: 64
     threads: 0
     policy: 
-      type: mapping/policy/value/q
+      type: mapping/policy/discrete/value/q
       discretizer:
         type: discretizer/uniform
         min: experiment/environment/task/action_min
@@ -57,7 +57,7 @@ experiment:
   test_agent: 
     type: agent/fixed
     policy: 
-      type: mapping/policy/value/q
+      type: mapping/policy/discrete/value/q
       discretizer: experiment/agent/policy/discretizer
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
@@ -95,7 +95,7 @@ target_visualization:
   savepoints: 1048576
   projection: mean
   policy:
-    type: mapping/policy/value/q
+    type: mapping/policy/discrete/value/q
     discretizer: experiment/test_agent/policy/discretizer
     projector: experiment/test_agent/policy/projector
     representation: experiment/test_agent/policy/representation/target

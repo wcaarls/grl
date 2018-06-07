@@ -21,7 +21,7 @@ experiment:
     type: agent/solver
     interval: 1
     policy: 
-      type: mapping/policy/value/q
+      type: mapping/policy/discrete/value/q
       discretizer: 
         type: discretizer/uniform
         min: experiment/environment/task/action_min
@@ -76,7 +76,7 @@ vis_value:
   mapping: 
     type: mapping/value
     policy:
-      type: mapping/policy/value/q
+      type: mapping/policy/discrete/value/q
       discretizer: experiment/agent/policy/discretizer
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation

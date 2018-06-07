@@ -35,10 +35,10 @@ namespace grl
 {
 
 /// Policy that combines two or more sub-policies using different strategies
-class MultiPolicy : public Policy
+class DiscreteMultiPolicy : public DiscretePolicy
 {
   public:
-    TYPEINFO("mapping/policy/multi", "Combines multiple policies")
+    TYPEINFO("mapping/policy/discrete/multi", "Combines multiple discrete policies")
     
     enum CombinationStrategy {csAddProbabilities, csMultiplyProbabilities, csMajorityVotingProbabilities, csRankVotingProbabilities, csBinningProbabilities, csDensityBasedProbabilities, csDataCenterProbabilities};
 
@@ -46,11 +46,11 @@ class MultiPolicy : public Policy
     std::string strategy_str_;
     CombinationStrategy strategy_;
     Discretizer *discretizer_;
-    TypedConfigurableList<Policy> policy_;
+    TypedConfigurableList<DiscretePolicy> policy_;
     double tau_;
 
   public:
-    MultiPolicy() : tau_(0.1) { }
+    DiscreteMultiPolicy() : tau_(0.1) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -60,7 +60,11 @@ class MultiPolicy : public Policy
     // From Policy
     virtual void act(const Observation &in, Action *out) const;
     virtual void act(double time, const Observation &in, Action *out);
+    
+    // From DiscretePolicy
     virtual void distribution(const Observation &in, const Action &prev, LargeVector *out) const;
+    
+  protected:
     virtual void softmax(const LargeVector &values, LargeVector *distribution) const;
     virtual void normalized_function(const LargeVector &values, LargeVector *distribution) const;
 };

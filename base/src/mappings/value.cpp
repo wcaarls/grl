@@ -33,7 +33,7 @@ REGISTER_CONFIGURABLE(ValueMapping)
 
 void ValueMapping::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("policy", "mapping/policy/value", "Value based policy", policy_));
+  config->push_back(CRP("policy", "mapping/policy/discrete/value", "Value based policy", policy_));
 }
 
 void ValueMapping::configure(Configuration &config)

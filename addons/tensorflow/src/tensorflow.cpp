@@ -359,6 +359,10 @@ TensorFlowRepresentation &TensorFlowRepresentation::copy(const Configurable &obj
 
 double TensorFlowRepresentation::read(const ProjectionPtr &projection, Vector *result, Vector *stddev) const
 {
+  CRAWL("single read");
+  
+  timer tmr;
+
   VectorProjection *vp = dynamic_cast<VectorProjection*>(projection.get());
   
   if (vp)
@@ -430,12 +434,16 @@ double TensorFlowRepresentation::read(const ProjectionPtr &projection, Vector *r
     throw Exception("representation/tensorflow requires a projector returning a VectorProjection");
     
   if (stddev) *stddev = Vector();
+
+  CRAWL("single read done " << tmr.elapsed());
   
   return (*result)[0];
 }
 
 void TensorFlowRepresentation::write(const ProjectionPtr projection, const Vector &target, const Vector &alpha)
 {
+  CRAWL("enqueue single write");
+ 
   VectorProjection *vp = dynamic_cast<VectorProjection*>(projection.get());
   
   if (vp)
@@ -457,6 +465,8 @@ void TensorFlowRepresentation::write(const ProjectionPtr projection, const Vecto
 
 void TensorFlowRepresentation::update(const ProjectionPtr projection, const Vector &delta)
 {
+  CRAWL("enqueue single update");
+  
   VectorProjection *vp = dynamic_cast<VectorProjection*>(projection.get());
   
   if (vp)
@@ -471,6 +481,10 @@ void TensorFlowRepresentation::update(const ProjectionPtr projection, const Vect
 
 void TensorFlowRepresentation::finalize()
 {
+  TRACE("finalize " << batch_.size());
+  
+  timer tmr;
+  
   // Convert input to tensor
   int64_t input_shape[] = {(int)batch_.size(), (int)batch_[0].first.size()};
   TF_Tensor *input = TF::AllocateTensor(TF_FLOAT, input_shape, 2, batch_.size() * batch_[0].first.size() * sizeof(float));
@@ -535,6 +549,8 @@ void TensorFlowRepresentation::finalize()
 
   checkSynchronize();
   batch_.clear();
+  
+  TRACE("finalize done " << tmr.elapsed());
 }
 
 void TensorFlowRepresentation::batchRead(size_t sz)
@@ -561,6 +577,8 @@ void TensorFlowRepresentation::batchWrite(size_t sz)
 
 void TensorFlowRepresentation::enqueue(const ProjectionPtr &projection)
 {
+  CRAWL("enqueue read");
+  
   VectorProjection *vp = dynamic_cast<VectorProjection*>(projection.get());
   
   if (vp)
@@ -578,6 +596,8 @@ void TensorFlowRepresentation::enqueue(const ProjectionPtr &projection)
 
 void TensorFlowRepresentation::enqueue(const ProjectionPtr &projection, const Vector &target)
 {
+  CRAWL("enqueue write");
+  
   VectorProjection *vp = dynamic_cast<VectorProjection*>(projection.get());
   
   if (vp)
@@ -600,6 +620,10 @@ void TensorFlowRepresentation::enqueue(const ProjectionPtr &projection, const Ve
 
 void TensorFlowRepresentation::read(Matrix *out)
 {
+  TRACE("batch read " << counter_);
+  
+  timer tmr;
+  
   // Prepare SessionRun inputs
   std::vector<TF_Output>  input_ops {{TF::GraphOperationByName(graph_, input_layer_.c_str()), 0}};
   std::vector<TF_Tensor*> input_val {batch_input_};
@@ -660,10 +684,16 @@ void TensorFlowRepresentation::read(Matrix *out)
   
 //  NOTICE("read from:\n" << (input_.tensor<float, 2>()));
 //  NOTICE("read result:\n" << *out);
+
+  TRACE("batch read done " << tmr.elapsed());
 }
 
 void TensorFlowRepresentation::write()
 {
+  TRACE("batch write " << counter_);
+  
+  timer tmr;
+  
   // Prepare SessionRun inputs
   std::vector<TF_Output> input_ops  {{TF::GraphOperationByName(graph_, input_layer_.c_str()), 0},
                                      {TF::GraphOperationByName(graph_, output_target_.c_str()), 0}};
@@ -714,6 +744,9 @@ void TensorFlowRepresentation::write()
   checkSynchronize();
 //  NOTICE("write to:\n" << (input_.tensor<float, 2>()));
 //  NOTICE("target:\n" << (target_.tensor<float, 2>()));
+
+
+  TRACE("batch write done " << tmr.elapsed());
 }
 
 size_t TensorFlowRepresentation::size() const
@@ -723,6 +756,10 @@ size_t TensorFlowRepresentation::size() const
 
 const LargeVector &TensorFlowRepresentation::params() const
 {
+  TRACE("params");
+  
+  timer tmr;
+  
   // Prepare SessionRun outputs
   std::vector<TF_Output>  output_ops(weights_read_.size());
   for (size_t oo=0; oo < weights_read_.size(); ++oo)
@@ -769,11 +806,17 @@ const LargeVector &TensorFlowRepresentation::params() const
     TF::DeleteTensor(output_val[oo]);
   TF::DeleteStatus(tf_status);
 
+  TRACE("params done " << tmr.elapsed());
+
   return params_;
 }
 
 void TensorFlowRepresentation::setParams(const LargeVector &params)
 {
+  TRACE("setParams");
+  
+  timer tmr;
+
   if (params.size() != params_.size())
   {
     ERROR("Parameter vector size mismatch");
@@ -822,6 +865,8 @@ void TensorFlowRepresentation::setParams(const LargeVector &params)
   for (size_t ii=0; ii < input_val.size(); ++ii)
     TF::DeleteTensor(input_val[ii]);
   TF::DeleteStatus(tf_status);
+
+  TRACE("setParams done " << tmr.elapsed());
 }
 
 void TensorFlowRepresentation::SessionRun(const std::vector<std::pair<std::string, TensorPtr> > &inputs, const std::vector<std::string> &outputs, const std::vector<std::string> &ops, std::vector<TensorPtr> *results, bool learn)
@@ -876,6 +921,26 @@ void TensorFlowRepresentation::SessionRun(const std::vector<std::pair<std::strin
   if (TF::GetCode(tf_status) != TF_OK)
   {
     ERROR(TF::Message(tf_status));
+    
+    if (inputs.size())
+    {
+      ERROR("Inputs");
+      for (size_t ii=0; ii != inputs.size(); ++ii)
+        ERROR(" - " << inputs[ii].first << ": shape " << inputs[ii].second->shape()); 
+    }
+    if (outputs.size())
+    {
+      ERROR("Outputs");
+      for (size_t ii=0; ii != outputs.size(); ++ii)
+        ERROR(" - " << outputs[ii]);
+    }
+    if (ops.size())
+    {
+      ERROR("Operations");
+      for (size_t ii=0; ii != ops.size(); ++ii)
+        ERROR(" - " << ops[ii]);
+    }
+
     throw Exception("Could not run custom TensorFlow graph");
   }
   

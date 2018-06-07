@@ -64,10 +64,10 @@ class ActionPolicy : public Policy
 };
 
 /// Policy based on an action-probability representation.
-class ActionProbabilityPolicy : public Policy
+class ActionProbabilityPolicy : public DiscretePolicy
 {
   public:
-    TYPEINFO("mapping/policy/action_probability", "Policy based on an action-probability representation")
+    TYPEINFO("mapping/policy/discrete/action_probability", "Policy based on an action-probability representation")
 
   protected:
     Discretizer *discretizer_;
@@ -91,6 +91,8 @@ class ActionProbabilityPolicy : public Policy
   
     // From Policy
     virtual void act(const Observation &in, Action *out) const;
+    
+    // From DiscretePolicy
     virtual void distribution(const Observation &in, const Action &prev, LargeVector *out) const;
     
   protected:

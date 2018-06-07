@@ -29,17 +29,17 @@
 
 using namespace grl;
 
-REGISTER_CONFIGURABLE(MultiPolicy)
+REGISTER_CONFIGURABLE(DiscreteMultiPolicy)
 
-void MultiPolicy::request(ConfigurationRequest *config)
+void DiscreteMultiPolicy::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("strategy", "Combination strategy", strategy_str_, CRP::Configuration, {"policy_strategy_add_prob", "policy_strategy_multiply_prob", "policy_strategy_majority_voting_prob", "policy_strategy_rank_voting_prob", "policy_strategy_binning_prob", "policy_strategy_density_based_prob", "policy_strategy_data_center_prob"}));
   config->push_back(CRP("tau", "Temperature of Boltzmann distribution", tau_));
   config->push_back(CRP("discretizer", "discretizer.action", "Action discretizer", discretizer_));
-  config->push_back(CRP("policy", "mapping/policy", "Sub-policies", &policy_));
+  config->push_back(CRP("policy", "mapping/policy/discrete", "Sub-policies", &policy_));
 }
 
-void MultiPolicy::configure(Configuration &config)
+void DiscreteMultiPolicy::configure(Configuration &config)
 {
   strategy_str_ = config["strategy"].str();
   if (strategy_str_ == "policy_strategy_add_prob")
@@ -57,7 +57,7 @@ void MultiPolicy::configure(Configuration &config)
   else if (strategy_str_ == "policy_strategy_data_center_prob")
     strategy_ = csDataCenterProbabilities;
   else
-    throw bad_param("mapping/policy/multi:strategy");
+    throw bad_param("mapping/policy/discrete/multi:strategy");
 
   tau_ = config["tau"];
   
@@ -66,14 +66,14 @@ void MultiPolicy::configure(Configuration &config)
   policy_ = *(ConfigurableList*)config["policy"].ptr();
   
   if (policy_.empty())
-    throw bad_param("mapping/policy/multi:policy");
+    throw bad_param("mapping/policy/discrete/multi:policy");
 }
 
-void MultiPolicy::reconfigure(const Configuration &config)
+void DiscreteMultiPolicy::reconfigure(const Configuration &config)
 {
 }
 
-void MultiPolicy::act(const Observation &in, Action *out) const
+void DiscreteMultiPolicy::act(const Observation &in, Action *out) const
 {
   LargeVector dist;
   distribution(in, *out, &dist);
@@ -84,7 +84,7 @@ void MultiPolicy::act(const Observation &in, Action *out) const
   if (action >= variants.size())
   {
     ERROR("Subpolicy action out of bounds: " << action << " >= " << variants.size());
-    throw bad_param("mapping/policy/multi:policy");
+    throw bad_param("mapping/policy/discrete/multi:policy");
   }
 
   *out = variants[action];
@@ -94,7 +94,7 @@ void MultiPolicy::act(const Observation &in, Action *out) const
   out->type = atExploratory;
 }
 
-void MultiPolicy::act(double time, const Observation &in, Action *out)
+void DiscreteMultiPolicy::act(double time, const Observation &in, Action *out)
 {
   // Call downstream policies to update time
   for (size_t ii=0; ii != policy_.size(); ++ii)
@@ -107,7 +107,7 @@ void MultiPolicy::act(double time, const Observation &in, Action *out)
   act(in, out);
 }
 
-void MultiPolicy::distribution(const Observation &in, const Action &prev, LargeVector *out) const
+void DiscreteMultiPolicy::distribution(const Observation &in, const Action &prev, LargeVector *out) const
 {
   LargeVector dist;
   LargeVector param_choice;
@@ -138,7 +138,7 @@ void MultiPolicy::distribution(const Observation &in, const Action &prev, LargeV
         if (dist.size() != out->size())
         {
           ERROR("Subpolicy " << ii << " has incompatible number of actions");
-          throw bad_param("mapping/policy/multi:policy");
+          throw bad_param("mapping/policy/discrete/multi:policy");
         }
 
         for (size_t jj=0; jj < dist.size(); ++jj)
@@ -154,10 +154,10 @@ void MultiPolicy::distribution(const Observation &in, const Action &prev, LargeV
         }
       }
       
-      CRAWL("MultiPolicy::param_choice: " << param_choice);
-      
+      CRAWL("DiscreteMultiPolicy::param_choice: " << param_choice);
+
       normalized_function(param_choice, out);
-      CRAWL("MultiPolicy::out: " << (*out) << "\n");
+      CRAWL("DiscreteMultiPolicy::out: " << (*out) << "\n");
       break;
         
     case csMultiplyProbabilities:
@@ -175,16 +175,16 @@ void MultiPolicy::distribution(const Observation &in, const Action &prev, LargeV
         if (dist.size() != out->size())
         {
           ERROR("Subpolicy " << ii << " has incompatible number of actions");
-          throw bad_param("mapping/policy/multi:policy");
+          throw bad_param("mapping/policy/discrete/multi:policy");
         }
 
         for (size_t jj=0; jj < dist.size(); ++jj)
           param_choice[jj] *= dist[jj];
       }
       
-      CRAWL("MultiPolicy::param_choice: " << param_choice);
+      CRAWL("DiscreteMultiPolicy::param_choice: " << param_choice);
       normalized_function(param_choice, out);
-      CRAWL("MultiPolicy::out: " << (*out) << "\n");
+      CRAWL("DiscreteMultiPolicy::out: " << (*out) << "\n");
       
       break;
         
@@ -202,7 +202,7 @@ void MultiPolicy::distribution(const Observation &in, const Action &prev, LargeV
         if (dist.size() != out->size())
         {
           ERROR("Subpolicy " << ii << " has incompatible number of actions");
-          throw bad_param("mapping/policy/multi:policy");
+          throw bad_param("mapping/policy/discrete/multi:policy");
         }
                 
         double p_best_ind = 0.0;
@@ -218,9 +218,9 @@ void MultiPolicy::distribution(const Observation &in, const Action &prev, LargeV
         param_choice[i_ind] += 1;
       }
       
-      CRAWL("MultiPolicy::param_choice: " << param_choice);
+      CRAWL("DiscreteMultiPolicy::param_choice: " << param_choice);
       softmax(param_choice, out);
-      CRAWL("MultiPolicy::out: " << (*out));
+      CRAWL("DiscreteMultiPolicy::out: " << (*out));
       
       break;
         
@@ -241,10 +241,10 @@ void MultiPolicy::distribution(const Observation &in, const Action &prev, LargeV
         if (dist.size() != out->size())
         {
           ERROR("Subpolicy " << ii << " has incompatible number of actions");
-          throw bad_param("mapping/policy/multi:policy");
+          throw bad_param("mapping/policy/discrete/multi:policy");
         }
         
-        CRAWL("MultiPolicy::dist: " << dist);
+        CRAWL("DiscreteMultiPolicy::dist: " << dist);
         //raking        
         rank_weights = LargeVector::Ones(out->size());
         for (size_t jj=0; jj < dist.size(); ++jj)
@@ -254,39 +254,25 @@ void MultiPolicy::distribution(const Observation &in, const Action &prev, LargeV
           {
             if(dist[jj] > dist[kk])
               ++rank_weights[jj];
-            CRAWL("MultiPolicy::dist[: " << jj << "](" << dist[jj] << ") > dist [" << kk << "](" << dist[kk] << "): rank_weights[" << jj << "]("  << rank_weights[jj] << ")");
+            CRAWL("DiscreteMultiPolicy::dist[: " << jj << "](" << dist[jj] << ") > dist [" << kk << "](" << dist[kk] << "): rank_weights[" << jj << "]("  << rank_weights[jj] << ")");
           }
-          CRAWL("MultiPolicy::policy: " << ii);
-          CRAWL("MultiPolicy::rank_weights: " << rank_weights);
-          CRAWL("\nMultiPolicy::param_choice: " << param_choice << '\n');
+          CRAWL("DiscreteMultiPolicy::policy: " << ii);
+          CRAWL("DiscreteMultiPolicy::rank_weights: " << rank_weights);
+          CRAWL("\nDiscreteMultiPolicy::param_choice: " << param_choice << '\n');
           param_choice[jj] += rank_weights[jj];
-          CRAWL("\nMultiPolicy::param_choice: " << param_choice << '\n');
+          CRAWL("\nDiscreteMultiPolicy::param_choice: " << param_choice << '\n');
         }
       }
       
-      CRAWL("\nMultiPolicy::param_choice: " << param_choice << '\n');
+      CRAWL("\nDiscreteMultiPolicy::param_choice: " << param_choice << '\n');
       softmax(param_choice, out);
-      CRAWL("MultiPolicy::out: " << (*out));
+      CRAWL("DiscreteMultiPolicy::out: " << (*out));
       }
-      break;
-      
-    case csBinningProbabilities:
-      policy_[0]->distribution(in, prev, out);
-      std::cout << "MultiPolicy::csBinningProbabilities::policy[0] (*out) - " << (*out) << std::endl;
-      throw Exception("MultiPolicy::csBinningProbabilities::update not implemented");
-      break;
-      
-    case csDensityBasedProbabilities:
-      throw Exception("MultiPolicy::csDensityBasedProbabilities::update not implemented");
-      break;
-      
-    case csDataCenterProbabilities:
-      throw Exception("MultiPolicy::csDataCenterProbabilities::update not implemented");
       break;
   }      
 }
 
-void MultiPolicy::softmax(const LargeVector &values, LargeVector *distribution) const
+void DiscreteMultiPolicy::softmax(const LargeVector &values, LargeVector *distribution) const
 {
   LargeVector v = LargeVector::Zero(values.size());
   for (size_t ii=0; ii < values.size(); ++ii)
@@ -333,7 +319,7 @@ void MultiPolicy::softmax(const LargeVector &values, LargeVector *distribution) 
   }
 }
 
-void MultiPolicy::normalized_function(const LargeVector &values, LargeVector *distribution) const
+void DiscreteMultiPolicy::normalized_function(const LargeVector &values, LargeVector *distribution) const
 {  
   LargeVector v = LargeVector::Zero(values.size());
   for (size_t ii=0; ii < values.size(); ++ii)

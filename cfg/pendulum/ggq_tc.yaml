@@ -46,7 +46,7 @@ experiment:
         output_min: []
         output_max: []
       policy: 
-        type: mapping/policy/value/q
+        type: mapping/policy/discrete/value/q
         discretizer: experiment/agent/policy/discretizer
         projector: experiment/agent/predictor/projector
         representation: experiment/agent/predictor/representation

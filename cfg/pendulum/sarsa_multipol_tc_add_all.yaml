@@ -54,7 +54,7 @@ experiment:
             decay_rate: 1
             decay_min: 0
         - 
-          type: mapping/policy/action_probability
+          type: mapping/policy/discrete/action_probability
           discretizer: experiment/agent/policy/discretizer
           projector: 
             type: projector/tile_coding
@@ -206,7 +206,7 @@ experiment:
           sampler: 
             type: sampler/greedy
         - 
-          type: mapping/policy/action_probability
+          type: mapping/policy/discrete/action_probability
           discretizer: experiment/agent/policy/discretizer
           projector: experiment/agent/policy/policy/1/projector
           representation: experiment/agent/policy/policy/1/representation

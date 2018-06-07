@@ -46,6 +46,7 @@ add_library(${TARGET} SHARED
             ${SRC}/environments/mountain.cpp
             ${SRC}/environments/communicator.cpp
             ${SRC}/environments/multi_agent.cpp
+            ${SRC}/environments/integrator.cpp
             ${SRC}/experiments/approx_test.cpp
             ${SRC}/experiments/online_learning.cpp
             ${SRC}/experiments/batch_learning.cpp
