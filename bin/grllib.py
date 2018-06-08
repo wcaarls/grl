@@ -26,6 +26,32 @@ def dict_constructor(loader, node):
 yaml.add_representer(hashabledict, dict_representer)
 yaml.add_constructor(_mapping_tag, dict_constructor)
 
+class Worker():
+  def __init__(self, socket, output=""):
+    self.socket = socket
+    self.output = output
+
+  def read(self, regret='simple'):
+    """Read worker result, returning either simple or cumulative regret"""
+    data = [float(v) for v in self.socket.makefile().readlines()]
+    self.socket.close()
+    
+    if self.output:
+      stream = open(self.output + ".txt", 'w')
+      for d in data:
+        print >>stream, d
+      stream.close()
+    
+    if regret == 'simple':
+      sample = int(len(data)/20)
+      if sample == 0:
+        raise Exception("Worker did not return data")
+      return sum(data[-sample:])/sample
+    elif regret == 'cumulative':
+      return sum(data)
+    else:
+      raise Exception("Unknown regret type " + regret)
+
 class Server():
   def __init__(self, port=3373):
     """Spawn thread to listen to connections"""
@@ -54,7 +80,7 @@ class Server():
     except e:
       raise e
 
-  def submit(self, conf):
+  def submit(self, conf, output=""):
     """ Submit job to available worker"""
     # Wait for available worker
     with self.condition:
@@ -66,23 +92,7 @@ class Server():
     w.send(conf + '\0')
     
     # Return stream for reading by submitter
-    return w
-
-def readWorker(w, regret):
-  """Read worker result, returning either simple or cumulative regret"""
-  data = [float(v) for v in w.makefile().readlines()]
-  w.close()
-  
-  if regret == 'simple':
-    sample = int(len(data)/20)
-    if sample == 0:
-      raise Exception("Worker did not return data")
-    return sum(data[-sample:])/sample
-  elif regret == 'cumulative':
-    return sum(data)
-  else:
-    raise Exception("Unknown regret type " + regret)
-
+    return Worker(w, output)
 
 def splittype(type):
   """Splits type into base and role."""
