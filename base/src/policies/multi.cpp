@@ -31,6 +31,158 @@ using namespace grl;
 
 REGISTER_CONFIGURABLE(DiscreteMultiPolicy)
 
+REGISTER_CONFIGURABLE(MultiPolicy)
+
+void MultiPolicy::request(ConfigurationRequest *config)
+{
+  config->push_back(CRP("strategy", "Combination strategy", strategy_str_, CRP::Configuration, {"policy_strategy_binning_prob", "policy_strategy_density_based_prob", "policy_strategy_data_center_prob"}));
+//"policy_strategy_add_prob", "policy_strategy_multiply_prob", "policy_strategy_majority_voting_prob", "policy_strategy_rank_voting_prob", 
+config->push_back(CRP("policy", "mapping/policy", "Sub-policies", &policy_));
+
+  config->push_back(CRP("output_min", "vector.action_min", "Lower limit on outputs", min_, CRP::System));
+  config->push_back(CRP("output_max", "vector.action_max", "Upper limit on outputs", max_, CRP::System));
+}
+
+void MultiPolicy::configure(Configuration &config)
+{
+  strategy_str_ = config["strategy"].str();
+  /*if (strategy_str_ == "policy_strategy_add_prob")
+    strategy_ = csAddProbabilities;
+  else if (strategy_str_ == "policy_strategy_multiply_prob")
+    strategy_ = csMultiplyProbabilities;
+  else if (strategy_str_ == "policy_strategy_majority_voting_prob")
+    strategy_ = csMajorityVotingProbabilities;
+  else if (strategy_str_ == "policy_strategy_rank_voting_prob")
+    strategy_ = csRankVotingProbabilities;
+  else */
+  if (strategy_str_ == "policy_strategy_binning_prob")
+    strategy_ = csBinningProbabilities;
+  else if (strategy_str_ == "policy_strategy_density_based_prob")
+    strategy_ = csDensityBasedProbabilities;
+  else if (strategy_str_ == "policy_strategy_data_center_prob")
+    strategy_ = csDataCenterProbabilities;
+  else
+    throw bad_param("mapping/policy/multi:strategy");
+  
+  policy_ = *(ConfigurableList*)config["policy"].ptr();
+  
+  if (policy_.empty())
+    throw bad_param("mapping/policy/multi:policy");
+}
+
+void MultiPolicy::reconfigure(const Configuration &config)
+{
+}
+
+void MultiPolicy::act(const Observation &in, Action *out) const
+{
+  LargeVector dist;
+  distribution(in, *out, &dist);
+  size_t action = sample(dist);
+
+  //std::vector<Vector> variants;
+  //discretizer_->options(in, &variants);
+  /*
+  if (action >= variants.size())
+  {
+    ERROR("Subpolicy action out of bounds: " << action << " >= " << variants.size());
+    throw bad_param("mapping/policy/discrete/multi:policy");
+  }
+  */
+
+  //*out = variants[action];
+  
+  // Actually, this may be different per policy. Just to be on the safe side,
+  // we always cut off all off-policy traces.
+  //out->type = atExploratory;
+
+  //########################################################
+  //########################################################
+
+  //ProjectionPtr p = projector_->project(in);
+  //representation_->read(p, &out->v);
+  //out->type = atGreedy;
+  //CRAWL("MultiPolicy::act: " << (*out)));
+  
+  // Some representations may not always return a value.
+  //if (!out->size())
+  //  *out = (min_+max_)/2;  
+
+}
+
+void MultiPolicy::distribution(const Observation &in, const Action &prev, LargeVector *out) const
+{
+  LargeVector dist;
+  LargeVector param_choice;
+  std::vector<Vector> variants;
+  Action action;
+  
+  switch (strategy_)
+  {
+    case csBinningProbabilities:   
+      //policy_[0]->act(in, variants);
+      policy_[0]->act(in, &action);
+
+      CRAWL("MultiPolicy::policy_[0]: " << policy_[0]);
+      CRAWL("MultiPolicy::action: " << action);
+      /*
+      param_choice = LargeVector::Zero(out->size());
+      
+      for (size_t ii = 0; ii != out->size(); ++ii) {
+        if (std::isnan((*out)[ii]))
+        {
+          ERROR("MultiPolicy::param_choice::csAddProbabilities policy_[0] out(ii:" << ii << ") " << (*out)[ii]);
+          for (size_t kk=0; kk < out->size(); ++kk)
+            ERROR("MultiPolicy::dist::csAddProbabilities out(kk:" << kk << ") " << (*out)[kk]);
+        }
+      }
+      */
+      for (size_t ii=0; ii != policy_.size(); ++ii)
+      {
+        // Add subsequent policies' probabilities according to chosen strategy
+        policy_[ii]->act(in, &action);
+        
+        CRAWL("MultiPolicy::policy_[ii=" << ii << "]: " << policy_[ii]);
+        CRAWL("MultiPolicy::action: " << action);
+      
+        
+        /*if (dist.size() != out->size())
+        {
+          ERROR("Subpolicy " << ii << " has incompatible number of actions");
+          throw bad_param("mapping/policy/discrete/multi:policy");
+        }
+
+        for (size_t jj=0; jj < dist.size(); ++jj)
+        {
+          param_choice[jj] += dist[jj];
+        
+          if (std::isnan(param_choice[jj]))
+          {
+            ERROR("MultiPolicy::param_choice::csAddProbabilities (jj:" << jj << ") " << param_choice[jj]);
+            for (size_t kk=0; kk < dist.size(); ++kk)
+              ERROR("MultiPolicy::dist::csAddProbabilities (kk:" << kk << ") " << dist[kk]);
+          }
+        }*/
+      }
+      /*
+      CRAWL("DiscreteMultiPolicy::param_choice: " << param_choice);
+
+      normalized_function(param_choice, out);
+      CRAWL("DiscreteMultiPolicy::out: " << (*out) << "\n");
+      */
+      break;
+        
+    case csDensityBasedProbabilities:
+      throw bad_param("mapping/policy/multi:policy/csDensityBasedProbabilities");
+      break;
+        
+    case csDataCenterProbabilities:
+      throw bad_param("mapping/policy/multi:policy/csDataCenterProbabilities");
+      break;
+  } 
+
+}
+
 void DiscreteMultiPolicy::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("strategy", "Combination strategy", strategy_str_, CRP::Configuration, {"policy_strategy_add_prob", "policy_strategy_multiply_prob", "policy_strategy_majority_voting_prob", "policy_strategy_rank_voting_prob", "policy_strategy_binning_prob", "policy_strategy_density_based_prob", "policy_strategy_data_center_prob"}));
