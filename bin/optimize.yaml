@@ -1,8 +1,9 @@
 file: pendulum.yaml
 algorithm: random
-repetitions: 100
+repetitions: 20
 regret: simple
 rounds: 100
+#output: $@-gamma$0-lambda$1-sres$2-ares$3-epsilon$4-alpha$5
 parameters:
   - name: /experiment/agent/predictor/gamma
     values:

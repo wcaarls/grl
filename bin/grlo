@@ -5,8 +5,28 @@ import yaml, sys, os, copy, string, math, random, glob
 from grllib import *
 
 srv = Server()
+output_counter = -1
 
-def line_search(conf, param, values, repetitions, regret):
+def getoutput(base, spec, conf):
+  global output_counter
+  output_counter = output_counter + 1
+  
+  if "output" in spec:
+    pattern = spec["output"]
+    pattern = pattern.replace("$@", base)
+      
+    for i in range(len(spec["parameters"])):
+      curval = getconf(conf, spec["parameters"][i]["name"])
+      pattern = pattern.replace("$%d" % i, curval)
+      
+      for v in range(len(spec["parameters"][i]["values"])):
+        if spec["parameters"][i]["values"][v] == curval:
+          pattern = pattern.replace("#%d" % i, str(v))
+    return pattern + "-" + str(output_counter)
+  else:
+    return ""
+
+def line_search(base, spec, conf, param, values, repetitions, regret):
   print "Optimizing", param
 
   vworkers = {}
@@ -15,13 +35,13 @@ def line_search(conf, param, values, repetitions, regret):
     setconf(newconf, param, v)
     confstr = yaml.dump(newconf)
     
-    vworkers[v] = [srv.submit(confstr) for r in range(repetitions)]
+    vworkers[v] = [srv.submit(confstr, getoutput(base, spec, newconf)) for r in range(repetitions)]
     
     print "Submitted", v
   
   vresults = {}
   for value, workers in vworkers.iteritems():
-    results = [readWorker(w, regret) for w in workers]
+    results = [w.read(regret) for w in workers]
     
     avg = sum(results)/len(results)
     stddev = math.sqrt(sum([(r-avg)**2 for r in results])/(len(results)-1))
@@ -50,7 +70,7 @@ def replacement_optimize(base, spec, conf):
         setconf(newconf, p["name"], p["values"][random.randrange(len(p["values"]))])
       pop.append((newconf, 0, 0))
     
-    workers = [srv.submit(yaml.dump(c)) for (c, n, a) in pop]
+    workers = [srv.submit(yaml.dump(c), getoutput(base, spec, c)) for (c, n, a) in pop]
     
     print "Gathering results"
     
@@ -168,13 +188,13 @@ def linlee_optimize(base, spec, conf):
     print "Submitting jobs for", base, "round", round, "of", spec["rounds"]
   
     # Submit jobs
-    jobs = [(c, [srv.submit(yaml.dump(c)) for i in range(a)]) for (c, (t0, t1, t2, a)) in pop.iteritems()]
+    jobs = [(c, [srv.submit(yaml.dump(c), getoutput(base, spec, c)) for i in range(a)]) for (c, (t0, t1, t2, a)) in pop.iteritems()]
     
     print "Gathering results"
 
     # Gather
     for (c, workers) in jobs:
-      results = [readWorker(w, spec["regret"]) for w in workers]
+      results = [w.read(spec["regret"]) for w in workers]
       (t0, t1, t2, a) = pop[c]
       t0 += len(results)
       t1 += sum(results)
@@ -279,14 +299,14 @@ def ucb1_optimize(base, spec, conf):
     print "Submitting first", spec["repetitions"], "evaluations"
     
     # Submit jobs
-    workers = [(c, srv.submit(yaml.dump(c))) for c in pop]
+    workers = [(c, srv.submit(yaml.dump(c), getoutput(base, spec, c))) for c in pop]
       
     print "Gathering results"
     
     print workers[0][1].gettimeout()
 
     # Gather results
-    pop = sorted([(c, 1, readWorker(w, spec["regret"])) for (c, w) in workers], key=lambda (c, n, a): a)
+    pop = sorted([(c, 1, w.read(spec["regret"])) for (c, w) in workers], key=lambda (c, n, a): a)
     
     print "Population", [a for (c, n, a) in pop]
     
@@ -311,7 +331,7 @@ def ucb1_optimize(base, spec, conf):
         bi = max(xrange(len(ucb)), key=ucb.__getitem__)
         
         # Evaluate
-        workers.append((bi, srv.submit(yaml.dump(pop[bi][0]))))
+        workers.append((bi, srv.submit(yaml.dump(pop[bi][0]), getoutput(base, spec, c))))
         
         # Simulate getting mean for that configuration
         (c, n, a) = newpop[bi]
@@ -323,7 +343,7 @@ def ucb1_optimize(base, spec, conf):
       for (i, w) in workers:
         (c, n, a) = pop[i]
         try:
-          pop[i] = (c, n+1, (n*a+readWorker(w, spec["regret"]))/(n+1))
+          pop[i] = (c, n+1, (n*a+w.read(spec["regret"]))/(n+1))
         except:
           print "Cannot read worker for configuration", i
           print yaml.dump(c)
@@ -368,14 +388,14 @@ def staged_optimize(base, spec, conf):
       print "Submitting", repetitions, "configurations with", runs, "runs each"
     
       # Submit jobs
-      workers = [(c, [srv.submit(yaml.dump(c)) for r in range(runs)]) for c in pop]
+      workers = [(c, [srv.submit(yaml.dump(c), getoutput(base, spec, c)) for r in range(runs)]) for c in pop]
       
       print "Gathering results"
 
       # Gather results
       results = []  
       for (c, cworkers) in workers:
-        cresults = [readWorker(w, spec["regret"]) for w in cworkers]
+        cresults = [w.read(spec["regret"]) for w in cworkers]
         
         avg = sum(cresults)/len(cresults)
         
@@ -434,10 +454,10 @@ def random_optimize(base, spec, conf):
       confstr = yaml.dump(newconf)
       
       print "Submitting new configuration"
-      workers.append((newconf, [srv.submit(confstr) for r in range(spec["repetitions"])]))
+      workers.append((newconf, [srv.submit(confstr, getoutput(base, spec, newconf)) for r in range(spec["repetitions"])]))
 
     for (c, cworkers) in workers:
-      results = [readWorker(w, spec["regret"]) for w in cworkers]
+      results = [w.read(spec["regret"]) for w in cworkers]
       
       avg = sum(results)/len(results)
       stddev = math.sqrt(sum([(r-avg)**2 for r in results])/(len(results)-1))
@@ -470,7 +490,7 @@ def line_optimize(base, spec, conf):
   
   for round in range(spec["rounds"]):
     for p in spec["parameters"]:
-      results = line_search(conf, p["name"], p["values"], spec["repetitions"], spec["regret"])
+      results = line_search(base, spec, conf, p["name"], p["values"], spec["repetitions"], spec["regret"])
       
       means = [avg for (avg, stddev, stderr) in results.values()]
       best = [v for v, (avg, stddev, stderr) in results.items() if avg == max(means)]

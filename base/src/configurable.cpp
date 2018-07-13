@@ -714,8 +714,11 @@ ObjectConfigurator* ObjectConfigurator::instantiate(std::vector<std::string> sup
     if (request[ii].mutability == CRP::Provided)
     {
       TRACE(path() << "/" << key << ": " << config[key].str() << " (provided)");
-      if (type == "int" || type == "double" || type == "vector" || type == "string")
+      if (type == "int" || type == "double" || type == "vector" || type == "string" ||
+          config[key].ptr() == oc->object_)
       {
+        // ^^^ Dirty hack to avoid double free if object provides itself as a
+        // parameter
         new ParameterConfigurator(key, config[key].str(), oc, true);
       }
       else
