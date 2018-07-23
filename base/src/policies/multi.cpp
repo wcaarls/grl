@@ -36,8 +36,7 @@ REGISTER_CONFIGURABLE(MultiPolicy)
 void MultiPolicy::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("strategy", "Combination strategy", strategy_str_, CRP::Configuration, {"policy_strategy_binning_prob", "policy_strategy_density_based_prob", "policy_strategy_data_center_prob"}));
-//"policy_strategy_add_prob", "policy_strategy_multiply_prob", "policy_strategy_majority_voting_prob", "policy_strategy_rank_voting_prob", 
-config->push_back(CRP("policy", "mapping/policy", "Sub-policies", &policy_));
+  config->push_back(CRP("policy", "mapping/policy", "Sub-policies", &policy_));
 
   config->push_back(CRP("output_min", "vector.action_min", "Lower limit on outputs", min_, CRP::System));
   config->push_back(CRP("output_max", "vector.action_max", "Upper limit on outputs", max_, CRP::System));
@@ -46,15 +45,6 @@ config->push_back(CRP("policy", "mapping/policy", "Sub-policies", &policy_));
 void MultiPolicy::configure(Configuration &config)
 {
   strategy_str_ = config["strategy"].str();
-  /*if (strategy_str_ == "policy_strategy_add_prob")
-    strategy_ = csAddProbabilities;
-  else if (strategy_str_ == "policy_strategy_multiply_prob")
-    strategy_ = csMultiplyProbabilities;
-  else if (strategy_str_ == "policy_strategy_majority_voting_prob")
-    strategy_ = csMajorityVotingProbabilities;
-  else if (strategy_str_ == "policy_strategy_rank_voting_prob")
-    strategy_ = csRankVotingProbabilities;
-  else */
   if (strategy_str_ == "policy_strategy_binning_prob")
     strategy_ = csBinningProbabilities;
   else if (strategy_str_ == "policy_strategy_density_based_prob")
@@ -64,10 +54,18 @@ void MultiPolicy::configure(Configuration &config)
   else
     throw bad_param("mapping/policy/multi:strategy");
   
+  min_ = config["output_min"].v();
+  max_ = config["output_max"].v();
+
+  if (min_.size() != max_.size() || !min_.size())
+    throw bad_param("policy/action:{output_min,output_max}");
+  
+
   policy_ = *(ConfigurableList*)config["policy"].ptr();
   
   if (policy_.empty())
-    throw bad_param("mapping/policy/multi:policy");
+    throw bad_param("mapping/policy/multi:policy is empty");
+  
 }
 
 void MultiPolicy::reconfigure(const Configuration &config)
@@ -78,7 +76,7 @@ void MultiPolicy::act(const Observation &in, Action *out) const
 {
   LargeVector dist;
   distribution(in, *out, &dist);
-  size_t action = sample(dist);
+  //size_t action = sample(dist);
 
   //std::vector<Vector> variants;
   //discretizer_->options(in, &variants);
@@ -185,7 +183,7 @@ void MultiPolicy::distribution(const Observation &in, const Action &prev, LargeV
 
 void DiscreteMultiPolicy::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("strategy", "Combination strategy", strategy_str_, CRP::Configuration, {"policy_strategy_add_prob", "policy_strategy_multiply_prob", "policy_strategy_majority_voting_prob", "policy_strategy_rank_voting_prob", "policy_strategy_binning_prob", "policy_strategy_density_based_prob", "policy_strategy_data_center_prob"}));
+  config->push_back(CRP("strategy", "Combination strategy", strategy_str_, CRP::Configuration, {"policy_strategy_add_prob", "policy_strategy_multiply_prob", "policy_strategy_majority_voting_prob", "policy_strategy_rank_voting_prob"}));
   config->push_back(CRP("tau", "Temperature of Boltzmann distribution", tau_));
   config->push_back(CRP("discretizer", "discretizer.action", "Action discretizer", discretizer_));
   config->push_back(CRP("policy", "mapping/policy/discrete", "Sub-policies", &policy_));
@@ -193,6 +191,8 @@ void DiscreteMultiPolicy::request(ConfigurationRequest *config)
 
 void DiscreteMultiPolicy::configure(Configuration &config)
 {
+  CRAWL("tmp in DiscreteMultiPolicy::configure(Configuration &config)");
+  
   strategy_str_ = config["strategy"].str();
   if (strategy_str_ == "policy_strategy_add_prob")
     strategy_ = csAddProbabilities;
@@ -202,12 +202,6 @@ void DiscreteMultiPolicy::configure(Configuration &config)
     strategy_ = csMajorityVotingProbabilities;
   else if (strategy_str_ == "policy_strategy_rank_voting_prob")
     strategy_ = csRankVotingProbabilities;
-  else if (strategy_str_ == "policy_strategy_binning_prob")
-    strategy_ = csBinningProbabilities;
-  else if (strategy_str_ == "policy_strategy_density_based_prob")
-    strategy_ = csDensityBasedProbabilities;
-  else if (strategy_str_ == "policy_strategy_data_center_prob")
-    strategy_ = csDataCenterProbabilities;
   else
     throw bad_param("mapping/policy/discrete/multi:strategy");
 
@@ -219,6 +213,8 @@ void DiscreteMultiPolicy::configure(Configuration &config)
   
   if (policy_.empty())
     throw bad_param("mapping/policy/discrete/multi:policy");
+  
+  CRAWL("tmp out DiscreteMultiPolicy::configure(Configuration &config)");
 }
 
 void DiscreteMultiPolicy::reconfigure(const Configuration &config)

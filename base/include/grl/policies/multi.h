@@ -41,7 +41,6 @@ class MultiPolicy : public Policy
     TYPEINFO("mapping/policy/multi", "Combines multiple policies")
     
     enum CombinationStrategy {csBinningProbabilities, csDensityBasedProbabilities, csDataCenterProbabilities};
-    //csAddProbabilities, csMultiplyProbabilities, csMajorityVotingProbabilities, csRankVotingProbabilities, 
 
   protected:
     std::string strategy_str_;
@@ -49,12 +48,9 @@ class MultiPolicy : public Policy
     Projector *projector_;
     Representation *representation_;
     Vector min_, max_;
-    //Discretizer *discretizer_;
     TypedConfigurableList<Policy> policy_;
-    //double tau_;
 
   public:
-    //MultiPolicy() : tau_(0.1) { }
     MultiPolicy() { }
   
     // From Configurable
@@ -80,7 +76,7 @@ class DiscreteMultiPolicy : public DiscretePolicy
   public:
     TYPEINFO("mapping/policy/discrete/multi", "Combines multiple discrete policies")
     
-    enum CombinationStrategy {csAddProbabilities, csMultiplyProbabilities, csMajorityVotingProbabilities, csRankVotingProbabilities, csBinningProbabilities, csDensityBasedProbabilities, csDataCenterProbabilities};
+    enum CombinationStrategy {csAddProbabilities, csMultiplyProbabilities, csMajorityVotingProbabilities, csRankVotingProbabilities};
 
   protected:
     std::string strategy_str_;
