@@ -38,6 +38,8 @@ void MultiPolicy::request(ConfigurationRequest *config)
   config->push_back(CRP("strategy", "Combination strategy", strategy_str_, CRP::Configuration, {"policy_strategy_binning_prob", "policy_strategy_density_based_prob", "policy_strategy_data_center_prob"}));
   config->push_back(CRP("policy", "mapping/policy", "Sub-policies", &policy_));
 
+  config->push_back(CRP("bins", "Binning Simple Discretization", bins_));
+  
   config->push_back(CRP("output_min", "vector.action_min", "Lower limit on outputs", min_, CRP::System));
   config->push_back(CRP("output_max", "vector.action_max", "Upper limit on outputs", max_, CRP::System));
 }
@@ -53,7 +55,9 @@ void MultiPolicy::configure(Configuration &config)
     strategy_ = csDataCenterProbabilities;
   else
     throw bad_param("mapping/policy/multi:strategy");
-  
+
+  bins_ = config["bins"];
+
   min_ = config["output_min"].v();
   max_ = config["output_max"].v();
 
@@ -114,15 +118,18 @@ void MultiPolicy::distribution(const Observation &in, const Action &prev, LargeV
   LargeVector param_choice;
   std::vector<Vector> variants;
   Action action;
+  //Vector result;
+  double bin_result = 0.0;
+  double range = (max_[0] - min_[0]);
   
   switch (strategy_)
   {
     case csBinningProbabilities:   
-      //policy_[0]->act(in, variants);
-      policy_[0]->act(in, &action);
-
-      CRAWL("MultiPolicy::policy_[0]: " << policy_[0]);
-      CRAWL("MultiPolicy::action: " << action);
+      //CRAWL("MultiPolicy::policy_[0]: " << policy_[0]);
+      //CRAWL("MultiPolicy::action: " << action);
+      //CRAWL("MultiPolicy::min: " << min_);
+      //CRAWL("MultiPolicy::max: " << max_);
+      
       /*
       param_choice = LargeVector::Zero(out->size());
       
@@ -135,13 +142,19 @@ void MultiPolicy::distribution(const Observation &in, const Action &prev, LargeV
         }
       }
       */
+
+      //policy_[0]->act(in, &action);
+      //result = action.v;
+
       for (size_t ii=0; ii != policy_.size(); ++ii)
       {
         // Add subsequent policies' probabilities according to chosen strategy
         policy_[ii]->act(in, &action);
+        bin_result += ((double) action.v[0])/range;
         
         CRAWL("MultiPolicy::policy_[ii=" << ii << "]: " << policy_[ii]);
         CRAWL("MultiPolicy::action: " << action);
+        CRAWL("MultiPolicy::result: " << bin_result);
       
         
         /*if (dist.size() != out->size())

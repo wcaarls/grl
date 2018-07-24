@@ -70,6 +70,7 @@ experiment:
             outputs: experiment/environment/task/action_dims
             output_min: experiment/environment/task/action_min
             output_max: experiment/environment/task/action_max
+      bins: 10
       output_min: experiment/environment/task/action_min
       output_max: experiment/environment/task/action_max
     predictor: 
@@ -83,17 +84,11 @@ experiment:
           projector: experiment/agent/policy/policy/0/projector
           representation: experiment/agent/policy/policy/0/representation
           critic: 
-            type: predictor/critic/sarsa
+            type: predictor/critic/td
             alpha: 0.2
             gamma: 0.97
             lambda: 0.65
-            projector: 
-              type: projector/tile_coding
-              tilings: 16
-              memory: 8388608
-              safe: 0
-              resolution: [0.31415, 3.1415]
-              wrapping: [6.283, 0]
+            projector: experiment/agent/policy/policy/0/projector
             representation: 
               type: representation/parameterized/linear
               interval: 0
@@ -113,23 +108,17 @@ experiment:
           projector: experiment/agent/policy/policy/1/projector
           representation: experiment/agent/policy/policy/1/representation
           critic: 
-            type: predictor/critic/sarsa
+            type: predictor/critic/td
             alpha: 0.2
             gamma: 0.97
             lambda: 0.65
-            projector: 
-              type: projector/tile_coding
-              tilings: 16
-              memory: 8388608
-              safe: 0
-              resolution: [0.31415, 3.1415]
-              wrapping: [6.283, 0]
+            projector: experiment/agent/policy/policy/1/projector
             representation: 
               type: representation/parameterized/linear
               interval: 0
               init_min: [0]
               init_max: [1]
-              memory: experiment/agent/predictor/predictor/1/critic/projector/memory
+              memory: experiment/agent/policy/policy/1/projector/memory
               outputs: 1
               output_min: []
               output_max: []
@@ -149,7 +138,7 @@ experiment:
           output_min: experiment/environment/task/action_min
           output_max: experiment/environment/task/action_max
           projector: experiment/agent/policy/policy/0/projector
-          representation: experiment/agent/policy/policy/1/representation
+          representation: experiment/agent/policy/policy/0/representation
         - 
           type: mapping/policy/action
           sigma: []
@@ -158,7 +147,8 @@ experiment:
           output_min: experiment/environment/task/action_min
           output_max: experiment/environment/task/action_max
           projector: experiment/agent/policy/policy/1/projector
-          representation: experiment/agent/predictor/predictor/1/critic/representation
+          representation: experiment/agent/policy/policy/1/representation
+      bins: experiment/agent/policy/bins
       output_min: experiment/environment/task/action_min
       output_max: experiment/environment/task/action_max
   save_every: never
@@ -170,12 +160,12 @@ ac_value:
   input_min: experiment/environment/task/observation_min
   input_max: experiment/environment/task/observation_max
   points: 65536
-  savepoints: 1048576
+  savepoints: ac_value/points
   state: experiment/state
   projection: mean
   output_dim: 0
   projector: experiment/agent/policy/policy/1/projector
-  representation: experiment/agent/policy/policy/1/representation
+  representation: experiment/agent/predictor/predictor/1/critic/representation
 ac_visibility_mapping: 
   type: visualization/field/mapping
   field_dims: [0, 1]

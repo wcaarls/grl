@@ -49,9 +49,11 @@ class MultiPolicy : public Policy
     Representation *representation_;
     Vector min_, max_;
     TypedConfigurableList<Policy> policy_;
+    //uint64_t bins_;
+    int bins_;
 
   public:
-    MultiPolicy() { }
+    MultiPolicy() : bins_(10) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);
