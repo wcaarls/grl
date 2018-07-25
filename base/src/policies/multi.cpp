@@ -121,7 +121,11 @@ void MultiPolicy::distribution(const Observation &in, const Action &prev, LargeV
   //Vector result;
   double bin_result = 0.0;
   double range = (max_[0] - min_[0]);
+  double step = range/bins_;
   
+  double bin_tmp = 0;
+  double tmp = 0;
+  double center_bin = 0;
   switch (strategy_)
   {
     case csBinningProbabilities:   
@@ -129,58 +133,35 @@ void MultiPolicy::distribution(const Observation &in, const Action &prev, LargeV
       //CRAWL("MultiPolicy::action: " << action);
       //CRAWL("MultiPolicy::min: " << min_);
       //CRAWL("MultiPolicy::max: " << max_);
+      CRAWL("MultiPolicy::policy_.size(): " << policy_.size());
+      CRAWL("MultiPolicy::range: " << range);
       
-      /*
-      param_choice = LargeVector::Zero(out->size());
-      
-      for (size_t ii = 0; ii != out->size(); ++ii) {
-        if (std::isnan((*out)[ii]))
-        {
-          ERROR("MultiPolicy::param_choice::csAddProbabilities policy_[0] out(ii:" << ii << ") " << (*out)[ii]);
-          for (size_t kk=0; kk < out->size(); ++kk)
-            ERROR("MultiPolicy::dist::csAddProbabilities out(kk:" << kk << ") " << (*out)[kk]);
-        }
-      }
-      */
-
       //policy_[0]->act(in, &action);
       //result = action.v;
 
       for (size_t ii=0; ii != policy_.size(); ++ii)
       {
-        // Add subsequent policies' probabilities according to chosen strategy
         policy_[ii]->act(in, &action);
-        bin_result += ((double) action.v[0])/range;
+        bin_tmp = 0;
+        tmp = (double) action.v[0];
+        //3 (10) 2.4 (9) 1.8 (8) 1.2 (7) 0.6 (6) 0
+        //   (5) -0.6 (4) -1.2 (3) -1.8 (2) -2.4 (1) -3
+        while (tmp > min_[0]){
+          bin_tmp++; 
+          tmp = tmp - step;
+        }
+        bin_result += bin_tmp;
         
         CRAWL("MultiPolicy::policy_[ii=" << ii << "]: " << policy_[ii]);
         CRAWL("MultiPolicy::action: " << action);
-        CRAWL("MultiPolicy::result: " << bin_result);
-      
-        
-        /*if (dist.size() != out->size())
-        {
-          ERROR("Subpolicy " << ii << " has incompatible number of actions");
-          throw bad_param("mapping/policy/discrete/multi:policy");
-        }
-
-        for (size_t jj=0; jj < dist.size(); ++jj)
-        {
-          param_choice[jj] += dist[jj];
-        
-          if (std::isnan(param_choice[jj]))
-          {
-            ERROR("MultiPolicy::param_choice::csAddProbabilities (jj:" << jj << ") " << param_choice[jj]);
-            for (size_t kk=0; kk < dist.size(); ++kk)
-              ERROR("MultiPolicy::dist::csAddProbabilities (kk:" << kk << ") " << dist[kk]);
-          }
-        }*/
+        CRAWL("MultiPolicy::bin_tmp: " << bin_tmp);
+        CRAWL("MultiPolicy::bin_result: " << bin_result);
       }
-      /*
-      CRAWL("DiscreteMultiPolicy::param_choice: " << param_choice);
+      center_bin = round(bin_result/policy_.size());
+      (*out)[0] = (--center_bin*step + 0.5*step) + min_[0];
 
-      normalized_function(param_choice, out);
-      CRAWL("DiscreteMultiPolicy::out: " << (*out) << "\n");
-      */
+      CRAWL("DiscreteMultiPolicy::out: " << (*out)[0] << "\n");
+      exit(-1);
       break;
         
     case csDensityBasedProbabilities:
@@ -190,8 +171,7 @@ void MultiPolicy::distribution(const Observation &in, const Action &prev, LargeV
     case csDataCenterProbabilities:
       throw bad_param("mapping/policy/multi:policy/csDataCenterProbabilities");
       break;
-  } 
-
+  }
 }
 
 void DiscreteMultiPolicy::request(ConfigurationRequest *config)
