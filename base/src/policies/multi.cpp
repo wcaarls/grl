@@ -87,7 +87,7 @@ void MultiPolicy::act(const Observation &in, Action *out) const
   double step = range/bins_;
   
   double bin_tmp = 0;
-  double tmp = 0;
+  double tmp = 0.0;
   
   double mean_bin = 0;
   double int_mean_bin = 0;
@@ -112,7 +112,8 @@ void MultiPolicy::act(const Observation &in, Action *out) const
         //3 (10) 2.4 (9) 1.8 (8) 1.2 (7) 0.6 (6) 0
         //   (5) -0.6 (4) -1.2 (3) -1.8 (2) -2.4 (1) -3
 
-        while (tmp > min_[0]){
+        while (tmp > min_[0])
+        {
           bin_tmp++; 
           tmp = tmp - step;
         }
@@ -128,7 +129,7 @@ void MultiPolicy::act(const Observation &in, Action *out) const
       int_mean_bin = (int) mean_bin;
       // CRAWL("MultiPolicy::int_mean_bin: " << int_mean_bin << "\n");
       choose_bin = int_mean_bin;
-      if ( abs(int_mean_bin + 1 - mean_bin) > 0.5 ) 
+      if ( fabs(int_mean_bin + 1 - mean_bin) > 0.5 ) 
         choose_bin++;
       // CRAWL("MultiPolicy::choose_bin: " << choose_bin << "\n");
       tmp_final_policy = (--choose_bin*step + 0.5*step) + min_[0];
@@ -140,6 +141,7 @@ void MultiPolicy::act(const Observation &in, Action *out) const
       break;
         
     case csDensityBasedProbabilities:
+    {
       dist = LargeVector::Zero(policy_.size());
       //LargeVector density = LargeVector::Zero(policy_.size());
       
@@ -153,39 +155,42 @@ void MultiPolicy::act(const Observation &in, Action *out) const
       }
       
       double* density = new double[policy_.size()];
-      for(size_t ii=0; ii != policy_.size(); ++ii){
+      for(size_t ii=0; ii != policy_.size(); ++ii)
+      {
         double tmp = 0;
-        for(size_t jj=0; jj != policy_.size(); ++jj){
-          CRAWL("MultiPolicy::(dist[ii] - dist[jj]): " << (dist[ii] - dist[jj]));
+        for(size_t jj=0; jj != policy_.size(); ++jj)
+        {
+          CRAWL("MultiPolicy::(dist[ii] - dist[jj]): " << fabs(dist[ii] - dist[jj]));
           CRAWL("MultiPolicy::sqrt((dist[ii] - dist[jj])): " << sqrt((dist[ii] - dist[jj])));
-          if ((dist[ii] - dist[jj]) != 0){
-            tmp += sqrt( abs(dist[ii] - dist[jj]) );
+          if ((dist[ii] - dist[jj]) != 0)
+          {
+            CRAWL("MultiPolicy::tmp: " << tmp);
+            tmp = tmp + sqrt( fabs(dist[ii] - dist[jj]) );
             CRAWL("MultiPolicy::tmp: " << tmp);
           }
         }
-        density[ii] = exp(-(tmp/pow(r_distance_parameter_,2)));
+        density[ii] = -(tmp/pow(r_distance_parameter_,2));//exp(-(tmp/pow(r_distance_parameter_,2)));
         CRAWL("MultiPolicy::density[" << ii << "]: " << density[ii]);
       }
 
-      int max_indice = 0;
-      for(size_t ii=1; ii < sizeof(density); ++ii){
-        if(density[ii] > density[ii-1]){
-          max_indice = ii;
+      int min_indice = 0;
+      for(size_t ii=1; ii < policy_.size(); ++ii)
+      {
+        if(density[ii] > density[ii-1])
+        {
+          min_indice = ii;
         }
       }
-      tmp_final_policy = density[max_indice];
+      CRAWL("MultiPolicy::min_indice: " << min_indice);
       
-      CRAWL("MultiPolicy::tmp_final_policy: " << tmp_final_policy);
-      
-      tmp_action.v = tmp_final_policy;
-      dist = ConstantLargeVector(1, tmp_final_policy);
-
-      exit(-1);
+      policy_[min_indice]->act(in, &tmp_action);
+      dist = ConstantLargeVector(1, tmp_action.v[0]);
+    }
       break;
         
-    // case csDataCenterProbabilities:
-    //   throw bad_param("mapping/policy/multi:policy/csDataCenterProbabilities");
-    //   break;
+    case csDataCenterProbabilities:
+      throw bad_param("mapping/policy/multi:policy/csDataCenterProbabilities");
+      break;
   }
 
   *out = dist;//variants[action];
