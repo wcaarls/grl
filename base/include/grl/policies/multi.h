@@ -51,9 +51,10 @@ class MultiPolicy : public Policy
     TypedConfigurableList<Policy> policy_;
     //uint64_t bins_;
     int bins_;
+    double r_distance_parameter_;
 
   public:
-    MultiPolicy() : bins_(10) { }
+    MultiPolicy() : bins_(10), r_distance_parameter_(0.001) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -62,10 +63,11 @@ class MultiPolicy : public Policy
 
     // From Policy
     virtual void act(const Observation &in, Action *out) const;
+    // virtual void attribution(const LargeVector &values, LargeVector *distribution) const;
     //virtual void act(double time, const Observation &in, Action *out);
     
     // From Policy
-    virtual void distribution(const Observation &in, const Action &prev, LargeVector *out) const;
+    //virtual void distribution(const Observation &in, const Action &prev, LargeVector *out) const;
     
   //protected:
     //virtual void softmax(const LargeVector &values, LargeVector *distribution) const;
