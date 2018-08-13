@@ -147,7 +147,7 @@ void ActionProbabilityPolicy::act(const Observation &in, Action *out) const
   
   for (size_t ii=0; ii < variants.size(); ++ii)
     dist[ii] = representation_->read(projections[ii], &v);
-    
+
   *out = variants[sample(dist)];
   out->type = atExploratory;
 }
@@ -169,8 +169,6 @@ void ActionProbabilityPolicy::values(const Observation &in, LargeVector *out) co
 
 void ActionProbabilityPolicy::distribution(const Observation &in, const Action &prev, LargeVector *out) const
 {
-  
-
   LargeVector apvalues;
 
   values(in, &apvalues);
@@ -180,9 +178,9 @@ void ActionProbabilityPolicy::distribution(const Observation &in, const Action &
   {
    if (std::isnan((*out)[ii]))
    {
-     ERROR("rgo action::ActionProbabilityPolicy::distribution:: (*distribution)(ii:" << ii << ") " << (*out)[ii]);
+     ERROR("action::ActionProbabilityPolicy::distribution:: (*distribution)(ii:" << ii << ") " << (*out)[ii]);
      for (size_t kk=0; kk < out->size(); ++kk)
-       ERROR("rgo action::ActionProbabilityPolicy::distribution:: (*distribution)(kk:" << kk << ") " << (*out)[kk]);
+       ERROR("action::ActionProbabilityPolicy::distribution:: (*distribution)(kk:" << kk << ") " << (*out)[kk]);
    }
   }  
 }

@@ -20,7 +20,7 @@ agent/communicator:
     type: communicator
     description: Comunicator which exchanges messages with an actual/virtual environment
     mutability: configuration
-    default: 0x255c7e0
+    default: 0x18ec810
     optional: 0
   observation_dims:
     type: int.observation_dims
@@ -330,7 +330,7 @@ agent/master/exclusive:
     type: "[agent/sub]"
     description: Subagents
     mutability: configuration
-    default: 0x25b5478
+    default: 0x1945568
     optional: 0
 agent/master/predicated:
   description: Master agent in which execution is predicated on preceding agent confidence
@@ -360,7 +360,7 @@ agent/master/predicated:
     type: "[agent/sub]"
     description: Subagents
     mutability: configuration
-    default: 0x25b5478
+    default: 0x1945568
     optional: 0
 agent/master/random:
   description: Master agent that chooses sub-agents randomly
@@ -390,7 +390,7 @@ agent/master/random:
     type: "[agent/sub]"
     description: Subagents
     mutability: configuration
-    default: 0x25b5478
+    default: 0x1945568
     optional: 0
 agent/master/sequential:
   description: Master agent that executes sub-agents sequentially
@@ -796,6 +796,16 @@ dynamics/cart_pole:
     max: 1
 dynamics/flyer2d:
   description: 2D flyer dynamics
+dynamics/integrator:
+  description: Integrator dynamics
+  order:
+    type: int.order
+    description: Order of integrator (number of state dimensions)
+    mutability: configuration
+    default: 2
+    optional: 1
+    min: 0
+    max: 2147483647
 dynamics/mountain:
   description: Mountain world dynamics
   mass:
@@ -1707,7 +1717,7 @@ mapping/policy/action:
     mutability: configuration
     default: 0
     optional: 0
-mapping/policy/action_probability:
+mapping/policy/discrete/action_probability:
   description: Policy based on an action-probability representation
   discretizer:
     type: discretizer.action
@@ -1727,17 +1737,176 @@ mapping/policy/action_probability:
     mutability: configuration
     default: 0
     optional: 0
-  sampler:
-    type: sampler
-    description: Samples actions from action-values
+mapping/policy/discrete/multi:
+  description: Combines multiple discrete policies
+  strategy:
+    type: string
+    description: Combination strategy
     mutability: configuration
-    default: 0
+    default: ""
+    optional: 1
+    options:
+      - policy_strategy_add_prob
+      - policy_strategy_multiply_prob
+      - policy_strategy_majority_voting_prob
+      - policy_strategy_rank_voting_prob
+  tau:
+    type: double
+    description: Temperature of Boltzmann distribution
+    mutability: configuration
+    default: 0.1
+    optional: 1
+    min: 0
+    max: 1
+  discretizer:
+    type: discretizer.action
+    description: Action discretizer
+    mutability: configuration
+    default: 0x1
+    optional: 0
+  policy:
+    type: "[mapping/policy/discrete]"
+    description: Sub-policies
+    mutability: configuration
+    default: 0x1ab17d0
     optional: 0
 mapping/policy/discrete/random:
   description: Policy that chooses discrete random actions
   discretizer:
     type: discretizer.action
     description: Action discretizer
+    mutability: configuration
+    default: 0
+    optional: 0
+mapping/policy/discrete/value/q:
+  description: Q-value based policy
+  discretizer:
+    type: discretizer.action
+    description: Action discretizer
+    mutability: configuration
+    default: 0
+    optional: 0
+  projector:
+    type: projector.pair
+    description: Projects observation-action pairs onto representation space
+    mutability: configuration
+    default: 0
+    optional: 0
+  representation:
+    type: representation.value/action
+    description: Action-value representation
+    mutability: configuration
+    default: 0
+    optional: 0
+  sampler:
+    type: sampler
+    description: Samples actions from action-values
+    mutability: configuration
+    default: 0
+    optional: 0
+mapping/policy/discrete/value/q/bounded:
+  description: Q-value based policy with bounded action deltas
+  bound:
+    type: vector
+    description: Maximum action delta
+    mutability: configuration
+    default: "[  ]"
+    optional: 1
+  discretizer:
+    type: discretizer.action
+    description: Action discretizer
+    mutability: configuration
+    default: 0
+    optional: 0
+  projector:
+    type: projector.pair
+    description: Projects observation-action pairs onto representation space
+    mutability: configuration
+    default: 0
+    optional: 0
+  representation:
+    type: representation.value/action
+    description: Action-value representation
+    mutability: configuration
+    default: 0
+    optional: 0
+  sampler:
+    type: sampler
+    description: Samples actions from action-values
+    mutability: configuration
+    default: 0
+    optional: 0
+mapping/policy/discrete/value/ucb:
+  description: UCB1 policy
+  discretizer:
+    type: discretizer.action
+    description: Action discretizer
+    mutability: configuration
+    default: 0
+    optional: 0
+  projector:
+    type: projector.pair
+    description: Projects observation-action pairs onto representation space
+    mutability: configuration
+    default: 0
+    optional: 0
+  representation:
+    type: representation.value/action
+    description: Q-value representation
+    mutability: configuration
+    default: 0
+    optional: 0
+  visit_representation:
+    type: representation.value/action
+    description: Visit count representation
+    mutability: configuration
+    default: 0
+    optional: 0
+  c_p:
+    type: double
+    description: UCB1 exploration term
+    mutability: online
+    default: 1.41421
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
+mapping/policy/discrete/value/v:
+  description: State-value based policy
+  gamma:
+    type: double
+    description: Discount rate
+    mutability: configuration
+    default: 0.97
+    optional: 1
+    min: 0
+    max: 1
+  discretizer:
+    type: discretizer.action
+    description: Action discretizer
+    mutability: configuration
+    default: 0
+    optional: 0
+  model:
+    type: observation_model
+    description: Observation model
+    mutability: configuration
+    default: 0
+    optional: 0
+  projector:
+    type: projector.observation
+    description: Projects observations onto representation space
+    mutability: configuration
+    default: 0
+    optional: 0
+  representation:
+    type: representation.value/state
+    description: State-value representation
+    mutability: configuration
+    default: 0
+    optional: 0
+  sampler:
+    type: sampler
+    description: Samples actions from state-values
     mutability: configuration
     default: 0
     optional: 0
@@ -1828,30 +1997,27 @@ mapping/policy/multi:
     default: ""
     optional: 1
     options:
-      - policy_strategy_add_prob
-      - policy_strategy_multiply_prob
-      - policy_strategy_majority_voting_prob
-      - policy_strategy_rank_voting_prob
-  tau:
-    type: double
-    description: Temperature of Boltzmann distribution
-    mutability: configuration
-    default: 0.1
-    optional: 1
-    min: 0
-    max: 1
-  discretizer:
-    type: discretizer.action
-    description: Action discretizer
-    mutability: configuration
-    default: 0
-    optional: 0
+      - policy_strategy_binning_prob
+      - policy_strategy_density_based_prob
+      - policy_strategy_data_center_prob
   policy:
     type: "[mapping/policy]"
     description: Sub-policies
     mutability: configuration
-    default: 0x273bcb0
+    default: 0x1af9050
     optional: 0
+  output_min:
+    type: vector.action_min
+    description: Lower limit on outputs
+    mutability: system
+    default: "[  ]"
+    optional: 1
+  output_max:
+    type: vector.action_max
+    description: Upper limit on outputs
+    mutability: system
+    default: "[  ]"
+    optional: 1
 mapping/policy/parameterized/action:
   description: Parameterized policy based on a direct action representation
   sigma:
@@ -2126,138 +2292,6 @@ mapping/policy/uct:
     type: signal/matrix
     description: Predicted trajectory
     mutability: provided
-mapping/policy/value/q:
-  description: Q-value based policy
-  discretizer:
-    type: discretizer.action
-    description: Action discretizer
-    mutability: configuration
-    default: 0
-    optional: 0
-  projector:
-    type: projector.pair
-    description: Projects observation-action pairs onto representation space
-    mutability: configuration
-    default: 0
-    optional: 0
-  representation:
-    type: representation.value/action
-    description: Action-value representation
-    mutability: configuration
-    default: 0
-    optional: 0
-  sampler:
-    type: sampler
-    description: Samples actions from action-values
-    mutability: configuration
-    default: 0
-    optional: 0
-mapping/policy/value/q/bounded:
-  description: Q-value based policy with bounded action deltas
-  bound:
-    type: vector
-    description: Maximum action delta
-    mutability: configuration
-    default: "[  ]"
-    optional: 1
-  discretizer:
-    type: discretizer.action
-    description: Action discretizer
-    mutability: configuration
-    default: 0
-    optional: 0
-  projector:
-    type: projector.pair
-    description: Projects observation-action pairs onto representation space
-    mutability: configuration
-    default: 0
-    optional: 0
-  representation:
-    type: representation.value/action
-    description: Action-value representation
-    mutability: configuration
-    default: 0
-    optional: 0
-  sampler:
-    type: sampler
-    description: Samples actions from action-values
-    mutability: configuration
-    default: 0
-    optional: 0
-mapping/policy/value/q/ucb:
-  description: UCB1 policy
-  discretizer:
-    type: discretizer.action
-    description: Action discretizer
-    mutability: configuration
-    default: 0
-    optional: 0
-  projector:
-    type: projector.pair
-    description: Projects observation-action pairs onto representation space
-    mutability: configuration
-    default: 0
-    optional: 0
-  representation:
-    type: representation.value/action
-    description: Q-value representation
-    mutability: configuration
-    default: 0
-    optional: 0
-  visit_representation:
-    type: representation.value/action
-    description: Visit count representation
-    mutability: configuration
-    default: 0
-    optional: 0
-  c_p:
-    type: double
-    description: UCB1 exploration term
-    mutability: online
-    default: 1.41421
-    optional: 1
-    min: 0
-    max: 1.797693134862316e+308
-mapping/policy/value/v:
-  description: State-value based policy
-  gamma:
-    type: double
-    description: Discount rate
-    mutability: configuration
-    default: 0.97
-    optional: 1
-    min: 0
-    max: 1
-  discretizer:
-    type: discretizer.action
-    description: Action discretizer
-    mutability: configuration
-    default: 0
-    optional: 0
-  model:
-    type: observation_model
-    description: Observation model
-    mutability: configuration
-    default: 0
-    optional: 0
-  projector:
-    type: projector.observation
-    description: Projects observations onto representation space
-    mutability: configuration
-    default: 0
-    optional: 0
-  representation:
-    type: representation.value/state
-    description: State-value representation
-    mutability: configuration
-    default: 0
-    optional: 0
-  sampler:
-    type: sampler
-    description: Samples actions from state-values
-    mutability: configuration
-    default: 0
-    optional: 0
 mapping/puddle:
   description: Random 2D puddles
   seed:
@@ -2309,7 +2343,7 @@ mapping/timeline:
 mapping/value:
   description: Mapping that returns the expected value of a value-based policy
   policy:
-    type: mapping/policy/value
+    type: mapping/policy/discrete/value
     description: Value based policy
     mutability: configuration
     default: 0
@@ -3029,7 +3063,7 @@ predictor/critic/expected_sarsa:
     default: 0
     optional: 0
   policy:
-    type: mapping/policy/value
+    type: mapping/policy/discrete/value
     description: Value based target policy
     mutability: configuration
     default: 0
@@ -3091,7 +3125,7 @@ predictor/critic/ggq:
     default: 0
     optional: 0
   policy:
-    type: mapping/policy/value
+    type: mapping/policy/discrete/value
     description: Greedy target policy
     mutability: configuration
     default: 0
@@ -3777,41 +3811,7 @@ predictor/multi:
     type: "[predictor]"
     description: First downstream predictor
     mutability: configuration
-    default: 0x29328a0
-    optional: 0
-predictor/naf:
-  description: Value function predictor using Normalized Advantage Features
-  importer:
-    type: importer.static
-    description: Optional importer for pre-training
-    mutability: configuration
-    default: 0
-    optional: 1
-  exporter:
-    type: exporter
-    description: Optional exporter for transition log (supports observation, action, reward, next_observation, next_action)
-    mutability: configuration
-    default: 0
-    optional: 1
-  gamma:
-    type: double
-    description: Discount rate
-    mutability: configuration
-    default: 0.97
-    optional: 1
-    min: 0
-    max: 1
-  projector:
-    type: projector.pair
-    description: Projects observation-action pairs onto representation space
-    mutability: configuration
-    default: 0
-    optional: 0
-  representation:
-    type: representation.value/action
-    description: Combined (action, state value) representation
-    mutability: configuration
-    default: 0
+    default: 0x1cbc520
     optional: 0
 predictor/reinforce:
   description: Monte-Carlo Policy Gradient predictor
@@ -4002,7 +4002,7 @@ projector/multi:
     type: "[projector.]"
     description: Downstream projectors
     mutability: configuration
-    default: 0x2989670
+    default: 0x1d19030
     optional: 0
   memories:
     type: vector.memory
@@ -4410,7 +4410,7 @@ representation/additive:
     type: "[representation.]"
     description: Downstream representations
     mutability: configuration
-    default: 0x29eeb50
+    default: 0x1d7e4a0
     optional: 0
 representation/communicator:
   description: Interface to an out-of-process representation
@@ -4528,6 +4528,18 @@ representation/llr:
     optional: 0
 representation/parameterized/ann:
   description: Parameterized artificial neural network representation
+  interval:
+    type: double
+    description: Target representation update interval (number of writes; 0=never update, <0=exp.mov.av.)
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
+  target:
+    type: representation/parameterized/ann.
+    description: Target representation
+    mutability: provided
   inputs:
     type: int
     description: Number of input dimensions
@@ -4560,6 +4572,18 @@ representation/parameterized/ann:
     max: 2
 representation/parameterized/linear:
   description: Linear-in-parameters representation
+  interval:
+    type: double
+    description: Target representation update interval (number of writes; 0=never update, <0=exp.mov.av.)
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
+  target:
+    type: representation/parameterized/linear.
+    description: Target representation
+    mutability: provided
   init_min:
     type: vector
     description: Lower initial value limit
@@ -4600,26 +4624,6 @@ representation/parameterized/linear:
     mutability: system
     default: "[  ]"
     optional: 1
-representation/target:
-  description: Representation that periodically updates a target representation
-  representation:
-    type: representation/parameterized.
-    description: Downstream representation
-    mutability: configuration
-    default: 0
-    optional: 0
-  interval:
-    type: double
-    description: Update interval (number of writes; 0=never update, <0=exp.mov.av.)
-    mutability: configuration
-    default: 100
-    optional: 1
-    min: 0
-    max: 1.797693134862316e+308
-  target:
-    type: representation/parameterized.
-    description: Target representation
-    mutability: provided
 sampler/ac_ornstein_ohlenbeck:
   description: Action-correlated maximum search with an Ornstein-Uhlenbeck random chance of non-maximums
   discretizer:
@@ -6084,6 +6088,106 @@ task/flyer2d/regulator:
     optional: 1
     min: 0
     max: 1.797693134862316e+308
+task/integrator/regulator:
+  description: Integrator regulator task
+  order:
+    type: int.order
+    description: Order of integrator (number of state dimensions)
+    mutability: system
+    default: 2
+    optional: 1
+    min: 0
+    max: 2147483647
+  observation_dims:
+    type: int.observation_dims
+    description: Number of observation dimensions
+    mutability: provided
+  observation_min:
+    type: vector.observation_min
+    description: Lower limit on observations
+    mutability: provided
+  observation_max:
+    type: vector.observation_max
+    description: Upper limit on observations
+    mutability: provided
+  action_dims:
+    type: int.action_dims
+    description: Number of action dimensions
+    mutability: provided
+  action_min:
+    type: vector.action_min
+    description: Lower limit on actions
+    mutability: provided
+  action_max:
+    type: vector.action_max
+    description: Upper limit on actions
+    mutability: provided
+  reward_min:
+    type: double.reward_min
+    description: Lower limit on immediate reward
+    mutability: provided
+  reward_max:
+    type: double.reward_max
+    description: Upper limit on immediate reward
+    mutability: provided
+  start:
+    type: vector
+    description: Starting state
+    mutability: configuration
+    default: "[ 1, 0 ]"
+    optional: 1
+  goal:
+    type: vector
+    description: Goal state
+    mutability: configuration
+    default: "[ 0, 0 ]"
+    optional: 1
+  stddev:
+    type: vector
+    description: Starting state standard deviation
+    mutability: configuration
+    default: "[ 1, 0 ]"
+    optional: 1
+  q:
+    type: vector
+    description: Q (state cost) matrix diagonal
+    mutability: configuration
+    default: "[ 1, 0 ]"
+    optional: 1
+  r:
+    type: vector
+    description: R (action cost) matrix diagonal
+    mutability: configuration
+    default: "[ 0.01 ]"
+    optional: 1
+  function:
+    type: string
+    description: Cost function style
+    mutability: configuration
+    default: quadratic
+    optional: 1
+    options:
+      - quadratic
+      - absolute
+      - sqrt
+  r_function:
+    type: string
+    description: R cost function style
+    mutability: configuration
+    default: quadratic
+    optional: 1
+    options:
+      - quadratic
+      - absolute
+      - sqrt
+  smoothing:
+    type: double
+    description: Cost function smoothing parameter
+    mutability: configuration
+    default: 0.01
+    optional: 1
+    min: 0
+    max: 1
 task/leo_squatting:
   description: Task specification for Leo squatting with a fixed arm
   observation_dims:
@@ -6957,7 +7061,7 @@ visualization/field/policy/value:
       - min
       - max
   policy:
-    type: mapping/policy/value
+    type: mapping/policy/discrete/value
     description: Value based control policy
     mutability: configuration
     default: 0
@@ -7471,7 +7575,7 @@ projector/multi.observation:
     type: "[projector.observation]"
     description: Downstream projectors
     mutability: configuration
-    default: 0x2d31070
+    default: 0x20db500
     optional: 0
   memories:
     type: vector.memory
@@ -7807,7 +7911,7 @@ representation/additive.action:
     type: "[representation.action]"
     description: Downstream representations
     mutability: configuration
-    default: 0x2d80560
+    default: 0x212afc0
     optional: 0
 representation/communicator.action:
   description: Interface to an out-of-process representation
@@ -7925,6 +8029,18 @@ representation/llr.action:
     optional: 0
 representation/parameterized/ann.action:
   description: Parameterized artificial neural network representation
+  interval:
+    type: double
+    description: Target representation update interval (number of writes; 0=never update, <0=exp.mov.av.)
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
+  target:
+    type: representation/parameterized/ann.action
+    description: Target representation
+    mutability: provided
   inputs:
     type: int.observation_dims
     description: Number of input dimensions
@@ -7957,6 +8073,18 @@ representation/parameterized/ann.action:
     max: 2
 representation/parameterized/linear.action:
   description: Linear-in-parameters representation
+  interval:
+    type: double
+    description: Target representation update interval (number of writes; 0=never update, <0=exp.mov.av.)
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
+  target:
+    type: representation/parameterized/linear.action
+    description: Target representation
+    mutability: provided
   init_min:
     type: vector
     description: Lower initial value limit
@@ -7997,26 +8125,6 @@ representation/parameterized/linear.action:
     mutability: system
     default: "[  ]"
     optional: 1
-representation/target.action:
-  description: Representation that periodically updates a target representation
-  representation:
-    type: representation/parameterized.action
-    description: Downstream representation
-    mutability: configuration
-    default: 0
-    optional: 0
-  interval:
-    type: double
-    description: Update interval (number of writes; 0=never update, <0=exp.mov.av.)
-    mutability: configuration
-    default: 100
-    optional: 1
-    min: 0
-    max: 1.797693134862316e+308
-  target:
-    type: representation/parameterized.action
-    description: Target representation
-    mutability: provided
 projector/fourier.pair:
   description: Fourier basis function projector
   input_min:
@@ -8112,7 +8220,7 @@ projector/multi.pair:
     type: "[projector.pair]"
     description: Downstream projectors
     mutability: configuration
-    default: 0x2dddf20
+    default: 0x2189af0
     optional: 0
   memories:
     type: vector.memory
@@ -8448,7 +8556,7 @@ representation/additive.value/action:
     type: "[representation.value/action]"
     description: Downstream representations
     mutability: configuration
-    default: 0x2e2d430
+    default: 0x21d90a0
     optional: 0
 representation/communicator.value/action:
   description: Interface to an out-of-process representation
@@ -8566,6 +8674,18 @@ representation/llr.value/action:
     optional: 0
 representation/parameterized/ann.value/action:
   description: Parameterized artificial neural network representation
+  interval:
+    type: double
+    description: Target representation update interval (number of writes; 0=never update, <0=exp.mov.av.)
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
+  target:
+    type: representation/parameterized/ann.value/action
+    description: Target representation
+    mutability: provided
   inputs:
     type: int.observation_dims+int.action_dims
     description: Number of input dimensions
@@ -8598,6 +8718,18 @@ representation/parameterized/ann.value/action:
     max: 2
 representation/parameterized/linear.value/action:
   description: Linear-in-parameters representation
+  interval:
+    type: double
+    description: Target representation update interval (number of writes; 0=never update, <0=exp.mov.av.)
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
+  target:
+    type: representation/parameterized/linear.value/action
+    description: Target representation
+    mutability: provided
   init_min:
     type: vector
     description: Lower initial value limit
@@ -8638,26 +8770,6 @@ representation/parameterized/linear.value/action:
     mutability: system
     default: "[  ]"
     optional: 1
-representation/target.value/action:
-  description: Representation that periodically updates a target representation
-  representation:
-    type: representation/parameterized.value/action
-    description: Downstream representation
-    mutability: configuration
-    default: 0
-    optional: 0
-  interval:
-    type: double
-    description: Update interval (number of writes; 0=never update, <0=exp.mov.av.)
-    mutability: configuration
-    default: 100
-    optional: 1
-    min: 0
-    max: 1.797693134862316e+308
-  target:
-    type: representation/parameterized.value/action
-    description: Target representation
-    mutability: provided
 representation/additive.value/state:
   description: Linear combination of two representations
   learning:
@@ -8672,7 +8784,7 @@ representation/additive.value/state:
     type: "[representation.value/state]"
     description: Downstream representations
     mutability: configuration
-    default: 0x2e6c2b0
+    default: 0x2217d10
     optional: 0
 representation/communicator.value/state:
   description: Interface to an out-of-process representation
@@ -8790,6 +8902,18 @@ representation/llr.value/state:
     optional: 0
 representation/parameterized/ann.value/state:
   description: Parameterized artificial neural network representation
+  interval:
+    type: double
+    description: Target representation update interval (number of writes; 0=never update, <0=exp.mov.av.)
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
+  target:
+    type: representation/parameterized/ann.value/state
+    description: Target representation
+    mutability: provided
   inputs:
     type: int.observation_dims
     description: Number of input dimensions
@@ -8822,6 +8946,18 @@ representation/parameterized/ann.value/state:
     max: 2
 representation/parameterized/linear.value/state:
   description: Linear-in-parameters representation
+  interval:
+    type: double
+    description: Target representation update interval (number of writes; 0=never update, <0=exp.mov.av.)
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
+  target:
+    type: representation/parameterized/linear.value/state
+    description: Target representation
+    mutability: provided
   init_min:
     type: vector
     description: Lower initial value limit
@@ -8862,26 +8998,6 @@ representation/parameterized/linear.value/state:
     mutability: system
     default: "[  ]"
     optional: 1
-representation/target.value/state:
-  description: Representation that periodically updates a target representation
-  representation:
-    type: representation/parameterized.value/state
-    description: Downstream representation
-    mutability: configuration
-    default: 0
-    optional: 0
-  interval:
-    type: double
-    description: Update interval (number of writes; 0=never update, <0=exp.mov.av.)
-    mutability: configuration
-    default: 100
-    optional: 1
-    min: 0
-    max: 1.797693134862316e+308
-  target:
-    type: representation/parameterized.value/state
-    description: Target representation
-    mutability: provided
 importer/csv.dynamic:
   description: Comma-separated values importer
   file:
@@ -8910,7 +9026,7 @@ representation/additive.transition:
     type: "[representation.transition]"
     description: Downstream representations
     mutability: configuration
-    default: 0x2ea8cd0
+    default: 0x22519a0
     optional: 0
 representation/communicator.transition:
   description: Interface to an out-of-process representation
@@ -9028,6 +9144,18 @@ representation/llr.transition:
     optional: 0
 representation/parameterized/ann.transition:
   description: Parameterized artificial neural network representation
+  interval:
+    type: double
+    description: Target representation update interval (number of writes; 0=never update, <0=exp.mov.av.)
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
+  target:
+    type: representation/parameterized/ann.transition
+    description: Target representation
+    mutability: provided
   inputs:
     type: int.observation_dims+int.action_dims
     description: Number of input dimensions
@@ -9060,6 +9188,18 @@ representation/parameterized/ann.transition:
     max: 2
 representation/parameterized/linear.transition:
   description: Linear-in-parameters representation
+  interval:
+    type: double
+    description: Target representation update interval (number of writes; 0=never update, <0=exp.mov.av.)
+    mutability: configuration
+    default: 0
+    optional: 1
+    min: 0
+    max: 1.797693134862316e+308
+  target:
+    type: representation/parameterized/linear.transition
+    description: Target representation
+    mutability: provided
   init_min:
     type: vector
     description: Lower initial value limit
@@ -9100,26 +9240,6 @@ representation/parameterized/linear.transition:
     mutability: system
     default: "[  ]"
     optional: 1
-representation/target.transition:
-  description: Representation that periodically updates a target representation
-  representation:
-    type: representation/parameterized.transition
-    description: Downstream representation
-    mutability: configuration
-    default: 0
-    optional: 0
-  interval:
-    type: double
-    description: Update interval (number of writes; 0=never update, <0=exp.mov.av.)
-    mutability: configuration
-    default: 100
-    optional: 1
-    min: 0
-    max: 1.797693134862316e+308
-  target:
-    type: representation/parameterized.transition
-    description: Target representation
-    mutability: provided
 importer/csv.static:
   description: Comma-separated values importer
   file:

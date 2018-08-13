@@ -35,12 +35,52 @@ namespace grl
 {
 
 /// Policy that combines two or more sub-policies using different strategies
+class MultiPolicy : public Policy
+{
+  public:
+    TYPEINFO("mapping/policy/multi", "Combines multiple policies")
+    
+    enum CombinationStrategy {csBinningProbabilities, csDensityBasedProbabilities, csDataCenterProbabilities};
+
+  protected:
+    std::string strategy_str_;
+    CombinationStrategy strategy_;
+    Projector *projector_;
+    Representation *representation_;
+    Vector min_, max_;
+    TypedConfigurableList<Policy> policy_;
+    //uint64_t bins_;
+    int bins_;
+    double r_distance_parameter_;
+
+  public:
+    MultiPolicy() : bins_(10), r_distance_parameter_(0.001) { }
+  
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+
+    // From Policy
+    virtual void act(const Observation &in, Action *out) const;
+    // virtual void attribution(const LargeVector &values, LargeVector *distribution) const;
+    //virtual void act(double time, const Observation &in, Action *out);
+    
+    // From Policy
+    //virtual void distribution(const Observation &in, const Action &prev, LargeVector *out) const;
+    
+  //protected:
+    //virtual void softmax(const LargeVector &values, LargeVector *distribution) const;
+    //virtual void normalized_function(const LargeVector &values, LargeVector *distribution) const;
+};
+
+/// Policy that combines two or more sub-policies using different strategies
 class DiscreteMultiPolicy : public DiscretePolicy
 {
   public:
     TYPEINFO("mapping/policy/discrete/multi", "Combines multiple discrete policies")
     
-    enum CombinationStrategy {csAddProbabilities, csMultiplyProbabilities, csMajorityVotingProbabilities, csRankVotingProbabilities, csBinningProbabilities, csDensityBasedProbabilities, csDataCenterProbabilities};
+    enum CombinationStrategy {csAddProbabilities, csMultiplyProbabilities, csMajorityVotingProbabilities, csRankVotingProbabilities};
 
   protected:
     std::string strategy_str_;
