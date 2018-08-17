@@ -22,7 +22,7 @@ experiment:
     type: agent/td
     policy: 
       type: mapping/policy/multi
-      strategy: policy_strategy_binning
+      strategy: policy_strategy_density_based
       policy: 
         - 
           type: mapping/policy/action
@@ -139,7 +139,7 @@ experiment:
     type: agent/fixed
     policy: 
       type: mapping/policy/multi
-      strategy: policy_strategy_binning
+      strategy: policy_strategy_density_based
       policy: 
         - 
           type: mapping/policy/action
@@ -173,7 +173,7 @@ ac_value:
   input_min: experiment/environment/task/observation_min
   input_max: experiment/environment/task/observation_max
   points: 65536
-  savepoints: ac_value/points
+  savepoints: 1048576
   state: experiment/state
   projection: mean
   output_dim: 0

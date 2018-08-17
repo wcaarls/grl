@@ -85,7 +85,6 @@ void MultiPolicy::act(const Observation &in, Action *out) const
  
   Action tmp_action;
   double normalized = 0.0;
-  double* actions_actors = new double[policy_.size()];
   policy_[0]->act(in, &tmp_action);
   int n_dimension = tmp_action.size();
       
@@ -93,6 +92,8 @@ void MultiPolicy::act(const Observation &in, Action *out) const
   {
     case csBinning:
     {
+      double* actions_actors = new double[policy_.size()];
+      
       //for all dimensions
       //  for all actors
       //    bin = floor(bins * (x-min)*(max-min))
@@ -112,7 +113,7 @@ void MultiPolicy::act(const Observation &in, Action *out) const
         {
           policy_[ii]->act(in, &tmp_action);
           actions_actors[ii] = tmp_action.v[jj];
-          histogram[(uint) floor(bins_ * ( actions_actors[ii] - min_[jj]) / (max_[jj] - min_[jj]) )]++;
+          histogram[std::min((int)floor(bins_ * (actions_actors[ii] - min_[jj]) / (max_[jj] - min_[jj]) ), bins_-1)]++;
           CRAWL("MultiPolicy::(*a["<< ii <<"]["<< jj <<"]): " << actions_actors[ii] << "\n");
         }
 
@@ -143,8 +144,7 @@ void MultiPolicy::act(const Observation &in, Action *out) const
         result[jj] = 0.0;
         for (size_t ii=0; ii < policy_.size(); ++ii)
         {
-          // = tmp_action.v[jj];
-          i_bin = floor(bins_ * (actions_actors[ii] - min_[jj]) / (max_[jj] - min_[jj]) );
+          i_bin = std::min((int)floor(bins_ * (actions_actors[ii] - min_[jj]) / (max_[jj] - min_[jj]) ), bins_-1);
           CRAWL("MultiPolicy::i_bin: " << i_bin << "\n");
           CRAWL("MultiPolicy::histogram[binmax]: " << histogram[binmax] << " - histogram[i_bin]: " << histogram[i_bin] << "\n");
           if ( histogram[binmax] == histogram[i_bin] )
@@ -155,7 +155,7 @@ void MultiPolicy::act(const Observation &in, Action *out) const
           }
         }
         result[jj] = result[jj] / n_binmax;
-        CRAWL("MultiPolicy::result: " << result[jj] << "\n");
+        CRAWL("MultiPolicy::result: " << result[jj] << " n_binmax: " << n_binmax << "\n");
       }
       dist = ConstantLargeVector(n_dimension, *result);
     }
@@ -163,53 +163,59 @@ void MultiPolicy::act(const Observation &in, Action *out) const
         
     case csDensityBased:
     {
-      double* norm_actors = new double[policy_.size()];
+      double norm_actors[n_dimension][policy_.size()];
+      double actions_actors[n_dimension][policy_.size()];
+
       dist = LargeVector::Zero(policy_.size());
       
       for (size_t jj=0; jj < n_dimension; ++jj)
       {
-        for (size_t ii=0; ii != policy_.size(); ++ii)
+        for (size_t ii=0; ii < policy_.size(); ++ii)
         {
         policy_[ii]->act(in, &tmp_action);
-        actions_actors[ii] = tmp_action.v[jj];
-        normalized = -1 + 2*(( actions_actors[ii] - min_[jj]) / (max_[jj] - min_[jj]));
-        norm_actors[ii] = normalized;
-        CRAWL("MultiPolicy::policy_[ii=" << ii << "]->act(in, &tmp_action): " << actions_actors[ii]);
-        CRAWL("MultiPolicy::normalized: " << norm_actors[ii]);
+        actions_actors[jj][ii] = tmp_action.v[jj];
+        normalized = -1 + 2*(( actions_actors[jj][ii] - min_[jj]) / (max_[jj] - min_[jj]));
+        norm_actors[jj][ii] = normalized;
+        CRAWL("MultiPolicy::policy_[jj=" << jj << "][ii=" << ii << "]->act(in, &tmp_action): " << actions_actors[jj][ii]);
+        CRAWL("MultiPolicy::normalized: " << norm_actors[jj][ii]);
         }
       }
       
       double* density = new double[policy_.size()];
-      for(size_t ii=0; ii != policy_.size(); ++ii)
+      for(size_t ii=0; ii < policy_.size(); ++ii)
       {
-        double tmp = 0;
-        for(size_t jj=0; jj != policy_.size(); ++jj)
+        density[ii] = 0;
+        double expoent = 0.0;
+        for(size_t kk=0; kk < n_dimension; ++kk)
         {
-          CRAWL("MultiPolicy::(dist[ii] - dist[jj]): " << fabs(dist[ii] - dist[jj]));
-          CRAWL("MultiPolicy::sqrt((dist[ii] - dist[jj])): " << sqrt((dist[ii] - dist[jj])));
-          if ((dist[ii] - dist[jj]) != 0)
+          for(size_t jj=0; jj < policy_.size(); ++jj)
           {
-            CRAWL("MultiPolicy::tmp: " << tmp);
-            tmp = tmp + sqrt( fabs(dist[ii] - dist[jj]) );
-            CRAWL("MultiPolicy::tmp: " << tmp);
+            expoent += sqrt(fabs(actions_actors[kk][ii] - actions_actors[kk][jj]))/pow(r_distance_parameter_, 2);
           }
         }
-        density[ii] = -(tmp/pow(r_distance_parameter_,2));//exp(-(tmp/pow(r_distance_parameter_,2)));
+        density[ii] += exp(-1 * expoent);
         CRAWL("MultiPolicy::density[" << ii << "]: " << density[ii]);
       }
 
-      int min_indice = 0;
+      int i_max = 0;
+
       for(size_t ii=1; ii < policy_.size(); ++ii)
       {
         if(density[ii] > density[ii-1])
         {
-          min_indice = ii;
+          i_max = ii;
         }
       }
-      CRAWL("MultiPolicy::min_indice: " << min_indice);
+      CRAWL("MultiPolicy::density[i_max(" << i_max << ")]: " << density[i_max]);
       
-      policy_[min_indice]->act(in, &tmp_action);
-      dist = ConstantLargeVector(1, tmp_action.v[0]);
+      double* tmp = new double[n_dimension];
+      for (size_t jj=0; jj < n_dimension; ++jj)
+      {
+        tmp[jj] = actions_actors[jj][i_max];
+        CRAWL("MultiPolicy::tmp_[jj=" << jj << "]: " << tmp[jj]);
+      }
+
+      dist = ConstantLargeVector(n_dimension, *tmp);
     }
       break;
         
@@ -218,6 +224,7 @@ void MultiPolicy::act(const Observation &in, Action *out) const
       break;
         
     case csMean:
+    {
       policy_[0]->act(in, &tmp_action);
       size_t n_dimension = tmp_action.size();
 
@@ -236,15 +243,22 @@ void MultiPolicy::act(const Observation &in, Action *out) const
       }
 
       dist = ConstantLargeVector(n_dimension, *mean);
+    }
       break;
   }
 
+  if (!finite(dist[0]))
+  {
+    ERROR("Result %f is not finite!" << dist[0]);
+    ERROR("n_dimension: " << n_dimension);
+  }
+
   *out = dist;//variants[action];
+  out->type = atExploratory;
   
   CRAWL("MultiPolicy::(*out): " << (*out) << "\n");
   // Actually, this may be different per policy. Just to be on the safe side,
   // we always cut off all off-policy traces.
-  out->type = atExploratory;
   
 }
 
