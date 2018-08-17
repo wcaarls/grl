@@ -35,7 +35,7 @@ REGISTER_CONFIGURABLE(MultiPolicy)
 
 void MultiPolicy::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("strategy", "Combination strategy", strategy_str_, CRP::Configuration, {"policy_strategy_binning_prob", "policy_strategy_density_based_prob", "policy_strategy_data_center_prob"}));
+  config->push_back(CRP("strategy", "Combination strategy", strategy_str_, CRP::Configuration, {"policy_strategy_binning", "policy_strategy_density_based", "policy_strategy_data_center", "policy_strategy_mean"}));
   config->push_back(CRP("policy", "mapping/policy", "Sub-policies", &policy_));
 
   config->push_back(CRP("bins", "Binning Simple Discretization", bins_));
@@ -48,12 +48,14 @@ void MultiPolicy::request(ConfigurationRequest *config)
 void MultiPolicy::configure(Configuration &config)
 {
   strategy_str_ = config["strategy"].str();
-  if (strategy_str_ == "policy_strategy_binning_prob")
-    strategy_ = csBinningProbabilities;
-  else if (strategy_str_ == "policy_strategy_density_based_prob")
-    strategy_ = csDensityBasedProbabilities;
-  else if (strategy_str_ == "policy_strategy_data_center_prob")
-    strategy_ = csDataCenterProbabilities;
+  if (strategy_str_ == "policy_strategy_binning")
+    strategy_ = csBinning;
+  else if (strategy_str_ == "policy_strategy_density_based")
+    strategy_ = csDensityBased;
+  else if (strategy_str_ == "policy_strategy_data_center")
+    strategy_ = csDataCenter;
+  else if (strategy_str_ == "policy_strategy_mean")
+    strategy_ = csMean;
   else
     throw bad_param("mapping/policy/multi:strategy");
 
@@ -82,76 +84,99 @@ void MultiPolicy::act(const Observation &in, Action *out) const
   LargeVector dist;
  
   Action tmp_action;
-  double bin_result = 0.0;
-  double range = (max_[0] - min_[0]);
-  double step = range/bins_;
-  
-  double bin_tmp = 0;
-  double tmp = 0.0;
-  
-  double mean_bin = 0;
-  double int_mean_bin = 0;
-  double choose_bin = 0;
   double normalized = 0.0;
-  
-  double tmp_final_policy = 0;
-
+  double* actions_actors = new double[policy_.size()];
+  policy_[0]->act(in, &tmp_action);
+  int n_dimension = tmp_action.size();
+      
   switch (strategy_)
   {
-    case csBinningProbabilities:
-      // CRAWL("MultiPolicy::policy_.size(): " << policy_.size());
-      // CRAWL("MultiPolicy::range: " << range);
-      // CRAWL("MultiPolicy::step: " << step);
-
-      for (size_t ii=0; ii != policy_.size(); ++ii)
-      {
-        policy_[ii]->act(in, &tmp_action);
-        bin_tmp = 0;
-        tmp = (double) tmp_action.v[0];
-
-        //3 (10) 2.4 (9) 1.8 (8) 1.2 (7) 0.6 (6) 0
-        //   (5) -0.6 (4) -1.2 (3) -1.8 (2) -2.4 (1) -3
-
-        while (tmp > min_[0])
-        {
-          bin_tmp++; 
-          tmp = tmp - step;
-        }
-        bin_result += bin_tmp;
-        
-        // CRAWL("MultiPolicy::policy_[ii=" << ii << "]->act(in, &tmp_action): " << tmp_action);
-        // CRAWL("MultiPolicy::bin_tmp: " << bin_tmp);
-        // CRAWL("MultiPolicy::bin_result: " << bin_result);
-      }
-
-      mean_bin = bin_result/policy_.size();
-      // CRAWL("MultiPolicy::mean_bin: " << mean_bin << "\n");
-      int_mean_bin = (int) mean_bin;
-      // CRAWL("MultiPolicy::int_mean_bin: " << int_mean_bin << "\n");
-      choose_bin = int_mean_bin;
-      if ( fabs(int_mean_bin + 1 - mean_bin) > 0.5 ) 
-        choose_bin++;
-      // CRAWL("MultiPolicy::choose_bin: " << choose_bin << "\n");
-      tmp_final_policy = (--choose_bin*step + 0.5*step) + min_[0];
-      // CRAWL("MultiPolicy::tmp_final_policy: " << tmp_final_policy << "\n");
-      tmp_action.v = tmp_final_policy;
-      dist = ConstantLargeVector(1, tmp_final_policy);
-      // CRAWL("MultiPolicy::tmp_action.v: " << tmp_action.v << "\n");
-      // CRAWL("MultiPolicy::rgo_debug");
-      break;
-        
-    case csDensityBasedProbabilities:
+    case csBinning:
     {
-      dist = LargeVector::Zero(policy_.size());
-      //LargeVector density = LargeVector::Zero(policy_.size());
+      //for all dimensions
+      //  for all actors
+      //    bin = floor(bins * (x-min)*(max-min))
+      //    histogram[bin]++
       
-      for (size_t ii=0; ii != policy_.size(); ++ii)
+      CRAWL("MultiPolicy::histogram");
+
+      double* histogram = new double[bins_];
+      for (size_t ii=0; ii < bins_; ++ii)
+          histogram[ii] = 0;
+
+      double* result = new double[n_dimension];
+      for (size_t jj=0; jj < n_dimension; ++jj)
       {
+        CRAWL("MultiPolicy:: min_["<< jj <<"]): " << min_[jj] << ", max_["<< jj <<"]): " << max_[jj] << "\n");
+        for (size_t ii=0; ii != policy_.size(); ++ii)
+        {
+          policy_[ii]->act(in, &tmp_action);
+          actions_actors[ii] = tmp_action.v[jj];
+          histogram[(uint) floor(bins_ * ( actions_actors[ii] - min_[jj]) / (max_[jj] - min_[jj]) )]++;
+          CRAWL("MultiPolicy::(*a["<< ii <<"]["<< jj <<"]): " << actions_actors[ii] << "\n");
+        }
+
+        //binmax = max bin in histogram
+        CRAWL("MultiPolicy::binmaxxxxx");
+        size_t cnt_binmax = 0;
+        size_t binmax = 0;
+        for (size_t ii=0; ii < bins_; ++ii)
+        {
+          if (cnt_binmax < histogram[ii])
+          {
+            cnt_binmax = histogram[ii];
+            binmax = ii;
+            CRAWL("MultiPolicy::binmax: " << binmax << " - cnt_binmax:" << cnt_binmax << "\n");
+          }
+          CRAWL("MultiPolicy::histogram[" << ii << "]: " << histogram[ii] << "\n");
+        }
+        CRAWL("MultiPolicy::binmax: " << binmax << "\n");
+
+        //for all actors
+        //  bin = floor(bins * (x-min)*(max-min))
+        //if bin == binmax
+        //  take average
+
+        CRAWL("MultiPolicy::averageeeeee");
+        size_t n_binmax = 0;
+        size_t i_bin = 0;
+        result[jj] = 0.0;
+        for (size_t ii=0; ii < policy_.size(); ++ii)
+        {
+          // = tmp_action.v[jj];
+          i_bin = floor(bins_ * (actions_actors[ii] - min_[jj]) / (max_[jj] - min_[jj]) );
+          CRAWL("MultiPolicy::i_bin: " << i_bin << "\n");
+          CRAWL("MultiPolicy::histogram[binmax]: " << histogram[binmax] << " - histogram[i_bin]: " << histogram[i_bin] << "\n");
+          if ( histogram[binmax] == histogram[i_bin] )
+          {
+            result[jj] += actions_actors[ii];
+            CRAWL("MultiPolicy::a[" << ii << "]: " << actions_actors[ii] << "\n");
+            ++n_binmax;
+          }
+        }
+        result[jj] = result[jj] / n_binmax;
+        CRAWL("MultiPolicy::result: " << result[jj] << "\n");
+      }
+      dist = ConstantLargeVector(n_dimension, *result);
+    }
+    break;
+        
+    case csDensityBased:
+    {
+      double* norm_actors = new double[policy_.size()];
+      dist = LargeVector::Zero(policy_.size());
+      
+      for (size_t jj=0; jj < n_dimension; ++jj)
+      {
+        for (size_t ii=0; ii != policy_.size(); ++ii)
+        {
         policy_[ii]->act(in, &tmp_action);
-        normalized = (((double) tmp_action.v[0])-min_[0])/(max_[0] - min_[0]);
-        dist[ii] = normalized;
-        CRAWL("MultiPolicy::policy_[ii=" << ii << "]->act(in, &tmp_action): " << tmp_action);
-        CRAWL("MultiPolicy::normalized: " << normalized);
+        actions_actors[ii] = tmp_action.v[jj];
+        normalized = -1 + 2*(( actions_actors[ii] - min_[jj]) / (max_[jj] - min_[jj]));
+        norm_actors[ii] = normalized;
+        CRAWL("MultiPolicy::policy_[ii=" << ii << "]->act(in, &tmp_action): " << actions_actors[ii]);
+        CRAWL("MultiPolicy::normalized: " << norm_actors[ii]);
+        }
       }
       
       double* density = new double[policy_.size()];
@@ -188,8 +213,29 @@ void MultiPolicy::act(const Observation &in, Action *out) const
     }
       break;
         
-    case csDataCenterProbabilities:
-      throw bad_param("mapping/policy/multi:policy/csDataCenterProbabilities");
+    case csDataCenter:
+      throw bad_param("mapping/policy/multi:policy/csDataCenter");
+      break;
+        
+    case csMean:
+      policy_[0]->act(in, &tmp_action);
+      size_t n_dimension = tmp_action.size();
+
+      double* mean = new double[n_dimension];
+
+  
+      CRAWL("MultiPolicy::(policy_.size()): " << policy_.size() << " n_dimension: " << n_dimension << "\n");
+      for(size_t jj=0; jj < n_dimension; ++jj){
+        for (size_t ii=0; ii != policy_.size(); ++ii)
+        {
+          policy_[ii]->act(in, &tmp_action);
+          mean[jj] += (double) tmp_action.v[jj];
+          CRAWL("MultiPolicy::(*a["<< jj <<"]): " << tmp_action.v[jj] << "\n");
+        }
+        mean[jj] = mean[jj]/policy_.size();
+      }
+
+      dist = ConstantLargeVector(n_dimension, *mean);
       break;
   }
 
