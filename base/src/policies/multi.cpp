@@ -94,12 +94,7 @@ void MultiPolicy::act(const Observation &in, Action *out) const
     {
       double* actions_actors = new double[policy_.size()];
       
-      //for all dimensions
-      //  for all actors
-      //    bin = floor(bins * (x-min)*(max-min))
-      //    histogram[bin]++
-      
-      CRAWL("MultiPolicy::histogram");
+      CRAWL("MultiPolicy::csBinning histogram");
 
       double* histogram = new double[bins_];
       for (size_t ii=0; ii < bins_; ++ii)
@@ -117,8 +112,6 @@ void MultiPolicy::act(const Observation &in, Action *out) const
           CRAWL("MultiPolicy::(*a["<< ii <<"]["<< jj <<"]): " << actions_actors[ii] << "\n");
         }
 
-        //binmax = max bin in histogram
-        CRAWL("MultiPolicy::binmaxxxxx");
         size_t cnt_binmax = 0;
         size_t binmax = 0;
         for (size_t ii=0; ii < bins_; ++ii)
@@ -133,12 +126,6 @@ void MultiPolicy::act(const Observation &in, Action *out) const
         }
         CRAWL("MultiPolicy::binmax: " << binmax << "\n");
 
-        //for all actors
-        //  bin = floor(bins * (x-min)*(max-min))
-        //if bin == binmax
-        //  take average
-
-        CRAWL("MultiPolicy::averageeeeee");
         size_t n_binmax = 0;
         size_t i_bin = 0;
         result[jj] = 0.0;
@@ -189,22 +176,17 @@ void MultiPolicy::act(const Observation &in, Action *out) const
         for(size_t kk=0; kk < n_dimension; ++kk)
         {
           for(size_t jj=0; jj < policy_.size(); ++jj)
-          {
             expoent += sqrt(fabs(actions_actors[kk][ii] - actions_actors[kk][jj]))/pow(r_distance_parameter_, 2);
-          }
         }
         density[ii] += exp(-1 * expoent);
         CRAWL("MultiPolicy::density[" << ii << "]: " << density[ii]);
       }
 
       int i_max = 0;
-
       for(size_t ii=1; ii < policy_.size(); ++ii)
       {
         if(density[ii] > density[ii-1])
-        {
           i_max = ii;
-        }
       }
       CRAWL("MultiPolicy::density[i_max(" << i_max << ")]: " << density[i_max]);
       
@@ -214,37 +196,98 @@ void MultiPolicy::act(const Observation &in, Action *out) const
         tmp[jj] = actions_actors[jj][i_max];
         CRAWL("MultiPolicy::tmp_[jj=" << jj << "]: " << tmp[jj]);
       }
-
       dist = ConstantLargeVector(n_dimension, *tmp);
     }
-      break;
+    break;
         
     case csDataCenter:
-      throw bad_param("mapping/policy/multi:policy/csDataCenter");
-      break;
+    {
+      std::deque<Action> actions_actors2(policy_.size());
+      LargeVector mean;
+      bool first = true;
+      size_t ii = 0;
+      for(std::deque<Action>::iterator it = actions_actors2.begin(); it != actions_actors2.end(); ++it, ++ii)
+      {
+        policy_[ii]->act(in, &*it);
+        if (first)
+          mean = it->v;
+        else
+          mean = mean + it->v;
+        first = false;
+      }
+      mean = mean / policy_.size();
+      
+      while(actions_actors2.size() > 2)
+      {
+        //PRINTLN
+        //for (std::deque <Action> :: iterator it = actions_actors2.begin(); it != actions_actors2.end(); ++it)
+        //  for (size_t ii = 0; ii < (*it).size(); ++ii)
+        //    CRAWL( '\t' << (*it)[ii]);
+        //CRAWL('\n');
+        
+        //EUCLIDIAN DISTANCE
+        double max = 0;
+        std::deque <Action> :: iterator i_max, it;
+        for( it=actions_actors2.begin(); it != actions_actors2.end(); ++it)
+        { 
+          double dist = sum(pow(actions_actors2.at(ii).v - mean, 2));
+          if (dist > max)
+          {
+            max = dist;
+            i_max = it;
+          }
+        }
+        
+        CRAWL("MultiPolicy:: after euclidian distance \n");
+
+        //retirando apenas o elemento que está no index i_max
+        actions_actors2.erase (i_max);
+
+        //PRINTLN
+        //for(size_t ii=0; ii < actions_actors2.size(); ++ii)
+        //  CRAWL("MultiPolicy:: after remove the i_max actions_actors2: " << actions_actors2[ii]);
+
+        for (size_t ii=0; ii < mean.size(); ++ii)
+          mean[ii] = 0;
+        
+        bool first = true;
+        for(std::deque<Action>::iterator it = actions_actors2.begin(); it != actions_actors2.end(); ++it)
+        {
+          if (first)
+            mean = it->v;
+          else
+            mean = mean + it->v;
+          first = false;
+          CRAWL("MultiPolicy::actions_actors2[ii="<< ii <<"].v: " << actions_actors2[ii].v << " mean: " << mean  << "\n");
+        }
+        mean = mean / actions_actors2.size();
+        CRAWL("MultiPolicy::(mean / actions_actors2.size()): " << mean << "\n");
+      }
+
+      dist = mean;
+    }
+    break;
         
     case csMean:
     {
-      policy_[0]->act(in, &tmp_action);
-      size_t n_dimension = tmp_action.size();
-
-      double* mean = new double[n_dimension];
-
-  
-      CRAWL("MultiPolicy::(policy_.size()): " << policy_.size() << " n_dimension: " << n_dimension << "\n");
-      for(size_t jj=0; jj < n_dimension; ++jj){
-        for (size_t ii=0; ii != policy_.size(); ++ii)
-        {
-          policy_[ii]->act(in, &tmp_action);
-          mean[jj] += (double) tmp_action.v[jj];
-          CRAWL("MultiPolicy::(*a["<< jj <<"]): " << tmp_action.v[jj] << "\n");
-        }
-        mean[jj] = mean[jj]/policy_.size();
+      std::deque<Action> actions_actors2(policy_.size());
+      LargeVector mean;
+      bool first = true;
+      size_t ii = 0;
+      for(std::deque<Action>::iterator it = actions_actors2.begin(); it != actions_actors2.end(); ++it, ++ii)
+      {
+        policy_[ii]->act(in, &*it);
+        if (first)
+          mean = it->v;
+        else
+          mean = mean + it->v;
+        first = false;
       }
+      mean = mean / policy_.size();
 
-      dist = ConstantLargeVector(n_dimension, *mean);
+      dist = mean;
     }
-      break;
+    break;
   }
 
   if (!finite(dist[0]))
@@ -257,8 +300,6 @@ void MultiPolicy::act(const Observation &in, Action *out) const
   out->type = atExploratory;
   
   CRAWL("MultiPolicy::(*out): " << (*out) << "\n");
-  // Actually, this may be different per policy. Just to be on the safe side,
-  // we always cut off all off-policy traces.
   
 }
 
@@ -318,8 +359,6 @@ void DiscreteMultiPolicy::act(const Observation &in, Action *out) const
 
   *out = variants[action];
   
-  // Actually, this may be different per policy. Just to be on the safe side,
-  // we always cut off all off-policy traces.
   out->type = atExploratory;
 }
 
