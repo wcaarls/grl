@@ -49,7 +49,6 @@ class MultiPolicy : public Policy
     Representation *representation_;
     Vector min_, max_;
     TypedConfigurableList<Policy> policy_;
-    //uint64_t bins_;
     int bins_;
     double r_distance_parameter_;
 
@@ -63,15 +62,6 @@ class MultiPolicy : public Policy
 
     // From Policy
     virtual void act(const Observation &in, Action *out) const;
-    // virtual void attribution(const LargeVector &values, LargeVector *distribution) const;
-    //virtual void act(double time, const Observation &in, Action *out);
-    
-    // From Policy
-    //virtual void distribution(const Observation &in, const Action &prev, LargeVector *out) const;
-    
-  //protected:
-    //virtual void softmax(const LargeVector &values, LargeVector *distribution) const;
-    //virtual void normalized_function(const LargeVector &values, LargeVector *distribution) const;
 };
 
 /// Policy that combines two or more sub-policies using different strategies
