@@ -10,7 +10,7 @@ experiment:
     type: environment/modeled
     model: 
       type: model/dynamical
-      control_step: 0.03
+      control_step: 0.05
       integration_steps: 5
       dynamics: 
         type: dynamics/pendulum
@@ -21,41 +21,12 @@ experiment:
   agent: 
     type: agent/td
     policy: 
-      type: mapping/policy/discrete/multi
-      strategy: policy_strategy_rank_voting_prob
-      tau: 0.1
-      discretizer: 
-        type: discretizer/uniform
-        min: experiment/environment/task/action_min
-        max: experiment/environment/task/action_max
-        steps: [3]
+      type: mapping/policy/multi
+      strategy: policy_strategy_binning_prob
       policy: 
         - 
-          type: mapping/policy/value/q
-          discretizer: experiment/agent/policy/discretizer
-          projector: 
-            type: projector/tile_coding
-            tilings: 16
-            memory: 8388608
-            safe: 0
-            resolution: [0.31415, 3.1415, 3]
-            wrapping: [6.283, 0, 0]
-          representation: 
-            type: representation/parameterized/linear
-            init_min: [0]
-            init_max: [1]
-            memory: experiment/agent/policy/policy/0/projector/memory
-            outputs: 1
-            output_min: []
-            output_max: []
-          sampler: 
-            type: sampler/epsilon_greedy
-            epsilon: [0.05]
-            decay_rate: 1
-            decay_min: 0
-        - 
           type: mapping/policy/action
-          sigma: []
+          sigma: [1]
           decay_rate: 1
           decay_min: 0
           output_min: experiment/environment/task/action_min
@@ -69,27 +40,74 @@ experiment:
             wrapping: [6.283, 0]
           representation: 
             type: representation/parameterized/linear
+            interval: 0
+            init_min: [0]
+            init_max: [1]
+            memory: experiment/agent/policy/policy/0/projector/memory
+            outputs: experiment/environment/task/action_dims
+            output_min: experiment/environment/task/action_min
+            output_max: experiment/environment/task/action_max
+        - 
+          type: mapping/policy/action
+          sigma: [1]
+          decay_rate: 1
+          decay_min: 0
+          output_min: experiment/environment/task/action_min
+          output_max: experiment/environment/task/action_max
+          projector: 
+            type: projector/tile_coding
+            tilings: 16
+            memory: 8388608
+            safe: 0
+            resolution: [0.31415, 3.1415]
+            wrapping: [6.283, 0]
+          representation: 
+            type: representation/parameterized/linear
+            interval: 0
             init_min: [0]
             init_max: [1]
             memory: experiment/agent/policy/policy/1/projector/memory
             outputs: experiment/environment/task/action_dims
             output_min: experiment/environment/task/action_min
             output_max: experiment/environment/task/action_max
+      output_min: experiment/environment/task/action_min
+      output_max: experiment/environment/task/action_max
     predictor: 
       type: predictor/multi
       predictor: 
         - 
-          type: predictor/critic/sarsa
-          alpha: 0.2
-          gamma: 0.97
-          lambda: 0.65
+          type: predictor/ac/action
+          alpha: 0.005
+          update_method: proportional
+          step_limit: []
           projector: experiment/agent/policy/policy/0/projector
           representation: experiment/agent/policy/policy/0/representation
-          trace: 
-            type: trace/enumerated/replacing
+          critic: 
+            type: predictor/critic/sarsa
+            alpha: 0.2
+            gamma: 0.97
+            lambda: 0.65
+            projector: 
+              type: projector/tile_coding
+              tilings: 16
+              memory: 8388608
+              safe: 0
+              resolution: [0.31415, 3.1415, 1]
+              wrapping: [6.283, 0, 0]
+            representation: 
+              type: representation/parameterized/linear
+              interval: 0
+              init_min: [0]
+              init_max: [1]
+              memory: experiment/agent/policy/policy/0/projector/memory
+              outputs: 1
+              output_min: []
+              output_max: []
+            trace: 
+              type: trace/enumerated/replacing
         - 
           type: predictor/ac/action
-          alpha: 0.01
+          alpha: 0.005
           update_method: proportional
           step_limit: []
           projector: experiment/agent/policy/policy/1/projector
@@ -104,13 +122,14 @@ experiment:
               tilings: 16
               memory: 8388608
               safe: 0
-              resolution: [ 0.31415, 3.1415, 1 ]
-              wrapping: [ 6.283, 0, 0 ]
+              resolution: [0.31415, 3.1415, 1]
+              wrapping: [6.283, 0, 0]
             representation: 
               type: representation/parameterized/linear
-              init_min: [ 0 ]
-              init_max: [ 1 ]
-              memory: 8388608
+              interval: 0
+              init_min: [0]
+              init_max: [1]
+              memory: experiment/agent/policy/policy/1/projector/memory
               outputs: 1
               output_min: experiment/environment/task/action_min
               output_max: experiment/environment/task/action_max
@@ -119,27 +138,29 @@ experiment:
   test_agent: 
     type: agent/fixed
     policy: 
-      type: mapping/policy/discrete/multi
-      strategy: policy_strategy_rank_voting_prob
-      tau: experiment/agent/policy/tau
-      discretizer: experiment/agent/policy/discretizer
+      type: mapping/policy/multi
+      strategy: policy_strategy_binning_prob
       policy: 
         - 
-          type: mapping/policy/value/q
-          discretizer: experiment/agent/policy/discretizer
+          type: mapping/policy/action
+          sigma: []
+          decay_rate: 1
+          decay_min: 0
+          output_min: experiment/environment/task/action_min
+          output_max: experiment/environment/task/action_max
           projector: experiment/agent/policy/policy/0/projector
           representation: experiment/agent/policy/policy/0/representation
-          sampler: 
-            type: sampler/greedy
         - 
           type: mapping/policy/action
-          sigma: [  ]
+          sigma: [1]
           decay_rate: 1
           decay_min: 0
           output_min: experiment/environment/task/action_min
           output_max: experiment/environment/task/action_max
           projector: experiment/agent/policy/policy/1/projector
           representation: experiment/agent/policy/policy/1/representation
+      output_min: experiment/environment/task/action_min
+      output_max: experiment/environment/task/action_max
   save_every: never
 visualizer: 
   type: visualizer/glut

@@ -31,6 +31,278 @@ using namespace grl;
 
 REGISTER_CONFIGURABLE(DiscreteMultiPolicy)
 
+REGISTER_CONFIGURABLE(MultiPolicy)
+
+void MultiPolicy::request(ConfigurationRequest *config)
+{
+  config->push_back(CRP("strategy", "Combination strategy", strategy_str_, CRP::Configuration, {"policy_strategy_binning", "policy_strategy_density_based", "policy_strategy_data_center", "policy_strategy_mean"}));
+  config->push_back(CRP("policy", "mapping/policy", "Sub-policies", &policy_));
+
+  config->push_back(CRP("bins", "Binning Simple Discretization", bins_));
+  config->push_back(CRP("r_distance_parameter", "R Distance Parameter", r_distance_parameter_));
+  
+  config->push_back(CRP("output_min", "vector.action_min", "Lower limit on outputs", min_, CRP::System));
+  config->push_back(CRP("output_max", "vector.action_max", "Upper limit on outputs", max_, CRP::System));
+}
+
+void MultiPolicy::configure(Configuration &config)
+{
+  strategy_str_ = config["strategy"].str();
+  if (strategy_str_ == "policy_strategy_binning")
+    strategy_ = csBinning;
+  else if (strategy_str_ == "policy_strategy_density_based")
+    strategy_ = csDensityBased;
+  else if (strategy_str_ == "policy_strategy_data_center")
+    strategy_ = csDataCenter;
+  else if (strategy_str_ == "policy_strategy_mean")
+    strategy_ = csMean;
+  else
+    throw bad_param("mapping/policy/multi:strategy");
+
+  bins_ = config["bins"];
+  r_distance_parameter_ = config["r_distance_parameter"];
+
+  min_ = config["output_min"].v();
+  max_ = config["output_max"].v();
+
+  if (min_.size() != max_.size() || !min_.size())
+    throw bad_param("policy/action:{output_min,output_max}");
+
+  policy_ = *(ConfigurableList*)config["policy"].ptr();
+  
+  if (policy_.empty())
+    throw bad_param("mapping/policy/multi:policy is empty");
+  
+}
+
+void MultiPolicy::reconfigure(const Configuration &config)
+{
+}
+
+void MultiPolicy::act(const Observation &in, Action *out) const
+{
+  LargeVector dist;
+ 
+  Action tmp_action;
+  double normalized = 0.0;
+  policy_[0]->act(in, &tmp_action);
+  int n_dimension = tmp_action.size();
+      
+  switch (strategy_)
+  {
+    case csBinning:
+    {
+      double* actions_actors = new double[policy_.size()];
+      
+      CRAWL("MultiPolicy::csBinning histogram");
+
+      double* histogram = new double[bins_];
+      for (size_t ii=0; ii < bins_; ++ii)
+          histogram[ii] = 0;
+
+      double* result = new double[n_dimension];
+      for (size_t jj=0; jj < n_dimension; ++jj)
+      {
+        CRAWL("MultiPolicy:: min_["<< jj <<"]): " << min_[jj] << ", max_["<< jj <<"]): " << max_[jj] << "\n");
+        for (size_t ii=0; ii != policy_.size(); ++ii)
+        {
+          policy_[ii]->act(in, &tmp_action);
+          actions_actors[ii] = tmp_action.v[jj];
+          histogram[std::min((int)floor(bins_ * (actions_actors[ii] - min_[jj]) / (max_[jj] - min_[jj]) ), bins_-1)]++;
+          CRAWL("MultiPolicy::(*a["<< ii <<"]["<< jj <<"]): " << actions_actors[ii] << "\n");
+        }
+
+        size_t cnt_binmax = 0;
+        size_t binmax = 0;
+        for (size_t ii=0; ii < bins_; ++ii)
+        {
+          if (cnt_binmax < histogram[ii])
+          {
+            cnt_binmax = histogram[ii];
+            binmax = ii;
+            CRAWL("MultiPolicy::binmax: " << binmax << " - cnt_binmax:" << cnt_binmax << "\n");
+          }
+          CRAWL("MultiPolicy::histogram[" << ii << "]: " << histogram[ii] << "\n");
+        }
+        CRAWL("MultiPolicy::binmax: " << binmax << "\n");
+
+        size_t n_binmax = 0;
+        size_t i_bin = 0;
+        result[jj] = 0.0;
+        for (size_t ii=0; ii < policy_.size(); ++ii)
+        {
+          i_bin = std::min((int)floor(bins_ * (actions_actors[ii] - min_[jj]) / (max_[jj] - min_[jj]) ), bins_-1);
+          CRAWL("MultiPolicy::i_bin: " << i_bin << "\n");
+          CRAWL("MultiPolicy::histogram[binmax]: " << histogram[binmax] << " - histogram[i_bin]: " << histogram[i_bin] << "\n");
+          if ( histogram[binmax] == histogram[i_bin] )
+          {
+            result[jj] += actions_actors[ii];
+            CRAWL("MultiPolicy::a[" << ii << "]: " << actions_actors[ii] << "\n");
+            ++n_binmax;
+          }
+        }
+        result[jj] = result[jj] / n_binmax;
+        CRAWL("MultiPolicy::result: " << result[jj] << " n_binmax: " << n_binmax << "\n");
+      }
+      dist = ConstantLargeVector(n_dimension, *result);
+    }
+    break;
+        
+    case csDensityBased:
+    {
+      double norm_actors[n_dimension][policy_.size()];
+      double actions_actors[n_dimension][policy_.size()];
+
+      dist = LargeVector::Zero(policy_.size());
+      
+      for (size_t jj=0; jj < n_dimension; ++jj)
+      {
+        for (size_t ii=0; ii < policy_.size(); ++ii)
+        {
+        policy_[ii]->act(in, &tmp_action);
+        actions_actors[jj][ii] = tmp_action.v[jj];
+        normalized = -1 + 2*(( actions_actors[jj][ii] - min_[jj]) / (max_[jj] - min_[jj]));
+        norm_actors[jj][ii] = normalized;
+        CRAWL("MultiPolicy::policy_[jj=" << jj << "][ii=" << ii << "]->act(in, &tmp_action): " << actions_actors[jj][ii]);
+        CRAWL("MultiPolicy::normalized: " << norm_actors[jj][ii]);
+        }
+      }
+      
+      double* density = new double[policy_.size()];
+      for(size_t ii=0; ii < policy_.size(); ++ii)
+      {
+        density[ii] = 0;
+        double expoent = 0.0;
+        for(size_t kk=0; kk < n_dimension; ++kk)
+        {
+          for(size_t jj=0; jj < policy_.size(); ++jj)
+            expoent += sqrt(fabs(actions_actors[kk][ii] - actions_actors[kk][jj]))/pow(r_distance_parameter_, 2);
+        }
+        density[ii] += exp(-1 * expoent);
+        CRAWL("MultiPolicy::density[" << ii << "]: " << density[ii]);
+      }
+
+      int i_max = 0;
+      for(size_t ii=1; ii < policy_.size(); ++ii)
+      {
+        if(density[ii] > density[ii-1])
+          i_max = ii;
+      }
+      CRAWL("MultiPolicy::density[i_max(" << i_max << ")]: " << density[i_max]);
+      
+      double* tmp = new double[n_dimension];
+      for (size_t jj=0; jj < n_dimension; ++jj)
+      {
+        tmp[jj] = actions_actors[jj][i_max];
+        CRAWL("MultiPolicy::tmp_[jj=" << jj << "]: " << tmp[jj]);
+      }
+      dist = ConstantLargeVector(n_dimension, *tmp);
+    }
+    break;
+        
+    case csDataCenter:
+    {
+      std::deque<Action> actions_actors2(policy_.size());
+      LargeVector mean;
+      bool first = true;
+      size_t ii = 0;
+      for(std::deque<Action>::iterator it = actions_actors2.begin(); it != actions_actors2.end(); ++it, ++ii)
+      {
+        policy_[ii]->act(in, &*it);
+        if (first)
+          mean = it->v;
+        else
+          mean = mean + it->v;
+        first = false;
+      }
+      mean = mean / policy_.size();
+      
+      while(actions_actors2.size() > 2)
+      {
+        //PRINTLN
+        //for (std::deque <Action> :: iterator it = actions_actors2.begin(); it != actions_actors2.end(); ++it)
+        //  for (size_t ii = 0; ii < (*it).size(); ++ii)
+        //    CRAWL( '\t' << (*it)[ii]);
+        //CRAWL('\n');
+        
+        //EUCLIDIAN DISTANCE
+        double max = 0;
+        std::deque <Action> :: iterator i_max, it;
+        for( it=actions_actors2.begin(); it != actions_actors2.end(); ++it)
+        { 
+          double dist = sum(pow(actions_actors2.at(ii).v - mean, 2));
+          if (dist > max)
+          {
+            max = dist;
+            i_max = it;
+          }
+        }
+        
+        CRAWL("MultiPolicy:: after euclidian distance \n");
+
+        //retirando apenas o elemento que está no index i_max
+        actions_actors2.erase (i_max);
+
+        //PRINTLN
+        //for(size_t ii=0; ii < actions_actors2.size(); ++ii)
+        //  CRAWL("MultiPolicy:: after remove the i_max actions_actors2: " << actions_actors2[ii]);
+
+        for (size_t ii=0; ii < mean.size(); ++ii)
+          mean[ii] = 0;
+        
+        bool first = true;
+        for(std::deque<Action>::iterator it = actions_actors2.begin(); it != actions_actors2.end(); ++it)
+        {
+          if (first)
+            mean = it->v;
+          else
+            mean = mean + it->v;
+          first = false;
+          CRAWL("MultiPolicy::actions_actors2[ii="<< ii <<"].v: " << actions_actors2[ii].v << " mean: " << mean  << "\n");
+        }
+        mean = mean / actions_actors2.size();
+        CRAWL("MultiPolicy::(mean / actions_actors2.size()): " << mean << "\n");
+      }
+
+      dist = mean;
+    }
+    break;
+        
+    case csMean:
+    {
+      std::deque<Action> actions_actors2(policy_.size());
+      LargeVector mean;
+      bool first = true;
+      size_t ii = 0;
+      for(std::deque<Action>::iterator it = actions_actors2.begin(); it != actions_actors2.end(); ++it, ++ii)
+      {
+        policy_[ii]->act(in, &*it);
+        if (first)
+          mean = it->v;
+        else
+          mean = mean + it->v;
+        first = false;
+      }
+      mean = mean / policy_.size();
+
+      dist = mean;
+    }
+    break;
+  }
+
+  if (!finite(dist[0]))
+  {
+    ERROR("Result %f is not finite!" << dist[0]);
+    ERROR("n_dimension: " << n_dimension);
+  }
+
+  *out = dist;//variants[action];
+  out->type = atExploratory;
+  
+  CRAWL("MultiPolicy::(*out): " << (*out) << "\n");
+  
+}
+
 void DiscreteMultiPolicy::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("strategy", "Combination strategy", strategy_str_, CRP::Configuration, {"policy_strategy_add_prob", "policy_strategy_multiply_prob", "policy_strategy_majority_voting_prob", "policy_strategy_rank_voting_prob"}));
@@ -41,6 +313,8 @@ void DiscreteMultiPolicy::request(ConfigurationRequest *config)
 
 void DiscreteMultiPolicy::configure(Configuration &config)
 {
+  CRAWL("tmp in DiscreteMultiPolicy::configure(Configuration &config)");
+  
   strategy_str_ = config["strategy"].str();
   if (strategy_str_ == "policy_strategy_add_prob")
     strategy_ = csAddProbabilities;
@@ -61,6 +335,8 @@ void DiscreteMultiPolicy::configure(Configuration &config)
   
   if (policy_.empty())
     throw bad_param("mapping/policy/discrete/multi:policy");
+  
+  CRAWL("tmp out DiscreteMultiPolicy::configure(Configuration &config)");
 }
 
 void DiscreteMultiPolicy::reconfigure(const Configuration &config)
@@ -83,8 +359,6 @@ void DiscreteMultiPolicy::act(const Observation &in, Action *out) const
 
   *out = variants[action];
   
-  // Actually, this may be different per policy. Just to be on the safe side,
-  // we always cut off all off-policy traces.
   out->type = atExploratory;
 }
 
@@ -219,6 +493,7 @@ void DiscreteMultiPolicy::distribution(const Observation &in, const Action &prev
       break;
         
     case csRankVotingProbabilities:
+      {
       
       LargeVector rank_weights;
       
@@ -260,7 +535,7 @@ void DiscreteMultiPolicy::distribution(const Observation &in, const Action &prev
       CRAWL("\nDiscreteMultiPolicy::param_choice: " << param_choice << '\n');
       softmax(param_choice, out);
       CRAWL("DiscreteMultiPolicy::out: " << (*out));
-      
+      }
       break;
   }      
 }
