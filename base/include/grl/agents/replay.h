@@ -61,7 +61,7 @@ class ReplayAgent : public Agent
   protected:
     Policy *policy_;
     Predictor *predictor_;
-    int replay_steps_, batch_size_;
+    int replay_steps_, batch_size_, observation_steps_;
     int threads_;
 
     std::vector<ReplayAgentThread*> replay_threads_;
@@ -73,7 +73,7 @@ class ReplayAgent : public Agent
     size_t total_control_steps_, total_replay_steps_;
     
   public:
-    ReplayAgent() : policy_(NULL), predictor_(NULL), replay_steps_(1), batch_size_(1), threads_(0), time_(0.), total_control_steps_(0), total_replay_steps_(0) { }
+    ReplayAgent() : policy_(NULL), predictor_(NULL), replay_steps_(1), batch_size_(1), observation_steps_(1), threads_(0), time_(0.), total_control_steps_(0), total_replay_steps_(0) { }
     ~ReplayAgent()
     {
       stopThreads();

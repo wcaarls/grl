@@ -47,6 +47,7 @@ void ReplayAgent::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("replay_steps", "Number of replay steps per control step", replay_steps_, CRP::Online, 1));
   config->push_back(CRP("batch_size", "Number of replay steps per batch", batch_size_, CRP::Online, 1));
+  config->push_back(CRP("observation_steps", "Number of steps to wait before starting replay", observation_steps_, CRP::Online, 1));
   config->push_back(CRP("threads", "Threads used for replay (0 = synchronous replay. >0 requires reentrant predictor)", threads_, CRP::Configuration, 0, INT_MAX));
   
   config->push_back(CRP("policy", "mapping/policy", "Control policy", policy_));
@@ -60,6 +61,7 @@ void ReplayAgent::configure(Configuration &config)
 
   replay_steps_ = config["replay_steps"];
   batch_size_ = config["batch_size"];
+  observation_steps_ = config["observation_steps"];
   threads_ = config["threads"];
 }
 
@@ -120,12 +122,12 @@ void ReplayAgent::report(std::ostream &os)
 
 void ReplayAgent::replay()
 {
-  if (transitions_.size() < 2*batch_size_)
+  if (transitions_.size() < observation_steps_)
   {
     total_replay_steps_ = total_control_steps_*replay_steps_;
     return;
   }
-  else if (transitions_.size() == 2*batch_size_)
+  else if (transitions_.size() == observation_steps_)
     INFO("Starting replay");
 
   while (total_replay_steps_ < total_control_steps_*replay_steps_)

@@ -150,8 +150,6 @@ class Representation : public Configurable
     virtual void write()
     {
       finalize();
-
-      pthread_mutex_unlock(&mutex_);
     }
     
     /// Returns the representation to use when calculating targets.
@@ -174,7 +172,10 @@ class ParameterizedRepresentation : public Representation
     ~ParameterizedRepresentation()
     {
       if (target_)
+      {
         delete target_;
+        target_ = NULL;
+      }
     }
     
     // From Configurable

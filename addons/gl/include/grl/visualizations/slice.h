@@ -50,6 +50,7 @@ class SliceVisualization : public Visualization, public itc::Thread
     int state_dims_;
     Vector operating_point_;
     int dim_, points_;
+    double delay_;
     VectorSignal *state_, *action_;
     Mapping *mapping_;
     
@@ -59,7 +60,7 @@ class SliceVisualization : public Visualization, public itc::Thread
     bool updated_;
   
   public:
-    SliceVisualization() : state_dims_(0), dim_(0), points_(65536), state_(NULL), action_(NULL), mapping_(NULL), texture_(0), data_(NULL), value_min_(0), value_max_(0), updated_(true)
+    SliceVisualization() : state_dims_(0), dim_(0), points_(65536), delay_(0.1), state_(NULL), action_(NULL), mapping_(NULL), texture_(0), data_(NULL), value_min_(0), value_max_(0), updated_(true)
     {
       dims_ = VectorConstructor(0., 1.);
     }
@@ -78,8 +79,6 @@ class SliceVisualization : public Visualization, public itc::Thread
     
     // From itc::Thread
     virtual void run();
-  protected:
-    virtual double value(const Vector &in) const;
 };
 
 }

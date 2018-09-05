@@ -45,6 +45,21 @@ class Mapping : public Configurable
      * Returns the value of the first output dimension.
      */
     virtual double read(const Vector &in, Vector *result) const = 0;
+
+    /// Read out the mapping at many points.
+    virtual void read(const Matrix &in, Matrix *result) const
+    {
+      Vector r;
+      read(in.row(0), &r);
+      *result = Matrix(in.rows(), r.size());
+      result->row(0) = r;
+    
+      for (size_t ii=0; ii != in.rows(); ++ii)
+      {
+        read(in.row(ii), &r);
+        result->row(ii) = r;
+      }
+    }
 };
 
 class RepresentedMapping : public Mapping
@@ -82,6 +97,14 @@ class RepresentedMapping : public Mapping
     virtual double read(const Vector &in, Vector *result) const
     {
       return representation_->read(projector_->project(in), result);
+    }
+
+    virtual void read(const Matrix &in, Matrix *result) const
+    {
+      representation_->batchRead(in.rows());
+      for (size_t ii=0; ii != in.rows(); ++ii)
+        representation_->enqueue(projector_->project(in.row(ii)));
+      representation_->read(result);
     }
 };
 

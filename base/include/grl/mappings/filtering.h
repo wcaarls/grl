@@ -56,6 +56,7 @@ class FilteringMapping : public Mapping
 
     // From Mapping
     virtual double read(const Vector &in, Vector *result) const;
+    virtual void read(const Matrix &in, Matrix *result) const;
 };
 
 class FilteringPolicy : public Policy

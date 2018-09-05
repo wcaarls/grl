@@ -86,6 +86,20 @@ double FilteringMapping::read(const Vector &in, Vector *result) const
   return (*result)[0];
 }
 
+void FilteringMapping::read(const Matrix &in, Matrix *result) const
+{
+  Matrix inremap = Matrix(in.rows(), input_idx_.size());
+  for (size_t ii=0; ii != in.rows(); ++ii)
+    inremap.row(ii) = reindex(in.row(ii), input_idx_);
+    
+  Matrix res;
+  mapping_->read(inremap, &res);
+  
+  *result = Matrix(res.rows(), output_idx_.size());
+  for (size_t ii=0; ii != res.rows(); ++ii)
+    result->row(ii) = reindex(res.row(ii), output_idx_);
+}
+
 void FilteringPolicy::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("observation_idx", "vector", "Index vector for downstream observations (-1=pad)", observation_idx_));
