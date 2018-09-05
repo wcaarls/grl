@@ -1,0 +1,38 @@
+#!/usr/bin/python
+
+import yaml
+from Tkinter import *
+from ttk import *
+from functools import partial
+import StringIO
+import os, inspect, sys, subprocess, time, signal, copy
+
+from grllib import *
+from tooltip import *
+
+grld_process = None
+grld_executable = None
+
+# Set up paths
+binpath = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+
+if os.path.isfile(binpath + "/grld"):
+  grld_executable = binpath + "/grld"
+elif os.path.isfile(binpath + "/../build/grld"):
+  grld_executable = binpath + "/../build/grld"
+else:
+  print "WARNING: Couldn't locate grld executable, running disabled"
+
+# Load configuration, if specified
+lines = 0
+savefile = 0
+if len(sys.argv) > 1:
+  savefile = sys.argv[1]
+  if os.path.isfile(savefile):
+    print "Loading", savefile
+
+try:
+  grld_process = subprocess.Popen([grld_executable, savefile], stdin=subprocess.PIPE)
+  streamdata = grld_process.communicate()
+except:
+  os.kill(grld_process.pid, signal.SIGTERM)
