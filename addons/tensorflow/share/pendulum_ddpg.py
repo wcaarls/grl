@@ -13,6 +13,8 @@ actions = 1
 action_max = 3
 normalization = False
 share_weights = False
+layer1_size = 400
+layer2_size = 300
 
 # Actor network definition
 s_in = tf.placeholder(tf.float32, shape=(None,obs), name='s_in')
@@ -20,12 +22,12 @@ if normalization:
   sn = BatchNormalization()(s_in)
 else:
   sn = s_in
-hc = Dense(64, activation='relu', name='h_common')(sn)
+hc = Dense(layer1_size, activation='relu', name='h_common')(sn)
 if normalization:
   hcn = BatchNormalization()(hc)
 else:
   hcn = hc
-ha = Dense(64, activation='relu', name='h_actor')(hcn)
+ha = Dense(layer2_size, activation='relu', name='h_actor')(hcn)
 if normalization:
   han = BatchNormalization()(ha)
 else:
@@ -43,13 +45,13 @@ else:
 if share_weights:  
   ca = Concatenate()([hcn, an])
 else:
-  hc2 = Dense(64, activation='relu', name='h_common2')(sn)
+  hc2 = Dense(layer1_size, activation='relu', name='h_common2')(sn)
   if normalization:
     hcn2 = BatchNormalization()(hc2)
   else:
     hcn2 = hc2
   ca = Concatenate()([hcn2, an])
-hq = Dense(64, activation='relu', name='h_critic')(ca)
+hq = Dense(layer2_size, activation='relu', name='h_critic')(ca)
 if normalization:
   hqn = BatchNormalization()(hq)
 else:
@@ -65,7 +67,7 @@ q_update = tf.train.AdamOptimizer(0.001).minimize(q_loss, name='q_update')
 dq_da = tf.gradients(q, a_in, name='dq_da')[0]
 dq_dtheta = tf.gradients(a_out, theta, -dq_da, name='dq_dtheta')
 
-a_update = tf.train.AdamOptimizer(0.00001).apply_gradients(zip(dq_dtheta, theta), name='a_update')
+a_update = tf.train.AdamOptimizer(0.0001).apply_gradients(zip(dq_dtheta, theta), name='a_update')
 
 # Create weight assign placeholders
 vars = tf.trainable_variables()

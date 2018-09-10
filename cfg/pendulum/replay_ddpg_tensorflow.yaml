@@ -22,37 +22,46 @@ experiment:
     type: agent/replay
     replay_steps: 64
     batch_size: 64
+    observation_steps: 1000
     threads: 0
     policy: 
-      type: mapping/policy/filtering
-      observation_idx: [0, 1]
-      action_idx: [0]
+      type: mapping/policy/post/noise
+      sigma: [1]
+      theta: [0.15]
+      decay_rate: 0.9
+      decay_min: 0.1
+      output_min: experiment/environment/task/action_min
+      output_max: experiment/environment/task/action_max
       policy: 
-        type: mapping/policy/action
-        sigma: 1
-        decay_rate: 0
-        decay_min: 0
-        output_min: experiment/environment/task/action_min++[0]
-        output_max: experiment/environment/task/action_max++[0]
-        projector: 
-          type: projector/pre/normalizing
-          input_min: experiment/environment/task/observation_min
-          input_max: experiment/environment/task/observation_max
+        type: mapping/policy/filtering
+        observation_idx: [0, 1]
+        action_idx: [0]
+        policy: 
+          type: mapping/policy/action
+          sigma: 0
+          decay_rate: 0
+          decay_min: 0
+          output_min: experiment/environment/task/action_min++[0]
+          output_max: experiment/environment/task/action_max++[0]
           projector: 
-            type: projector/identity
-        representation: 
-          type: representation/parameterized/tensorflow
-          interval: 10000
-          inputs: experiment/environment/task/observation_dims+experiment/environment/task/action_dims
-          targets: experiment/environment/task/action_dims
-          file: pendulum_ddpg.pb
-          input_layer: s_in
-          output_layer: a_out/mul, q/BiasAdd
-          output_target: q_target
-          update_node: q_update
+            type: projector/pre/normalizing
+            input_min: experiment/environment/task/observation_min
+            input_max: experiment/environment/task/observation_max
+            projector: 
+              type: projector/identity
+          representation: 
+            type: representation/parameterized/tensorflow
+            interval: 10000
+            inputs: experiment/environment/task/observation_dims
+            targets: experiment/environment/task/action_dims
+            file: pendulum_ddpg.pb
+            input_layer: s_in
+            output_layer: a_out/mul, q/BiasAdd
+            output_target: q_target
+            update_node: q_update
     predictor: 
       type: predictor/ddpg
-      gamma: 0.97
+      gamma: 0.99
       observation: s_in
       action: a_in
       value: q/BiasAdd
@@ -66,12 +75,8 @@ experiment:
         projector: 
           type: projector/identity
       action_projector: 
-        type: projector/pre/normalizing
-        input_min: experiment/environment/task/action_min
-        input_max: experiment/environment/task/action_max
-        projector: 
-          type: projector/identity
-      representation: experiment/agent/policy/policy/representation
+        type: projector/identity
+      representation: experiment/agent/policy/policy/policy/representation
   test_agent: 
     type: agent/fixed
     policy: 
@@ -83,13 +88,15 @@ experiment:
         sigma: 0
         decay_rate: 1
         decay_min: 0
-        output_min: experiment/agent/policy/policy/output_min
-        output_max: experiment/agent/policy/policy/output_max
-        projector: experiment/agent/policy/policy/projector
-        representation: experiment/agent/policy/policy/representation
+        output_min: experiment/agent/policy/policy/policy/output_min
+        output_max: experiment/agent/policy/policy/policy/output_max
+        projector: experiment/agent/policy/policy/policy/projector
+        representation: experiment/agent/policy/policy/policy/representation
   save_every: never
 visualizer: 
   type: visualizer/glut
+points: 4096
+delay: 1
 policy_visualization: 
   type: visualization/slice
   field_dims: [0, 1]
@@ -97,54 +104,45 @@ policy_visualization:
   input_max: experiment/environment/task/observation_max
   operating_point: []
   output_dim: 0
-  points: 65536
+  points: /points
+  delay: /delay
   state: experiment/state
   mapping: 
-    type: mapping/filtering
-    input_idx: [0, 1]
-    output_idx: [0]
-    mapping: 
-      type: mapping/represented
-      projector: experiment/agent/policy/policy/projector
-      representation: experiment/agent/policy/policy/representation
+    type: mapping/represented
+    projector: experiment/agent/policy/policy/policy/projector
+    representation: experiment/agent/policy/policy/policy/representation
 value_visualization: 
   type: visualization/slice
   field_dims: [0, 1]
   input_min: experiment/environment/task/observation_min
   input_max: experiment/environment/task/observation_max
   operating_point: []
-  output_dim: 0
-  points: 65536
+  output_dim: 1
+  points: /points
+  delay: /delay
   state: experiment/state
   mapping: 
-    type: mapping/filtering
-    input_idx: [0, 1]
-    output_idx: [1]
-    mapping: 
-      type: mapping/represented
-      projector: experiment/agent/policy/policy/projector
-      representation: experiment/agent/policy/policy/representation
+    type: mapping/represented
+    projector: experiment/agent/policy/policy/policy/projector
+    representation: experiment/agent/policy/policy/policy/representation
 target_value_visualization: 
   type: visualization/slice
   field_dims: [0, 1]
   input_min: experiment/environment/task/observation_min
   input_max: experiment/environment/task/observation_max
   operating_point: []
-  output_dim: 0
-  points: 65536
+  output_dim: 1
+  points: /points
+  delay: /delay
   state: experiment/state
   mapping: 
-    type: mapping/filtering
-    input_idx: [0, 1]
-    output_idx: [1]
-    mapping: 
-      type: mapping/represented
-      projector: experiment/agent/policy/policy/projector
-      representation: experiment/agent/policy/policy/representation/target
+    type: mapping/represented
+    projector: experiment/agent/policy/policy/policy/projector
+    representation: experiment/agent/policy/policy/policy/representation/target
 curve_visualization: 
   type: visualization/state
-  input_dims: [  ]
-  input_min: [ -4000  ]
-  input_max: [ 0 ]
+  input_dims: []
+  input_min: [-4000]
+  input_max: [0]
   memory: 256
   state: experiment/curve

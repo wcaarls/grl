@@ -58,9 +58,10 @@ class TensorFlowRepresentation : public ParameterizedRepresentation
     size_t counter_;
     
     mutable LargeVector params_;
+    pthread_mutex_t mutex_;
 
   public:
-    TensorFlowRepresentation() : inputs_(1), targets_(1), counter_(0) { }
+    TensorFlowRepresentation() : inputs_(1), targets_(1), counter_(0), mutex_(PTHREAD_MUTEX_INITIALIZER) { }
   
     // From Configurable
     virtual void request(const std::string &role, ConfigurationRequest *config);

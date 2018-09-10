@@ -481,10 +481,6 @@ void TensorFlowRepresentation::update(const ProjectionPtr projection, const Vect
 
 void TensorFlowRepresentation::finalize()
 {
-  TRACE("finalize " << batch_.size());
-  
-  timer tmr;
-  
   // Convert input to tensor
   int64_t input_shape[] = {(int)batch_.size(), (int)batch_[0].first.size()};
   TF_Tensor *input = TF::AllocateTensor(TF_FLOAT, input_shape, 2, batch_.size() * batch_[0].first.size() * sizeof(float));
@@ -526,7 +522,7 @@ void TensorFlowRepresentation::finalize()
     input_ops.push_back({TF::GraphOperationByName(graph_, sample_weights_.c_str()), 0});
     input_val.push_back(weights);
   }
-                                      
+  
   // Run session for update node
   TF_Operation *tf_operation = TF::GraphOperationByName(graph_, update_node_.c_str()); 
   TF_Status *tf_status = TF::NewStatus();
@@ -549,12 +545,12 @@ void TensorFlowRepresentation::finalize()
 
   checkSynchronize();
   batch_.clear();
-  
-  TRACE("finalize done " << tmr.elapsed());
 }
 
 void TensorFlowRepresentation::batchRead(size_t sz)
 {
+  pthread_mutex_lock(&mutex_);
+  
   // Allocate input tensor
   int64_t shape[] = {(int)sz, (int)inputs_};
   batch_input_ = TF::AllocateTensor(TF_FLOAT, shape, 2, sz * inputs_ * sizeof(float));
@@ -564,6 +560,8 @@ void TensorFlowRepresentation::batchRead(size_t sz)
 
 void TensorFlowRepresentation::batchWrite(size_t sz)
 {
+  pthread_mutex_lock(&mutex_);
+
   // Allocate input tensor
   int64_t input_shape[] = {(int)sz, (int)inputs_};
   batch_input_ = TF::AllocateTensor(TF_FLOAT, input_shape, 2, sz * inputs_ * sizeof(float));
@@ -620,13 +618,11 @@ void TensorFlowRepresentation::enqueue(const ProjectionPtr &projection, const Ve
 
 void TensorFlowRepresentation::read(Matrix *out)
 {
-  TRACE("batch read " << counter_);
-  
-  timer tmr;
-  
   // Prepare SessionRun inputs
   std::vector<TF_Output>  input_ops {{TF::GraphOperationByName(graph_, input_layer_.c_str()), 0}};
   std::vector<TF_Tensor*> input_val {batch_input_};
+
+  pthread_mutex_unlock(&mutex_);
     
   if (!learning_phase_.empty())
   {
@@ -643,7 +639,7 @@ void TensorFlowRepresentation::read(Matrix *out)
   for (size_t oo=0; oo < outputs_read_.size(); ++oo)
     output_ops[oo] = {TF::GraphOperationByName(graph_, outputs_read_[oo].c_str()), 0};
   std::vector<TF_Tensor*> output_val(outputs_read_.size());
-    
+
   // Run session
   TF_Status *tf_status = TF::NewStatus();
   TF::SessionRun(session_, 0, 
@@ -657,7 +653,7 @@ void TensorFlowRepresentation::read(Matrix *out)
     ERROR(TF::Message(tf_status));
     throw Exception("Could not run prediction graph");
   }
-  
+
   // Allocate result matrix
   size_t num_outputs=0;
   for (size_t oo=0; oo < output_val.size(); ++oo)
@@ -681,23 +677,17 @@ void TensorFlowRepresentation::read(Matrix *out)
   for (size_t oo=0; oo < output_val.size(); ++oo)
     TF::DeleteTensor(output_val[oo]);
   TF::DeleteStatus(tf_status);
-  
-//  NOTICE("read from:\n" << (input_.tensor<float, 2>()));
-//  NOTICE("read result:\n" << *out);
-
-  TRACE("batch read done " << tmr.elapsed());
 }
 
 void TensorFlowRepresentation::write()
 {
-  TRACE("batch write " << counter_);
-  
-  timer tmr;
-  
   // Prepare SessionRun inputs
   std::vector<TF_Output> input_ops  {{TF::GraphOperationByName(graph_, input_layer_.c_str()), 0},
                                      {TF::GraphOperationByName(graph_, output_target_.c_str()), 0}};
   std::vector<TF_Tensor*> input_val {batch_input_, batch_target_};
+
+  int counter = counter_;
+  pthread_mutex_unlock(&mutex_);
                                       
   if (!learning_phase_.empty())
   {
@@ -711,16 +701,16 @@ void TensorFlowRepresentation::write()
   if (!sample_weights_.empty())
   {
     // Prepare sample weight tensor
-    int64_t shape[] = {(int)counter_};
-    TF_Tensor *weights = TF::AllocateTensor(TF_FLOAT, shape, 1, counter_ * sizeof(float));
+    int64_t shape[] = {(int)counter};
+    TF_Tensor *weights = TF::AllocateTensor(TF_FLOAT, shape, 1, counter * sizeof(float));
     float *data = (float*)TF::TensorData(weights);
-    for (size_t ii=0; ii < counter_; ++ii)
+    for (size_t ii=0; ii < counter; ++ii)
       data[ii] = 1.;
 
     input_ops.push_back({TF::GraphOperationByName(graph_, sample_weights_.c_str()), 0});
     input_val.push_back(weights);
   }
-                                      
+
   // Run session for update node
   TF_Operation *tf_operation = TF::GraphOperationByName(graph_, update_node_.c_str()); 
   TF_Status *tf_status = TF::NewStatus();
@@ -742,11 +732,6 @@ void TensorFlowRepresentation::write()
   TF::DeleteStatus(tf_status);
   
   checkSynchronize();
-//  NOTICE("write to:\n" << (input_.tensor<float, 2>()));
-//  NOTICE("target:\n" << (target_.tensor<float, 2>()));
-
-
-  TRACE("batch write done " << tmr.elapsed());
 }
 
 size_t TensorFlowRepresentation::size() const
@@ -756,10 +741,6 @@ size_t TensorFlowRepresentation::size() const
 
 const LargeVector &TensorFlowRepresentation::params() const
 {
-  TRACE("params");
-  
-  timer tmr;
-  
   // Prepare SessionRun outputs
   std::vector<TF_Output>  output_ops(weights_read_.size());
   for (size_t oo=0; oo < weights_read_.size(); ++oo)
@@ -806,17 +787,11 @@ const LargeVector &TensorFlowRepresentation::params() const
     TF::DeleteTensor(output_val[oo]);
   TF::DeleteStatus(tf_status);
 
-  TRACE("params done " << tmr.elapsed());
-
   return params_;
 }
 
 void TensorFlowRepresentation::setParams(const LargeVector &params)
 {
-  TRACE("setParams");
-  
-  timer tmr;
-
   if (params.size() != params_.size())
   {
     ERROR("Parameter vector size mismatch");
@@ -865,8 +840,6 @@ void TensorFlowRepresentation::setParams(const LargeVector &params)
   for (size_t ii=0; ii < input_val.size(); ++ii)
     TF::DeleteTensor(input_val[ii]);
   TF::DeleteStatus(tf_status);
-
-  TRACE("setParams done " << tmr.elapsed());
 }
 
 void TensorFlowRepresentation::SessionRun(const std::vector<std::pair<std::string, TensorPtr> > &inputs, const std::vector<std::string> &outputs, const std::vector<std::string> &ops, std::vector<TensorPtr> *results, bool learn)
