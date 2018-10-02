@@ -110,9 +110,9 @@ void DDPGPredictor::update(const std::vector<const Transition*> &transitions)
   representation_->target()->SessionRun({{observation_, read_input}}, {value_}, {}, &result);
 
   TF::Tensor &q = *result[0];
-  TF::TensorPtr write_obs_input = representation_->tensor(TF::Shape({transitions.size(), vp_obs->vector.size()}));
-  TF::TensorPtr write_action_input = representation_->tensor(TF::Shape({transitions.size(), vp_action->vector.size()}));
-  TF::TensorPtr write_target = representation_->tensor(TF::Shape({transitions.size(), 1}));
+  TF::TensorPtr write_obs_input = representation_->tensor(TF::Shape({(int)transitions.size(), vp_obs->vector.size()}));
+  TF::TensorPtr write_action_input = representation_->tensor(TF::Shape({(int)transitions.size(), vp_action->vector.size()}));
+  TF::TensorPtr write_target = representation_->tensor(TF::Shape({(int)transitions.size(), 1}));
   
   // Create target tensor 
   qs = 0;

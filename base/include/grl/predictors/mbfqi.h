@@ -48,7 +48,7 @@ class MBFQIPredictor : public Predictor
       ProjectionPtr projection;
       double target;
       
-      CachedTransition(const Transition &t = Transition()) : transition(t) { }
+      CachedTransition(const Transition &t = Transition()) : transition(t), target(0) { }
     };
     
   protected:
