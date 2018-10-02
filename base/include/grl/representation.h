@@ -169,15 +169,7 @@ class ParameterizedRepresentation : public Representation
 
   public:
     ParameterizedRepresentation() : interval_(0), count_(0), target_(NULL) { }
-    ~ParameterizedRepresentation()
-    {
-      if (target_)
-      {
-        delete target_;
-        target_ = NULL;
-      }
-    }
-    
+
     // From Configurable
     void request(const std::string &role, ConfigurationRequest *config)
     {

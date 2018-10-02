@@ -322,7 +322,7 @@ void TensorFlowRepresentation::reconfigure(const Configuration &config)
       INFO("Initializing weights");
       
       // Run session for init node
-      TF_Operation *tf_operation = TF::GraphOperationByName(graph_, init_node_.c_str()); 
+      TF_Operation *tf_operation = OperationByName(init_node_.c_str()); 
       TF_Status *tf_status = TF::NewStatus();
       TF::SessionRun(session_, 0,
                     0, 0, 0,           // Inputs
@@ -375,7 +375,7 @@ double TensorFlowRepresentation::read(const ProjectionPtr &projection, Vector *r
       data[ii] = vp->vector[ii];
       
     // Prepare SessionRun inputs
-    std::vector<TF_Output>  input_ops {{TF::GraphOperationByName(graph_, input_layer_.c_str()), 0}};
+    std::vector<TF_Output>  input_ops {{OperationByName(input_layer_.c_str()), 0}};
     std::vector<TF_Tensor*> input_val {input};
       
     if (!learning_phase_.empty())
@@ -384,14 +384,14 @@ double TensorFlowRepresentation::read(const ProjectionPtr &projection, Vector *r
       TF_Tensor *learning = TF::AllocateTensor(TF_BOOL, NULL, 0, sizeof(bool));
       *((bool*)TF::TensorData(learning)) = false;
 
-      input_ops.push_back({TF::GraphOperationByName(graph_, learning_phase_.c_str()), 0});
+      input_ops.push_back({OperationByName(learning_phase_.c_str()), 0});
       input_val.push_back(learning);
     }
     
     // Prepare SessionRun outputs
     std::vector<TF_Output>  output_ops(outputs_read_.size());
     for (size_t oo=0; oo < outputs_read_.size(); ++oo)
-      output_ops[oo] = {TF::GraphOperationByName(graph_, outputs_read_[oo].c_str()), 0};
+      output_ops[oo] = {OperationByName(outputs_read_[oo].c_str()), 0};
     std::vector<TF_Tensor*> output_val(outputs_read_.size());
       
     // Run session
@@ -498,8 +498,8 @@ void TensorFlowRepresentation::finalize()
       data[ii*batch_[ii].second.size()+jj] = batch_[ii].second[jj];
       
   // Prepare SessionRun inputs
-  std::vector<TF_Output> input_ops  {{TF::GraphOperationByName(graph_, input_layer_.c_str()), 0},
-                                     {TF::GraphOperationByName(graph_, output_target_.c_str()), 0}};
+  std::vector<TF_Output> input_ops  {{OperationByName(input_layer_.c_str()), 0},
+                                     {OperationByName(output_target_.c_str()), 0}};
   std::vector<TF_Tensor*> input_val {input, target};
                                       
   if (!learning_phase_.empty())
@@ -508,7 +508,7 @@ void TensorFlowRepresentation::finalize()
     TF_Tensor *learning = TF::AllocateTensor(TF_BOOL, NULL, 0, sizeof(bool));
     *((bool*)TF::TensorData(learning)) = true;
 
-    input_ops.push_back({TF::GraphOperationByName(graph_, learning_phase_.c_str()), 0});
+    input_ops.push_back({OperationByName(learning_phase_.c_str()), 0});
     input_val.push_back(learning);
   }
   if (!sample_weights_.empty())
@@ -519,12 +519,12 @@ void TensorFlowRepresentation::finalize()
     for (size_t ii=0; ii < batch_.size(); ++ii)
       data[ii] = 1.;
 
-    input_ops.push_back({TF::GraphOperationByName(graph_, sample_weights_.c_str()), 0});
+    input_ops.push_back({OperationByName(sample_weights_.c_str()), 0});
     input_val.push_back(weights);
   }
   
   // Run session for update node
-  TF_Operation *tf_operation = TF::GraphOperationByName(graph_, update_node_.c_str()); 
+  TF_Operation *tf_operation = OperationByName(update_node_.c_str()); 
   TF_Status *tf_status = TF::NewStatus();
   TF::SessionRun(session_, 0, 
                 input_ops.data(), input_val.data(), input_ops.size(),
@@ -619,7 +619,7 @@ void TensorFlowRepresentation::enqueue(const ProjectionPtr &projection, const Ve
 void TensorFlowRepresentation::read(Matrix *out)
 {
   // Prepare SessionRun inputs
-  std::vector<TF_Output>  input_ops {{TF::GraphOperationByName(graph_, input_layer_.c_str()), 0}};
+  std::vector<TF_Output>  input_ops {{OperationByName(input_layer_.c_str()), 0}};
   std::vector<TF_Tensor*> input_val {batch_input_};
 
   pthread_mutex_unlock(&mutex_);
@@ -630,14 +630,14 @@ void TensorFlowRepresentation::read(Matrix *out)
     TF_Tensor *learning = TF::AllocateTensor(TF_BOOL, NULL, 0, sizeof(bool));
     *((bool*)TF::TensorData(learning)) = false;
 
-    input_ops.push_back({TF::GraphOperationByName(graph_, learning_phase_.c_str()), 0});
+    input_ops.push_back({OperationByName(learning_phase_.c_str()), 0});
     input_val.push_back(learning);
   }
   
   // Prepare SessionRun outputs
   std::vector<TF_Output>  output_ops(outputs_read_.size());
   for (size_t oo=0; oo < outputs_read_.size(); ++oo)
-    output_ops[oo] = {TF::GraphOperationByName(graph_, outputs_read_[oo].c_str()), 0};
+    output_ops[oo] = {OperationByName(outputs_read_[oo].c_str()), 0};
   std::vector<TF_Tensor*> output_val(outputs_read_.size());
 
   // Run session
@@ -682,8 +682,8 @@ void TensorFlowRepresentation::read(Matrix *out)
 void TensorFlowRepresentation::write()
 {
   // Prepare SessionRun inputs
-  std::vector<TF_Output> input_ops  {{TF::GraphOperationByName(graph_, input_layer_.c_str()), 0},
-                                     {TF::GraphOperationByName(graph_, output_target_.c_str()), 0}};
+  std::vector<TF_Output> input_ops  {{OperationByName(input_layer_.c_str()), 0},
+                                     {OperationByName(output_target_.c_str()), 0}};
   std::vector<TF_Tensor*> input_val {batch_input_, batch_target_};
 
   int counter = counter_;
@@ -695,7 +695,7 @@ void TensorFlowRepresentation::write()
     TF_Tensor *learning = TF::AllocateTensor(TF_BOOL, NULL, 0, sizeof(bool));
     *((bool*)TF::TensorData(learning)) = true;
 
-    input_ops.push_back({TF::GraphOperationByName(graph_, learning_phase_.c_str()), 0});
+    input_ops.push_back({OperationByName(learning_phase_.c_str()), 0});
     input_val.push_back(learning);
   }
   if (!sample_weights_.empty())
@@ -707,12 +707,12 @@ void TensorFlowRepresentation::write()
     for (size_t ii=0; ii < counter; ++ii)
       data[ii] = 1.;
 
-    input_ops.push_back({TF::GraphOperationByName(graph_, sample_weights_.c_str()), 0});
+    input_ops.push_back({OperationByName(sample_weights_.c_str()), 0});
     input_val.push_back(weights);
   }
 
   // Run session for update node
-  TF_Operation *tf_operation = TF::GraphOperationByName(graph_, update_node_.c_str()); 
+  TF_Operation *tf_operation = OperationByName(update_node_.c_str()); 
   TF_Status *tf_status = TF::NewStatus();
   TF::SessionRun(session_, 0, 
                 input_ops.data(), input_val.data(), input_ops.size(),
@@ -744,7 +744,7 @@ const LargeVector &TensorFlowRepresentation::params() const
   // Prepare SessionRun outputs
   std::vector<TF_Output>  output_ops(weights_read_.size());
   for (size_t oo=0; oo < weights_read_.size(); ++oo)
-    output_ops[oo] = {TF::GraphOperationByName(graph_, weights_read_[oo].c_str()), 0};
+    output_ops[oo] = {OperationByName(weights_read_[oo].c_str()), 0};
   std::vector<TF_Tensor*> output_val(weights_read_.size());
     
   // Run session
@@ -815,14 +815,14 @@ void TensorFlowRepresentation::setParams(const LargeVector &params)
       data[jj] = params_[n+jj];
     n += weights_shape_[ii].size();
     
-    input_ops.push_back({TF::GraphOperationByName(graph_, weights_write_[ii].c_str()), 0});
+    input_ops.push_back({OperationByName(weights_write_[ii].c_str()), 0});
     input_val.push_back(w);
   }
                                       
   // Run session for weight nodes
   std::vector<TF_Operation*> operations(weights_node_.size());
   for (size_t ii=0; ii < operations.size(); ++ii)
-    operations[ii] = TF::GraphOperationByName(graph_, weights_node_[ii].c_str());
+    operations[ii] = OperationByName(weights_node_[ii].c_str());
   TF_Status *tf_status = TF::NewStatus();
   TF::SessionRun(session_, 0, 
                 input_ops.data(), input_val.data(), input_ops.size(),
@@ -850,7 +850,7 @@ void TensorFlowRepresentation::SessionRun(const std::vector<std::pair<std::strin
   
   for (size_t ii=0; ii != inputs.size(); ++ii)
   {
-    input_ops[ii] = {TF::GraphOperationByName(graph_, inputs[ii].first.c_str()), 0};
+    input_ops[ii] = {OperationByName(inputs[ii].first.c_str()), 0};
     input_val[ii] = *inputs[ii].second;
   }
   
@@ -860,7 +860,7 @@ void TensorFlowRepresentation::SessionRun(const std::vector<std::pair<std::strin
     TF_Tensor *learning = TF::AllocateTensor(TF_BOOL, NULL, 0, sizeof(bool));
     *((bool*)TF::TensorData(learning)) = learn;
 
-    input_ops.push_back({TF::GraphOperationByName(graph_, learning_phase_.c_str()), 0});
+    input_ops.push_back({OperationByName(learning_phase_.c_str()), 0});
     input_val.push_back(learning);
     input_del.push_back(learning);
   }
@@ -873,16 +873,16 @@ void TensorFlowRepresentation::SessionRun(const std::vector<std::pair<std::strin
     for (size_t ii=0; ii < shape.dims()[0]; ++ii)
       data[ii] = 1.;
 
-    input_ops.push_back({TF::GraphOperationByName(graph_, sample_weights_.c_str()), 0});
+    input_ops.push_back({OperationByName(sample_weights_.c_str()), 0});
     input_val.push_back(weights);
     input_del.push_back(weights);
   }
 
   for (size_t ii=0; ii != outputs.size(); ++ii)
-    output_ops[ii] = {TF::GraphOperationByName(graph_, outputs[ii].c_str()), 0};
+    output_ops[ii] = {OperationByName(outputs[ii].c_str()), 0};
 
   for (size_t ii=0; ii != ops.size(); ++ii)
-    operations[ii] = TF::GraphOperationByName(graph_, ops[ii].c_str());
+    operations[ii] = OperationByName(ops[ii].c_str());
   
   TF_Status *tf_status = TF::NewStatus();
   TF::SessionRun(session_, 0,
@@ -927,4 +927,16 @@ void TensorFlowRepresentation::SessionRun(const std::vector<std::pair<std::strin
   
   if (learn)
     checkSynchronize();
+}
+
+TF_Operation* TensorFlowRepresentation::OperationByName(const char* name) const
+{
+  TF_Operation *op = TF::GraphOperationByName(graph_, name);
+  if (!op)
+  {
+    ERROR("Could not find operation '" << name << "'");
+    throw Exception("Could not run graph");
+  }
+  
+  return op;
 }

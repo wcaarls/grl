@@ -61,7 +61,18 @@ class TensorFlowRepresentation : public ParameterizedRepresentation
     pthread_mutex_t mutex_;
 
   public:
-    TensorFlowRepresentation() : inputs_(1), targets_(1), counter_(0), mutex_(PTHREAD_MUTEX_INITIALIZER) { }
+    TensorFlowRepresentation() : inputs_(1), targets_(1), graph_(NULL), session_(NULL), counter_(0), mutex_(PTHREAD_MUTEX_INITIALIZER) { }
+    ~TensorFlowRepresentation()
+    {
+      if (session_)
+      {
+        TF_Status *status = TF::NewStatus();
+        TF::DeleteSession(session_, status);
+        TF::DeleteStatus(status);
+      }
+      if (graph_)
+        TF::DeleteGraph(graph_);
+    }
   
     // From Configurable
     virtual void request(const std::string &role, ConfigurationRequest *config);
@@ -104,6 +115,9 @@ class TensorFlowRepresentation : public ParameterizedRepresentation
       return TF::TensorPtr(new TF::Tensor(m, shape));
     }
     void SessionRun(const std::vector<std::pair<std::string, TF::TensorPtr> > &inputs, const std::vector<std::string> &outputs, const std::vector<std::string> &ops, std::vector<TF::TensorPtr> *results, bool learn=false);
+    
+  private:
+    TF_Operation* OperationByName(const char*) const;
 };
 
 }
