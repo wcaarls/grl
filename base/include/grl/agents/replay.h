@@ -72,6 +72,8 @@ class ReplayAgent : public Agent
     Action prev_action_;
     size_t total_control_steps_, total_replay_steps_, total_transitions_;
     
+    itc::SharedVariable<bool> replay_signal_, done_signal_;
+    
   public:
     ReplayAgent() : policy_(NULL), predictor_(NULL), memory_size_(100000), replay_steps_(1), batch_size_(1), observation_steps_(1), threads_(0), time_(0.), total_control_steps_(0), total_replay_steps_(0), total_transitions_(0) { }
     ~ReplayAgent()

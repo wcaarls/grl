@@ -342,7 +342,8 @@ class FIFOSampler
 class timer
 {
   private:
-    struct timespec start_time_;
+    struct timespec start_time_, stop_time_;
+    bool stopped_;
 
   public:
     timer()
@@ -353,12 +354,22 @@ class timer
     void restart()
     {
       clock_gettime(CLOCK_MONOTONIC, &start_time_);
+      stopped_ = false;
+    }
+    
+    void stop()
+    {
+      clock_gettime(CLOCK_MONOTONIC, &stop_time_);
+      stopped_ = true;
     }
 
     double elapsed() const
     {
       struct timespec now;
-      clock_gettime(CLOCK_MONOTONIC, &now);
+      if (stopped_)
+        now = stop_time_;
+      else
+        clock_gettime(CLOCK_MONOTONIC, &now);
 
       return now.tv_sec - start_time_.tv_sec +
              (now.tv_nsec - start_time_.tv_nsec) / 1000000000.0;
