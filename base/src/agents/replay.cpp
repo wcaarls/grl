@@ -37,16 +37,15 @@ REGISTER_CONFIGURABLE(ReplayAgent)
 void ReplayAgentThread::run()
 {
   while (ok())
-  {
     agent_->replay();
-    usleep(0);
-  }
 }
 
 void ReplayAgent::request(ConfigurationRequest *config)
 {
+  config->push_back(CRP("memory_size", "Maximum number of transitions in replay memory", memory_size_, CRP::Configuration, 1));
   config->push_back(CRP("replay_steps", "Number of replay steps per control step", replay_steps_, CRP::Online, 1));
-  config->push_back(CRP("batch_size", "Number of replay steps per batch", batch_size_, CRP::Online, 1));
+  config->push_back(CRP("batch_size", "Number of replay steps per batch", batch_size_, CRP::Configuration, 1));
+  config->push_back(CRP("observation_steps", "Number of steps to wait before starting replay", observation_steps_, CRP::Configuration, 1));
   config->push_back(CRP("threads", "Threads used for replay (0 = synchronous replay. >0 requires reentrant predictor)", threads_, CRP::Configuration, 0, INT_MAX));
   
   config->push_back(CRP("policy", "mapping/policy", "Control policy", policy_));
@@ -58,9 +57,13 @@ void ReplayAgent::configure(Configuration &config)
   policy_ = (Policy*)config["policy"].ptr();
   predictor_ = (Predictor*)config["predictor"].ptr();
 
+  memory_size_ = config["memory_size"];
   replay_steps_ = config["replay_steps"];
   batch_size_ = config["batch_size"];
+  observation_steps_ = config["observation_steps"];
   threads_ = config["threads"];
+  
+  transitions_.reserve(memory_size_);
 }
 
 void ReplayAgent::reconfigure(const Configuration &config)
@@ -68,7 +71,8 @@ void ReplayAgent::reconfigure(const Configuration &config)
   if (config.has("action") && config["action"].str() == "reset")
   {
     stopThreads();
-    total_replay_steps_ = total_control_steps_ = 0;
+    transitions_.clear();
+    total_replay_steps_ = total_control_steps_ = total_transitions_ = 0;
   }
     
   config.get("replay_steps", replay_steps_);
@@ -92,25 +96,45 @@ void ReplayAgent::step(double tau, const Observation &obs, double reward, Action
   policy_->act(time_, obs, action);
   
   // Add new transition to replay memory
-  transitions_.push_back(Transition(prev_obs_, prev_action_, reward, obs, *action));
+  if (transitions_.size() < memory_size_)
+    transitions_.push_back(Transition(prev_obs_, prev_action_, reward, obs, *action));
+  else
+    transitions_[total_transitions_%memory_size_] = Transition(prev_obs_, prev_action_, reward, obs, *action);
+    
+  total_transitions_++;
+  total_control_steps_++;
+  
+  replay_signal_.signal();
   
   if (!threads_)
     replay();
+    
+  // Avoid running ahead of replay
+  while (total_replay_steps_ < total_control_steps_*replay_steps_)
+    done_signal_.read();
 
   prev_obs_ = obs;
   prev_action_ = *action;  
-
-  total_control_steps_++;
 }
 
 void ReplayAgent::end(double tau, const Observation &obs, double reward)
 {
-  transitions_.push_back(Transition(prev_obs_, prev_action_, reward, obs));
+  if (transitions_.size() < memory_size_)
+    transitions_.push_back(Transition(prev_obs_, prev_action_, reward, obs));
+  else
+    transitions_[total_transitions_%memory_size_] = Transition(prev_obs_, prev_action_, reward, obs);
+
+  total_transitions_++;
+  total_control_steps_++;
   
+  replay_signal_.signal();
+
   if (!threads_)
     replay();
 
-  total_control_steps_++;
+  // Avoid running ahead of replay
+  while (total_replay_steps_ < total_control_steps_*replay_steps_)
+    done_signal_.read();
 }
 
 void ReplayAgent::report(std::ostream &os)
@@ -120,12 +144,15 @@ void ReplayAgent::report(std::ostream &os)
 
 void ReplayAgent::replay()
 {
-  if (transitions_.size() < 2*batch_size_)
+  replay_signal_.read();
+
+  if (transitions_.size() < observation_steps_)
   {
     total_replay_steps_ = total_control_steps_*replay_steps_;
+    done_signal_.signal();
     return;
   }
-  else if (transitions_.size() == 2*batch_size_)
+  else if (transitions_.size() == observation_steps_)
     INFO("Starting replay");
 
   while (total_replay_steps_ < total_control_steps_*replay_steps_)
@@ -146,6 +173,8 @@ void ReplayAgent::replay()
     predictor_->finalize();
     total_replay_steps_ += batch_size_;
   }
+  
+  done_signal_.signal();
 }
 
 void ReplayAgent::startThreads()
@@ -161,7 +190,9 @@ void ReplayAgent::stopThreads()
 {
   for (size_t ii=0; ii < replay_threads_.size(); ++ii)
   {
-    replay_threads_[ii]->stopAndJoin();
+    replay_threads_[ii]->stop();
+    replay_signal_.signal();
+    replay_threads_[ii]->join();
     safe_delete(&replay_threads_[ii]);
   }
   

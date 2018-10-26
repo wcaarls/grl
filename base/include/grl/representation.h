@@ -150,8 +150,6 @@ class Representation : public Configurable
     virtual void write()
     {
       finalize();
-
-      pthread_mutex_unlock(&mutex_);
     }
     
     /// Returns the representation to use when calculating targets.
@@ -168,15 +166,11 @@ class ParameterizedRepresentation : public Representation
     double interval_;
     int count_;
     ParameterizedRepresentation *target_;
+    pthread_mutex_t mutex_;
 
   public:
-    ParameterizedRepresentation() : interval_(0), count_(0), target_(NULL) { }
-    ~ParameterizedRepresentation()
-    {
-      if (target_)
-        delete target_;
-    }
-    
+    ParameterizedRepresentation() : interval_(0), count_(0), target_(NULL), mutex_(PTHREAD_MUTEX_INITIALIZER) { }
+
     // From Configurable
     void request(const std::string &role, ConfigurationRequest *config)
     {
@@ -236,9 +230,11 @@ class ParameterizedRepresentation : public Representation
     
     void checkSynchronize()
     {
+      pthread_mutex_lock(&mutex_);
       count_++;
       if (interval_ && (interval_ < 1 || count_ >= interval_))
         synchronize(false);
+      pthread_mutex_unlock(&mutex_);
     }
 };
 

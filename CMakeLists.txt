@@ -12,7 +12,7 @@ endif()
 # Find Eigen
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(EIGEN3 REQUIRED eigen3)
-include_directories(${EIGEN3_INCLUDE_DIRS})
+include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS})
 
 # Use OpenMP if available
 find_package(OpenMP)
@@ -27,6 +27,7 @@ set(MODULES base
             externals/itc
             externals/rbdl
             externals/cppzmq
+            externals/pybind11
             addons/cma
             addons/llr
             addons/gl
@@ -42,6 +43,7 @@ set(MODULES base
             addons/lqr
             addons/zeromq
             addons/tensorflow
+            addons/python
 )
 
 # Is there a better way to find out if catkin_make was run?

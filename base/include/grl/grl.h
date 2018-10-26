@@ -48,7 +48,7 @@ struct Observation
   Vector v, u;
   bool absorbing;
   
-  Observation() { }
+  Observation() : absorbing(false) { }
   Observation(const Vector &_v, bool _absorbing=false) : v(_v), absorbing(_absorbing) { }
   operator Vector&() { return v; }
   operator const Vector&() const { return v; }

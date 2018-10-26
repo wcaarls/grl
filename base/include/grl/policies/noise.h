@@ -42,11 +42,12 @@ class NoisePolicy : public Policy
   protected:
     Policy *policy_;
     
-    mutable Vector sigma_;
-    Vector theta_, n_;
+    double decay_rate_, decay_min_, decay_;
+    Vector min_, max_, sigma_, theta_;
+    Vector n_;
 
   public:
-    NoisePolicy() : policy_(NULL) { }
+    NoisePolicy() : policy_(NULL), decay_rate_(1), decay_min_(0), decay_(1) { }
     
     // From Configurable  
     virtual void request(ConfigurationRequest *config);

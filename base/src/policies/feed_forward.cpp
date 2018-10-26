@@ -33,7 +33,7 @@ REGISTER_CONFIGURABLE(FeedForwardPolicy)
 
 void FeedForwardPolicy::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("controls", "mapping", "Maps time to controls", controls_, CRP::Configuration));
+  config->push_back(CRP("controls", "mapping", "Maps time to controls", controls_));
 }
 
 void FeedForwardPolicy::configure(Configuration &config)

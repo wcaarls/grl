@@ -46,6 +46,7 @@ void SliceVisualization::request(ConfigurationRequest *config)
   config->push_back(CRP("operating_point", "Fixed values for non-visualized dimensions", operating_point_, CRP::Online));
   config->push_back(CRP("output_dim", "Output dimension to visualize", (int)dim_, CRP::Online, 0));
   config->push_back(CRP("points", "Number of points to evaluate", points_));
+  config->push_back(CRP("delay", "Delay between updates (s)", delay_, CRP::Online, 0., 3600.));
   config->push_back(CRP("state", "signal/vector", "Optional current state to overlay", state_, true));
   config->push_back(CRP("action", "signal/vector", "Optional current action to overlay", action_, true));
   config->push_back(CRP("mapping", "mapping", "Mapping to visualize", mapping_));
@@ -75,6 +76,7 @@ void SliceVisualization::configure(Configuration &config)
   
   dim_ = config["output_dim"];
   points_ = pow((int)sqrt((double)config["points"]), 2);
+  delay_ = config["delay"];
   state_ = (VectorSignal*)config["state"].ptr();
   action_ = (VectorSignal*)config["action"].ptr();
   mapping_ = (Mapping*)config["mapping"].ptr();
@@ -100,16 +102,7 @@ void SliceVisualization::reconfigure(const Configuration &config)
     throw bad_param("visualization/slice:operating_point");
 
   config.get("output_dim", dim_);
-}
-
-double SliceVisualization::value(const Vector &in) const
-{
-  Vector v;
-  mapping_->read(in, &v);
-  if (!v.size())
-    return 0;
-  else
-    return v[dim_];
+  config.get("delay", delay_);
 }
 
 void SliceVisualization::reshape(int width, int height)
@@ -160,14 +153,15 @@ void SliceVisualization::click(int button, int state, int x, int y)
   
   double xx = state_min_[dimx] + ox*range[dimx], yy = state_max_[dimy] - oy*range[dimy];
   
-  Vector op = operating_point_;
+  Vector op = operating_point_, r;
   op[dimx] = xx;
   op[dimy] = yy;
   
   switch (button)
   {
     case 0:
-      INFO("Value at " << op << ": " << value(op));
+      mapping_->read(op, &r);
+      INFO("Value at " << op << ": " << r[dim_]);
       break;
     case 2:
       operating_point_ = op;
@@ -178,34 +172,35 @@ void SliceVisualization::click(int button, int state, int x, int y)
 
 void SliceVisualization::run()
 {
-  float *field = new float[points_];
   int dimpoints = sqrt(points_);
   const Vector delta = (state_max_-state_min_)/(dimpoints-1);
+  size_t dimx = dims_[0], dimy = dims_[1];
+  
+  // Construct query matrix
+  Matrix query(dimpoints*dimpoints, operating_point_.size());
+  Vector ss = operating_point_;
+  
+  for (int yy=0, ii=0; yy < dimpoints; ++yy)
+  {
+    ss[dimy] = state_min_[dimy]+yy*delta[dimy];
+    
+    for (int xx=0; xx < dimpoints; ++xx, ++ii)
+    {
+      ss[dimx] = state_min_[dimx]+xx*delta[dimx];
+      query.row(ii) = ss;
+    }
+  }
   
   while (ok())
   {
-    size_t dimx = dims_[0], dimy = dims_[1], ii=0;
-  
-    // Gather data
-    Vector ss = operating_point_;
-    
     float value_max=-std::numeric_limits<float>::infinity(),
           value_min= std::numeric_limits<float>::infinity();
     
-    for (int yy = 0; yy < dimpoints; ++yy)
-    {
-      ss[dimy] = state_min_[dimy]+yy*delta[dimy];
-      
-      for (int xx=0; xx < dimpoints; ++xx, ++ii)
-      {
-        ss[dimx] = state_min_[dimx]+xx*delta[dimx];
-        
-        float v = value(ss);
-        field[ii] = v;
-        value_max = fmax(v, value_max);
-        value_min = fmin(v, value_min);
-      }
-    }
+    // Gather data
+    Matrix result;
+    mapping_->read(query, &result);
+    value_min = result.col(dim_).minCoeff();
+    value_max = result.col(dim_).maxCoeff();
 
     TRACE("Range " << value_min_ << " - " << value_max_);
 
@@ -214,7 +209,7 @@ void SliceVisualization::run()
     // Create texture
     for (int ii=0; ii < points_; ++ii)
     {
-      double v = (field[ii] - value_min)/value_range;
+      double v = (result(ii, dim_) - value_min)/value_range;
       double v2 = 4*v;
       
       // Jet colormap
@@ -230,10 +225,8 @@ void SliceVisualization::run()
     updated_ = true;
     
     // Wait a bit
-    usleep(10000);
+    usleep(delay_*1000000);
   }
-
-  delete[] field;
 }
 
 void SliceVisualization::idle()

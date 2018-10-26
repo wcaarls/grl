@@ -51,7 +51,7 @@ experiment:
         representation: 
           type: representation/parameterized/tensorflow
           interval: 10000
-          inputs: experiment/environment/task/observation_dims+experiment/environment/task/action_dims
+          inputs: experiment/environment/task/observation_dims
           targets: experiment/environment/task/action_dims
           file: integrator_ddpg.pb
           input_layer: s_in
@@ -74,11 +74,7 @@ experiment:
         projector: 
           type: projector/identity
       action_projector: 
-        type: projector/pre/normalizing
-        input_min: experiment/environment/task/action_min
-        input_max: experiment/environment/task/action_max
-        projector: 
-          type: projector/identity
+        type: projector/identity
       representation: experiment/agent/policy/policy/representation
   test_agent: 
     type: agent/fixed

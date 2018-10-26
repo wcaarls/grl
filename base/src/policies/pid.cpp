@@ -69,7 +69,10 @@ void PIDPolicy::configure(Configuration &config)
   if (!p_.size())
     p_ = ConstantLargeVector(setpoint_.size()*outputs_, 0.);
   if (p_.size() != setpoint_.size()*outputs_)
+  {
+    ERROR("Proportional gain size " << p_.size() << ", expected " << setpoint_.size()*outputs_);
     throw bad_param("policy/pid:p");
+  }
 
   i_ = config["i"].v();
   if (!i_.size())
