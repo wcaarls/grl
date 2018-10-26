@@ -22,26 +22,26 @@ set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-pipe -std=c++0x -Wall -Wextra -Wno-sign
 set(MODULES base
             externals/yaml-cpp
             externals/ann
-            externals/cma
+            #externals/cma
             externals/ics
             externals/itc
-            externals/rbdl
-            externals/cppzmq
+            #externals/rbdl
+            #externals/cppzmq
             externals/pybind11
-            addons/cma
+            #addons/cma
             addons/llr
             addons/gl
             addons/glut
-            addons/ros
-            addons/matlab
-            addons/odesim
-            addons/rbdl
-            addons/muscod
-            addons/leo
-            addons/leo2
+            #addons/ros
+            #addons/matlab
+            #addons/odesim
+            #addons/rbdl
+            #addons/muscod
+            #addons/leo
+            #addons/leo2
             addons/tlm
             addons/lqr
-            addons/zeromq
+            #addons/zeromq
             addons/tensorflow
             addons/python
 )

@@ -4,6 +4,8 @@ set(TARGET grlpy)
 find_package(PythonLibsNew)
 
 if(PYTHONLIBS_FOUND)
+  message("-- Building Python addon")
+
   # Build library
   pybind11_add_module(${TARGET} 
               ${SRC}/grlpy.cpp
