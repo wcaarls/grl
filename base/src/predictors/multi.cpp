@@ -51,6 +51,12 @@ void MultiPredictor::update(const Transition &transition)
     predictor_[ii]->update(transition);
 }
 
+void MultiPredictor::update(const std::vector<const Transition*> &transitions)
+{
+  for (size_t ii=0; ii < predictor_.size(); ++ii)
+    predictor_[ii]->update(transitions);
+}
+
 void MultiPredictor::finalize()
 {
   for (size_t ii=0; ii < predictor_.size(); ++ii)

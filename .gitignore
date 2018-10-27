@@ -33,6 +33,9 @@
 *~
 *.orig
 
+# Data Result Files
+*.txt
+
 # Build directories
 build/
 debug/
@@ -40,3 +43,4 @@ release/
 doc/html/
 addons/tensorflow/lib
 results/
+.vscode/

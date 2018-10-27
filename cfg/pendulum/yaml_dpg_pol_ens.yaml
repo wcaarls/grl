@@ -1,24 +1,12 @@
 experiment: 
   type: experiment/online_learning
-<<<<<<< HEAD
-  #runs: 10
   runs: 1
   run_offset: 0
   trials: 0
-  #steps: 500000
   steps: 0
   rate: 0
   test_interval: 10
-  #output: pendulum_dpg.dat
-=======
-  runs: 10
-  run_offset: 0
-  trials: 0
-  steps: 500000
-  rate: 0
-  test_interval: 10
-  output: pendulum_dpg.dat
->>>>>>> upstream/master
+  output:
   environment: 
     type: environment/modeled
     model: 
@@ -58,11 +46,9 @@ experiment:
         output_max: experiment/environment/task/action_max
     predictor: 
       type: predictor/dpg
-      alpha: 0.01
-#     beta_v: 0.1
-#      beta_a: 0.01
-      beta_v: 0.01
-      beta_a: 0.0001
+      alpha: [0.1, 0.01, 0.001]
+      beta_v: [0.1, 0.01, 0.001]
+      beta_a: 0.01
       gamma: 0.97
       lambda: 0.65
       target: off-policy

@@ -1,0 +1,10 @@
+file: mpol_continuous_dpg_2.yaml
+algorithm: random
+repetitions: 2
+regret: simple
+rounds: 2
+parameters:
+  - name: /experiment/agent/policy/sampler/tau
+    values:
+      - 0.001
+      - 0.002

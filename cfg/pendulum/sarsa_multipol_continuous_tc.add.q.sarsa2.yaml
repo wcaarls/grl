@@ -22,7 +22,7 @@ experiment:
     type: agent/td
     policy: 
       type: mapping/policy/multi
-      strategy: policy_strategy_density_based
+      strategy: density_based
       policy: 
         - 
           type: mapping/policy/action
@@ -89,7 +89,7 @@ experiment:
     type: agent/fixed
     policy: 
       type: mapping/policy/multi
-      strategy: policy_strategy_density_based
+      strategy: density_based
       policy: 
         - 
           type: mapping/policy/action

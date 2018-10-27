@@ -12,6 +12,15 @@ from tooltip import *
 
 grld_process = None
 grld_executable = None
+savefile = 'ensemble.yaml'
+
+def taking_params(things_to_iterate):
+  for thing in things_to_iterate:
+    yield thing
+
+def write_yaml(yamlcontent):
+  with open(savefile, 'w') as outfile:
+    yaml.dump(yamlcontent, outfile, default_flow_style=False)
 
 # Set up paths
 binpath = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
@@ -23,16 +32,60 @@ elif os.path.isfile(binpath + "/../build/grld"):
 else:
   print "WARNING: Couldn't locate grld executable, running disabled"
 
+yamlfile = 0
+if len(sys.argv) > 1:
+  yamlfile = sys.argv[1]
+
+  with open(yamlfile, 'r') as stream:
+    cfg = yaml.load(stream)
+      
+  for section in cfg:
+    print(section)
+
+  print(cfg['experiment']['agent']['predictor']['predictor'][0]['alpha'])
+  alphas = cfg['experiment']['agent']['predictor']['predictor'][0]['alpha']
+  gen_alpha = taking_params(alphas)
+  alpha = next(gen_alpha)
+
+  beta_vs = cfg['experiment']['agent']['predictor']['predictor'][0]['beta_v']
+  gen_beta_v = taking_params(beta_vs)
+  beta_v = next(gen_beta_v)
+
+  cfg['experiment']['agent']['predictor']['predictor'] = {}
+  cfg['experiment']['agent']['predictor']['predictor'][2] = {}
+  cfg['experiment']['agent']['predictor']['predictor'][2]['alpha'] = 0.05
+
+  #print(cfg['experiment']['agent']['predictor']['predictor'])
+
+  cfg['experiment']['agent']['predictor']['predictor'][0]['alpha'] = alpha
+  cfg['experiment']['agent']['predictor']['predictor'][0]['beta_v'] = beta_v
+
+  write_yaml(cfg)
+
+  '''
+  for x in range(len(alphas) + len(beta_vs)):
+    switch(x%2){
+      case 0:
+        alpha = next(gen_alpha)
+      case 1:
+        beta_v = next(gen_beta_v)
+    }
+  print('end')
+  '''
+
+'''
 # Load configuration, if specified
 lines = 0
 savefile = 0
 if len(sys.argv) > 1:
-  savefile = sys.argv[1]
+	  savefile = sys.argv[1]
   if os.path.isfile(savefile):
     print "Loading", savefile
-
+'''
+'''
 try:
   grld_process = subprocess.Popen([grld_executable, savefile], stdin=subprocess.PIPE)
   streamdata = grld_process.communicate()
 except:
   os.kill(grld_process.pid, signal.SIGTERM)
+'''

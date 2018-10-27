@@ -1,0 +1,65 @@
+file: mpol_continuous.ac.dpg.yaml
+algorithm: random
+repetitions: 100
+regret: simple
+rounds: 100
+parameters:
+  - name: /experiment/agent/policy/r_distance_parameter
+    values:
+      - 0.001
+      - 0.002
+      - 0.005
+      - 0.01
+      - 0.02
+      - 0.05
+      - 0.10
+      - 0.20
+      - 0.50
+      - 1
+      - 2
+      - 5
+      - 10
+  - name: /experiment/agent/predictor/predictor/0/alpha
+    values:
+      - 0.01
+      - 0.02
+      - 0.05
+      - 0.10
+      - 0.20
+  - name: /experiment/agent/predictor/predictor/0/critic/alpha
+    values:
+      - 0.01
+      - 0.02
+      - 0.05
+      - 0.10
+      - 0.20
+  - name: /experiment/agent/predictor/predictor/1/alpha
+    values:
+      - 0.01
+      - 0.02
+      - 0.05
+      - 0.10
+      - 0.20
+  - name: /experiment/agent/predictor/predictor/1/beta_v
+    values:
+      - 0.01
+      - 0.02
+      - 0.05
+      - 0.10
+      - 0.20
+  - name: /experiment/agent/predictor/predictor/1/beta_a
+    values:
+      - 0.01
+      - 0.02
+      - 0.05
+      - 0.10
+      - 0.20
+  - name: /experiment/agent/predictor/predictor/1/gamma
+    values:
+      - 0.9
+      - 0.95
+      - 0.96
+      - 0.97
+      - 0.98
+      - 0.99
+      - 1.00

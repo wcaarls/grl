@@ -1,11 +1,12 @@
 experiment: 
   type: experiment/online_learning
-  runs: 1
+  runs: 10
   run_offset: 0
   trials: 0
-  steps: 0
+  steps: 500000
   rate: 0
   test_interval: 10
+  output: pendulum_multipol_dpg_density_base2.dat
   environment: 
     type: environment/modeled
     model: 
@@ -26,7 +27,7 @@ experiment:
       policy: 
         - 
           type: mapping/policy/action
-          sigma: [1]
+          sigma: [0.95]
           decay_rate: 1
           decay_min: 0
           output_min: experiment/environment/task/action_min
@@ -71,17 +72,30 @@ experiment:
             output_min: experiment/environment/task/action_min
             output_max: experiment/environment/task/action_max
         - 
-          type: mapping/policy/parameterized/pid
-          setpoint: [3.1415, 0]
-          outputs: experiment/environment/task/action_dims
-          p: [5, 1]
-          i: []
-          d: []
-          il: []
-          action_min: experiment/environment/task/action_min
-          action_max: experiment/environment/task/action_max
+          type: mapping/policy/action
+          sigma: [1]
+          decay_rate: 1
+          decay_min: 0
+          output_min: experiment/environment/task/action_min
+          output_max: experiment/environment/task/action_max
+          projector: 
+            type: projector/tile_coding
+            tilings: 16
+            memory: 8388608
+            safe: 0
+            resolution: [0.31415, 3.1415]
+            wrapping: [6.283, 0]
+          representation: 
+            type: representation/parameterized/linear
+            interval: 0
+            init_min: [0]
+            init_max: [1]
+            memory: experiment/agent/policy/policy/2/projector/memory
+            outputs: experiment/environment/task/action_dims
+            output_min: experiment/environment/task/action_min
+            output_max: experiment/environment/task/action_max
       bins: 10
-      r_distance_parameter: 0.01
+      r_distance_parameter: 0.001
       output_min: experiment/environment/task/action_min
       output_max: experiment/environment/task/action_max
     predictor: 
@@ -135,6 +149,36 @@ experiment:
               output_max: []
             trace: 
               type: trace/enumerated/replacing
+        - 
+          type: predictor/dpg
+          alpha: 0.01
+          beta_v: 0.1
+          beta_a: 0.01
+          gamma: 0.97
+          lambda: 0.65
+          target: off-policy
+          projector: experiment/agent/policy/policy/2/projector
+          critic_representation: 
+            type: representation/parameterized/linear
+            interval: 0
+            init_min: [0]
+            init_max: [0]
+            memory: experiment/agent/policy/policy/2/projector/memory
+            outputs: 1
+            output_min: []
+            output_max: []
+          critic_trace: 
+            type: trace/enumerated/replacing
+          advantage_representation: 
+            type: representation/parameterized/linear
+            interval: 0
+            init_min: [0]
+            init_max: [0]
+            memory: experiment/agent/policy/policy/2/projector/memory
+            outputs: 1
+            output_min: []
+            output_max: []
+          actor_representation: experiment/agent/policy/policy/2/representation
   test_agent: 
     type: agent/fixed
     policy: 
@@ -159,9 +203,17 @@ experiment:
           output_max: experiment/environment/task/action_max
           projector: experiment/agent/policy/policy/1/projector
           representation: experiment/agent/policy/policy/1/representation
-        - experiment/agent/policy/policy/2
+        - 
+          type: mapping/policy/action
+          sigma: []
+          decay_rate: 1
+          decay_min: 0
+          output_min: experiment/environment/task/action_min
+          output_max: experiment/environment/task/action_max
+          projector: experiment/agent/policy/policy/2/projector
+          representation: experiment/agent/policy/policy/2/representation
       bins: 10
-      r_distance_parameter: experiment/agent/policy/r_distance_parameter
+      r_distance_parameter: 0.001
       output_min: experiment/environment/task/action_min
       output_max: experiment/environment/task/action_max
   save_every: never
@@ -189,17 +241,14 @@ ac_visibility_mapping:
   projection: mean
   mapping: experiment/test_agent/policy/policy/1
   output_dim: 0
-actions: 
-  type: visualization/state
-  input_dims: []
-  input_min: [-3, -3, -3]
-  input_max: [3, 3, 3]
-  memory: 256
-  state: experiment/test_agent/policy/actions
-state: 
-  type: visualization/state
-  input_dims: []
+critic_visual: 
+  type: visualization/field/value
+  field_dims: [0, 1]
   input_min: experiment/environment/task/observation_min
   input_max: experiment/environment/task/observation_max
-  memory: 256
-  state: experiment/state
+  points: 65536
+  savepoints: 1048576
+  projection: mean
+  output_dim: 0
+  projector: experiment/agent/policy/policy/2/projector
+  representation: experiment/agent/policy/policy/2/representation
