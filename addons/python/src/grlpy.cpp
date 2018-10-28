@@ -29,12 +29,14 @@
 #include <pybind11/eigen.h>
 
 #include <grl/configurable.h>
+#include <grl/experiment.h>
 #include <grl/agent.h>
 #include <grl/environment.h>
 
 namespace py = pybind11;
 using namespace grl;
 
+DECLARE_TYPE_NAME(Experiment)
 DECLARE_TYPE_NAME(Environment)
 DECLARE_TYPE_NAME(Agent)
 
@@ -60,6 +62,10 @@ T* create(Configurator &conf)
 
 PYBIND11_MODULE(grlpy, m) {
   loadPlugins();
+  
+  m.def("verbosity", [](const unsigned char &v) {
+      grl_log_verbosity__ = v;
+    });
 
   // Configurator
   auto c = py::class_<Configurator>(m, "Configurator");
@@ -72,11 +78,18 @@ PYBIND11_MODULE(grlpy, m) {
   c.def("__str__", [](Configurator &conf) { return conf.str(); });
   c.def("instantiate", [](Configurator &conf) {
       return conf.instantiate();
-    }, py::return_value_policy::take_ownership, py::keep_alive<0, 1>());
+    });
+    
+  // Experiment
+  auto x = py::class_<Experiment, std::unique_ptr<Experiment, py::nodelete>>(m, "Experiment");
+  x.def(py::init(&create<Experiment>), py::keep_alive<1, 2>());
+  x.def("run", [](Experiment &exp) {
+      exp.run();
+    });
   
   // Environment
-  auto e = py::class_<Environment>(m, "Environment");
-  e.def(py::init(&create<Environment>), py::return_value_policy::reference, py::keep_alive<1, 2>());
+  auto e = py::class_<Environment, std::unique_ptr<Environment, py::nodelete>>(m, "Environment");
+  e.def(py::init(&create<Environment>), py::keep_alive<1, 2>());
   e.def("start", [](Environment &env, int test) {
       Observation obs;
       env.start(test, &obs);
@@ -91,8 +104,8 @@ PYBIND11_MODULE(grlpy, m) {
     });
   
   // Agent
-  auto a = py::class_<Agent>(m, "Agent");
-  a.def(py::init(&create<Agent>), py::return_value_policy::reference, py::keep_alive<1, 2>());
+  auto a = py::class_<Agent, std::unique_ptr<Agent, py::nodelete>>(m, "Agent");
+  a.def(py::init(&create<Agent>), py::keep_alive<1, 2>());
   a.def("start", [](Agent &agent, Vector &obs) {
       Action action;
       agent.start(obs, &action);

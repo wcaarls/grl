@@ -66,34 +66,25 @@ std::string YAMLToString(const YAML::Node &node)
 
 Configurator *grl::loadYAML(const std::string &file, const std::string &element, Configurator *parent)
 {
-  // Case 1: key:value pair
-  std::string key = file;
-  char *value = strchr((char*)key.c_str(), ':');
-  if (value)
-  {
-    *(value++) = '\0';
-    
-    if (!parent)
-      parent = new Configurator();
-    
-    loadYAML("", key.c_str(), parent, YAML::Load(value));
-    
-    return parent;
+  YAML::Node node;
+  std::string id=file;
+  
+  try {
+    node = YAML::LoadFile(file.c_str());
+  } catch (YAML::BadFile &e) {
+    node = YAML::Load(file);
+    id = "";
   }
   
-  // Case 2: merging
   if (element.empty() && parent)
   {
-    YAML::Node node = YAML::LoadFile(file.c_str());
-    
     for (YAML::const_iterator it = node.begin(); it != node.end(); ++it)
-      loadYAML(file, it->first.as<std::string>(), parent, it->second);
+      loadYAML(id, it->first.as<std::string>(), parent, it->second);
       
     return parent;
   }
-
-  // Case 3: loading
-  return loadYAML(file, element, parent, YAML::LoadFile(file.c_str()));
+  
+  return loadYAML(id, element, parent, node);
 }
 
 Configurator *grl::loadYAML(const std::string &file, const std::string &element, Configurator *parent, const YAML::Node &node)

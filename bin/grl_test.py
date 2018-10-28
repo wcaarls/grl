@@ -6,15 +6,17 @@ sys.path.append('../build')
 
 import grlpy
 
-# Load configuration
-conf = grlpy.Configurator("../cfg/pendulum/sarsa_tc.yaml")
+# Load configurations
+envconf = grlpy.Configurator("../cfg/matlab/pendulum_swingup.yaml")
+agentconf = grlpy.Configurator("../cfg/matlab/sarsa.yaml")
 
-# Instantiate configuration (construct objects)
-inst = conf.instantiate()
+# Instantiate configurations (construct objects)
+envinst = envconf.instantiate()
+agentinst = agentconf.instantiate()
 
-# Get reference to agent and environment
-agent = grlpy.Agent(inst["experiment"]["agent"])
-env = grlpy.Environment(inst["experiment"]["environment"])
+# Get reference to environment and agent
+env = grlpy.Environment(envinst["environment"])
+agent = grlpy.Agent(agentinst["agent"])
 
 # 2000 episodes
 for r in range(2000):
