@@ -26,10 +26,10 @@ yamlconf = yaml.load(stream)
 stream.close()
 
 # Random change
-#yamlconf["visualization"]["points"] = 256
+yamlconf["experiment"]["trials"] = 1000
 
-grlpy.verbosity(9)
 # Read configuration from string
+grlpy.verbosity(9)
 conf = grlpy.Configurator(yaml.dump(yamlconf))
 
 # Instantiate configuration (construct objects)
@@ -39,5 +39,5 @@ inst = conf.instantiate()
 experiment = grlpy.Experiment(inst["experiment"])
 
 # Run
-grlpy.verbosity(9)
+grlpy.verbosity(0)
 experiment.run()

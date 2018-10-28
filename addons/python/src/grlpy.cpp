@@ -39,6 +39,7 @@ using namespace grl;
 DECLARE_TYPE_NAME(Experiment)
 DECLARE_TYPE_NAME(Environment)
 DECLARE_TYPE_NAME(Agent)
+DECLARE_TYPE_NAME(Mapping)
 
 template<class T>
 T* create(Configurator &conf)
@@ -68,55 +69,74 @@ PYBIND11_MODULE(grlpy, m) {
     });
 
   // Configurator
-  auto c = py::class_<Configurator>(m, "Configurator");
-  c.def(py::init([](const std::string &file) {
-      return loadYAML(file);
-    }));
-  c.def("__getitem__", [](Configurator &conf, const std::string &str) {
-      return conf.find(str);
-    }, py::return_value_policy::reference_internal);
-  c.def("__str__", [](Configurator &conf) { return conf.str(); });
-  c.def("instantiate", [](Configurator &conf) {
-      return conf.instantiate();
-    });
+  py::class_<Configurator>(m, "Configurator")
+    .def(py::init([](const std::string &file) {
+        return loadYAML(file);
+      }))
+    .def("__getitem__", [](Configurator &conf, const std::string &str) {
+        return conf.find(str);
+      }, py::return_value_policy::reference_internal)
+    .def("__str__", [](Configurator &conf) { return conf.str(); })
+    .def("instantiate", [](Configurator &conf) {
+        return conf.instantiate();
+      });
     
+  // Configurable
+  py::class_<Configurable, std::unique_ptr<Configurable, py::nodelete>>(m, "Configurable")
+    .def("reconfigure", [](Configurable &conf, const py::dict dict) {
+        Configuration mycfg;
+        for (auto item : dict)
+        mycfg.set(item.first.attr("__str__")().cast<std::string>(), item.second.attr("__str__")().cast<std::string>());
+  
+        conf.reconfigure(mycfg);
+      });
+
   // Experiment
-  auto x = py::class_<Experiment, std::unique_ptr<Experiment, py::nodelete>>(m, "Experiment");
-  x.def(py::init(&create<Experiment>), py::keep_alive<1, 2>());
-  x.def("run", [](Experiment &exp) {
-      exp.run();
-    });
+  py::class_<Experiment, Configurable, std::unique_ptr<Experiment, py::nodelete>>(m, "Experiment")
+    .def(py::init(&create<Experiment>), py::keep_alive<1, 2>())
+    .def("run", [](Experiment &exp) {
+        exp.run();
+      });
   
   // Environment
-  auto e = py::class_<Environment, std::unique_ptr<Environment, py::nodelete>>(m, "Environment");
-  e.def(py::init(&create<Environment>), py::keep_alive<1, 2>());
-  e.def("start", [](Environment &env, int test) {
-      Observation obs;
-      env.start(test, &obs);
-      return obs.v;
-    });
-  e.def("step", [](Environment &env, Vector &action) {
-      Observation obs;
-      double reward;
-      int terminal;
-      env.step(action, &obs, &reward, &terminal);
-      return py::make_tuple(obs.v, reward, terminal);
-    });
+  py::class_<Environment, Configurable, std::unique_ptr<Environment, py::nodelete>>(m, "Environment")
+    .def(py::init(&create<Environment>), py::keep_alive<1, 2>())
+    .def("start", [](Environment &env, int test) {
+        Observation obs;
+        env.start(test, &obs);
+        return obs.v;
+      })
+    .def("step", [](Environment &env, Vector &action) {
+        Observation obs;
+        double reward;
+        int terminal;
+        env.step(action, &obs, &reward, &terminal);
+        return py::make_tuple(obs.v, reward, terminal);
+      });
   
   // Agent
-  auto a = py::class_<Agent, std::unique_ptr<Agent, py::nodelete>>(m, "Agent");
-  a.def(py::init(&create<Agent>), py::keep_alive<1, 2>());
-  a.def("start", [](Agent &agent, Vector &obs) {
-      Action action;
-      agent.start(obs, &action);
-      return action.v;
-    });
-  a.def("step", [](Agent &agent, Vector &obs, double reward) {
-      Action action;
-      agent.step(0, obs, reward, &action);
-      return action.v;
-    });
-  a.def("end", [](Agent &agent, Vector &obs, double reward) {
-      agent.end(0, obs, reward);
-    });
+  py::class_<Agent, Configurable, std::unique_ptr<Agent, py::nodelete>>(m, "Agent")
+    .def(py::init(&create<Agent>), py::keep_alive<1, 2>())
+    .def("start", [](Agent &agent, Vector &obs) {
+        Action action;
+        agent.start(obs, &action);
+        return action.v;
+      })
+    .def("step", [](Agent &agent, Vector &obs, double reward) {
+        Action action;
+        agent.step(0, obs, reward, &action);
+        return action.v;
+      })
+    .def("end", [](Agent &agent, Vector &obs, double reward) {
+        agent.end(0, obs, reward);
+      });
+    
+  // Mapping
+  py::class_<Mapping, Configurable, std::unique_ptr<Mapping, py::nodelete>>(m, "Mapping")
+    .def(py::init(&create<Mapping>), py::keep_alive<1, 2>())
+    .def("read", [](Mapping &mapping, Vector &in) {
+        Vector out;
+        mapping.read(in, &out);
+        return out;
+      });
 }
