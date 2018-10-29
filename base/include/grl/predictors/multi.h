@@ -50,6 +50,7 @@ class MultiPredictor : public Predictor
     
     // From Predictor
     virtual void update(const Transition &transition);
+    virtual void update(const std::vector<const Transition*> &transitions);
     virtual void finalize();
 };
 

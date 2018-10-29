@@ -30,6 +30,9 @@
 
 #include <grl/policy.h>
 #include <grl/discretizer.h>
+#include <grl/sampler.h>
+#include <grl/signal.h>
+#include <grl/vector.h>
 
 namespace grl
 {
@@ -40,7 +43,7 @@ class MultiPolicy : public Policy
   public:
     TYPEINFO("mapping/policy/multi", "Combines multiple policies")
     
-    enum CombinationStrategy {csBinning, csDensityBased, csDataCenter, csMean};
+    enum CombinationStrategy {csBinning, csDensityBased, csDataCenter, csDataCenterMeanMov, csMean, csMeanMov, csRandom, csStatic, csValueBased};
 
   protected:
     std::string strategy_str_;
@@ -49,11 +52,21 @@ class MultiPolicy : public Policy
     Representation *representation_;
     Vector min_, max_;
     TypedConfigurableList<Policy> policy_;
+    TypedConfigurableList<Mapping> value_;
     int bins_;
+    int static_policy_;
     double r_distance_parameter_;
+    VectorSignal *action_;
+    Sampler *sampler_;
+    std::vector<double> *mean_mov_;
+    size_t iterations_;
+    size_t *pt_iterations_;
 
   public:
-    MultiPolicy() : bins_(10), r_distance_parameter_(0.001) { }
+    MultiPolicy() : bins_(10), static_policy_(), r_distance_parameter_(0.001), iterations_(0), pt_iterations_(&iterations_)
+    {
+      srand(time(0));
+    }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -70,17 +83,19 @@ class DiscreteMultiPolicy : public DiscretePolicy
   public:
     TYPEINFO("mapping/policy/discrete/multi", "Combines multiple discrete policies")
     
-    enum CombinationStrategy {csAddProbabilities, csMultiplyProbabilities, csMajorityVotingProbabilities, csRankVotingProbabilities};
+    enum CombinationStrategy {csAddProbabilities, csMultiplyProbabilities, csMajorityVotingProbabilities, csRankVotingProbabilities, csDensityBased};
 
   protected:
     std::string strategy_str_;
     CombinationStrategy strategy_;
     Discretizer *discretizer_;
     TypedConfigurableList<DiscretePolicy> policy_;
+    Vector min_, max_;
     double tau_;
+    double r_distance_parameter_;
 
   public:
-    DiscreteMultiPolicy() : tau_(0.1) { }
+    DiscreteMultiPolicy() : tau_(0.1), r_distance_parameter_(0.001) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);
