@@ -147,6 +147,11 @@ bool LQRSolver::solve()
   return true;
 }
 
+Policy *LQRSolver::policy()
+{
+  return policy_;
+}
+
 #define SSIZE 4096
 extern "C" void sb02od_(char *DICO, char *JOBB, char *FACT, char *UPLO,
                         char *JOBL, char *SORT, int *N, int *M, int *P,

@@ -334,6 +334,11 @@ bool ILQGSolver::resolve(double t, const Vector &xt)
   return true;
 }
 
+Policy *ILQGSolver::policy()
+{
+  return policy_;
+}
+
 bool ILQGSolver::forwardPass(const ColumnVector &x0, const Matrix &x, const Matrix &u, const Matrix3D &L, Matrix *xnew, Matrix *unew, RowVector *cnew) const
 {
   size_t n = x0.rows(), // Number of state dimensions

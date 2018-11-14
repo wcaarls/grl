@@ -77,6 +77,7 @@ add_library(${TARGET} SHARED
             ${SRC}/policies/noise.cpp
             ${SRC}/policies/multi.cpp
             ${SRC}/policies/multi_discrete.cpp
+            ${SRC}/policies/solver.cpp
 #            ${SRC}/predictors/naf.cpp
             ${SRC}/predictors/model.cpp
             ${SRC}/predictors/sarsa.cpp

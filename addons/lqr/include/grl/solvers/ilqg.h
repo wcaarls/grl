@@ -47,10 +47,10 @@
 namespace grl {
 
 /// Iterative Linear Quadratic Gaussian trajectory optimizer
-class ILQGSolver : public Solver
+class ILQGSolver : public PolicySolver
 {
   public:
-    TYPEINFO("solver/ilqg", "Iterative Linear Quadratic Gaussian trajectory optimizer");
+    TYPEINFO("solver/policy/ilqg", "Iterative Linear Quadratic Gaussian trajectory optimizer");
     
   protected:
     typedef std::vector<Matrix> Matrix3D;
@@ -81,6 +81,9 @@ class ILQGSolver : public Solver
     virtual bool solve() { return false; }
     virtual bool solve(const Vector &x0);
     virtual bool resolve(double t, const Vector &xt);
+    
+    // From PolicySolver
+    virtual Policy *policy();
 
   protected:
     bool forwardPass(const ColumnVector &x0, const Matrix &x, const Matrix &u, const Matrix3D &L, Matrix *xnew, Matrix *unew, RowVector *cnew) const;

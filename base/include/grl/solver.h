@@ -29,6 +29,7 @@
 #define GRL_SOLVER_H_
 
 #include <grl/configurable.h>
+#include <grl/policy.h>
 
 namespace grl
 {
@@ -47,6 +48,14 @@ class Solver : public Configurable
 
     /// Resolve MDP based on previous solution, but from a later starting point.
     virtual bool resolve(double t, const Vector &xt) { return false; }
+};
+
+/// Solver that returns a policy
+class PolicySolver : public Solver
+{
+  public:
+    /// Returns policy that is adjusted by this solver.
+    virtual Policy *policy() = 0;
 };
 
 }

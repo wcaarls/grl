@@ -1,11 +1,11 @@
-/** \file lqr.h
- * \brief LQR solver header file.
+/** \file solver.h
+ * \brief Solver policy header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
- * \date      2015-08-26
+ * \date      2018-11-14
  *
  * \copyright \verbatim
- * Copyright (c) 2015, Wouter Caarls
+ * Copyright (c) 2018, Wouter Caarls
  * All rights reserved.
  *
  * This file is part of GRL, the Generic Reinforcement Learning library.
@@ -25,48 +25,38 @@
  * \endverbatim
  */
 
-#ifndef GRL_LQR_SOLVER_H_
-#define GRL_LQR_SOLVER_H_
+#ifndef GRL_SOLVER_POLICY_H_
+#define GRL_SOLVER_POLICY_H_
 
-#include <Eigen/Eigen>
-
+#include <grl/policy.h>
 #include <grl/solver.h>
-#include <grl/environments/observation.h>
-#include <grl/policies/state_feedback.h>
 
 namespace grl
 {
 
-/// Linear Quadratic Regulator solver
-class LQRSolver : public PolicySolver
+/// Policy that uses a solver to calculate the action
+class SolverPolicy : public Policy
 {
   public:
-    TYPEINFO("solver/policy/lqr", "Linear Quadratic Regulator solver")
+    TYPEINFO("mapping/policy/solver", "Policy that uses a solver to calculate the action")
 
   protected:
-    ObservationModel *model_;
-    StateFeedbackPolicy *policy_;
-    Vector operating_state_, operating_action_;
+    PolicySolver *solver_;
+    int interval_, episodes_;
 
   public:
-    LQRSolver() : model_(NULL), policy_(NULL) { }
-  
-    // From Configurable
+    SolverPolicy() : solver_(NULL), interval_(1), episodes_(0) { }
+    
+    // From Configurable  
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
     virtual void reconfigure(const Configuration &config);
 
-    // From Solver
-    virtual LQRSolver *clone() const;
-    virtual bool solve();
-    
-    // From PolicySolver
-    virtual Policy *policy();
-
-  protected:
-    virtual int solveDARE(const Matrix &A, const Matrix &B, const Matrix &Q, const Matrix &R, Matrix *X) const;
+    // From Policy
+    virtual void act(double time, const Observation &in, Action *out);
+    virtual void act(const Observation &in, Action *out) const;
 };
 
 }
 
-#endif /* GRL_LQR_SOLVER_H_ */
+#endif /* GRL_SOLVER_POLICY_H_ */
