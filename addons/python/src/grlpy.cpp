@@ -41,6 +41,11 @@ DECLARE_TYPE_NAME(Environment)
 DECLARE_TYPE_NAME(Agent)
 DECLARE_TYPE_NAME(Mapping)
 
+#define PYBIND11_CONFIGURABLE(x) \
+  py::class_<x, Configurable, std::unique_ptr<x, py::nodelete>>(m, #x) \
+    .def(py::init(&create<x>), py::keep_alive<1, 2>())
+
+
 template<class T>
 T* create(Configurator &conf)
 {
@@ -92,15 +97,13 @@ PYBIND11_MODULE(grlpy, m) {
       });
 
   // Experiment
-  py::class_<Experiment, Configurable, std::unique_ptr<Experiment, py::nodelete>>(m, "Experiment")
-    .def(py::init(&create<Experiment>), py::keep_alive<1, 2>())
+  PYBIND11_CONFIGURABLE(Experiment)
     .def("run", [](Experiment &exp) {
         exp.run();
       });
   
   // Environment
-  py::class_<Environment, Configurable, std::unique_ptr<Environment, py::nodelete>>(m, "Environment")
-    .def(py::init(&create<Environment>), py::keep_alive<1, 2>())
+  PYBIND11_CONFIGURABLE(Environment)
     .def("start", [](Environment &env, int test) {
         Observation obs;
         env.start(test, &obs);
@@ -115,8 +118,7 @@ PYBIND11_MODULE(grlpy, m) {
       });
   
   // Agent
-  py::class_<Agent, Configurable, std::unique_ptr<Agent, py::nodelete>>(m, "Agent")
-    .def(py::init(&create<Agent>), py::keep_alive<1, 2>())
+  PYBIND11_CONFIGURABLE(Agent)
     .def("start", [](Agent &agent, Vector &obs) {
         Action action;
         agent.start(obs, &action);
@@ -132,8 +134,7 @@ PYBIND11_MODULE(grlpy, m) {
       });
     
   // Mapping
-  py::class_<Mapping, Configurable, std::unique_ptr<Mapping, py::nodelete>>(m, "Mapping")
-    .def(py::init(&create<Mapping>), py::keep_alive<1, 2>())
+  PYBIND11_CONFIGURABLE(Mapping)
     .def("read", [](Mapping &mapping, Vector &in) {
         Vector out;
         mapping.read(in, &out);
