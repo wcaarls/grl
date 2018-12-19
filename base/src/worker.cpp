@@ -141,16 +141,16 @@ class Worker: public itc::Thread
         {
           NOTICE("Waiting for configuration");
 
-          char yaml[BUFSIZE] = {0};
-          size_t n=0;
+          string yaml;
+          char buf[BUFSIZE] = {0};
           ssize_t nread;
           do
           {
-            nread = read(fd, &yaml[n], BUFSIZE - n);
-            n += nread;
-          } while (nread && yaml[n-1]);
+            nread = read(fd, buf, BUFSIZE);
+            yaml.append(buf, nread);
+          } while (nread && buf[nread-1]);
           
-          if (!n)
+          if (yaml.empty())
           {
             WARNING("Connection closed by server");
             break;
@@ -158,6 +158,7 @@ class Worker: public itc::Thread
 
           INFO("Loading configuration from socket");
 
+          yaml.pop_back();
           try
           {
             temp = loadYAML("", "", nullptr, YAML::Load(yaml));
