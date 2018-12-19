@@ -1,0 +1,39 @@
+agent: 
+  type: agent/td
+  policy: 
+    type: mapping/policy/discrete/value/q
+    discretizer: 
+      type: discretizer/uniform
+      min: [-3]
+      max: [3]
+      steps: [3]
+    projector: 
+      type: projector/tile_coding
+      tilings: 16
+      memory: 8388608
+      safe: 0
+      resolution: [0.1, 0.1, 3.1415, 3]
+      wrapping: [0, 0, 0, 0]
+    representation: 
+      type: representation/parameterized/linear
+      interval: 0
+      init_min: [ 0 ]
+      init_max: [ 1 ]
+      memory: agent/policy/projector/memory
+      outputs: 1
+      output_min: [  ]
+      output_max: [  ]
+    sampler: 
+      type: sampler/epsilon_greedy
+      epsilon: 0.05
+      decay_rate: 1
+      decay_min: 0
+  predictor: 
+    type: predictor/critic/sarsa
+    alpha: 0.2
+    gamma: 0.97
+    lambda: 0.65
+    projector: agent/policy/projector
+    representation: agent/policy/representation
+    trace: 
+      type: trace/enumerated/replacing
