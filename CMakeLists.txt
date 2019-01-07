@@ -43,6 +43,7 @@ set(MODULES base
             addons/lqr
             addons/zeromq
             addons/tensorflow
+            addons/box2d
             addons/python
 )
 
