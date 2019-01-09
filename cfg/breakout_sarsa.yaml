@@ -1,0 +1,97 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  run_offset: 0
+  trials: 0
+  steps: 0
+  rate: 0
+  test_interval: 10
+  output: breakout-sarsa
+  environment: 
+    type: environment/sandbox
+    model: 
+      type: sandbox_model/breakout
+      control_step: 0.05
+      integration_steps: 6
+    task: 
+      type: task/breakout/targeting
+      timeout: 20
+      randomization: 0
+    exporter: 
+      type: exporter/csv
+      file: breakout-sarsa
+      fields: time,state,action
+      style: line
+      variant: all
+      enabled: 0
+  agent: 
+    type: agent/td
+    policy: 
+      type: mapping/policy/discrete/value/q
+      discretizer: 
+        type: discretizer/uniform
+        min: experiment/environment/task/action_min
+        max: experiment/environment/task/action_max
+        steps: [3, 2]
+      projector: 
+        type: projector/tile_coding
+        tilings: 16
+        memory: 8388608
+        safe: 0
+        resolution: [0.075, 0.075, 1, 1, 0.075, 1, 1]
+        wrapping: []
+      representation: 
+        type: representation/parameterized/linear
+        interval: 0
+        init_min: [0]
+        init_max: [1]
+        memory: experiment/agent/policy/projector/memory
+        outputs: 1
+        output_min: []
+        output_max: []
+      sampler: 
+        type: sampler/epsilon_greedy
+        epsilon: [0.05]
+        decay_rate: 1
+        decay_min: 0
+    predictor: 
+      type: predictor/critic/sarsa
+      alpha: 0.2
+      gamma: 0.99
+      lambda: 0.65
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+      trace: 
+        type: trace/enumerated/replacing
+  test_agent: 
+    type: agent/fixed
+    policy: 
+      type: mapping/policy/discrete/value/q
+      discretizer: experiment/agent/policy/discretizer
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+      sampler: 
+        type: sampler/greedy
+  save_every: never
+visualizer: 
+  type: visualizer/glut
+visualization: 
+  type: visualization/breakout
+  state: experiment/environment/state
+value: 
+  type: visualization/field/policy/value
+  field_dims: [0, 1]
+  input_min: experiment/environment/task/observation_min
+  input_max: experiment/environment/task/observation_max
+  points: 65536
+  savepoints: 1048576
+  state: experiment/state
+  projection: mean
+  policy: experiment/test_agent/policy
+curve: 
+  type: visualization/state
+  input_dims: [0, 1, 2]
+  input_min: -1000
+  input_max: 1400
+  memory: 1024
+  state: experiment/curve

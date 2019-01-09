@@ -51,7 +51,7 @@ class BreakoutSandbox : public Sandbox
     double time_;
 
   public:
-    BreakoutSandbox() : world_(NULL), environment_(NULL), cart_(NULL), paddle_(NULL), ball_(NULL), piston_(NULL), tau_(0.05), steps_(5) ,time_(0) { }
+    BreakoutSandbox() : world_(NULL), environment_(NULL), cart_(NULL), paddle_(NULL), ball_(NULL), piston_(NULL), tau_(0.05), steps_(6) ,time_(0) { }
     ~BreakoutSandbox()
     {
       safe_delete(&world_);
@@ -89,6 +89,10 @@ class BreakoutTargetingTask : public Task
     virtual void observe(const Vector &state, Observation *obs, int *terminal) const;
     virtual void evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const;
     virtual bool invert(const Observation &obs, Vector *state) const;
+    
+  protected:
+    virtual bool succeeded(const Vector &state) const;
+    virtual bool failed(const Vector &state) const;
 };
 
 /// Breakout visualization.

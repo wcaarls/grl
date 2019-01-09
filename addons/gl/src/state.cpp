@@ -68,6 +68,12 @@ void StateVisualization::configure(Configuration &config)
     for (size_t ii=0; ii < min_.size(); ++ii)
       dims_[ii] = ii;
   }
+  
+  if (min_.size() == 1)
+  {
+    min_ = ConstantVector(dims_.size(), min_[0]);
+    max_ = ConstantVector(dims_.size(), max_[0]);
+  }
     
   for (size_t ii=0; ii < dims_.size(); ++ii)
     if (dims_[ii] >= min_.size())

@@ -38,7 +38,7 @@ REGISTER_CONFIGURABLE(BreakoutVisualization)
 void BreakoutSandbox::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("control_step", "double.control_step", "Control step time", tau_, CRP::Configuration, 0.05, DBL_MAX));
-  config->push_back(CRP("integration_steps", "Number of integration steps per control step", (int)steps_, CRP::Configuration, 1));
+  config->push_back(CRP("integration_steps", "Number of integration steps per control step", (int)steps_, CRP::Configuration, 2));
 }
 
 void BreakoutSandbox::configure(Configuration &config)
@@ -93,7 +93,7 @@ void BreakoutSandbox::configure(Configuration &config)
   jointDef.lowerTranslation = 0.0f;
   jointDef.upperTranslation = 1.0f;
   jointDef.enableLimit = true;
-  jointDef.maxMotorForce = 100000.f;
+  jointDef.maxMotorForce = 1000000.f;
   jointDef.motorSpeed = 0.0f;
   jointDef.enableMotor = true;
   piston_ = (b2PrismaticJoint*)world_->CreateJoint(&jointDef);
@@ -137,10 +137,17 @@ double BreakoutSandbox::step(const Vector &actuation, Vector *next)
 {
   time_ = time_ + tau_;
   cart_->SetLinearVelocity(b2Vec2(actuation[0]*100, 0));
-  piston_->SetMotorSpeed(actuation[1]>0.5?100.:-100.);
-  
+ 
+  if (actuation[1] > 0.5)
+    piston_->SetMotorSpeed(100.);
+    
   for (size_t ii=0; ii < steps_; ++ii)
+  {
+    if (actuation[1] > 0.5 && ii == steps_/2)
+      piston_->SetMotorSpeed(-100.);
+
     world_->Step(tau_/steps_, 8, 2);
+  }
     
   b2Vec2 ballpos = ball_->GetPosition();
   b2Vec2 paddlepos = paddle_->GetPosition();
@@ -177,13 +184,13 @@ void BreakoutTargetingTask::configure(Configuration &config)
   randomization_ = config["randomization"];
 
   config.set("observation_dims", 5);
-  config.set("observation_min", VectorConstructor(-0.5, 0., -0.5, -10, -10, -10));
-  config.set("observation_max", VectorConstructor( 0.5, 1.,  0.5,  10,  10,  10));
+  config.set("observation_min", VectorConstructor(-0.5, 0., -0.5, -10, -10));
+  config.set("observation_max", VectorConstructor( 0.5, 1.,  0.5,  10,  10));
   config.set("action_dims", 2);
   config.set("action_min", VectorConstructor(-1, 0));
   config.set("action_max", VectorConstructor( 1, 1));
-  config.set("reward_min", 0);
-  config.set("reward_max", 1);
+  config.set("reward_min", -100);
+  config.set("reward_max", 100);
 }
 
 void BreakoutTargetingTask::reconfigure(const Configuration &config)
@@ -205,7 +212,7 @@ void BreakoutTargetingTask::observe(const Vector &state, Observation *obs, int *
   (*obs)[4] = state[5];
   obs->absorbing = false;
   
-  if (state[0] > -0.05 && state[0] < 0.05 && state[1] > 0.9)
+  if (succeeded(state) || failed(state))
   {
     *terminal = 2;
     obs->absorbing = true;
@@ -218,6 +225,14 @@ void BreakoutTargetingTask::observe(const Vector &state, Observation *obs, int *
 
 void BreakoutTargetingTask::evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const
 {
+  // Note: requires gamma>=0.999 for succeeded reward to outperform
+  // keeping the ball in play
+  if (succeeded(next))
+    *reward = 1000;
+  else if (failed(next))
+    *reward = -1000;
+  else
+    *reward = 1;
 }
 
 bool BreakoutTargetingTask::invert(const Observation &obs, Vector *state) const
@@ -234,6 +249,22 @@ bool BreakoutTargetingTask::invert(const Observation &obs, Vector *state) const
   (*state)[8] = 0;
 
   return true;
+}
+
+bool BreakoutTargetingTask::succeeded(const Vector &state) const
+{
+  if (state[0] > -0.05 && state[0] < 0.05 && state[1] > 0.9)
+    return true;
+    
+  return false;
+}
+
+bool BreakoutTargetingTask::failed(const Vector &state) const
+{
+  if (state[1] < 0.05)
+    return true;
+    
+  return false;
 }
 
 // BreakoutVisualization

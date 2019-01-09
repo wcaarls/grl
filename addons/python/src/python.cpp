@@ -67,6 +67,9 @@ void GymEnvironment::configure(Configuration &config)
   PyObject *id = PyUnicode_DecodeFSDefault(id_.c_str());
   PyObject *args = PyTuple_New(1);
   PyTuple_SetItem(args, 0, id);
+  
+  NOTICE("Creating Gym environment '" << id_ << "'");
+  
   PyObject *env = PyObject_CallObject(make, args);
   Py_DECREF(args);
   

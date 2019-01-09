@@ -95,6 +95,7 @@ LargeVector OnlineLearningExperiment::run()
 {
   std::ofstream ofs;
   std::vector<double> curve;
+  double avg1=0, avg2=0;
   
   // Store configuration with output
   if (!output_.empty())
@@ -185,8 +186,14 @@ LargeVector OnlineLearningExperiment::run()
           oss << std::setw(15) << tt+1-(tt+1)/(test_interval_+1) << std::setw(15) << ss << std::setw(15) << std::setprecision(3) << std::fixed << total_reward;
           agent_->report(oss);
           environment_->report(oss);
-          curve_->set(VectorConstructor(total_reward));
+          
+          if (curve.empty())
+            avg1 = avg2 = total_reward;
+          avg1 = 0.1*total_reward + 0.9*avg1;
+          avg2 = 0.01*total_reward + 0.99*avg2;
+            
           curve.push_back(total_reward);
+          curve_->set(VectorConstructor(total_reward, avg1, avg2));
         
           INFO(oss.str());
           if (ofs.is_open())
@@ -199,8 +206,14 @@ LargeVector OnlineLearningExperiment::run()
         oss << std::setw(15) << tt << std::setw(15) << ss << std::setw(15) << std::setprecision(3) << std::fixed << total_reward;
         agent_->report(oss);
         environment_->report(oss);
-        curve_->set(VectorConstructor(total_reward));
+
+        if (curve.empty())
+          avg1 = avg2 = total_reward;
+        avg1 = 0.1*total_reward + 0.9*avg1;
+        avg2 = 0.01*total_reward + 0.99*avg2;
+          
         curve.push_back(total_reward);
+        curve_->set(VectorConstructor(total_reward, avg1, avg2));
 
         INFO(oss.str());
         if (ofs.is_open())
