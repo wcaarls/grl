@@ -5,7 +5,13 @@ find_package(OpenGL)
 find_package(ZLIB)
 
 if (OPENGL_FOUND AND ZLIB_FOUND)
-  message("-- Building OpenGL addon")
+  set(GRL_BUILD_GL ON CACHE BOOL "Build OpenGL addon")
+else()
+  message("** Cannot build OpenGL addon: missing one of {opengl, zlib}")
+endif()
+
+if (GRL_BUILD_GL)
+  message("** Building OpenGL addon")
 
   # Build library
   add_library(${TARGET} SHARED
@@ -17,6 +23,7 @@ if (OPENGL_FOUND AND ZLIB_FOUND)
               ${SRC}/state.cpp
               ${SRC}/trajectory.cpp
               ${SRC}/slice.cpp
+              ${SRC}/displacement.cpp
              )
 
   # Add dependencies

@@ -1439,7 +1439,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
     	mouseMode |= 2;
     if (event->button() == Qt::RightButton)
     	mouseMode |= 4;
-	lastPos = event->pos();
+    lastPos = event->pos();
 }
 
 void GLWidget::mouseReleaseEvent(QMouseEvent *event)

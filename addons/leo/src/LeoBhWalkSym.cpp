@@ -307,7 +307,7 @@ double CLeoBhWalkSym::getJointMotorWork(int jointIndex)
 {
   if (getPreviousSTGState()->isValid())  // We don't have a previous state at the beginning of a trial
   {
-    double I, U; // Electrical work: P = U*I
+    double I=0, U=0; // Electrical work: P = U*I
     // We take the joint velocity as the average of the previous and the current velocity measurement
     double omega = 0.5*(getCurrentSTGState()->mJointSpeeds[jointIndex] + getPreviousSTGState()->mJointSpeeds[jointIndex]);
     if (mActuationInterface->getActuationMode() == amVoltage)

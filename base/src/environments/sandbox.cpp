@@ -101,7 +101,7 @@ double SandboxEnvironment::step(const Action &action, Observation *obs, double *
 
   do
   {
-    done = task_->actuate(next, action, &actuation);
+    done = task_->actuate(state_, next, action, &actuation);
     tau += sandbox_->step(actuation, &next);
   } while (!done);
   

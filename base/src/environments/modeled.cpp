@@ -99,7 +99,7 @@ double ModeledEnvironment::step(const Action &action, Observation *obs, double *
 
   do
   {
-    done = task_->actuate(state, action, &actuation);
+    done = task_->actuate(state_, state, action, &actuation);
     tau += model_->step(state, actuation, &next);
     state = next;
   } while (!done);

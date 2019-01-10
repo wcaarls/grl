@@ -26,7 +26,7 @@ class CLeoBhSquat: public CLeoBhBase
     virtual bool isDoomedToFall(CLeoState* state, bool report);
     virtual std::string getProgressReport(double trialTime);
 
-    void setDirection(int direction) { direction = direction_; }
+    void setDirection(int direction) { direction_ = direction; }
     void updateDirection(double time);
     void getCOM(const double *x, double &hipHeight, double &hipPos) const;
 

@@ -168,21 +168,6 @@ class CLeoBhBase: public CLeoBhWalkSym
 /// Base class for simulated and real Leo
 class LeoBaseEnvironment: public Environment
 {
-  public:
-    LeoBaseEnvironment();
-    ~LeoBaseEnvironment() {}
-
-  protected:
-    // From Configurable
-    virtual void request(ConfigurationRequest *config);
-    virtual void configure(Configuration &config);
-    virtual void reconfigure(const Configuration &config);
-
-    // Base variants of Environment member functions
-    virtual void start(int test);
-    virtual void step(double tau, double reward, int terminal);
-    virtual void report(std::ostream &os) const;
-    
   protected:
     CLeoState leoState_;
     Environment *target_env_;
@@ -201,6 +186,24 @@ class LeoBaseEnvironment: public Environment
     double time_test_, time_learn_, time0_;
     double measurement_noise_;
 
+  private:
+    VectorSignal *sub_transition_type_;
+
+  public:
+    LeoBaseEnvironment();
+    ~LeoBaseEnvironment() {}
+
+  protected:
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+
+    // Base variants of Environment member functions
+    virtual void start(int test);
+    virtual void step(double tau, double reward, int terminal);
+    virtual void report(std::ostream &os) const;
+    
   protected:
     void ensure_bounds(Vector *action) const;
     void add_measurement_noise(Vector *state) const;
@@ -219,9 +222,6 @@ class LeoBaseEnvironment: public Environment
     void fillActuate(const std::vector<CGenericActionVar> &genericAction,
                      const std::vector<std::string> &actuateList,
                      TargetInterface::ActuatorInterface &int_actuator) const;
-
-  private:
-    VectorSignal *sub_transition_type_;
 };
 
 }

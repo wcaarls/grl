@@ -58,7 +58,7 @@ experiment:
         type: discretizer/uniform
         min: experiment/environment/task/observation_min
         max: experiment/environment/task/observation_max
-        steps: experiment/agent/policy/projector/steps
+        steps: experiment/agent/policy/projector/discretizer/steps
       predictor: 
         type: predictor/full/vi
         gamma: 0.97

@@ -4,7 +4,13 @@ set(TARGET addon_box2d)
 FIND_PACKAGE (Box2D)
 
 if (BOX2D_FOUND)
-  message("-- Building Box2D addon")
+  set(GRL_BUILD_BOX2D ON CACHE BOOL "Build Box2D addon")
+else()
+  message("** Cannot build Box2D addon: missing box2d")
+endif()
+  
+if (GRL_BUILD_BOX2D)
+  message("** Building Box2D addon")
 
   include_directories(${BOX2D_INCLUDE_DIR})
 

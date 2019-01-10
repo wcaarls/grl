@@ -1,7 +1,27 @@
 diff -rNu yaml-cpp/CMakeLists.txt yaml-cpp.no-boost/CMakeLists.txt
 --- yaml-cpp/CMakeLists.txt	1969-12-31 21:00:00.000000000 -0300
 +++ yaml-cpp.no-boost/CMakeLists.txt	2015-01-22 19:26:01.000000000 -0200
-@@ -38,14 +38,14 @@
+@@ -4,19 +4,6 @@
+ ## Due to Mac OSX we need to keep compatibility with CMake 2.6
+ # see http://www.cmake.org/Wiki/CMake_Policies
+ cmake_minimum_required(VERSION 2.6)
+-# see http://www.cmake.org/cmake/help/cmake-2-8-docs.html#policy:CMP0012
+-if(POLICY CMP0012)
+-	cmake_policy(SET CMP0012 OLD)
+-endif()
+-# see http://www.cmake.org/cmake/help/cmake-2-8-docs.html#policy:CMP0015
+-if(POLICY CMP0015)
+-	cmake_policy(SET CMP0015 OLD)
+-endif()
+-# see https://cmake.org/cmake/help/latest/policy/CMP0042.html
+-if(POLICY CMP0042)
+-	# Enable MACOSX_RPATH by default.
+-	cmake_policy(SET CMP0042 NEW)
+-endif()
+ 
+ include(CheckCXXCompilerFlag)
+ 
+@@ -38,14 +25,14 @@
  ### Project options
  ###
  ## Project stuff
@@ -19,7 +39,7 @@ diff -rNu yaml-cpp/CMakeLists.txt yaml-cpp.no-boost/CMakeLists.txt
  
  # --> Apple
  option(APPLE_UNIVERSAL_BIN "Apple: Build universal binary" OFF)
-@@ -186,7 +186,7 @@
+@@ -186,7 +173,7 @@
  		set(GCC_EXTRA_OPTIONS "${GCC_EXTRA_OPTIONS} ${FLAG_TESTED}")
  	endif()
  	#

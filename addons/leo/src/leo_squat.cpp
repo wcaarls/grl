@@ -117,7 +117,7 @@ void CLeoBhSquat::getHipHeight(const double *x, double &hipHeight, double &hipPo
   double rightHipAbsAngle   = x[ljTorso] + x[ljHipRight];
   double rightKneeAbsAngle  = rightHipAbsAngle + x[ljKneeRight];
   double rightAnkleAbsAngle = rightKneeAbsAngle + x[ljAnkleRight];
-  double leftAnklePos       = upLegLength*sin(leftHipAbsAngle) + loLegLength*sin(leftKneeAbsAngle);   // in X direction (horizontal)
+  //double leftAnklePos       = upLegLength*sin(leftHipAbsAngle) + loLegLength*sin(leftKneeAbsAngle);   // in X direction (horizontal)
   double rightAnklePos      = upLegLength*sin(rightHipAbsAngle) + loLegLength*sin(rightKneeAbsAngle); // in X direction (horizontal)
 
   // Calculate the absolute positions of the toes and heels; assume that the lowest point touches the floor.
@@ -269,8 +269,8 @@ void CLeoBhSquat::updateDirection(double time)
 
 bool CLeoBhSquat::isDoomedToFall(CLeoState* state, bool report)
 {
-  double feet_angle = state->mJointAngles[ljHipRight] + state->mJointAngles[ljKneeRight] +
-                      state->mJointAngles[ljAnkleRight] + state->mJointAngles[ljTorso];
+  //double feet_angle = state->mJointAngles[ljHipRight] + state->mJointAngles[ljKneeRight] +
+  //                    state->mJointAngles[ljAnkleRight] + state->mJointAngles[ljTorso];
   //std::cout << "Contact angle: " << feet_angle << std::endl;
 
   // Torso angle out of 'range'
@@ -401,7 +401,7 @@ double LeoSquatEnvironment::step(const Action &action, Observation *obs, double 
 {
   CRAWL("RL action: " << action);
 
-  Vector a = action;
+  //Vector a = action;
   //a << -4, 5, -4;
   //std::cout << "RL action: " << action << std::endl;
 

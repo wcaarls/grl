@@ -158,14 +158,14 @@ LeoBaseEnvironment::LeoBaseEnvironment() :
   bh_(NULL),
   observation_dims_(CLeoBhBase::svNumStates),
   action_dims_(CLeoBhBase::svNumActions),
+  pub_ic_signal_(NULL),
   exporter_(NULL),
   test_(0),
   time_test_(0),
   time_learn_(0),
   time0_(0),
-  pub_ic_signal_(NULL),
-  sub_transition_type_(NULL),
-  measurement_noise_(0)
+  measurement_noise_(0),
+  sub_transition_type_(NULL)
 {
 }
 
@@ -386,14 +386,14 @@ void LeoBaseEnvironment::ensure_bounds(Vector *action) const
         omega = bh_->getCurrentSTGState()->mJointSpeeds[i];
 
       double max_torque = fabs(DXL_TORQUE_CONST*DXL_GEARBOX_RATIO*(LEO_MAX_DXL_VOLTAGE-DXL_TORQUE_CONST*DXL_GEARBOX_RATIO*omega)/DXL_RESISTANCE);
-
+/*
       if (fabs((*action)[i]) > max_torque)
       {
         double I = (*action)[i] / (DXL_TORQUE_CONST*DXL_GEARBOX_RATIO);
         double U = I*DXL_RESISTANCE + DXL_TORQUE_CONST*DXL_GEARBOX_RATIO*omega;
-        //std::cout << "[ensure_bounds] Voltage " << U << " exeeded maximum value;" <<std::endl;
+        std::cout << "[ensure_bounds] Voltage " << U << " exeeded maximum value;" <<std::endl;
       }
-
+*/
       (*action)[i] = fmin(fmax((*action)[i], -max_torque), max_torque);
     }
   }

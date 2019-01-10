@@ -6,7 +6,13 @@ check_library_exists(tensorflow TF_Version "" TENSORFLOW_FOUND)
 find_path(TENSORFLOW_INCLUDE_DIRS tensorflow/c/c_api.h)
 
 if (PROTOBUF_FOUND AND TENSORFLOW_FOUND)
-  message("-- Building TensorFlow addon")
+  set(GRL_BUILD_TENSORFLOW ON CACHE BOOL "Build TensorFlow addon")
+else()
+  message("** Cannot build TensorFlow addon: missing one of {protobuf, tensorflow-c-api}")
+endif()
+
+if (GRL_BUILD_TENSORFLOW)
+  message("** Building TensorFlow addon")
 
   # Generate protobuf headers
   protobuf_generate_cpp(PROTO_SOURCES PROTO_HEADERS ${SRC}/../share/graph.proto)

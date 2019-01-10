@@ -16,7 +16,13 @@ if (NOT ${MATLAB} STREQUAL MATLAB-NOTFOUND)
 endif()
 
 if (MATLAB_INCLUDE_DIR)
-  message("-- Building Matlab addon")
+  set(GRL_BUILD_MATLAB ON CACHE BOOL "Build Matlab addon")
+else()
+  message("** Cannot build Matlab addon: missing Matlab")
+endif()
+
+if (GRL_BUILD_MATLAB)
+  message("** Building Matlab addon")
 
   set(mex_INCLUDE_DIRS -I${MATLAB_INCLUDE_DIR} -I${SRC}/../include -I${SRC}/../../../base/include -I${CMAKE_BINARY_DIR}/externals/yaml-cpp/include -I${SRC}/../../../externals/itc/include -I${EIGEN3_INCLUDE_DIRS})
   set(mex_LIBRARIES    -lgrl -lyaml-cpp -lrt -ldl)

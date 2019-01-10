@@ -91,7 +91,7 @@ class Task : public Configurable
      * 
      * Returns true if a new high-level action is called for.
      */
-    virtual bool actuate(const Vector &state, const Action &action, Vector *actuation) const { *actuation = action; return true; }
+    virtual bool actuate(const Vector &prev, const Vector &state, const Action &action, Vector *actuation) const { *actuation = action; return true; }
     
     /// Observe a state, returning the observation and whether the episode ended.
     virtual void observe(const Vector &state, Observation *obs, int *terminal) const = 0;

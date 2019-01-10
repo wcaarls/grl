@@ -4,7 +4,13 @@ set(TARGET addon_python)
 find_package(PythonLibsNew)
 
 if(PYTHONLIBS_FOUND)
-  message("-- Building Python addon")
+  set(GRL_BUILD_PYTHON ON CACHE BOOL "Build Python addon")
+else()
+  message("** Cannot build Python addon: missing python3-dev")
+endif()
+
+if (GRL_BUILD_PYTHON)
+  message("** Building Python addon")
  
   # Build library
   add_library(${TARGET}

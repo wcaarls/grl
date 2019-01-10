@@ -320,7 +320,7 @@ void CODEObject::genRandState(std::map<std::string, double> &jointMap)
   jointMap[std::string("lowerlegleft")] = dkl;
   jointMap[std::string("lowerlegright")] = dkr;
 
-  double dal = mRand.getUniform(-C, C)+dkl;
+  //double dal = mRand.getUniform(-C, C)+dkl;
   double dar = mRand.getUniform(-C, C)+dkr;
   jointMap[std::string("footleft")] = 0;
   jointMap[std::string("footright")] = dar;

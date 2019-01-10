@@ -102,6 +102,12 @@ void PendulumSwingupTask::start(int test, Vector *state) const
   (*state)[2] = 0;
 }
 
+bool PendulumSwingupTask::actuate(const Vector &prev, const Vector &state, const Action &action, Vector *actuation) const
+{
+  *actuation = VectorConstructor(fmin(fmax(action[0], -3), 3));
+  return true;
+}
+
 void PendulumSwingupTask::observe(const Vector &state, Observation *obs, int *terminal) const
 {
   if (state.size() != 3)

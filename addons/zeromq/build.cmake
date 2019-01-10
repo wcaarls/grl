@@ -5,7 +5,13 @@ find_package(ZeroMQ 4.0.0)
 find_package(Protobuf)
 
 if (ZeroMQ_FOUND AND PROTOBUF_FOUND)
-  message("-- Building ZeroMQ addon")
+  set(GRL_BUILD_ZEROMQ ON CACHE BOOL "Build ZeroMQ addon")
+else()
+  message("** Cannot build ZeroMW addon: missing one of {zeromq, protobuf}")
+endif()
+
+if (GRL_BUILD_ZEROMQ)
+  message("** Building ZeroMQ addon")
 
   add_custom_command(
                       OUTPUT  ${CMAKE_CURRENT_BINARY_DIR}/drl_messages.pb.cc ${CMAKE_CURRENT_BINARY_DIR}/drl_messages.pb.h

@@ -2,7 +2,13 @@
 set(TARGET addon_ros)
 
 if (catkin_FOUND)
-  message("-- Building ROS addon")
+  set(GRL_BUILD_ROS ON CACHE BOOL "Build ROS addon")
+else()
+  message("** Cannot build ROS addon: build not using catkin")
+endif()
+
+if (GRL_BUILD_ROS)
+  message("** Building ROS addon")
 
   # Build library
   add_library(${TARGET} SHARED

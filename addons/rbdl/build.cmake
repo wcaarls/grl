@@ -4,7 +4,13 @@ set(TARGET addon_rbdl)
 FIND_PACKAGE (Lua51)
 
 if (LUA51_FOUND)
-  message("-- Building RBDL addon")
+  set(GRL_BUILD_RBDL ON CACHE BOOL "Build RBDL addon")
+else()
+  message("** Cannot build RBDL addon: missing lua")
+endif()
+  
+if (GRL_BUILD_RBDL)
+  message("** Building RBDL addon")
 
   add_definitions(-DRBDL_LUA_CONFIG_DIR="${SRC}/../cfg")
 
