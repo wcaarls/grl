@@ -90,7 +90,7 @@ void SequentialMasterAgent::step(double tau, const Observation &obs, double rewa
 
   if (predictor_)
   {
-    Transition t(prev_obs_, prev_action_, reward, obs, *action);
+    Transition t(prev_obs_, prev_action_, tau, reward, obs, *action);
     predictor_->update(t);
   }
 
@@ -105,7 +105,7 @@ void SequentialMasterAgent::end(double tau, const Observation &obs, double rewar
 
   if (predictor_)
   {
-    Transition t(prev_obs_, prev_action_, reward, obs);
+    Transition t(prev_obs_, prev_action_, tau, reward, obs);
     predictor_->update(t);
   }
 }
@@ -185,7 +185,7 @@ void SequentialAdditiveMasterAgent::step(double tau, const Observation &obs, dou
 
   if (predictor_)
   {
-    Transition t(prev_obs_, prev_action_, reward, obs, *action);
+    Transition t(prev_obs_, prev_action_, tau, reward, obs, *action);
     predictor_->update(t);
   }
 
@@ -200,7 +200,7 @@ void SequentialAdditiveMasterAgent::end(double tau, const Observation &obs, doub
 
   if (predictor_)
   {
-    Transition t(prev_obs_, prev_action_, reward, obs);
+    Transition t(prev_obs_, prev_action_, tau, reward, obs);
     predictor_->update(t);
   }
 }

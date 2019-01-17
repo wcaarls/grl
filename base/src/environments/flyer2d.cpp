@@ -132,9 +132,9 @@ void Flyer2DRegulatorTask::observe(const Vector &state, Observation *obs, int *t
   *terminal = state[6] > timeout_;
 }
 
-bool Flyer2DRegulatorTask::invert(const Observation &obs, Vector *state) const
+bool Flyer2DRegulatorTask::invert(const Observation &obs, Vector *state, double time) const
 {
-  *state = extend(obs, VectorConstructor(0.));
+  *state = extend(obs, VectorConstructor(time));
   
   return true;
 }

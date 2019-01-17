@@ -75,14 +75,14 @@ void ValueIterationPredictor::update(const Transition &transition)
     Observation next;
     double reward;
     int terminal;
-    model_->step(transition.prev_obs, *it, &next, &reward, &terminal);
+    double tau = model_->step(transition.prev_obs, *it, &next, &reward, &terminal);
     
     if (next.size())
     {
       if (!terminal)
       {
         Vector value;
-        reward += gamma_*representation_->read(projector_->project(next), &value);
+        reward += pow(gamma_, tau)*representation_->read(projector_->project(next), &value);
       }
       
       v = fmax(v, reward);
@@ -114,7 +114,7 @@ void QIterationPredictor::update(const Transition &transition)
     Observation next;
     double reward;
     int terminal;
-    model_->step(transition.prev_obs, *it, &next, &reward, &terminal);
+    double tau = model_->step(transition.prev_obs, *it, &next, &reward, &terminal);
     
     if (next.size())
     {
@@ -126,7 +126,7 @@ void QIterationPredictor::update(const Transition &transition)
         for (Discretizer::iterator it2=discretizer_->begin(next); it2 != discretizer_->end(); ++it2)
           v = fmax(v, representation_->read(projector_->project(next, *it2), &value));
         
-        reward += gamma_*v;
+        reward += pow(gamma_, tau)*v;
       }
     
       representation_->write(projector_->project(transition.prev_obs, *it), VectorConstructor(reward));

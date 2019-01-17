@@ -195,7 +195,7 @@ void LSPIPredictor::rebuild()
         }
         
         // Add to A matrix
-        A -= gamma_ * t.phi * t.nextphi.col(besta).transpose();
+        A -= pow(gamma_, t.transition.tau) * t.phi * t.nextphi.col(besta).transpose();
       }
     }
     

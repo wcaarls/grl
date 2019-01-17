@@ -128,6 +128,8 @@ void FixedObservationModel::request(ConfigurationRequest *config)
 {
   ObservationModel::request(config);
 
+  config->push_back(CRP("discrete_time", "Always report unit step time", discrete_time_, CRP::Configuration, 0, 1));
+
   config->push_back(CRP("model", "model", "Environment model", model_));
   config->push_back(CRP("task", "task", "Task to perform in the environment (should match model)", task_));
 }
@@ -136,6 +138,7 @@ void FixedObservationModel::configure(Configuration &config)
 {
   ObservationModel::configure(config);
   
+  discrete_time_ = config["discrete_time"];
   model_ = (Model*)config["model"].ptr();
   task_ = (Task*)config["task"].ptr();
 }
@@ -147,20 +150,34 @@ void FixedObservationModel::reconfigure(const Configuration &config)
 
 double FixedObservationModel::step(const Observation &obs, const Action &action, Observation *next, double *reward, int *terminal) const
 {
-  Vector state, next_state;
+  Vector start, current, next_state, actuation;
+  double tau = 0;
+  bool done;
   
-  if (!task_->invert(obs, &state))
+  if (!task_->invert(obs, &start))
   {
     ERROR("Task does not support inversion");
     *next = Observation();
     return 0.;
   }
   
-  double tau = model_->step(state, action, &next_state);
+  current = start;
+  task_->actuate(start, current, action, &actuation);
+  do
+  {
+    tau += model_->step(current, actuation, &next_state);
+    current = next_state;
+    done = task_->actuate(start, current, action, &actuation);
+  } while (!done);
+
   task_->observe(next_state, next, terminal);
-  task_->evaluate(state, action, next_state, reward);
-  
-  return tau;
+  task_->evaluate(start, action, next_state, reward);
+  next->u = action.v;
+
+  if (discrete_time_)
+    return 1;
+  else
+    return tau;
 }
 
 Matrix FixedObservationModel::rewardHessian(const Observation &obs, const Action &action) const
@@ -347,7 +364,7 @@ double FixedRewardObservationModel::step(const Observation &obs, const Action &a
     return 0.;
   }
   
-  task_->invert(*next, &next_state);
+  task_->invert(*next, &next_state, tau);
   task_->evaluate(state, action, next_state, reward);
   task_->observe(next_state, &next_obs, terminal);
   

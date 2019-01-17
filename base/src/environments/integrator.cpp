@@ -103,9 +103,9 @@ void IntegratorRegulatorTask::observe(const Vector &state, Observation *obs, int
   *terminal = state[2] > 3;
 }
 
-bool IntegratorRegulatorTask::invert(const Observation &obs, Vector *state) const
+bool IntegratorRegulatorTask::invert(const Observation &obs, Vector *state, double time) const
 {
-  *state = extend(obs, VectorConstructor(0.));
+  *state = extend(obs, VectorConstructor(time));
   
   return true;
 }

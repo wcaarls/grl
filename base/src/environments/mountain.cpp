@@ -163,9 +163,9 @@ void MountainRegulatorTask::observe(const Vector &state, Observation *obs, int *
   *terminal = state[4] > 20;
 }
 
-bool MountainRegulatorTask::invert(const Observation &obs, Vector *state) const
+bool MountainRegulatorTask::invert(const Observation &obs, Vector *state, double time) const
 {
-  *state = extend(obs, VectorConstructor(0.));
+  *state = extend(obs, VectorConstructor(time));
   
   return true;
 }

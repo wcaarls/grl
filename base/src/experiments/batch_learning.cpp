@@ -124,7 +124,7 @@ LargeVector BatchLearningExperiment::run()
         Observation next_obs;
         int terminal;
         double reward;
-        model_->step(state, action, &next);
+        double tau = model_->step(state, action, &next);
         task_->observe(next, &next_obs, &terminal);
         task_->evaluate(state, action, next, &reward);
         
@@ -134,7 +134,7 @@ LargeVector BatchLearningExperiment::run()
           next_action = Action();
         }
         
-        Transition t(obs, action, reward, next_obs, next_action);
+        Transition t(obs, action, tau, reward, next_obs, next_action);
         
         predictor_->update(t);
       }

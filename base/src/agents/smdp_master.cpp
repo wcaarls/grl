@@ -38,17 +38,14 @@ REGISTER_CONFIGURABLE(RandomMasterAgent)
 void SMDPMasterAgent::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("gamma", "Discount rate", gamma_));
-  config->push_back(CRP("control_step", "double.control_step", "Characteristic step time on which gamma is defined", tau_, CRP::System));
 
   config->push_back(CRP("predictor", "predictor", "Optional (model) predictor", predictor_, true));
-  
   config->push_back(CRP("agent", "agent/sub", "Subagents", &agent_));
 }
 
 void SMDPMasterAgent::configure(Configuration &config)
 {
   gamma_ = config["gamma"];
-  tau_ = config["control_step"];
 
   predictor_ = (Predictor*)config["predictor"].ptr();
   agent_ = *(ConfigurableList*)config["agent"].ptr();
@@ -93,14 +90,14 @@ void SMDPMasterAgent::step(double tau, const Observation &obs, double reward, Ac
 
   // Calculate sMDP rewards for all agents.
   for (size_t ii=0; ii < agent_.size(); ++ii)
-    reward_[ii] += pow(pow(gamma_, 1./tau_), prev_time_ - time_[ii]) * reward;
+    reward_[ii] += pow(gamma_, prev_time_ - time_[ii]) * reward;
     
   // Let derived class decide which agents to run.
   runSubAgents(curtime, obs, action);
     
   if (predictor_)
   {
-    Transition t(prev_obs_, prev_action_, reward, obs, *action);
+    Transition t(prev_obs_, prev_action_, tau, reward, obs, *action);
     predictor_->update(t);
   }
   
@@ -116,7 +113,7 @@ void SMDPMasterAgent::end(double tau, const Observation &obs, double reward)
   // Give final rewards to all running agents.
   for (size_t ii=0; ii < agent_.size(); ++ii)
   {
-    reward_[ii] += pow(pow(gamma_, 1./tau_), prev_time_ - time_[ii]) * reward;
+    reward_[ii] += pow(gamma_, prev_time_ - time_[ii]) * reward;
     
     if (time_[ii] >= 0)
       agent_[ii]->end(curtime-time_[ii], obs, reward_[ii]);
@@ -126,7 +123,7 @@ void SMDPMasterAgent::end(double tau, const Observation &obs, double reward)
 
   if (predictor_)
   {
-    Transition t(prev_obs_, prev_action_, reward, obs);
+    Transition t(prev_obs_, prev_action_, tau, reward, obs);
     predictor_->update(t);
   }
 }

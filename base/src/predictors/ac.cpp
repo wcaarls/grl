@@ -348,7 +348,7 @@ void ProbabilityACPredictor::update(const Transition &transition)
   // Calculate target value
   double target = transition.reward;
   if (transition.action.size())
-    target += gamma_*vnext;
+    target += pow(gamma_, transition.tau)*vnext;
   double delta = target - critic_representation_->read(vp, &res);
   
   // V update
@@ -361,8 +361,8 @@ void ProbabilityACPredictor::update(const Transition &transition)
   
   if (critic_trace_)
   {
-    critic_representation_->update(*critic_trace_, VectorConstructor(alpha_*delta), gamma_*lambda_);
-    critic_trace_->add(vp, gamma_*lambda_);
+    critic_representation_->update(*critic_trace_, VectorConstructor(alpha_*delta), pow(gamma_*lambda_, transition.tau));
+    critic_trace_->add(vp, pow(gamma_*lambda_, transition.tau));
   }
   
   critic_representation_->finalize();

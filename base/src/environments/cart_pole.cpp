@@ -195,16 +195,16 @@ void CartPoleSwingupTask::evaluate(const Vector &state, const Action &action, co
     throw Exception("task/cart_pole/swingup requires dynamics/cart_pole");
 
   if (shaping_)
-    *reward = gamma_*potential(next) - potential(state) + succeeded(next) - end_stop_penalty_*failed(next)*100;
+    *reward = pow(gamma_, next[4]-state[4])*potential(next) - potential(state) + succeeded(next) - end_stop_penalty_*failed(next)*100;
   else
     *reward = potential(next) - action_penalty_*pow(action[0]/15, 2)*2 - end_stop_penalty_*failed(next)*10000;
 }
 
-bool CartPoleSwingupTask::invert(const Observation &obs, Vector *state) const
+bool CartPoleSwingupTask::invert(const Observation &obs, Vector *state, double time) const
 {
   *state = obs;
   (*state)[1] -= M_PI;
-  *state = extend(*state, VectorConstructor(0.));
+  *state = extend(*state, VectorConstructor(time));
   
   return true;
 }
@@ -306,10 +306,10 @@ void CartPoleBalancingTask::evaluate(const Vector &state, const Action &action, 
     *reward = 1 - (fabs(state[0]) + fabs(state[1]))/(2.4+12*M_PI/180);
 }
 
-bool CartPoleBalancingTask::invert(const Observation &obs, Vector *state) const
+bool CartPoleBalancingTask::invert(const Observation &obs, Vector *state, double time) const
 {
   *state = obs;
-  *state = extend(*state, VectorConstructor(0.));
+  *state = extend(*state, VectorConstructor(time));
   
   return true;
 }
@@ -363,10 +363,10 @@ void CartPoleRegulatorTask::observe(const Vector &state, Observation *obs, int *
     *terminal = 0;
 }
 
-bool CartPoleRegulatorTask::invert(const Observation &obs, Vector *state) const
+bool CartPoleRegulatorTask::invert(const Observation &obs, Vector *state, double time) const
 {
   *state = obs;
-  *state = extend(*state, VectorConstructor(0.));
+  *state = extend(*state, VectorConstructor(time));
   
   return true;
 }

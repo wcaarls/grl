@@ -133,13 +133,13 @@ void AcrobotBalancingTask::evaluate(const Vector &state, const Action &action, c
   *reward = !failed(next);
 }
 
-bool AcrobotBalancingTask::invert(const Observation &obs, Vector *state) const
+bool AcrobotBalancingTask::invert(const Observation &obs, Vector *state, double time) const
 {
   *state = VectorConstructor(obs[AcrobotDynamics::siAngle1],
                              obs[AcrobotDynamics::siAngle2],
                              obs[AcrobotDynamics::siAngleRate1],
                              obs[AcrobotDynamics::siAngleRate2],
-                             0.);
+                             time);
 
   return true;
 }
@@ -190,13 +190,13 @@ void AcrobotRegulatorTask::observe(const Vector &state, Observation *obs, int *t
   *terminal = state[AcrobotDynamics::siTime] > 20;
 }
 
-bool AcrobotRegulatorTask::invert(const Observation &obs, Vector *state) const
+bool AcrobotRegulatorTask::invert(const Observation &obs, Vector *state, double time) const
 {
   *state = VectorConstructor(obs[AcrobotDynamics::siAngle1],
                              obs[AcrobotDynamics::siAngle2],
                              obs[AcrobotDynamics::siAngleRate1],
                              obs[AcrobotDynamics::siAngleRate2],
-                             0.);
+                             time);
 
   return true;
 }

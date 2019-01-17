@@ -130,12 +130,12 @@ void WindyGridworldMovementTask::evaluate(const Vector &state, const Action &act
   *reward = -1;
 }
 
-bool WindyGridworldMovementTask::invert(const Observation &obs, Vector *state) const
+bool WindyGridworldMovementTask::invert(const Observation &obs, Vector *state, double time) const
 {
   state->resize(3);
   for (size_t ii=0; ii < 2; ++ii)
     (*state)[ii] = obs[ii];
-  (*state)[WindyGridworldModel::siTime] = 0;
+  (*state)[WindyGridworldModel::siTime] = time;
   
   return true;
 }

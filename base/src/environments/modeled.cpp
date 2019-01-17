@@ -34,6 +34,8 @@ REGISTER_CONFIGURABLE(DynamicalModel)
 
 void ModeledEnvironment::request(ConfigurationRequest *config)
 {
+  config->push_back(CRP("discrete_time", "Always report unit step time", discrete_time_, CRP::Configuration, 0, 1));
+
   config->push_back(CRP("model", "model", "Environment model", model_));
   config->push_back(CRP("task", "task", "Task to perform in the environment (should match model)", task_));
   config->push_back(CRP("exporter", "exporter", "Optional exporter for transition log (supports time, state, observation, action, reward, terminal)", exporter_, true));
@@ -44,6 +46,7 @@ void ModeledEnvironment::request(ConfigurationRequest *config)
 
 void ModeledEnvironment::configure(Configuration &config)
 {
+  discrete_time_ = config["discrete_time"];
   model_ = (Model*)config["model"].ptr();
   task_ = (Task*)config["task"].ptr();
   exporter_ = (Exporter*)config["exporter"].ptr();
@@ -95,13 +98,14 @@ double ModeledEnvironment::step(const Action &action, Observation *obs, double *
 {
   Vector state = state_, next, actuation;
   double tau = 0;
-  bool done = false;
+  bool done;
 
+  task_->actuate(state_, state, action, &actuation);
   do
   {
-    done = task_->actuate(state_, state, action, &actuation);
     tau += model_->step(state, actuation, &next);
     state = next;
+    done = task_->actuate(state_, state, action, &actuation);
   } while (!done);
   
   task_->observe(next, obs, terminal);
@@ -119,12 +123,16 @@ double ModeledEnvironment::step(const Action &action, Observation *obs, double *
   obs_ = *obs;
   state_obj_->set(state_);
   action_obj_->set(action);
-  
-  return tau;
+
+  if (discrete_time_)
+    return 1;
+  else  
+    return tau;
 }
 
 void ModeledEnvironment::report(std::ostream &os) const
 {
+  os << std::setw(15) << time_learn_;
   model_->report(os, state_);
   task_->report(os, state_);
 }

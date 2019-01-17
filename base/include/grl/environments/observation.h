@@ -61,11 +61,12 @@ class FixedObservationModel : public ObservationModel
     TYPEINFO("observation_model/fixed", "Observation model based on known state transition model")
     
   protected:
+    int discrete_time_;
     Model *model_;
     Task *task_;
     
   public:
-    FixedObservationModel() : model_(NULL), task_(NULL) { }
+    FixedObservationModel() : discrete_time_(1), model_(NULL), task_(NULL) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);

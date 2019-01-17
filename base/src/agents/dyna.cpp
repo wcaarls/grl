@@ -109,7 +109,7 @@ void DynaAgent::step(double tau, const Observation &obs, double reward, Action *
   time_ += tau;
   policy_->act(time_, obs, action);
   
-  Transition t(prev_obs_, prev_action_, reward, obs, *action);
+  Transition t(prev_obs_, prev_action_, tau, reward, obs, *action);
   predictor_->update(t);
   if (model_predictor_)
     model_predictor_->update(t);
@@ -127,7 +127,7 @@ void DynaAgent::step(double tau, const Observation &obs, double reward, Action *
 
 void DynaAgent::end(double tau, const Observation &obs, double reward)
 {
-  Transition t(prev_obs_, prev_action_, reward, obs);
+  Transition t(prev_obs_, prev_action_, tau, reward, obs);
   predictor_->update(t);
   if (model_predictor_)
     model_predictor_->update(t);

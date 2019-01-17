@@ -79,7 +79,7 @@ void ReinforcePredictor::finalize()
     ProjectionPtr p = projector_->project(t.prev_obs);
     Vector a;
     
-    r = gamma_*r + t.reward;
+    r = pow(gamma_, t.tau)*r + t.reward;
     
     representation_->read(p, &a);
     representation_->update(p, alpha_*(t.prev_action.v-a)*r);

@@ -34,6 +34,8 @@ REGISTER_CONFIGURABLE(SandboxEnvironment)
 
 void SandboxEnvironment::request(ConfigurationRequest *config)
 {
+  config->push_back(CRP("discrete_time", "Always report unit step time", discrete_time_, CRP::Configuration, 0, 1));
+
   config->push_back(CRP("model", "sandbox_model", "Environment model", sandbox_));
   config->push_back(CRP("task", "task", "Task to perform in the environment (should match model)", task_));
   config->push_back(CRP("exporter", "exporter", "Optional exporter for transition log (supports time, state, observation, action, reward, terminal)", exporter_, true));
@@ -42,6 +44,7 @@ void SandboxEnvironment::request(ConfigurationRequest *config)
 
 void SandboxEnvironment::configure(Configuration &config)
 {
+  discrete_time_ = config["discrete_time"];
   sandbox_ = (Sandbox*)config["model"].ptr();
   task_ = (Task*)config["task"].ptr();
   exporter_ = (Exporter*)config["exporter"].ptr();
@@ -97,12 +100,13 @@ double SandboxEnvironment::step(const Action &action, Observation *obs, double *
 {
   Vector next = state_, actuation;
   double tau = 0;
-  bool done = false;
+  bool done;
 
+  done = task_->actuate(state_, next, action, &actuation);
   do
   {
-    done = task_->actuate(state_, next, action, &actuation);
     tau += sandbox_->step(actuation, &next);
+    done = task_->actuate(state_, next, action, &actuation);
   } while (!done);
   
   task_->observe(next, obs, terminal);
@@ -119,7 +123,10 @@ double SandboxEnvironment::step(const Action &action, Observation *obs, double *
   obs_ = *obs;
   state_obj_->set(state_);
 
-  return tau;
+  if (discrete_time_)
+    return 1;
+  else  
+    return tau;
 }
 
 void SandboxEnvironment::report(std::ostream &os) const

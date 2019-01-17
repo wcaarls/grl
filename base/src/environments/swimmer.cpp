@@ -261,7 +261,7 @@ void SwimmerReachingTask::evaluate(const Vector &state, const Action &action, co
   *reward = -pow(next[0], 2) - pow(next[1], 2);
 }
 
-bool SwimmerReachingTask::invert(const Observation &obs, Vector *state) const
+bool SwimmerReachingTask::invert(const Observation &obs, Vector *state, double time) const
 {
   int d = segments_;
 
@@ -299,7 +299,7 @@ bool SwimmerReachingTask::invert(const Observation &obs, Vector *state) const
   state->middleCols(2, d) = theta;
   state->middleCols(2+d, 2) = vcm;
   state->middleCols(4+d, d) = dtheta;
-  (*state)[2*(d+2)] = 0.;
+  (*state)[2*(d+2)] = time;
 
   return true;
 }

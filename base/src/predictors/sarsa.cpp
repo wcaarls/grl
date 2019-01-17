@@ -88,7 +88,7 @@ void SARSAPredictor::update(const std::vector<const Transition*> &transitions)
     double target = transitions[ii]->reward;
   
     if (!transitions[ii]->obs.absorbing)
-      target += gamma_*q(qs++, 0);
+      target += pow(gamma_, transitions[ii]->tau)*q(qs++, 0);
       
     representation_->enqueue(projector_->project(transitions[ii]->prev_obs, transitions[ii]->prev_action), VectorConstructor(target));
   }
@@ -104,15 +104,15 @@ double SARSAPredictor::criticize(const Transition &transition, const Action &act
 
   double target = transition.reward;
   if (transition.action.size())
-    target += gamma_*representation_->read(projector_->project(transition.obs, transition.action), &q);
+    target += pow(gamma_, transition.tau)*representation_->read(projector_->project(transition.obs, transition.action), &q);
   double delta = target - representation_->read(p, &q);
   
   representation_->write(p, VectorConstructor(target), alpha_);
 
   if (trace_)
   {
-    representation_->update(*trace_, VectorConstructor(alpha_*delta), gamma_*lambda_);
-    trace_->add(p, gamma_*lambda_);
+    representation_->update(*trace_, VectorConstructor(alpha_*delta), pow(gamma_*lambda_, transition.tau));
+    trace_->add(p, pow(gamma_*lambda_, transition.tau));
   }
   
   representation_->finalize();
@@ -173,7 +173,7 @@ double ExpectedSARSAPredictor::criticize(const Transition &transition, const Act
   double target = transition.reward;
   
   if (transition.action.size())
-    target += gamma_*policy_->value(transition.obs);  
+    target += pow(gamma_, transition.tau)*policy_->value(transition.obs);  
     
   Vector q;
   double delta = target - representation_->read(p, &q);
@@ -181,8 +181,8 @@ double ExpectedSARSAPredictor::criticize(const Transition &transition, const Act
   representation_->write(p, VectorConstructor(target), alpha_);
   if (trace_)
   {
-    representation_->update(*trace_, VectorConstructor(alpha_*delta), gamma_*lambda_);
-    trace_->add(p, gamma_*lambda_);
+    representation_->update(*trace_, VectorConstructor(alpha_*delta), pow(gamma_*lambda_, transition.tau));
+    trace_->add(p, pow(gamma_*lambda_, transition.tau));
   }
   
   representation_->finalize();

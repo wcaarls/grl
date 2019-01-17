@@ -252,7 +252,7 @@ void FQIPredictor::rebuild()
           for (size_t kk=0; kk < discretizer_->size(t.transition.obs); ++kk)
             v = fmax(v, representation_->read(t.actions[kk], &value));
        
-          target += gamma_*v;
+          target += pow(gamma_, t.transition.tau)*v;
         }
 
         threadmax = fmax(threadmax, fabs(targets[jj]-target));

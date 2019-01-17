@@ -78,7 +78,7 @@ class WindyGridworldMovementTask : public Task
     virtual void start(int test, Vector *state) const;
     virtual void observe(const Vector &state, Observation *obs, int *terminal) const;
     virtual void evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const;
-    virtual bool invert(const Observation &obs, Vector *state) const;
+    virtual bool invert(const Observation &obs, Vector *state, double time=0.) const;
 
   protected:
     bool succeeded(const Vector &state) const;

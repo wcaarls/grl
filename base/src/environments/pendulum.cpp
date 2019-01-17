@@ -138,16 +138,16 @@ void PendulumSwingupTask::evaluate(const Vector &state, const Action &action, co
   *reward = -5*pow(a, 2) - 0.1*pow(next[1], 2) - 1*pow(action[0], 2);
   
   // Normalize reward per timestep.
-  // TODO: make this work for inverted states
-  if (state[2] != next[2])
+  // TODO: Better way of detecting discrete timesteps
+  if ((next[2] - state[2]) != 1)
     *reward *= (next[2]-state[2])/0.03;
 }
 
-bool PendulumSwingupTask::invert(const Observation &obs, Vector *state) const
+bool PendulumSwingupTask::invert(const Observation &obs, Vector *state, double time) const
 {
   *state = obs;
   (*state)[0] -= M_PI;
-  *state = extend(*state, VectorConstructor(0.));
+  *state = extend(*state, VectorConstructor(time));
   
   return true;
 }
@@ -192,9 +192,9 @@ void PendulumRegulatorTask::observe(const Vector &state, Observation *obs, int *
   *terminal = state[2] > 3;
 }
 
-bool PendulumRegulatorTask::invert(const Observation &obs, Vector *state) const
+bool PendulumRegulatorTask::invert(const Observation &obs, Vector *state, double time) const
 {
-  *state = extend(obs, VectorConstructor(0.));
+  *state = extend(obs, VectorConstructor(time));
   
   return true;
 }

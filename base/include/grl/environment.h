@@ -104,7 +104,7 @@ class Task : public Configurable
      *
      * Returns false if not implemented by a specific task.
      */
-    virtual bool invert(const Observation &obs, Vector *state) const { return false; }
+    virtual bool invert(const Observation &obs, Vector *state, double time=0.) const { return false; }
     
     /// Returns the Hessian of the reward around the given state and action.
     virtual Matrix rewardHessian(const Vector &state, const Action &action) const
@@ -250,6 +250,7 @@ class ModeledEnvironment : public Environment
     TYPEINFO("environment/modeled", "Environment that uses a state transition model internally")
 
   public:
+    int discrete_time_;
     Model *model_;
     Task *task_;
     Vector state_;
@@ -261,7 +262,7 @@ class ModeledEnvironment : public Environment
     double time_test_, time_learn_;
 
   public:
-    ModeledEnvironment() : model_(NULL), task_(NULL), state_obj_(NULL), action_obj_(NULL), exporter_(NULL), test_(false), time_test_(0.), time_learn_(0.) { }
+    ModeledEnvironment() : discrete_time_(1), model_(NULL), task_(NULL), state_obj_(NULL), action_obj_(NULL), exporter_(NULL), test_(false), time_test_(0.), time_learn_(0.) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -389,6 +390,7 @@ class SandboxEnvironment : public Environment
     TYPEINFO("environment/sandbox", "Non-Markov environment")
 
   public:
+    int discrete_time_;
     Sandbox *sandbox_;
     Task *task_;
     Vector state_;
@@ -400,7 +402,7 @@ class SandboxEnvironment : public Environment
     double time_test_, prev_time_test_, time_learn_;
 
   public:
-    SandboxEnvironment() : sandbox_(NULL), task_(NULL), state_obj_(NULL), exporter_(NULL), test_(false), time_test_(0.), prev_time_test_(0.), time_learn_(0.) { }
+    SandboxEnvironment() : discrete_time_(1), sandbox_(NULL), task_(NULL), state_obj_(NULL), exporter_(NULL), test_(false), time_test_(0.), prev_time_test_(0.), time_learn_(0.) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);

@@ -102,7 +102,7 @@ void DPGPredictor::update(const Transition &transition)
   {
     ProjectionPtr pp = projector_->project(transition.obs);
     double vp = critic_representation_->target()->read(pp, &_);
-    delta += gamma_ * vp;
+    delta += pow(gamma_, transition.tau) * vp;
   
     if (policy_target_ == OnPolicyTarget)
     {
@@ -114,7 +114,7 @@ void DPGPredictor::update(const Transition &transition)
       // For on-policy critic update, adjust for advantage of taken
       // action over policy action
       Vector amup = transition.action.v - mup;
-      delta += gamma_*dot(qp, amup);
+      delta += pow(gamma_, transition.tau)*dot(qp, amup);
     }
   }
   
@@ -129,7 +129,7 @@ void DPGPredictor::update(const Transition &transition)
   // The critic just moves towards the temporal difference error.
   if (critic_trace_)
   {
-    critic_trace_->add(p, gamma_*lambda_);
+    critic_trace_->add(p, pow(gamma_*lambda_, transition.tau));
     critic_representation_->update(*critic_trace_, VectorConstructor(beta_v_*delta));
   }
   else

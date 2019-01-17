@@ -87,7 +87,7 @@ double QPredictor::criticize(const Transition &transition, const Action &action)
     for (size_t kk=0; kk < variants.size(); ++kk)
       v = fmax(v, representation_->target()->read(actions[kk], &q));
       
-    target += gamma_*v;
+    target += pow(gamma_, transition.tau)*v;
   }          
   double delta = target - representation_->read(p, &q);
   
@@ -100,8 +100,8 @@ double QPredictor::criticize(const Transition &transition, const Action &action)
   // TODO: Should clear trace on exploration
   if (trace_)
   {
-    representation_->update(*trace_, VectorConstructor(alpha_*delta), gamma_*lambda_);
-    trace_->add(p, gamma_*lambda_);
+    representation_->update(*trace_, VectorConstructor(alpha_*delta), pow(gamma_*lambda_, transition.tau));
+    trace_->add(p, pow(gamma_*lambda_, transition.tau));
   }
   
   representation_->finalize();
@@ -157,7 +157,7 @@ LargeVector QPredictor::criticize(const std::vector<const Transition*> &transiti
       double v = q(qs++, 0);
       for (size_t kk=1; kk < vs; ++kk)
         v = fmax(v, q(qs++, 0));
-      target += gamma_*v;
+      target += pow(gamma_, transitions[ii]->tau)*v;
     }
       
     representation_->enqueue(projector_->project(transitions[ii]->prev_obs, transitions[ii]->prev_action), VectorConstructor(target));
@@ -247,7 +247,7 @@ double AdvantagePredictor::criticize(const Transition &transition, const Action 
     for (size_t kk=0; kk < variants.size(); ++kk)
       v = fmax(v, representation_->read(actions[kk], &value));
       
-    target += gamma_*v/kappa_;
+    target += pow(gamma_, transition.tau)*v/kappa_;
   }          
   
   double delta = target - a;
@@ -257,8 +257,8 @@ double AdvantagePredictor::criticize(const Transition &transition, const Action 
   // TODO: Should clear trace on exploration
   if (trace_)
   {
-    representation_->update(*trace_, VectorConstructor(alpha_*delta), gamma_*lambda_);
-    trace_->add(p, gamma_*lambda_);
+    representation_->update(*trace_, VectorConstructor(alpha_*delta), pow(gamma_*lambda_, transition.tau));
+    trace_->add(p, pow(gamma_*lambda_, transition.tau));
   }
   
   representation_->finalize();

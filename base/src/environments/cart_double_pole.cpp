@@ -205,11 +205,11 @@ void CartDoublePoleSwingupTask::evaluate(const Vector &state, const Action &acti
   *reward = -2*pow(state[0], 2) - 0.1*pow(state[3], 2) -pow(a, 2) - 0.1*pow(state[4], 2) - pow(a2, 2) - 0.1*pow(state[5], 2);
 }
 
-bool CartDoublePoleSwingupTask::invert(const Observation &obs, Vector *state) const
+bool CartDoublePoleSwingupTask::invert(const Observation &obs, Vector *state, double time) const
 {
   *state = obs;
   (*state)[1] -= M_PI;
-  *state = extend(*state, VectorConstructor(0.));
+  *state = extend(*state, VectorConstructor(time));
   
   return true;
 }
@@ -296,10 +296,10 @@ void CartDoublePoleBalancingTask::evaluate(const Vector &state, const Action &ac
     *reward = 6.2 - fabs(state[0]) - fabs(state[1]) - fabs(state[2]);
 }
 
-bool CartDoublePoleBalancingTask::invert(const Observation &obs, Vector *state) const
+bool CartDoublePoleBalancingTask::invert(const Observation &obs, Vector *state, double time) const
 {
   *state = obs;
-  *state = extend(*state, VectorConstructor(0.));
+  *state = extend(*state, VectorConstructor(time));
   
   return true;
 }
@@ -355,10 +355,10 @@ void CartDoublePoleRegulatorTask::observe(const Vector &state, Observation *obs,
     *terminal = 0;
 }
 
-bool CartDoublePoleRegulatorTask::invert(const Observation &obs, Vector *state) const
+bool CartDoublePoleRegulatorTask::invert(const Observation &obs, Vector *state, double time) const
 {
   *state = obs;
-  *state = extend(*state, VectorConstructor(0.));
+  *state = extend(*state, VectorConstructor(time));
   
   return true;
 }

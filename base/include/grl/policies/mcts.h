@@ -40,7 +40,7 @@ class MCTSNode
   protected:
     size_t action_, visits_, num_children_;
     uint64_t expanded_actions_;
-    double q_, reward_;
+    double q_, reward_, tau_;
     Vector state_;
     bool terminal_;
     MCTSNode *parent_, *children_;
@@ -50,6 +50,7 @@ class MCTSNode
     virtual ~MCTSNode()              { safe_delete_array(&children_); }
   
     size_t action() const            { return action_; }
+    double tau() const               { return tau_; }
     double q() const                 { return q_; }
     size_t visits() const            { return visits_; }
     size_t children() const          { return num_children_; } 
@@ -60,9 +61,10 @@ class MCTSNode
     MCTSNode *parent()               { return parent_; }
     void orphanize()                 { parent_ = NULL; }
 
-    void init(MCTSNode *parent, size_t action, const Vector &state, double reward, bool terminal)
+    void init(MCTSNode *parent, size_t action, double tau, const Vector &state, double reward, bool terminal)
     {
       action_ = action;
+      tau_ = tau;
       visits_ = 0;
       num_children_ = 0;
       q_ = 0;
@@ -78,10 +80,10 @@ class MCTSNode
       children_ = new MCTSNode[max_children];
     }
     
-    MCTSNode *expand(size_t action, const Vector &state, double reward, bool terminal)
+    MCTSNode *expand(size_t action, double tau, const Vector &state, double reward, bool terminal)
     {
       expanded_actions_ |= (1<<action);
-      children_[num_children_].init(this, action, state, reward, terminal);
+      children_[num_children_].init(this, action, tau, state, reward, terminal);
       return &children_[num_children_++];
     }
     
@@ -207,7 +209,7 @@ class MCTSPolicy : public Policy
         
       Action action = discretizer_->at(state, a);
           
-      model_->step(state, action, &next, &reward, &terminal);
+      double tau = model_->step(state, action, &next, &reward, &terminal);
       
       if (!next.size())
       {
@@ -218,7 +220,7 @@ class MCTSPolicy : public Policy
       if (!node->children())
         node->allocate(discretizer_->size(state));
         
-      return node->expand(a, next, reward, terminal);
+      return node->expand(a, tau, next, reward, terminal);
     }
   
     MCTSNode *treePolicy() const
@@ -246,13 +248,13 @@ class MCTSPolicy : public Policy
     double defaultPolicy(Vector state, size_t depth) const
     {
       Observation next;
-      double reward=0, total_reward=0;
+      double reward=0, total_reward=0, time=0;
       int terminal=0;
       
       for (size_t ii=0; ii < depth && !terminal; ++ii)
       {
         // Not reentrant
-        model_->step(state, discretizer_->at(state, lrand48()%discretizer_->size(state)), &next, &reward, &terminal);
+        double tau = model_->step(state, discretizer_->at(state, lrand48()%discretizer_->size(state)), &next, &reward, &terminal);
         
         // What to do here?
         if (!next.size())
@@ -263,7 +265,8 @@ class MCTSPolicy : public Policy
         }
         
         state = next;
-        total_reward = gamma_*total_reward + reward;
+        total_reward += pow(gamma_, time)*reward;
+        time += tau;
       }
       
       return total_reward;

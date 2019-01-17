@@ -74,15 +74,15 @@ double TDPredictor::criticize(const Transition &transition, const Action &action
 
   double target = transition.reward;
   if (transition.action.size())
-    target += gamma_*representation_->read(projector_->project(transition.obs), &v);
+    target += pow(gamma_, transition.tau)*representation_->read(projector_->project(transition.obs), &v);
   double delta = target - representation_->read(p, &v);
 
   representation_->write(p, VectorConstructor(target), alpha_);
   
   if (trace_)
   {
-    representation_->update(*trace_, VectorConstructor(alpha_*delta), gamma_*lambda_);
-    trace_->add(p, gamma_*lambda_);
+    representation_->update(*trace_, VectorConstructor(alpha_*delta), pow(gamma_*lambda_, transition.tau));
+    trace_->add(p, pow(gamma_*lambda_, transition.tau));
   }
   
   representation_->finalize();

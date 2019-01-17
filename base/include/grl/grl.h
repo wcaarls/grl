@@ -119,19 +119,20 @@ struct Transition
 {
   Observation prev_obs;
   Action prev_action;
+  double tau; ///< Time spent during this transition
   double reward;
   Observation obs;    ///< Empty observation signifies a terminal absorbing state with discontinued dynamics.
   Action action; ///< Empty action signifies a terminal absorbing state with continued dynamics.
   
-  Transition(Observation _prev_obs=Observation(), Action _prev_action=Action(), double _reward=0., Observation _obs=Observation(), Action _action=Action()) :
-    prev_obs(_prev_obs), prev_action(_prev_action), reward(_reward), obs(_obs), action(_action)
+  Transition(Observation _prev_obs=Observation(), Action _prev_action=Action(), double _tau=1, double _reward=0., Observation _obs=Observation(), Action _action=Action()) :
+    prev_obs(_prev_obs), prev_action(_prev_action), tau(_tau), reward(_reward), obs(_obs), action(_action)
     {
     }
 };
 
 inline std::ostream &operator<<(std::ostream& os, const Transition& t)
 {
-  os << "{" << t.prev_obs << ", " << t.prev_action << "} - " << t.reward << " -> {" << t.obs << ", " << t.action << "}";
+  os << "{" << t.prev_obs << ", " << t.prev_action << "} - " << t.tau << "s, r:" << t.reward << " -> {" << t.obs << ", " << t.action << "}";
   return os;
 }
 

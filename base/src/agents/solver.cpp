@@ -85,7 +85,7 @@ void SolverAgent::step(double tau, const Observation &obs, double reward, Action
   
   if (predictor_)
   {
-    Transition t(prev_obs_, prev_action_, reward, obs, *action);
+    Transition t(prev_obs_, prev_action_, tau, reward, obs, *action);
     predictor_->update(t);
   }
 
@@ -97,7 +97,7 @@ void SolverAgent::end(double tau, const Observation &obs, double reward)
 {
   if (predictor_)
   {
-    Transition t(prev_obs_, prev_action_, reward, obs);
+    Transition t(prev_obs_, prev_action_, tau, reward, obs);
     predictor_->update(t);
   }
 }

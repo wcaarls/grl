@@ -80,14 +80,14 @@ void VPolicy::values(const Observation &in, LargeVector *out) const
     double reward;
     int terminal;
     
-    model_->step(in, *it, &next, &reward, &terminal);
+    double tau = model_->step(in, *it, &next, &reward, &terminal);
     
     if (next.size())
     {
       if (terminal != 2)
       {
         Vector value;
-        reward += reward + gamma_*representation_->read(projector_->project(next), &value);
+        reward += reward + pow(gamma_, tau)*representation_->read(projector_->project(next), &value);
       }
       
       (*out)[aa] = reward;

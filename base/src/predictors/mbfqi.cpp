@@ -187,7 +187,7 @@ void MBFQIPredictor::rebuild()
       for (size_t jj=1; jj < actions; ++jj)
         v = fmax(v, results(ii*actions+jj, 0));
         
-      t.target += gamma_*v;
+      t.target += pow(gamma_, t.transition.tau)*v;
     }
   }
 }

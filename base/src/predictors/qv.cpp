@@ -85,7 +85,7 @@ double QVPredictor::criticize(const Transition &transition, const Action &action
   // Calculate target value
   double target = transition.reward;
   if (transition.action.size())
-    target += gamma_*vnext;
+    target += pow(gamma_, transition.tau)*vnext;
   double delta = target - v_representation_->read(vp, &res);
 
   // Q update  
@@ -96,8 +96,8 @@ double QVPredictor::criticize(const Transition &transition, const Action &action
   
   if (trace_)
   {
-    v_representation_->update(*trace_, VectorConstructor(beta_*delta), gamma_*lambda_);
-    trace_->add(vp, gamma_*lambda_);
+    v_representation_->update(*trace_, VectorConstructor(beta_*delta), pow(gamma_*lambda_, transition.tau));
+    trace_->add(vp, pow(gamma_*lambda_, transition.tau));
   }
   
   q_representation_->finalize();
@@ -167,7 +167,7 @@ double AVPredictor::criticize(const Transition &transition, const Action &action
   // Calculate target value
   double target = transition.reward;
   if (transition.action.size())
-    target += gamma_*vnext;
+    target += pow(gamma_, transition.tau)*vnext;
   double delta = target - v_representation_->read(vp, &res);
 
   // A update  
@@ -178,8 +178,8 @@ double AVPredictor::criticize(const Transition &transition, const Action &action
   
   if (trace_)
   {
-    v_representation_->update(*trace_, VectorConstructor(beta_*delta), gamma_*lambda_);
-    trace_->add(vp, gamma_*lambda_);
+    v_representation_->update(*trace_, VectorConstructor(beta_*delta), pow(gamma_*lambda_, transition.tau));
+    trace_->add(vp, pow(gamma_*lambda_, transition.tau));
   }
   
   a_representation_->finalize();

@@ -77,7 +77,7 @@ double ShapingEnvironment::step(const Action &action, Observation *obs, double *
   total_reward_ += *reward;
   
   Vector v;
-  *reward += gamma_*shaping_function_->read(*obs, &v) - shaping_function_->read(prev_obs_, &v);
+  *reward += pow(gamma_, tau)*shaping_function_->read(*obs, &v) - shaping_function_->read(prev_obs_, &v);
   
   prev_obs_ = *obs;
   return tau;

@@ -67,7 +67,7 @@ void TDAgent::step(double tau, const Observation &obs, double reward, Action *ac
   state->time += tau;
   policy_->act(state->time, obs, action);
   
-  predictor_->update(Transition(state->prev_obs, state->prev_action, reward, obs, *action));
+  predictor_->update(Transition(state->prev_obs, state->prev_action, tau, reward, obs, *action));
 
   state->prev_obs = obs;
   state->prev_action = *action;
@@ -77,5 +77,5 @@ void TDAgent::end(double tau, const Observation &obs, double reward)
 {
   TDAgentState *state = agent_state_.instance();
 
-  predictor_->update(Transition(state->prev_obs, state->prev_action, reward, obs));
+  predictor_->update(Transition(state->prev_obs, state->prev_action, tau, reward, obs));
 }

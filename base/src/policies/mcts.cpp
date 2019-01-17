@@ -104,7 +104,7 @@ void MCTSPolicy::act(double time, const Observation &in, Action *out)
   if (!trunk_)
   {
     allocate();
-    root_->init(NULL, 0, in, 0, false);
+    root_->init(NULL, 0, 0, in, 0, false);
     root_->allocate(discretizer_->size(in));
     trunk_ = root_;
   }
@@ -135,7 +135,7 @@ void MCTSPolicy::act(double time, const Observation &in, Action *out)
     do
     {
       node->update(reward);
-      reward = gamma_*reward + node->reward();
+      reward = pow(gamma_, node->tau())*reward + node->reward();
     } while ((node = node->parent()));
     
     searches++;

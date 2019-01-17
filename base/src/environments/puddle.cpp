@@ -134,9 +134,9 @@ void PuddleRegulatorTask::evaluate(const Vector &state, const Action &action, co
   *reward -= penalty_*depth[0];
 }
 
-bool PuddleRegulatorTask::invert(const Observation &obs, Vector *state) const
+bool PuddleRegulatorTask::invert(const Observation &obs, Vector *state, double time) const
 {
-  *state = extend(obs, VectorConstructor(0.));
+  *state = extend(obs, VectorConstructor(time));
   
   return true;
 }

@@ -74,7 +74,7 @@ void DelayedTDAgent::step(double tau, const Observation &obs, double reward, Act
   Action prev_action_hat = combine(state->prev_prev_action, state->prev_action);
   Action action_hat = combine(state->prev_action, *action);
 
-  predictor_->update(Transition(state->prev_obs, prev_action_hat, reward, obs, action_hat));
+  predictor_->update(Transition(state->prev_obs, prev_action_hat, tau, reward, obs, action_hat));
 
   state->prev_obs = obs;
   state->prev_prev_action = state->prev_action;
@@ -86,7 +86,7 @@ void DelayedTDAgent::end(double tau, const Observation &obs, double reward)
   DelayedTDAgentState *state = agent_state_.instance();
 
   Action prev_action_hat = combine(state->prev_prev_action, state->prev_action);
-  predictor_->update(Transition(state->prev_obs, prev_action_hat, reward, obs));
+  predictor_->update(Transition(state->prev_obs, prev_action_hat, tau, reward, obs));
 }
 
 Action DelayedTDAgent::combine(const Action &a0, const Action &a1) const

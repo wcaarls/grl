@@ -78,7 +78,7 @@ double GGQPredictor::criticize(const Transition &transition, const Action &actio
     Action action;
     policy_->act(transition.obs, &action);
     phi_next = projector_->project(transition.obs, action);
-    target += gamma_*representation_->read(phi_next, &v);
+    target += pow(gamma_, transition.tau)*representation_->read(phi_next, &v);
   }
 
   // temporal difference error
@@ -101,7 +101,7 @@ double GGQPredictor::criticize(const Transition &transition, const Action &actio
   representation_->write(phi, VectorConstructor(target, delta), VectorConstructor(alpha_, alpha_*eta_));
   
   if (transition.action.size())
-    representation_->update(phi_next, VectorConstructor(-alpha_*gamma_*dotwphi, 0.));
+    representation_->update(phi_next, VectorConstructor(-alpha_*pow(gamma_, transition.tau)*dotwphi, 0.));
     
   representation_->finalize();
   

@@ -97,9 +97,9 @@ void ReplayAgent::step(double tau, const Observation &obs, double reward, Action
   
   // Add new transition to replay memory
   if (transitions_.size() < memory_size_)
-    transitions_.push_back(Transition(prev_obs_, prev_action_, reward, obs, *action));
+    transitions_.push_back(Transition(prev_obs_, prev_action_, tau, reward, obs, *action));
   else
-    transitions_[total_transitions_%memory_size_] = Transition(prev_obs_, prev_action_, reward, obs, *action);
+    transitions_[total_transitions_%memory_size_] = Transition(prev_obs_, prev_action_, tau, reward, obs, *action);
     
   total_transitions_++;
   total_control_steps_++;
@@ -120,9 +120,9 @@ void ReplayAgent::step(double tau, const Observation &obs, double reward, Action
 void ReplayAgent::end(double tau, const Observation &obs, double reward)
 {
   if (transitions_.size() < memory_size_)
-    transitions_.push_back(Transition(prev_obs_, prev_action_, reward, obs));
+    transitions_.push_back(Transition(prev_obs_, prev_action_, tau, reward, obs));
   else
-    transitions_[total_transitions_%memory_size_] = Transition(prev_obs_, prev_action_, reward, obs);
+    transitions_[total_transitions_%memory_size_] = Transition(prev_obs_, prev_action_, tau, reward, obs);
 
   total_transitions_++;
   total_control_steps_++;
