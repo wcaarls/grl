@@ -66,6 +66,29 @@ class MonomialProjector : public Projector
     }
 };
 
+/// Projects the input onto a its square
+class PowerProjector : public Projector
+{
+  public:
+    TYPEINFO("projector/power", "Raises input to the nth power")
+    
+  protected:
+    Vector operating_input_;
+    double degree_;
+
+  public:
+    PowerProjector() { }
+
+    // From Configurable
+    virtual void request(const std::string &role, ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+
+    // From Projector
+    virtual ProjectionLifetime lifetime() const { return plIndefinite; }
+    virtual ProjectionPtr project(const Vector &in) const;
+};
+
 }
 
 #endif /* GRL_MONOMIAL_PROJECTOR_H_ */

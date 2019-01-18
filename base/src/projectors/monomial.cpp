@@ -31,6 +31,7 @@
 using namespace grl;
 
 REGISTER_CONFIGURABLE(MonomialProjector)
+REGISTER_CONFIGURABLE(PowerProjector)
 
 void MonomialProjector::request(const std::string &role, ConfigurationRequest *config)
 {
@@ -93,6 +94,43 @@ ProjectionPtr MonomialProjector::project(const Vector &in) const
       }
     }
   }
+  
+  return ProjectionPtr(p);
+}
+
+// PowerProjector
+
+void PowerProjector::request(const std::string &role, ConfigurationRequest *config)
+{
+  config->push_back(CRP("operating_input", "Origin", operating_input_, CRP::Configuration));
+  config->push_back(CRP("degree", "Degree to which variables are raised", degree_, CRP::Configuration, -DBL_MAX, DBL_MAX));
+
+  config->push_back(CRP("memory", "int.memory", "Feature vector size", CRP::Provided));
+}
+
+void PowerProjector::configure(Configuration &config)
+{
+  operating_input_ = config["operating_input"].v();
+  degree_ = config["degree"];
+  
+  config.set("memory", operating_input_.size());
+}
+
+void PowerProjector::reconfigure(const Configuration &config)
+{
+}
+
+ProjectionPtr PowerProjector::project(const Vector &in) const
+{
+  if (operating_input_.size() != in.size())
+    throw bad_param("projector/quadratic:operating_input");
+
+  VectorProjection *p = new VectorProjection();
+  Vector oin = in-operating_input_;
+
+  p->vector.resize(in.size());
+  for (size_t dd=0; dd < in.size(); ++dd)
+    p->vector[dd] = pow(oin[dd], degree_);
   
   return ProjectionPtr(p);
 }
