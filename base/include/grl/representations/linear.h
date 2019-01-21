@@ -43,9 +43,10 @@ class LinearRepresentation : public ParameterizedRepresentation
     Vector init_min_, init_max_, output_min_, output_max_;
     LargeVector params_;
     size_t memory_, outputs_;
+    int limit_;
 
   public:
-    LinearRepresentation() : memory_(8*1024*1024), outputs_(1)
+    LinearRepresentation() : memory_(8*1024*1024), outputs_(1), limit_(1)
     {
       init_min_ = VectorConstructor(0.);
       init_max_ = VectorConstructor(1.);

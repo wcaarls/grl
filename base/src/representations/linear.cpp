@@ -59,6 +59,8 @@ void LinearRepresentation::request(const std::string &role, ConfigurationRequest
     config->push_back(CRP("output_min", "Lower output limit", output_min_, CRP::System));
     config->push_back(CRP("output_max", "Upper output limit", output_max_, CRP::System));
   }
+  
+  config->push_back(CRP("limit", "Limit parameters to same range as outputs", limit_, CRP::Configuration, 0, 1));
 }
 
 void LinearRepresentation::configure(Configuration &config)
@@ -67,6 +69,7 @@ void LinearRepresentation::configure(Configuration &config)
 
   memory_ = config["memory"];
   outputs_ = config["outputs"];
+  limit_ = config["limit"];
   
   init_min_ = config["init_min"].v();
   if (init_min_.size() && init_min_.size() < outputs_)
@@ -251,7 +254,12 @@ void LinearRepresentation::update(const ProjectionPtr projection, const Vector &
       for (size_t ii=0; ii != ip->indices.size(); ++ii)
         for (size_t jj=0; jj < outputs_; ++jj)
           if (ip->indices[ii] != IndexProjection::invalid_index())
-            params_[ip->indices[ii]*outputs_+jj] = fmin(fmax(params_[ip->indices[ii]*outputs_+jj] + delta[jj], output_min_[jj]), output_max_[jj]);
+          {
+            if (limit_)
+              params_[ip->indices[ii]*outputs_+jj] = fmin(fmax(params_[ip->indices[ii]*outputs_+jj] + delta[jj], output_min_[jj]), output_max_[jj]);
+            else
+              params_[ip->indices[ii]*outputs_+jj] = params_[ip->indices[ii]*outputs_+jj] + delta[jj];
+          }
     }
     else
     {
@@ -267,7 +275,12 @@ void LinearRepresentation::update(const ProjectionPtr projection, const Vector &
       for (size_t ii=0; ii != ip->indices.size(); ++ii)
         for (size_t jj=0; jj < outputs_; ++jj)
           if (ip->indices[ii] != IndexProjection::invalid_index())
-            params_[ip->indices[ii]*outputs_+jj] = fmin(fmax(params_[ip->indices[ii]*outputs_+jj] + ip->weights[ii]*delta[jj]/norm2, output_min_[jj]), output_max_[jj]);
+          {
+            if (limit_)
+              params_[ip->indices[ii]*outputs_+jj] = fmin(fmax(params_[ip->indices[ii]*outputs_+jj] + ip->weights[ii]*delta[jj]/norm2, output_min_[jj]), output_max_[jj]);
+            else
+              params_[ip->indices[ii]*outputs_+jj] = params_[ip->indices[ii]*outputs_+jj] + ip->weights[ii]*delta[jj]/norm2;
+          }
     }
   }
   else
@@ -289,7 +302,10 @@ void LinearRepresentation::update(const ProjectionPtr projection, const Vector &
 
       for (size_t ii=0; ii != vp->vector.size(); ++ii)
         for (size_t jj=0; jj < outputs_; ++jj)
-          params_[ii*outputs_+jj] = fmin(fmax(params_[ii*outputs_+jj] + vp->vector[ii]*delta[jj]/norm2, output_min_[jj]), output_max_[jj]);
+          if (limit_)
+            params_[ii*outputs_+jj] = fmin(fmax(params_[ii*outputs_+jj] + vp->vector[ii]*delta[jj]/norm2, output_min_[jj]), output_max_[jj]);
+          else
+            params_[ii*outputs_+jj] = params_[ii*outputs_+jj] + vp->vector[ii]*delta[jj]/norm2;
     }
     else
       throw Exception("representation/parameterized/linear requires a projector returning IndexProjection or VectorProjection");
