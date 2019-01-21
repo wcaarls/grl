@@ -324,16 +324,12 @@ bool CartPoleBalancingTask::failed(const Vector &state) const
 void CartPoleRegulatorTask::request(ConfigurationRequest *config)
 {
   RegulatorTask::request(config);
-
-  config->push_back(CRP("timeout", "Episode timeout", T_, CRP::Configuration, 0., DBL_MAX));
 }
 
 void CartPoleRegulatorTask::configure(Configuration &config)
 {
   RegulatorTask::configure(config);
   
-  T_ = config["timeout"];
-
   config.set("observation_min", VectorConstructor(-2.4, -M_PI, -10.0, -5*M_PI));
   config.set("observation_max", VectorConstructor( 2.4,  M_PI,  10.0,  5*M_PI));
   config.set("action_min", VectorConstructor(-15.));
@@ -347,6 +343,8 @@ void CartPoleRegulatorTask::reconfigure(const Configuration &config)
 
 void CartPoleRegulatorTask::observe(const Vector &state, Observation *obs, int *terminal) const
 {
+  RegulatorTask::observe(state, obs, terminal);
+
   if (state.size() != 5)
     throw Exception("task/cart_pole/regulator requires dynamics/cart_pole");
 
@@ -356,11 +354,6 @@ void CartPoleRegulatorTask::observe(const Vector &state, Observation *obs, int *
   (*obs)[2] = state[2];
   (*obs)[3] = state[3];
   obs->absorbing = false;
-
-  if (state[4] > T_)
-    *terminal = 1;
-  else
-    *terminal = 0;
 }
 
 bool CartPoleRegulatorTask::invert(const Observation &obs, Vector *state, double time) const

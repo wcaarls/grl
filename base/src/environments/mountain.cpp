@@ -149,6 +149,8 @@ void MountainRegulatorTask::configure(Configuration &config)
 
 void MountainRegulatorTask::observe(const Vector &state, Observation *obs, int *terminal) const
 {
+  RegulatorTask::observe(state, obs, terminal);
+
   if (state.size() != 5)
   {
     ERROR("Received state size " << state.size() << ", expected 5");
@@ -159,8 +161,6 @@ void MountainRegulatorTask::observe(const Vector &state, Observation *obs, int *
   for (size_t ii=0; ii < 4; ++ii)
     (*obs)[ii] = state[ii];
   obs->absorbing = false;
-
-  *terminal = state[4] > 20;
 }
 
 bool MountainRegulatorTask::invert(const Observation &obs, Vector *state, double time) const

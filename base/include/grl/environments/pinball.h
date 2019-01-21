@@ -272,6 +272,7 @@ class PinballRegulatorTask : public RegulatorTask
       stddev_ = VectorConstructor(0.01, 0.01, 0., 0.);
       q_ = VectorConstructor(5, 1, 0, 0);
       r_ = VectorConstructor(0.01, 0.01);
+      timeout_ = 20;
     }
   
     // From Configurable

@@ -1,0 +1,64 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  run_offset: 0
+  trials: 0
+  steps: 0
+  rate: 0
+  test_interval: 10
+  environment: 
+    type: environment/modeled
+    discrete_time: 1
+    model: 
+      type: model/dynamical
+      control_step: 0.05
+      integration_steps: 5
+      dynamics: 
+        type: dynamics/integrator
+        order: 2
+    task: 
+      type: task/integrator/regulator
+      order: experiment/environment/model/dynamics/order
+      start: [1, 0]
+      goal: [0, 0]
+      stddev: [1, 0]
+      q: [1, 0]
+      r: [0.01]
+      min: []
+      max: []
+      timeout: 10
+      function: quadratic
+      r_function: quadratic
+      smoothing: 0.01
+  agent: 
+    type: agent/solver
+    interval: 1
+    policy: 
+      type: mapping/policy/parameterized/state_feedback
+      operating_state: experiment/environment/task/goal
+      operating_action: [ 0 ]
+      gains: [  ]
+      output_min: experiment/environment/task/action_min
+      output_max: experiment/environment/task/action_max
+    solver: 
+      type: solver/policy/lqr
+      operating_state: experiment/environment/task/goal
+      operating_action: experiment/agent/policy/operating_action
+      model: 
+        type: observation_model/fixed
+        jacobian_step: 0.001
+        discrete_time: 1
+        model: experiment/environment/model
+        task: experiment/environment/task
+      policy: experiment/agent/policy
+  test_agent: experiment/agent
+  save_every: never
+visualizer: 
+  type: visualizer/glut
+visualization: 
+  type: visualization/state
+  input_dims: [0]
+  input_min: [-2]
+  input_max: [2]
+  memory: 256
+  state: experiment/environment/state

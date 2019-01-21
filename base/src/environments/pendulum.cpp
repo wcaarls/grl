@@ -181,6 +181,8 @@ void PendulumRegulatorTask::reconfigure(const Configuration &config)
 
 void PendulumRegulatorTask::observe(const Vector &state, Observation *obs, int *terminal) const
 {
+  RegulatorTask::observe(state, obs, terminal);
+
   if (state.size() != 3)
     throw Exception("task/pendulum/regulator requires dynamics/pendulum");
     
@@ -188,8 +190,6 @@ void PendulumRegulatorTask::observe(const Vector &state, Observation *obs, int *
   for (size_t ii=0; ii < 2; ++ii)
     (*obs)[ii] = state[ii];
   obs->absorbing = false;
-
-  *terminal = state[2] > 3;
 }
 
 bool PendulumRegulatorTask::invert(const Observation &obs, Vector *state, double time) const

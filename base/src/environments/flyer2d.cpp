@@ -93,7 +93,6 @@ void Flyer2DRegulatorTask::request(ConfigurationRequest *config)
   RegulatorTask::request(config);
   
   config->push_back(CRP("action_range", "Range of allowed actions", action_range_, CRP::Configuration, 0., 1.));
-  config->push_back(CRP("timeout", "Episode timeout", timeout_, CRP::Configuration, 0., DBL_MAX));
 }
 
 void Flyer2DRegulatorTask::configure(Configuration &config)
@@ -101,7 +100,6 @@ void Flyer2DRegulatorTask::configure(Configuration &config)
   RegulatorTask::configure(config);
   
   action_range_ = config["action_range"];
-  timeout_ = config["timeout"];
   
   if (q_.size() != 6)
     throw bad_param("task/flyer2d/regulator:q");
@@ -121,6 +119,8 @@ void Flyer2DRegulatorTask::reconfigure(const Configuration &config)
 
 void Flyer2DRegulatorTask::observe(const Vector &state, Observation *obs, int *terminal) const
 {
+  RegulatorTask::observe(state, obs, terminal);
+
   if (state.size() != 7)
     throw Exception("task/flyer2d/regulator requires dynamics/flyer2d");
     
@@ -128,8 +128,6 @@ void Flyer2DRegulatorTask::observe(const Vector &state, Observation *obs, int *t
   for (size_t ii=0; ii < 6; ++ii)
     (*obs)[ii] = state[ii];
   obs->absorbing = false;
-
-  *terminal = state[6] > timeout_;
 }
 
 bool Flyer2DRegulatorTask::invert(const Observation &obs, Vector *state, double time) const

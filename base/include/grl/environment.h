@@ -121,11 +121,13 @@ class RegulatorTask : public Task
 {
   protected:
     Vector start_, goal_, stddev_, q_, r_;
+    Vector min_, max_;
+    double timeout_;
     std::string q_function_, r_function_;
     double p_;
 
   public:
-    RegulatorTask() : q_function_("quadratic"), r_function_("quadratic"), p_(0.01) { }
+    RegulatorTask() : timeout_(10), q_function_("quadratic"), r_function_("quadratic"), p_(0.01) { }
     
     void request(ConfigurationRequest *config)
     {
@@ -136,6 +138,9 @@ class RegulatorTask : public Task
       config->push_back(CRP("stddev", "Starting state standard deviation", stddev_));
       config->push_back(CRP("q", "Q (state cost) matrix diagonal", q_));
       config->push_back(CRP("r", "R (action cost) matrix diagonal", r_));
+      config->push_back(CRP("min", "vector.state_min", "Minimum bound of operating region", min_));
+      config->push_back(CRP("max", "vector.state_max", "Maximum bound of operating region", max_));
+      config->push_back(CRP("timeout", "Episode timeout (0=no timeout)", timeout_, CRP::Configuration, 0., DBL_MAX));
       config->push_back(CRP("function", "Cost function style", q_function_, CRP::Configuration, {"quadratic", "absolute", "sqrt"}));
       config->push_back(CRP("r_function", "R cost function style", r_function_, CRP::Configuration, {"quadratic", "absolute", "sqrt"}));
       config->push_back(CRP("smoothing", "Cost function smoothing parameter", p_));
@@ -148,6 +153,9 @@ class RegulatorTask : public Task
       stddev_ = config["stddev"].v();
       q_ = config["q"].v();
       r_ = config["r"].v();
+      min_ = config["min"].v();
+      max_ = config["max"].v();
+      timeout_ = config["timeout"];
       q_function_ = config["function"].str();
       r_function_ = config["r_function"].str();
       p_ = config["smoothing"];
@@ -169,6 +177,12 @@ class RegulatorTask : public Task
         
       if (!r_.size())
         throw bad_param("task/regulator:r");
+        
+      if (min_.size() != max_.size())
+        throw bad_param("task/regulator:{min, max}");
+        
+      if (min_.size() && min_.size() != start_.size())
+        throw bad_param("task/regulator:{min, max}");
       
       config.set("observation_dims", q_.size());
       config.set("action_dims", r_.size());
@@ -233,6 +247,14 @@ class RegulatorTask : public Task
           *reward -= r_[ii]*(sqrt(sqrt(pow(action[ii], 2) + p_*p_)) - sqrt(p_));
       }
     }
+    
+    virtual void observe(const Vector &state, Observation *obs, int *terminal) const
+    {
+      if (state[state.size()-1] > timeout_ || !valid(state))
+        *terminal = 1;
+      else
+        *terminal = 0;
+    }
 
     Matrix rewardHessian(const Vector &state, const Action &action) const
     {
@@ -241,6 +263,22 @@ class RegulatorTask : public Task
       else
         return Matrix();
     }
+    
+    protected:
+      bool valid(const Vector &state) const
+      {
+        if (!min_.size())
+          return true;
+          
+        if (state.size() != min_.size()+1)
+          throw Exception("Unexpected state size");
+      
+        for (size_t dd=0; dd < min_.size(); ++dd)
+          if (state[dd] < min_[dd] || state[dd] > max_[dd])
+            return false;
+            
+        return true;
+      }
 };
 
 /// Environment that uses a transition model internally.

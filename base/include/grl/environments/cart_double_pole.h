@@ -111,16 +111,14 @@ class CartDoublePoleRegulatorTask : public RegulatorTask
     TYPEINFO("task/cart_double_pole/regulator", "Cart-double-pole regulator task")
   
   public:
-    double T_;
-  
-  public:
-    CartDoublePoleRegulatorTask() : T_(9.99)
+    CartDoublePoleRegulatorTask()
     {
       start_ = VectorConstructor(0, 0, 0, 0, 0, 0);
       goal_ = VectorConstructor(0, 0, 0, 0, 0, 0);
       stddev_ = VectorConstructor(0.01, 0.01, 0.01, 0, 0, 0);
       q_ = VectorConstructor(1, 1, 1, 0, 0, 0);
       r_ = VectorConstructor(0.01);
+      timeout_ = 9.99;
     }
   
     // From Configurable

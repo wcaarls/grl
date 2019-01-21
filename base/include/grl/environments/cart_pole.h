@@ -126,16 +126,14 @@ class CartPoleRegulatorTask : public RegulatorTask
     TYPEINFO("task/cart_pole/regulator", "Cart-pole regulator task")
   
   public:
-    double T_;
-  
-  public:
-    CartPoleRegulatorTask() : T_(9.99)
+    CartPoleRegulatorTask()
     {
       start_ = VectorConstructor(0, 0, 0, 0);
       goal_ = VectorConstructor(0, 0, 0, 0);
       stddev_ = VectorConstructor(0.1, 0.1, 0, 0);
       q_ = VectorConstructor(1, 1, 0, 0);
       r_ = VectorConstructor(0.01);
+      timeout_ = 9.99;
     }
   
     // From Configurable

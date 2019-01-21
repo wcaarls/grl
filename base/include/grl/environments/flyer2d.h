@@ -59,16 +59,17 @@ class Flyer2DRegulatorTask : public RegulatorTask
     TYPEINFO("task/flyer2d/regulator", "2D flyer regulator task")
     
   protected:
-    double action_range_, timeout_;
+    double action_range_;
 
   public:
-    Flyer2DRegulatorTask() : action_range_(1.0), timeout_(2.99)
+    Flyer2DRegulatorTask() : action_range_(1.0)
     {
       start_ = VectorConstructor(0, 0, 0, 0, 0, 0);
       goal_ = VectorConstructor(0, 0, 0, 0, 0 ,0);
       stddev_ = VectorConstructor(0.1, 0.1, 0.1, 0, 0, 0);
       q_ = VectorConstructor(1, 1, 1, 0, 0, 0);
       r_ = VectorConstructor(0.01, 0.01);
+      timeout_ = 2.99;
     }
   
     // From Configurable

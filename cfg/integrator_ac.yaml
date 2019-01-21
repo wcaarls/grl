@@ -1,0 +1,125 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  run_offset: 0
+  trials: 0
+  steps: 0
+  rate: 0
+  test_interval: 10
+  environment: 
+    type: environment/modeled
+    discrete_time: 1
+    model: 
+      type: model/dynamical
+      control_step: 0.05
+      integration_steps: 5
+      dynamics: 
+        type: dynamics/integrator
+        order: 2
+    task: 
+      type: task/integrator/regulator
+      order: experiment/environment/model/dynamics/order
+      start: [1, 0]
+      goal: [0, 0]
+      stddev: [1, 0]
+      q: [1, 0]
+      r: [0.01]
+      min: []
+      max: []
+      timeout: 10
+      function: quadratic
+      r_function: quadratic
+      smoothing: 0.01
+  agent: 
+    type: agent/td
+    policy: 
+      type: mapping/policy/action
+      sigma: [0.1]
+      decay_rate: 1
+      decay_min: 0
+#      output_min: experiment/environment/task/action_min
+#      output_max: experiment/environment/task/action_max
+      output_min: -1000
+      output_max:  1000
+      projector: 
+        type: projector/monomial
+        operating_input: experiment/environment/task/goal
+        homogeneous: 1
+        degree: 1
+      representation: 
+        type: representation/parameterized/linear
+        interval: 0
+        init_min: [-1]
+        init_max: [1]
+        memory: experiment/agent/policy/projector/memory
+        outputs: experiment/environment/task/action_dims
+#        output_min: experiment/environment/task/action_min
+#        output_max: experiment/environment/task/action_max
+#        limit: 0
+    predictor: 
+      type: predictor/ac/action
+      alpha: 0.1
+      update_method: proportional
+      step_limit: [1]
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+      critic: 
+        type: predictor/critic/td
+        alpha: 0.01
+        gamma: 0.9
+        projector: 
+          type: projector/monomial
+          operating_input: experiment/environment/task/goal
+          homogeneous: 1
+          degree: 2
+        representation: 
+          type: representation/parameterized/linear
+          interval: 0
+          init_min: [0]
+          init_max: [0]
+          memory: experiment/agent/predictor/critic/projector/memory
+          outputs: 1
+          output_min: []
+          output_max: []
+  test_agent: 
+    type: agent/fixed
+    policy: 
+      type: mapping/policy/action
+      sigma: []
+      decay_rate: 1
+      decay_min: 0
+      output_min: experiment/environment/task/action_min
+      output_max: experiment/environment/task/action_max
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+  save_every: never
+visualizer: 
+  type: visualizer/glut
+visualization: 
+  type: visualization/state
+  input_dims: [ 0 ]
+  input_min: [ -2 ]
+  input_max: [ 2 ]
+  memory: 256
+  state: experiment/environment/state
+policy: 
+  type: visualization/field/mapping
+  field_dims: [0, 1]
+  input_min: experiment/environment/task/observation_min
+  input_max: experiment/environment/task/observation_max
+  points: 65536
+  savepoints: 1048576
+  projection: mean
+  mapping: experiment/test_agent/policy
+  output_dim: 0
+value_function: 
+  type: visualization/field/value
+  field_dims: [0, 1]
+  input_min: experiment/environment/task/observation_min
+  input_max: experiment/environment/task/observation_max
+  points: 65536
+  savepoints: 1048576
+  projection: mean
+  output_dim: 0
+  projector: experiment/agent/predictor/critic/projector
+  representation: experiment/agent/predictor/critic/representation

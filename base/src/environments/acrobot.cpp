@@ -179,6 +179,8 @@ void AcrobotRegulatorTask::reconfigure(const Configuration &config)
 
 void AcrobotRegulatorTask::observe(const Vector &state, Observation *obs, int *terminal) const
 {
+  RegulatorTask::observe(state, obs, terminal);
+
   if (state.size() != 5)
     throw Exception("task/acrobot/regulator requires dynamics/acrobot");
     
@@ -186,8 +188,6 @@ void AcrobotRegulatorTask::observe(const Vector &state, Observation *obs, int *t
   for (size_t ii=0; ii < 4; ++ii)
     (*obs)[ii] = state[ii];
   obs->absorbing = false;
-
-  *terminal = state[AcrobotDynamics::siTime] > 20;
 }
 
 bool AcrobotRegulatorTask::invert(const Observation &obs, Vector *state, double time) const

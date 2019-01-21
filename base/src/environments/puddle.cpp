@@ -113,6 +113,8 @@ void PuddleRegulatorTask::reconfigure(const Configuration &config)
 
 void PuddleRegulatorTask::observe(const Vector &state, Observation *obs, int *terminal) const
 {
+  RegulatorTask::observe(state, obs, terminal);
+
   if (state.size() != 5)
     throw Exception("task/puddle/regulator requires dynamics/puddle");
     
@@ -120,8 +122,6 @@ void PuddleRegulatorTask::observe(const Vector &state, Observation *obs, int *te
   for (size_t ii=0; ii < 4; ++ii)
     (*obs)[ii] = state[ii];
   obs->absorbing = false;
-
-  *terminal = state[4] > 20;
 }
 
 void PuddleRegulatorTask::evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const
