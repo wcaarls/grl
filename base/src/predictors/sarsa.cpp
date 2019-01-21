@@ -75,7 +75,7 @@ void SARSAPredictor::update(const std::vector<const Transition*> &transitions)
     if (!transitions[ii]->obs.absorbing)
       qs++;
     
-  representation_->batchRead(qs);
+  representation_->target()->batchRead(qs);
   for (size_t ii=0; ii < transitions.size(); ++ii)
     if (!transitions[ii]->obs.absorbing)
       representation_->enqueue(projector_->project(transitions[ii]->obs, transitions[ii]->action));
@@ -104,7 +104,7 @@ double SARSAPredictor::criticize(const Transition &transition, const Action &act
 
   double target = transition.reward;
   if (transition.action.size())
-    target += pow(gamma_, transition.tau)*representation_->read(projector_->project(transition.obs, transition.action), &q);
+    target += pow(gamma_, transition.tau)*representation_->target()->read(projector_->project(transition.obs, transition.action), &q);
   double delta = target - representation_->read(p, &q);
   
   representation_->write(p, VectorConstructor(target), alpha_);
