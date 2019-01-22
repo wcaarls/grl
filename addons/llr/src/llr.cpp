@@ -137,16 +137,9 @@ double LLRRepresentation::read(const ProjectionPtr &projection, Vector *result, 
     return (*result)[0]; // return average here
   }
   
-  // Convert query
-  RowVector q(p->query.size()+1);
-  
-  for (size_t ii=0; ii < p->query.size(); ++ii)
-    q[ii] = p->query[ii];
-  q[p->query.size()] = 1.;
-
   Matrix r = estimateModel(A);
   Matrix x = r*b;
-  RowVector y = q*x;
+  RowVector y = x.row(p->query.size());
 
   // Calculate variance
   if (stddev)
@@ -324,17 +317,12 @@ Matrix LLRRepresentation::jacobian(const ProjectionPtr projection) const
   
   if (!A.rows())
     return grl::Matrix();
-  
-  // Because the model is linear, the Jacobian is simply the model matrix.
-  Matrix x = (estimateModel(A)*b).transpose();
-  grl::Matrix J(outputs_, p->query.size());
 
-  // Note that x also includes the constant term, which is discarded here.
-  for (size_t rr=0; rr < outputs_; ++rr)
-    for (size_t cc=0; cc < p->query.size(); ++cc)
-      J(rr, cc) = x(rr, cc);
-      
-  return J;  
+  // Strip constant term
+  A = A.leftCols(p->query.size());
+
+  // Because the model is linear, the Jacobian is simply the model matrix.
+  return (estimateModel(A)*b).transpose();
 }
 
 void LLRRepresentation::getMatrices(const SampleProjection *p, Matrix *A, Matrix *b) const
@@ -417,7 +405,7 @@ void LLRRepresentation::getMatrices(const SampleProjection *p, Matrix *A, Matrix
     
       if (order_)
         for (size_t jj=0; jj < p->query.size(); ++jj)
-          (*A)(i2, jj) = p->neighbors[ii]->in[jj]*p->weights[ii];
+          (*A)(i2, jj) = (p->neighbors[ii]->in[jj]-p->query[jj])*p->weights[ii];
       (*A)(i2, p->query.size()) = p->weights[ii];
       
       for (size_t jj=0; jj < outputs_; ++jj)
