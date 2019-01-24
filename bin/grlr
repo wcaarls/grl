@@ -1,0 +1,25 @@
+#!/usr/bin/python
+# Run environment-agent combinations
+
+import yaml, os, glob
+from grllib import *
+
+srv = Server()
+
+if __name__ == '__main__':
+  # Run all combinations of agents and environments in current directory
+  workers = []
+  for env in glob.glob('env_*.yaml'):
+    for agent in glob.glob('agent_*.yaml'):
+      stream = open(env)
+      conf = yaml.load(stream)
+      stream.close()
+      stream = open(agent)
+      mergeconf(conf, yaml.load(stream))
+      output = os.path.basename(env)[4:-5] + "_" + os.path.basename(agent)[6:-5]
+      conf["experiment"]["output"] = output
+      
+      workers.append(srv.submit(yaml.dump(conf)))
+      
+  for w in workers:
+    w.read()

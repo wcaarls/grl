@@ -61,6 +61,7 @@ void VoluntarySubAgent::start(const Observation &obs, Action *action, double *co
   // Remove indicator dimension
   action->v = Vector(a.size()-1);
   action->v << a.v.leftCols(dim_), a.v.rightCols(a.size()-dim_-1);
+  action->type = a.type;
 }
 
 void VoluntarySubAgent::step(double tau, const Observation &obs, double reward, Action *action, double *confidence)
@@ -76,6 +77,7 @@ void VoluntarySubAgent::step(double tau, const Observation &obs, double reward, 
   // Remove indicator dimension
   action->v = Vector(a.size()-1);
   action->v << a.v.leftCols(dim_), a.v.rightCols(a.size()-dim_-1);
+  action->type = a.type;
 }
 
 void VoluntarySubAgent::end(double tau, const Observation &obs, double reward)
