@@ -37,7 +37,8 @@ set(MODULES base
             addons/odesim
             addons/rbdl
             addons/muscod
-            addons/leo
+#            addons/leo
+            addons/leosim
             addons/leo2
             addons/tlm
             addons/lqr
