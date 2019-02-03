@@ -1,25 +1,167 @@
 #!/usr/bin/python
-# Run environment-agent combinations
+# grlr
+#   Run environment-agent combinations
+# grlr <spec.yaml>
+#   Run multiple experiments (possibly for different agent-environment combinations)
+#   spec.yaml contains a list of experiments. Each experiment defines a `file`, a
+#   `configuration` (parameters that do not change across experiments) and the
+#   `parameters` to modify. All possible parameter combinations are executed.
+#
+#   The `file` states the base configuration to use, or 'all' to run all agent-
+#   environment combinations in the current directory.
+#
+#   `configuration` parameters are defined as dictionaries:
+#      name: parameter_name
+#      value: parameter_value
+#
+#   Modifed `parameters` are defined the same way, but with multiple values:
+#      name: parameter_name
+#      values:
+#        - first_value
+#        - second_value
+#
+#   In configuration parameters, the special sequence '$@' refers to the base
+#   configuration filename, '$<index>' (e.g. $0, $1, etc.) refers to the current
+#   value of parameter `index` (e.g. first_value, second_value), and #<index>
+#   refers to the current value's index of parameter `index` (e.g. 0, 1).
+#
+#   In modified parameters, the special sequence '$*' refers to the original value
+#   of the parameter, so you can write '$* * 2' to multiply the original value by 2.
+#
+#   Example spec.yaml:
+#
+#     - file: all
+#       configuration:
+#         - name: experiment/output
+#           value: $@_alpha$0_lamba$1
+#       parameters:
+#         - name: experiment/agent/predictor/alpha
+#           values:
+#             - 0.1
+#             - 0.2
+#             - 0.3
+#         - name: experiment/agent/predictor/lambda
+#           values:
+#             - 0.3
+#             - 0.5
+#             - 0.7
 
-import yaml, os, glob
+import yaml, os, sys, glob, copy
 from grllib import *
 
 srv = Server()
 
-if __name__ == '__main__':
-  # Run all combinations of agents and environments in current directory
-  workers = []
-  for env in glob.glob('env_*.yaml'):
-    for agent in glob.glob('agent_*.yaml'):
-      stream = open(env)
-      conf = yaml.load(stream)
-      stream.close()
-      stream = open(agent)
-      mergeconf(conf, yaml.load(stream))
-      output = os.path.basename(env)[4:-5] + "_" + os.path.basename(agent)[6:-5]
-      conf["experiment"]["output"] = output
-      
-      workers.append(srv.submit(yaml.dump(conf)))
-      
+def progress(maxlen, workers, strlen=60):
+  alive = 0
   for w in workers:
-    w.read()
+    if w.alive():
+      alive = alive + 1
+
+  w = len(workers)*strlen/maxlen
+  a = alive*strlen/maxlen
+  
+  print '\r[' + '#'*(w-a) + '+'*a + '.'*(strlen-w) + ']', (len(workers)-alive)*100/maxlen, '%',
+  sys.stdout.flush()
+
+def fuzz(name, conf, e):
+  orig = copy.deepcopy(conf)
+  hasparams = e.has_key("parameters")
+  hasconfig = e.has_key("configuration") 
+  
+  if hasparams:
+    indices = [0] * len(e["parameters"])
+
+  # Iterate over variable combinations
+  while True:
+    # Construct configuration for this combination
+    conf = copy.deepcopy(orig)
+    
+    if hasconfig:
+      # Non-cycling configuration parameters
+      for c in e["configuration"]:
+        value = str(c["value"])
+        value = value.replace("$@", name)
+        
+        if hasparams:
+          for i in range(len(e["parameters"])):
+            value = value.replace("$%d" % i, str(e["parameters"][i]["values"][indices[i]]))
+          for i in range(len(e["parameters"])):
+            value = value.replace("#%d" % i, str(indices[i]))
+        setconf(conf, c["name"], value)
+      
+    if hasparams:
+      # Cycling configuration parameters
+      for i in range(len(e["parameters"])):
+        p = e["parameters"][i]
+        value = str(p["values"][indices[i]])
+        value = value.replace("$*", str(getconf(conf, p["name"])))
+        setconf(conf, p["name"], value)
+      
+    # Enqueue job
+    yield yaml.dump(conf)
+    
+    if hasparams:
+      # Increment
+      for i in range(len(e["parameters"])):
+        indices[i] = indices[i] + 1
+        if indices[i] == len(e["parameters"][i]["values"]):
+          indices[i] = 0
+        else:
+          break
+
+      # Stop when we're back at the beginning
+      if cmp(indices, [0] * len(indices)) == 0:
+        break
+    else:
+      # No parameters to cycle though, just exit
+      break
+
+if __name__ == '__main__':
+  if len(sys.argv) > 1:
+    stream = open(sys.argv[1], 'r')
+    spec = yaml.load(stream)
+    stream.close()
+  else:
+    spec = {'file':'all', 'configuration':[{'name':'experiment/output', 'value':'$@'}]}
+    
+  if not isinstance(spec, list):
+    spec = [spec]
+    
+  jobs = [];
+    
+  # Iterate over experiments
+  for exp in spec:
+    if exp["file"] == "all":
+      # All combinations of agents and environments in current directory
+      for env in glob.glob('env_*.yaml'):
+        for agent in glob.glob('agent_*.yaml'):
+          stream = file(env)
+          conf = yaml.load(stream)
+          stream.close()
+          stream = file(agent)
+          mergeconf(conf, yaml.load(stream))
+          for job in fuzz(os.path.basename(env)[4:-5] + "_" + os.path.basename(agent)[6:-5], conf, exp):
+            jobs.append(job)
+    else:
+      # Specific file, possibly with wildcards
+      for f in glob.glob(exp["file"]):
+        stream = file(f)
+        conf = yaml.load(stream)
+        stream.close()
+        for job in fuzz(os.path.basename(f), conf, exp):
+          jobs.append(job)
+
+  # Submit jobs
+  workers = []
+  for job in jobs:
+    progress(len(jobs), workers)
+    workers.append(srv.submit(job))
+    
+  # Await results
+  for w in workers:
+    progress(len(jobs), workers)
+    w.read('cumulative')
+
+  progress(len(jobs), workers)
+  print
+  

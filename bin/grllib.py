@@ -2,6 +2,7 @@ import yaml
 import itertools
 import threading
 import socket
+import select
 
 try:
     # included in standard lib from Python 2.7
@@ -30,11 +31,13 @@ class Worker():
   def __init__(self, socket, output=""):
     self.socket = socket
     self.output = output
+    self.dead = False
 
   def read(self, regret='simple'):
     """Read worker result, returning either simple or cumulative regret"""
     data = [float(v) for v in self.socket.makefile().readlines()]
     self.socket.close()
+    self.dead = True
     
     if self.output:
       stream = open(self.output + ".txt", 'w')
@@ -51,6 +54,22 @@ class Worker():
       return sum(data)
     else:
       raise Exception("Unknown regret type " + regret)
+
+  # DELETES DATA FROM QUEUE! ONLY USE IF YOU DON'T
+  # CARE ABOUT THE RETURN VALUE OF READ!
+  def alive(self):
+    if self.dead:
+      return False
+  
+    while True:
+      r, w, e = select.select([self.socket], [], [], 0)
+      if r:
+        buf = self.socket.recv(4096, socket.MSG_DONTWAIT)
+        if len(buf) == 0:
+          self.dead = True
+          return False
+      else:
+        return True
 
 class Server():
   def __init__(self, port=3373):
