@@ -3,6 +3,7 @@ import itertools
 import threading
 import socket
 import select
+import os
 
 try:
     # included in standard lib from Python 2.7
@@ -225,3 +226,30 @@ def mergeconf(base, new):
         base[k] = merge(base[k],v)
 
   return base
+
+def readconf(path):
+  """Reads configuration, resolving file references"""
+  stream = file(path)
+  conf = yaml.load(stream)
+  stream.close()
+  
+  return _readconf(conf, path)
+
+def _readconf(conf, path):
+  if isinstance(conf, dict):
+    iterfun = lambda c: c.iteritems()
+  elif isinstance(conf, list):
+    iterfun = lambda c: enumerate(c)
+  else:
+    return conf
+  
+  for k,v in iterfun(conf):
+    if isinstance(v, str) and v[-5:] == ".yaml":
+      ref = os.path.join(os.path.dirname(path), v)
+      if os.path.isfile(ref):
+        conf[k] = readconf(ref)
+    else:
+      conf[k] = _readconf(v, path)
+    
+  return conf
+  

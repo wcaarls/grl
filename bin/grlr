@@ -135,19 +135,13 @@ if __name__ == '__main__':
       # All combinations of agents and environments in current directory
       for env in glob.glob('env_*.yaml'):
         for agent in glob.glob('agent_*.yaml'):
-          stream = file(env)
-          conf = yaml.load(stream)
-          stream.close()
-          stream = file(agent)
-          mergeconf(conf, yaml.load(stream))
+          conf = mergeconf(readconf(env), readconf(agent))
           for job in fuzz(os.path.basename(env)[4:-5] + "_" + os.path.basename(agent)[6:-5], conf, exp):
             jobs.append(job)
     else:
       # Specific file, possibly with wildcards
       for f in glob.glob(exp["file"]):
-        stream = file(f)
-        conf = yaml.load(stream)
-        stream.close()
+        conf = readconf(f)
         for job in fuzz(os.path.basename(f), conf, exp):
           jobs.append(job)
 
