@@ -301,7 +301,7 @@ void ReferenceConfigurator::reconfigure(const Configuration &config, bool recurs
 
 bool ParameterConfigurator::isseparator(char c) const
 {
-  return c == ' ' || c == '\t' || c == '[' || c == ']' || c == '+' || c == ',';
+  return c == ' ' || c == '\t' || c == '[' || c == ']' || c == '+' || c == ',' || c == '-' || c == '*';
 }
 
 Configurator *ParameterConfigurator::resolve(const std::string &id, Configurator *parent)
