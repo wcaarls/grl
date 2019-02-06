@@ -17,6 +17,7 @@ experiment:
       type: task/pendulum/swingup
       timeout: 2.99
       randomization: 0
+      sincos: 1
   agent: 
     type: agent/replay
     replay_steps: 64

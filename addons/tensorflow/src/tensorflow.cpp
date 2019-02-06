@@ -272,10 +272,10 @@ void TensorFlowRepresentation::configure(Configuration &config)
     if (init_node_.empty() && n.name() == "init")
       init_node_ = n.name();
 
-    if (update_node_.empty() && n.name() == "group_deps")
+    if (update_node_.empty() && n.name() == "training/group_deps")
       update_node_ = n.name();
 
-    if (auto_output && n.name() == "group_deps_1")
+    if (auto_output && n.name() == "group_deps")
       output_layer_ = output_layer_ + n.input(0).substr(1) + ", ";
       
     if (n.op() == "Assign" && n.input_size() == 2 && n.input(1).find("Placeholder") != std::string::npos)
