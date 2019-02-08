@@ -121,7 +121,7 @@ void DDPGPredictor::update(const std::vector<const Transition*> &transitions)
     double target = transitions[ii]->reward;
   
     if (!transitions[ii]->obs.absorbing)
-      target += gamma_*q(qs++);
+      target += pow(gamma_, transitions[ii]->tau)*q(qs++);
      
     ProjectionPtr obs_projection = obs_projector_->project(transitions[ii]->prev_obs);
     VectorProjection *vp_obs = dynamic_cast<VectorProjection*>(obs_projection.get());

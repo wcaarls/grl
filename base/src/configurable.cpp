@@ -173,7 +173,13 @@ Configurator *grl::loadYAML(const std::string &file, const std::string &element,
       }
       
       TRACE(path << ": reference to file " << value);
-      return loadYAML(value, element, parent);
+      try {
+        YAML::Node _ = YAML::LoadFile(value.c_str());
+        return loadYAML(value, element, parent);
+      } catch (YAML::BadFile &e) {
+        WARNING(path << ": reference to non-existing file " << value);
+        return new ParameterConfigurator(element, value, parent);
+      }
     }
     else
     {
@@ -404,6 +410,8 @@ std::string ParameterConfigurator::str() const
     // Parse values
     std::istringstream issx, issy;
     std::vector<double> x_in, y_in, z_out;
+    
+    // TODO: check whether these are numbers/vectors
 
     issx.str(left);  issx >> x_in;
     issy.str(right); issy >> y_in;

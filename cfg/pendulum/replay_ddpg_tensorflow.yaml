@@ -6,6 +6,7 @@ experiment:
   steps: 0
   rate: 0
   test_interval: 10
+  output: outfix
   environment: 
     type: environment/modeled
     model: 
@@ -20,7 +21,7 @@ experiment:
       randomization: 0
   agent: 
     type: agent/replay
-    replay_steps: 64
+    replay_steps: 256
     batch_size: 64
     observation_steps: 1000
     threads: 0
@@ -54,7 +55,7 @@ experiment:
             interval: 10000
             inputs: experiment/environment/task/observation_dims
             targets: experiment/environment/task/action_dims
-            file: pendulum_ddpg.pb
+            file: ./4layer_tanh_ddpg.py
             input_layer: s_in
             output_layer: a_out/mul, q/BiasAdd
             output_target: q_target
