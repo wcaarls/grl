@@ -49,6 +49,7 @@ extern "C"
   typedef TF_Graph* (*TF_NewGraph)();
   typedef void (*TF_DeleteGraph)(TF_Graph*);
   typedef TF_Operation* (*TF_GraphOperationByName)(TF_Graph*, const char*);
+  typedef void (*TF_GraphGetTensorShape)(TF_Graph*, TF_Output, int64_t*, int, TF_Status*);
 
   typedef TF_ImportGraphDefOptions* (*TF_NewImportGraphDefOptions)();
   typedef void (*TF_DeleteImportGraphDefOptions)(TF_ImportGraphDefOptions*);
@@ -87,6 +88,7 @@ namespace TF
   TF_DECLARE(NewGraph);
   TF_DECLARE(DeleteGraph);
   TF_DECLARE(GraphOperationByName);
+  TF_DECLARE(GraphGetTensorShape);
 
   TF_DECLARE(NewImportGraphDefOptions);
   TF_DECLARE(DeleteImportGraphDefOptions);

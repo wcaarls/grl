@@ -54,6 +54,7 @@ TF_DEFINE(DeleteSessionOptions);
 TF_DEFINE(NewGraph);
 TF_DEFINE(DeleteGraph);
 TF_DEFINE(GraphOperationByName);
+TF_DEFINE(GraphGetTensorShape);
 
 TF_DEFINE(NewImportGraphDefOptions);
 TF_DEFINE(DeleteImportGraphDefOptions);
@@ -100,6 +101,7 @@ static class TFInit
       TF_RESOLVE(NewGraph);
       TF_RESOLVE(DeleteGraph);
       TF_RESOLVE(GraphOperationByName);
+      TF_RESOLVE(GraphGetTensorShape);
 
       TF_RESOLVE(NewImportGraphDefOptions);
       TF_RESOLVE(DeleteImportGraphDefOptions);

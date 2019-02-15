@@ -38,8 +38,7 @@ experiment:
       representation:
         interval: 1000
         type: representation/parameterized/tensorflow
-        inputs: experiment/environment/task/observation_dims+experiment/environment/task/action_dims
-        file: ./4layer_linear.py
+        file: ./4layer_linear.py experiment/environment/task/observation_dims+experiment/environment/task/action_dims 1
       sampler: 
         type: sampler/epsilon_greedy
         epsilon: 0.05

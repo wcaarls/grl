@@ -32,6 +32,8 @@
 
 #include <grl/visualizations/slice.h>
 
+#include <libics.h>
+
 #define EPS 0.001
 
 using namespace grl;
@@ -46,6 +48,7 @@ void SliceVisualization::request(ConfigurationRequest *config)
   config->push_back(CRP("operating_point", "Fixed values for non-visualized dimensions", operating_point_, CRP::Online));
   config->push_back(CRP("output_dim", "Output dimension to visualize", (int)dim_, CRP::Online, 0));
   config->push_back(CRP("points", "Number of points to evaluate", points_));
+  config->push_back(CRP("savepoints", "Number of points to save when pressing 'i'", savepoints_));
   config->push_back(CRP("delay", "Delay between updates (s)", delay_, CRP::Online, 0., 3600.));
   config->push_back(CRP("state", "signal/vector", "Optional current state to overlay", state_, true));
   config->push_back(CRP("action", "signal/vector", "Optional current action to overlay", action_, true));
@@ -76,6 +79,7 @@ void SliceVisualization::configure(Configuration &config)
   
   dim_ = config["output_dim"];
   points_ = pow((int)sqrt((double)config["points"]), 2);
+  savepoints_ = pow((int)pow((double)config["savepoints"], 1./state_dims_), state_dims_);
   delay_ = config["delay"];
   state_ = (VectorSignal*)config["state"].ptr();
   action_ = (VectorSignal*)config["action"].ptr();
@@ -112,6 +116,12 @@ void SliceVisualization::reshape(int width, int height)
 
 void SliceVisualization::key(unsigned char k, int x, int y)
 {
+  if (k == 'i')
+  {
+    save("slice.ics");
+    return;
+  }
+
   switch (k)
   {
     case 'w':
@@ -168,6 +178,78 @@ void SliceVisualization::click(int button, int state, int x, int y)
       INFO("Operating point now " << operating_point_);
       break;
   }
+}
+
+void SliceVisualization::save(const std::string &file) const
+{
+  size_t dimpoints = pow(savepoints_, 1./state_dims_);
+  const Vector delta = (state_max_-state_min_)/(dimpoints-1);
+  
+  // Construct query matrix
+  Matrix query(savepoints_, operating_point_.size());
+  Vector ss = state_min_;
+  for (int ii=0; ii < savepoints_; ++ii)
+  {
+    query.row(ii) = ss;
+            
+    for (int dd=0; dd < state_dims_; ++dd)
+    {
+      ss[dd] = ss[dd] + delta[dd];
+      if (ss[dd] > (state_max_[dd]+EPS))
+        ss[dd] = state_min_[dd];
+      else
+        break;
+    }
+  }
+
+  // Don't do too many at once
+  const size_t block_size = 262144;
+  float *field = NULL;
+  size_t outputs=0;
+  
+  for (size_t nn=0; nn < savepoints_; nn += block_size)
+  {
+    // Gather data
+    Matrix result;
+    mapping_->read(query.block(nn, 0, std::min(block_size, savepoints_-nn), query.cols()), &result);
+    
+    if (!field)
+    {
+      outputs = result.cols();
+      field = new float[savepoints_*outputs];
+    }
+  
+    // Convert to float
+    for (size_t ii=0; ii < result.rows(); ++ii)
+      for (size_t jj=0; jj < result.cols(); ++jj)
+        field[(nn+ii)*outputs+jj] = result(ii, jj);
+  }
+
+  ICS* ip;
+  size_t dims[state_dims_+1];
+  dims[0] = outputs;
+  for (int ii=0; ii < state_dims_; ++ii)
+    dims[ii+1] = dimpoints;
+
+  // Write value function
+  if (IcsOpen(&ip, file.c_str(), "w2") != IcsErr_Ok)
+    throw Exception("Couldn't open ICS file for writing");
+
+  IcsSetLayout(ip, Ics_real32, state_dims_+1, dims);
+  IcsSetOrder(ip, 0, "tensor", "tensor");
+  for (int ii=0; ii < state_dims_; ++ii)
+  {
+    char buf[256]; sprintf(buf, "x%d", ii);
+    IcsSetOrder(ip, ii+1, buf, buf);
+    IcsSetPosition(ip, ii+1, state_min_[ii], delta[ii], "relative");
+  }
+  
+  IcsSetData (ip, (void*)field, savepoints_ * outputs * sizeof(float));
+
+  if (IcsClose(ip) != IcsErr_Ok)
+    throw Exception("Error closing value ICS file");
+
+  delete[] field;
 }
 
 void SliceVisualization::run()

@@ -71,7 +71,10 @@ void SMDPMasterAgent::start(const Observation &obs, Action *action)
   for (size_t ii=0; ii < agent_.size(); ++ii)
   {
     if (time_[ii] >= 0 && time_[ii] < prev_time_)
+    {
+      CRAWL("Pseudo-ending agent " << ii << " with reward " << reward_[ii]);
       agent_[ii]->end(prev_time_-time_[ii], prev_obs_, reward_[ii]);
+    }
     
     time_[ii] = -1;
   }
@@ -116,7 +119,10 @@ void SMDPMasterAgent::end(double tau, const Observation &obs, double reward)
     reward_[ii] += pow(gamma_, prev_time_ - time_[ii]) * reward;
     
     if (time_[ii] >= 0)
+    {
+      CRAWL("Ending agent " << ii << " with reward " << reward_[ii]);
       agent_[ii]->end(curtime-time_[ii], obs, reward_[ii]);
+    }
     time_[ii] = curtime;
     reward_[ii] = 0;
   }
@@ -133,9 +139,15 @@ double SMDPMasterAgent::runSubAgent(size_t idx, double time, const Observation &
   double confidence;
 
   if (time_[idx] < 0)
+  {
+    CRAWL("Starting agent " << idx);
     agent_[idx]->start(obs, action, &confidence);
+  }
   else
+  {
+    CRAWL("Stepping agent " << idx << " with reward " << reward_[idx]);
     agent_[idx]->step(time-time_[idx], obs, reward_[idx], action, &confidence);
+  }
   
   time_[idx] = time;
   reward_[idx] = 0;

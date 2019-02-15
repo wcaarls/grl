@@ -45,23 +45,25 @@ class TensorFlowRepresentation : public ParameterizedRepresentation
     typedef std::pair<Vector, Vector> Sample;
     
   protected:
-    int inputs_, targets_;
     std::string file_, input_layer_, output_layer_, output_target_, sample_weights_, learning_phase_, init_node_, update_node_;
-    std::vector<std::string> outputs_read_, weights_read_, weights_write_, weights_node_;
+    std::vector<std::string> inputs_write_, outputs_read_, weights_read_, weights_write_, weights_node_;
     mutable std::vector<TF::Shape> weights_shape_;
+    IndexVector input_shapes_;
     
     TF_Graph* graph_;
     TF_Session* session_;
     std::vector<Sample> batch_;
-    
-    TF_Tensor* batch_input_, *batch_target_;
+
+    int inputs_, targets_;
+    std::vector<TF_Tensor*> batch_inputs_;    
+    TF_Tensor* batch_target_;
     size_t counter_;
     
     mutable LargeVector params_;
     pthread_mutex_t mutex_;
 
   public:
-    TensorFlowRepresentation() : inputs_(1), targets_(1), graph_(NULL), session_(NULL), counter_(0), mutex_(PTHREAD_MUTEX_INITIALIZER) { }
+    TensorFlowRepresentation() : init_node_("init"), update_node_("update"), graph_(NULL), session_(NULL), counter_(0), mutex_(PTHREAD_MUTEX_INITIALIZER) { }
     ~TensorFlowRepresentation()
     {
       if (session_)
@@ -118,6 +120,7 @@ class TensorFlowRepresentation : public ParameterizedRepresentation
     
   private:
     TF_Operation* OperationByName(const char*) const;
+    int64_t GraphGetTensorElements(TF_Output output) const;
 };
 
 }

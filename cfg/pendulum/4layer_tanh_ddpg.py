@@ -50,7 +50,7 @@ a_out = Lambda(lambda x: action_max*x, name='a_out')(a_raw)
 theta = tf.trainable_variables()
 
 # Critic network definition
-a_in = tf.stop_gradient(tf.placeholder_with_default(a_out, shape=(None,actions), name='a_in'))
+a_in = tf.placeholder_with_default(tf.stop_gradient(a_out), shape=(None,actions), name='a_in')
 if normalization:
   an = BatchNormalization()(a_in)
 else:
@@ -71,10 +71,13 @@ else:
   hqn = hq
 q = Dense(1, activation='linear', name='q')(hqn)
 
+tf.group([s_in, a_in], name='inputs')
+tf.group([q, a_out], name='outputs')
+
 # Critic network update
-q_target = tf.placeholder(tf.float32, shape=(None, 1), name='q_target')
+q_target = tf.placeholder(tf.float32, shape=(None, 1), name='target')
 q_loss = tf.losses.mean_squared_error(q_target, q)
-q_update = tf.train.AdamOptimizer(0.001).minimize(q_loss, name='q_update')
+q_update = tf.train.AdamOptimizer(0.001).minimize(q_loss, name='update')
 
 # Actor network update
 dq_da = tf.gradients(q, a_in, name='dq_da')[0]

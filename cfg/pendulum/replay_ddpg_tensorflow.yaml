@@ -6,7 +6,6 @@ experiment:
   steps: 0
   rate: 0
   test_interval: 10
-  output: outfix
   environment: 
     type: environment/modeled
     model: 
@@ -29,21 +28,16 @@ experiment:
       type: mapping/policy/post/noise
       sigma: [1]
       theta: [0.15]
-      decay_rate: 0.9
-      decay_min: 0.1
       output_min: experiment/environment/task/action_min
       output_max: experiment/environment/task/action_max
       policy: 
         type: mapping/policy/filtering
         observation_idx: [0, 1]
-        action_idx: [0]
+        action_idx: [1]
         policy: 
           type: mapping/policy/action
-          sigma: 0
-          decay_rate: 0
-          decay_min: 0
-          output_min: experiment/environment/task/action_min++[0]
-          output_max: experiment/environment/task/action_max++[0]
+          output_min: 0++experiment/environment/task/action_min
+          output_max: 0++experiment/environment/task/action_max
           projector: 
             type: projector/pre/normalizing
             input_min: experiment/environment/task/observation_min
@@ -53,21 +47,17 @@ experiment:
           representation: 
             type: representation/parameterized/tensorflow
             interval: 10000
-            inputs: experiment/environment/task/observation_dims
-            targets: experiment/environment/task/action_dims
-            file: ./4layer_tanh_ddpg.py
-            input_layer: s_in
-            output_layer: a_out/mul, q/BiasAdd
-            output_target: q_target
-            update_node: q_update
+            file: ./4layer_tanh_ddpg.py experiment/environment/task/observation_dims 1
+            input_layer: s_in, a_in
+            output_layer: q/BiasAdd, a_out/mul
     predictor: 
       type: predictor/ddpg
       gamma: 0.99
       observation: s_in
       action: a_in
       value: q/BiasAdd
-      target: q_target
-      critic_update: q_update
+      target: target
+      critic_update: update
       actor_update: a_update
       obs_projector: 
         type: projector/pre/normalizing
@@ -83,12 +73,9 @@ experiment:
     policy: 
       type: mapping/policy/filtering
       observation_idx: [0, 1]
-      action_idx: [0]
+      action_idx: [1]
       policy: 
         type: mapping/policy/action
-        sigma: 0
-        decay_rate: 1
-        decay_min: 0
         output_min: experiment/agent/policy/policy/policy/output_min
         output_max: experiment/agent/policy/policy/policy/output_max
         projector: experiment/agent/policy/policy/policy/projector
@@ -104,7 +91,7 @@ policy_visualization:
   input_min: experiment/environment/task/observation_min
   input_max: experiment/environment/task/observation_max
   operating_point: []
-  output_dim: 0
+  output_dim: 1
   points: /points
   delay: /delay
   state: experiment/state
@@ -118,7 +105,7 @@ value_visualization:
   input_min: experiment/environment/task/observation_min
   input_max: experiment/environment/task/observation_max
   operating_point: []
-  output_dim: 1
+  output_dim: 0
   points: /points
   delay: /delay
   state: experiment/state
@@ -132,7 +119,7 @@ target_value_visualization:
   input_min: experiment/environment/task/observation_min
   input_max: experiment/environment/task/observation_max
   operating_point: []
-  output_dim: 1
+  output_dim: 0
   points: /points
   delay: /delay
   state: experiment/state

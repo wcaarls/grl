@@ -259,6 +259,7 @@ extern const char *grl_log_levels__[];
 #define INFO(m)    GRLLOG(3, m) ///< Log a general event.
 #define TRACE(m)   GRLLOG(4, m) ///< Log throttled debugging information.
 #define CRAWL(m)   GRLLOG(5, m) ///< Log unthrottled debugging information.
+#define TIMING(m)  GRLLOG(6, m) ///< Log timing information.
 
 /// Global namespace log writer.
 inline void log(unsigned char level, const std::ostringstream &oss)

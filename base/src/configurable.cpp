@@ -31,7 +31,7 @@
 using namespace grl;
 
 unsigned char grl::grl_log_verbosity__ = 3;
-const char *grl::grl_log_levels__[] = {"\x1B[31m\x1B[1m(ERR)\x1B[0m", "\x1B[33m\x1B[1m(WRN)\x1B[0m", "\x1B[34m\x1B[1m(NTC)\x1B[0m", "\x1B[32m\x1B[1m(INF)\x1B[0m", "\x1B[0m\x1B[1m(DBG)\x1B[0m", "\x1B[0m(CRL)"};
+const char *grl::grl_log_levels__[] = {"\x1B[31m\x1B[1m(ERR)\x1B[0m", "\x1B[33m\x1B[1m(WRN)\x1B[0m", "\x1B[34m\x1B[1m(NTC)\x1B[0m", "\x1B[32m\x1B[1m(INF)\x1B[0m", "\x1B[0m\x1B[1m(DBG)\x1B[0m", "\x1B[0m(CRL)", "\x1B[30m\x1B[1m(TIM)\x1B[0m"};
 
 /// Write out YAML node as string. 
 std::string YAMLToString(const YAML::Node &node)
@@ -342,6 +342,7 @@ std::string ParameterConfigurator::localize(const std::string &id, const Configu
 }
 
 #define OPERATORS "+*"
+#define WHITESPACE " \t"
 
 std::string ParameterConfigurator::str() const
 {
@@ -395,12 +396,26 @@ std::string ParameterConfigurator::str() const
     }
 
     // Right
-    for (size_t ii=c+1; ii < expv.size() && !strchr(OPERATORS, expv[ii]); ++ii, ++end)
+    bool vec=false;
+    int ii=c+1;
+    for (; ii < expv.size() && strchr(WHITESPACE, expv[ii]); ++ii, ++end);
+    for (; ii < expv.size() && !strchr(OPERATORS, expv[ii]) && (!strchr(WHITESPACE, expv[ii]) || vec); ++ii, ++end)
+    {
+      if (expv[ii] == '[') vec = true;
+      else if (expv[ii] == ']') vec = false;
       right.push_back(expv[ii]);
+    }
 
     // Left
-    for (int ii=c-1-double_op; ii >= 0 && !strchr(OPERATORS, expv[ii]); --ii, --start)
+    vec = false;
+    ii = c-1-double_op;
+    for (; ii >= 0 && strchr(WHITESPACE, expv[ii]); --ii, --start);
+    for (; ii >= 0 && !strchr(OPERATORS, expv[ii]) && (!strchr(WHITESPACE, expv[ii]) || vec); --ii, --start)
+    {
+      if (expv[ii] == ']') vec = true;
+      else if (expv[ii] == '[') vec = false;
       left.push_back(expv[ii]);
+    }
 
     std::reverse(left.begin(), left.end());
 
