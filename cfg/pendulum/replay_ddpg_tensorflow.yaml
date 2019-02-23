@@ -25,31 +25,28 @@ experiment:
     observation_steps: 1000
     threads: 0
     policy: 
-      type: mapping/policy/post/noise
-      sigma: [1]
-      theta: [0.15]
-      output_min: experiment/environment/task/action_min
-      output_max: experiment/environment/task/action_max
+      type: mapping/policy/filtering
+      observation_idx: [0, 1]
+      action_idx: [1]
       policy: 
-        type: mapping/policy/filtering
-        observation_idx: [0, 1]
-        action_idx: [1]
-        policy: 
-          type: mapping/policy/action
-          output_min: 0++experiment/environment/task/action_min
-          output_max: 0++experiment/environment/task/action_max
+        type: mapping/policy/action
+        sigma: [1]
+        theta: [0.15]
+        renormalize: 1
+        output_min: 0++experiment/environment/task/action_min
+        output_max: 0++experiment/environment/task/action_max
+        projector: 
+          type: projector/pre/normalizing
+          input_min: experiment/environment/task/observation_min
+          input_max: experiment/environment/task/observation_max
           projector: 
-            type: projector/pre/normalizing
-            input_min: experiment/environment/task/observation_min
-            input_max: experiment/environment/task/observation_max
-            projector: 
-              type: projector/identity
-          representation: 
-            type: representation/parameterized/tensorflow
-            interval: 10000
-            file: ./4layer_tanh_ddpg.py experiment/environment/task/observation_dims 1
-            input_layer: s_in, a_in
-            output_layer: q/BiasAdd, a_out/mul
+            type: projector/identity
+        representation: 
+          type: representation/parameterized/tensorflow
+          interval: 10000
+          file: ./4layer_tanh_ddpg.py experiment/environment/task/observation_dims 1
+          input_layer: s_in, a_in
+          output_layer: q/BiasAdd, a_out/Tanh
     predictor: 
       type: predictor/ddpg
       gamma: 0.99
@@ -66,8 +63,13 @@ experiment:
         projector: 
           type: projector/identity
       action_projector: 
-        type: projector/identity
-      representation: experiment/agent/policy/policy/policy/representation
+        type: projector/pre/normalizing
+        signed: 1
+        input_min: experiment/environment/task/action_min
+        input_max: experiment/environment/task/action_max
+        projector: 
+          type: projector/identity
+      representation: experiment/agent/policy/policy/representation
   test_agent: 
     type: agent/fixed
     policy: 
@@ -76,10 +78,11 @@ experiment:
       action_idx: [1]
       policy: 
         type: mapping/policy/action
-        output_min: experiment/agent/policy/policy/policy/output_min
-        output_max: experiment/agent/policy/policy/policy/output_max
-        projector: experiment/agent/policy/policy/policy/projector
-        representation: experiment/agent/policy/policy/policy/representation
+        renormalize: 1
+        output_min: experiment/agent/policy/policy/output_min
+        output_max: experiment/agent/policy/policy/output_max
+        projector: experiment/agent/policy/policy/projector
+        representation: experiment/agent/policy/policy/representation
   save_every: never
 visualizer: 
   type: visualizer/glut
@@ -95,10 +98,7 @@ policy_visualization:
   points: /points
   delay: /delay
   state: experiment/state
-  mapping: 
-    type: mapping/represented
-    projector: experiment/agent/policy/policy/policy/projector
-    representation: experiment/agent/policy/policy/policy/representation
+  mapping: experiment/test_agent/policy/policy
 value_visualization: 
   type: visualization/slice
   field_dims: [0, 1]
@@ -111,8 +111,8 @@ value_visualization:
   state: experiment/state
   mapping: 
     type: mapping/represented
-    projector: experiment/agent/policy/policy/policy/projector
-    representation: experiment/agent/policy/policy/policy/representation
+    projector: experiment/agent/policy/policy/projector
+    representation: experiment/agent/policy/policy/representation
 target_value_visualization: 
   type: visualization/slice
   field_dims: [0, 1]
@@ -125,8 +125,8 @@ target_value_visualization:
   state: experiment/state
   mapping: 
     type: mapping/represented
-    projector: experiment/agent/policy/policy/policy/projector
-    representation: experiment/agent/policy/policy/policy/representation/target
+    projector: experiment/agent/policy/policy/projector
+    representation: experiment/agent/policy/policy/representation/target
 curve_visualization: 
   type: visualization/state
   input_dims: []

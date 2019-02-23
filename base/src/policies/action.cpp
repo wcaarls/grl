@@ -36,10 +36,14 @@ REGISTER_CONFIGURABLE(ActionProbabilityPolicy)
 
 void ActionPolicy::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("sigma", "Standard deviation of exploration distribution", sigma_, CRP::Configuration));
+  config->push_back(CRP("sigma", "Standard deviation of Gaussian exploration distribution", sigma_, CRP::Configuration));
+  config->push_back(CRP("theta", "Ornstein-Uhlenbeck friction term (1=pure Gaussian noise)", theta_, CRP::Configuration));
+
   config->push_back(CRP("decay_rate", "Multiplicative decay factor per episode", decay_rate_, CRP::Configuration));
   config->push_back(CRP("decay_min", "Minimum decay (sigma_min = sigma*decay_min)", decay_min_, CRP::Configuration));
   
+  config->push_back(CRP("renormalize", "int", "Renormalize representation output from [-1, 1] to [min, max]", renormalize_, CRP::Configuration, 0, 1));
+
   config->push_back(CRP("output_min", "vector.action_min", "Lower limit on outputs", min_, CRP::System));
   config->push_back(CRP("output_max", "vector.action_max", "Upper limit on outputs", max_, CRP::System));
 
@@ -52,7 +56,9 @@ void ActionPolicy::configure(Configuration &config)
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (Representation*)config["representation"].ptr();
   
+  renormalize_ = config["renormalize"];
   sigma_ = config["sigma"].v();
+  theta_ = config["theta"].v();
   decay_rate_ = config["decay_rate"];
   decay_min_ = config["decay_min"];
   decay_ = 1.;
@@ -70,6 +76,15 @@ void ActionPolicy::configure(Configuration &config)
     
   if (sigma_.size() != min_.size())
     throw bad_param("policy/action:sigma");
+    
+  if (!theta_.size())
+    theta_ = VectorConstructor(1.);
+    
+  if (theta_.size() == 1)
+    theta_ = ConstantVector(min_.size(), theta_[0]);
+    
+  if (theta_.size() != min_.size())
+    throw bad_param("policy/action:theta");
 }
 
 void ActionPolicy::reconfigure(const Configuration &config)
@@ -78,31 +93,73 @@ void ActionPolicy::reconfigure(const Configuration &config)
     decay_ = 1;
 }
 
-void ActionPolicy::act(double time, const Observation &in, Action *out)
-{
-  if (time == 0.)
-    decay_ = fmax(decay_*decay_rate_, decay_min_);
-  return act(in, out);
-}
-
-void ActionPolicy::act(const Observation &in, Action *out) const
+double ActionPolicy::read(const Vector &in, Vector *result) const
 {
   ProjectionPtr p = projector_->project(in);
-  representation_->read(p, &out->v);
-  out->type = atGreedy;
+  representation_->read(p, result);
   
   // Some representations may not always return a value.
-  if (!out->size())
-    *out = (min_+max_)/2;
+  if (!result->size())
+    *result = (min_+max_)/2;
+  else if (renormalize_)
+    for (size_t ii=0; ii < result->size(); ++ii)
+      (*result)[ii] = (*result)[ii] * (max_[ii]-min_[ii])/2 + (min_[ii]+max_[ii])/2;
+    
+  return (*result)[0];
+}
+
+void ActionPolicy::read(const Matrix &in, Matrix *result) const
+{
+  representation_->batchRead(in.rows());
+  for (size_t ii=0; ii != in.rows(); ++ii)
+    representation_->enqueue(projector_->project(in.row(ii)));
+  representation_->read(result);
+  
+  if (renormalize_)
+    for (size_t rr=0; rr < result->rows(); ++rr)
+      for (size_t cc=0; cc < result->cols(); ++cc)
+        (*result)(rr, cc) = (*result)(rr, cc) * (max_[cc]-min_[cc])/2 + (min_[cc]+max_[cc])/2;
+}
+
+void ActionPolicy::act(double time, const Observation &in, Action *out)
+{
+  read(in, &out->v);
+  out->type = atGreedy;
   
   if (sigma_.size() != out->size())
     throw bad_param("policy/action:{output_min,output_max}");
-  
+
+  if (time == 0 || n_.size() != out->size())
+    n_ = ConstantVector(out->size(), 0.);
+
+  if (time == 0.)
+    decay_ = fmax(decay_*decay_rate_, decay_min_);
+    
   for (size_t ii=0; ii < out->size(); ++ii)
   {
     if (sigma_[ii])
     {
-      (*out)[ii] += RandGen::getNormal(0., sigma_[ii]*decay_);
+      (*out)[ii] += n_[ii] = (1-theta_[ii])*n_[ii] + RandGen::getNormal(0., decay_*sigma_[ii]);
+      out->type = atExploratory;
+    }
+
+    (*out)[ii] = fmin(fmax((*out)[ii], min_[ii]), max_[ii]);
+  }
+}
+
+void ActionPolicy::act(const Observation &in, Action *out) const
+{
+  read(in, &out->v);
+  out->type = atGreedy;
+  
+  if (sigma_.size() != out->size())
+    throw bad_param("policy/action:{output_min,output_max}");
+
+  for (size_t ii=0; ii < out->size(); ++ii)
+  {
+    if (sigma_[ii])
+    {
+      (*out)[ii] += RandGen::getNormal(0., decay_*sigma_[ii]);
       out->type = atExploratory;
     }
       

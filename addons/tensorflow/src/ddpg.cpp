@@ -44,6 +44,7 @@ void DDPGPredictor::request(ConfigurationRequest *config)
   config->push_back(CRP("critic_update", "TensorFlow operation node to run critic update", critic_update_));
   config->push_back(CRP("actor_update", "TensorFlow operation node to run actor update", actor_update_));
 
+  config->push_back(CRP("discretizer", "discretizer.action", "Optional action discretizer to take max over next state", discretizer_, true));
   config->push_back(CRP("obs_projector", "projector.observation", "Projects observation onto representation space", obs_projector_));
   config->push_back(CRP("action_projector", "projector.action", "Projects action onto representation space", action_projector_));
   config->push_back(CRP("representation", "representation/parameterized/tensorflow.action", "Action representation trained with Q targets", representation_));
@@ -60,6 +61,7 @@ void DDPGPredictor::configure(Configuration &config)
   critic_update_ = config["critic_update"].str();
   actor_update_ = config["actor_update"].str();
   
+  discretizer_ = (Discretizer*)config["discretizer"].ptr();
   obs_projector_ = (Projector*)config["obs_projector"].ptr();
   action_projector_ = (Projector*)config["action_projector"].ptr();
   representation_ = (TensorFlowRepresentation*)config["representation"].ptr();
@@ -75,10 +77,13 @@ void DDPGPredictor::reconfigure(const Configuration &config)
 void DDPGPredictor::update(const std::vector<const Transition*> &transitions)
 {
   // Count number of transitions with valid next state  
-  long int qs = 0;
+  long int qs = 0, as = 0;
   for (size_t ii=0; ii < transitions.size(); ++ii)
     if (!transitions[ii]->obs.absorbing)
       qs++;
+      
+  if (discretizer_)
+    as = discretizer_->size();
   
   // Verify projectors
   ProjectionPtr p_obs = obs_projector_->project(transitions[0]->prev_obs);
@@ -90,10 +95,10 @@ void DDPGPredictor::update(const std::vector<const Transition*> &transitions)
   VectorProjection *vp_action = dynamic_cast<VectorProjection*>(p_action.get());
   if (!vp_action)
     throw Exception("DDPG predictor requires vector action projection");
-
+    
+  // Create input tensor
   TF::TensorPtr read_input = representation_->tensor(TF::Shape({qs, vp_obs->vector.size()}));
   
-  // Create input tensor
   qs = 0;
   for (size_t ii=0; ii < transitions.size(); ++ii)
     if (!transitions[ii]->obs.absorbing)
@@ -109,7 +114,40 @@ void DDPGPredictor::update(const std::vector<const Transition*> &transitions)
   std::vector<TF::TensorPtr> result;
   representation_->target()->SessionRun({{observation_, read_input}}, {value_}, {}, &result);
 
-  TF::Tensor &q = *result[0];
+  TF::Tensor &qap = *result[0];
+  
+  std::vector<TF::TensorPtr> disc_result;
+  if (discretizer_)
+  {
+    // Create input tensor for discrete actions
+    TF::TensorPtr disc_input_obs = representation_->tensor(TF::Shape({qs*as, vp_obs->vector.size()})),
+                  disc_input_act = representation_->tensor(TF::Shape({qs*as, vp_action->vector.size()}));
+    
+    qs = 0;
+    for (size_t ii=0; ii < transitions.size(); ++ii)
+      if (!transitions[ii]->obs.absorbing)
+      {
+        std::vector<Vector> variants;
+        discretizer_->options(transitions[ii]->obs, &variants);
+      
+        for (size_t aa=0; aa < as; ++aa)
+        {
+          for (size_t jj=0; jj < vp_obs->vector.size(); ++jj)
+            (*disc_input_obs)(qs*as+aa, jj) = (*read_input)(qs, jj);
+            
+          ProjectionPtr projection = action_projector_->project(variants[aa]);
+          VectorProjection *vp = dynamic_cast<VectorProjection*>(projection.get());
+          for (size_t jj=0; jj < vp->vector.size(); ++jj)
+            (*disc_input_act)(qs*as+aa, jj) = vp->vector[jj];
+        }
+        
+        qs++;
+      }
+  
+    // Get Q(s', {variants})
+    representation_->target()->SessionRun({{observation_, disc_input_obs}, {action_, disc_input_act}}, {value_}, {}, &disc_result);
+  }
+  
   TF::TensorPtr write_obs_input = representation_->tensor(TF::Shape({(int)transitions.size(), vp_obs->vector.size()}));
   TF::TensorPtr write_action_input = representation_->tensor(TF::Shape({(int)transitions.size(), vp_action->vector.size()}));
   TF::TensorPtr write_target = representation_->tensor(TF::Shape({(int)transitions.size(), 1}));
@@ -121,7 +159,16 @@ void DDPGPredictor::update(const std::vector<const Transition*> &transitions)
     double target = transitions[ii]->reward;
   
     if (!transitions[ii]->obs.absorbing)
-      target += pow(gamma_, transitions[ii]->tau)*q(qs++);
+    {
+      double v = qap(qs);
+      
+      if (discretizer_)
+        for (size_t aa=0; aa < discretizer_->size(); ++aa)
+          v = fmax(v, (*disc_result[0])(qs*as+aa));
+
+      target += pow(gamma_, transitions[ii]->tau)*v;
+      qs++;
+    }
      
     ProjectionPtr obs_projection = obs_projector_->project(transitions[ii]->prev_obs);
     VectorProjection *vp_obs = dynamic_cast<VectorProjection*>(obs_projection.get());

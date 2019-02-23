@@ -34,6 +34,8 @@ REGISTER_CONFIGURABLE(NormalizingProjector)
 
 void NormalizingProjector::request(const std::string &role, ConfigurationRequest *config)
 {
+  config->push_back(CRP("signed", "If true, project onto [-1, 1] instead of [0, 1]", signed_, CRP::Configuration, 0, 1));
+
   if (role == "observation")
   {
     config->push_back(CRP("input_min", "vector.observation_min", "Lower input dimension limit (for scaling)", min_, CRP::System));
@@ -63,11 +65,12 @@ void NormalizingProjector::configure(Configuration &config)
   projector_ = (Projector*) config["projector"].ptr();
   min_ = config["input_min"].v();
   max_ = config["input_max"].v();
+  signed_ = config["signed"];
   
   if (min_.size() != max_.size())
     throw bad_param("projector/normalizing:{input_min,input_max}");
 
-  scaling_ = ConstantVector(min_.size(), 1.)/(max_-min_);
+  scaling_ = ConstantVector(min_.size(), 1.)/(max_-min_)*(1+signed_);
 }
 
 void NormalizingProjector::reconfigure(const Configuration &config)
@@ -78,8 +81,8 @@ ProjectionPtr NormalizingProjector::project(const Vector &in) const
 {
   if (in.size() != scaling_.size())
     throw bad_param("projector/pre/normalizing:{min,max,scaling}"); 
-
-  return projector_->project((in-min_)*scaling_);
+    
+  return projector_->project((in-min_)*scaling_-signed_);
 }
 
 Matrix NormalizingProjector::jacobian(const Vector &in) const
@@ -87,5 +90,5 @@ Matrix NormalizingProjector::jacobian(const Vector &in) const
   if (in.size() != scaling_.size())
     throw bad_param("projector/pre/normalizing:{min,max,scaling}"); 
 
-  return projector_->jacobian((in-min_)*scaling_)*diagonal(scaling_);
+  return projector_->jacobian((in-min_)*scaling_-signed_)*diagonal(scaling_);
 }

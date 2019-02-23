@@ -1,5 +1,5 @@
 /** \file naf.h
- * \brief NAF and Expected NAF predictors header file.
+ * \brief NAF predictor header file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
  * \date      2017-07-18

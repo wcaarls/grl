@@ -1,4 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/python3
+#
+# NOTE: Actions are defined on [-1, 1], so they need to be
+# normalized on input (with a signed projector/pre/normalized) and
+# on output (with a renormalizing mapping/policy/action)
 
 from __future__ import print_function
 
@@ -17,13 +21,8 @@ if len(sys.argv) != 4:
   print(" ", sys.argv[0], "<inputs> <outputs> <output.pb>")
   sys.exit(1)
 
-if int(sys.argv[2]) != 1:
-  print("Not suitable for more than one output", file=sys.stderr)
-  sys.exit(1)
-
 obs = int(sys.argv[1])
-actions = 1
-action_max = 3
+actions = int(sys.argv[2])
 normalization = False
 share_weights = False
 layer1_size = 400
@@ -45,8 +44,7 @@ if normalization:
   han = BatchNormalization()(ha)
 else:
   han = ha
-a_raw = Dense(actions, activation='tanh', name='a_raw')(han)
-a_out = Lambda(lambda x: action_max*x, name='a_out')(a_raw)
+a_out = Dense(actions, activation='tanh', name='a_out')(han)
 theta = tf.trainable_variables()
 
 # Critic network definition

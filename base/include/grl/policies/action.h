@@ -47,11 +47,13 @@ class ActionPolicy : public Policy
     Projector *projector_;
     Representation *representation_;
     
-    Vector min_, max_, sigma_;
+    Vector min_, max_, sigma_, theta_, n_;
     double decay_rate_, decay_min_, decay_;
+    
+    int renormalize_;
 
   public:
-    ActionPolicy() : projector_(NULL), representation_(NULL), decay_rate_(1), decay_min_(0), decay_(1) { }
+    ActionPolicy() : projector_(NULL), representation_(NULL), decay_rate_(1), decay_min_(0), decay_(1), renormalize_(0) { }
     
     // From Configurable  
     virtual void request(ConfigurationRequest *config);
@@ -61,6 +63,10 @@ class ActionPolicy : public Policy
     // From Policy
     virtual void act(double time, const Observation &in, Action *out);
     virtual void act(const Observation &in, Action *out) const;
+    
+    // From Mapping
+    virtual double read(const Vector &in, Vector *result) const;
+    virtual void read(const Matrix &in, Matrix *result) const;
 };
 
 /// Policy based on an action-probability representation.
