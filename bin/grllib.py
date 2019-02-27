@@ -223,7 +223,7 @@ def mergeconf(base, new):
       if k not in base:
         base[k] = v
       else:
-        base[k] = merge(base[k],v)
+        base[k] = mergeconf(base[k],v)
 
   return base
 
