@@ -14,10 +14,14 @@ experiment:
       dynamics: 
         type: dynamics/mountain
         mass: 2
+        gravity: 1
+        friction: 0.5
+        stiffness: 1000
         map: 
           type: mapping/puddle
-          seed: 4
-          steepness: 1
+          seed: 3
+          smoothing: 0.08
+          steepness: 2
     task: 
       type: task/mountain/regulator
       start: [0.1, 0.1, 0, 0]
@@ -25,10 +29,12 @@ experiment:
       stddev: [0.1, 0.1, 0, 0]
       q: [1, 1, 0, 0]
       r: [0.01, 0.01]
+      function: sqrt
+      smoothing: 0.01
   agent: 
     type: agent/td
     policy: 
-      type: mapping/policy/value/q
+      type: mapping/policy/discrete/value/q
       discretizer: 
         type: discretizer/uniform
         min: experiment/environment/task/action_min
@@ -54,8 +60,8 @@ experiment:
         rand_max: 0
         epsilon: [0.05]
     predictor: 
-      type: predictor/sarsa
-      alpha: 0.2
+      type: predictor/critic/sarsa
+      alpha: 0.5
       gamma: 0.99
       lambda: 0.65
       projector: experiment/agent/policy/projector
@@ -65,7 +71,7 @@ experiment:
   test_agent: 
     type: agent/fixed
     policy: 
-      type: mapping/policy/value/q
+      type: mapping/policy/discrete/value/q
       discretizer: experiment/agent/policy/discretizer
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
@@ -75,7 +81,7 @@ experiment:
   save_every: never
 visualizer: 
   type: visualizer/glut
-critic_visualization: 
+value_visualization: 
   type: visualization/slice
   field_dims: [0, 1]
   input_min: experiment/environment/task/observation_min
@@ -99,24 +105,3 @@ map_visualization:
   state: experiment/state
   action: experiment/action
   mapping: experiment/environment/model/dynamics/map
-displacement_visualization: 
-  type: visualization/slice
-  field_dims: [0, 1]
-  input_min: experiment/environment/task/observation_min
-  input_max: experiment/environment/task/observation_max
-  operating_point: []
-  output_dim: 0
-  points: 65536
-  state: experiment/state
-  action: experiment/action
-  mapping: 
-    type: mapping/displacement
-    policy: experiment/test_agent/policy
-#      type: mapping/policy/random
-#      output_min: [0, 0]
-#      output_max: [0, 0]
-    model: 
-      type: observation_model/fixed
-      jacobian_step: 0.001
-      model: experiment/environment/model
-      task: experiment/environment/task
