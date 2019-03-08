@@ -49,14 +49,14 @@ class DDPGPredictor : public Predictor
     TYPEINFO("predictor/ddpg", "Deep Deterministic Policy Gradient Actor-Critic predictor")
 
   protected:
-    double gamma_;
+    double gamma_, reward_scale_;
     Discretizer *discretizer_;
     Projector *obs_projector_, *action_projector_;
     TensorFlowRepresentation *representation_;
     std::string  observation_, action_, value_, target_, critic_update_, actor_update_;
 
   public:
-    DDPGPredictor() : gamma_(0.97), discretizer_(NULL), obs_projector_(NULL), action_projector_(NULL), representation_(NULL) { }
+    DDPGPredictor() : gamma_(0.97), reward_scale_(1.), discretizer_(NULL), obs_projector_(NULL), action_projector_(NULL), representation_(NULL) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);

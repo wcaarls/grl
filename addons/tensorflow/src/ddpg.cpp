@@ -36,6 +36,7 @@ void DDPGPredictor::request(ConfigurationRequest *config)
   Predictor::request(config);
   
   config->push_back(CRP("gamma", "Discount rate", gamma_));
+  config->push_back(CRP("reward_scale", "Scaling factor for all rewards", reward_scale_, CRP::Configuration, DBL_MIN, DBL_MAX));
   
   config->push_back(CRP("observation", "TensorFlow placeholder node for graph observation input", observation_));
   config->push_back(CRP("action", "TensorFlow node for graph action input", action_));
@@ -67,6 +68,7 @@ void DDPGPredictor::configure(Configuration &config)
   representation_ = (TensorFlowRepresentation*)config["representation"].ptr();
   
   gamma_ = config["gamma"];
+  reward_scale_ = config["reward_scale"];
 }
 
 void DDPGPredictor::reconfigure(const Configuration &config)
@@ -156,7 +158,7 @@ void DDPGPredictor::update(const std::vector<const Transition*> &transitions)
   qs = 0;
   for (size_t ii=0; ii < transitions.size(); ++ii)
   {
-    double target = transitions[ii]->reward;
+    double target = reward_scale_*transitions[ii]->reward;
   
     if (!transitions[ii]->obs.absorbing)
     {
