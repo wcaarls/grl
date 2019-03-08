@@ -24,7 +24,7 @@ experiment:
   agent: 
     type: agent/td
     policy: 
-      type: policy/value/q
+      type: policy/discrete/value/q
       discretizer: 
         type: discretizer/uniform
         min: experiment/environment/task/action_min 
@@ -49,7 +49,7 @@ experiment:
         type: sampler/epsilon_greedy
         epsilon: 0.05
     predictor: 
-      type: predictor/sarsa
+      type: predictor/critic/sarsa
       alpha: 0.2
       gamma: 0.97
       lambda: 0.65
@@ -61,7 +61,7 @@ experiment:
   test_agent: 
     type: agent/fixed
     policy: 
-      type: policy/value/q
+      type: policy/discrete/value/q
       discretizer: experiment/agent/policy/discretizer
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation

@@ -24,7 +24,7 @@ experiment:
   agent: 
     type: agent/td
     policy: 
-      type: mapping/policy/value/q
+      type: mapping/policy/discrete/value/q
       discretizer: 
         type: discretizer/uniform
         min: experiment/environment/task/action_min
@@ -50,11 +50,10 @@ experiment:
         rand_max: 0
         epsilon: 0.05
     predictor: 
-      type: predictor/advantage
+      type: predictor/critic/q
       alpha: 0.2
       gamma: 0.97
       lambda: 0.65
-      kappa: 1
       discretizer: experiment/agent/policy/discretizer
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
@@ -63,7 +62,7 @@ experiment:
   test_agent: 
     type: agent/fixed
     policy: 
-      type: mapping/policy/value/q
+      type: mapping/policy/discrete/value/q
       discretizer: experiment/agent/policy/discretizer
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation

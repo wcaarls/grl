@@ -1,10 +1,11 @@
 experiment: 
   type: experiment/online_learning
-  runs: 1
+  runs: 20
   trials: 0
-  steps: 0
+  steps: 200000
   rate: 0
   test_interval: 10
+  output: cart_double_pole_sarsa
   environment: 
     type: environment/modeled
     model: 
@@ -19,7 +20,7 @@ experiment:
   agent: 
     type: agent/td
     policy: 
-      type: policy/value/q
+      type: policy/discrete/value/q
       discretizer: 
         type: discretizer/uniform
         min: experiment/environment/task/action_min
@@ -44,7 +45,7 @@ experiment:
         type: sampler/epsilon_greedy
         epsilon: 0.02
     predictor: 
-      type: predictor/sarsa
+      type: predictor/critic/sarsa
       alpha: 0.2
       gamma: 0.99
       lambda: 0.92
@@ -55,7 +56,7 @@ experiment:
   test_agent: 
     type: agent/fixed
     policy: 
-      type: policy/value/q
+      type: policy/discrete/value/q
       discretizer: experiment/agent/policy/discretizer
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation

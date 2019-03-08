@@ -50,7 +50,7 @@ experiment:
         output_max: []
         projector: experiment/agent/predictor/projector
     solver: 
-      type: solver/lqr
+      type: solver/policy/lqr
       operating_state: experiment/environment/task/goal
       operating_action: [0]
       model: 
