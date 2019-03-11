@@ -161,6 +161,7 @@ Configurator *grl::loadYAML(const std::string &file, const std::string &element,
   else
   {
     std::string value = YAMLToString(node);
+    value = resolveEnv(value, file);
     
     if (value.size() >= 5 && value.substr(value.size()-5) == ".yaml")
     {
@@ -189,6 +190,51 @@ Configurator *grl::loadYAML(const std::string &file, const std::string &element,
     }
   }
 }      
+
+std::string grl::resolveEnv(const std::string &value, const std::string &file)
+{
+  size_t pos = 0;
+  std::string retval = value;
+
+  while ((pos = retval.find_first_of("$", pos)) != std::string::npos)
+  {
+    size_t endpos = ++pos;
+    std::string var;
+
+    if (retval[endpos] == '@')
+    {
+      endpos++;
+      if (!file.empty())
+      {
+        size_t path_pos = file.find_last_of("/");
+        if (path_pos != std::string::npos)
+          var = file.substr(0, path_pos);
+        else
+          var = ".";
+      }
+      else
+        var = ".";
+    }
+    else if (isalpha(retval[endpos]) || retval[endpos] == '_')
+    {
+      var = retval[endpos++];
+      while (isalnum(retval[endpos]))
+        var += retval[endpos++];
+      
+      char *evar = getenv(var.c_str());
+      if (evar)
+        var = evar;
+      else
+        var = "";
+    }
+    else
+      continue;
+    
+    retval = retval.substr(0, pos-1) + var + retval.substr(endpos);
+  }
+  
+  return retval;
+}
 
 /// *** ListConfigurator ***
 

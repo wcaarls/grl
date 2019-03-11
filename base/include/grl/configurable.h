@@ -687,6 +687,7 @@ class ObjectConfigurator : public Configurator
 
 Configurator *loadYAML(const std::string &file, const std::string &element=std::string(), Configurator *parent=NULL);
 Configurator *loadYAML(const std::string &file, const std::string &element, Configurator *parent, const YAML::Node &node);
+std::string resolveEnv(const std::string &value, const std::string &file);
 
 /// Configurable object.
 class Configurable

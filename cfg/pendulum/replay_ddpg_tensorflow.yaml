@@ -1,11 +1,12 @@
 experiment: 
   type: experiment/online_learning
-  runs: 1
+  runs: 10
   run_offset: 0
-  trials: 0
+  trials: 1000
   steps: 0
   rate: 0
   test_interval: 10
+  output: ddpg_test
   environment: 
     type: environment/modeled
     model: 
@@ -20,8 +21,8 @@ experiment:
       randomization: 0
   agent: 
     type: agent/replay
-    replay_steps: 256
-    batch_size: 64
+    replay_steps: 64
+    batch_size: 16
     observation_steps: 1000
     threads: 0
     policy: 
@@ -44,12 +45,13 @@ experiment:
         representation: 
           type: representation/parameterized/tensorflow
           interval: 10000
-          file: ./4layer_tanh_ddpg.py experiment/environment/task/observation_dims 1
+          file: $@/4layer_tanh_ddpg.py experiment/environment/task/observation_dims 1
           input_layer: s_in, a_in
           output_layer: q/BiasAdd, a_out/Tanh
     predictor: 
       type: predictor/ddpg
       gamma: 0.99
+      reward_scale: 0.1
       observation: s_in
       action: a_in
       value: q/BiasAdd
