@@ -223,7 +223,8 @@ class Worker: public itc::Thread
           std::string str = oss.str();
           const char *cstr = str.c_str();
           
-          if (write(fd, cstr, strlen(cstr)) != strlen(cstr))
+          // NOTE: Writes embedded NULL character as terminator
+          if (write(fd, cstr, strlen(cstr)+1) != strlen(cstr)+1)
             ERROR("Couldn't write result");
         }
         while (0);
