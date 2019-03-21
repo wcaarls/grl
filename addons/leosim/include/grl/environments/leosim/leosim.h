@@ -9,46 +9,74 @@
 
 namespace grl
 {
+// Indices for ODEEnvironment (order of XML)
+enum LeoStateVar
+{
+  svTorsoAngle,
+  svTorsoAngleRate,
+  svLeftArmAngle,
+  svLeftArmAngleRate,
+  svRightHipAngle,
+  svRightHipAngleRate,
+  svLeftHipAngle,
+  svLeftHipAngleRate,
+  svRightKneeAngle,
+  svRightKneeAngleRate,
+  svLeftKneeAngle,
+  svLeftKneeAngleRate,
+  svRightAnkleAngle,
+  svRightAnkleAngleRate,
+  svLeftAnkleAngle,
+  svLeftAnkleAngleRate,
+  svRightToeContact,
+  svRightHeelContact,
+  svLeftToeContact,
+  svLeftHeelContact,
+  
+  // Augmented states for symmetry
+  svStanceHipAngle,
+  svStanceHipAngleRate,
+  svSwingHipAngle,
+  svSwingHipAngleRate,
+  svStanceKneeAngle,
+  svStanceKneeAngleRate,
+  svSwingKneeAngle,
+  svSwingKneeAngleRate,
+  svStanceAnkleAngle,
+  svStanceAnkleAngleRate,
+  svSwingAnkleAngle,
+  svSwingAnkleAngleRate,
+  svStanceToeContact,
+  svStanceHeelContact,
+  svSwingToeContact,
+  svSwingHeelContact,
+  
+  svNumStates
+};
+
+enum LeoActionVar
+{
+  avLeftArmTorque,
+  avRightHipTorque,
+  avLeftHipTorque,
+  avRightKneeTorque,
+  avLeftKneeTorque,
+  avRightAnkleTorque,
+  avLeftAnkleTorque,
+  
+  // Augmented actions for symmetry
+  avStanceHipTorque,
+  avSwingHipTorque,
+  avStanceKneeTorque,
+  avSwingKneeTorque,
+  avStanceAnkleTorque,
+  avSwingAnkleTorque,
+  
+  avNumActions
+};
 
 class CGrlLeoBhWalkSym : public CLeoBhWalkSym
 {
-  public:
-    enum LeoStateVar
-    {
-      svTorsoAngle,
-      svTorsoAngleRate,
-      svLeftArmAngle,
-      svLeftArmAngleRate,
-      svRightHipAngle,
-      svRightHipAngleRate,
-      svLeftHipAngle,
-      svLeftHipAngleRate,
-      svRightKneeAngle,
-      svRightKneeAngleRate,
-      svLeftKneeAngle,
-      svLeftKneeAngleRate,
-      svRightAnkleAngle,
-      svRightAnkleAngleRate,
-      svLeftAnkleAngle,
-      svLeftAnkleAngleRate,
-      svRightToeContact,
-      svRightHeelContact,
-      svLeftToeContact,
-      svLeftHeelContact,
-      svNumStates
-    };
-    enum LeoActionVar
-    {
-      avLeftArmTorque,
-      avRightHipTorque,
-      avLeftHipTorque,
-      avRightKneeTorque,
-      avLeftKneeTorque,
-      avRightAnkleTorque,
-      avLeftAnkleTorque,
-      svNumActions
-    };
-
   public:
     CGrlLeoBhWalkSym(ISTGActuation *actuationInterface) : CLeoBhWalkSym(actuationInterface) {}
 
@@ -62,17 +90,17 @@ class CGrlLeoBhWalkSym : public CLeoBhWalkSym
 
   public:
     void resetState();
-    void fillLeoState(const Vector &obs, const Vector &action, CLeoState &leoState);
-    void parseLeoState(const CLeoState &leoState, Vector &obs);
+    void fillLeoState(const Vector &obs, const Vector &action, CLeoState *leoState);
+    void parseLeoState(const CLeoState &leoState, Vector *obs);
     void updateDerivedStateVars(CLeoState *currentSTGState);
     void setCurrentSTGState(CLeoState *leoState);
     void setPreviousSTGState(CLeoState *leoState);
-    void grlAutoActuateAnkles(Vector &out)
+    void grlAutoActuateAnkles(Vector *out)
     {
       CSTGLeoSim *leoSim = dynamic_cast<CSTGLeoSim*>(mActuationInterface);
       CLeoBhWalkSym::autoActuateAnkles_FixedPos(leoSim);
-      out.resize(2);
-      out << leoSim->getJointVoltage(ljAnkleRight), leoSim->getJointVoltage(ljAnkleLeft);
+      out->resize(2);
+      *out << leoSim->getJointVoltage(ljAnkleRight), leoSim->getJointVoltage(ljAnkleLeft);
     }
     double grlAutoActuateArm()
     {
@@ -117,9 +145,6 @@ class LeoSimEnvironment : public ODEEnvironment
     CSTGLeoSim leoSim_;
     CLeoState leoState_;
     CGrlLeoBhWalkSym bhWalk_;
-    int observation_dims_, requested_action_dims_, action_dims_;
-    int ode_observation_dims_, ode_action_dims_;
-    int learn_stance_knee_;
 
     // Exporter
     Exporter *exporter_;
@@ -127,17 +152,15 @@ class LeoSimEnvironment : public ODEEnvironment
     double time_test_, time_learn_, time0_;
 
   private:
-    void fillObserve(const std::vector<CGenericStateVar> &genericStates,
-                     const std::vector<std::string> &observeList,
-                     Vector &out) const;
+    void fillObserve(const std::vector<std::string> &observeList,
+                     IndexVector *out) const;
 
-    void fillActuate(const std::vector<CGenericActionVar> &genericAction,
-                     const std::vector<std::string> &actuateList,
-                     Vector &out, std::vector<int> &knee_idx) const;
+    void fillActuate(const std::vector<std::string> &actuateList,
+                     IndexVector *out) const;
   private:
     Observation ode_obs_;
     Action ode_action_;
-    Vector observe_, actuate_;
+    IndexVector observe_, actuate_;
 };
 
 }

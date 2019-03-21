@@ -5,14 +5,13 @@ experiment:
   steps: 550000
   rate: 0
   test_interval: 10
-  output: leosim_sarsa_walk
+  output: leosim_sarsa
   environment: 
     type: environment/leosim
     xml: leolearnwalking-sarsa-tc.xml
     visualize: 1
-    observe: torso_boom, hipright, hipleft, kneeright, kneeleft
-    actuate: hipright, hipleft, kneeright, kneeleft
-    learn_stance_knee: 0
+    observe: torso.angle, torso.anglerate, stancehip.angle, stancehip.anglerate, swinghip.angle, swinghip.anglerate, stanceknee.angle, stanceknee.anglerate, swingknee.angle, swingknee.anglerate
+    actuate: stancehip.torque, swinghip.torque, swingknee.torque
   agent:
     type: agent/td
     policy: 
