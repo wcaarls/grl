@@ -1,9 +1,8 @@
-#include <math.h>
-
 #include <XMLConfiguration.h>
 
 #include <grl/environments/leosim/leosim.h>
 
+using std::isnan;
 using namespace grl;
 
 REGISTER_CONFIGURABLE(LeoSimEnvironment)
