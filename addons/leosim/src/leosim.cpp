@@ -279,6 +279,7 @@ void LeoSimEnvironment::start(int test, Observation *obs)
   obs->v.resize(observe_.size());
   for (int ii = 0; ii != observe_.size(); ++ii)
     obs->v[ii] = ode_obs[observe_[ii]];
+  obs->absorbing = false;
     
   bhWalk_.setCurrentSTGState(NULL);
 
@@ -373,6 +374,15 @@ double LeoSimEnvironment::step(const Action &action, Observation *obs, double *r
   // Determine reward
   *reward = bhWalk_.calculateReward();
 
+  // ... and termination
+  if (bhWalk_.isDoomedToFall(&leoState_, false))
+  {
+    *terminal = 2;
+    obs->absorbing = true;
+  }
+  else
+    obs->absorbing = false;
+
   // Debug info
   std::vector<double> s1(leoState_.mJointAngles, leoState_.mJointAngles + ljNumJoints);
   std::vector<double> v1(leoState_.mJointSpeeds, leoState_.mJointSpeeds + ljNumJoints);
@@ -387,13 +397,6 @@ double LeoSimEnvironment::step(const Action &action, Observation *obs, double *r
 
   std::cout << "Reward: " << *reward << std::endl;
 */
-  // ... and termination
-  if (*terminal == 1) // timeout
-    *terminal = 1;
-  else if (bhWalk_.isDoomedToFall(&leoState_, false))
-    *terminal = 2;
-  else
-    *terminal = 0;
 
   // export
   std::vector<double> s0(bhWalk_.getPreviousSTGState()->mJointAngles, bhWalk_.getPreviousSTGState()->mJointAngles + ljNumJoints);
