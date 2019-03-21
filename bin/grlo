@@ -526,15 +526,9 @@ def line_optimize(base, spec, conf):
 def optimize(base, spec_, conf):
   # Replace $* in parameter values
   spec = copy.deepcopy(spec_)
-  print(spec["parameters"])
   for p in spec["parameters"]:
     for i in range(len(p["values"])):
       value = str(p["values"][i])
-      print("rgo: value: " + value)
-      print("i: " + str(i))
-      print("p[values][i]: ")
-      print( p["values"][i])
-      print("new string: " + str(getconf(conf,p["name"])))
       p["values"][i] = value.replace("$*", str(getconf(conf, p["name"])))
 
   algorithm = spec["algorithm"]
