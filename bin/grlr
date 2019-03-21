@@ -1,7 +1,9 @@
 #!/usr/bin/python
-# grlr
-#   Run environment-agent combinations
-# grlr <spec.yaml>
+# grlr [-d]
+#   Run environment-agent combinations.
+#   -d
+#      Only generate configurations, do not run
+# grlr [-d] <spec.yaml>
 #   Run multiple experiments (possibly for different agent-environment combinations)
 #   spec.yaml contains a list of experiments. Each experiment defines a `file`, a
 #   `configuration` (parameters that do not change across experiments) and the
@@ -46,10 +48,11 @@
 #             - 0.5
 #             - 0.7
 
-import yaml, os, sys, glob, copy
+import yaml, os, sys, glob, copy, getopt
 from grllib import *
 
 srv = Server()
+counter = 0
 
 def progress(maxlen, workers, strlen=60):
   alive = 0
@@ -63,7 +66,7 @@ def progress(maxlen, workers, strlen=60):
   print '\r[' + '#'*(w-a) + '+'*a + '.'*(strlen-w) + ']', (len(workers)-alive)*100/maxlen, '%',
   sys.stdout.flush()
 
-def fuzz(name, conf, e):
+def fuzz(name, conf, e, dry):
   orig = copy.deepcopy(conf)
   hasparams = e.has_key("parameters")
   hasconfig = e.has_key("configuration") 
@@ -97,8 +100,16 @@ def fuzz(name, conf, e):
         value = value.replace("$*", str(getconf(conf, p["name"])))
         setconf(conf, p["name"], value)
       
-    # Enqueue job
-    yield yaml.dump(conf)
+    if dry:
+      # Save configuration  
+      global counter
+      stream = open(name + '_' + str(counter) + '.yaml', 'w')
+      stream.write(yaml.dump(conf))
+      stream.close()
+      counter = counter + 1
+    else:
+      # Enqueue job
+      yield yaml.dump(conf)
     
     if hasparams:
       # Increment
@@ -117,12 +128,24 @@ def fuzz(name, conf, e):
       break
 
 if __name__ == '__main__':
-  if len(sys.argv) > 1:
-    stream = open(sys.argv[1], 'r')
+  spec = {'file':'all', 'configuration':[{'name':'experiment/output', 'value':'$@'}]}
+  dry = False    
+
+  try:
+    opts, args = getopt.getopt(sys.argv[1:], "d")
+  except getopt.GetoptError:
+    print 'grlr [-d] [spec.yaml]'
+    sys.exit(2)
+
+  for opt, arg in opts:
+    if opt == '-d':
+      dry = True
+      print "Dry run: just generating configurations"
+
+  if len(args) > 0:
+    stream = open(args[0], 'r')
     spec = yaml.load(stream)
     stream.close()
-  else:
-    spec = {'file':'all', 'configuration':[{'name':'experiment/output', 'value':'$@'}]}
     
   if not isinstance(spec, list):
     spec = [spec]
@@ -136,26 +159,27 @@ if __name__ == '__main__':
       for env in glob.glob('env_*.yaml'):
         for agent in glob.glob('agent_*.yaml'):
           conf = mergeconf(readconf(env), readconf(agent))
-          for job in fuzz(os.path.basename(env)[4:-5] + "_" + os.path.basename(agent)[6:-5], conf, exp):
+          for job in fuzz(os.path.basename(env)[4:-5] + "_" + os.path.basename(agent)[6:-5], conf, exp, dry):
             jobs.append(job)
     else:
       # Specific file, possibly with wildcards
       for f in glob.glob(exp["file"]):
         conf = readconf(f)
-        for job in fuzz(os.path.basename(f), conf, exp):
+        for job in fuzz(os.path.basename(f)[:-5], conf, exp, dry):
           jobs.append(job)
 
-  # Submit jobs
-  workers = []
-  for job in jobs:
-    progress(len(jobs), workers)
-    workers.append(srv.submit(job))
-    
-  # Await results
-  for w in workers:
-    progress(len(jobs), workers)
-    w.read('cumulative')
+  if len(jobs) > 0:
+    # Submit jobs
+    workers = []
+    for job in jobs:
+      progress(len(jobs), workers)
+      workers.append(srv.submit(job))
+      
+    # Await results
+    for w in workers:
+      progress(len(jobs), workers)
+      w.read('cumulative')
 
-  progress(len(jobs), workers)
-  print
+    progress(len(jobs), workers)
+    print
   

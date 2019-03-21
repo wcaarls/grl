@@ -1,7 +1,8 @@
+#include <math.h>
+
 #include <XMLConfiguration.h>
 
 #include <grl/environments/leosim/leosim.h>
-
 
 using namespace grl;
 
