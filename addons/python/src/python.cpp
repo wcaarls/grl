@@ -105,6 +105,8 @@ void GymEnvironment::start(int test, Observation *obs)
   PyObjectToObservation(ret, obs);
   Py_DECREF(ret);
   
+  obs->absorbing = false;
+  
   if (exporter_)
     exporter_->open((test_?"test":"learn"), (test_?time_test_:time_learn_) != 0.0);
 }
@@ -129,6 +131,11 @@ double GymEnvironment::step(const Action &action, Observation *obs, double *rewa
   *reward = PyFloat_AsDouble(PyTuple_GetItem(ret, 1));
   *terminal = PyFloat_AsDouble(PyTuple_GetItem(ret, 2));
   Py_DECREF(ret);
+  
+  if (*terminal == 2)
+    obs->absorbing = true;
+  else
+    obs->absorbing = false;
   
   if (interval_ && !(ep_%interval_))
     PyObject_CallObject(render_, NULL);

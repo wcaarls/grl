@@ -374,7 +374,7 @@ double CLeoBhWalkSym::getFootstepReward()
   {
     double footDistChangeReward = mRwFootstepDistCont*(clip(mFootstepLength, -mRwFootstepMaxLength, mRwFootstepMaxLength) - clip(mLastFootstepLength, -mRwFootstepMaxLength, mRwFootstepMaxLength));
     reward += footDistChangeReward;
-    //mLogInfoLn("Foot distance change reward: " << footDistChangeReward);
+    mLogDebugLn("[REWARD] Foot distance change reward (" << mLastFootstepLength << " -> " << mFootstepLength << "): " << footDistChangeReward);
   }
 
   return reward;
@@ -401,7 +401,7 @@ double CLeoBhWalkSym::calculateReward()
   if (mFootClearance < mRwFootClearanceThreshold)
   {
     double clearanceReward = mRwFootClearance*(mRwFootClearanceThreshold - mFootClearance);
-    //mLogNoticeLn("[REWARD] Robot has low foot clearance of " << mFootClearance*100.0 << "cm! Reward = " << clearanceReward);
+    mLogNoticeLn("[REWARD] Robot has low foot clearance of " << mFootClearance*100.0 << "cm! Reward = " << clearanceReward);
     reward += clearanceReward;
   }
 
@@ -416,13 +416,13 @@ double CLeoBhWalkSym::calculateReward()
   if (getCurrentSTGState()->mJointAngles[mHipSwing] < getCurrentSTGState()->mJointAngles[mHipStance] + 0.3)
   {
     double swingReward = mRwHipAngleChange * (getCurrentSTGState()->mJointSpeeds[mHipSwing] - getCurrentSTGState()->mJointSpeeds[mHipStance]);
-    mLogDebugLn("Swing reward: " << swingReward);
+    mLogDebugLn("[REWARD] Swing reward: " << swingReward);
     reward += swingReward;
   }
 
   // Reward for keeping torso upright
   double torsoReward = mRwTorsoUpright * 1.0/(1.0 + (getCurrentSTGState()->mJointAngles[ljTorso] - mRwTorsoUprightAngle)*(getCurrentSTGState()->mJointAngles[ljTorso] - mRwTorsoUprightAngle)/(mRwTorsoUprightAngleMargin*mRwTorsoUprightAngleMargin));
-  //mLogInfoLn("Torso upright reward: " << torsoReward);
+  mLogDebugLn("[REWARD] Torso upright reward: " << torsoReward);
   reward += torsoReward;
 
   // Penalty for both feet touching the floor

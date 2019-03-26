@@ -240,10 +240,6 @@ void LeoSimEnvironment::configure(Configuration &config)
   config.set("action_dims", actuate_.size());
   config.set("action_min", action_min);
   config.set("action_max", action_max);
-
-  // reserve memory
-  ode_obs_.v.resize(ode_observation_dims);
-  ode_action_.v.resize(ode_action_dims);
 }
 
 void LeoSimEnvironment::reconfigure(const Configuration &config)
@@ -261,12 +257,13 @@ void LeoSimEnvironment::start(int test, Observation *obs)
 {
   test_ = test;
 
-  ODEEnvironment::start(test, &ode_obs_);
+  Observation ode_obs;
+  ODEEnvironment::start(test, &ode_obs);
   
   bhWalk_.resetState();
 
   // Parse obs into CLeoState (Start with left leg being the stance leg)
-  bhWalk_.fillLeoState(ode_obs_, Vector(), &leoState_);
+  bhWalk_.fillLeoState(ode_obs, Vector(), &leoState_);
   bhWalk_.setCurrentSTGState(&leoState_);
   bhWalk_.setPreviousSTGState(&leoState_);
 
@@ -274,13 +271,12 @@ void LeoSimEnvironment::start(int test, Observation *obs)
   bhWalk_.updateDerivedStateVars(&leoState_); // swing-stance switching happens here
   
   // construct new obs from CLeoState
-  Vector ode_obs;
-  bhWalk_.parseLeoState(leoState_, &ode_obs);
+  bhWalk_.parseLeoState(leoState_, &ode_obs.v);
   obs->v.resize(observe_.size());
   for (int ii = 0; ii != observe_.size(); ++ii)
     obs->v[ii] = ode_obs[observe_[ii]];
   obs->absorbing = false;
-    
+  
   bhWalk_.setCurrentSTGState(NULL);
 
   if (exporter_)
@@ -291,6 +287,8 @@ void LeoSimEnvironment::start(int test, Observation *obs)
 double LeoSimEnvironment::step(const Action &action, Observation *obs, double *reward, int *terminal)
 {
   double &time = test_?time_test_:time_learn_;
+  
+  // Set current state so we can calculate automatic actuations
   bhWalk_.setCurrentSTGState(&leoState_);
   
   // Calculate actuation from action
@@ -349,24 +347,23 @@ double LeoSimEnvironment::step(const Action &action, Observation *obs, double *r
     
   // concatenation happens in the order of <actionvar> definitions in an xml file
   // shoulder, right hip, left hip, right knee, left knee, right ankle, left ankle
-  ode_action_.v = actuation.head(avStanceHipTorque);
+  Action ode_action;
+  ode_action.v = actuation.head(avStanceHipTorque);
 
+  Observation ode_obs;
+  double tau = ODEEnvironment::step(ode_action, &ode_obs, reward, terminal);
+
+  // Set previous state so we can calculate contact transitions
   bhWalk_.setPreviousSTGState(&leoState_);
-  TRACE("ode action = " << ode_action_);
-  double tau = ODEEnvironment::step(ode_action_, &ode_obs_, reward, terminal);
-  TRACE("ode observation = " << ode_obs_);
-
-  // Filter joint speeds
-  // Parse obs into CLeoState
-  bhWalk_.fillLeoState(ode_obs_, ode_action_, &leoState_);
+  // Filter joint speeds and parse obs into CLeoState
+  bhWalk_.fillLeoState(ode_obs, ode_action, &leoState_);
   bhWalk_.setCurrentSTGState(&leoState_);
 
   // update derived state variables
-  bhWalk_.updateDerivedStateVars(&leoState_);
+  bhWalk_.updateDerivedStateVars(&leoState_); // swing-stance switching happens here
 
-  // construct new obs from CLeoState
-  Vector ode_obs;
-  bhWalk_.parseLeoState(leoState_, &ode_obs);
+  // construct new obs from updated CLeoState
+  bhWalk_.parseLeoState(leoState_, &ode_obs.v);
   obs->v.resize(observe_.size());
   for (int ii = 0; ii != observe_.size(); ++ii)
     obs->v[ii] = ode_obs[observe_[ii]];

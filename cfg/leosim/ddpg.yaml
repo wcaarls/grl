@@ -1,0 +1,72 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 10
+  trials: 0
+  steps: 550000
+  rate: 0
+  test_interval: 10
+  output: leosim_ddpg
+  environment: 
+    type: environment/leosim
+    xml: leolearnwalking-sarsa-tc.xml
+    visualize: 1
+    observe: torso.angle, torso.anglerate, lefthip.angle, lefthip.anglerate, righthip.angle, righthip.anglerate, leftknee.angle, leftknee.anglerate, rightknee.angle, rightknee.anglerate
+    actuate: lefthip.torque, righthip.torque, leftknee.torque, rightknee.torque
+  agent: 
+    type: agent/replay
+    replay_steps: 256
+    batch_size: 64
+    observation_steps: 1000
+    threads: 0
+    policy: 
+      type: mapping/policy/action
+      sigma: [2]
+      theta: [0.15]
+      output_min: experiment/environment/action_min
+      output_max: experiment/environment/action_max
+      renormalize: 1
+      projector: 
+        type: projector/pre/normalizing
+        input_min: experiment/environment/observation_min
+        input_max: experiment/environment/observation_max
+        projector: 
+          type: projector/identity
+      representation: 
+        type: representation/parameterized/tensorflow
+        interval: 1000
+        file: ./4layer_tanh_ddpg.py experiment/environment/observation_dims experiment/environment/action_dims
+        input_layer: s_in
+        output_layer: a_out/Tanh
+    predictor: 
+      type: predictor/ddpg
+      gamma: 0.75
+      observation: s_in
+      action: a_in
+      value: q/BiasAdd
+      target: target
+      critic_update: update
+      actor_update: a_update
+      obs_projector: 
+        type: projector/pre/normalizing
+        input_min: experiment/environment/observation_min
+        input_max: experiment/environment/observation_max
+        projector: 
+          type: projector/identity
+      action_projector: 
+        type: projector/pre/normalizing
+        input_min: experiment/environment/action_min
+        input_max: experiment/environment/action_max
+        signed: 1
+        projector: 
+          type: projector/identity
+      representation: experiment/agent/policy/representation
+  test_agent: 
+    type: agent/fixed
+    policy: 
+      type: mapping/policy/action
+      output_min: experiment/agent/policy/output_min
+      output_max: experiment/agent/policy/output_max
+      renormalize: 1
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+  save_every: never

@@ -158,8 +158,6 @@ class LeoSimEnvironment : public ODEEnvironment
     void fillActuate(const std::vector<std::string> &actuateList,
                      IndexVector *out) const;
   private:
-    Observation ode_obs_;
-    Action ode_action_;
     IndexVector observe_, actuate_;
 };
 
