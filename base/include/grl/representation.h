@@ -163,18 +163,20 @@ class Representation : public Configurable
 class ParameterizedRepresentation : public Representation
 {
   protected:
-    double interval_;
+    int interval_;
+    double tau_;
     int count_;
     ParameterizedRepresentation *target_;
     pthread_mutex_t mutex_;
 
   public:
-    ParameterizedRepresentation() : interval_(0), count_(0), target_(NULL), mutex_(PTHREAD_MUTEX_INITIALIZER) { }
+    ParameterizedRepresentation() : interval_(0), tau_(1), count_(0), target_(NULL), mutex_(PTHREAD_MUTEX_INITIALIZER) { }
 
     // From Configurable
     void request(const std::string &role, ConfigurationRequest *config)
     {
-      config->push_back(CRP("interval", "Target representation update interval (number of writes; 0=never update, <0=exp.mov.av.)", interval_, CRP::Configuration, 0., DBL_MAX));
+      config->push_back(CRP("interval", "Target representation update interval (number of writes; 0=never update)", interval_, CRP::Configuration));
+      config->push_back(CRP("tau", "Target representation update strength", tau_, CRP::Configuration));
 
       config->push_back(CRP("target", d_type() + "." + role, "Target representation", CRP::Provided));
     }
@@ -182,6 +184,7 @@ class ParameterizedRepresentation : public Representation
     void configure(Configuration &config)
     {
       interval_ = config["interval"];
+      tau_ = config["tau"];
       
       if (interval_)
       {
@@ -216,23 +219,21 @@ class ParameterizedRepresentation : public Representation
       if (!interval_)
         return;
     
-      if (interval_ < 1 && !force)
-      {
-        target_->setParams(interval_*params() + (1-interval_)*target_->params());
-      }
+      TRACE("Synchronizing target representation with strength " << tau_);
+      
+      if (tau_)
+        target_->setParams(tau_*params() + (1-tau_)*target_->params());
       else
-      {
-        TRACE("Synchronizing target representation");
         target_->setParams(params());
-        count_ = 0;
-      }
+        
+      count_ = 0;
     }
     
     void checkSynchronize()
     {
       pthread_mutex_lock(&mutex_);
       count_++;
-      if (interval_ && (interval_ < 1 || count_ >= interval_))
+      if (interval_ && count_ >= interval_)
         synchronize(false);
       pthread_mutex_unlock(&mutex_);
     }
