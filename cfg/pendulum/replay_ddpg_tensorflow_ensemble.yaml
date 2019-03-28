@@ -28,14 +28,14 @@ experiment:
     policy: 
       type: mapping/policy/filtering
       observation_idx: [0, 1]
-      action_idx: [1]
+      action_idx: [0]
       policy: 
         type: mapping/policy/action
         sigma: [1]
         theta: [0.15]
         renormalize: 1
-        output_min: 0++experiment/environment/task/action_min
-        output_max: 0++experiment/environment/task/action_max
+        output_min: experiment/environment/task/action_min++experiment/environment/task/action_min++[0, 0]
+        output_max: experiment/environment/task/action_max++experiment/environment/task/action_max++[0, 0]
         projector: 
           type: projector/pre/normalizing
           input_min: experiment/environment/task/observation_min
@@ -46,16 +46,16 @@ experiment:
           type: representation/parameterized/tensorflow
           interval: 100
           tau: 0.01
-          file: $@/4layer_tanh_ddpg.py experiment/environment/task/observation_dims experiment/environment/task/action_dims
+          file: $@/4layer_tanh_ddpg_ensemble.py experiment/environment/task/observation_dims experiment/environment/task/action_dims 2
           input_layer: s_in, a_in
-          output_layer: q/BiasAdd, a_out/Tanh
+          output_layer: a_out, q
     predictor: 
       type: predictor/ddpg
       gamma: 0.99
       reward_scale: 0.1
       observation: s_in
       action: a_in
-      value: q/BiasAdd
+      value: q
       target: target
       critic_update: update
       actor_update: a_update
@@ -73,7 +73,7 @@ experiment:
     policy: 
       type: mapping/policy/filtering
       observation_idx: [0, 1]
-      action_idx: [1]
+      action_idx: [0]
       policy: 
         type: mapping/policy/action
         renormalize: 1
@@ -86,7 +86,18 @@ visualizer:
   type: visualizer/glut
 points: 4096
 delay: 1
-policy_visualization: 
+policy_visualization_1: 
+  type: visualization/slice
+  field_dims: [0, 1]
+  input_min: experiment/environment/task/observation_min
+  input_max: experiment/environment/task/observation_max
+  operating_point: []
+  output_dim: 0
+  points: /points
+  delay: /delay
+  state: experiment/state
+  mapping: experiment/test_agent/policy/policy
+policy_visualization_2: 
   type: visualization/slice
   field_dims: [0, 1]
   input_min: experiment/environment/task/observation_min
@@ -97,13 +108,13 @@ policy_visualization:
   delay: /delay
   state: experiment/state
   mapping: experiment/test_agent/policy/policy
-value_visualization: 
+value_visualization_1: 
   type: visualization/slice
   field_dims: [0, 1]
   input_min: experiment/environment/task/observation_min
   input_max: experiment/environment/task/observation_max
   operating_point: []
-  output_dim: 0
+  output_dim: 2
   points: /points
   delay: /delay
   state: experiment/state
@@ -111,24 +122,17 @@ value_visualization:
     type: mapping/represented
     projector: experiment/agent/policy/policy/projector
     representation: experiment/agent/policy/policy/representation
-target_value_visualization: 
+value_visualization_2: 
   type: visualization/slice
   field_dims: [0, 1]
   input_min: experiment/environment/task/observation_min
   input_max: experiment/environment/task/observation_max
   operating_point: []
-  output_dim: 0
+  output_dim: 3
   points: /points
   delay: /delay
   state: experiment/state
   mapping: 
     type: mapping/represented
     projector: experiment/agent/policy/policy/projector
-    representation: experiment/agent/policy/policy/representation/target
-curve_visualization: 
-  type: visualization/state
-  input_dims: []
-  input_min: [-4000]
-  input_max: [0]
-  memory: 256
-  state: experiment/curve
+    representation: experiment/agent/policy/policy/representation

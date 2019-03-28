@@ -127,7 +127,10 @@ void ActionPolicy::act(double time, const Observation &in, Action *out)
   out->type = atGreedy;
   
   if (sigma_.size() != out->size())
+  {
+    ERROR("Expected action size " << sigma_.size() << ", representation produced " << out->size());
     throw bad_param("policy/action:{output_min,output_max}");
+  }
 
   if (time == 0 || n_.size() != out->size())
     n_ = ConstantVector(out->size(), 0.);
@@ -153,7 +156,10 @@ void ActionPolicy::act(const Observation &in, Action *out) const
   out->type = atGreedy;
   
   if (sigma_.size() != out->size())
+  {
+    ERROR("Expected action size " << sigma_.size() << ", representation produced " << out->size());
     throw bad_param("policy/action:{output_min,output_max}");
+  }
 
   for (size_t ii=0; ii < out->size(); ++ii)
   {
