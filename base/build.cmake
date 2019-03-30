@@ -9,6 +9,7 @@ add_library(${TARGET} SHARED
             ${SRC}/random_generator.cpp
             ${SRC}/signal.cpp
             ${SRC}/statistics.cpp
+            ${SRC}/parser.cpp
             ${SRC}/agents/fixed.cpp
             ${SRC}/agents/black_box.cpp
             ${SRC}/agents/td.cpp

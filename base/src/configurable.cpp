@@ -27,6 +27,7 @@
 
 #include <algorithm>
 #include <grl/configurable.h>
+#include <grl/parser.h>
 
 using namespace grl;
 
@@ -353,7 +354,7 @@ void ReferenceConfigurator::reconfigure(const Configuration &config, bool recurs
 
 bool ParameterConfigurator::isseparator(char c) const
 {
-  return c == ' ' || c == '\t' || c == '[' || c == ']' || c == '+' || c == ',' || c == '-' || c == '*';
+  return c == ' ' || c == '\t' || c == '[' || c == ']' || c == '+' || c == ',' || c == '-' || c == '*' || c == '(' || c == ')';
 }
 
 Configurator *ParameterConfigurator::resolve(const std::string &id, Configurator *parent)
@@ -386,9 +387,6 @@ std::string ParameterConfigurator::localize(const std::string &id, const Configu
   else
     return id;
 }
-
-#define OPERATORS "+*"
-#define WHITESPACE " \t"
 
 std::string ParameterConfigurator::str() const
 {
@@ -425,92 +423,8 @@ std::string ParameterConfigurator::str() const
     else
       expv.insert(expv.size(), id);
   }
-
-  // Do some light math
-  size_t c;
-  while ((c=strcspn(expv.c_str(), OPERATORS)) < expv.size()) {
-    std::string left, right;
-    size_t start=c, end=c+1;
-    int double_op = 0;
-
-    // Recognize ++ for vector extension
-    if (c+1 < expv.size() && expv[c] == expv[c+1])
-    {
-      double_op = 1;
-      end++;
-      c++;
-    }
-
-    // Right
-    bool vec=false;
-    int ii=c+1;
-    for (; ii < expv.size() && strchr(WHITESPACE, expv[ii]); ++ii, ++end);
-    for (; ii < expv.size() && !strchr(OPERATORS, expv[ii]) && (!strchr(WHITESPACE, expv[ii]) || vec); ++ii, ++end)
-    {
-      if (expv[ii] == '[') vec = true;
-      else if (expv[ii] == ']') vec = false;
-      right.push_back(expv[ii]);
-    }
-
-    // Left
-    vec = false;
-    ii = c-1-double_op;
-    for (; ii >= 0 && strchr(WHITESPACE, expv[ii]); --ii, --start);
-    for (; ii >= 0 && !strchr(OPERATORS, expv[ii]) && (!strchr(WHITESPACE, expv[ii]) || vec); --ii, --start)
-    {
-      if (expv[ii] == ']') vec = true;
-      else if (expv[ii] == '[') vec = false;
-      left.push_back(expv[ii]);
-    }
-
-    std::reverse(left.begin(), left.end());
-
-    if (left.empty() || right.empty())
-      break;
-
-    // Parse values
-    std::istringstream issx, issy;
-    std::vector<double> x_in, y_in, z_out;
-    
-    // TODO: check whether these are numbers/vectors
-
-    issx.str(left);  issx >> x_in;
-    issy.str(right); issy >> y_in;
-
-    LargeVector x, y, z;
-    toVector(x_in, x);
-    toVector(y_in, y);
-
-    // Perform operation
-    switch (expv[c])
-    {
-      case '+':
-        // TODO: Rationalize this to only extend vectors when using ++ operator
-        if (x.size() == 1 && y.size() == 1 && !double_op) z = x + y;
-        else                                              z = extend(x, y);
-        break;
-      case '*':
-        if (x.size() == 1)             z = x[0] * y;
-        else if (y.size() == 1)        z = x * y[0];
-        else if (x.size() == y.size()) z = x * y;
-        else
-          ERROR("Cannot multiply " << x_in << " and " << y_in << ": vector size mismatch");
-        break;
-    }
-
-    fromVector(z, z_out);
-
-    // Replace in original string
-    std::ostringstream oss;
-    oss << std::setprecision(std::numeric_limits<double>::max_digits10);
-    
-    if (z.size() == 1) oss << z_out[0];
-    else               oss << z_out;
-
-    expv.replace(start, end-start, oss.str());
-  }
-
-  return expv;
+  
+  return evaluateExpression(expv);
 }
 
 Configurable *ParameterConfigurator::ptr()

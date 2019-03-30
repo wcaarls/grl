@@ -34,8 +34,8 @@ experiment:
         sigma: [1]
         theta: [0.15]
         renormalize: 1
-        output_min: experiment/environment/task/action_min++experiment/environment/task/action_min++[0, 0]
-        output_max: experiment/environment/task/action_max++experiment/environment/task/action_max++[0, 0]
+        output_min: (experiment/environment/task/action_min ** 2) ++ ([0] ** 2)
+        output_max: (experiment/environment/task/action_max ** 2) ++ ([0] ** 2)
         projector: 
           type: projector/pre/normalizing
           input_min: experiment/environment/task/observation_min
