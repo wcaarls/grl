@@ -26,6 +26,8 @@
  */
 
 #include <unistd.h>
+
+#include <chrono>
 #include <iostream>
 #include <iomanip>
 
@@ -128,6 +130,8 @@ LargeVector OnlineLearningExperiment::run()
       agent_->walk(loadconfig);
     }
     
+    std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+
     for (size_t ss=0, tt=0; (!trials_ || tt < trials_) && (!steps_ || ss < steps_); ++tt)
     { 
       Observation obs;
@@ -177,13 +181,16 @@ LargeVector OnlineLearningExperiment::run()
           if (!test) ss++;
         }
       } while (!terminal);
+      
+      std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+      double duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count()/1000000.;
 
       if (test_interval_ >= 0)
       {
         if (test)
         {
           std::ostringstream oss;
-          oss << std::setw(15) << tt+1-(tt+1)/(test_interval_+1) << std::setw(15) << ss << std::setw(15) << std::setprecision(3) << std::fixed << total_reward;
+          oss << std::setw(15) << tt+1-(tt+1)/(test_interval_+1) << std::setw(15) << ss << std::setw(15) << std::setprecision(3) << std::fixed << total_reward << std::setw(15) << std::setprecision(3) << duration;
           agent_->report(oss);
           environment_->report(oss);
           
@@ -203,7 +210,7 @@ LargeVector OnlineLearningExperiment::run()
       else
       {
         std::ostringstream oss;
-        oss << std::setw(15) << tt << std::setw(15) << ss << std::setw(15) << std::setprecision(3) << std::fixed << total_reward;
+        oss << std::setw(15) << tt << std::setw(15) << ss << std::setw(15) << std::setprecision(3) << std::fixed << total_reward << std::setw(15) << std::setprecision(3) << duration;
         agent_->report(oss);
         environment_->report(oss);
 

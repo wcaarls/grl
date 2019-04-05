@@ -36,7 +36,7 @@ void DDPGPredictor::request(ConfigurationRequest *config)
   Predictor::request(config);
   
   config->push_back(CRP("gamma", "Discount rate", gamma_));
-  config->push_back(CRP("reward_scale", "Scaling factor for all rewards", reward_scale_, CRP::Configuration, DBL_MIN, DBL_MAX));
+  config->push_back(CRP("reward_scale", "Scaling factor for all rewards", reward_scale_));
   
   config->push_back(CRP("observation", "TensorFlow placeholder node for graph observation input", observation_));
   config->push_back(CRP("action", "TensorFlow node for graph action input", action_));
@@ -67,8 +67,14 @@ void DDPGPredictor::configure(Configuration &config)
   action_projector_ = (Projector*)config["action_projector"].ptr();
   representation_ = (TensorFlowRepresentation*)config["representation"].ptr();
   
-  gamma_ = config["gamma"];
-  reward_scale_ = config["reward_scale"];
+  gamma_ = config["gamma"].v();
+  reward_scale_ = config["reward_scale"].v();
+  
+  if (!gamma_.size())
+    throw bad_param("predictor/ddpg:gamma");
+
+  if (!reward_scale_.size())
+    throw bad_param("predictor/ddpg:reward_scale");
 }
 
 void DDPGPredictor::reconfigure(const Configuration &config)
@@ -120,6 +126,18 @@ void DDPGPredictor::update(const std::vector<const Transition*> &transitions)
   size_t networks = 1;
   if (qap.shape().num_dims() > 1)
     networks = qap.shape().dims()[1];
+    
+  if (gamma_.size() == 1)
+    gamma_ = ConstantLargeVector(networks, gamma_[0]);
+  
+  if (gamma_.size() != networks)
+    throw bad_param("predictor/ddpg:gamma");
+    
+  if (reward_scale_.size() == 1)
+    reward_scale_ = ConstantLargeVector(networks, reward_scale_[0]);
+  
+  if (reward_scale_.size() != networks)
+    throw bad_param("predictor/ddpg:reward_scale");
     
   std::vector<TF::TensorPtr> disc_result;
   if (discretizer_)
@@ -174,7 +192,7 @@ void DDPGPredictor::update(const std::vector<const Transition*> &transitions)
 
     for (size_t nn=0; nn < networks; ++nn)
     {
-      double target = reward_scale_*transitions[ii]->reward;
+      double target = reward_scale_[nn]*transitions[ii]->reward;
   
       if (!transitions[ii]->obs.absorbing)
       {
@@ -184,7 +202,7 @@ void DDPGPredictor::update(const std::vector<const Transition*> &transitions)
           for (size_t aa=0; aa < discretizer_->size(); ++aa)
             v = fmax(v, (*disc_result[0])(qs*as+aa, nn));
 
-        target += pow(gamma_, transitions[ii]->tau)*v;
+        target += pow(gamma_[nn], transitions[ii]->tau)*v;
       }
        
       (*write_target)(ii, nn) = target;
