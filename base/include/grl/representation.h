@@ -165,6 +165,7 @@ class ParameterizedRepresentation : public Representation
   protected:
     int interval_;
     double tau_;
+    std::string file_suffix_;
     int count_;
     ParameterizedRepresentation *target_;
     pthread_mutex_t mutex_;
@@ -177,6 +178,7 @@ class ParameterizedRepresentation : public Representation
     {
       config->push_back(CRP("interval", "Target representation update interval (number of writes; 0=never update)", interval_, CRP::Configuration));
       config->push_back(CRP("tau", "Target representation update strength", tau_, CRP::Configuration));
+      config->push_back(CRP("file_suffix", "Suffix for loading and saving parameters (default: configuration path)", file_suffix_, CRP::Configuration));
 
       config->push_back(CRP("target", d_type() + "." + role, "Target representation", CRP::Provided));
     }
@@ -185,6 +187,7 @@ class ParameterizedRepresentation : public Representation
     {
       interval_ = config["interval"];
       tau_ = config["tau"];
+      file_suffix_ = config["file_suffix"].str();
       
       if (interval_)
       {
@@ -193,6 +196,70 @@ class ParameterizedRepresentation : public Representation
       }
       else
         config.set("target", this);
+    }
+    
+    void reconfigure(const Configuration &config)
+    {
+      std::string file;
+    
+      if (config.has("file"))
+        file = config["file"].str();
+        
+      if (file_suffix_.empty())
+      {
+        std::string cfg_path = path();
+        std::replace(cfg_path.begin(), cfg_path.end(), '/', '_');
+        file += cfg_path + ".dat";
+      }
+      else
+        file += file_suffix_ + ".dat";
+    
+      if (config.has("action") && config["action"].str() == "save")
+      {
+        FILE *f = fopen(file.c_str(), "wb");
+        if (!f)
+        {
+          WARNING("Could not open '" << file << "' for writing");
+          return;
+        }
+        
+        LargeVector p = params(); 
+        
+        fwrite(p.data(), sizeof(double), p.size(), f);
+        fclose(f);
+      }
+      
+      if (config.has("action") && config["action"].str() == "load")
+      {
+        LargeVector p = params(); 
+      
+        FILE *f = fopen(file.c_str(), "rb");
+        if (!f)
+        {
+          WARNING("Could not open '" << file << "' for reading");
+          return;
+        }
+        
+        fseek(f, 0, SEEK_END);
+        if (ftell(f) != (long int)(p.size() * sizeof(double)))
+        {
+          WARNING("Configuration mismatch for '" << file << "'");
+          fclose(f);
+          return;
+        }
+        
+        fseek(f, 0, SEEK_SET);
+        if (fread(p.data(), sizeof(double), p.size(), f) != p.size())
+        {
+          WARNING("Could not read '" << file << "'");
+          fclose(f);
+          return;
+        }
+        fclose(f);
+        
+        setParams(p);
+        synchronize();
+      }
     }
 
     // From Representation

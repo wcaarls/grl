@@ -121,53 +121,6 @@ void LinearRepresentation::reconfigure(const Configuration &config)
           
       synchronize();
     }
-    else if (config["action"].str() == "load")
-    {
-      std::string cfg_path = path();
-      std::replace(cfg_path.begin(), cfg_path.end(), '/', '_');
-      std::string file = config["file"].str() + cfg_path + ".dat";
-
-      FILE *f = fopen(file.c_str(), "rb");
-      if (!f)
-      {
-        WARNING("Could not open '" << file << "' for reading");
-        return;
-      }
-      
-      fseek(f, 0, SEEK_END);
-      if (ftell(f) != (long int)(params_.size() * sizeof(double)))
-      {
-        WARNING("Configuration mismatch for '" << file << "'");
-        fclose(f);
-        return;
-      }
-      
-      fseek(f, 0, SEEK_SET);
-      if (fread(params_.data(), sizeof(double), params_.size(), f) != params_.size())
-      {
-        WARNING("Could not read '" << file << "'");
-        fclose(f);
-        return;
-      }
-      fclose(f);
-      synchronize();
-    }
-    else if (config["action"].str() == "save")
-    {
-      std::string cfg_path = path();
-      std::replace(cfg_path.begin(), cfg_path.end(), '/', '_');
-      std::string file = config["file"].str() + cfg_path + ".dat";
-
-      FILE *f = fopen(file.c_str(), "wb");
-      if (!f)
-      {
-        WARNING("Could not open '" << file << "' for writing");
-        return;
-      }
-      
-      fwrite(params_.data(), sizeof(double), params_.size(), f);
-      fclose(f);
-    }
   }  
 }
 
