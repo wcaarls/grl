@@ -1,7 +1,9 @@
 # grl
+[![Build Status](https://travis-ci.com/wcaarls/grl.svg?branch=master)](https://travis-ci.com/wcaarls/grl)
+
 Generic Reinforcement Learning Library
 
-Copyright 2015 Wouter Caarls
+Copyright 2015-2019 Wouter Caarls
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

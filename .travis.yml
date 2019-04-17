@@ -1,0 +1,16 @@
+language: cpp
+os: linux
+dist: xenial
+compiler:
+  - gcc
+addons:
+  apt:
+    packages:
+      - libeigen3-dev
+      - freeglut3-dev
+script:
+  - pyenv global 3.5
+  - mkdir build
+  - cd build
+  - cmake -DPYTHON_EXECUTABLE=$(python-config --prefix)/bin/python3.5 ..
+  - make -j2
