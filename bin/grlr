@@ -47,6 +47,8 @@
 #             - 0.3
 #             - 0.5
 #             - 0.7
+# grlr <config.yaml>
+#   Run single configuration
 
 import yaml, os, sys, glob, copy, getopt
 from grllib import *
@@ -128,7 +130,7 @@ def fuzz(name, conf, e, dry):
       break
 
 if __name__ == '__main__':
-  spec = {'file':'all', 'configuration':[{'name':'experiment/output', 'value':'$@'}]}
+  spec = [{'file':'all', 'configuration':[{'name':'experiment/output', 'value':'$@'}]}]
   dry = False    
 
   try:
@@ -147,26 +149,27 @@ if __name__ == '__main__':
     spec = yaml.load(stream)
     stream.close()
     
-  if not isinstance(spec, list):
-    spec = [spec]
-    
   jobs = [];
-    
-  # Iterate over experiments
-  for exp in spec:
-    if exp["file"] == "all":
-      # All combinations of agents and environments in current directory
-      for env in glob.glob('env_*.yaml'):
-        for agent in glob.glob('agent_*.yaml'):
-          conf = mergeconf(readconf(env), readconf(agent))
-          for job in fuzz(os.path.basename(env)[4:-5] + "_" + os.path.basename(agent)[6:-5], conf, exp, dry):
+
+  if isinstance(spec, list):
+    # Iterate over experiments
+    for exp in spec:
+      if exp["file"] == "all":
+        # All combinations of agents and environments in current directory
+        for env in glob.glob('env_*.yaml'):
+          for agent in glob.glob('agent_*.yaml'):
+            conf = mergeconf(readconf(env), readconf(agent))
+            for job in fuzz(os.path.basename(env)[4:-5] + "_" + os.path.basename(agent)[6:-5], conf, exp, dry):
+              jobs.append(job)
+      else:
+        # Specific file, possibly with wildcards
+        for f in glob.glob(exp["file"]):
+          conf = readconf(f)
+          for job in fuzz(os.path.basename(f)[:-5], conf, exp, dry):
             jobs.append(job)
-    else:
-      # Specific file, possibly with wildcards
-      for f in glob.glob(exp["file"]):
-        conf = readconf(f)
-        for job in fuzz(os.path.basename(f)[:-5], conf, exp, dry):
-          jobs.append(job)
+  else:
+    # Single configuration
+    jobs.append(yaml.dump(readconf(args[0])))
 
   if len(jobs) > 0:
     # Submit jobs
