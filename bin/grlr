@@ -1,8 +1,14 @@
 #!/usr/bin/python
+# grlr Command-line interface to grlw for running multiple configurations
+#      in parallel.
+#
 # grlr [-d]
-#   Run environment-agent combinations.
+#   Run all agent-environment combinations in current directory
+#   (agent_*.yaml / env_*.yaml).
+#
 #   -d
 #      Only generate configurations, do not run
+#
 # grlr [-d] <spec.yaml>
 #   Run multiple experiments (possibly for different agent-environment combinations)
 #   spec.yaml contains a list of experiments. Each experiment defines a `file`, a
@@ -47,8 +53,12 @@
 #             - 0.3
 #             - 0.5
 #             - 0.7
+#
 # grlr <config.yaml>
 #   Run single configuration
+#
+# grlr [-d] <spec_or_config.yaml> [spec_or_config.yaml...]
+#   Run all experiments/configurations specified
 
 import yaml, os, sys, glob, copy, getopt
 from grllib import *
@@ -130,7 +140,7 @@ def fuzz(name, conf, e, dry):
       break
 
 if __name__ == '__main__':
-  spec = [{'file':'all', 'configuration':[{'name':'experiment/output', 'value':'$@'}]}]
+  specs = [[{'file':'all', 'configuration':[{'name':'experiment/output', 'value':'$@'}]}]]
   dry = False    
 
   try:
@@ -145,31 +155,34 @@ if __name__ == '__main__':
       print "Dry run: just generating configurations"
 
   if len(args) > 0:
-    stream = open(args[0], 'r')
-    spec = yaml.load(stream)
-    stream.close()
-    
-  jobs = [];
+    specs = []
+    for arg in args:
+      stream = open(arg, 'r')
+      specs.append(yaml.load(stream))
+      stream.close()
 
-  if isinstance(spec, list):
-    # Iterate over experiments
-    for exp in spec:
-      if exp["file"] == "all":
-        # All combinations of agents and environments in current directory
-        for env in glob.glob('env_*.yaml'):
-          for agent in glob.glob('agent_*.yaml'):
-            conf = mergeconf(readconf(env), readconf(agent))
-            for job in fuzz(os.path.basename(env)[4:-5] + "_" + os.path.basename(agent)[6:-5], conf, exp, dry):
+  jobs = [];
+  
+  for idx, spec in enumerate(specs):
+    if isinstance(spec, list):
+      # Iterate over experiments
+      for exp in spec:
+        if exp["file"] == "all":
+          # All combinations of agents and environments in current directory
+          for env in glob.glob('env_*.yaml'):
+            for agent in glob.glob('agent_*.yaml'):
+              conf = mergeconf(readconf(env), readconf(agent))
+              for job in fuzz(os.path.basename(env)[4:-5] + "_" + os.path.basename(agent)[6:-5], conf, exp, dry):
+                jobs.append(job)
+        else:
+          # Specific file, possibly with wildcards
+          for f in glob.glob(exp["file"]):
+            conf = readconf(f)
+            for job in fuzz(os.path.basename(f)[:-5], conf, exp, dry):
               jobs.append(job)
-      else:
-        # Specific file, possibly with wildcards
-        for f in glob.glob(exp["file"]):
-          conf = readconf(f)
-          for job in fuzz(os.path.basename(f)[:-5], conf, exp, dry):
-            jobs.append(job)
-  else:
-    # Single configuration
-    jobs.append(yaml.dump(readconf(args[0])))
+    else:
+      # Single configuration
+      jobs.append(yaml.dump(readconf(args[idx])))
 
   if len(jobs) > 0:
     # Submit jobs
