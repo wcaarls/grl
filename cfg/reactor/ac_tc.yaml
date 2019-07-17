@@ -1,0 +1,120 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  run_offset: 0
+  trials: 0
+  steps: 0
+  rate: 0
+  test_interval: 10
+  output: reactor_ac_curve
+  environment: 
+    type: environment/modeled
+    discrete_time: 1
+    model: 
+      type: model/dynamical
+      control_step: 1
+      integration_steps: 10
+      dynamics: 
+        type: dynamics/reactor
+    task: 
+      type: task/reactor/balancing
+      timeout: 7200
+      randomization: 0
+    exporter: 
+      type: exporter/csv
+      file: reactor_ac_signals
+      style: line
+      variant: test
+      enabled: 1
+  agent: 
+    type: agent/td
+    policy: 
+      type: mapping/policy/action
+      sigma: [ 10 ]
+      theta: [ 0.15 ]
+      decay_rate: 0.999
+      decay_min: 0
+      renormalize: 0
+      output_min: experiment/environment/task/action_min
+      output_max: experiment/environment/task/action_max
+      projector: 
+        type: projector/tile_coding
+        tilings: 16
+        memory: 8388608
+        safe: 0
+        resolution: [ 0.1, 0.1, 50, 50 ]
+        wrapping: [  ]
+      representation: 
+        type: representation/parameterized/linear
+        interval: 0
+        tau: 1
+        init_min: [ 0 ]
+        init_max: [ 1 ]
+        memory: 8388608
+        outputs: experiment/environment/task/action_dims
+        output_min: experiment/environment/task/action_min
+        output_max: experiment/environment/task/action_max
+        limit: 1
+    predictor: 
+      type: predictor/ac/action
+      alpha: 0.01
+      update_method: proportional
+      step_limit: [  ]
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+      critic: 
+        type: predictor/critic/td
+        alpha: 0.2
+        gamma: 0.97
+        lambda: 0.65
+        projector: experiment/agent/policy/projector
+        representation: 
+          type: representation/parameterized/linear
+          interval: 0
+          tau: 1
+          init_min: [ 0 ]
+          init_max: [ 1 ]
+          memory: 8388608
+          outputs: 1
+          output_min: [  ]
+          output_max: [  ]
+          limit: 1
+        trace: 
+          type: trace/enumerated/replacing
+  test_agent: 
+    type: agent/fixed
+    policy: 
+      type: mapping/policy/action
+      sigma: [  ]
+      theta: [  ]
+      decay_rate: 1
+      decay_min: 0
+      renormalize: 0
+      output_min: experiment/environment/task/action_min
+      output_max: experiment/environment/task/action_max
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+  save_every: never
+visualizer: 
+  type: visualizer/glut
+curve: 
+  type: visualization/state
+  input_dims: [0]
+  input_min: [-10000]
+  input_max: [4000]
+  memory: 256
+  state: experiment/curve
+state: 
+  type: visualization/state
+  input_dims: []
+  input_min: experiment/environment/task/observation_min
+  input_max: experiment/environment/task/observation_max
+  memory: 65536
+  state: experiment/state
+action: 
+  type: visualization/state
+  input_dims: []
+  input_min: experiment/environment/task/action_min
+  input_max: experiment/environment/task/action_max
+  memory: state/memory
+  state: experiment/action
