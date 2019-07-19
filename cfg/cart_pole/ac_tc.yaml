@@ -4,7 +4,7 @@ experiment:
   trials: 0
   steps: 0
   rate: 0
-  test_interval: -1
+  test_interval: 10
   environment: 
     type: environment/modeled
     model: 
@@ -17,13 +17,14 @@ experiment:
       type: task/cart_pole/swingup
       timeout: 9.99
       randomization: 0
+      end_stop_penalty: 0
       shaping: 0
       gamma: 1
   agent: 
     type: agent/td
     policy: 
-      type: policy/action
-      sigma: [ 1 ]
+      type: mapping/policy/action
+      sigma: [ 5 ]
       output_min: experiment/environment/task/action_min
       output_max: experiment/environment/task/action_max
       projector: 
@@ -42,34 +43,36 @@ experiment:
         output_max: experiment/environment/task/action_max
     predictor: 
       type: predictor/ac/action
-      alpha: 0.2
-      beta: 0.01
-      gamma: 0.97
-      lambda: 0.65
-      critic_projector: 
-        type: projector/tile_coding
-        tilings: 16
-        memory: 8388608
-        resolution: experiment/agent/policy/projector/resolution
-        wrapping: experiment/agent/policy/projector/wrapping
-      critic_representation: 
-        type: representation/parameterized/linear
-        init_min: [ 0 ]
-        init_max: [ 1 ]
-        memory: 8388608
-        outputs: 1
-        output_min: [  ]
-        output_max: [  ]
-      critic_trace: 
-        type: trace/enumerated/replacing
-      actor_projector: experiment/agent/policy/projector
-      actor_representation: experiment/agent/policy/representation
-      actor_trace: 
+      alpha: 0.01
+      critic:
+        type: predictor/critic/td
+        alpha: 0.2
+        gamma: 0.97
+        lambda: 0.65
+        projector: 
+          type: projector/tile_coding
+          tilings: 16
+          memory: 8388608
+          resolution: experiment/agent/policy/projector/resolution
+          wrapping: experiment/agent/policy/projector/wrapping
+        representation: 
+          type: representation/parameterized/linear
+          init_min: [ 0 ]
+          init_max: [ 1 ]
+          memory: 8388608
+          outputs: 1
+          output_min: [  ]
+          output_max: [  ]
+        trace: 
+          type: trace/enumerated/replacing
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+      trace: 
         type: trace/enumerated/replacing
   test_agent: 
     type: agent/fixed
     policy: 
-      type: policy/action
+      type: mapping/policy/action
       sigma: [  ]
       output_min: experiment/environment/task/action_min
       output_max: experiment/environment/task/action_max
@@ -85,8 +88,8 @@ visualization:
   points: 65536
   projection: mean
   output_dim: 0
-  projector: experiment/agent/predictor/critic_projector
-  representation: experiment/agent/predictor/critic_representation
+  projector: experiment/agent/predictor/critic/projector
+  representation: experiment/agent/predictor/critic/representation
 visualization2: 
   type: visualization/field/mapping
   field_dims: [ 0, 1 ]

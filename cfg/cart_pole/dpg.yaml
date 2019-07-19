@@ -17,6 +17,7 @@ experiment:
       type: task/cart_pole/swingup
       timeout: 9.99
       randomization: 0
+      end_stop_penalty: 0
       shaping: 0
       gamma: 1
   agent: 
