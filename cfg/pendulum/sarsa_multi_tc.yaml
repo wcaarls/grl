@@ -43,7 +43,7 @@ experiment:
             safe: 0
             resolution: [0.31415, 3.1415, 3]
             wrapping: experiment/agent/policy/projector/projector/0/wrapping
-        memories: [ ../projector/0/memory, ../projector/1/memory]
+        memories: "[ ../projector/0/memory, ../projector/1/memory ]"
       representation: 
         type: representation/parameterized/linear
         init_min: [0]

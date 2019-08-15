@@ -28,7 +28,7 @@ experiment:
       output_min: experiment/environment/task/action_min
       output_max: experiment/environment/task/action_max
     solver: 
-      type: solver/ilqg
+      type: solver/policy/ilqg
       horizon: 50
       iterations: 100
       stddev: 10
