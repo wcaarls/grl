@@ -1,0 +1,31 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  run_offset: 0
+  trials: 0
+  steps: 0
+  rate: 0
+  test_interval: -1
+  environment: 
+    type: environment/lci_cartpole
+    port: /dev/ttyACM0
+    bps: 115200
+    timeout: 3600
+  agent: 
+    type: agent/fixed
+    policy: 
+      type: mapping/policy/parameterized/pid
+      setpoint: [ 0, 0, 0, 0  ]
+      outputs: 1
+      p: [ 1, 5, 2, 0.8 ]
+      i: [  ]
+      d: [  ]
+      il: [  ]
+      action_min: [ -1 ]
+      action_max: [ 1 ]
+  save_every: never
+visualizer: 
+  type: visualizer/glut
+visualization: 
+  type: visualization/cart_pole
+  state: experiment/state
