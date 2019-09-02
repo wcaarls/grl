@@ -44,6 +44,7 @@ void StateVisualization::request(ConfigurationRequest *config)
   config->push_back(CRP("memory", "Number of data points to draw", (int)memory_, CRP::Online));
 
   config->push_back(CRP("state", "signal/vector", "State to visualize", state_));
+  config->push_back(CRP("exporter", "exporter", "Optional exporter for logging (supports value)", exporter_, true));
 }
 
 void StateVisualization::configure(Configuration &config)
@@ -55,6 +56,14 @@ void StateVisualization::configure(Configuration &config)
   }
 
   state_ = (VectorSignal*)config["state"].ptr();
+  
+  exporter_ = (Exporter*) config["exporter"].ptr();
+  if (exporter_)
+  {
+    exporter_->init({"value"});
+    exporter_->open("", false);
+    exporter_->open();
+  }
 
   dims_ = config["input_dims"].v();
   min_ = config["input_min"].v();
@@ -108,6 +117,9 @@ void StateVisualization::run()
   while (ok())
   {
     Vector state = state_->read(), point(dims_.size());
+    
+    if (exporter_)
+      exporter_->write({state});
     
     for (size_t ii=0; ii < dims_.size(); ++ii)
     {

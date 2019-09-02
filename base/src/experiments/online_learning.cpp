@@ -53,6 +53,8 @@ void OnlineLearningExperiment::request(ConfigurationRequest *config)
   
   config->push_back(CRP("state", "signal/vector.observation", "Current observed state of the environment", CRP::Provided));
   config->push_back(CRP("action", "signal/vector.action", "Last action applied to the environment", CRP::Provided));
+  config->push_back(CRP("reward", "signal/vector.reward", "Last reward received from the environment", CRP::Provided));
+  config->push_back(CRP("test_action", "signal/vector.action", "Last action applied to the test environment", CRP::Provided));
   config->push_back(CRP("curve", "signal/vector", "Learning curve", CRP::Provided));
 
   config->push_back(CRP("load_file", "Load policy filename", load_file_));
@@ -77,10 +79,14 @@ void OnlineLearningExperiment::configure(Configuration &config)
   
   state_ = new VectorSignal();
   action_ = new VectorSignal();
+  reward_ = new VectorSignal();
+  test_action_ = new VectorSignal();
   curve_ = new VectorSignal();
   
   config.set("state", state_);
   config.set("action", action_);
+  config.set("reward", reward_);
+  config.set("test_action", test_action_);
   config.set("curve", curve_);
 
   if (test_interval_ >= 0 && !test_agent_)
@@ -145,12 +151,15 @@ LargeVector OnlineLearningExperiment::run()
       if (test) agent = test_agent_;
       
       environment_->start(test, &obs);
+      state_->set(obs.v);
+      reward_->set(VectorConstructor(0.));
 
       CRAWL(obs);
       
       agent->start(obs, &action);
-      state_->set(obs.v);
       action_->set(action.v);
+      if (test)
+        test_action_->set(action.v);
 
       do
       {
@@ -163,6 +172,8 @@ LargeVector OnlineLearningExperiment::run()
         }
 
         double tau = environment_->step(action, &obs, &reward, &terminal);
+        state_->set(obs.v);
+        reward_->set(VectorConstructor(reward));
 
         CRAWL(action << " - " << reward << " -> " << obs);
         
@@ -175,8 +186,9 @@ LargeVector OnlineLearningExperiment::run()
           else
             agent->step(tau, obs, reward, &action);
 
-          state_->set(obs.v);
           action_->set(action.v);
+          if (test)
+            test_action_->set(action.v);
           
           if (!test) ss++;
         }

@@ -34,6 +34,7 @@
 
 #include <grl/signal.h>
 #include <grl/visualization.h>
+#include <grl/exporter.h>
 
 namespace grl
 {
@@ -46,6 +47,7 @@ class StateVisualization : public Visualization, public itc::Thread
 
   protected:
     VectorSignal *state_;
+    Exporter *exporter_;
     std::deque<Vector> points_;
     Vector dims_, min_, max_;
     size_t memory_;
@@ -55,7 +57,7 @@ class StateVisualization : public Visualization, public itc::Thread
     unsigned int list_;
   
   public:
-    StateVisualization() : state_(NULL), memory_(256), updated_(true), list_(0)
+    StateVisualization() : state_(NULL), exporter_(NULL), memory_(256), updated_(true), list_(0)
     {
     }
     
