@@ -28,7 +28,7 @@
 #ifndef GRL_SIGNAL_H_
 #define GRL_SIGNAL_H_
 
-#include <itc/itc.h>
+#include <itc/queue.h>
 
 #include <grl/configurable.h>
 #include <grl/mutex.h>
@@ -40,38 +40,38 @@ template<class T>
 class Signal : public Configurable
 {
   protected:
-    itc::SharedVariable<T> var_;
+    itc::Queue<T> queue_;
+    itc::QueueWriter<T> writer_;
+    itc::QueueReader<T> reader_;
 
   public:
-    /// Returns reference to current value.
-    /// NOTE: not thread-safe
-    virtual T &operator*()
+    Signal()
     {
-      return *var_;
+      writer_ = queue_.getWriter();
+      reader_ = queue_.addReader();
+      reader_.disengage();
     }
     
-    /// Returns current value.
+    itc::QueueReader<T> addReader()
+    {
+      return queue_.addReader();
+    }
+  
+    /// Gets last written value, or empty element if no value has been written.
     virtual T get()
     {
-      return var_.get();
+      reader_.reengage();
+      T element;
+      if (reader_.test())
+        element = reader_.get();
+      reader_.disengage();
+      return element;
     }
-
+    
     /// Sets new value.    
     virtual void set(const T &state)
     {
-      var_.write(state);
-    }
-
-    /// Returns true if the value has changed.
-    virtual bool test()
-    {
-      return var_.test();
-    }
-
-    /// Reads a new value, waiting until it changes if necessary.    
-    virtual T read()
-    {
-      return var_.read();
+      writer_.write(state);
     }
 };
 

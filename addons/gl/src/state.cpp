@@ -56,6 +56,7 @@ void StateVisualization::configure(Configuration &config)
   }
 
   state_ = (VectorSignal*)config["state"].ptr();
+  state_reader_ = state_->addReader();
   
   exporter_ = (Exporter*) config["exporter"].ptr();
   if (exporter_)
@@ -116,7 +117,7 @@ void StateVisualization::run()
 {
   while (ok())
   {
-    Vector state = state_->read(), point(dims_.size());
+    Vector state = state_reader_.read(), point(dims_.size());
     
     if (exporter_)
       exporter_->write({state});

@@ -44,6 +44,7 @@ class FieldVisualization : public Visualization, public itc::Thread
     enum ValueProjection { vpMean, vpMin, vpMax };
   
     VectorSignal *state_;
+    timer timer_;
     int state_dims_;
     Vector state_min_, state_max_, dims_;
     int points_, savepoints_, dimpoints_, texpoints_;

@@ -52,6 +52,7 @@ class SliceVisualization : public Visualization, public itc::Thread
     int dim_, points_, savepoints_;
     double delay_;
     VectorSignal *state_, *action_;
+    timer timer_;
     Mapping *mapping_;
     
     unsigned int texture_;

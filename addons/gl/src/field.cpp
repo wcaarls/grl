@@ -62,6 +62,7 @@ void FieldVisualization::configure(Configuration &config)
   }
     
   state_ = (VectorSignal*)config["state"].ptr();
+  timer_.restart();
 
   projection_str_ = config["projection"].str();
   if (projection_str_ == "mean")     projection_ = vpMean;
@@ -266,8 +267,11 @@ void FieldVisualization::run()
 
 void FieldVisualization::idle()
 {
-  if (updated_ || (state_ && state_->test()))
+  if (updated_ || (state_ && timer_.elapsed() > 0.0167))
+  {
+    timer_.restart();
     refresh();
+  }
 }
 
 void FieldVisualization::draw()

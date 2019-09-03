@@ -52,6 +52,7 @@ void TrajectoryVisualization::configure(Configuration &config)
   }
 
   trajectory_ = (MatrixSignal*)config["trajectory"].ptr();
+  timer_.restart();
 
   dims_ = config["input_dims"].v();
   min_ = config["input_min"].v();
@@ -82,8 +83,11 @@ void TrajectoryVisualization::reshape(int width, int height)
 
 void TrajectoryVisualization::idle()
 {
-  if (trajectory_->test())
+  if (timer_.elapsed() > 0.0167)
+  {
+    timer_.restart();
     refresh();
+  }
 }
 
 void TrajectoryVisualization::draw()

@@ -45,6 +45,7 @@ class TrajectoryVisualization : public Visualization
 
   protected:
     MatrixSignal *trajectory_;
+    timer timer_;
     Vector dims_, min_, max_;
   
   public:

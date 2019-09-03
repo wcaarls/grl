@@ -90,6 +90,7 @@
 #define ITC_QUEUE_H_
  
 #include <list>
+#include <pthread.h>
 
 namespace itc {
 
@@ -275,8 +276,10 @@ class QueueReader
     
     /** \brief Reattaches to the queue, starting at the last written element.
      *
-     * \note If not currently disengaged, and no new element has been written, waits until a new element is available.
-     * \see disengage(), wait().
+     * \note If currently engaged, fast-forwards to the last written element.
+     * \note If no element has been written yet, subsequent accesses will block
+     * until one becomes available.
+     * \see disengage().
      */
     void reengage()      { reader_->reengage();    }
 
@@ -642,14 +645,9 @@ inline void QueueReaderImpl<T>::reengage()
   queue_->lock();
   
   if (!queue_->writer()->active())
-  {
     ptr_ = 0;
-    _wait();
-  }
-  else if (engaged() && !queue_->writer()->vacant(ptr_))
-    _wait();
-    
-  ptr_ = (queue_->writer()->ptr()-1+queue_->size())%queue_->size();
+  else
+    ptr_ = (queue_->writer()->ptr()-1+queue_->size())%queue_->size();
   queue_->signalWriter();
   queue_->unlock();
 }

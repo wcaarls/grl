@@ -36,6 +36,8 @@
 #include <grl/visualization.h>
 #include <grl/exporter.h>
 
+#include <itc/itc.h>
+
 namespace grl
 {
 
@@ -47,6 +49,7 @@ class StateVisualization : public Visualization, public itc::Thread
 
   protected:
     VectorSignal *state_;
+    itc::QueueReader<Vector> state_reader_;
     Exporter *exporter_;
     std::deque<Vector> points_;
     Vector dims_, min_, max_;

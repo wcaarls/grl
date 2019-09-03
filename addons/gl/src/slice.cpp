@@ -82,6 +82,7 @@ void SliceVisualization::configure(Configuration &config)
   savepoints_ = pow((int)pow((double)config["savepoints"], 1./state_dims_), state_dims_);
   delay_ = config["delay"];
   state_ = (VectorSignal*)config["state"].ptr();
+  timer_.restart();
   action_ = (VectorSignal*)config["action"].ptr();
   mapping_ = (Mapping*)config["mapping"].ptr();
   
@@ -313,8 +314,11 @@ void SliceVisualization::run()
 
 void SliceVisualization::idle()
 {
-  if (updated_ || (state_ && state_->test()))
+  if (updated_ || (state_ && timer_.elapsed() > 0.0167))
+  {
+    timer_.restart();
     refresh();
+  }
 }
 
 void SliceVisualization::draw()
