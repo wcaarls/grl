@@ -115,7 +115,7 @@ class QueueWriterImpl
   public:
     QueueWriterImpl(Queue<T> *queue);
     
-    void vacate(int ptr);
+    void vacate(const int &ptr);
     bool vacant(int ptr) { return ptr != ptr_; }
     int ptr()            { return ptr_;        }
     bool active()        { return active_;     }
@@ -208,7 +208,7 @@ class QueueReaderImpl
     QueueReaderImpl(Queue<T> *queue);
     ~QueueReaderImpl();
 
-    void vacate(int ptr);
+    void vacate(const int &ptr);
     bool vacant(int ptr) { return ptr != ptr_; }
 
     bool test();
@@ -268,9 +268,17 @@ class QueueReader
      */
     T read()             { return reader_->read(); }
     
+    /** \brief Returns whether reader is currently attached to the queue.
+     */
+    bool engaged()       { return reader_->engaged(); }
+    
     /** \brief Disengages from the queue, allowing the write to continue unhindered.
      *
-     * \see reengage().
+     * \note Interrupts any pending wait(), get() and read(), which will not
+     * return valid data. If this is a possibility, use engaged() to check whether
+     * the queue is engaged before using their return values.
+     *
+     * \see reengage(), engaged().
      */
     void disengage()     { reader_->disengage();   }
     
@@ -453,7 +461,7 @@ inline void QueueWriterImpl<T>::_wait()
 }
 
 template <class T>
-inline void QueueWriterImpl<T>::vacate(int ptr)
+inline void QueueWriterImpl<T>::vacate(const int &ptr)
 {
   while (ptr_ == ptr) queue_->waitWriter();
 }
@@ -558,7 +566,7 @@ inline void QueueReaderImpl<T>::_wait()
 }
 
 template <class T>
-inline void QueueReaderImpl<T>::vacate(int ptr)
+inline void QueueReaderImpl<T>::vacate(const int &ptr)
 {
   while (ptr_ == ptr) queue_->waitReaders();
 }
@@ -597,7 +605,7 @@ inline const T& QueueReaderImpl<T>::get()
 
   queue_->lock();
   _wait();
-  T &element = queue_->at(ptr_);
+  T &element = queue_->at(std::max(ptr_, 0));
   queue_->unlock();
   return element;
 }
@@ -610,7 +618,8 @@ inline void QueueReaderImpl<T>::advance()
   
   queue_->lock();
   _wait();
-  ptr_ = (ptr_+1)%queue_->size();
+  if (engaged())
+    ptr_ = (ptr_+1)%queue_->size();
   queue_->signalWriter();
   queue_->unlock();
 }
@@ -623,8 +632,9 @@ inline T QueueReaderImpl<T>::read()
 
   queue_->lock();
   _wait();
-  T element = queue_->at(ptr_);
-  ptr_ = (ptr_+1)%queue_->size();
+  T element = queue_->at(std::max(ptr_, 0));
+  if (engaged())
+    ptr_ = (ptr_+1)%queue_->size();
   queue_->signalWriter();
   queue_->unlock();
   return element;
@@ -636,6 +646,7 @@ inline void QueueReaderImpl<T>::disengage()
   queue_->lock();
   ptr_ = -1;
   queue_->signalWriter();
+  queue_->signalReaders();
   queue_->unlock();
 }
 
@@ -643,7 +654,6 @@ template <class T>
 inline void QueueReaderImpl<T>::reengage()
 {
   queue_->lock();
-  
   if (!queue_->writer()->active())
     ptr_ = 0;
   else

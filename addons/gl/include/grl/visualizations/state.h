@@ -63,6 +63,17 @@ class StateVisualization : public Visualization, public itc::Thread
     StateVisualization() : state_(NULL), exporter_(NULL), memory_(256), updated_(true), list_(0)
     {
     }
+    ~StateVisualization()
+    {
+      // Signal thread to stop
+      stop();
+    
+      if (state_)
+      {
+        // Wake up thread from read()
+        state_reader_.disengage();
+      }
+    }
     
     // From Configurable
     virtual void request(ConfigurationRequest *config);

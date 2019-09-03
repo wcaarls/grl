@@ -119,6 +119,10 @@ void StateVisualization::run()
   {
     Vector state = state_reader_.read(), point(dims_.size());
     
+    // Handle wake up, in which case no valid data is returned
+    if (!state_reader_.engaged())
+      continue;
+    
     if (exporter_)
       exporter_->write({state});
     
