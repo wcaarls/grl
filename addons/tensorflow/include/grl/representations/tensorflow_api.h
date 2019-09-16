@@ -44,6 +44,7 @@ extern "C"
   typedef void* (*TF_TensorData)(const TF_Tensor*);
 
   typedef TF_SessionOptions* (*TF_NewSessionOptions)();
+  typedef void (*TF_SetConfig)(TF_SessionOptions*, const void*, size_t, TF_Status*);
   typedef void (*TF_DeleteSessionOptions)(TF_SessionOptions*);
 
   typedef TF_Graph* (*TF_NewGraph)();
@@ -83,6 +84,7 @@ namespace TF
   TF_DECLARE(TensorData);
 
   TF_DECLARE(NewSessionOptions);
+  TF_DECLARE(SetConfig);
   TF_DECLARE(DeleteSessionOptions);
 
   TF_DECLARE(NewGraph);

@@ -31,6 +31,7 @@
 
 #include <grl/representations/tensorflow.h>
 #include "graph.pb.h"
+#include "config.pb.h"
 
 using namespace grl;
 using namespace TF;
@@ -148,6 +149,7 @@ void TensorFlowRepresentation::request(const std::string &role, ConfigurationReq
   ParameterizedRepresentation::request(role, config);
 
   config->push_back(CRP("file", "TensorFlow graph stored in binary protocol buffer, or Python command to generate it", file_));
+  config->push_back(CRP("memory", "GPU memory fraction to be pre-allocated for this process", memory_));
   
   config->push_back(CRP("input_layer", "Name of input layer placeholders (default: inputs of 'inputs' node)", input_layer_));
   config->push_back(CRP("output_layer", "Name of output layer tensors (default: inputs of 'outputs' node)", output_layer_));
@@ -164,6 +166,7 @@ void TensorFlowRepresentation::configure(Configuration &config)
   ParameterizedRepresentation::configure(config);
 
   file_ = config["file"].str();
+  memory_ = config["memory"];
   
   input_layer_ = config["input_layer"].str();
   output_layer_ = config["output_layer"].str();
@@ -300,6 +303,19 @@ void TensorFlowRepresentation::configure(Configuration &config)
   }
   
   TF_SessionOptions *tf_session_options = TF::NewSessionOptions();
+
+  ConfigProto proto;
+  proto.mutable_gpu_options()->set_per_process_gpu_memory_fraction(memory_);
+  std::string proto_str;
+  proto.SerializeToString(&proto_str);
+  
+  TF::SetConfig(tf_session_options, (void*)proto_str.c_str(), proto_str.size(), tf_status);
+  if (TF::GetCode(tf_status) != TF_OK)
+  {
+    ERROR(TF::Message(tf_status));
+    throw Exception("Could not set session options");
+  }
+  
   session_ = TF::NewSession(graph_, tf_session_options, tf_status);
   
   if (TF::GetCode(tf_status) != TF_OK)

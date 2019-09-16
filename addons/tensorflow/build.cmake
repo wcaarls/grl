@@ -15,7 +15,7 @@ if (GRL_BUILD_TENSORFLOW)
   message("** Building TensorFlow addon")
 
   # Generate protobuf headers
-  protobuf_generate_cpp(PROTO_SOURCES PROTO_HEADERS ${SRC}/../share/graph.proto)
+  protobuf_generate_cpp(PROTO_SOURCES PROTO_HEADERS ${SRC}/../share/graph.proto ${SRC}/../share/config.proto)
 
   # Build library
   add_library(${TARGET} SHARED

@@ -49,6 +49,7 @@ TF_DEFINE(Dim);
 TF_DEFINE(TensorData);
 
 TF_DEFINE(NewSessionOptions);
+TF_DEFINE(SetConfig);
 TF_DEFINE(DeleteSessionOptions);
 
 TF_DEFINE(NewGraph);
@@ -96,6 +97,7 @@ static class TFInit
       TF_RESOLVE(TensorData);
 
       TF_RESOLVE(NewSessionOptions);
+      TF_RESOLVE(SetConfig);
       TF_RESOLVE(DeleteSessionOptions);
 
       TF_RESOLVE(NewGraph);

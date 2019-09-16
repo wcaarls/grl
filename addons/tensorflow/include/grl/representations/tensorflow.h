@@ -46,6 +46,7 @@ class TensorFlowRepresentation : public ParameterizedRepresentation
     
   protected:
     std::string file_, input_layer_, output_layer_, output_target_, sample_weights_, learning_phase_, init_node_, update_node_;
+    double memory_;
     std::vector<std::string> inputs_write_, outputs_read_, weights_read_, weights_write_, weights_node_;
     mutable std::vector<TF::Shape> weights_shape_;
     IndexVector input_shapes_;
@@ -63,7 +64,7 @@ class TensorFlowRepresentation : public ParameterizedRepresentation
     pthread_mutex_t mutex_;
 
   public:
-    TensorFlowRepresentation() : init_node_("init"), update_node_("update"), graph_(NULL), session_(NULL), counter_(0), mutex_(PTHREAD_MUTEX_INITIALIZER) { }
+    TensorFlowRepresentation() : init_node_("init"), update_node_("update"), memory_(1), graph_(NULL), session_(NULL), counter_(0), mutex_(PTHREAD_MUTEX_INITIALIZER) { }
     ~TensorFlowRepresentation()
     {
       if (session_)
