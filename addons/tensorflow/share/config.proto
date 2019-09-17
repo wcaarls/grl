@@ -1,0 +1,11 @@
+syntax = "proto2";
+
+package grl;
+
+message GPUOptions {
+  optional double per_process_gpu_memory_fraction = 1;
+};
+
+message ConfigProto {
+  optional GPUOptions gpu_options = 6;
+};
