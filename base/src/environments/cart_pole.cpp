@@ -216,7 +216,7 @@ bool CartPoleSwingupTask::failed(const Vector &state) const
 
 Matrix CartPoleSwingupTask::rewardHessian(const Vector &state, const Action &action) const
 {
-  return diagonal(VectorConstructor(-2, -1, -0.1, -0.1, -0.01));
+  return diagonal(VectorConstructor(-2, -1, -0.1, -0.1, -2/225));
 }
 
 bool CartPoleSwingupTask::succeeded(const Vector &state) const

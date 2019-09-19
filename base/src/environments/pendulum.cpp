@@ -154,6 +154,11 @@ bool PendulumSwingupTask::invert(const Observation &obs, Vector *state, double t
   return true;
 }
 
+Matrix PendulumSwingupTask::rewardHessian(const Vector &state, const Action &action) const
+{
+  return diagonal(VectorConstructor(-5, -0.1, -1));
+}
+
 // Regulator
 
 void PendulumRegulatorTask::request(ConfigurationRequest *config)
