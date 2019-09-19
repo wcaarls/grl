@@ -2,12 +2,16 @@
 # grlr Command-line interface to grlw for running multiple configurations
 #      in parallel.
 #
-# grlr [-d]
+# grlr [-d] [-p port] [-r replicates]
 #   Run all agent-environment combinations in current directory
 #   (agent_*.yaml / env_*.yaml).
 #
 #   -d
 #      Only generate configurations, do not run
+#   -p port
+#      Listens to specified `port`
+#   -r replicates
+#      Replicates all experiments `replicates` times
 #
 # grlr [-d] <spec.yaml>
 #   Run multiple experiments (possibly for different agent-environment combinations)
@@ -54,16 +58,15 @@
 #             - 0.5
 #             - 0.7
 #
-# grlr <config.yaml>
+# grlr [-p port] [-r replicates] <config.yaml>
 #   Run single configuration
 #
-# grlr [-d] <spec_or_config.yaml> [spec_or_config.yaml...]
+# grlr [-d] [-p port] [-r replicates] <spec_or_config.yaml> [spec_or_config.yaml...]
 #   Run all experiments/configurations specified
 
 import yaml, os, sys, glob, copy, getopt
 from grllib import *
 
-srv = Server()
 counter = 0
 
 def progress(maxlen, workers, strlen=60):
@@ -141,18 +144,27 @@ def fuzz(name, conf, e, dry):
 
 if __name__ == '__main__':
   specs = [[{'file':'all', 'configuration':[{'name':'experiment/output', 'value':'$@'}]}]]
+  offsets = []
   dry = False    
 
   try:
-    opts, args = getopt.getopt(sys.argv[1:], "d")
+    opts, args = getopt.getopt(sys.argv[1:], "dp:r:")
   except getopt.GetoptError:
     print 'grlr [-d] [spec.yaml]'
     sys.exit(2)
 
+  port = 3373
   for opt, arg in opts:
     if opt == '-d':
       dry = True
       print "Dry run: just generating configurations"
+    if opt == '-p':
+      port = int(arg)
+    if opt == '-r':
+      offsets = {'parameters':[{'name':'experiment/run_offset', 'values':[str(100*i) for i in range(int(arg))]}]}
+      
+  global srv
+  srv = Server(port=port)
 
   if len(args) > 0:
     specs = []
@@ -164,25 +176,26 @@ if __name__ == '__main__':
   jobs = [];
   
   for idx, spec in enumerate(specs):
-    if isinstance(spec, list):
-      # Iterate over experiments
-      for exp in spec:
-        if exp["file"] == "all":
-          # All combinations of agents and environments in current directory
-          for env in glob.glob('env_*.yaml'):
-            for agent in glob.glob('agent_*.yaml'):
-              conf = mergeconf(readconf(env), readconf(agent))
-              for job in fuzz(os.path.basename(env)[4:-5] + "_" + os.path.basename(agent)[6:-5], conf, exp, dry):
-                jobs.append(job)
-        else:
-          # Specific file, possibly with wildcards
-          for f in glob.glob(exp["file"]):
-            conf = readconf(f)
-            for job in fuzz(os.path.basename(f)[:-5], conf, exp, dry):
-              jobs.append(job)
-    else:
+    if not isinstance(spec, list):
       # Single configuration
-      jobs.append(yaml.dump(readconf(args[idx])))
+      spec = [{'file':args[idx]}]
+  
+    # Iterate over experiments
+    for exp in spec:
+      exp = mergeconf(exp, offsets)
+      if exp["file"] == "all":
+        # All combinations of agents and environments in current directory
+        for env in glob.glob('env_*.yaml'):
+          for agent in glob.glob('agent_*.yaml'):
+            conf = mergeconf(readconf(env), readconf(agent))
+            for job in fuzz(os.path.basename(env)[4:-5] + "_" + os.path.basename(agent)[6:-5], conf, exp, dry):
+              jobs.append(job)
+      else:
+        # Specific file, possibly with wildcards
+        for f in glob.glob(exp["file"]):
+          conf = readconf(f)
+          for job in fuzz(os.path.basename(f)[:-5], conf, exp, dry):
+            jobs.append(job)
 
   if len(jobs) > 0:
     # Submit jobs

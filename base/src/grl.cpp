@@ -117,6 +117,8 @@ void grl::reconfigure()
     Configuration config;
     std::string line;
     std::vector<std::string> words;
+    bool set=false;
+    
     getline(std::cin, line);
     if (line.empty())
       break;
@@ -138,6 +140,7 @@ void grl::reconfigure()
           std::string value = command.substr(eqpos+1);
           
           config.set(key, value);
+          set=true;
         }
         else
         {
@@ -151,7 +154,7 @@ void grl::reconfigure()
     
     if (words.empty())
     {
-      // <key=value...>
+      // [key=value...]
       configurator_->reconfigure(config, true);
 
       if (config.has("verbose"))
@@ -166,17 +169,39 @@ void grl::reconfigure()
         
         if (oc)
         {
-          // object <key=value...>
-          oc->reconfigure(config);
+          if (set)
+          {
+            // object <key=value...>
+            oc->reconfigure(config);
+          }
+          else
+          {
+            // object
+            Configurable *obj = dynamic_cast<Configurable*>(oc->ptr());
+            if (obj)
+            {
+              ConfigurationRequest request;
+              obj->request(&request);
+            
+              std::cout << oc->path() << ":" << std::endl;
+              for (size_t ii=0; ii != request.size(); ++ii)
+                if (request[ii].mutability != CRP::Provided)
+                  std::cout << "  " << request[ii].name << ": " << request[ii].value << std::endl;
+            }
+            else
+              WARNING("Cannot inspect '" << words[0] << "': not instantiated");
+          }
         }
         else
+        {
           WARNING("Cannot reconfigure '" << words[0] << "': not a configurable object.");
+        }
       }
       else
       {
-        // action <key=value...>
+        // action [key=value...]
         config.set("action", words[0]);
-        configurator_->reconfigure(config);
+        configurator_->reconfigure(config, true);
       }
     }
     else
