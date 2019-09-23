@@ -65,7 +65,7 @@ void ModeledEnvironment::configure(Configuration &config)
 void ModeledEnvironment::reconfigure(const Configuration &config)
 {
   if (config.has("action") && config["action"].str() == "reset")
-    time_learn_ = time_test_ = 0.;
+    time_learn_ = time_test_ = jerk_ = 0.;
 }
 
 ModeledEnvironment &ModeledEnvironment::copy(const Configurable &obj)
@@ -84,6 +84,8 @@ void ModeledEnvironment::start(int test, Observation *obs)
 
   task_->start(test, &state_);
   task_->observe(state_, obs, &terminal);
+  actuation_ = Vector();
+  jerk_ = 0;
 
   obs_ = *obs;
   state_obj_->set(state_);
@@ -101,9 +103,16 @@ double ModeledEnvironment::step(const Action &action, Observation *obs, double *
   bool done;
 
   task_->actuate(state_, state, action, &actuation);
+  if (!actuation_.size())
+    actuation_ = actuation;
+
   do
   {
     tau += model_->step(state, actuation, &next);
+    
+    jerk_ += (actuation-actuation_).matrix().norm()*tau;
+    actuation_ = actuation;
+    
     state = next;
     done = task_->actuate(state_, state, action, &actuation);
   } while (!done);
@@ -132,7 +141,7 @@ double ModeledEnvironment::step(const Action &action, Observation *obs, double *
 
 void ModeledEnvironment::report(std::ostream &os) const
 {
-  os << std::setw(15) << time_learn_;
+  os << std::setw(15) << time_learn_ << std::setw(15) << jerk_;
   model_->report(os, state_);
   task_->report(os, state_);
 }
