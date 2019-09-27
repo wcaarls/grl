@@ -51,21 +51,17 @@ experiment:
         representation: 
           type: representation/parameterized/tensorflow
           interval: 10000
-          inputs: experiment/environment/task/observation_dims
-          targets: experiment/environment/task/action_dims
-          file: integrator_ddpg.pb
-          input_layer: s_in
-          output_layer: a_out/mul, q/BiasAdd
-          output_target: q_target
-          update_node: q_update
+          file: $@/../4layer_tanh_ddpg.py experiment/environment/task/observation_dims experiment/environment/task/action_dims
+          input_layer: s_in, a_in
+          output_layer: a_out/Tanh, q/BiasAdd
     predictor: 
       type: predictor/ddpg
       gamma: 0.9
       observation: s_in
       action: a_in
       value: q/BiasAdd
-      target: q_target
-      critic_update: q_update
+      target: target
+      critic_update: update
       actor_update: a_update
       obs_projector: 
         type: projector/pre/normalizing

@@ -129,8 +129,9 @@ void SwimmerDynamics::eom(const Vector &state, const Vector &actuation, Vector *
   
   switch (segments_)
   {
-    case 2: staticEOM<2>(state.transpose(), actuation.transpose(), xd); break;
     case 3: staticEOM<3>(state.transpose(), actuation.transpose(), xd); break;
+    case 4: staticEOM<4>(state.transpose(), actuation.transpose(), xd); break;
+    case 5: staticEOM<5>(state.transpose(), actuation.transpose(), xd); break;
     default:
       throw bad_param("Unsupported number of segments");
   }
@@ -143,6 +144,9 @@ void SwimmerReachingTask::request(ConfigurationRequest *config)
   config->push_back(CRP("timeout", "Episode timeout", T_, CRP::Configuration, 0., DBL_MAX));
   config->push_back(CRP("randomization", "Level of start state randomization", randomization_, CRP::Configuration, 0., 1.));
   config->push_back(CRP("segments", "double.swimmer/segments", "Number of swimmer segments", segments_, CRP::System, 2, INT_MAX));
+  config->push_back(CRP("cx", "double", "State cost factor", cx_));
+  config->push_back(CRP("cu", "double", "Action cost factor", cu_));
+  config->push_back(CRP("wrap_angles", "int", "Wrap angles", wrap_angles_));
 }
 
 void SwimmerReachingTask::configure(Configuration &config)
@@ -150,6 +154,9 @@ void SwimmerReachingTask::configure(Configuration &config)
   T_ = config["timeout"];
   randomization_ = config["randomization"];
   segments_ = config["segments"];
+  cx_ = config["cx"];
+  cu_ = config["cu"];
+  wrap_angles_ = config["wrap_angles"];
 
   const int d = segments_;
   ColumnVector masses = ConstantVector(d, 1.);
@@ -163,13 +170,13 @@ void SwimmerReachingTask::configure(Configuration &config)
   A(d-1, d-1) = 0.;
   P_ = Q.inverse()*(A*diagonal(lengths)) / 2.;
   
-  Vector omin = ConstantVector(2*(segments_+2)-1, 0.),
-         omax = ConstantVector(2*(segments_+2)-1, 2*M_PI);
+  Vector omin = ConstantVector(2*(segments_+2)-1, -M_PI),
+         omax = ConstantVector(2*(segments_+2)-1,  M_PI);
   
-  omin[0] = omin[1] = -10.;
-  omax[0] = omax[1] = 10.;
-  omin[2+segments_] = omin[3+segments_] = -10.;
-  omax[2+segments_] = omax[3+segments_] = 10.;
+  omin[0] = omin[1] = -20.;
+  omax[0] = omax[1] = 20.;
+  omin[2+segments_] = omin[3+segments_] = -20.;
+  omax[2+segments_] = omax[3+segments_] = 20.;
   
   Vector amin = ConstantVector(segments_-1, -5.),
          amax = ConstantVector(segments_-1, 5.);
@@ -190,18 +197,28 @@ void SwimmerReachingTask::reconfigure(const Configuration &config)
 
 void SwimmerReachingTask::start(int test, Vector *state) const
 {
-  *state = ConstantVector(2*(segments_+2)+1, 0.);
+  // Randomize segment angles
+  *state = Vector::Random(2*(segments_+2)+1)*(test?0.:randomization_)*M_PI;
   
+  // Set initial CoM velocity to 0
+  state->segment(2, 1) = 0.;
+  
+  // Set initial segment velocities to 0
+  state->tail(segments_+1) = 0.;
+  
+  // Put CoM on a circle around the goal
   double theta = (test?0.:randomization_)*RandGen::getUniform(0, 2*M_PI);
-
-  (*state)[0] = 5*cos(theta);
-  (*state)[1] = 5*sin(theta);
+  (*state)[0] = 15*cos(theta);
+  (*state)[1] = 15*sin(theta);
 }
 
 void SwimmerReachingTask::observe(const Vector &state, Observation *obs, int *terminal) const
 {
   if (state.size() != 2*(segments_+2)+1)
+  {
+    ERROR("Received invalid state size " << state.size() << ", expected " << 2*(segments_+2)+1);
     throw Exception("task/swimmer/reaching requires dynamics/swimmer with equal number of segments");
+  }
 
   int d = segments_;
 
@@ -241,15 +258,18 @@ void SwimmerReachingTask::observe(const Vector &state, Observation *obs, int *te
   
   obs->v << Tcn.transpose(), rtheta.transpose(), Vcn.transpose(), dtheta.transpose();
   
-  // Shift angles to [0, 2pi], with pi in the middle
-  for (size_t ii=0; ii < d-1; ++ii)
+  if (wrap_angles_)
   {
-    double a = fmod((*obs)[2+ii]+M_PI, 2*M_PI);
-    if (a < 0) a += 2*M_PI;
-    (*obs)[2+ii] = a;
+    // Make sure angles are in [-pi, pi]
+    for (size_t ii=0; ii < d-1; ++ii)
+    {
+      double a = fmod((*obs)[2+ii]+M_PI, 2*M_PI)-M_PI;
+      if (a < -M_PI) a += 2*M_PI;
+      (*obs)[2+ii] = a;
+    }
   }
+
   obs->absorbing = false;
-  
   *terminal = state[2*(d+2)] > T_;
 }
 
@@ -257,13 +277,19 @@ void SwimmerReachingTask::evaluate(const Vector &state, const Action &action, co
 {
   if (state.size() != 2*(segments_+2)+1 || action.size() != segments_-1 || next.size() != state.size())
     throw Exception("task/swimmer/swingup requires dynamics/swimmer with equal number of segments");
-
-  *reward = -pow(next[0], 2) - pow(next[1], 2);
+    
+  double d2 = next[0]*next[0]+next[1]*next[1];
+  double u2 = action.v.matrix().squaredNorm();
+  
+  *reward = -cx_*d2/(sqrt(d2+1))-cu_*u2;
 }
 
 bool SwimmerReachingTask::invert(const Observation &obs, Vector *state, double time) const
 {
   int d = segments_;
+  
+  // We can't get the actual absolute position back. Just assume nose
+  // is at origin and axis-aligned.
 
   ColumnVector Tcn = obs.v.leftCols(2);
   ColumnVector rtheta = obs.v.middleCols(2, d-1);
@@ -274,7 +300,7 @@ bool SwimmerReachingTask::invert(const Observation &obs, Vector *state, double t
   theta[0] = 0.;
 
   for (size_t ii=1; ii < d; ++ii)
-    theta[ii] = theta[ii-1]+rtheta[ii-1]-M_PI;
+    theta[ii] = theta[ii-1]+rtheta[ii-1];
 
   ColumnVector cth = theta.array().cos();
   ColumnVector sth = theta.array().sin();
@@ -306,9 +332,23 @@ bool SwimmerReachingTask::invert(const Observation &obs, Vector *state, double t
 
 Matrix SwimmerReachingTask::rewardHessian(const Vector &state, const Action &action) const
 {
-  Vector d = ConstantVector(2*(segments_+2)-1 + segments_-1, 0.);
-  d[0] = d[1] = -1;
-  d.middleCols(2*(segments_+2)-1, segments_-1) = ConstantVector(segments_-1, -1);
+  double x  = state[0], y = state[1];
+  double x2 = x*x;
+  double y2 = y*y;
+  double d2 = x2+y2;
 
-  return diagonal(d);
+  double dxx = (4*cx_*x2 )/pow(d2 + 1, 1.5) - (2*cx_)/sqrt(d2 + 1) + (cx_*d2)/pow(d2 + 1, 1.5) - (3*cx_*x2 *d2)/pow(d2 + 1, 2.5);
+  double dxy = (4*cx_*x*y)/pow(d2 + 1, 1.5)                                                    - (3*cx_*x*y*d2)/pow(d2 + 1, 2.5);
+  double dyy = (4*cx_*y2 )/pow(d2 + 1, 1.5) - (2*cx_)/sqrt(d2 + 1) + (cx_*d2)/pow(d2 + 1, 1.5) - (3*cx_*y2 *d2)/pow(d2 + 1, 2.5);
+  
+  Vector d = ConstantVector(2*(segments_+2)-1 + segments_-1, 0);
+  d[0] = dxx;
+  d[1] = dyy;
+  d.tail(segments_-1) = ConstantVector(segments_-1, -cu_);
+  
+  Matrix H = diagonal(d);
+  H(0, 1) = dxy;
+  H(1, 0) = dxy;
+  
+  return H;
 }

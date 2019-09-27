@@ -50,7 +50,7 @@ class SwimmerDynamics : public Dynamics
     double total_mass_;
     
   public:
-    SwimmerDynamics() : segments_(2), total_mass_(0.) { }
+    SwimmerDynamics() : segments_(5), total_mass_(0.) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -74,10 +74,12 @@ class SwimmerReachingTask : public Task
   protected:
     double T_, randomization_;
     int segments_;
+    double cx_, cu_;
     Matrix P_;
+    int wrap_angles_;
     
   public:
-    SwimmerReachingTask() : T_(20), randomization_(0.), segments_(2) { }
+    SwimmerReachingTask() : T_(20), randomization_(0.), segments_(5), cx_(1), cu_(0.01), wrap_angles_(1) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);

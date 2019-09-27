@@ -34,7 +34,7 @@ experiment:
       representation: 
         type: representation/parameterized/tensorflow
         interval: 1000
-        file: ./4layer_tanh_ddpg.py experiment/environment/observation_dims experiment/environment/action_dims
+        file: $@/../4layer_tanh_ddpg.py experiment/environment/observation_dims experiment/environment/action_dims
         input_layer: s_in
         output_layer: a_out/Tanh
     predictor: 

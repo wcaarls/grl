@@ -70,7 +70,10 @@ void SwimmerVisualization::draw()
   if (state.size())
   {
     if (state.size() < 9 || (state.size()-5) % 2)
-      throw("visualizer/swimmer requires a dynamics/swimmer state");
+    {
+      ERROR("Received invalid state size " << state.size());
+      throw Exception("visualizer/swimmer requires a dynamics/swimmer state");
+    }
       
     const int d = (state.size()-5)/2;
     ColumnVector masses = ConstantVector(d, 1.);
@@ -96,9 +99,9 @@ void SwimmerVisualization::draw()
     {
       double phi = state[2+ii];
     
-      drawLink(x/10, y/10, (x+cos(phi))/10, (y+sin(phi))/10);
+      drawLink(x/20, y/20, (x+cos(phi))/20, (y+sin(phi))/20);
       if (ii)
-        drawJoint(x/10, y/10);
+        drawJoint(x/20, y/20);
         
       x += cos(phi);
       y += sin(phi);

@@ -109,6 +109,7 @@ double QPredictor::criticize(const Transition &transition, const Action &action)
   return critique;
 }
 
+// NOTE: Does not use learning rate!
 LargeVector QPredictor::criticize(const std::vector<const Transition*> &transitions, const std::vector<const Action*> &actions)
 {
   Matrix q, qp;

@@ -42,7 +42,7 @@ experiment:
       representation:
         interval: 1000
         type: representation/parameterized/tensorflow
-        file: ./4layer_linear.py experiment/agent/policy/projector/projector/memory 1
+        file: $@/../4layer_linear.py experiment/agent/policy/projector/projector/memory 1
       sampler: 
         type: sampler/epsilon_greedy
         epsilon: 0.05

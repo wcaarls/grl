@@ -194,6 +194,7 @@ bool ILQGSolver::resolve(double t, const Vector &xt)
     if (accepted)
     {
       // NOTE: May be done in parallel
+      #pragma omp parallel for
       for (size_t ss=0; ss < N; ++ss)
       {
         Observation obs; obs.v = x.col(ss).transpose();
