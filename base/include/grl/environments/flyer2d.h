@@ -78,6 +78,7 @@ class Flyer2DRegulatorTask : public RegulatorTask
     virtual void reconfigure(const Configuration &config);
 
     // From Task
+    virtual void evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const;
     virtual void observe(const Vector &state, Observation *obs, int *terminal) const;
     virtual bool invert(const Observation &obs, Vector *state, double time=0.) const;
 };

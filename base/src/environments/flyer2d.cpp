@@ -117,6 +117,17 @@ void Flyer2DRegulatorTask::reconfigure(const Configuration &config)
   RegulatorTask::reconfigure(config);
 }
 
+
+void Flyer2DRegulatorTask::evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const
+{
+  // Bound angular error to pi 
+  Vector _state = state, _next = next;
+  _state[2] = fmod(_state[2], M_PI);
+  _next[2] = fmod(_next[2], M_PI);
+  
+  RegulatorTask::evaluate(_state, action, _next, reward);
+}
+
 void Flyer2DRegulatorTask::observe(const Vector &state, Observation *obs, int *terminal) const
 {
   RegulatorTask::observe(state, obs, terminal);
@@ -127,6 +138,13 @@ void Flyer2DRegulatorTask::observe(const Vector &state, Observation *obs, int *t
   obs->v.resize(6);
   for (size_t ii=0; ii < 6; ++ii)
     (*obs)[ii] = state[ii];
+    
+  double a = fmod(state[2]+M_PI, 2*M_PI);
+  if (a < 0) a += 2*M_PI;
+  a -= M_PI;
+  
+  (*obs)[2] = a;
+    
   obs->absorbing = false;
 }
 
