@@ -34,6 +34,7 @@ REGISTER_CONFIGURABLE(Flyer2DRegulatorTask)
 
 void Flyer2DDynamics::request(ConfigurationRequest *config)
 {
+  config->push_back(CRP("obstacle", "Simulate obstacle below origin", obstacle_, CRP::Configuration, 0, 1));
 }
 
 void Flyer2DDynamics::configure(Configuration &config)
@@ -42,6 +43,8 @@ void Flyer2DDynamics::configure(Configuration &config)
   g_ = 9.81;
   l_ = 0.1;
   I_ = m_*4*l_*l_/12; // Rod
+  
+  obstacle_ = config["obstacle"];
 }
 
 void Flyer2DDynamics::reconfigure(const Configuration &config)
@@ -83,6 +86,23 @@ void Flyer2DDynamics::eom(const Vector &state, const Vector &actuation, Vector *
   {
     if ((*xd)[1] < 0) (*xd)[1] = 0;
     if ((*xd)[4] < 0) (*xd)[4] = 0;
+  }
+  
+  if (obstacle_)
+  {
+    // Simulate obstacle
+    if (state[0] > -0.4 && state[0] < 0.1)
+    {
+      if (state[1] > -0.3 && state[1] < -0.2)
+      {
+        // Cannot move up through obstacle, but can move down
+        if ((*xd)[1] > 0)
+        {
+          (*xd)[1] = 0;
+          if ((*xd)[4] > 0) (*xd)[4] = 0;
+        }
+      }
+    }
   }
 }
 
@@ -146,6 +166,12 @@ void Flyer2DRegulatorTask::observe(const Vector &state, Observation *obs, int *t
   (*obs)[2] = a;
     
   obs->absorbing = false;
+  
+  if (fabs(state[0]) >= 1 || fabs(state[1]) >= 1)
+  {
+    *terminal = 2;
+    obs->absorbing = true;
+  }
 }
 
 bool Flyer2DRegulatorTask::invert(const Observation &obs, Vector *state, double time) const

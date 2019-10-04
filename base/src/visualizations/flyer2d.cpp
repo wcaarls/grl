@@ -33,6 +33,7 @@ REGISTER_CONFIGURABLE(Flyer2DVisualization)
 
 void Flyer2DVisualization::request(ConfigurationRequest *config)
 {
+  config->push_back(CRP("obstacle", "Simulate obstacle below origin", obstacle_, CRP::Configuration, 0, 1));
   config->push_back(CRP("state", "signal/vector", "2D flyer state to visualize", state_));
 }
 
@@ -41,6 +42,7 @@ void Flyer2DVisualization::configure(Configuration &config)
   if (!Visualizer::instance())
     throw Exception("visualization/flyer2d requires a configured visualizer to run");
 
+  obstacle_ = config["obstacle"];
   state_ = (VectorSignal*)config["state"].ptr();
 
   // Create window  
@@ -64,6 +66,9 @@ void Flyer2DVisualization::idle()
 void Flyer2DVisualization::draw()
 {
   clear();
+  
+  if (obstacle_)
+    drawSurface(-0.4, -0.3, 0.1, -0.2, 0.1, 0.1, 0.8);
   
   Vector state = state_->get();
   

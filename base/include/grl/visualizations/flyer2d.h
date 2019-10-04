@@ -42,9 +42,10 @@ class Flyer2DVisualization : public Visualization
 
   protected:
     VectorSignal *state_;
+    int obstacle_;
   
   public:
-    Flyer2DVisualization() : state_(NULL) { }
+    Flyer2DVisualization() : state_(NULL), obstacle_(0) { }
     
     // From Configurable
     virtual void request(ConfigurationRequest *config);

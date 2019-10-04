@@ -41,8 +41,11 @@ class Flyer2DDynamics : public Dynamics
 
   public:
     double m_, g_, l_, I_;
+    int obstacle_;
   
   public:
+    Flyer2DDynamics() : obstacle_(0) { }
+  
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
