@@ -509,13 +509,12 @@ class Configurator
       }
     }
     
-    virtual std::string yaml(size_t depth=0) const
+    virtual std::string yaml(size_t depth=0, bool resolved=false) const
     {
       std::string str;
       if (!element_.empty())
       {
         str = std::string(2*depth, ' ');
-      
         char *endptr;
         strtol(element_.c_str(), &endptr, 10);
         
@@ -529,7 +528,7 @@ class Configurator
       
       for (ConfiguratorList::const_iterator ii=children_.begin(); ii != children_.end(); ++ii)
         if (!(*ii)->provided_)
-          str += (*ii)->yaml(depth);
+          str += (*ii)->yaml(depth, resolved);
         
       return str;
     }
@@ -585,9 +584,12 @@ class ReferenceConfigurator : public Configurator
     virtual ReferenceConfigurator &deepcopy(const Configurator &c) { return *this; }
     virtual bool validate(const CRP &crp) const;
     virtual void reconfigure(const Configuration &config, bool recursive=false);
-    virtual std::string yaml(size_t depth=0) const
+    virtual std::string yaml(size_t depth=0, bool resolved=false) const
     {
-      return std::string(2*depth, ' ') + element_ + ": " + relative_path(reference_path()) + "\n";
+      if (!resolved || Configurator::ptr() != NULL)
+        return std::string(2*depth, ' ') + element_ + ": " + relative_path(reference_path()) + "\n";
+      else
+        return std::string(2*depth, ' ') + element_ + ": " + str() + "\n";
     }
 
   protected:
@@ -617,10 +619,17 @@ class ParameterConfigurator : public Configurator
     virtual ParameterConfigurator &deepcopy(const Configurator &c) { return *this; }
     virtual bool validate(const CRP &crp) const;
     virtual void reconfigure(const Configuration &config, bool recursive=false);
-    virtual std::string yaml(size_t depth=0) const
+    virtual std::string yaml(size_t depth=0, bool resolved=false) const
     {
-      if (!value_.empty())
-        return std::string(2*depth, ' ') + element_ + ": " + value_ + "\n";
+      std::string s;
+    
+      if (!resolved || Configurator::ptr() != NULL)
+        s = value_;
+      else
+        s = str();
+      
+      if (!s.empty())
+        return std::string(2*depth, ' ') + element_ + ": " + s + "\n";
       else
         return std::string(2*depth, ' ') + element_ + ": \"\"\n";
     }
@@ -677,9 +686,9 @@ class ObjectConfigurator : public Configurator
     virtual ObjectConfigurator &deepcopy(const Configurator &c);
     virtual bool validate(const CRP &crp) const;
     virtual void reconfigure(const Configuration &config, bool recursive=false);
-    virtual std::string yaml(size_t depth=0) const
+    virtual std::string yaml(size_t depth=0, bool resolved=false) const
     {
-      return Configurator::yaml(depth) + 
+      return Configurator::yaml(depth, resolved) + 
              std::string(2*depth+2, ' ') + "type: " + type_ + "\n";
              
     }

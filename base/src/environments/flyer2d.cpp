@@ -168,10 +168,7 @@ void Flyer2DRegulatorTask::observe(const Vector &state, Observation *obs, int *t
   obs->absorbing = false;
   
   if (fabs(state[0]) >= 1 || fabs(state[1]) >= 1)
-  {
-    *terminal = 2;
-    obs->absorbing = true;
-  }
+    *terminal = 1;
 }
 
 bool Flyer2DRegulatorTask::invert(const Observation &obs, Vector *state, double time) const

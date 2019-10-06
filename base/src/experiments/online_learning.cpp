@@ -109,7 +109,7 @@ LargeVector OnlineLearningExperiment::run()
   if (!output_.empty())
   {
     ofs.open(output_ + identity_ + ".yaml");
-    ofs << configurator()->root()->yaml();
+    ofs << configurator()->root()->yaml(0, true);
     ofs.close();
   }
 
@@ -142,7 +142,7 @@ LargeVector OnlineLearningExperiment::run()
     { 
       Observation obs;
       Action action;
-      double reward, total_reward=0;
+      double reward, total_reward=0, total_time=0;
       int terminal;
       int test = (test_interval_ >= 0 && tt%(test_interval_+1) == test_interval_) * (rr+1);
       timer step_timer;
@@ -178,6 +178,7 @@ LargeVector OnlineLearningExperiment::run()
         CRAWL(action << " - " << reward << " -> " << obs);
         
         total_reward += reward;
+        total_time += tau;
 
         if (obs.size())
         {
@@ -202,7 +203,7 @@ LargeVector OnlineLearningExperiment::run()
         if (test)
         {
           std::ostringstream oss;
-          oss << std::setw(15) << tt+1-(tt+1)/(test_interval_+1) << std::setw(15) << ss << std::setw(15) << std::setprecision(3) << std::fixed << total_reward << std::setw(15) << std::setprecision(3) << duration;
+          oss << std::setw(15) << tt+1-(tt+1)/(test_interval_+1) << std::setw(15) << ss << std::setw(15) << std::setprecision(3) << std::fixed << total_reward << std::setw(15) << std::setprecision(3) << total_time << std::setw(15) << std::setprecision(3) << duration;
           agent_->report(oss);
           environment_->report(oss);
           

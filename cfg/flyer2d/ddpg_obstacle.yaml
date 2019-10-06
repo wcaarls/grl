@@ -61,7 +61,7 @@ experiment:
             projector: 
               type: projector/pre/geometric
               angles: [0, 0, 1, 0, 0, 0]
-              normalized: 1
+              normalized: -1
               projector: 
                 type: projector/identity
           representation: 
@@ -105,7 +105,7 @@ experiment:
         theta: []
         decay_rate: 1
         decay_min: 0
-        renormalize: 0
+        renormalize: 1
         output_min: experiment/agent/policy/policy/policy/output_min
         output_max: experiment/agent/policy/policy/policy/output_max
         projector: experiment/agent/policy/policy/policy/projector
