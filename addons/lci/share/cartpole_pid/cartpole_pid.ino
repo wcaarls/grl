@@ -1,62 +1,51 @@
-#define PIN_DIR      6
-#define PIN_PWM      7
+#include <EncoderShield.h>
+#include <MotoShield.h>
 
-#define PIN_ANGLE_A 19
-#define PIN_ANGLE_B 20
-#define PIN_ANGLE_Z 21
+#define MAX_PWM 255
 
-#define PIN_POS_A    2
-#define PIN_POS_B    3
+Motor motor(0);
+Encoder angle_encoder(0, 1000, -689+714+2000), pos_encoder(1, 100);
+Device end_stop_left(0), end_stop_right(1);
 
-#define ANGLE_ZERO -689
-
-#define NANGLE_ONLY_A
-
-long int angle=-10000, pos=0;
+long int offset=0;
 
 void setup() {
+  // 31kHz PWM on pins 2, 3, 5
+  TCCR3B &= ~7;
+  TCCR3B |= (1 << CS30);
+
+  // 31kHz PWM on pins 6, 7, 8
   TCCR4B &= ~7;
   TCCR4B |= (1 << CS40);
   
-  pinMode(PIN_DIR, OUTPUT);
-  pinMode(PIN_PWM, OUTPUT);
-
-  pinMode(PIN_ANGLE_A, INPUT);
-  pinMode(PIN_ANGLE_B, INPUT);
-  pinMode(PIN_ANGLE_Z, INPUT);
-
-  pinMode(PIN_POS_A, INPUT);
-  pinMode(PIN_POS_B, INPUT);
-
-  attachInterrupt(digitalPinToInterrupt(19), angleEncoderA, CHANGE);
-#ifndef ANGLE_ONLY_A
-  attachInterrupt(digitalPinToInterrupt(20), angleEncoderB, CHANGE);
-#endif
-  attachInterrupt(digitalPinToInterrupt(21), angleEncoderZ, RISING);
-  attachInterrupt(digitalPinToInterrupt(2), posEncoderA, CHANGE);
-
-  digitalWrite(PIN_DIR, 0);
-  analogWrite(PIN_PWM, 0);
-
-  while (abs(angle) > 100) delay(10);
-  pos = 0;
-
   Serial.begin(115200);  
+
+  motor.begin();
+  angle_encoder.begin();
+  pos_encoder.begin();
+  end_stop_left.begin();
+  end_stop_right.begin();
+
+  Serial.println("Homing");
+
+  angle_encoder.home();
+  offset = pos_encoder.count();
+
+  Serial.println("Starting");
 }
 
-#define P_ANGLE 30
-#define D_ANGLE 1
-#define P_POS   5
-#define D_POS   3
+#define P_ANGLE 20
+#define D_ANGLE 0.1
+#define P_POS   -5
+#define D_POS   -0.3
 #define ALPHA 0.95
 
 void loop() {
-  noInterrupts();
-  long int _angle = angle, _pos = pos;
-  interrupts();
-
   static float prevangerr=0, prevposerr=0, filtangder=0, filtposder=0;
-  float angerr = _angle*2*M_PI/4000, poserr = _pos/4000.;
+
+  float angerr = angle_encoder.angle();
+  float poserr = (pos_encoder.count()-offset)/4000.;
+
   float angder = (angerr-prevangerr)/0.001;
   float posder = (poserr-prevposerr)/0.001;
 
@@ -67,73 +56,14 @@ void loop() {
 
   if (v > 1) v = 1;
   if (v < -1) v = -1;
+  
+  uint8_t dir = (v<0)?CW:(v>0)?CCW:BRAKEGND;
+  uint8_t pwm = map((long int)(1024*abs(v)), 0, 1024, 25, 250);
 
-  long int intv = map((long int)(1024*abs(v)), 0, 1024, 0, 250);
-  digitalWrite(PIN_DIR, v<0);
-
-  if (abs(angle) > 200)
-  {
-    analogWrite(PIN_PWM, 0);
-    pos = 0;
-  }
-  else
-    analogWrite(PIN_PWM, intv);
-
-  //Serial.print(angle);
-  //Serial.print(" ");
-  //Serial.print(angerr);
-  //Serial.print(" ");
-  //Serial.print(angder);
-  //Serial.print(" ");
-  //Serial.println(intv);
-
-
-//  Serial.print("a: ");
-//  Serial.print(angerr);
-//  Serial.print(", p: ");
-//  Serial.println(poserr);
+  motor.go(dir, pwm);
 
   prevangerr = angerr;
   prevposerr = poserr;
 
   delay(1);
-}
-
-#ifdef ANGLE_ONLY_A
-void angleEncoderA()
-{
-  bool PastA = digitalRead(PIN_ANGLE_A) == HIGH;
-  bool PastB = digitalRead(PIN_ANGLE_B) == HIGH;
-  angle += (PastA != PastB) ? +1 : -1;
-}
-#else
-void angleEncoderA()
-{
-  bool PastA = digitalRead(PIN_ANGLE_A) == HIGH;
-  bool PastB = digitalRead(PIN_ANGLE_B) == HIGH;
-  
-  angle += (PastA != PastB) ? +1 : -1;
-}
-
-void angleEncoderB()
-{
-  bool PastA = digitalRead(PIN_ANGLE_A) == HIGH;
-  bool PastB = digitalRead(PIN_ANGLE_B) == HIGH;
-  
-  angle += (PastA != PastB) ? -1 : +1;
-}
-
-#endif
-
-
-void angleEncoderZ()
-{
-  angle = ANGLE_ZERO;
-}
-
-void posEncoderA()
-{
-  bool PastA = digitalRead(PIN_POS_A) == HIGH;
-  bool PastB = digitalRead(PIN_POS_B) == HIGH;
-  pos += (PastA != PastB) ? +1 : -1;
 }

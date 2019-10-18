@@ -86,32 +86,40 @@ class Encoder
       
       if (id_ == 0)
       {
-        attachInterrupt(encApin[id_], encoder0A, CHANGE);
-        attachInterrupt(encBpin[id_], encoder0B, CHANGE);
-        attachInterrupt(encZpin[id_], encoder0Z, RISING);
+        attachInterrupt(digitalPinToInterrupt(encApin[id_]), encoder0A, CHANGE);
+        attachInterrupt(digitalPinToInterrupt(encBpin[id_]), encoder0B, CHANGE);
+        attachInterrupt(digitalPinToInterrupt(encZpin[id_]), encoder0Z, RISING);
       }
       else
       {
-        attachInterrupt(encApin[id_], encoder1A, CHANGE);
-        attachInterrupt(encBpin[id_], encoder1B, CHANGE);
-        attachInterrupt(encZpin[id_], encoder1Z, RISING);
+        attachInterrupt(digitalPinToInterrupt(encApin[id_]), encoder1A, CHANGE);
+        attachInterrupt(digitalPinToInterrupt(encBpin[id_]), encoder1B, CHANGE);
+        attachInterrupt(digitalPinToInterrupt(encZpin[id_]), encoder1Z, RISING);
       }
     }
     
     void home(unsigned int tolerance=100)
     {
+      noInterrupts();
       *count_ = -10000;
-      while (abs(*count_) > tolerance) delay(10);
+      interrupts();
+      
+      while (abs(count()) > tolerance)
+        delay(10);
     }
     
     long int count()
     {
-      return *count_;
+      long int _count;
+      noInterrupts();
+      _count = *count_;
+      interrupts();
+      return _count;
     }
     
     float angle()
     {
-      return 4.*count()/ppr_;
+      return 0.5*M_PI*count()/ppr_;
     }
 };
 

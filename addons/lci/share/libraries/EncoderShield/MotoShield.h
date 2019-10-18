@@ -32,8 +32,8 @@ Distributed as-is; no warranty is given.
 static int inApin[2] = {7, 4};  // INA: Clockwise input
 static int inBpin[2] = {8, 9}; // INB: Counter-clockwise input
 static int pwmpin[2] = {5, 6}; // PWM input
-static int cspin[2] = {2, 3}; // CS: Current sense ANALOG input
-static int enpin[2] = {0, 1}; // EN: Status of switches output (Analog pin)
+static int cspin[2] = {A2, A3}; // CS: Current sense ANALOG output
+static int enpin[2] = {A0, A1}; // EN: Status of switches output (Analog pin)
 
 class Motor
 {
@@ -53,6 +53,10 @@ class Motor
       pinMode(inApin[id_], OUTPUT);
       pinMode(inBpin[id_], OUTPUT);
       pinMode(pwmpin[id_], OUTPUT);
+      
+      // Initialize analog pins as inputs
+      pinMode(cspin[id_], INPUT);
+      pinMode(enpin[id_], INPUT);
       
       // Initialize braked
       stop();
@@ -99,5 +103,10 @@ class Motor
     unsigned int current()
     {
       return analogRead(cspin[id_]);
+    }
+
+    bool diag()
+    {
+      return digitalRead(enpin[id_]);
     }
 };
