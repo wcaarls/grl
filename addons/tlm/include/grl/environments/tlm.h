@@ -86,6 +86,35 @@ class TwoLinkManipulatorBalancingTask : public Task
     virtual bool invert(const Observation &obs, Vector *state) const;
 };
 
+/// Two-link manipulator balancing task with quadratic costs
+class TwoLinkManipulatorRegulatorTask : public RegulatorTask
+{
+  public:
+    TYPEINFO("task/tlm/regulator", "Two-link manipulator regulator task")
+
+  public:
+    TwoLinkManipulatorRegulatorTask()
+    {
+      start_ = VectorConstructor(M_PI, 0, 0, 0);
+      goal_ = VectorConstructor(0, 0, 0, 0);
+      stddev_ = VectorConstructor(0.5*M_PI, 0.5*M_PI, 0, 0);
+      q_ = VectorConstructor(1, 1, 0.05, 0.05);
+      r_ = VectorConstructor(0.01, 0.01);
+      timeout_ = 10;
+    }
+
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+
+    // From Task
+    virtual void evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const;
+    virtual void observe(const Vector &state, Observation *obs, int *terminal) const;
+    virtual bool invert(const Observation &obs, Vector *state, double time=0.) const;
+};
+
+
 /// Two-link manipulator visualization.
 class TwoLinkManipulatorVisualization : public Visualization
 {

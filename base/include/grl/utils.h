@@ -436,6 +436,14 @@ inline Vector squash(const Vector &x, double f)
   return y;
 }
 
+// Normalize angle between [-pi, pi]
+inline double normalize_angle(double a)
+{
+  a = fmod(a+M_PI, 2*M_PI);
+  if (a < 0) a += 2*M_PI;
+  return a - M_PI;
+}
+
 inline bool str_replace(std::string& str, const std::string& from, const std::string& to)
 {
   size_t start_pos = str.find(from);

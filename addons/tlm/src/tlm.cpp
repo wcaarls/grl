@@ -31,6 +31,7 @@ using namespace grl;
 
 REGISTER_CONFIGURABLE(TwoLinkManipulatorDynamics)
 REGISTER_CONFIGURABLE(TwoLinkManipulatorBalancingTask)
+REGISTER_CONFIGURABLE(TwoLinkManipulatorRegulatorTask)
 REGISTER_CONFIGURABLE(TwoLinkManipulatorVisualization) 
 
 void TwoLinkManipulatorDynamics::request(ConfigurationRequest *config)
@@ -75,6 +76,8 @@ void TwoLinkManipulatorDynamics::eom(const Vector &state, const Vector &actuatio
 
   *xd = VectorConstructor(state[siAngleRate1], state[siAngleRate2], accels[0], accels[1], 1.);
 }
+
+// Original balancing task
 
 void TwoLinkManipulatorBalancingTask::request(ConfigurationRequest *config)
 {
@@ -150,6 +153,71 @@ bool TwoLinkManipulatorBalancingTask::invert(const Observation &obs, Vector *sta
   
   return true;
 }
+
+// Regulator
+
+void TwoLinkManipulatorRegulatorTask::request(ConfigurationRequest *config)
+{
+  RegulatorTask::request(config);
+}
+
+void TwoLinkManipulatorRegulatorTask::configure(Configuration &config)
+{
+  RegulatorTask::configure(config);
+
+  if (q_.size() != 4)
+    throw bad_param("task/tlm/regulator:q");
+  if (r_.size() != 2)
+    throw bad_param("task/tlm/regulator:r");
+
+  config.set("observation_min", VectorConstructor(-M_PI, -M_PI, -2*M_PI, -2*M_PI));
+  config.set("observation_max", VectorConstructor( M_PI,  M_PI,  2*M_PI,  2*M_PI));
+  config.set("action_min", VectorConstructor(-1.5, -1.));
+  config.set("action_max", VectorConstructor( 1.5,  1.));
+}
+
+void TwoLinkManipulatorRegulatorTask::reconfigure(const Configuration &config)
+{
+  RegulatorTask::reconfigure(config);
+}
+
+void TwoLinkManipulatorRegulatorTask::evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const
+{
+  // Bound angular error to pi 
+  Vector _state = state, _next = next;
+  for (size_t ii=0; ii != 2; ++ii)
+  {
+    _state[ii] = normalize_angle(state[ii]);
+    _next[ii] = normalize_angle(next[ii]);
+  }
+
+  RegulatorTask::evaluate(_state, action, _next, reward);
+}
+
+void TwoLinkManipulatorRegulatorTask::observe(const Vector &state, Observation *obs, int *terminal) const
+{
+  RegulatorTask::observe(state, obs, terminal);
+
+  if (state.size() != 5)
+    throw Exception("task/tlm/regulator requires dynamics/tlm");
+
+  obs->v.resize(4);
+  for (size_t ii=0; ii != 2; ++ii)
+    (*obs)[ii] = normalize_angle(state[ii]);
+  for (size_t ii=2; ii < 4; ++ii)
+    (*obs)[ii] = state[ii];
+
+  obs->absorbing = false;
+}
+
+bool TwoLinkManipulatorRegulatorTask::invert(const Observation &obs, Vector *state, double time) const
+{
+  *state = extend(obs, VectorConstructor(time));
+
+  return true;
+}
+
+// Visualization
 
 void TwoLinkManipulatorVisualization::request(ConfigurationRequest *config)
 {
