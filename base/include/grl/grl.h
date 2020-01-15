@@ -78,9 +78,10 @@ struct Action
 {
   Vector v;
   ActionType type;
+  double logp;
 
-  Action() { type = atUndefined; }
-  Action(const Vector &_v, ActionType _type=atUndefined) : v(_v), type(_type) { }
+  Action() { type = atUndefined; logp = 0; }
+  Action(const Vector &_v, ActionType _type=atUndefined, double _logp=0) : v(_v), type(_type), logp(_logp) { }
   operator Vector&() { return v; }
   operator const Vector&() const { return v; }
   Action &operator=(const Vector &_v)
@@ -100,17 +101,16 @@ inline std::ostream &operator<<(std::ostream& os, const Action& a)
   switch (a.type)
   {
     case atUndefined:
-      os << "und:[";
+      os << "und:[" << a.v << "]";
       break;
     case atExploratory:
-      os << "exp:[";
+      os << "exp:[" << a.v << "] w.p. " << exp(a.logp);
       break;
     case atGreedy:
-      os << "gdy:[";
+      os << "gdy:[" << a.v << "]";
       break;
   }
 
-  os << a.v << "]";
   return os;
 }
 

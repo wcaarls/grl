@@ -138,12 +138,16 @@ void ActionPolicy::act(double time, const Observation &in, Action *out)
   if (time == 0.)
     decay_ = fmax(decay_*decay_rate_, decay_min_);
     
+  out->logp = 0;
+
   for (size_t ii=0; ii < out->size(); ++ii)
   {
     if (sigma_[ii])
     {
-      (*out)[ii] += n_[ii] = (1-theta_[ii])*n_[ii] + RandGen::getNormal(0., decay_*sigma_[ii]);
+      n_[ii] = (1-theta_[ii])*n_[ii] + RandGen::getNormal(0., decay_*sigma_[ii]);
+      (*out)[ii] += n_[ii];
       out->type = atExploratory;
+      out->logp += lognormal(n_[ii], decay_*sigma_[ii]);
     }
 
     (*out)[ii] = fmin(fmax((*out)[ii], min_[ii]), max_[ii]);
@@ -160,13 +164,17 @@ void ActionPolicy::act(const Observation &in, Action *out) const
     ERROR("Expected action size " << sigma_.size() << ", representation produced " << out->size());
     throw bad_param("policy/action:{output_min,output_max}");
   }
+  
+  out->logp = 0;
 
   for (size_t ii=0; ii < out->size(); ++ii)
   {
     if (sigma_[ii])
     {
-      (*out)[ii] += RandGen::getNormal(0., decay_*sigma_[ii]);
+      double r = RandGen::getNormal(0., decay_*sigma_[ii]);
+      (*out)[ii] += r;
       out->type = atExploratory;
+      out->logp += lognormal(r, decay_*sigma_[ii]);
     }
       
     (*out)[ii] = fmin(fmax((*out)[ii], min_[ii]), max_[ii]);
@@ -211,8 +219,10 @@ void ActionProbabilityPolicy::act(const Observation &in, Action *out) const
   for (size_t ii=0; ii < variants.size(); ++ii)
     dist[ii] = representation_->read(projections[ii], &v);
 
-  *out = variants[sample(dist)];
+  size_t idx = sample(dist);
+  *out = variants[idx];
   out->type = atExploratory;
+  out->logp = std::log(dist[idx]);
 }
 
 void ActionProbabilityPolicy::values(const Observation &in, LargeVector *out) const

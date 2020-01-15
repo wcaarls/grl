@@ -64,7 +64,7 @@ void PadaSampler::reconfigure(const Configuration &config)
   EpsilonGreedySampler::reconfigure(config);
 }
 
-size_t PadaSampler::sample(double time, const LargeVector &values, ActionType *at)
+size_t PadaSampler::sample(double time, const LargeVector &values, ActionType *at, double *logp)
 {
   // offset is updated only if sampler_state is modified, i.e. contact happend for Leo
   if (pub_sub_pada_state_)
@@ -86,7 +86,7 @@ size_t PadaSampler::sample(double time, const LargeVector &values, ActionType *a
   std::vector<size_t> idx;
   filter(delta, prev_action_, values, &filtered, &idx);
 
-  size_t filtered_offset = EpsilonGreedySampler::sample(filtered, at); // PadaSampler is derived from EpsilonGreedySampler => they share same epsilon
+  size_t filtered_offset = EpsilonGreedySampler::sample(filtered, at, logp); // PadaSampler is derived from EpsilonGreedySampler => they share same epsilon
   CRAWL(filtered_offset);
   CRAWL(idx[filtered_offset]);
 
@@ -137,7 +137,7 @@ void PadaSampler::filter(const Vector &delta, const Vector &prev_out, const Larg
 
 //////////////////////////////////////////////////////////
 
-size_t EpsilonPadaSampler::sample(double time, const LargeVector &values, ActionType *at)
+size_t EpsilonPadaSampler::sample(double time, const LargeVector &values, ActionType *at, double *logp)
 {
   size_t offset;
   if (rand_->get() < epsilon_[0])
@@ -164,6 +164,7 @@ size_t EpsilonPadaSampler::sample(double time, const LargeVector &values, Action
 
     if (at)
       *at = atExploratory;
+    // TODO: logp
     size_t filtered_offset = rand_->getInteger(filtered.size());
     TRACE(filtered_offset);
     offset = idx[filtered_offset];
@@ -171,7 +172,7 @@ size_t EpsilonPadaSampler::sample(double time, const LargeVector &values, Action
   }
   else
   {
-    offset = GreedySampler::sample(values, at);
+    offset = GreedySampler::sample(values, at, logp);
     prev_action_ = discretizer_->at(offset);
   }
   CRAWL(offset);

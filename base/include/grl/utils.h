@@ -436,6 +436,16 @@ inline Vector squash(const Vector &x, double f)
   return y;
 }
 
+inline double lognormal(Vector x, Vector sigma)
+{
+  return sum(-0.5 * (pow(x/(sigma+1e-10), 2) + 2*log(sigma) + log(2*M_PI)));
+}
+
+inline double lognormal(double x, double sigma)
+{
+  return -0.5 * (pow(x/(sigma+1e-10), 2) + 2*log(sigma) + log(2*M_PI));
+}
+
 // Normalize angle between [-pi, pi]
 inline double normalize_angle(double a)
 {

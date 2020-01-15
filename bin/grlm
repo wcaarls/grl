@@ -1,0 +1,15 @@
+#!/usr/bin/python
+import yaml, sys
+from grllib import readconf, mergeconf
+
+if __name__ == '__main__':
+  config = None
+  for arg in sys.argv[1:]:
+    c = readconf(arg)
+    if config:
+      config = mergeconf(config, c)
+    else:
+      config = c
+  
+  print yaml.dump(config)
+  

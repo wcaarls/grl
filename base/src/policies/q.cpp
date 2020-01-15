@@ -90,24 +90,28 @@ void QPolicy::act(const Observation &in, Action *out) const
 {
   LargeVector qvalues;
   ActionType at;
+  double logp;
   
   values(in, &qvalues);
-  size_t action = sampler_->sample(qvalues, &at);
+  size_t action = sampler_->sample(qvalues, &at, &logp);
   
   *out = discretizer_->at(in, action);
   out->type = at;
+  out->logp = logp;
 }
 
 void QPolicy::act(double time, const Observation &in, Action *out)
 {
   LargeVector qvalues;
   ActionType at;
+  double logp;
 
   values(in, &qvalues);
-  size_t action = sampler_->sample(time, qvalues, &at);
+  size_t action = sampler_->sample(time, qvalues, &at, &logp);
 
   *out = discretizer_->at(in, action);
   out->type = at;
+  out->logp = logp;
 }
 
 void QPolicy::distribution(const Observation &in, const Action &prev, LargeVector *out) const

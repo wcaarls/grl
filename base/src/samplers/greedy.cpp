@@ -44,12 +44,10 @@ void GreedySampler::reconfigure(const Configuration &config)
 {
 }
 
-size_t GreedySampler::sample(const LargeVector &values, ActionType *at) const
+void GreedySampler::findmax(const LargeVector &values, size_t &mai, size_t &man) const
 {
-  if (at)
-    *at = atGreedy;
-  
-  size_t mai = 0, man = 1;
+  mai = 0;
+  man = 1;
   for (size_t ii=1; ii < values.size(); ++ii)
   {
     if (values[ii] > values[mai])
@@ -60,6 +58,18 @@ size_t GreedySampler::sample(const LargeVector &values, ActionType *at) const
     else if (values[ii] == values[mai])
       man++;
   }
+}
+
+size_t GreedySampler::sample(const LargeVector &values, ActionType *at, double *logp) const
+{
+  if (at)
+    *at = atGreedy;
+  
+  size_t mai, man;
+  findmax(values, mai, man);
+
+  if (logp)
+    *logp = std::log(1./man);
   
   if (man > 1)
   {
@@ -78,7 +88,13 @@ size_t GreedySampler::sample(const LargeVector &values, ActionType *at) const
 void GreedySampler::distribution(const LargeVector &values, LargeVector *distribution) const
 {
   *distribution = LargeVector::Constant(values.size(), 0.);
-  (*distribution)[GreedySampler::sample(values)] = 1;
+  
+  size_t mai, man;
+  findmax(values, mai, man);
+  
+  for (size_t ii=0; ii < values.size(); ++ii)
+    if (values[ii] == values[mai])
+      (*distribution)[ii] = 1./man;
 }
 
 void EpsilonGreedySampler::request(ConfigurationRequest *config)
@@ -125,15 +141,18 @@ void EpsilonGreedySampler::reconfigure(const Configuration &config)
     decay_ = 1;
 }
 
-size_t EpsilonGreedySampler::sample(double time, const LargeVector &values, ActionType *at)
+size_t EpsilonGreedySampler::sample(double time, const LargeVector &values, ActionType *at, double *logp)
 {
   if (time == 0.)
     decay_ = fmax(decay_*decay_rate_, decay_min_);
-  return sample(values, at);
+  return sample(values, at, logp);
 }
 
-size_t EpsilonGreedySampler::sample(const LargeVector &values, ActionType *at) const
+size_t EpsilonGreedySampler::sample(const LargeVector &values, ActionType *at, double *logp) const
 {
+  size_t mai, man;
+  findmax(values, mai, man);
+
   double r = rand_->get();
   
   if (epsilon_.size() > 1)
@@ -157,18 +176,45 @@ size_t EpsilonGreedySampler::sample(const LargeVector &values, ActionType *at) c
           {
             if (at)
               *at = atExploratory;
+            // TODO: logp
             return ii;
           }
     }
   }
   else if (r < decay_*epsilon_[0])
   {
+    size_t a = rand_->getInteger(values.size());
+    
     if (at)
       *at = atExploratory;
-    return rand_->getInteger(values.size());
+    if (logp)
+    {
+      if (values[a] == values[mai])
+        *logp = std::log((decay_*epsilon_[0])/values.size() + (1.-(decay_*epsilon_[0]))/man);
+      else
+        *logp = std::log((decay_*epsilon_[0])/values.size());
+    }
+    
+    return a;
   }
+  
+  if (at)
+    *at = atGreedy;
+  if (logp)
+    *logp = std::log((decay_*epsilon_[0])/values.size() + (1.-(decay_*epsilon_[0]))/man);
 
-  return GreedySampler::sample(values, at);
+  if (man > 1)
+  {
+    // Multiple indices with same maximum value. Choose randomly.
+    size_t ii = mai;
+    for (int jj = rand_->getInteger(man); jj >=0; ++ii)
+      if (values[ii] == values[mai])
+        --jj;
+
+    return ii-1;
+  }
+  else
+    return mai;
 }
 
 void EpsilonGreedySampler::distribution(const LargeVector &values, LargeVector *distribution) const

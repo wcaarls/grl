@@ -32,8 +32,8 @@ class GrlEnv(gym.Env):
         (obs, reward, terminal) = self.env.step(u)
         return obs, reward, terminal, {}
 
-    def reset(self):
-        return self.env.start(0)
+    def reset(self, test=0):
+        return self.env.start(test)
 
     def render(self, mode='human'):
         pass

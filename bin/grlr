@@ -143,7 +143,7 @@ def fuzz(name, conf, e, dry):
       break
 
 if __name__ == '__main__':
-  specs = [[{'file':'all', 'configuration':[{'name':'experiment/output', 'value':'$@'}]}]]
+  specs = [[{'file':'all', 'configuration':[{'name':'experiment/output', 'value':'$@', 'name':'output_file', 'value':'$@'}]}]]
   offsets = []
   dry = False    
 

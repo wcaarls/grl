@@ -45,7 +45,7 @@ void SoftmaxSampler::reconfigure(const Configuration &config)
   config.get("tau", tau_);
 }
 
-size_t SoftmaxSampler::sample(const LargeVector &values, ActionType *at) const
+size_t SoftmaxSampler::sample(const LargeVector &values, ActionType *at, double *logp) const
 {
   LargeVector dist;
   
@@ -54,7 +54,12 @@ size_t SoftmaxSampler::sample(const LargeVector &values, ActionType *at) const
   if (at)
     *at = atExploratory;
     
-  return grl::sample(dist, 1.);
+  size_t a = grl::sample(dist, 1.);
+  
+  if (logp)
+    *logp = std::log(dist[a]);
+  
+  return a;
 }
 
 void SoftmaxSampler::distribution(const LargeVector &values, LargeVector *distribution) const

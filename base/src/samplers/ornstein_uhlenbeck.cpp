@@ -90,7 +90,7 @@ Vector OrnsteinUhlenbeckSampler::mix_signal_noise(const Vector &in, const Vector
   return in + noise_scale_*noise;
 }
 
-size_t OrnsteinUhlenbeckSampler::sample(double time, const LargeVector &values, ActionType *at)
+size_t OrnsteinUhlenbeckSampler::sample(double time, const LargeVector &values, ActionType *at, double *logp)
 {
   if (pub_sub_ou_state_)
     noise_ = pub_sub_ou_state_->get();
@@ -141,7 +141,7 @@ void ACOrnsteinUhlenbeckSampler::reconfigure(const Configuration &config)
   config.get("epsilon", epsilon_);
 }
 
-size_t ACOrnsteinUhlenbeckSampler::sample(double time, const LargeVector &values, ActionType *at)
+size_t ACOrnsteinUhlenbeckSampler::sample(double time, const LargeVector &values, ActionType *at, double *logp)
 {
   if (rand_->get() < epsilon_ && time != 0.0)
   {
@@ -192,7 +192,7 @@ void EpsilonOrnsteinUhlenbeckSampler::reconfigure(const Configuration &config)
   config.get("epsilon", epsilon_);
 }
 
-size_t EpsilonOrnsteinUhlenbeckSampler::sample(double time, const LargeVector &values, ActionType *at)
+size_t EpsilonOrnsteinUhlenbeckSampler::sample(double time, const LargeVector &values, ActionType *at, double *logp)
 {
   if (pub_sub_ou_state_)
     noise_ = pub_sub_ou_state_->get();
@@ -247,7 +247,7 @@ void PadaOrnsteinUhlenbeckSampler::reconfigure(const Configuration &config)
   pada_->reconfigure(config);
 }
 
-size_t PadaOrnsteinUhlenbeckSampler::sample(double time, const LargeVector &values, ActionType *at)
+size_t PadaOrnsteinUhlenbeckSampler::sample(double time, const LargeVector &values, ActionType *at, double *logp)
 {
   if (pub_sub_ou_state_)
     noise_ = pub_sub_ou_state_->get();

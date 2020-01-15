@@ -89,9 +89,11 @@ void NoisePolicy::act(const Observation &in, Action *out) const
 {
   policy_->act(in, out);
   
+  Vector mu = *out;
   for (size_t ii=0; ii < out->size(); ++ii)
     (*out)[ii] = fmin(fmax((*out)[ii] + RandGen::getNormal(0., decay_*sigma_[ii]), min_[ii]), max_[ii]);
   out->type = atExploratory;
+  out->logp = lognormal(out->v-mu, decay_*sigma_);
 }
 
 void NoisePolicy::act(double time, const Observation &in, Action *out)
@@ -104,10 +106,12 @@ void NoisePolicy::act(double time, const Observation &in, Action *out)
   if (time == 0 || n_.size() != out->size())
     n_ = ConstantVector(out->size(), 0.);
   
+  Vector mu = *out;
   for (size_t ii=0; ii < out->size(); ++ii)
   {
     n_[ii] = (1-theta_[ii])*n_[ii] + RandGen::getNormal(0., decay_*sigma_[ii]);
     (*out)[ii] = fmin(fmax((*out)[ii] + n_[ii], min_[ii]), max_[ii]);
   }
   out->type = atExploratory;
+  out->logp = lognormal(out->v-mu, decay_*sigma_);
 }

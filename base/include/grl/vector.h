@@ -303,6 +303,15 @@ inline Vector pow(const Vector &a, const Vector &b)
   return c;
 }
 
+inline Vector pow(const Vector &a, double b)
+{
+  Vector c;
+  c.resize(a.size());
+  for (size_t ii=0; ii < c.size(); ++ii)
+    c[ii] = pow(a[ii], b);
+  return c;
+}
+
 using ::log;
 
 inline Vector log(const Vector &a)

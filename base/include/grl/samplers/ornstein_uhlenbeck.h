@@ -61,7 +61,7 @@ class OrnsteinUhlenbeckSampler : public GreedySampler
     virtual void reconfigure(const Configuration &config);
 
     // From Sampler
-    virtual size_t sample(double time, const LargeVector &values, ActionType *tt=NULL);
+    virtual size_t sample(double time, const LargeVector &values, ActionType *at=NULL, double *logp=NULL);
 
   protected:
     virtual void evolve_noise();
@@ -87,7 +87,7 @@ class ACOrnsteinUhlenbeckSampler : public OrnsteinUhlenbeckSampler
     virtual void reconfigure(const Configuration &config);
 
     // From Sampler
-    virtual size_t sample(double time, const LargeVector &values, ActionType *tt=NULL);
+    virtual size_t sample(double time, const LargeVector &values, ActionType *at=NULL, double *logp=NULL);
 };
 
 
@@ -108,7 +108,7 @@ class EpsilonOrnsteinUhlenbeckSampler : public OrnsteinUhlenbeckSampler
     virtual void reconfigure(const Configuration &config);
 
     // From Sampler
-    virtual size_t sample(double time, const LargeVector &values, ActionType *tt=NULL);
+    virtual size_t sample(double time, const LargeVector &values, ActionType *tt=NULL, double *logp=NULL);
 };
 
 class PadaOrnsteinUhlenbeckSampler : public OrnsteinUhlenbeckSampler
@@ -129,7 +129,7 @@ class PadaOrnsteinUhlenbeckSampler : public OrnsteinUhlenbeckSampler
     virtual void reconfigure(const Configuration &config);
 
     // From Sampler
-    virtual size_t sample(double time, const LargeVector &values, ActionType *tt=NULL);
+    virtual size_t sample(double time, const LargeVector &values, ActionType *at=NULL, double *logp=NULL);
 };
 
 }
