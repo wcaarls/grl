@@ -16,6 +16,7 @@ add_library(${TARGET} SHARED
             ${SRC}/agents/delayed_td.cpp
             ${SRC}/agents/dyna.cpp
             ${SRC}/agents/replay.cpp
+            ${SRC}/agents/rollout.cpp
             ${SRC}/agents/sequential.cpp
             ${SRC}/agents/smdp_master.cpp
             ${SRC}/agents/compartmentalized.cpp
