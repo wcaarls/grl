@@ -177,7 +177,8 @@ void ReactorBalancingTask::evaluate(const Vector &state, const Action &action, c
     throw Exception("task/reactor/balancing requires dynamics/reactor");
 
   // Fb in [mol/h]
-  double Fb = (next[4]-state[4]) / (next[5]-state[5]) * 3600;
+  //double Fb = (next[4]-state[4]) / (next[5]-state[5]) * 3600;
+  double Fb = action[0]*(state[1]+next[1])/2;
 
   // Maximize Cb while keeping Fb at setpoint  
   *reward = state[1] - sqrt(abs(Fb - 200));
@@ -188,5 +189,13 @@ void ReactorBalancingTask::evaluate(const Vector &state, const Action &action, c
 
 bool ReactorBalancingTask::invert(const Observation &obs, Vector *state, double time) const
 {
-  return false;
+  state->resize(6);
+  (*state)[0] = obs[0];
+  (*state)[1] = obs[1];
+  (*state)[2] = obs[2];
+  (*state)[3] = obs[3];
+  (*state)[4] = 0;
+  (*state)[5] = time;
+
+  return true;
 }

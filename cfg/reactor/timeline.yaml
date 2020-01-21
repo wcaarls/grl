@@ -1,0 +1,37 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  run_offset: 0
+  trials: 0
+  steps: 0
+  rate: 0
+  test_interval: -1
+  environment: 
+    type: environment/modeled
+    discrete_time: 1
+    model: 
+      type: model/dynamical
+      control_step: 0.05
+      integration_steps: 5
+      dynamics: 
+        type: dynamics/reactor
+    task: 
+      type: task/reactor/balancing
+      timeout: 3600
+      randomization: 0
+    exporter: 
+      type: exporter/csv
+      file: reactor_evolution
+      style: line
+      variant: all
+      enabled: 1
+  agent: 
+    type: agent/fixed
+    policy: 
+      type: mapping/policy/feed_forward
+      controls: 
+        type: mapping/timeline
+        importer: 
+          type: importer/csv
+          file: reactor_actions
+  save_every: never
