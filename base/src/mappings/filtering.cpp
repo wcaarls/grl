@@ -129,6 +129,7 @@ void FilteringPolicy::act(double time, const Observation &in, Action *out)
   policy_->act(time, reindex(in, observation_idx_), &res);
   out->type = res.type;
   out->v = reindex(res.v, action_idx_);
+  out->logp = res.logp;
 }
 
 void FilteringPolicy::act(const Observation &in, Action *out) const
@@ -140,4 +141,5 @@ void FilteringPolicy::act(const Observation &in, Action *out) const
   policy_->act(reindex(in, observation_idx_), &res);
   out->type = res.type;
   out->v = reindex(res.v, action_idx_);
+  out->logp = res.logp;
 }

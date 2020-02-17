@@ -32,7 +32,10 @@
 using namespace grl;
 
 REGISTER_CONFIGURABLE(ActionPolicy)
-REGISTER_CONFIGURABLE(ActionProbabilityPolicy)
+REGISTER_CONFIGURABLE(GaussianPolicy)
+REGISTER_CONFIGURABLE(StochasticPolicy)
+
+// *** ActionPolicy
 
 void ActionPolicy::request(ConfigurationRequest *config)
 {
@@ -181,79 +184,216 @@ void ActionPolicy::act(const Observation &in, Action *out) const
   }
 }
 
-void ActionProbabilityPolicy::request(ConfigurationRequest *config)
+// *** GaussianPolicy
+
+void GaussianPolicy::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("discretizer", "discretizer.action", "Action discretizer", discretizer_));
-  config->push_back(CRP("projector", "projector.pair", "Projects observation-action pairs onto representation space", projector_));
-  config->push_back(CRP("representation", "representation.value/action", "Action-probability representation", representation_));
+  config->push_back(CRP("renormalize", "int", "Renormalize representation output from [-1, 1] to [min, max]", renormalize_, CRP::Configuration, 0, 1));
+
+  config->push_back(CRP("output_min", "vector.action_min", "Lower limit on outputs", min_, CRP::System));
+  config->push_back(CRP("output_max", "vector.action_max", "Upper limit on outputs", max_, CRP::System));
+
+  config->push_back(CRP("projector", "projector.observation", "Projects observations onto representation space", projector_));
+  config->push_back(CRP("representation", "representation.action/gaussian", "Action-logstd representation", representation_));
 }
 
-void ActionProbabilityPolicy::configure(Configuration &config)
+void GaussianPolicy::configure(Configuration &config)
 {
-  discretizer_ = (Discretizer*)config["discretizer"].ptr();
-  
   projector_ = (Projector*)config["projector"].ptr();
   representation_ = (Representation*)config["representation"].ptr();
   
-  sampler_ = new SoftmaxSampler();
-  Configuration sampler_config;
-  sampler_config.set("tau", 1.0);
-  sampler_->configure(sampler_config);
+  renormalize_ = config["renormalize"];
+  min_ = config["output_min"].v();
+  max_ = config["output_max"].v();
   
+  if (min_.size() != max_.size() || !min_.size())
+    throw bad_param("policy/action:{output_min,output_max}");
+    
+  dims_ = min_.size();
 }
 
-void ActionProbabilityPolicy::reconfigure(const Configuration &config)
+void GaussianPolicy::reconfigure(const Configuration &config)
 {
 }
 
-void ActionProbabilityPolicy::act(const Observation &in, Action *out) const
+double GaussianPolicy::read(const Vector &in, Vector *result) const
 {
-  std::vector<Vector> variants;
-  std::vector<ProjectionPtr> projections;
+  ProjectionPtr p = projector_->project(in);
+  representation_->read(p, result);
   
-  discretizer_->options(in, &variants);
-  projector_->project(in, variants, &projections);
-
-  Vector dist(variants.size()), v;
-  
-  for (size_t ii=0; ii < variants.size(); ++ii)
-    dist[ii] = representation_->read(projections[ii], &v);
-
-  size_t idx = sample(dist);
-  *out = variants[idx];
-  out->type = atExploratory;
-  out->logp = std::log(dist[idx]);
-}
-
-void ActionProbabilityPolicy::values(const Observation &in, LargeVector *out) const
-{
-  // 'projections' contains list of neighbours around state 'in' and any possible action. Number of projections is equal to number of possible actions.
-  std::vector<Vector> variants;
-  std::vector<ProjectionPtr> projections;
-
-  discretizer_->options(in, &variants);
-  projector_->project(in, variants, &projections);
-
-  out->resize(variants.size());
-  Vector value;
-  for (size_t ii=0; ii < variants.size(); ++ii)
-    (*out)[ii] = representation_->read(projections[ii], &value); // reading approximated values
-}
-
-void ActionProbabilityPolicy::distribution(const Observation &in, const Action &prev, LargeVector *out) const
-{
-  LargeVector apvalues;
-
-  values(in, &apvalues);
-  sampler_->distribution(apvalues, out);
-
-  for (size_t ii=0; ii < out->size(); ++ii) 
+  // Some representations may not always return a value.
+  if (!result->size())
   {
-   if (std::isnan((*out)[ii]))
-   {
-     ERROR("action::ActionProbabilityPolicy::distribution:: (*distribution)(ii:" << ii << ") " << (*out)[ii]);
-     for (size_t kk=0; kk < out->size(); ++kk)
-       ERROR("action::ActionProbabilityPolicy::distribution:: (*distribution)(kk:" << kk << ") " << (*out)[kk]);
-   }
-  }  
+    *result = (min_+max_)/2;
+    *result = extend(*result, (Vector)Vector::Zero(dims_));
+    return (*result)[0];
+  }
+  else if (renormalize_)
+  {
+    if (result->size() < 2*dims_)
+    {
+      ERROR("Expected action size 2*" << dims_ << ", representation produced " << result->size());
+      throw bad_param("mapping/policy/action/stochastic:{output_min,output_max}");
+    }
+  
+    for (size_t ii=0; ii < dims_; ++ii)
+    {
+      (*result)[      ii] = (*result)[      ii] * (max_[ii]-min_[ii])/2 + (min_[ii]+max_[ii])/2;
+      (*result)[dims_+ii] = (*result)[dims_+ii] + std::log((max_[ii]-min_[ii])/2);
+    }
+  }
+    
+  return (*result)[0];
+}
+
+void GaussianPolicy::read(const Matrix &in, Matrix *result) const
+{
+  representation_->batchRead(in.rows());
+  for (size_t ii=0; ii != in.rows(); ++ii)
+    representation_->enqueue(projector_->project(in.row(ii)));
+  representation_->read(result);
+
+  if (result->cols() < 2*dims_)
+  {
+    ERROR("Expected action size 2*" << dims_ << ", representation produced " << result->cols());
+    throw bad_param("mapping/policy/action/stochastic:{output_min,output_max}");
+  }
+  
+  if (renormalize_)
+    for (size_t rr=0; rr < result->rows(); ++rr)
+      for (size_t cc=0; cc < dims_; ++cc)
+      {
+        (*result)(rr,       cc) = (*result)(rr,       cc) * (max_[cc]-min_[cc])/2 + (min_[cc]+max_[cc])/2;
+        (*result)(rr, dims_+cc) = (*result)(rr, dims_+cc) + std::log((max_[cc]-min_[cc])/2);
+      }
+}
+
+void GaussianPolicy::act(const Observation &in, Action *out) const
+{
+  Vector result;
+  read(in, &result);
+  
+  if (result.size() < 2*dims_)
+  {
+    ERROR("Expected action size 2*" << dims_ << ", representation produced " << result.size());
+    throw bad_param("mapping/policy/action/gaussian:{output_min,output_max}");
+  }
+
+  *out = result.head(dims_);
+  out->type = atExploratory;
+  out->logp = 0;
+
+  for (size_t ii=0; ii < out->size(); ++ii)
+  {
+    double sigma = exp(result[dims_+ii]);
+    double r = RandGen::getNormal(0., sigma);
+    double mu = (*out)[ii];
+
+    (*out)[ii] += r;
+    (*out)[ii] = fmin(fmax((*out)[ii], min_[ii]), max_[ii]);
+
+    // TODO: Proper clipping using integral over pdf outside range.
+    out->logp += lognormal((*out)[ii]-mu, sigma);
+  }
+}
+
+// *** StochasticPolicy
+
+void StochasticPolicy::request(ConfigurationRequest *config)
+{
+  config->push_back(CRP("renormalize", "int", "Renormalize representation output from [-1, 1] to [min, max]", renormalize_, CRP::Configuration, 0, 1));
+
+  config->push_back(CRP("output_min", "vector.action_min", "Lower limit on outputs", min_, CRP::System));
+  config->push_back(CRP("output_max", "vector.action_max", "Upper limit on outputs", max_, CRP::System));
+
+  config->push_back(CRP("projector", "projector.observation", "Projects observations onto representation space", projector_));
+  config->push_back(CRP("representation", "representation.action/stochastic", "Action-logp representation", representation_));
+}
+
+void StochasticPolicy::configure(Configuration &config)
+{
+  projector_ = (Projector*)config["projector"].ptr();
+  representation_ = (Representation*)config["representation"].ptr();
+  
+  renormalize_ = config["renormalize"];
+  min_ = config["output_min"].v();
+  max_ = config["output_max"].v();
+  
+  if (min_.size() != max_.size() || !min_.size())
+    throw bad_param("policy/action:{output_min,output_max}");
+    
+  dims_ = min_.size();
+}
+
+void StochasticPolicy::reconfigure(const Configuration &config)
+{
+}
+
+double StochasticPolicy::read(const Vector &in, Vector *result) const
+{
+  ProjectionPtr p = projector_->project(in);
+  representation_->read(p, result);
+  
+  // Some representations may not always return a value.
+  if (!result->size())
+  {
+    *result = (min_+max_)/2;
+    *result = extend(*result, (Vector)Vector::Zero(1));
+    return (*result)[0];
+  }
+  else if (renormalize_)
+  {
+    if (result->size() < dims_+1)
+    {
+      ERROR("Expected action size " << dims_ << "+1, representation produced " << result->size());
+      throw bad_param("mapping/policy/action/stochastic:{output_min,output_max}");
+    }
+  
+    for (size_t ii=0; ii < dims_; ++ii)
+      (*result)[ii] = (*result)[ii] * (max_[ii]-min_[ii])/2 + (min_[ii]+max_[ii])/2;
+  }
+    
+  return (*result)[0];
+}
+
+void StochasticPolicy::read(const Matrix &in, Matrix *result) const
+{
+  representation_->batchRead(in.rows());
+  for (size_t ii=0; ii != in.rows(); ++ii)
+    representation_->enqueue(projector_->project(in.row(ii)));
+  representation_->read(result);
+
+  if (result->cols() < dims_+1)
+  {
+    ERROR("Expected action size " << dims_ << "+1, representation produced " << result->size());
+    throw bad_param("mapping/policy/action/stochastic:{output_min,output_max}");
+  }
+  
+  if (renormalize_)
+    for (size_t rr=0; rr < result->rows(); ++rr)
+      for (size_t cc=0; cc < dims_; ++cc)
+        (*result)(rr, cc) = (*result)(rr, cc) * (max_[cc]-min_[cc])/2 + (min_[cc]+max_[cc])/2;
+}
+
+void StochasticPolicy::act(const Observation &in, Action *out) const
+{
+  Vector result;
+  read(in, &result);
+  
+  if (result.size() < dims_+1)
+  {
+    ERROR("Expected action size " << dims_ << "+1, representation produced " << result.size());
+    throw bad_param("mapping/policy/action/stochastic:{output_min,output_max}");
+  }
+
+  *out = result.head(dims_);
+
+  for (size_t ii=0; ii < dims_; ++ii)
+    (*out)[ii] = fmin(fmax((*out)[ii], min_[ii]), max_[ii]);
+  
+  out->logp = result(dims_);
+  if (out->logp == 0)
+    out->type = atGreedy;
+  else
+    out->type = atExploratory;
 }

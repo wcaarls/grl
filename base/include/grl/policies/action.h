@@ -69,6 +69,68 @@ class ActionPolicy : public Policy
     virtual void read(const Matrix &in, Matrix *result) const;
 };
 
+/// Policy based on an explicitly stochastic action representation
+class GaussianPolicy : public Policy
+{
+  public:
+    TYPEINFO("mapping/policy/gaussian", "Policy based on a mean-logstd representation")
+
+  protected:
+    Projector *projector_;
+    Representation *representation_;
+    
+    Vector min_, max_;
+    int renormalize_;
+    
+    size_t dims_;
+
+  public:
+    GaussianPolicy() : projector_(NULL), representation_(NULL), renormalize_(0) { }
+    
+    // From Configurable  
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+
+    // From Policy
+    virtual void act(const Observation &in, Action *out) const;
+    
+    // From Mapping
+    virtual double read(const Vector &in, Vector *result) const;
+    virtual void read(const Matrix &in, Matrix *result) const;
+};
+
+/// Policy based on an internally stochastic action representation
+class StochasticPolicy : public Policy
+{
+  public:
+    TYPEINFO("mapping/policy/stochastic", "Policy based on an explicitly stochastic action representation")
+
+  protected:
+    Projector *projector_;
+    Representation *representation_;
+    
+    Vector min_, max_;
+    int renormalize_;
+    
+    size_t dims_;
+
+  public:
+    StochasticPolicy() : projector_(NULL), representation_(NULL), renormalize_(0) { }
+    
+    // From Configurable  
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+
+    // From Policy
+    virtual void act(const Observation &in, Action *out) const;
+    
+    // From Mapping
+    virtual double read(const Vector &in, Vector *result) const;
+    virtual void read(const Matrix &in, Matrix *result) const;
+};
+
 /// Policy based on an action-probability representation.
 class ActionProbabilityPolicy : public DiscretePolicy
 {

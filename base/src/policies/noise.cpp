@@ -42,7 +42,7 @@ void NoisePolicy::request(ConfigurationRequest *config)
   config->push_back(CRP("output_min", "vector.action_min", "Lower limit on outputs", min_, CRP::System));
   config->push_back(CRP("output_max", "vector.action_max", "Upper limit on outputs", max_, CRP::System));
 
-  config->push_back(CRP("policy", "mapping/policy", "Policy to inject noise into", policy_));
+  config->push_back(CRP("policy", "mapping/policy", "Deterministic policy to inject noise into", policy_));
 }
 
 void NoisePolicy::configure(Configuration &config)

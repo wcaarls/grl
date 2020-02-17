@@ -46,6 +46,7 @@ experiment:
           type: representation/parameterized/tensorflow
           interval: 100
           tau: 0.01
+          memory: 0.1
           file: $@/../4layer_tanh_ddpg.py experiment/environment/task/observation_dims experiment/environment/task/action_dims
           input_layer: s_in, a_in
           output_layer: q/BiasAdd, a_out/Tanh

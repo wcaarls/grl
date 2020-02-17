@@ -67,7 +67,7 @@ class Sampler : public Configurable
     */
     virtual size_t sample(double time, const LargeVector &values, ActionType *at=NULL, double *logp=NULL)
     {
-      return sample(values, at);
+      return sample(values, at, logp);
     }
 
     /**

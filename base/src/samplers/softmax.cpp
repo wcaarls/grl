@@ -1,5 +1,5 @@
 /** \file softmax.cpp
- * \brief Greedy and Epsilon-softmax samplers source file.
+ * \brief Softmax (Gibbs/Boltzmann) sampler source file.
  *
  * \author    Wouter Caarls <wouter@caarls.org>
  * \date      2015-07-01
