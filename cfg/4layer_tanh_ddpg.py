@@ -14,7 +14,7 @@ from keras.models import Model
 from keras.layers.core import Dense, Lambda
 from keras.layers.merge import Concatenate
 from keras.layers.normalization import BatchNormalization
-from keras.backend import get_session
+from keras.backend import get_session, set_session
 
 if len(sys.argv) != 4:
   print("Usage:")
@@ -27,6 +27,11 @@ normalization = False
 share_weights = False
 layer1_size = 400
 layer2_size = 300
+
+config = tf.ConfigProto()
+config.gpu_options.per_process_gpu_memory_fraction = 0.1
+session = tf.Session(config=config)
+set_session(session)
 
 # Actor network definition
 s_in = tf.placeholder(tf.float32, shape=(None,obs), name='s_in')

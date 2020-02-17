@@ -32,6 +32,7 @@ using namespace grl;
 
 REGISTER_CONFIGURABLE(ReactorDynamics)
 REGISTER_CONFIGURABLE(ReactorBalancingTask)
+REGISTER_CONFIGURABLE(ReactorMaximizationTask)
 
 void ReactorDynamics::request(ConfigurationRequest *config)
 {
@@ -67,7 +68,7 @@ void ReactorDynamics::reconfigure(const Configuration &config)
 
 void ReactorDynamics::eom(const Vector &state, const Vector &actuation, Vector *xd) const
 {
-  if (state.size() != 6 || actuation.size() != 2)
+  if (state.size() != 5 || actuation.size() != 2)
     throw Exception("dynamics/reactor requires a task/reactor subclass");
     
   double Ca = state[0], Cb = state[1], T = state[2], Tk = state[3];
@@ -97,16 +98,16 @@ void ReactorDynamics::eom(const Vector &state, const Vector &actuation, Vector *
   // Thermal balance of the jacket
   double Tkd = (Fink/Vk_)*(Tkf_-Tk) + ((kw_*Ar_)/(mk_*Cpk_))*(T-Tk);
   
-  xd->resize(6);
+  xd->resize(5);
   (*xd)[0] = Cad;
   (*xd)[1] = Cbd;
   (*xd)[2] = Td;
   (*xd)[3] = Tkd;
-  (*xd)[4] = Fin*Cb; // Fb
-  (*xd)[5] = 1;
+  (*xd)[4] = 1;
 }
 
-void ReactorBalancingTask::request(ConfigurationRequest *config)
+/// ReactorTask
+void ReactorTask::request(ConfigurationRequest *config)
 {
   Task::request(config);
 
@@ -114,37 +115,34 @@ void ReactorBalancingTask::request(ConfigurationRequest *config)
   config->push_back(CRP("randomization", "Level of start state randomization", randomization_, CRP::Configuration, 0., 1.));
 }
 
-void ReactorBalancingTask::configure(Configuration &config)
+void ReactorTask::configure(Configuration &config)
 {
   T_ = config["timeout"];
   randomization_ = config["randomization"];
 
   config.set("observation_dims", 4);
-  config.set("observation_min", VectorConstructor(0.0, 0.0, 285., 285.));
-  config.set("observation_max", VectorConstructor(5.5, 1.1, 450., 450.));
+  config.set("observation_min", VectorConstructor(3.3, 0.0, 285., 285.));
+  config.set("observation_max", VectorConstructor(5.5, 1.3, 450., 450.));
   config.set("action_dims", 2);
   config.set("action_min", VectorConstructor(  0.,   0.));
   config.set("action_max", VectorConstructor(700., 400.));
-  config.set("reward_min", -sqrt(570));
-  config.set("reward_max", 1.1);
 }
 
-void ReactorBalancingTask::reconfigure(const Configuration &config)
+void ReactorTask::reconfigure(const Configuration &config)
 {
 }
 
-void ReactorBalancingTask::start(int test, Vector *state) const
+void ReactorTask::start(int test, Vector *state) const
 {
-  state->resize(6);
-  (*state)[0] = 5.1;
-  (*state)[1] = 0;
-  (*state)[2] = 380;
-  (*state)[3] = 380;
+  state->resize(5);
+  (*state)[0] = 5.1  + randomization_*0.4*(RandGen::get()*2-1);
+  (*state)[1] = 0    + randomization_*1.0*(RandGen::get());
+  (*state)[2] = 380  + randomization_*50.*(RandGen::get()*2-1);;
+  (*state)[3] = 380  + randomization_*50.*(RandGen::get()*2-1);;
   (*state)[4] = 0;
-  (*state)[5] = 0;
 }
 
-bool ReactorBalancingTask::actuate(const Vector &prev, const Vector &state, const Action &action, Vector *actuation) const
+bool ReactorTask::actuate(const Vector &prev, const Vector &state, const Action &action, Vector *actuation) const
 {
   // Limit and convert feed rates from hours to seconds
   *actuation = VectorConstructor(fmin(fmax(action[0], 0), 700)/3600,
@@ -152,10 +150,10 @@ bool ReactorBalancingTask::actuate(const Vector &prev, const Vector &state, cons
   return true;
 }
 
-void ReactorBalancingTask::observe(const Vector &state, Observation *obs, int *terminal) const
+void ReactorTask::observe(const Vector &state, Observation *obs, int *terminal) const
 {
-  if (state.size() != 6)
-    throw Exception("task/reactor/balancing requires dynamics/reactor");
+  if (state.size() != 5)
+    throw Exception("task/reactor requires dynamics/reactor");
 
   obs->v.resize(4);
   (*obs)[0] = state[0];
@@ -165,37 +163,85 @@ void ReactorBalancingTask::observe(const Vector &state, Observation *obs, int *t
 
   obs->absorbing = false;
   
-  if (state[5] > T_)
+  if (state[4] > T_)
     *terminal = 1;
   else
     *terminal = 0;
 }
 
+bool ReactorTask::invert(const Observation &obs, Vector *state, double time) const
+{
+  state->resize(5);
+  (*state)[0] = obs[0];
+  (*state)[1] = obs[1];
+  (*state)[2] = obs[2];
+  (*state)[3] = obs[3];
+  (*state)[4] = time;
+
+  return true;
+}
+
+/// ReactorBalancingTask
+
+void ReactorBalancingTask::request(ConfigurationRequest *config)
+{
+  ReactorTask::request(config);
+
+  config->push_back(CRP("setpoint", "Fb setpoint", setpoint_, CRP::Configuration, 0., DBL_MAX));
+}
+
+void ReactorBalancingTask::configure(Configuration &config)
+{
+  ReactorTask::configure(config);
+
+  setpoint_ = config["setpoint"];
+
+  config.set("reward_min", -sqrt(570));
+  config.set("reward_max", 1.3);
+}
+
 void ReactorBalancingTask::evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const
 {
-  if (state.size() != 6 || action.size() != 2 || next.size() != 6)
+  if (state.size() != 5 || action.size() != 2 || next.size() != 5)
     throw Exception("task/reactor/balancing requires dynamics/reactor");
 
   // Fb in [mol/h]
-  //double Fb = (next[4]-state[4]) / (next[5]-state[5]) * 3600;
   double Fb = action[0]*(state[1]+next[1])/2;
 
   // Maximize Cb while keeping Fb at setpoint  
   *reward = state[1] - sqrt(abs(Fb - 200));
   
   // Normalize reward per timestep.
-  *reward *= (next[5]-state[5]);
+  *reward *= (next[4]-state[4]);
 }
 
-bool ReactorBalancingTask::invert(const Observation &obs, Vector *state, double time) const
-{
-  state->resize(6);
-  (*state)[0] = obs[0];
-  (*state)[1] = obs[1];
-  (*state)[2] = obs[2];
-  (*state)[3] = obs[3];
-  (*state)[4] = 0;
-  (*state)[5] = time;
+// ReactorMaximizationTask
 
-  return true;
+void ReactorMaximizationTask::request(ConfigurationRequest *config)
+{
+  ReactorTask::request(config);
+
+  config->push_back(CRP("fin_weight", "Relative weight of Fin maximization", fin_weight_, CRP::Configuration, 0., DBL_MAX));
+}
+
+void ReactorMaximizationTask::configure(Configuration &config)
+{
+  ReactorTask::configure(config);
+
+  fin_weight_ = config["fin_weight"];
+
+  config.set("reward_min", 0);
+  config.set("reward_max", 2.3);
+}
+
+void ReactorMaximizationTask::evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const
+{
+  if (state.size() != 5 || action.size() != 2 || next.size() != 5)
+    throw Exception("task/reactor/balancing requires dynamics/reactor");
+
+  // Maximize Cb and Fin at the same time
+  *reward = (1-fin_weight_) * state[1] + fin_weight_*(action[0]/700.);
+  
+  // Normalize reward per timestep.
+  *reward *= (next[4]-state[4]);
 }

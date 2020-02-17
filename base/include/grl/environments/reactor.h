@@ -54,17 +54,14 @@ class ReactorDynamics : public Dynamics
     virtual void eom(const Vector &state, const Vector &actuation, Vector *xd) const;
 };
 
-/// van de Vusse CSTR balancing task at Fb = Fin * Cb = 200
-class ReactorBalancingTask : public Task
+/// Generic van de Vusse CSTR task
+class ReactorTask : public Task
 {
-  public:
-    TYPEINFO("task/reactor/balancing", "Maintain reactor at Fb setpoint")
-  
   public:
     double T_, randomization_;
   
   public:
-    ReactorBalancingTask() : T_(3600.), randomization_(0.) { }
+    ReactorTask() : T_(3600.), randomization_(0.) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -75,8 +72,47 @@ class ReactorBalancingTask : public Task
     virtual void start(int test, Vector *state) const;
     virtual bool actuate(const Vector &prev, const Vector &state, const Action &action, Vector *actuation) const;
     virtual void observe(const Vector &state, Observation *obs, int *terminal) const;
-    virtual void evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const;
     virtual bool invert(const Observation &obs, Vector *state, double time=0.) const;
+};
+
+/// van de Vusse CSTR balancing task at Fb = Fin * Cb = setpoint
+class ReactorBalancingTask : public ReactorTask
+{
+  public:
+    TYPEINFO("task/reactor/balancing", "Maintain reactor at Fb setpoint")
+  
+  public:
+    double setpoint_;
+  
+  public:
+    ReactorBalancingTask() : setpoint_(0.) { }
+  
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+
+    // From Task
+    virtual void evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const;
+};
+
+/// van de Vusse CSTR maximization task
+class ReactorMaximizationTask : public ReactorTask
+{
+  public:
+    TYPEINFO("task/reactor/maximization", "Maximize Cb and Fin")
+  
+  public:
+    double fin_weight_;
+  
+  public:
+    ReactorMaximizationTask() : fin_weight_(0.) { }
+  
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+
+    // From Task
+    virtual void evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const;
 };
 
 }

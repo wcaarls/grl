@@ -52,7 +52,7 @@ log_prob = tf.reduce_sum(pre_sum, axis=1, keepdims=True)
 # Squashing
 mu = tf.tanh(mu, name='mu')
 pi = tf.tanh(pi, name='a_out')
-log_prob -= tf.reduce_sum(tf.log(1 - pi**2 + 1e-6), axis=1, keepdims=True)
+log_prob -= tf.reduce_sum(tf.log(1 - pi**2 + 1e-6), axis=1, keepdims=True, name='log_prob')
 
 # Critic network
 a_in = tf.placeholder_with_default(pi, shape=(None,actions), name='a_in')
