@@ -2,7 +2,7 @@ experiment:
   type: experiment/online_learning
   runs: 1
   run_offset: 0
-  trials: 0
+  trials: 1
   steps: 0
   rate: 0
   test_interval: -1

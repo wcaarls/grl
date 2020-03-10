@@ -209,7 +209,7 @@ void ReactorBalancingTask::evaluate(const Vector &state, const Action &action, c
   double Fb = action[0]*(state[1]+next[1])/2;
 
   // Maximize Cb while keeping Fb at setpoint  
-  *reward = state[1] - sqrt(abs(Fb - 200));
+  *reward = state[1] - 0.001*sqrt(abs(Fb - 200));
   
   // Normalize reward per timestep.
   *reward *= (next[4]-state[4]);

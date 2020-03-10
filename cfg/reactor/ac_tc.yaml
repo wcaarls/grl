@@ -12,8 +12,8 @@ experiment:
     discrete_time: 1
     model: 
       type: model/dynamical
-      control_step: 1
-      integration_steps: 10
+      control_step: 60
+      integration_steps: 600
       dynamics: 
         type: dynamics/reactor
     task: 
@@ -107,9 +107,9 @@ curve:
 state: 
   type: visualization/state
   input_dims: []
-  input_min: experiment/environment/task/observation_min
-  input_max: experiment/environment/task/observation_max
-  memory: 65536
+  input_min: [0, 0, 273, 273]
+  input_max: [6, 6, 500, 500]
+  memory: 1024
   state: experiment/state
 action: 
   type: visualization/state
