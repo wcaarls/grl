@@ -1,0 +1,101 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 10
+  run_offset: 0
+  trials: 1000
+  steps: 0
+  rate: 0
+  test_interval: 10
+  output: reactor_ddpg_curve
+  environment: 
+    type: environment/modeled
+    discrete_time: 1
+    model: 
+      type: model/dynamical
+      control_step: 60
+      integration_steps: 600
+      dynamics: 
+        type: dynamics/reactor
+    task: 
+      type: task/reactor/balancing
+      timeout: 7200
+      randomization: 0
+    exporter: 
+      type: exporter/csv
+      file: reactor_ddpg_signals
+      style: line
+      variant: test
+      enabled: 1
+  agent: 
+    type: agent/replay
+    replay_steps: 64
+    batch_size: 16
+    observation_steps: 1000
+    threads: 0
+    policy: 
+      type: mapping/policy/filtering
+      observation_idx: [0, 1, 2, 3]
+      action_idx: [1, 2]
+      policy: 
+        type: mapping/policy/action
+        sigma: [10]
+        theta: [0.15]
+        renormalize: 1
+        output_min: 0++experiment/environment/task/action_min
+        output_max: 0++experiment/environment/task/action_max
+        projector: 
+          type: projector/pre/normalizing
+          input_min: experiment/environment/task/observation_min
+          input_max: experiment/environment/task/observation_max
+          projector:
+            type: projector/identity
+        representation: 
+          type: representation/parameterized/tensorflow
+          interval: 100
+          tau: 0.01
+          memory: 0.1
+          file: $@/../4layer_tanh_ddpg.py experiment/environment/task/observation_dims experiment/environment/task/action_dims
+          input_layer: s_in, a_in
+          output_layer: q/BiasAdd, a_out/Tanh
+    predictor: 
+      type: predictor/ddpg
+      gamma: 0.99
+      reward_scale: 0.1
+      observation: s_in
+      action: a_in
+      value: q/BiasAdd
+      target: target
+      critic_update: update
+      actor_update: a_update
+      obs_projector: ../../policy/policy/projector
+      action_projector: 
+        type: projector/pre/normalizing
+        signed: 1
+        input_min: experiment/environment/task/action_min
+        input_max: experiment/environment/task/action_max
+        projector: 
+          type: projector/identity
+      representation: experiment/agent/policy/policy/representation
+  test_agent: 
+    type: agent/fixed
+    policy: 
+      type: mapping/policy/filtering
+      observation_idx: [0, 1, 2, 3]
+      action_idx: [1, 2]
+      policy: 
+        type: mapping/policy/action
+        renormalize: 1
+        output_min: experiment/agent/policy/policy/output_min
+        output_max: experiment/agent/policy/policy/output_max
+        projector: experiment/agent/policy/policy/projector
+        representation: experiment/agent/policy/policy/representation
+  save_every: never
+visualizer: 
+  type: visualizer/glut
+curve_visualization: 
+  type: visualization/state
+  input_dims: []
+  input_min: [0]
+  input_max: [10000]
+  memory: 256
+  state: experiment/curve
