@@ -203,7 +203,7 @@ LargeVector OnlineLearningExperiment::run()
         if (test)
         {
           std::ostringstream oss;
-          oss << std::setw(15) << tt+1-(tt+1)/(test_interval_+1) << std::setw(15) << ss << std::setw(15) << std::setprecision(3) << std::fixed << total_reward << std::setw(15) << std::setprecision(3) << total_time << std::setw(15) << std::setprecision(3) << duration;
+          oss << std::setw(15) << tt+1-(tt+1)/(test_interval_+1) << std::setw(15) << ss << std::setw(15) << std::setprecision(3) << std::fixed << total_reward << std::setw(15) << std::setprecision(3) << total_time << std::setw(15) << std::setprecision(3) << total_reward/total_time << std::setw(15) << std::setprecision(3) << duration;
           agent_->report(oss);
           environment_->report(oss);
           
@@ -223,7 +223,7 @@ LargeVector OnlineLearningExperiment::run()
       else
       {
         std::ostringstream oss;
-        oss << std::setw(15) << tt << std::setw(15) << ss << std::setw(15) << std::setprecision(3) << std::fixed << total_reward << std::setw(15) << std::setprecision(3) << duration;
+        oss << std::setw(15) << tt << std::setw(15) << ss << std::setw(15) << std::setprecision(3) << std::fixed << total_reward << std::setw(15) << std::setprecision(3) << total_time << std::setw(15) << std::setprecision(3) << duration;
         agent_->report(oss);
         environment_->report(oss);
 

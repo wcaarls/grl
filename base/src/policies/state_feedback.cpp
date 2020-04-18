@@ -59,7 +59,7 @@ void StateFeedbackPolicy::configure(Configuration &config)
     
   gains_ = config["gains"].v();
   if (!gains_.size())
-    gains_ = ConstantVector(operating_state_.size()*operating_action_.size(), 0.);
+    gains_ = ConstantLargeVector(operating_state_.size()*operating_action_.size(), 0.);
   if (gains_.size() != operating_state_.size()*operating_action_.size())
     throw bad_param("policy/parameterized/state_feedback:{gains,operating_state,operating_action}");
     

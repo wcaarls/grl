@@ -1,0 +1,123 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 10
+  run_offset: 0
+  trials: 10000
+  steps: 0
+  rate: 0
+  test_interval: 10
+  output: quadcopter_ddpg
+  environment: 
+    type: environment/modeled
+    model: 
+      type: model/dynamical
+      control_step: 0.05
+      integration_steps: 5
+      dynamics: 
+        type: dynamics/quadcopter
+    task: 
+      type: task/quadcopter/regulator
+      timeout: 60
+    exporter:
+      type: exporter/csv
+      file: quadcopter_ddpg_signals
+  agent: 
+    type: agent/replay
+    memory_size: 100000
+    replay_steps: 64
+    batch_size: 16
+    observation_steps: 1000
+    threads: 0
+    policy: 
+      type: mapping/policy/post/noise
+      sigma: [100]
+      theta: [0.15]
+      decay_rate: 0.999
+      decay_min: 0.1
+      output_min: experiment/environment/task/action_min
+      output_max: experiment/environment/task/action_max
+      policy: 
+        type: mapping/policy/filtering
+        observation_idx: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+        action_idx: [1, 2, 3, 4]
+        policy: 
+          type: mapping/policy/action
+          sigma: []
+          theta: []
+          decay_rate: 1
+          decay_min: 0
+          renormalize: 1
+          output_min: 0++experiment/environment/task/action_min
+          output_max: 0++experiment/environment/task/action_max
+          projector: 
+            type: projector/pre/normalizing
+            signed: 1
+            input_min: experiment/environment/task/observation_min
+            input_max: experiment/environment/task/observation_max
+            projector: 
+              type: projector/pre/geometric
+              angles: [0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0]
+              normalized: 1
+              projector: 
+                type: projector/identity
+          representation: 
+            type: representation/parameterized/tensorflow
+            interval: 100
+            tau: 0.01
+            file: $@/../4layer_tanh_ddpg.py ../../projector/projector/memory experiment/environment/task/action_dims
+            memory: 0.1
+            input_layer: s_in, a_in
+            output_layer: q/BiasAdd, a_out/Tanh
+            init_node: init
+            update_node: update
+    predictor: 
+      type: predictor/ddpg
+      gamma: 0.99
+      reward_scale: [1]
+      observation: s_in
+      action: a_in
+      value: q/BiasAdd
+      target: target
+      critic_update: update
+      actor_update: a_update
+      obs_projector: experiment/agent/policy/policy/policy/projector
+      action_projector: 
+        type: projector/pre/normalizing
+        signed: 1
+        input_min: experiment/environment/task/action_min
+        input_max: experiment/environment/task/action_max
+        projector: 
+          type: projector/identity
+      representation: experiment/agent/policy/policy/policy/representation
+  test_agent: 
+    type: agent/fixed
+    policy: 
+      type: mapping/policy/filtering
+      observation_idx: experiment/agent/policy/policy/observation_idx
+      action_idx: experiment/agent/policy/policy/action_idx
+      policy: 
+        type: mapping/policy/action
+        sigma: []
+        theta: []
+        decay_rate: 1
+        decay_min: 0
+        renormalize: 1
+        output_min: experiment/agent/policy/policy/policy/output_min
+        output_max: experiment/agent/policy/policy/policy/output_max
+        projector: experiment/agent/policy/policy/policy/projector
+        representation: experiment/agent/policy/policy/policy/representation
+  save_every: never
+visualizer: 
+  type: visualizer/glut
+points: 4096
+delay: 1
+curve_visualization: 
+  type: visualization/state
+  input_dims: []
+  input_min: [-10]
+  input_max: [0]
+  memory: 256
+  state: experiment/curve
+#model_visualization: 
+#  type: visualization/quadcopter
+#  state: experiment/environment/state
