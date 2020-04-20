@@ -98,7 +98,7 @@ void WindyGridworldMovementTask::reconfigure(const Configuration &config)
 {
 }
 
-void WindyGridworldMovementTask::start(int test, Vector *state) const
+void WindyGridworldMovementTask::start(int test, Vector *state)
 {
   *state = VectorConstructor(0., 3., 0.);
 }

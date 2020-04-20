@@ -69,7 +69,7 @@ class ReactorTask : public Task
     virtual void reconfigure(const Configuration &config);
 
     // From Task
-    virtual void start(int test, Vector *state) const;
+    virtual void start(int test, Vector *state);
     virtual bool actuate(const Vector &prev, const Vector &state, const Action &action, Vector *actuation) const;
     virtual void observe(const Vector &state, Observation *obs, int *terminal) const;
     virtual bool invert(const Observation &obs, Vector *state, double time=0.) const;

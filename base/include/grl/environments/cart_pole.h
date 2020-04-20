@@ -80,7 +80,7 @@ class CartPoleSwingupTask : public Task
     virtual void reconfigure(const Configuration &config);
 
     // From Task
-    virtual void start(int test, Vector *state) const;
+    virtual void start(int test, Vector *state);
     virtual void observe(const Vector &state, Observation *obs, int *terminal) const;
     virtual void evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const;
     virtual bool invert(const Observation &obs, Vector *state, double time=0.) const;
@@ -110,7 +110,7 @@ class CartPoleBalancingTask : public Task
     virtual void reconfigure(const Configuration &config);
 
     // From Task
-    virtual void start(int test, Vector *state) const;
+    virtual void start(int test, Vector *state);
     virtual void observe(const Vector &state, Observation *obs, int *terminal) const;
     virtual void evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const;
     virtual bool invert(const Observation &obs, Vector *state, double time=0.) const;

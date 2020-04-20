@@ -80,7 +80,7 @@ void LeoSquattingTask::configure(Configuration &config)
   std::cout << observation_max << std::endl;
 }
 
-void LeoSquattingTask::start(int test, Vector *state) const
+void LeoSquattingTask::start(int test, Vector *state)
 {
 /*
   *state = ConstantVector(2*rlsDofDim+1, 0);

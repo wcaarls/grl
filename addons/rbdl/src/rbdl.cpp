@@ -428,7 +428,7 @@ void LuaTask::reconfigure(const Configuration &config)
 {
 }
  
-void LuaTask::start(int test, Vector *state) const
+void LuaTask::start(int test, Vector *state)
 {
   LuaState *lua = lua_state_.instance();
 

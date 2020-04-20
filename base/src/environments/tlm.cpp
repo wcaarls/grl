@@ -77,6 +77,14 @@ void TwoLinkManipulatorDynamics::eom(const Vector &state, const Vector &actuatio
   *xd = VectorConstructor(state[siAngleRate1], state[siAngleRate2], accels[0], accels[1], 1.);
 }
 
+Vector TwoLinkManipulatorDynamics::getEndEffectorPosition(const Vector &state)
+{
+  double phi1 = state[0]+M_PI/2;
+  double phi2 = state[1];
+
+  return VectorConstructor(0.4*cos(phi1)+0.4*cos(phi1+phi2), 0.4*sin(phi1)+0.4*sin(phi1+phi2));  
+}
+
 // Original balancing task
 
 void TwoLinkManipulatorBalancingTask::request(ConfigurationRequest *config)
@@ -100,7 +108,7 @@ void TwoLinkManipulatorBalancingTask::reconfigure(const Configuration &config)
 {
 }
 
-void TwoLinkManipulatorBalancingTask::start(int test, Vector *state) const
+void TwoLinkManipulatorBalancingTask::start(int test, Vector *state)
 {
   state->resize(5);
   (*state)[TwoLinkManipulatorDynamics::siAngle1] = RandGen::get()*2*M_PI;
@@ -215,6 +223,72 @@ bool TwoLinkManipulatorRegulatorTask::invert(const Observation &obs, Vector *sta
   *state = extend(obs, VectorConstructor(time));
 
   return true;
+}
+
+// Reacher
+
+void TwoLinkManipulatorReachingTask::request(ConfigurationRequest *config)
+{
+  Task::request(config);
+}
+
+void TwoLinkManipulatorReachingTask::configure(Configuration &config)
+{
+  config.set("observation_dims", 6);
+  config.set("observation_min", VectorConstructor(0.,     0.,     -2*M_PI, -2*M_PI, -2, -2));
+  config.set("observation_max", VectorConstructor(2*M_PI, 2*M_PI,  2*M_PI,  2*M_PI,  2,  2));
+  config.set("action_dims", 2);
+  config.set("action_min", VectorConstructor(-1.5, -1.));
+  config.set("action_max", VectorConstructor( 1.5,  1.));
+  config.set("reward_min", -8);
+  config.set("reward_max",  0);
+}
+
+void TwoLinkManipulatorReachingTask::reconfigure(const Configuration &config)
+{
+}
+
+void TwoLinkManipulatorReachingTask::start(int test, Vector *state)
+{
+  state->resize(5);
+  (*state)[TwoLinkManipulatorDynamics::siAngle1] = RandGen::get()*2*M_PI;
+  (*state)[TwoLinkManipulatorDynamics::siAngle2] = RandGen::get()*2*M_PI;
+  (*state)[TwoLinkManipulatorDynamics::siAngleRate1] = 0;
+  (*state)[TwoLinkManipulatorDynamics::siAngleRate2] = 0;
+  (*state)[TwoLinkManipulatorDynamics::siTime] = 0;
+  
+  double r = 0.8*RandGen::get(), phi = RandGen::get()*2*M_PI;
+  goal_ = VectorConstructor(r*cos(phi), r*sin(phi));
+}
+
+void TwoLinkManipulatorReachingTask::observe(const Vector &state, Observation *obs, int *terminal) const
+{
+  if (state.size() != 5)
+    throw Exception("task/tlm/reaching requires dynamics/tlm");
+    
+  obs->v.resize(6);
+  for (size_t ii=0; ii < 2; ++ii)
+    (*obs)[ii] = normalize_angle(state[ii]) + M_PI;
+  for (size_t ii=2; ii < 4; ++ii)
+    (*obs)[ii] = state[ii];
+  
+  Vector pos = TwoLinkManipulatorDynamics::getEndEffectorPosition(state);
+  (*obs)[4] = goal_[0]-pos[0];
+  (*obs)[5] = goal_[1]-pos[1];
+  
+  obs->absorbing = false;
+
+  *terminal = state[TwoLinkManipulatorDynamics::siTime] > 3;
+}
+
+void TwoLinkManipulatorReachingTask::evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const
+{
+  if (state.size() != 5 || action.size() != 2 || next.size() != 5)
+    throw Exception("task/tlm/reaching requires dynamics/tlm");
+    
+  Vector pos = TwoLinkManipulatorDynamics::getEndEffectorPosition(state);
+    
+  *reward = -(goal_-pos).matrix().squaredNorm();
 }
 
 // Visualization

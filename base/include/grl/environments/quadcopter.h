@@ -103,7 +103,7 @@ class QuadcopterRegulatorTask : public RegulatorTask
   protected:
     Vector action_range_, limits_;
     int wrap_;
-    double penalty_;
+    double time_reward_, limit_penalty_;
 
   public:
     QuadcopterRegulatorTask()
@@ -117,7 +117,8 @@ class QuadcopterRegulatorTask : public RegulatorTask
       action_range_ = VectorConstructor(3000, 9000);
       limits_ = VectorConstructor(1.,0.);
       wrap_ = 0;
-      penalty_ = 1000;
+      time_reward_ = 0;
+      limit_penalty_ = 1000;
     }
   
     // From Configurable

@@ -100,7 +100,7 @@ class LeoSquattingTask : public Task
     virtual void configure(Configuration &config);
 
     // From Task
-    virtual void start(int test, Vector *state) const;
+    virtual void start(int test, Vector *state);
     virtual void observe(const Vector &state, Observation *obs, int *terminal) const;
     virtual void evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const;
     virtual void report(std::ostream &os, const Vector &state) const;

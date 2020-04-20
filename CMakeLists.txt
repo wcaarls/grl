@@ -40,7 +40,6 @@ set(MODULES base
 #            addons/leo
             addons/leosim
             addons/leo2
-            addons/tlm
             addons/lqr
             addons/zeromq
             addons/tensorflow

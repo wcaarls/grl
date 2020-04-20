@@ -188,7 +188,8 @@ void QuadcopterRegulatorTask::request(ConfigurationRequest *config)
   config->push_back(CRP("action_range", "Range of allowed actions (rpm)", action_range_, CRP::Configuration));
   config->push_back(CRP("limits", "vector.limts/quadcopter", "Position and velocity limits (0=unlimited)", limits_, CRP::Configuration));
   config->push_back(CRP("wrap", "Wrap positions around limits", wrap_, CRP::Configuration, 0, 1));
-  config->push_back(CRP("penalty", "Terminal penalty for crossing position limit", penalty_, CRP::Configuration, 0., DBL_MAX));
+  config->push_back(CRP("time_reward", "Reward per second", time_reward_, CRP::Configuration, 0., DBL_MAX));
+  config->push_back(CRP("limit_penalty", "Terminal penalty for crossing position limit", limit_penalty_, CRP::Configuration, 0., DBL_MAX));
 }
 
 void QuadcopterRegulatorTask::configure(Configuration &config)
@@ -206,7 +207,8 @@ void QuadcopterRegulatorTask::configure(Configuration &config)
     throw bad_param("dynamics/quadcopter:limits");
     
   wrap_ = config["wrap"];
-  penalty_ = config["penalty"];
+  time_reward_ = config["time_reward"];
+  limit_penalty_ = config["limit_penalty"];
   
   if (wrap_ && !limits_[0])
   {
@@ -239,8 +241,10 @@ void QuadcopterRegulatorTask::evaluate(const Vector &state, const Action &action
   
   RegulatorTask::evaluate(_state, action, _next, reward);
   
+  *reward += time_reward_;
+  
   if (failed(next))
-    *reward -= penalty_;
+    *reward -= limit_penalty_;
 }
 
 void QuadcopterRegulatorTask::observe(const Vector &state, Observation *obs, int *terminal) const
@@ -299,9 +303,9 @@ Vector QuadcopterRegulatorTask::wrap(const Vector &state) const
 
 bool QuadcopterRegulatorTask::failed(const Vector &state) const
 {
-  if (penalty_ && (fabs(state[0]) > limits_[0] || 
-                   fabs(state[1]) > limits_[0] ||
-                   fabs(state[2]) > limits_[0]))
+  if (limit_penalty_ && (fabs(state[0]) > limits_[0] || 
+                         fabs(state[1]) > limits_[0] ||
+                         fabs(state[2]) > limits_[0]))
     return true;
   else
     return false;

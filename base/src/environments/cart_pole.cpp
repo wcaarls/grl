@@ -152,7 +152,7 @@ void CartPoleSwingupTask::reconfigure(const Configuration &config)
   config.get("randomization", randomization_);
 }
 
-void CartPoleSwingupTask::start(int test, Vector *state) const
+void CartPoleSwingupTask::start(int test, Vector *state)
 {
   state->resize(5);
 
@@ -261,7 +261,7 @@ void CartPoleBalancingTask::reconfigure(const Configuration &config)
 {
 }
 
-void CartPoleBalancingTask::start(int test, Vector *state) const
+void CartPoleBalancingTask::start(int test, Vector *state)
 {
   state->resize(5);
 

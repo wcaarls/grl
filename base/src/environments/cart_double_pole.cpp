@@ -152,7 +152,7 @@ void CartDoublePoleSwingupTask::reconfigure(const Configuration &config)
 {
 }
 
-void CartDoublePoleSwingupTask::start(int test, Vector *state) const
+void CartDoublePoleSwingupTask::start(int test, Vector *state)
 {
   state->resize(7);
 
@@ -247,7 +247,7 @@ void CartDoublePoleBalancingTask::reconfigure(const Configuration &config)
 {
 }
 
-void CartDoublePoleBalancingTask::start(int test, Vector *state) const
+void CartDoublePoleBalancingTask::start(int test, Vector *state)
 {
   state->resize(7);
 

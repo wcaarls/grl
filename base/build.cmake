@@ -51,6 +51,7 @@ add_library(${TARGET} SHARED
             ${SRC}/environments/integrator.cpp
             ${SRC}/environments/reactor.cpp
             ${SRC}/environments/quadcopter.cpp
+            ${SRC}/environments/tlm.cpp
             ${SRC}/experiments/approx_test.cpp
             ${SRC}/experiments/online_learning.cpp
             ${SRC}/experiments/batch_learning.cpp

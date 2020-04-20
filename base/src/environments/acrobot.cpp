@@ -99,7 +99,7 @@ void AcrobotBalancingTask::reconfigure(const Configuration &config)
 {
 }
 
-void AcrobotBalancingTask::start(int test, Vector *state) const
+void AcrobotBalancingTask::start(int test, Vector *state)
 {
   *state = ConstantVector(5, 0.);
   (*state)[AcrobotDynamics::siAngle1] = M_PI+RandGen::get()*0.01-0.005;
@@ -166,8 +166,8 @@ void AcrobotRegulatorTask::configure(Configuration &config)
   if (r_.size() != 1)
     throw bad_param("task/acrobot/regulator:r");
 
-  config.set("observation_min", VectorConstructor(0,      -M_PI, -4*M_PI, -9*M_PI));
-  config.set("observation_max", VectorConstructor(2*M_PI,  M_PI,  4*M_PI,  9*M_PI));
+  config.set("observation_min", VectorConstructor(-M_PI, -M_PI, -4*M_PI, -9*M_PI));
+  config.set("observation_max", VectorConstructor( M_PI,  M_PI,  4*M_PI,  9*M_PI));
   config.set("action_min", VectorConstructor(-1));
   config.set("action_max", VectorConstructor(1));
 }
@@ -175,6 +175,18 @@ void AcrobotRegulatorTask::configure(Configuration &config)
 void AcrobotRegulatorTask::reconfigure(const Configuration &config)
 {
   RegulatorTask::reconfigure(config);
+}
+
+void AcrobotRegulatorTask::evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const
+{
+  Vector _state = state, _next = next;
+  for (size_t ii=0; ii < 2; ++ii)
+  {
+    _state[ii] = normalize_angle(state[ii]);
+    _next[ii] = normalize_angle(next[ii]);
+  }
+  
+  RegulatorTask::evaluate(_state, action, _next, reward);
 }
 
 void AcrobotRegulatorTask::observe(const Vector &state, Observation *obs, int *terminal) const
@@ -185,8 +197,11 @@ void AcrobotRegulatorTask::observe(const Vector &state, Observation *obs, int *t
     throw Exception("task/acrobot/regulator requires dynamics/acrobot");
     
   obs->v.resize(4);
-  for (size_t ii=0; ii < 4; ++ii)
+  for (size_t ii=0; ii < 2; ++ii)
+    (*obs)[ii] = normalize_angle(state[ii]);
+  for (size_t ii=2; ii < 4; ++ii)
     (*obs)[ii] = state[ii];
+    
   obs->absorbing = false;
 }
 

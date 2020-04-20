@@ -195,7 +195,7 @@ void SwimmerReachingTask::reconfigure(const Configuration &config)
 {
 }
 
-void SwimmerReachingTask::start(int test, Vector *state) const
+void SwimmerReachingTask::start(int test, Vector *state)
 {
   // Randomize segment angles
   *state = Vector::Random(2*(segments_+2)+1)*(test?0.:randomization_)*M_PI;

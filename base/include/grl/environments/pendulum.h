@@ -70,7 +70,7 @@ class PendulumSwingupTask : public Task
     virtual void reconfigure(const Configuration &config);
 
     // From Task
-    virtual void start(int test, Vector *state) const;
+    virtual void start(int test, Vector *state);
     virtual bool actuate(const Vector &prev, const Vector &state, const Action &action, Vector *actuation) const;
     virtual void observe(const Vector &state, Observation *obs, int *terminal) const;
     virtual void evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const;

@@ -248,7 +248,7 @@ void CompassWalkerWalkTask::reconfigure(const Configuration &config)
 {
 }
 
-void CompassWalkerWalkTask::start(int test, Vector *state) const
+void CompassWalkerWalkTask::start(int test, Vector *state)
 {
   CSWModelState swstate, initial_state;
 
@@ -379,7 +379,7 @@ void CompassWalkerVrefTask::configure(Configuration &config)
   config.set("action_max", VectorConstructor( 10));
 }
 
-void CompassWalkerVrefTask::start(int test, Vector *state) const
+void CompassWalkerVrefTask::start(int test, Vector *state)
 {
   CompassWalkerWalkTask::start(test, state);
 }

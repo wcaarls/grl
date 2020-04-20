@@ -84,7 +84,7 @@ class Task : public Configurable
     }    
   
     /// Start the task, returning the initial state.
-    virtual void start(int test, Vector *state) const = 0;
+    virtual void start(int test, Vector *state) = 0;
     
     /**
      * \brief Convert a possibly higher-level action into low-level actuation to be applied to the model.
@@ -190,7 +190,7 @@ class RegulatorTask : public Task
       config.set("reward_max", 0);
     }
 
-    void start(int test, Vector *state) const
+    void start(int test, Vector *state)
     {
       *state = ConstantVector(start_.size()+1, 0.);
 

@@ -132,7 +132,7 @@ void ReactorTask::reconfigure(const Configuration &config)
 {
 }
 
-void ReactorTask::start(int test, Vector *state) const
+void ReactorTask::start(int test, Vector *state)
 {
   state->resize(5);
   (*state)[0] = 5.1  + randomization_*0.4*(RandGen::get()*2-1);

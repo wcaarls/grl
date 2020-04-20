@@ -149,7 +149,7 @@ void PinballMovementTask::reconfigure(const Configuration &config)
 {
 }
 
-void PinballMovementTask::start(int test, Vector *state) const
+void PinballMovementTask::start(int test, Vector *state)
 {
   *state = VectorConstructor(0.1, 0.1, 0., 0., 0.);
 }

@@ -197,7 +197,7 @@ void BreakoutTargetingTask::reconfigure(const Configuration &config)
 {
 }
 
-void BreakoutTargetingTask::start(int test, Vector *state) const
+void BreakoutTargetingTask::start(int test, Vector *state)
 {
   *state = VectorConstructor(-0.4, 0.1, 0., 0.1, 0.1+0.1*randomization_*(test==0)*RandGen::get(), 1+0.5*randomization_*(test==0)*RandGen::get(), 0., 0., 0.);
 }

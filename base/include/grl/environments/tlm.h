@@ -65,6 +65,8 @@ class TwoLinkManipulatorDynamics : public Dynamics
 
     // From Dynamics
     virtual void eom(const Vector &state, const Vector &actuation, Vector *xd) const;
+    
+    static Vector getEndEffectorPosition(const Vector &state);
 };
 
 /// TwoLinkManipulator swing-up task.
@@ -80,7 +82,7 @@ class TwoLinkManipulatorBalancingTask : public Task
     virtual void reconfigure(const Configuration &config);
 
     // From Task
-    virtual void start(int test, Vector *state) const;
+    virtual void start(int test, Vector *state);
     virtual void observe(const Vector &state, Observation *obs, int *terminal) const;
     virtual void evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const;
     virtual bool invert(const Observation &obs, Vector *state) const;
@@ -112,6 +114,27 @@ class TwoLinkManipulatorRegulatorTask : public RegulatorTask
     virtual void evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const;
     virtual void observe(const Vector &state, Observation *obs, int *terminal) const;
     virtual bool invert(const Observation &obs, Vector *state, double time=0.) const;
+};
+
+/// Two-link manipulator reaching task
+class TwoLinkManipulatorReachingTask : public RegulatorTask
+{
+  public:
+    TYPEINFO("task/tlm/reaching", "Two-link manipulator reaching task")
+    
+  protected:
+    Vector goal_;
+
+  public:
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+
+    // From Task
+    virtual void start(int test, Vector *state);
+    virtual void observe(const Vector &state, Observation *obs, int *terminal) const;
+    virtual void evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const;
 };
 
 

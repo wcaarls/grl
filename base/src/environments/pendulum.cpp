@@ -94,7 +94,7 @@ void PendulumSwingupTask::reconfigure(const Configuration &config)
 {
 }
 
-void PendulumSwingupTask::start(int test, Vector *state) const
+void PendulumSwingupTask::start(int test, Vector *state)
 {
   state->resize(3);
   (*state)[0] = M_PI+randomization_*(test==0)*RandGen::get()*2*M_PI;
