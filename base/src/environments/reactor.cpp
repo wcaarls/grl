@@ -32,6 +32,7 @@ using namespace grl;
 
 REGISTER_CONFIGURABLE(ReactorDynamics)
 REGISTER_CONFIGURABLE(ReactorBalancingTask)
+REGISTER_CONFIGURABLE(ReactorTrackingTask)
 REGISTER_CONFIGURABLE(ReactorMaximizationTask)
 
 void ReactorDynamics::request(ConfigurationRequest *config)
@@ -209,10 +210,114 @@ void ReactorBalancingTask::evaluate(const Vector &state, const Action &action, c
   double Fb = action[0]*(state[1]+next[1])/2;
 
   // Maximize Cb while keeping Fb at setpoint  
-  *reward = state[1] - 0.1*sqrt(abs(Fb - 200));
+  *reward = state[1] - 0.1*sqrt(abs(Fb - setpoint_));
   
   // Normalize reward per timestep.
   *reward *= (next[4]-state[4]);
+}
+
+/// ReactorTrackingTask
+
+void ReactorTrackingTask::request(ConfigurationRequest *config)
+{
+  ReactorTask::request(config);
+
+  config->push_back(CRP("min", "Minimum Fb setpoint", min_, CRP::Configuration, 0., DBL_MAX));
+  config->push_back(CRP("max", "Minimum Fb setpoint", max_, CRP::Configuration, 0., DBL_MAX));
+  config->push_back(CRP("setpoints", "Number of random setpoints for training", setpoints_, CRP::Configuration, 1));
+
+  config->push_back(CRP("profile", "mapping", "Setpoint profile for testing", profile_));
+}
+
+void ReactorTrackingTask::configure(Configuration &config)
+{
+  ReactorTask::configure(config);
+
+  min_ = config["min"];
+  max_ = config["max"];
+  setpoints_ = config["setpoints"];
+  
+  profile_ = (Mapping*)config["profile"].ptr();
+
+  config.set("observation_dims", 5);
+  config.set("observation_min", extend(config["observation_min"].v(), VectorConstructor(min_)));
+  config.set("observation_max", extend(config["observation_max"].v(), VectorConstructor(max_)));
+  config.set("reward_min", -sqrt(570));
+  config.set("reward_max", 1.3);
+}
+
+void ReactorTrackingTask::start(int test, Vector *state)
+{
+  ReactorTask::start(test, state);
+
+  test_ = test;
+
+  if (!test_)
+  {
+    // Create timeline
+    std::vector<double> t(setpoints_);
+    for (size_t ii=0; ii != t.size(); ++ii)
+      t[ii] = RandGen::getUniform(0, T_);
+    std::sort(t.begin(), t.end());
+    t[0] = 0.;
+    
+    timeline_ = Matrix(setpoints_, 2);
+    for (size_t ii=0; ii != t.size(); ++ii)
+    {
+      timeline_(ii, 0) = t[ii];
+      timeline_(ii, 1) = RandGen::getUniform(min_, max_);  
+    }
+  }
+}
+
+void ReactorTrackingTask::evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const
+{
+  if (state.size() != 5 || action.size() != 2 || next.size() != 5)
+    throw Exception("task/reactor/tracking requires dynamics/reactor");
+
+  // Fb in [mol/h]
+  double Fb = action[0]*(state[1]+next[1])/2;
+  
+  // Maximize Cb while keeping Fb at setpoint  
+  *reward = state[1] - 0.1*sqrt(abs(Fb - setpoint(state[4])));
+  
+  // Normalize reward per timestep.
+  *reward *= (next[4]-state[4]);
+}
+
+void ReactorTrackingTask::observe(const Vector &state, Observation *obs, int *terminal) const
+{
+  if (state.size() != 5)
+    throw Exception("task/reactor/tracking requires dynamics/reactor");
+
+  obs->v.resize(5);
+  (*obs)[0] = state[0];
+  (*obs)[1] = state[1];
+  (*obs)[2] = state[2];
+  (*obs)[3] = state[3];
+  (*obs)[4] = setpoint(state[4]);
+
+  obs->absorbing = false;
+  
+  if (state[4] > T_)
+    *terminal = 1;
+  else
+    *terminal = 0;
+}
+
+double ReactorTrackingTask::setpoint(double time) const
+{
+  if (test_)
+  {
+    Vector dummy;
+    return profile_->read(VectorConstructor(time), &dummy);
+  }
+  else
+  {
+    size_t idx;
+    for (idx=1; idx < timeline_.rows() && timeline_(idx, 0) < time; ++idx);
+    return timeline_(idx-1, 1);
+  }
 }
 
 // ReactorMaximizationTask

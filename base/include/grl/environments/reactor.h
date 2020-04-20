@@ -95,6 +95,36 @@ class ReactorBalancingTask : public ReactorTask
     virtual void evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const;
 };
 
+/// van de Vusse CSTR setpoint tracking task
+class ReactorTrackingTask : public ReactorTask
+{
+  public:
+    TYPEINFO("task/reactor/tracking", "Track Fb setpoint")
+  
+  public:
+    double min_, max_;
+    int setpoints_;
+    Mapping *profile_;
+    
+    Matrix timeline_;
+    int test_;
+  
+  public:
+    ReactorTrackingTask() : min_(100), max_(600), setpoints_(3), profile_(NULL) { }
+  
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+
+    // From Task
+    virtual void start(int test, Vector *state);
+    virtual void observe(const Vector &state, Observation *obs, int *terminal) const;
+    virtual void evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const;
+    
+  protected:
+    double setpoint(double time) const;
+};
+
 /// van de Vusse CSTR maximization task
 class ReactorMaximizationTask : public ReactorTask
 {

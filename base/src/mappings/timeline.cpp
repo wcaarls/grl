@@ -33,17 +33,26 @@ REGISTER_CONFIGURABLE(TimelineMapping)
 
 void TimelineMapping::request(ConfigurationRequest *config)
 {
+  config->push_back(CRP("interpolate", "Interpolate imported values", interpolate_, CRP::Configuration, 0, 1));
   config->push_back(CRP("importer", "importer.dynamic", "Importer with time as the first column", importer_));
 }
 
 void TimelineMapping::configure(Configuration &config)
 {
+  interpolate_ = config["interpolate"];
+
   importer_ = (Importer*)config["importer"].ptr();
   importer_->open();
   
   Vector line;
   while (importer_->read(&line))
   {
+    if (line.size() < 2)
+    {
+      ERROR("Data should have at least two columns");
+      throw bad_param("mapping/timeline:importer");
+    }
+  
     if (data_.size() && data_[data_.size()-1].size() != line.size())
     {
       ERROR("Data vectors should be of equal size");
@@ -89,20 +98,25 @@ double TimelineMapping::read(const Vector &in, Vector *result) const
   
   // Find first index that is larger than current time  
   for (; idx < data_.size() && data_[idx][0] <= time; ++idx);
-
+  
   Vector v;
   if (idx < data_.size())
   {
-    // Interpolate
-    double ti = (data_[idx][0]-time)/(data_[idx][0]-data_[idx-1][0]);
-    v         = ti*data_[idx-1] + (1-ti)*data_[idx];
+    if (interpolate_)
+    {
+      // Interpolate
+      double ti = (data_[idx][0]-time)/(data_[idx][0]-data_[idx-1][0]);
+      v         = ti*data_[idx-1] + (1-ti)*data_[idx];
+    }
+    else
+      v = data_[idx-1];
   }
   else
   {
     // Repeat last value forever
     v = data_.back();
   }
-
+  
   // Remove time  
   for (size_t ii=0; ii < result->size(); ++ii)
     (*result)[ii] = v[ii+1];

@@ -40,12 +40,13 @@ class TimelineMapping : public Mapping
     TYPEINFO("mapping/timeline", "Imported timeline mapping")
 
   protected:
+    int interpolate_;
     Importer *importer_;
     std::vector<Vector> data_;
     mutable Instance<size_t> prev_idx_;
   
   public:
-    TimelineMapping() : importer_(NULL)
+    TimelineMapping() : interpolate_(1), importer_(NULL)
     {
     }
   
