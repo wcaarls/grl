@@ -3,7 +3,7 @@ experiment:
   runs: 1
   trials: 0
   steps: 0
-  rate: 0 #20
+  rate: 20
   test_interval: -1
   environment: 
     type: environment/modeled
@@ -16,6 +16,7 @@ experiment:
     task: 
       type: task/quadcopter/regulator
       stddev: [0.2, 0.2, 0.2, 0, 0, 0, 0.1, 0.1, 0.1, 0, 0, 0]
+      timeout: 5
     exporter:
       type: exporter/csv
       file: quadcopter_lqr_signals
@@ -42,6 +43,6 @@ experiment:
   save_every: never
 visualizer: 
   type: visualizer/glut
-#visualization: 
-#  type: visualization/quadcopter
-#  state: experiment/environment/state
+visualization: 
+  type: visualization/quadcopter
+  state: experiment/environment/state

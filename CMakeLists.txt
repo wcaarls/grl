@@ -28,6 +28,7 @@ set(MODULES base
             externals/rbdl
             externals/cppzmq
             externals/pybind11
+            externals/pgl
             addons/cma
             addons/llr
             addons/gl

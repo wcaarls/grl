@@ -23,11 +23,12 @@ if (GRL_BUILD_GL)
               ${SRC}/state.cpp
               ${SRC}/trajectory.cpp
               ${SRC}/slice.cpp
+              ${SRC}/quadcopter.cpp
              )
 
   # Add dependencies
   target_link_libraries(${TARGET} ${OPENGL_LIBRARIES})
-  grl_link_libraries(${TARGET} base externals/ics)
+  grl_link_libraries(${TARGET} base externals/ics externals/pgl)
   install(TARGETS ${TARGET} DESTINATION ${GRL_LIB_DESTINATION})
   install(DIRECTORY ${SRC}/../include/grl DESTINATION ${GRL_INCLUDE_DESTINATION} FILES_MATCHING PATTERN "*.h")
 endif()
