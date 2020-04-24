@@ -85,7 +85,7 @@ class ReactorBalancingTask : public ReactorTask
     double setpoint_;
   
   public:
-    ReactorBalancingTask() : setpoint_(0.) { }
+    ReactorBalancingTask() : setpoint_(200.) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);
