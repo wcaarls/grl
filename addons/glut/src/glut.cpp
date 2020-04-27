@@ -195,6 +195,7 @@ void GLUTVisualizer::run()
       glutCloseFunc(close);
       glutKeyboardFunc(key);
       glutMouseFunc(click);
+      glutMotionFunc(motion);
     
       new_window_ptr_->id(glutGetWindow());
       windows_[new_window_ptr_->id()] = new_window_ptr_;

@@ -73,6 +73,8 @@ class QuadcopterVisualization : public Visualization
     virtual void draw();
     virtual void idle();
     virtual void reshape(int width, int height);
+    virtual void click(int button, int state, int x, int y);
+    virtual void motion(int x, int y);
 };
 
 }

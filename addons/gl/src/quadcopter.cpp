@@ -59,6 +59,24 @@ void QuadcopterVisualization::reshape(int width, int height)
   glViewport(0, 0, width, height);
 }
 
+void QuadcopterVisualization::click(int button, int state, int x, int y)
+{
+  if (controller_)
+  {
+    // Convert to glfw
+    if (button < 3)
+      controller_->click(button==0?0:3-button, !state, 0, (double)x, (double)y);
+    else if (button < 5 && state == 1)
+      controller_->scroll(0, 2*(button == 3)-1);
+  }
+}
+
+void QuadcopterVisualization::motion(int x, int y)
+{
+  if (controller_)
+    controller_->motion((double)x, (double)y);
+}
+
 void QuadcopterVisualization::idle()
 {
   refresh();
@@ -71,14 +89,14 @@ void QuadcopterVisualization::draw()
     // Create scene
     scene_ = new pgl::Scene();
     scene_->attach(new pgl::Sphere(0.05));
-    scene_->attach(new pgl::Arrow({-1, -1, -1}, { 0, -1, -1}, 0.02))->color = {1, 0, 0};
-    scene_->attach(new pgl::Arrow({-1, -1, -1}, {-1,  0, -1}, 0.02))->color = {0, 1, 0};
-    scene_->attach(new pgl::Arrow({-1, -1, -1}, {-1, -1, 0}, 0.02))->color = {0, 0, 1};
     if (limits_[0])
     {
       scene_->attach(new pgl::Box({2*limits_[0], 2*limits_[0], 0.05}, {0, 0, -1.025}));
       scene_->attach(new pgl::WireBox({2*limits_[0], 2*limits_[0], 2*limits_[0]}));
     }
+    scene_->attach(new pgl::Arrow({-1, -1, -1}, { 0, -1, -1}, 0.02))->color = {1, 0, 0};
+    scene_->attach(new pgl::Arrow({-1, -1, -1}, {-1,  0, -1}, 0.02))->color = {0, 1, 0};
+    scene_->attach(new pgl::Arrow({-1, -1, -1}, {-1, -1, 0}, 0.02))->color = {0, 0, 1};
     
     scene_->attach(quadcopter_ = new pgl::Object());
     quadcopter_->attach(new pgl::Capsule({-0.3, 0, 0}, {0.3, 0, 0}, 0.02))->color = {1, 0, 0};

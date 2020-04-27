@@ -102,6 +102,9 @@ class Visualization : public Configurable
     
     /// Callback that is called when a mouse button is clicked.
     virtual void click(int button, int state, int x, int y) { }
+
+    /// Callback that is called when the mouse is moved while holding a button.
+    virtual void motion(int x, int y) { }
 };
 
 /// Visualizer (basically a GL window manager).

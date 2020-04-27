@@ -152,6 +152,13 @@ class GLUTVisualizer : public Visualizer
         window->click(button, state, x, y);
     }
     
+    static void motion(int x, int y)
+    {
+      Visualization* window = glutInstance()->getCurrentWindow();
+      if (window)
+        window->motion(x, y);
+    }
+    
     static void error(const char *fmt, va_list ap)
     {
       char errmsg[PATH_MAX];
