@@ -47,7 +47,7 @@ class QuadcopterVisualization : public Visualization
     Vector limits_;
     
     pgl::Scene *scene_;
-    pgl::Primitive *quadcopter_;
+    pgl::Object *quadcopter_;
     pgl::OrbitController *controller_;
   
   public:

@@ -80,7 +80,8 @@ void QuadcopterVisualization::draw()
       scene_->attach(new pgl::WireBox({2*limits_[0], 2*limits_[0], 2*limits_[0]}));
     }
     
-    scene_->attach(quadcopter_ = new pgl::Capsule({-0.3, 0, 0}, {0.3, 0, 0}, 0.02))->color = {1, 0, 0};
+    scene_->attach(quadcopter_ = new pgl::Object());
+    quadcopter_->attach(new pgl::Capsule({-0.3, 0, 0}, {0.3, 0, 0}, 0.02))->color = {1, 0, 0};
     quadcopter_->attach(new pgl::Capsule({0, -0.3, 0}, {0, 0.3, 0}, 0.02))->color = {0, 1, 0};
     
     controller_ = new pgl::OrbitController(scene_);
@@ -97,13 +98,9 @@ void QuadcopterVisualization::draw()
   }
 
   Vector state = state_->get();
-  pgl::Transform old = quadcopter_->transform;
-  
   if (state.size())
-    quadcopter_->transform = pgl::Transform({state[6], state[7], state[8]}, {state[0], state[1], state[2]}) * quadcopter_->transform;
-  
+    quadcopter_->transform = pgl::Transform({state[6], state[7], state[8]}, {state[0], state[1], state[2]});
   scene_->draw();
-  quadcopter_->transform = old;
 
   swap();
 }
