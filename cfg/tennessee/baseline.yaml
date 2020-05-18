@@ -1,0 +1,35 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  run_offset: 0
+  trials: 1
+  steps: 0
+  rate: 0
+  test_interval: -1
+  environment: 
+    type: environment/modeled
+    discrete_time: 0
+    model: 
+      type: model/dynamical
+      control_step: 1
+      integration_steps: 1
+      dynamics:
+        type: dynamics/tennessee
+    task:
+      type: task/tennessee/regulation
+      timeout: 7200
+      randomization: 0
+      control_step: experiment/environment/model/control_step
+      control: setpoint
+      variables: []
+    exporter:
+      type: exporter/csv
+      file: baseline_signals
+  agent: 
+    type: agent/fixed
+    policy: 
+      type: policy/random
+      output_min: []
+      output_max: []
+  save_every: never
+  

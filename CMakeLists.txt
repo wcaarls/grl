@@ -47,6 +47,7 @@ set(MODULES base
             addons/box2d
             addons/python
             addons/lci
+            addons/tennessee
 )
 
 # Is there a better way to find out if catkin_make was run?

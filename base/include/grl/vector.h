@@ -113,7 +113,7 @@ using ::operator >>;
 using ::operator <<;
 
 #ifdef GRL_EIGEN_VECTOR
-#define GRL_STATIC_VECTOR_SIZE 36
+#define GRL_STATIC_VECTOR_SIZE 64
 
 typedef Eigen::Array<double,1,Eigen::Dynamic> LargeVector;
 typedef Eigen::Array<double,1,Eigen::Dynamic,Eigen::RowMajor,1,GRL_STATIC_VECTOR_SIZE> Vector;
