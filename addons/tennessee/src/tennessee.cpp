@@ -311,8 +311,6 @@ void TennesseeEastmanTask::evaluate(const Vector &state, const Action &action, c
   else
     *reward = -terminal_penalty_;
   
-  NOTICE("next " << pv_.XMEAS[14] << " reward " << *reward << " diff " << (next[50]-state[50]));
-  
   // Normalize reward per timestep.
   *reward *= (next[50]-state[50]);
 }
