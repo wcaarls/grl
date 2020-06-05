@@ -91,9 +91,9 @@ void TennesseeEastmanDynamics::eom(const Vector &state, const Vector &actuation,
   (*xd)[50] = 1;
 }
 
-// *** TennesseeEastmanRegulationTask
+// *** TennesseeEastmanTask
 
-void TennesseeEastmanRegulationTask::request(ConfigurationRequest *config)
+void TennesseeEastmanTask::request(ConfigurationRequest *config)
 {
   Task::request(config);
 
@@ -103,40 +103,98 @@ void TennesseeEastmanRegulationTask::request(ConfigurationRequest *config)
   config->push_back(CRP("control_step", "double.control_step", "Control step time", tau_, CRP::Configuration, 0., DBL_MAX));
   config->push_back(CRP("action_step", "double.action_step", "RL action step time", action_tau_, CRP::Configuration, 0., DBL_MAX));
   config->push_back(CRP("control", "What kind of variables the RL policy controls", control_, CRP::Configuration, {"setpoint", "action"}));
-  config->push_back(CRP("variables", "Which variables the RL policy controls", variables_, CRP::Configuration));
+  config->push_back(CRP("observation_idx", "Which variables (XMEAS) the RL policy observes", observation_idx_, CRP::Configuration));
+  config->push_back(CRP("action_idx", "Which variables (SETPT or XMV) the RL policy controls", action_idx_, CRP::Configuration));
+  config->push_back(CRP("terminal_penalty", "Penalty applied when simulation terminates prematurely", terminal_penalty_, CRP::Configuration, 0., DBL_MAX));
 }
 
-void TennesseeEastmanRegulationTask::configure(Configuration &config)
+void TennesseeEastmanTask::configure(Configuration &config)
 {
   T_ = config["timeout"];
   randomization_ = config["randomization"];
   tau_ = config["control_step"];
   action_tau_ = config["action_step"];
   control_ = config["control"].str();
-  variables_ = config["variables"].v();
+  observation_idx_ = config["observation_idx"].v();
+  action_idx_ = config["action_idx"].v();
+  terminal_penalty_ = config["terminal_penalty"];
   
   if (!action_tau_)
     action_tau_ = tau_;
-  
-  for (size_t ii=0; ii != variables_.size(); ++ii)  
-    if (variables_[ii] != (int)variables_[ii] || variables_[ii] < 0 || variables_[ii] >= 12)
-      throw bad_param("mapping/policy/tennessee:variables");
+    
+  if (!observation_idx_.size())
+  {
+    observation_idx_.resize(41);
+    for (size_t ii=0; ii != observation_idx_.size(); ++ii)
+      observation_idx_[ii] = ii;
+  }
 
-  config.set("observation_dims", 41);
-  config.set("observation_min", ConstantVector(41, 0.));
-  config.set("observation_max", ConstantVector(41, 1.));
-  config.set("action_dims", 12);
-  config.set("action_min", ConstantVector(12, 0.));
-  config.set("action_max", ConstantVector(12, 1.));
+  if (!action_idx_.size())
+  {
+    action_idx_.resize(control_[0]=='s' ?20:12);
+    for (size_t ii=0; ii != action_idx_.size(); ++ii)
+      action_idx_[ii] = ii;
+  }
+  
+  for (size_t ii=0; ii != action_idx_.size(); ++ii)  
+    if (action_idx_[ii] != (int)action_idx_[ii] || action_idx_[ii] < 0 || (control_[0] == 's' && action_idx_[ii] >= 20) || (control_[0] == 'a' && action_idx_[ii] >= 12))
+      throw bad_param("mapping/policy/tennessee:action_idx");
+      
+  double xmeas_min[] = {
+       0, 3000,  100,    5,   15,   25, 2500,    0,   30,    0,
+      30,    0, 2500,   10,    0, 2500,   15,   30,    0,  200,
+      30,   30,    0,    0,    0,    0,    0,    0,    0,    0,
+       0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
+       0
+  }, xmeas_max[] = {
+     1.5, 6000, 3000,   10,   25,   40, 3000,  100,  175,  1.5,
+     175,  100, 3000,   25,  100, 3500,   25,  175,   15,  400,
+     175,  175,  100,  100,  100,  100,  100,  100,  100,  100,
+     100,  100,  100,  100,  100,  100,  100,  100,  100,  100,
+     100
+  };
+
+  size_t setpt_idx[] = {
+     1,  2,  0,  3,  4,  9, 11, 14, 18, 20,
+    16, 12, 22, 25, 26, 17,  7,  8, 29, 37};
+         
+  Vector observation_min(observation_idx_.size()), observation_max(observation_idx_.size()), action_min(action_idx_.size()), action_max(action_idx_.size());
+  
+  for (size_t ii=0; ii != observation_idx_.size(); ++ii)
+  {
+    observation_min[ii] = xmeas_min[(size_t)observation_idx_[ii]];
+    observation_max[ii] = xmeas_max[(size_t)observation_idx_[ii]];
+  }
+
+  for (size_t ii=0; ii != action_idx_.size(); ++ii)
+  {
+    if (control_[0] == 's')
+    {
+      action_min[ii] = xmeas_min[setpt_idx[(size_t)action_idx_[ii]]];
+      action_max[ii] = xmeas_max[setpt_idx[(size_t)action_idx_[ii]]];
+    }
+    else
+    {
+      action_min[ii] = 0;
+      action_max[ii] = 100;
+    }
+  }
+  
+  config.set("observation_dims", observation_idx_.size());
+  config.set("observation_min", observation_min);
+  config.set("observation_max", observation_max);
+  config.set("action_dims", action_idx_.size());
+  config.set("action_min", action_min);
+  config.set("action_max", action_max);
   config.set("reward_min", 0.);
   config.set("reward_max", 1.);
 }
 
-void TennesseeEastmanRegulationTask::reconfigure(const Configuration &config)
+void TennesseeEastmanTask::reconfigure(const Configuration &config)
 {
 }
 
-void TennesseeEastmanRegulationTask::start(int test, Vector *state)
+void TennesseeEastmanTask::start(int test, Vector *state)
 {
   state->resize(51);
   
@@ -152,12 +210,12 @@ void TennesseeEastmanRegulationTask::start(int test, Vector *state)
   (*state)[50] = 0;
 }
 
-bool TennesseeEastmanRegulationTask::actuate(const Vector &prev, const Vector &state, const Action &action, Vector *actuation) const
+bool TennesseeEastmanTask::actuate(const Vector &prev, const Vector &state, const Action &action, Vector *actuation) const
 {
-  if (prev.size() != 51 || action.size() != variables_.size() || state.size() != 51)
+  if (prev.size() != 51 || action.size() != action_idx_.size() || state.size() != 51)
   {
-    ERROR("Expected prev/action/state size 51/" << variables_.size() << "/51, got " << prev.size() << "/" << action.size() << "/" << state.size()); 
-    throw Exception("task/tennessee/regulation requires dynamics/tennessee");
+    ERROR("Expected prev/action/state size 51/" << action_idx_.size() << "/51, got " << prev.size() << "/" << action.size() << "/" << state.size()); 
+    throw Exception("task/tennessee requires dynamics/tennessee");
   }
   
   // Avoid updating ERROLD on last actuation
@@ -167,8 +225,8 @@ bool TennesseeEastmanRegulationTask::actuate(const Vector &prev, const Vector &s
   if (control_[0] == 's')
   {
     // Copy action into manipulated setpoints 
-    for (size_t ii=0; ii != variables_.size(); ++ii)
-      ctrlall_.SETPT[(size_t)variables_[ii]] = action[ii];
+    for (size_t ii=0; ii != action_idx_.size(); ++ii)
+      ctrlall_.SETPT[(size_t)action_idx_[ii]] = action[ii];
   }
   
   // Run baseline policy
@@ -186,19 +244,19 @@ bool TennesseeEastmanRegulationTask::actuate(const Vector &prev, const Vector &s
   if (control_[0] == 'a')
   {
     // Copy action into manipulated actuation
-    for (size_t ii=0; ii != variables_.size(); ++ii)
-      (*actuation)[(size_t)variables_[ii]] = action[ii];
+    for (size_t ii=0; ii != action_idx_.size(); ++ii)
+      (*actuation)[(size_t)action_idx_[ii]] = action[ii];
   }
   
   return false;
 }
 
-void TennesseeEastmanRegulationTask::observe(const Vector &state, Observation *obs, int *terminal) const
+void TennesseeEastmanTask::observe(const Vector &state, Observation *obs, int *terminal) const
 {
   if (state.size() != 51)
   {
     ERROR("Expected state size 51, got " << state.size());
-    throw Exception("task/tennessee/regulation requires dynamics/tennessee");
+    throw Exception("task/tennessee requires dynamics/tennessee");
   }
     
   int NN=50;
@@ -212,13 +270,13 @@ void TennesseeEastmanRegulationTask::observe(const Vector &state, Observation *o
       *terminal = 0;
       break;
     }
-
+    
   if (!*terminal && state[50] > T_)
     *terminal = 1;
   
-  obs->v.resize(41);
-  for (size_t ii=0; ii != obs->size(); ++ii)
-    (*obs)[ii] = pv_.XMEAS[ii];
+  obs->v.resize(observation_idx_.size());
+  for (size_t ii=0; ii != observation_idx_.size(); ++ii)
+    (*obs)[ii] = pv_.XMEAS[(size_t)observation_idx_[ii]];
 
   if (*terminal == 2)
     obs->absorbing = true;
@@ -226,28 +284,40 @@ void TennesseeEastmanRegulationTask::observe(const Vector &state, Observation *o
     obs->absorbing = false;
 }
 
-void TennesseeEastmanRegulationTask::evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const
+void TennesseeEastmanTask::evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const
 {
-  if (state.size() != 51 || action.size() != variables_.size() || next.size() != 51)
+  if (state.size() != 51 || action.size() != action_idx_.size() || next.size() != 51)
   {
-    ERROR("Expected state/action/next size 51/" << variables_.size() << "/51, got " << state.size() << "/" << action.size() << "/" << next.size()); 
-    throw Exception("task/tennessee/regulation requires dynamics/tennessee");
+    ERROR("Expected state/action/next size 51/" << action_idx_.size() << "/51, got " << state.size() << "/" << action.size() << "/" << next.size()); 
+    throw Exception("task/tennessee requires dynamics/tennessee");
   }
 
+  // Update XMEAS
   int NN=50;
-  double YP[50], TIME=state[50]/3600.;
-  tefunc_(&NN, &TIME, state.data(), YP);
-  
-  double XMEAS1[41], *XMEAS2 = pv_.XMEAS;
-  for (size_t ii=0; ii != 41; ++ii)
-    XMEAS1[ii] = pv_.XMEAS[ii];
-
-  TIME = next[50]/3600.;
+  double YP[50], TIME=next[50]/3600.;
   tefunc_(&NN, &TIME, next.data(), YP);
+
+  // See if eom bailed  
+  bool terminal = true;
+  for (size_t ii=0; ii != 50; ++ii)
+    if (YP[ii] != 0)
+    {
+      terminal = false;
+      break;
+    }
+
+  if (!terminal)
+    *reward = calculateReward(pv_.XMEAS, action);
+  else
+    *reward = -terminal_penalty_;
   
-  // TODO: Calculate reward using XMEAS1, XMEAS2 and action
-  *reward = 0;
+  NOTICE("next " << pv_.XMEAS[14] << " reward " << *reward << " diff " << (next[50]-state[50]));
   
   // Normalize reward per timestep.
   *reward *= (next[50]-state[50]);
+}
+
+double TennesseeEastmanRegulationTask::calculateReward(const double *XMEAS, const Action &action) const
+{
+  return -abs(XMEAS[14] - 50);
 }

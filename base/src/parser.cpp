@@ -64,6 +64,21 @@ std::string ASTNode::evaluate()
   {
     z = extend(x, y);
   }
+  else if (str_ == "-")
+  {
+    z = x - y;
+  }
+  else if (str_ == "--")
+  {
+    if (x.size() != 1 || y.size() != 1)
+      ERROR("List creation operator requires scalar operands");
+    else if (x[0] < y[0])
+    {
+      z.resize(y[0]-x[0]);
+      for (size_t ii=0; ii != z.size(); ++ii)
+        z[ii] = x[0] + ii;
+    }
+  }
   else if (str_ == "*")
   {
     if (x.size() == 1)             z = x[0] * y;
@@ -96,7 +111,7 @@ std::string ASTNode::evaluate()
   return oss.str();
 }
 
-#define OPERATORS "+*,"
+#define OPERATORS "+*,-"
 #define WHITESPACE " \t"
 #define OPENPAREN "[("
 #define CLOSEPAREN "])"

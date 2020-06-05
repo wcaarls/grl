@@ -226,7 +226,7 @@ std::string grl::resolveEnv(const std::string &value, const std::string &file)
       if (evar)
         var = evar;
       else
-        var = "";
+        var = "$" + var;
     }
     else
       continue;

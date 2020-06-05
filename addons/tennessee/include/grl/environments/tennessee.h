@@ -50,20 +50,18 @@ class TennesseeEastmanDynamics : public Dynamics
     virtual void eom(const Vector &state, const Vector &actuation, Vector *xd) const;
 };
 
-/// Tennessee Eastman regulation task.
-class TennesseeEastmanRegulationTask : public Task
+/// Generic Tennessee Eastman task.
+class TennesseeEastmanTask : public Task
 {
   public:
-    TYPEINFO("task/tennessee/regulation", "Tennessee Eastman regulation task")
-  
-  public:
     double T_, randomization_;
-    double tau_, action_tau_;    
+    double tau_, action_tau_;
     std::string control_;
-    Vector variables_;
+    Vector observation_idx_, action_idx_;
+    double terminal_penalty_;
   
   public:
-    TennesseeEastmanRegulationTask() : T_(7200), randomization_(0.), tau_(1.), action_tau_(0.), control_("setpoint") { }
+    TennesseeEastmanTask() : T_(7200), randomization_(0.), tau_(1.), action_tau_(0.), control_("setpoint"), terminal_penalty_(1000) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -75,6 +73,19 @@ class TennesseeEastmanRegulationTask : public Task
     virtual bool actuate(const Vector &prev, const Vector &state, const Action &action, Vector *actuation) const;
     virtual void observe(const Vector &state, Observation *obs, int *terminal) const;
     virtual void evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const;
+    
+    virtual double calculateReward(const double *XMEAS, const Action &action) const = 0;
+};
+
+/// Tennessee Eastman regulation task.
+class TennesseeEastmanRegulationTask : public TennesseeEastmanTask
+{
+  public:
+    TYPEINFO("task/tennessee/regulation", "Tennessee Eastman regulation task")
+  
+  public:
+    // From TennesseeEastmanTask
+    virtual double calculateReward(const double *XMEAS, const Action &action) const;
 };
 
 }
