@@ -21,43 +21,43 @@ if (RBDL_FOUND)
   endif()
 endif()
 
+message("-- Building included RBDL library")
+
 FIND_PACKAGE (Eigen3 3.0.0)
 IF (EIGEN3_FOUND)
   INCLUDE_DIRECTORIES (${EIGEN3_INCLUDE_DIR})
 ENDIF ()
 
-if (GRL_BUILD_RBDL)
-  execute_process(
-    COMMAND rm -rf externals/rbdl
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-  )
+execute_process(
+  COMMAND rm -rf externals/rbdl
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+)
 
-  execute_process(
-    COMMAND ${CMAKE_COMMAND} -E tar xf ${SRC}/../share/default.zip
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-  )
+execute_process(
+  COMMAND ${CMAKE_COMMAND} -E tar xf ${SRC}/../share/default.zip
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+)
 
-  execute_process(
-    COMMAND mkdir -p externals
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-  )
+execute_process(
+  COMMAND mkdir -p externals
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+)
 
-  execute_process(
-    COMMAND mv rbdl-rbdl-de94c4fadf94 externals/rbdl
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-  )
+execute_process(
+  COMMAND mv rbdl-rbdl-de94c4fadf94 externals/rbdl
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+)
 
-  execute_process(
-    COMMAND cat ${SRC}/../share/options.patch
-    COMMAND patch -p0
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/externals/rbdl
-  )
+execute_process(
+  COMMAND cat ${SRC}/../share/options.patch
+  COMMAND patch -p0
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/externals/rbdl
+)
 
-  execute_process(
-    COMMAND mkdir externals/rbdl/build
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-  )
+execute_process(
+  COMMAND mkdir externals/rbdl/build
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+)
 
-  add_subdirectory(${CMAKE_BINARY_DIR}/externals/rbdl ${CMAKE_BINARY_DIR}/externals/rbdl/build)
-endif()
+add_subdirectory(${CMAKE_BINARY_DIR}/externals/rbdl ${CMAKE_BINARY_DIR}/externals/rbdl/build)
 

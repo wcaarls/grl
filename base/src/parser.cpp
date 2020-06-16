@@ -34,6 +34,18 @@
 
 using namespace grl;
 
+#define OPERATORS "+*,-"
+#define WHITESPACE " \t"
+#define OPENPAREN "[("
+#define CLOSEPAREN "])"
+
+static bool isempty(std::istringstream &iss)
+{
+  std::string rest;
+  iss >> std::ws >> rest;
+  return rest.empty();
+}
+
 std::string ASTNode::evaluate()
 {
   std::string left, right;
@@ -41,6 +53,9 @@ std::string ASTNode::evaluate()
     left = left_->evaluate();
   if (right_)
     right = right_->evaluate();
+    
+  if (str_ == "[]")
+    return "[ " + left + " ]";
     
   // Parse values
   std::istringstream issx, issy;
@@ -51,8 +66,13 @@ std::string ASTNode::evaluate()
   issy.str(right); issy >> y_in;
 
   LargeVector x, y, z;
-  toVector(x_in, x);
-  toVector(y_in, y);
+  if (isempty(issx))
+    toVector(x_in, x);
+  if (isempty(issy))
+    toVector(y_in, y);
+    
+  if (!x.size() || !y.size())
+    return left + str_ + right;
 
   if (str_ == "+")
   {
@@ -93,10 +113,6 @@ std::string ASTNode::evaluate()
     else
       ERROR("Cannot replicate " << x_in << " " << y_in << " times: vector size mismatch");
   }
-  else if (str_ == "[]")
-  {
-    return "[ " + left + " ]";
-  }
   else
     return left + str_ + right;
   
@@ -110,11 +126,6 @@ std::string ASTNode::evaluate()
   
   return oss.str();
 }
-
-#define OPERATORS "+*,-"
-#define WHITESPACE " \t"
-#define OPENPAREN "[("
-#define CLOSEPAREN "])"
 
 ASTNodePtr grl::parseExpression(const std::string &_str)
 {
