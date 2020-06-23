@@ -23,7 +23,9 @@ if (GRL_BUILD_GL)
               ${SRC}/state.cpp
               ${SRC}/trajectory.cpp
               ${SRC}/slice.cpp
+              ${SRC}/pgl.cpp
               ${SRC}/quadcopter.cpp
+              ${SRC}/pendulum.cpp
              )
 
   # Add dependencies

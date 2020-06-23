@@ -28,53 +28,36 @@
 #ifndef GRL_QUADCOPTER_VISUALIZATION_H_
 #define GRL_QUADCOPTER_VISUALIZATION_H_
 
-#include <grl/signal.h>
-#include <grl/visualization.h>
-
-#include <pgl/pgl.h>
+#include <grl/visualizations/pgl.h>
 
 namespace grl
 {
 
 /// Quadcopter visualization.
-class QuadcopterVisualization : public Visualization
+class QuadcopterVisualization : public PGLVisualization
 {
   public:
     TYPEINFO("visualization/quadcopter", "Quadcopter visualization")
 
   protected:
-    VectorSignal *state_;
     Vector limits_;
     
-    pgl::Scene *scene_;
     pgl::Object *quadcopter_;
-    pgl::OrbitController *controller_;
   
   public:
-    QuadcopterVisualization() : state_(NULL), scene_(NULL), quadcopter_(NULL), controller_(NULL)
+    QuadcopterVisualization() : quadcopter_(NULL)
     {
       limits_ = VectorConstructor(1, 0);
-    }
-    
-    ~QuadcopterVisualization()
-    {
-      if (controller_)
-        delete controller_;
-      if (scene_)
-        delete scene_;
     }
     
     // From Configurable
     virtual void request(ConfigurationRequest *config);
     virtual void configure(Configuration &config);
-    virtual void reconfigure(const Configuration &config);
   
-    // From Visualization
-    virtual void draw();
-    virtual void idle();
-    virtual void reshape(int width, int height);
-    virtual void click(int button, int state, int x, int y);
-    virtual void motion(int x, int y);
+  protected:
+    // From PGLVisualization
+    virtual void createScene();
+    virtual void updateScene(const Vector &state);
 };
 
 }
