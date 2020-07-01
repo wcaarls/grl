@@ -1,0 +1,37 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 0
+  steps: 0
+  rate: 20
+  test_interval: -1
+  environment: 
+    type: environment/modeled
+    model: 
+      type: model/dynamical
+      control_step: 0.05
+      integration_steps: 5
+      dynamics: 
+        type: dynamics/quadcopter
+    task: 
+      type: task/quadcopter/regulator
+      stddev: [0.2, 0.2, 0.2, 0, 0, 0, 0.1, 0.1, 0.1, 0, 0, 0]
+      timeout: 5
+      controller:
+        type: controller/quadcopter/velocity
+    exporter:
+      type: exporter/csv
+      file: quadcopter_lqr_pos_signals
+  agent: 
+    type: agent/fixed
+    policy: 
+      type: mapping/policy/random
+      output_min: [0, 0, 0, 0]
+      output_max: [0, 0, 0, 0]
+  test_agent: experiment/agent
+  save_every: never
+visualizer: 
+  type: visualizer/glut
+visualization: 
+  type: visualization/quadcopter
+  state: experiment/environment/state

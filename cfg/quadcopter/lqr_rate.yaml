@@ -17,16 +17,19 @@ experiment:
       type: task/quadcopter/regulator
       stddev: [0.2, 0.2, 0.2, 0, 0, 0, 0.1, 0.1, 0.1, 0, 0, 0]
       timeout: 5
+      r: [1, 1, 1, 0.1]
+      controller:
+        type: controller/quadcopter/rate
     exporter:
       type: exporter/csv
-      file: quadcopter_lqr_signals
+      file: quadcopter_lqr_rate_signals
   agent: 
     type: agent/solver
     interval: 1
     policy: 
       type: policy/parameterized/state_feedback
       operating_state: experiment/environment/task/goal
-      operating_action: [0.5, 0.5, 0.5, 0.5]
+      operating_action: [0, 0, 0, 0.5]
       output_min: experiment/environment/task/action_min
       output_max: experiment/environment/task/action_max
     solver: 
