@@ -126,17 +126,23 @@ bool LQRSolver::solve()
     }
     
     // Calculate optimal feedforward action
-    Observation next;
-    double reward;
-    int terminal;
-    model_->step(operating_state_, operating_action_, &next, &reward, &terminal);
+    Vector operating_action = operating_action_;
+    for (size_t ii=0; ii != 10; ++ii)
+    {
+      Observation next;
+      double reward;
+      int terminal;
+      model_->step(operating_state_, operating_action, &next, &reward, &terminal);
 
-    ColumnVector s = (operating_state_ - next.v).matrix().transpose() + B * operating_action_.matrix().transpose();
-    ColumnVector u = B.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(s);
+      ColumnVector s = (operating_state_ - next.v).matrix().transpose() + B * operating_action.matrix().transpose();
+      ColumnVector u = B.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(s);
+      operating_action = u.transpose().array();
     
-    TRACE("Feedforward action: " << u.transpose());
+      CRAWL("Feedforward action (" << ii << "): " << operating_action);
+    }
     
-    policy_->feedforward(u.transpose().array());
+    TRACE("Feedforward action: " << operating_action);
+    policy_->feedforward(operating_action);
   }
   else
   {

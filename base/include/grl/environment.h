@@ -455,6 +455,28 @@ class SandboxEnvironment : public Environment
     virtual void report(std::ostream &os) const;
 };
 
+/// Low-level controller that translates actions into actuation vectors.
+class Controller : public Configurable
+{
+  public:
+    virtual ~Controller() { }
+
+  public:
+    virtual void request(ConfigurationRequest *config)
+    {
+      config->push_back(CRP("action_dims", "int.action_dims", "Number of action dimensions", CRP::Provided));
+      config->push_back(CRP("action_min", "vector.action_min", "Lower limit on actions", CRP::Provided));
+      config->push_back(CRP("action_max", "vector.action_max", "Upper limit on actions", CRP::Provided));
+    }
+    
+    /**
+     * \brief Convert a possibly higher-level action into low-level actuation to be applied to the model.
+     * 
+     * Returns true if a new high-level action is called for.
+     */
+    virtual bool actuate(const Vector &state, const Action &action, Vector *actuation) const = 0;
+};
+
 }
 
 #endif /* GRL_ENVIRONMENT_H_ */

@@ -500,6 +500,11 @@ inline std::vector<std::string> cutLongStr(const std::string &s)
   }
 }
 
+template <typename T>
+T clip(const T& x, const T& l, const T& u) {
+  return std::min(std::max(x, l), u);
+}
+
 }
 
 #endif /* GRL_UTILS_H_ */

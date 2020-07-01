@@ -104,6 +104,7 @@ class QuadcopterRegulatorTask : public RegulatorTask
     Vector action_range_, limits_;
     int wrap_;
     double time_reward_, limit_penalty_;
+    Controller *controller_;
 
   public:
     QuadcopterRegulatorTask()
@@ -112,13 +113,14 @@ class QuadcopterRegulatorTask : public RegulatorTask
       goal_ = VectorConstructor(0, 0, 0, 0, 0 ,0, 0, 0, 0, 0, 0, 0);
       stddev_ = VectorConstructor(0.1, 0.1, 0.1, 0, 0, 0, 0.1, 0.1, 0.1, 0, 0, 0);
       q_ = VectorConstructor(1, 1, 1, 0, 0, 0, 0.1, 0.1, 0.1, 0, 0, 0);
-      r_ = VectorConstructor(1e-9, 1e-9, 1e-9, 1e-9);
+      r_ = VectorConstructor(0.1, 0.1, 0.1, 0.1);
       timeout_ = 9.99;
       action_range_ = VectorConstructor(3000, 9000);
       limits_ = VectorConstructor(1.,0.);
       wrap_ = 0;
       time_reward_ = 0;
       limit_penalty_ = 1000;
+      controller_ = NULL;
     }
   
     // From Configurable
@@ -127,13 +129,100 @@ class QuadcopterRegulatorTask : public RegulatorTask
     virtual void reconfigure(const Configuration &config);
 
     // From Task
-    virtual void evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const;
+    virtual bool actuate(const Vector &prev, const Vector &state, const Action &action, Vector *actuation) const;
     virtual void observe(const Vector &state, Observation *obs, int *terminal) const;
+    virtual void evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const;
     virtual bool invert(const Observation &obs, Vector *state, double time=0.) const;
     
   protected:
     Vector wrap(const Vector &state) const;
     bool failed(const Vector &state) const;
+};
+
+/// Quadcopter angular rate and thrust controller.
+class QuadcopterRateController : public Controller
+{
+  public:
+    TYPEINFO("controller/quadcopter/rate", "Quadcopter angular rate and thrust controller")
+
+  public:
+    // From Configurable
+    virtual void configure(Configuration &config);
+
+    // From Controller
+    virtual bool actuate(const Vector &state, const Action &action, Vector *actuation) const;
+};
+
+/// Quadcopter attitude controller
+class QuadcopterAttitudeController : public QuadcopterRateController
+{
+  public:
+    TYPEINFO("controller/quadcopter/attitude", "Quadcopter roll and pitch angle, yaw and climb rate controller")
+    
+  protected:
+    Vector p_, d_, ff_;
+
+  public:
+    QuadcopterAttitudeController()
+    {
+      p_ = VectorConstructor(1, 1, 1, 1);
+      d_ = VectorConstructor(.2, .2);
+      ff_ = VectorConstructor(0.387217);
+    }
+  
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+
+    // From Controller
+    virtual bool actuate(const Vector &state, const Action &action, Vector *actuation) const;
+};
+
+/// Quadcopter velocity controller
+class QuadcopterVelocityController : public QuadcopterAttitudeController
+{
+  public:
+    TYPEINFO("controller/quadcopter/velocity", "Quadcopter velocity and yaw rate controller")
+
+  protected:
+    Vector p_;
+
+  public:
+    QuadcopterVelocityController()
+    {
+      p_ = VectorConstructor(.1, .1);
+    }
+  
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+
+    // From Controller
+    virtual bool actuate(const Vector &state, const Action &action, Vector *actuation) const;
+};
+
+/// Quadcopter position controller
+class QuadcopterPositionController : public QuadcopterAttitudeController
+{
+  public:
+    TYPEINFO("controller/quadcopter/position", "Quadcopter position and yaw angle controller")
+    
+  protected:
+    Vector p_, d_;
+
+  public:
+    QuadcopterPositionController()
+    {
+      p_ = VectorConstructor(0.2, 0.2, 10., 1.);
+      d_ = VectorConstructor(0.15, 0.15);
+    }
+
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+
+    // From Controller
+    virtual bool actuate(const Vector &state, const Action &action, Vector *actuation) const;
 };
 
 }

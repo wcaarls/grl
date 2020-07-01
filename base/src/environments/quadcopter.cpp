@@ -40,6 +40,10 @@ using namespace Eigen;
 
 REGISTER_CONFIGURABLE(QuadcopterDynamics)
 REGISTER_CONFIGURABLE(QuadcopterRegulatorTask)
+REGISTER_CONFIGURABLE(QuadcopterRateController)
+REGISTER_CONFIGURABLE(QuadcopterAttitudeController)
+REGISTER_CONFIGURABLE(QuadcopterVelocityController)
+REGISTER_CONFIGURABLE(QuadcopterPositionController)
 
 void QuadcopterDynamics::request(ConfigurationRequest *config)
 {
@@ -89,6 +93,7 @@ void QuadcopterDynamics::reconfigure(const Configuration &config)
 void QuadcopterDynamics::eom(const Vector &state, const Vector &actuation, Vector *xd) const
 {
   // State space representation : [x y z x_dot y_dot z_dot theta phi gamma theta_dot phi_dot gamma_dot]
+  // Action space representation: [left, front, right, back]
   // From Quadcopter Dynamics, Simulation, and Control by Andrew Gibiansky
   if (state.size() != 13 || actuation.size() != 4)
     throw Exception("dynamics/quadcopter requires a task/quadcopter subclass");
@@ -190,6 +195,8 @@ void QuadcopterRegulatorTask::request(ConfigurationRequest *config)
   config->push_back(CRP("wrap", "Wrap positions around limits", wrap_, CRP::Configuration, 0, 1));
   config->push_back(CRP("time_reward", "Reward per second", time_reward_, CRP::Configuration, 0., DBL_MAX));
   config->push_back(CRP("limit_penalty", "Terminal penalty for crossing position limit", limit_penalty_, CRP::Configuration, 0., DBL_MAX));
+  
+  config->push_back(CRP("controller", "controller/quadcopter", "Downstream controller to convert action into propeller rpm", controller_, true));
 }
 
 void QuadcopterRegulatorTask::configure(Configuration &config)
@@ -210,6 +217,11 @@ void QuadcopterRegulatorTask::configure(Configuration &config)
   time_reward_ = config["time_reward"];
   limit_penalty_ = config["limit_penalty"];
   
+  controller_ = (Controller*)config["controller"].ptr();
+  size_t action_dims = 4;
+  if (controller_)
+    action_dims = (*controller_->configurator())["action_dims"];
+  
   if (wrap_ && !limits_[0])
   {
     ERROR("Cannot wrap without valid position limit");
@@ -218,15 +230,24 @@ void QuadcopterRegulatorTask::configure(Configuration &config)
   
   if (q_.size() != 12)
     throw bad_param("task/quadcopter/regulator:q");
-  if (r_.size() != 4)
+  if (r_.size() != action_dims)
     throw bad_param("task/quadcopter/regulator:r");
     
   double p = limits_[0]?limits_[0]:1, v = limits_[1]?limits_[1]:10;
 
   config.set("observation_min", VectorConstructor(-p, -p, -p, -M_PI, -M_PI, -M_PI, -v, -v, -v, -10*M_PI, -10*M_PI, -10*M_PI));
   config.set("observation_max", VectorConstructor( p,  p,  p,  M_PI,  M_PI,  M_PI,  v,  v,  v,  10*M_PI,  10*M_PI,  10*M_PI));
-  config.set("action_min", VectorConstructor(action_range_[0], action_range_[0], action_range_[0], action_range_[0]));
-  config.set("action_max", VectorConstructor(action_range_[1], action_range_[1], action_range_[1], action_range_[1]));
+  
+  if (controller_)
+  {
+    config.set("action_min", (*controller_->configurator())["action_min"].v());
+    config.set("action_max", (*controller_->configurator())["action_max"].v());
+  }
+  else
+  {
+    config.set("action_min", VectorConstructor(0, 0, 0, 0));
+    config.set("action_max", VectorConstructor(1, 1, 1, 1));
+  }
 }
 
 void QuadcopterRegulatorTask::reconfigure(const Configuration &config)
@@ -234,17 +255,20 @@ void QuadcopterRegulatorTask::reconfigure(const Configuration &config)
   RegulatorTask::reconfigure(config);
 }
 
-void QuadcopterRegulatorTask::evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const
+bool QuadcopterRegulatorTask::actuate(const Vector &prev, const Vector &state, const Action &action, Vector *actuation) const
 {
-  // Bound errors
-  Vector _state = wrap(state), _next = wrap(next);
-  
-  RegulatorTask::evaluate(_state, action, _next, reward);
-  
-  *reward += time_reward_;
-  
-  if (failed(next))
-    *reward -= limit_penalty_;
+  bool retval = true;
+
+  if (controller_)
+    retval = controller_->actuate(state, action, actuation);
+  else
+    *actuation = action;
+    
+  // Convert to minrpm-maxrpm
+  for (size_t ii=0; ii != actuation->size(); ++ii)
+    (*actuation)[ii] = clip((*actuation)[ii]*(action_range_[1]-action_range_[0])+action_range_[0], action_range_[0], action_range_[1]);
+    
+  return retval;
 }
 
 void QuadcopterRegulatorTask::observe(const Vector &state, Observation *obs, int *terminal) const
@@ -267,6 +291,19 @@ void QuadcopterRegulatorTask::observe(const Vector &state, Observation *obs, int
   }
   else
     obs->absorbing = false;
+}
+
+void QuadcopterRegulatorTask::evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const
+{
+  // Bound errors
+  Vector _state = wrap(state), _next = wrap(next);
+  
+  RegulatorTask::evaluate(_state, action, _next, reward);
+  
+  *reward += time_reward_;
+  
+  if (failed(next))
+    *reward -= limit_penalty_;
 }
 
 bool QuadcopterRegulatorTask::invert(const Observation &obs, Vector *state, double time) const
@@ -309,4 +346,172 @@ bool QuadcopterRegulatorTask::failed(const Vector &state) const
     return true;
   else
     return false;
+}
+
+// QuadcopterRateController
+
+void QuadcopterRateController::configure(Configuration &config)
+{
+  config.set("action_dims", 4);
+  config.set("action_min", VectorConstructor(-1, -1, -1, 0));
+  config.set("action_max", VectorConstructor( 1,  1,  1, 1));
+}
+
+bool QuadcopterRateController::actuate(const Vector &state, const Action &action, Vector *actuation) const
+{
+  if (action.size() != 4)
+    throw Exception("controller/quadcopter/rate requires task/quadcopter");
+
+  Matrix delta(4, 4);
+//  delta <<  1,  1, -1, 1,
+//           -1,  1,  1, 1,
+//           -1, -1, -1, 1,
+//            1, -1,  1, 1;
+  delta <<  1,  0,  1, 1,
+            0,  1, -1, 1,
+           -1,  0,  1, 1,
+            0, -1, -1, 1;
+
+  Vector clipped = VectorConstructor(clip(action[0], -1., 1.),
+                                     clip(action[1], -1., 1.),
+                                     clip(action[2], -1., 1.),
+                                     clip(action[3],  0., 1.));
+           
+  *actuation = delta*clipped.matrix().transpose();
+  
+  return true;
+}
+
+// QuadcopterAttitudeController
+
+void QuadcopterAttitudeController::request(ConfigurationRequest *config)
+{
+  QuadcopterRateController::request(config);
+  
+  config->push_back(CRP("p_att", "P gains (roll, pitch, yaw_rate, climb_rate)", p_, CRP::Configuration));
+  config->push_back(CRP("d_att", "D gains (roll, pitch)", d_, CRP::Configuration));
+  config->push_back(CRP("ff_att", "Feedforward gains (climb_rate)", ff_, CRP::Configuration));
+}
+
+void QuadcopterAttitudeController::configure(Configuration &config)
+{
+  QuadcopterRateController::configure(config);
+
+  p_ = config["p_att"].v();
+  d_ = config["d_att"].v();
+  ff_ = config["ff_att"].v();
+  
+  if (p_.size() != 4)
+    throw bad_param("controller/quadcopter/attitude:p_att");
+    
+  if (d_.size() != 2)
+    throw bad_param("controller/quadcopter/attitude:d_att");
+
+  if (ff_.size() != 1)
+    throw bad_param("controller/quadcopter/attitude:ff_att");
+
+  config.set("action_dims", 4);
+  config.set("action_min", VectorConstructor(-0.5*M_PI, -0.5*M_PI, -2*M_PI, -1));
+  config.set("action_max", VectorConstructor( 0.5*M_PI,  0.5*M_PI,  2*M_PI,  1));
+}
+
+bool QuadcopterAttitudeController::actuate(const Vector &state, const Action &action, Vector *actuation) const
+{
+  if (state.size() != 13 || action.size() != 4)
+    throw Exception("controller/quadcopter/attitude requires task/quadcopter");
+
+  Vector clipped = VectorConstructor(clip(action[0], -0.5*M_PI, 0.5*M_PI),
+                                     clip(action[1], -0.5*M_PI, 0.5*M_PI),
+                                     clip(action[2], -2.0*M_PI, 2.0*M_PI),
+                                     clip(action[3], -1.0     , 1.0     ));
+           
+  Vector pact = p_ * (clipped - VectorConstructor(state[6], state[7], state[11], state[5]));
+  Vector dact = d_ * -VectorConstructor(state[9], state[10]);
+  
+  Vector downstream_action = pact + extend(dact, VectorConstructor(0., ff_[0]));
+  return QuadcopterRateController::actuate(state, downstream_action, actuation);
+}
+
+// QuadcopterVelocityController
+
+void QuadcopterVelocityController::request(ConfigurationRequest *config)
+{
+  QuadcopterAttitudeController::request(config);
+  
+  config->push_back(CRP("p_vel", "P gains (x_vel, y_vel)", p_, CRP::Configuration));
+}
+
+void QuadcopterVelocityController::configure(Configuration &config)
+{
+  QuadcopterAttitudeController::configure(config);
+
+  p_ = config["p_vel"].v();
+  
+  if (p_.size() != 2)
+    throw bad_param("controller/quadcopter/velocity:p_vel");
+
+  config.set("action_dims", 4);
+  config.set("action_min", VectorConstructor(-1, -1, -1, -2*M_PI));
+  config.set("action_max", VectorConstructor( 1,  1,  1,  2*M_PI));
+}
+
+bool QuadcopterVelocityController::actuate(const Vector &state, const Action &action, Vector *actuation) const
+{
+  if (state.size() != 13 || action.size() != 4)
+    throw Exception("controller/quadcopter/velocity requires task/quadcopter");
+
+  Vector clipped = VectorConstructor(clip(action[0], -1.0     , 1.0     ),
+                                     clip(action[1], -1.0     , 1.0     ),
+                                     clip(action[2], -1.0     , 1.0     ),
+                                     clip(action[3], -2.0*M_PI, 2.0*M_PI));
+           
+  Vector pact = p_ * (clipped.segment(0, 2) - VectorConstructor(state[3], state[4]));
+  
+  Vector downstream_action = VectorConstructor(-pact[1], pact[0], action[3], action[2]);
+  return QuadcopterAttitudeController::actuate(state, downstream_action, actuation);
+}
+
+// QuadcopterPositionController
+
+void QuadcopterPositionController::request(ConfigurationRequest *config)
+{
+  QuadcopterAttitudeController::request(config);
+  
+  config->push_back(CRP("p_pos", "P gains (x, y, z, yaw)", p_, CRP::Configuration));
+  config->push_back(CRP("d_pos", "D gains (x, y)", d_, CRP::Configuration));
+}
+
+void QuadcopterPositionController::configure(Configuration &config)
+{
+  QuadcopterAttitudeController::configure(config);
+
+  p_ = config["p_pos"].v();
+  d_ = config["d_pos"].v();
+  
+  if (p_.size() != 4)
+    throw bad_param("controller/quadcopter/position:p_pos");
+
+  if (d_.size() != 2)
+    throw bad_param("controller/quadcopter/position:d_pos");
+
+  config.set("action_dims", 4);
+  config.set("action_min", VectorConstructor(-1, -1, -1, -M_PI));
+  config.set("action_max", VectorConstructor( 1,  1,  1,  M_PI));
+}
+
+bool QuadcopterPositionController::actuate(const Vector &state, const Action &action, Vector *actuation) const
+{
+  if (state.size() != 13 || action.size() != 4)
+    throw Exception("controller/quadcopter/position requires task/quadcopter");
+
+  Vector clipped = VectorConstructor(clip(action[0], -1.0     , 1.0     ),
+                                     clip(action[1], -1.0     , 1.0     ),
+                                     clip(action[2], -1.0     , 1.0     ),
+                                     clip(action[3], -1.0*M_PI, 1.0*M_PI));
+           
+  Vector pact = p_ * (clipped - VectorConstructor(state[0], state[1], state[2], state[8]));
+  Vector dact = d_ * -VectorConstructor(state[3], state[4]);
+  
+  Vector downstream_action = VectorConstructor(-pact[1]-dact[1], pact[0]+dact[0], pact[3], pact[2]);
+  return QuadcopterAttitudeController::actuate(state, downstream_action, actuation);
 }
