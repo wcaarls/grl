@@ -21,7 +21,7 @@ experiment:
         type: controller/quadcopter/position
     exporter:
       type: exporter/csv
-      file: quadcopter_lqr_pos_signals
+      file: quadcopter_fixed_pos_signals
   agent: 
     type: agent/fixed
     policy: 
