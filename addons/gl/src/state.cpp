@@ -81,10 +81,12 @@ void StateVisualization::configure(Configuration &config)
   
   if (min_.size() == 1)
   {
-    min_ = ConstantVector(dims_.size(), min_[0]);
-    max_ = ConstantVector(dims_.size(), max_[0]);
+    size_t maxdim = dims_.maxCoeff()+1;
+  
+    min_ = ConstantVector(maxdim, min_[0]);
+    max_ = ConstantVector(maxdim, max_[0]);
   }
-    
+  
   for (size_t ii=0; ii < dims_.size(); ++ii)
     if (dims_[ii] >= min_.size())
       throw bad_param("visualization/state:{input_dims,input_min,input_max}");

@@ -21,17 +21,22 @@ config = o(){
         timeout = 2.99
       }
     },
-    agent = o('agent/fixed'){
-      policy = o('mapping/policy/parameterized/pid'){
-        setpoint = {0, 0},
-        p = {5, 1}
-      }
+  }
+}
+
+-- Add agent separately, because tables are not ordered and
+-- the reference must be defined after the object
+config.experiment{
+  agent = o('agent/fixed'){
+    policy = o('mapping/policy/parameterized/pid'){
+      setpoint = {0, 0},
+      p = {5, 1},
+      action_min = config.experiment.environment.task.action_min,
+      action_max = config.experiment.environment.task.action_max,
     }
   }
 }
 
--- Add visualizer separately, because tables are not ordered and
--- the reference must be defined after the object
 config{
   visualizer = o('visualizer/glut'),
   visualization = o('visualization/pendulum'){

@@ -30,7 +30,7 @@ experiment:
     threads: 0
     policy: 
       type: mapping/policy/post/noise
-      sigma: [100]
+      sigma: [0.05]
       theta: [0.15]
       decay_rate: 0.999
       decay_min: 0.1
@@ -109,15 +109,13 @@ experiment:
   save_every: never
 visualizer: 
   type: visualizer/glut
-points: 4096
-delay: 1
 curve_visualization: 
   type: visualization/state
-  input_dims: []
-  input_min: [-10]
+  input_dims: [3]
+  input_min: [-100]
   input_max: [0]
   memory: 256
   state: experiment/curve
-#model_visualization: 
-#  type: visualization/quadcopter
-#  state: experiment/environment/state
+model_visualization: 
+  type: visualization/quadcopter
+  state: experiment/environment/state

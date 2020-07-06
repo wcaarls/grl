@@ -20,8 +20,8 @@ experiment:
       timeout: 7200
       randomization: 0
       control_step: experiment/environment/model/control_step
-      control: setpoint
-      variables: []
+      action_step: ../control_step
+      action_idx: [0]
     exporter:
       type: exporter/csv
       file: baseline_signals
@@ -29,7 +29,7 @@ experiment:
     type: agent/fixed
     policy: 
       type: policy/random
-      output_min: []
-      output_max: []
+      output_min: 3664
+      output_max: 3664
   save_every: never
   
