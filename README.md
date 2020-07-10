@@ -3,7 +3,7 @@
 
 Generic Reinforcement Learning Library
 
-Copyright 2015-2019 Wouter Caarls
+Copyright 2015-2020 Wouter Caarls
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,45 +26,99 @@ interface.
 
 ![Configurator](/doc/grl.png)
 
-# Installation (Ubuntu 16.04)
+# Installation
+
+## Ubuntu 20.04
 ```
-sudo apt-get install git cmake g++ libeigen3-dev
+sudo apt install git cmake g++ libeigen3-dev libpython3-dev python3-distutils libz-dev
 git clone https://github.com/wcaarls/grl.git
 ```
 
-For the visualization, additionally install
+### For the visualization, additionally install
 ```
-sudo apt-get install libgl1-mesa-dev freeglut3-dev libz-dev
+sudo apt-get install libgl1-mesa-dev freeglut3-dev
 ```
 
-For the odesim environment, additionally install
+### For the configurator, additionally install
+```
+sudo apt-get install python3-yaml python3-tk
+```
+
+### For the tensorflow addon, additionall install
+```
+# Tensorflow C API 1.14.0
+wget https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-gpu-linux-x86_64-1.14.0.tar.gz
+sudo tar zxvf libtensorflow-gpu-linux-x86_64-1.14.0.tar.gz -C /usr/local
+
+# CUDA Toolkit 10.0
+wget https://developer.nvidia.com/compute/cuda/10.0/Prod/local_installers/cuda_10.0.130_410.48_linux
+wget http://developer.download.nvidia.com/compute/cuda/10.0/Prod/patches/1/cuda_10.0.130.1_linux.run
+chmod a+x *.run
+sudo ./cuda_10.0.130_410.48_linux --override # When asked, skip installing graphics driver
+sudo ./cuda_10.0.130.1_linux.run
+
+# cuDNN 7.6.5 for CUDA 10.0
+# First log in with NVIDIA developer account
+# Download https://developer.nvidia.com/compute/machine-learning/cudnn/secure/7.6.5.32/Production/10.0_20191031/cudnn-10.0-linux-x64-v7.6.5.32.tgz
+sudo tar zxvf cudnn-10.0-linux-x64-v7.6.5.32.tgz -C /usr/local
+```
+
+Then edit `~/.bashrc` to include the following, and open a new terminal
+```
+export PATH=$PATH:/usr/local/cuda-10.0/bin
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-10.0/lib64
+```
+
+Install Python 3.7 from ppa or from source, e.g.
+```
+sudo add-apt-repository ppa:deadsnakes/ppa
+sudo apt-get update
+sudo apt-get install python3.7
+```
+
+Finally, edit the network files (`cfg/4layer_*.py`) to use the correct Python version if necessary
+
+## Ubuntu 16.04
+```
+sudo apt install git cmake g++ libeigen3-dev libpython3-dev python3-distutils libz-dev
+git clone https://github.com/wcaarls/grl.git
+```
+
+### For the visualization, additionally install
+```
+sudo apt-get install libgl1-mesa-dev freeglut3-dev
+```
+
+### For the odesim environment, additionally install
 ```
 sudo apt-get install libqt4-opengl-dev libtinyxml-dev libmuparser-dev libode-dev
 ```
 
-For the RBDL environment and MUSCOD integration, additionally install
+### For the RBDL environment and MUSCOD integration, additionally install
 ```
 sudo apt-get install liblua5.1-dev
 ```
 
-For the configurator, additionally install
+### For the configurator, additionally install
 ```
 sudo apt-get install python-yaml python-tk
 ```
 
-For the zeromq addon, additionally install
+### For the zeromq addon, additionally install
 ```
 sudo apt-get install libprotoc-dev protobuf-compiler libsodium-dev
 ```
 Then download a recent (> 4.0.0) version of zeromq and run './configure, make, make install'
 
-For the tensorflow addon, additionall install
+### For the tensorflow addon, additionally install
 
 ```
 sudo apt-get install libprotoc-dev protobuf-compiler
 ```
-Then download TensorFlow for C from https://www.tensorflow.org/install/install_c
-in a place that can be found by the compiler and runtime environment.
+Then download TensorFlow for C 1.14.0 from https://www.tensorflow.org/install/install_c
+in a place that can be found by the compiler and runtime environment. To use
+Python to build the networks, the same Tensorflow version (and Keras 2.2.4)
+should be available under Python as well.
 
 # Setup
 ```

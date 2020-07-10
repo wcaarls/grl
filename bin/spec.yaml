@@ -1,0 +1,34 @@
+- file: pendulum.yaml
+  configuration:
+    - name: /experiment/output
+      value: $@-gamma$0-lambda$1-sres$2-ares$3-epsilon$4-alpha$5
+  parameters:
+    - name: /experiment/agent/predictor/gamma
+      values:
+        - 0.95
+        - 0.98
+        - 0.99
+    - name: /experiment/agent/predictor/lambda
+      values:
+        - 0.4
+        - 0.6
+        - 0.8
+    - name: /experiment/agent/policy/projector/sres
+      values:
+        - 0.5
+        - 1
+    - name: /experiment/agent/policy/projector/ares
+      values:
+        - 3
+        - 5
+    - name: /experiment/agent/policy/sampler/epsilon
+      values:
+        - 0.01
+        - 0.05
+        - 0.10
+        - 0.50
+    - name: /experiment/agent/predictor/alpha
+      values:
+        - 0.05
+        - 0.10
+        - 0.20

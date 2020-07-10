@@ -20,7 +20,7 @@ class hashabledict(OrderedDict):
 _mapping_tag = yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG
 
 def dict_representer(dumper, data):
-  return dumper.represent_dict(data.iteritems())
+  return dumper.represent_dict(data.items())
     
 def dict_constructor(loader, node):
   return hashabledict(loader.construct_pairs(node))
@@ -38,7 +38,7 @@ class Worker():
     self.dead = False
     
     # Send configuration
-    self.socket.send(conf + '\0')
+    self.socket.send((conf + '\0').encode())
 
   def read(self, regret='simple'):
     """Read worker result, returning either simple or cumulative regret"""
@@ -59,13 +59,13 @@ class Worker():
     try:
       data = [float(v) for v in self.data.split('\n')[:-1]]
     except:
-      print data
+      print(data)
       raise
     
     if self.output:
       stream = open(self.output + ".txt", 'w')
       for d in data:
-        print >>stream, d
+        print(d, file=stream)
       stream.close()
     
     if regret == 'simple':
@@ -86,7 +86,7 @@ class Worker():
       r, w, e = select.select([self.socket], [], [], 0)
       if r:
         buf = self.socket.recv(4096, socket.MSG_DONTWAIT)
-        self.data = self.data + buf
+        self.data = self.data + buf.decode()
         if len(buf) == 0:
           self.dead = True
           return False
@@ -110,7 +110,7 @@ class Server():
     s.bind(('', self.port))
     s.listen(100)
     
-    print "Server listening for connections on port", self.port
+    print("Server listening for connections on port", self.port)
     
     try:
       while True:
@@ -237,7 +237,7 @@ def getconf(conf, param):
 def mergeconf(base, new):
   """Merge configurations"""
   if isinstance(base,dict) and isinstance(new,dict):
-    for k,v in new.iteritems():
+    for k,v in new.items():
       if k not in base:
         base[k] = v
       else:
@@ -247,15 +247,15 @@ def mergeconf(base, new):
 
 def readconf(path):
   """Reads configuration, resolving file references"""
-  stream = file(path)
-  conf = yaml.load(stream)
+  stream = open(path)
+  conf = yaml.safe_load(stream)
   stream.close()
   
   return _readconf(conf, path)
 
 def _readconf(conf, path):
   if isinstance(conf, dict):
-    iterfun = lambda c: c.iteritems()
+    iterfun = lambda c: c.items()
   elif isinstance(conf, list):
     iterfun = lambda c: enumerate(c)
   else:

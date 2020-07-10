@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import sys, os, inspect, tempfile, glob, subprocess, filecmp, shutil
 
 generate = False
@@ -15,7 +15,7 @@ os.chdir(tempdir)
 devnull = open('/dev/null', 'w')
 
 for test in tests:
-  print "Test " + test
+  print("Test " + test)
   
   subprocess.call([binpath + '/../build/grld','-s','1',binpath + '/../tests/' + test], stdout=devnull)
   
@@ -32,10 +32,10 @@ for test in tests:
       try:
         fc = filecmp.cmp(result, template)
       except:
-        print "Test " + test + "... failed to produce result."
+        print("Test " + test + "... failed to produce result.")
 
       if not fc:
-        print "Test " + test + "... failed."
+        print("Test " + test + "... failed.")
         break
 
 shutil.rmtree(tempdir)

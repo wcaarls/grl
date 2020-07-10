@@ -2,10 +2,9 @@
 set(TARGET addon_tensorflow)
 
 find_package(Protobuf)
-check_library_exists(tensorflow TF_Version "" TENSORFLOW_FOUND)
 find_path(TENSORFLOW_INCLUDE_DIRS tensorflow/c/c_api.h)
 
-if (PROTOBUF_FOUND AND TENSORFLOW_FOUND)
+if (PROTOBUF_FOUND AND TENSORFLOW_INCLUDE_DIRS)
   set(GRL_BUILD_TENSORFLOW ON CACHE BOOL "Build TensorFlow addon")
 else()
   message("** Cannot build TensorFlow addon: missing one of {protobuf, tensorflow-c-api}")

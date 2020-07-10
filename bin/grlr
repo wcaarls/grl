@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # grlr Command-line interface to grlw for running multiple configurations
 #      in parallel.
 #
@@ -75,16 +75,16 @@ def progress(maxlen, workers, strlen=60):
     if w.alive():
       alive = alive + 1
 
-  w = len(workers)*strlen/maxlen
-  a = alive*strlen/maxlen
+  w = int(len(workers)*strlen/maxlen)
+  a = int(alive*strlen/maxlen)
   
-  print '\r[' + '#'*(w-a) + '+'*a + '.'*(strlen-w) + ']', (len(workers)-alive)*100/maxlen, '%',
+  print('\r[' + '#'*(w-a) + '+'*a + '.'*(strlen-w) + ']', int((len(workers)-alive)*100/maxlen), '%', end='')
   sys.stdout.flush()
 
 def fuzz(name, conf, e, dry):
   orig = copy.deepcopy(conf)
-  hasparams = e.has_key("parameters")
-  hasconfig = e.has_key("configuration") 
+  hasparams = "parameters" in e
+  hasconfig = "configuration" in e
   
   if hasparams:
     indices = [0] * len(e["parameters"])
@@ -136,7 +136,7 @@ def fuzz(name, conf, e, dry):
           break
 
       # Stop when we're back at the beginning
-      if cmp(indices, [0] * len(indices)) == 0:
+      if indices == [0] * len(indices):
         break
     else:
       # No parameters to cycle though, just exit
@@ -150,14 +150,14 @@ if __name__ == '__main__':
   try:
     opts, args = getopt.getopt(sys.argv[1:], "dp:r:")
   except getopt.GetoptError:
-    print 'grlr [-d] [spec.yaml]'
+    print('grlr [-d] [spec.yaml]')
     sys.exit(2)
 
   port = 3373
   for opt, arg in opts:
     if opt == '-d':
       dry = True
-      print "Dry run: just generating configurations"
+      print("Dry run: just generating configurations")
     if opt == '-p':
       port = int(arg)
     if opt == '-r':
@@ -170,7 +170,7 @@ if __name__ == '__main__':
     specs = []
     for arg in args:
       stream = open(arg, 'r')
-      specs.append(yaml.load(stream))
+      specs.append(yaml.safe_load(stream))
       stream.close()
 
   jobs = [];
@@ -210,5 +210,5 @@ if __name__ == '__main__':
       w.read('cumulative')
 
     progress(len(jobs), workers)
-    print
+    print()
   

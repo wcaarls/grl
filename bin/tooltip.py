@@ -37,7 +37,7 @@ create_contents() : creates the contents of the tooltip window (by default a Tki
 '''
 # Ideas gleaned from PySol
 
-import Tkinter
+import tkinter
 
 class ToolTip:
     def __init__(self, master, text='Your text here', delay=1500, **opts):
@@ -99,7 +99,7 @@ class ToolTip:
             self._unschedule()
             return
         if not self._tipwindow:
-            self._tipwindow = tw = Tkinter.Toplevel(self.master)
+            self._tipwindow = tw = tkinter.Toplevel(self.master)
             # hide the window until we know the geometry
             tw.withdraw()
             tw.wm_overrideredirect(1)
@@ -152,5 +152,5 @@ class ToolTip:
         opts = self._opts.copy()
         for opt in ('delay', 'follow_mouse', 'state'):
             del opts[opt]
-        label = Tkinter.Label(self._tipwindow, **opts)
+        label = tkinter.Label(self._tipwindow, **opts)
         label.pack()
