@@ -189,7 +189,9 @@ void TensorFlowRepresentation::configure(Configuration &config)
     NOTICE("Generating TensorFlow model from " << file_);
 
     char buf[PATH_MAX];
-    (void)tmpnam_r(buf);
+    if (!tmpnam_r(buf))
+      throw Exception("Could not create temporary filename for TensorFlow model");
+    
     std::stringstream ss;
     ss << file_ << " " << buf;
     if (system(ss.str().c_str()))

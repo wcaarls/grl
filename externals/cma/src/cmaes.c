@@ -3028,6 +3028,7 @@ char *szCat(const char *sz1, const char*sz2,
   if (!sz1)
     FATAL("szCat() : Invalid Arguments",0,0,0);
 
+#pragma GCC diagnostic ignored "-Wstringop-overflow"
   strncpy ((char *)szBuf, sz1, (unsigned)intMin( (int)strlen(sz1), 698));
   szBuf[intMin( (int)strlen(sz1), 698)] = '\0';
   if (sz2)
@@ -3039,6 +3040,7 @@ char *szCat(const char *sz1, const char*sz2,
   if (sz4)
     strncat((char *)szBuf, sz4, 
             (unsigned)intMin((int)strlen(sz4)+1, 698 - (int)strlen((char const *)szBuf)));
+#pragma GCC diagnostic pop
   return (char *) szBuf;
 }
 

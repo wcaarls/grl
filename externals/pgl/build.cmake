@@ -7,7 +7,7 @@ execute_process(
 )
 
 execute_process(
-  COMMAND ${CMAKE_COMMAND} -E tar xf ${SRC}/../share/master.zip
+  COMMAND ${CMAKE_COMMAND} -E tar xf ${SRC}/../share/pgl-master.zip
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
 

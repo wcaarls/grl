@@ -76,7 +76,19 @@ sudo apt-get update
 sudo apt-get install python3.7
 ```
 
-Finally, edit the network files (`cfg/4layer_*.py`) to use the correct Python version if necessary
+Install Tensorflow for Python 1.14.0
+
+```
+sudo -H python3.7 -m pip install tensorflow==1.14.0 keras==2.2.4
+```
+
+Finally, edit the network files (`cfg/4layer_*.py`) to use the correct Python version if
+necessary.
+
+If there are errors relating to Python loading
+`libtensorflow_framework.so.1`, it is because it comes with its own version,
+and it finds the version from the C API. Consider adding the path of the
+Python version to `LD_LIBRARY_PATH`, before the C version.
 
 ## Ubuntu 16.04
 ```

@@ -117,7 +117,7 @@ void MultiPolicy::act(const Observation &in, Action *out) const
   policy_[0]->act(in, &actions_actors[0]);
   int n_dimension = actions_actors[0].v.size();
   Vector send_actions(n_policies);
-  double* result_np = new double[n_policies];
+//  double* result_np = new double[n_policies];
   double* result_nd = new double[n_dimension];
   size_t ii;
   
@@ -366,7 +366,7 @@ void MultiPolicy::act(const Observation &in, Action *out) const
       //EUCLIDIAN DISTANCE
       double euclidian_dist = 0;
       ii = 0;
-      size_t ii_max = 0;
+//      size_t ii_max = 0;
       for( it=actions_actors2.begin(); it < actions_actors2.end(); ++it, ++ii)
       {
 	      euclidian_dist = sum(pow((*it).v - mean, 2));
@@ -382,7 +382,7 @@ void MultiPolicy::act(const Observation &in, Action *out) const
       {
         std::sort(quantile.begin(), quantile.end());
         size_t size = quantile.size();
-        size_t mid = size/2;
+//        size_t mid = size/2;
     
         double fst;
         double trd;
@@ -543,7 +543,7 @@ void MultiPolicy::act(const Observation &in, Action *out) const
       //EUCLIDIAN DISTANCE
       double euclidian_dist = 0;
       ii = 0;
-      size_t ii_max = 0;
+//      size_t ii_max = 0;
       for( it=actions_actors.begin(); it < actions_actors.end(); ++it, ++ii)
       {
 	      euclidian_dist = sum(pow((*it).v - mean, 2));
@@ -559,7 +559,7 @@ void MultiPolicy::act(const Observation &in, Action *out) const
       {
         std::sort(quantile.begin(), quantile.end());
         size_t size = quantile.size();
-        size_t mid = size/2;
+//        size_t mid = size/2;
     
         double fst;
         double trd;
