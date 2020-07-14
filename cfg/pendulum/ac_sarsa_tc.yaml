@@ -86,8 +86,8 @@ visualization:
 visualization2: 
   type: visualization/field/value
   field_dims: [0, 1]
-  input_min: experiment/environment/task/observation_min + experiment/environment/task/action_min
-  input_max: experiment/environment/task/observation_max + experiment/environment/task/action_max
+  input_min: experiment/environment/task/observation_min++experiment/environment/task/action_min
+  input_max: experiment/environment/task/observation_max++experiment/environment/task/action_max
   points: 65536
   projection: mean
   output_dim: 0

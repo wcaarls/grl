@@ -21,7 +21,7 @@ experiment:
   agent: 
     type: agent/td
     policy: 
-      type: mapping/policy/discrete/action_probability
+      type: mapping/policy/discrete/value/q
       discretizer: 
         type: discretizer/uniform
         min: experiment/environment/task/action_min
@@ -42,6 +42,9 @@ experiment:
         outputs: 1
         output_min: [  ]
         output_max: [  ]
+      sampler:
+        type: sampler/softmax
+        tau: 1.0
     predictor: 
       type: predictor/ac/probability
       alpha: 0.2
@@ -74,11 +77,7 @@ experiment:
         steps: [ 3 ]
   test_agent: 
     type: agent/fixed
-    policy: 
-      type: mapping/policy/discrete/action_probability
-      discretizer: experiment/agent/predictor/discretizer
-      projector: experiment/agent/policy/projector
-      representation: experiment/agent/policy/representation
+    policy: experiment/agent/policy
   save_every: never
 visualizer: 
   type: visualizer/glut

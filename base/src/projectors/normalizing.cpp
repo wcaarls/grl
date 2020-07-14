@@ -48,8 +48,8 @@ void NormalizingProjector::request(const std::string &role, ConfigurationRequest
   }
   else if (role == "pair")
   {
-    config->push_back(CRP("input_min", "vector.observation_min+vector.action_min", "Lower input dimension limit (for scaling)", min_, CRP::System));
-    config->push_back(CRP("input_max", "vector.observation_max+vector.action_max", "Upper input dimension limit (for scaling)", max_, CRP::System));
+    config->push_back(CRP("input_min", "vector.observation_min++vector.action_min", "Lower input dimension limit (for scaling)", min_, CRP::System));
+    config->push_back(CRP("input_max", "vector.observation_max++vector.action_max", "Upper input dimension limit (for scaling)", max_, CRP::System));
   }
   else
   {

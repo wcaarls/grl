@@ -27,8 +27,8 @@ experiment:
       steps: [ 3 ]
     projector:
       type: projector/rbf/gauss
-      input_min: experiment/task/observation_min+experiment/task/action_min
-      input_max: experiment/task/observation_max+experiment/task/action_max
+      input_min: experiment/task/observation_min++experiment/task/action_min
+      input_max: experiment/task/observation_max++experiment/task/action_max
       steps: [ 11, 11, 3 ]
       cutoff: 0.01
     representation: 

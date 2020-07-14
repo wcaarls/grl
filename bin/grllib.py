@@ -177,8 +177,9 @@ def findparams(params, type):
   
   for c in components:
     cmatches = list()
-    
-    if isnumber(c):
+    if c == '':
+      cmatches.append('')
+    elif isnumber(c):
       cmatches.append(c)
     else:
       base, role = splittype(c)

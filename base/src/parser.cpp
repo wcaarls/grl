@@ -76,9 +76,11 @@ std::string ASTNode::evaluate()
 
   if (str_ == "+")
   {
-    // TODO: Rationalize this to only extend vectors when using ++ operator
-    if (x.size() == 1 && y.size() == 1) z = x + y;
-    else                                z = extend(x, y);
+    if (x.size() == 1)             z = x[0] + y;
+    else if (y.size() == 1)        z = x + y[0];
+    else if (x.size() == y.size()) z = x + y;
+    else
+      ERROR("Cannot add " << x_in << " and " << y_in << ": vector size mismatch");
   }
   else if (str_ == "++")
   {
@@ -86,12 +88,16 @@ std::string ASTNode::evaluate()
   }
   else if (str_ == "-")
   {
-    z = x - y;
+    if (x.size() == 1)             z = x[0] - y;
+    else if (y.size() == 1)        z = x - y[0];
+    else if (x.size() == y.size()) z = x - y;
+    else
+      ERROR("Cannot subtract " << x_in << " and " << y_in << ": vector size mismatch");
   }
   else if (str_ == "--")
   {
     if (x.size() != 1 || y.size() != 1)
-      ERROR("List creation operator requires scalar operands");
+      ERROR("Cannot create list from " << x_in << " to " << y_in << ": requires scalar operands");
     else if (x[0] < y[0])
     {
       z.resize(y[0]-x[0]);

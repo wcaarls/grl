@@ -31,12 +31,13 @@ experiment:
         steps: [3]
       projector:
         type: projector/pre/normalizing
-        input_min: experiment/environment/task/observation_min+experiment/environment/task/action_min
-        input_max: experiment/environment/task/observation_max+experiment/environment/task/action_max
+        input_min: experiment/environment/task/observation_min++experiment/environment/task/action_min
+        input_max: experiment/environment/task/observation_max++experiment/environment/task/action_max
         projector: 
           type: projector/identity
       representation:
         interval: 1000
+        memory: 0.1
         type: representation/parameterized/tensorflow
         file: $@/../4layer_linear.py experiment/environment/task/observation_dims+experiment/environment/task/action_dims 1
       sampler: 
@@ -65,8 +66,8 @@ visualizer:
 visualization: 
   type: visualization/slice
   field_dims: [0, 1]
-  input_min: experiment/environment/task/observation_min+experiment/environment/task/action_min
-  input_max: experiment/environment/task/observation_max+experiment/environment/task/action_max
+  input_min: experiment/environment/task/observation_min++experiment/environment/task/action_min
+  input_max: experiment/environment/task/observation_max++experiment/environment/task/action_max
   points: 65536
   savepoints: 1048576
   projection: mean
@@ -78,8 +79,8 @@ visualization:
 target_visualization: 
   type: visualization/slice
   field_dims: [0, 1]
-  input_min: experiment/environment/task/observation_min+experiment/environment/task/action_min
-  input_max: experiment/environment/task/observation_max+experiment/environment/task/action_max
+  input_min: experiment/environment/task/observation_min++experiment/environment/task/action_min
+  input_max: experiment/environment/task/observation_max++experiment/environment/task/action_max
   points: 65536
   savepoints: 1048576
   projection: mean

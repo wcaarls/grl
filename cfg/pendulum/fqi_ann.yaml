@@ -28,8 +28,8 @@ experiment:
       steps: [3]
     projector: 
       type: projector/pre/normalizing
-      input_min: experiment/task/observation_min+experiment/task/action_min
-      input_max: experiment/task/observation_max+experiment/task/action_max
+      input_min: experiment/task/observation_min++experiment/task/action_min
+      input_max: experiment/task/observation_max++experiment/task/action_max
       projector: 
         type: projector/identity
     representation: 

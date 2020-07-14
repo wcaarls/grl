@@ -31,8 +31,8 @@ experiment:
         steps: [3]
       projector:
         type: projector/pre/normalizing
-        input_min: experiment/environment/task/observation_min+experiment/environment/task/action_min
-        input_max: experiment/environment/task/observation_max+experiment/environment/task/action_max
+        input_min: experiment/environment/task/observation_min++experiment/environment/task/action_min
+        input_max: experiment/environment/task/observation_max++experiment/environment/task/action_max
         projector: 
           type: projector/identity
       representation:

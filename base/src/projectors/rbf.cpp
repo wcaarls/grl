@@ -48,8 +48,8 @@ void RBFProjector::request(const std::string &role, ConfigurationRequest *config
   }
   else if (role == "pair")
   {
-    config->push_back(CRP("input_min", "vector.observation_min+vector.action_min", "Lower input dimension limit", min_, CRP::System));
-    config->push_back(CRP("input_max", "vector.observation_max+vector.action_max", "Upper input dimension limit", max_, CRP::System));
+    config->push_back(CRP("input_min", "vector.observation_min++vector.action_min", "Lower input dimension limit", min_, CRP::System));
+    config->push_back(CRP("input_max", "vector.observation_max++vector.action_max", "Upper input dimension limit", max_, CRP::System));
   }
   else
   {
