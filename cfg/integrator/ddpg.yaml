@@ -58,7 +58,8 @@ experiment:
       type: predictor/ddpg
       gamma: 0.9
       observation: s_in
-      action: a_in
+      action_in: a_in
+      action_out: a_out/Tanh
       value: q/BiasAdd
       target: target
       critic_update: update

@@ -50,13 +50,14 @@ class DDPGPredictor : public Predictor
 
   protected:
     LargeVector gamma_, reward_scale_;
+    bool use_target_actor_;
     Discretizer *discretizer_;
     Projector *obs_projector_, *action_projector_;
     TensorFlowRepresentation *representation_;
-    std::string  observation_, action_, value_, target_, critic_update_, actor_update_;
+    std::string  observation_, action_in_, action_out_, value_, target_, critic_update_, actor_update_;
 
   public:
-    DDPGPredictor() : discretizer_(NULL), obs_projector_(NULL), action_projector_(NULL), representation_(NULL)
+    DDPGPredictor() : use_target_actor_(true), discretizer_(NULL), obs_projector_(NULL), action_projector_(NULL), representation_(NULL)
     {
       gamma_ = ConstantLargeVector(1, 0.97);
       reward_scale_ = ConstantLargeVector(1, 1.);

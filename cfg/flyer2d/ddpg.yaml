@@ -77,7 +77,8 @@ experiment:
       gamma: 0.99
       reward_scale: [1]
       observation: s_in
-      action: a_in
+      action_in: a_in
+      action_out: a_out/Tanh
       value: q/BiasAdd
       target: target
       critic_update: update

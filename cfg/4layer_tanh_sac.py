@@ -10,19 +10,23 @@ import numpy as np
 import tensorflow as tf
 import time, sys
 
-
-if len(sys.argv) != 4:
-  print("Usage:")
-  print(" ", sys.argv[0], "<inputs> <outputs> <output.pb>")
-  sys.exit(1)
-
-obs = int(sys.argv[1])
-actions = int(sys.argv[2])
 layer1_size = 400
 layer2_size = 300
 log_std_min = -20
 log_std_max = 2
 h = -10
+
+if len(sys.argv) < 4:
+  print("Usage:")
+  print(" ", sys.argv[0], "<inputs> <outputs> [h] <output.pb>")
+  sys.exit(1)
+  
+obs = int(sys.argv[1])
+actions = int(sys.argv[2])
+if len(sys.argv) > 4:
+  h = int(sys.argv[3])
+
+print("Generating model", obs, "->", actions, "with target entropy", h)
 
 config = tf.ConfigProto()
 config.gpu_options.per_process_gpu_memory_fraction = 0.1
@@ -100,4 +104,4 @@ for v in vars:
 # Create init node
 init = tf.group([tf.global_variables_initializer()], name='init')
 
-tf.train.write_graph(session.graph.as_graph_def(), './', sys.argv[3], as_text=False)
+tf.train.write_graph(session.graph.as_graph_def(), './', sys.argv[-1], as_text=False)

@@ -37,9 +37,11 @@ void DDPGPredictor::request(ConfigurationRequest *config)
   
   config->push_back(CRP("gamma", "Discount rate", gamma_));
   config->push_back(CRP("reward_scale", "Scaling factor for all rewards", reward_scale_));
+  config->push_back(CRP("use_target_actor", "Use target actor to calculate target value", use_target_actor_));
   
   config->push_back(CRP("observation", "TensorFlow placeholder node for graph observation input", observation_));
-  config->push_back(CRP("action", "TensorFlow node for graph action input", action_));
+  config->push_back(CRP("action_in", "TensorFlow node for graph action input", action_in_));
+  config->push_back(CRP("action_out", "TensorFlow node for graph action input", action_out_));
   config->push_back(CRP("value", "TensorFlow operation output to read Q value", target_));
   config->push_back(CRP("target", "TensorFlow placeholder node to set target Q value", target_));
   config->push_back(CRP("critic_update", "TensorFlow operation node to run critic update", critic_update_));
@@ -56,7 +58,8 @@ void DDPGPredictor::configure(Configuration &config)
   Predictor::configure(config);
   
   observation_ = config["observation"].str();
-  action_ = config["action"].str();
+  action_in_ = config["action_in"].str();
+  action_out_ = config["action_out"].str();
   value_ = config["value"].str();
   target_ = config["target"].str();
   critic_update_ = config["critic_update"].str();
@@ -69,6 +72,7 @@ void DDPGPredictor::configure(Configuration &config)
   
   gamma_ = config["gamma"].v();
   reward_scale_ = config["reward_scale"].v();
+  use_target_actor_ = config["use_target_actor"];
   
   if (!gamma_.size())
     throw bad_param("predictor/ddpg:gamma");
@@ -117,10 +121,20 @@ void DDPGPredictor::update(const std::vector<const Transition*> &transitions)
         (*read_input)(qs, jj) = vp->vector[jj];
       qs++;
     }
-  
-  // Get Q(s', a')
+    
   std::vector<TF::TensorPtr> result;
-  representation_->target()->SessionRun({{observation_, read_input}}, {value_}, {}, &result);
+  if (use_target_actor_)
+  {
+    // Get Q_t(s', pi_t(s'))
+    representation_->target()->SessionRun({{observation_, read_input}}, {value_}, {}, &result);
+  }
+  else
+  {
+    // Get Q_t(s', pi(s'))
+    std::vector<TF::TensorPtr> temp;
+    representation_->SessionRun({{observation_, read_input}}, {action_out_}, {}, &temp);
+    representation_->target()->SessionRun({{observation_, read_input}, {action_in_, temp[0]}}, {value_}, {}, &result);
+  }
 
   TF::Tensor &qap = *result[0];
   size_t networks = 1;
@@ -168,7 +182,7 @@ void DDPGPredictor::update(const std::vector<const Transition*> &transitions)
       }
   
     // Get Q(s', {variants})
-    representation_->target()->SessionRun({{observation_, disc_input_obs}, {action_, disc_input_act}}, {value_}, {}, &disc_result);
+    representation_->target()->SessionRun({{observation_, disc_input_obs}, {action_in_, disc_input_act}}, {value_}, {}, &disc_result);
   }
   
   TF::TensorPtr write_obs_input = representation_->tensor(TF::Shape({(int)transitions.size(), vp_obs->vector.size()}));
@@ -213,12 +227,12 @@ void DDPGPredictor::update(const std::vector<const Transition*> &transitions)
   }
   
   // Update critic
-  representation_->SessionRun({{observation_, write_obs_input}, {action_, write_action_input}, {target_, write_target}}, {}, {critic_update_}, &result, true);
+  representation_->SessionRun({{observation_, write_obs_input}, {action_in_, write_action_input}, {target_, write_target}}, {}, {critic_update_}, &result, true);
 
 #if VALS
   // Get Q(s, a)
   std::vector<TF::TensorPtr> before;
-  representation_->SessionRun({{observation_, write_obs_input}}, {value_, action_}, {}, &before, false);
+  representation_->SessionRun({{observation_, write_obs_input}}, {value_, action_out_}, {}, &before, false);
   TF::Tensor &before_q = *before[0];
   TF::Tensor &before_a = *before[1];
 #endif
@@ -229,7 +243,7 @@ void DDPGPredictor::update(const std::vector<const Transition*> &transitions)
 #if VALS
   // Get Q(s, a)
   std::vector<TF::TensorPtr> after;
-  representation_->SessionRun({{observation_, write_obs_input}}, {value_, action_}, {}, &after, false);
+  representation_->SessionRun({{observation_, write_obs_input}}, {value_, action_out_}, {}, &after, false);
   TF::Tensor &after_q = *after[0];
   TF::Tensor &after_a = *after[1];
   

@@ -125,6 +125,7 @@ class RegulatorTask : public Task
     double timeout_;
     std::string q_function_, r_function_;
     double p_;
+    Rand rand_;
 
   public:
     RegulatorTask() : timeout_(10), q_function_("quadratic"), r_function_("quadratic"), p_(0.01) { }
@@ -193,9 +194,17 @@ class RegulatorTask : public Task
     void start(int test, Vector *state)
     {
       *state = ConstantVector(start_.size()+1, 0.);
-
-      for (size_t ii=0; ii < stddev_.size(); ++ii)
-        (*state)[ii] = RandGen::getNormal(start_[ii], test?0.:stddev_[ii]);
+      
+      if (test > 1)
+      {
+        // Fixed pseudorandom starting position
+        rand_.init(test);
+        for (size_t ii=0; ii < start_.size(); ++ii)
+          (*state)[ii] = rand_.getNormal(start_[ii], stddev_[ii]);
+      }
+      else        
+        for (size_t ii=0; ii < stddev_.size(); ++ii)
+          (*state)[ii] = RandGen::getNormal(start_[ii], test?0.:stddev_[ii]);
     }
 
     void evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const

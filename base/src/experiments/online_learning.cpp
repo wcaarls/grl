@@ -45,6 +45,7 @@ void OnlineLearningExperiment::request(ConfigurationRequest *config)
   config->push_back(CRP("steps", "Number of steps per learning run", (int)steps_));
   config->push_back(CRP("rate", "Control step frequency in Hz", (int)rate_, CRP::Online));
   config->push_back(CRP("test_interval", "Number of episodes in between test trials", test_interval_, CRP::Configuration, -1));
+  config->push_back(CRP("test_trials", "Number of test trials per interval", test_trials_, CRP::Configuration, 1));
   config->push_back(CRP("output", "Output base filename", output_));
   
   config->push_back(CRP("environment", "environment", "Environment in which the agent acts", environment_));
@@ -73,6 +74,7 @@ void OnlineLearningExperiment::configure(Configuration &config)
   steps_ = config["steps"];
   rate_ = config["rate"];
   test_interval_ = config["test_interval"];
+  test_trials_ = config["test_trials"];
   output_ = config["output"].str();
   load_file_ = config["load_file"].str();
   save_every_ = config["save_every"].str();
@@ -145,55 +147,62 @@ LargeVector OnlineLearningExperiment::run()
       double reward, total_reward=0, total_time=0;
       int terminal;
       int test = (test_interval_ >= 0 && tt%(test_interval_+1) == test_interval_) * (rr+1);
+      size_t subtrials = test?test_trials_:1;
       timer step_timer;
 
       Agent *agent = agent_;      
       if (test) agent = test_agent_;
       
-      environment_->start(test, &obs);
-      state_->set(obs.v);
-      reward_->set(VectorConstructor(0.));
-
-      CRAWL(obs);
-      
-      agent->start(obs, &action);
-      action_->set(action.v);
-      if (test)
-        test_action_->set(action.v);
-
-      do
+      for (size_t st=0; st < subtrials; ++st)
       {
-        if (rate_)
-        {
-          double sleep_time = 1./rate_-step_timer.elapsed();
-          if (sleep_time > 0)
-            usleep(1000000.*sleep_time);
-          step_timer.restart();
-        }
-
-        double tau = environment_->step(action, &obs, &reward, &terminal);
+        environment_->start(st+(test>0), &obs);
         state_->set(obs.v);
-        reward_->set(VectorConstructor(reward));
+        reward_->set(VectorConstructor(0.));
 
-        CRAWL(action << " - " << reward << " -> " << obs);
+        CRAWL(obs);
         
-        total_reward += reward;
-        total_time += tau;
+        agent->start(obs, &action);
+        action_->set(action.v);
+        if (test)
+          test_action_->set(action.v);
 
-        if (obs.size())
+        do
         {
-          if (terminal == 2)
-            agent->end(tau, obs, reward);
-          else
-            agent->step(tau, obs, reward, &action);
+          if (rate_)
+          {
+            double sleep_time = 1./rate_-step_timer.elapsed();
+            if (sleep_time > 0)
+              usleep(1000000.*sleep_time);
+            step_timer.restart();
+          }
 
-          action_->set(action.v);
-          if (test)
-            test_action_->set(action.v);
+          double tau = environment_->step(action, &obs, &reward, &terminal);
+          state_->set(obs.v);
+          reward_->set(VectorConstructor(reward));
+
+          CRAWL(action << " - " << reward << " -> " << obs);
           
-          if (!test) ss++;
-        }
-      } while (!terminal);
+          total_reward += reward;
+          total_time += tau;
+
+          if (obs.size())
+          {
+            if (terminal == 2)
+              agent->end(tau, obs, reward);
+            else
+              agent->step(tau, obs, reward, &action);
+
+            action_->set(action.v);
+            if (test)
+              test_action_->set(action.v);
+            
+            if (!test) ss++;
+          }
+        } while (!terminal);
+      }
+      
+      total_reward /= subtrials;
+      total_time /= subtrials;
       
       std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
       double duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count()/1000000.;
