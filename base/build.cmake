@@ -80,6 +80,7 @@ add_library(${TARGET} SHARED
             ${SRC}/policies/ucb.cpp
             ${SRC}/policies/state_feedback.cpp
             ${SRC}/policies/noise.cpp
+            ${SRC}/policies/lowpass.cpp
             ${SRC}/policies/multi.cpp
             ${SRC}/policies/multi_discrete.cpp
             ${SRC}/policies/solver.cpp
