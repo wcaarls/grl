@@ -35,6 +35,7 @@ REGISTER_CONFIGURABLE(DynamicalModel)
 void ModeledEnvironment::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("discrete_time", "Always report unit step time", discrete_time_, CRP::Configuration, 0, 1));
+  config->push_back(CRP("window", "Number of observations to concatenate", window_, CRP::Configuration, 1, 10));
 
   config->push_back(CRP("model", "model", "Environment model", model_));
   config->push_back(CRP("task", "task", "Task to perform in the environment (should match model)", task_));
@@ -42,11 +43,16 @@ void ModeledEnvironment::request(ConfigurationRequest *config)
 
   config->push_back(CRP("state", "signal/vector.state", "Current state of the model", CRP::Provided));
   config->push_back(CRP("action", "signal/vector.action", "Last action applied to the model", CRP::Provided));
+  
+  config->push_back(CRP("observation_dims", "int.observation_dims", "Number of observation dimensions, taking window into account", CRP::Provided));
+  config->push_back(CRP("observation_min", "vector.observation_min", "Lower limit on observations, taking window into account", CRP::Provided));
+  config->push_back(CRP("observation_max", "vector.observation_max", "Upper limit on observations, taking window into account", CRP::Provided));
 }
 
 void ModeledEnvironment::configure(Configuration &config)
 {
   discrete_time_ = config["discrete_time"];
+  window_ = config["window"];
   model_ = (Model*)config["model"].ptr();
   task_ = (Task*)config["task"].ptr();
   exporter_ = (Exporter*)config["exporter"].ptr();
@@ -60,6 +66,14 @@ void ModeledEnvironment::configure(Configuration &config)
   
   config.set("state", state_obj_);
   config.set("action", action_obj_);
+  
+  // Get child configuration
+  Vector observation_min = (*this)["task/observation_min"].v().replicate(1, window_);
+  Vector observation_max = (*this)["task/observation_max"].v().replicate(1, window_);
+  
+  config.set("observation_dims", ((double)(*this)["task/observation_dims"]) * window_);
+  config.set("observation_min",  observation_min);
+  config.set("observation_max",  observation_max);
 }
 
 void ModeledEnvironment::reconfigure(const Configuration &config)
@@ -83,7 +97,17 @@ void ModeledEnvironment::start(int test, Observation *obs)
   int terminal;
 
   task_->start(test, &state_);
-  task_->observe(state_, obs, &terminal);
+  if (window_ > 1)
+  {
+    Observation this_obs;
+    task_->observe(state_, &this_obs, &terminal);
+    *obs = this_obs;
+    obs->v = ConstantVector(this_obs.size()*window_, 0.);
+    obs->v.tail(this_obs.size()) = this_obs.v;
+  }
+  else
+    task_->observe(state_, obs, &terminal);
+    
   actuation_ = Vector();
   jerk_ = 0;
 
@@ -117,9 +141,23 @@ double ModeledEnvironment::step(const Action &action, Observation *obs, double *
     done = task_->actuate(state_, state, action, &actuation);
   } while (!done);
   
-  task_->observe(next, obs, terminal);
+  if (window_ > 1)
+  {
+    Observation this_obs;
+    task_->observe(next, &this_obs, terminal);
+    obs_.v.head(this_obs.size()*(window_-1)) = obs_.v.tail(this_obs.size()*(window_-1));
+    obs_.v.tail(this_obs.size()) = this_obs.v;
+    obs_.u = action.v;
+    *obs = obs_;
+  }
+  else
+  {
+    task_->observe(next, obs, terminal);
+    obs->u = action.v;
+    obs_ = *obs;
+  }
+
   task_->evaluate(state_, action, next, reward);
-  obs->u = action.v;
 
   double &time = test_?time_test_:time_learn_;
   
@@ -129,7 +167,6 @@ double ModeledEnvironment::step(const Action &action, Observation *obs, double *
   time += tau;
 
   state_ = next;
-  obs_ = *obs;
   state_obj_->set(state_);
   action_obj_->set(action);
 
