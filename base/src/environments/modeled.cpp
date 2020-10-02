@@ -47,6 +47,11 @@ void ModeledEnvironment::request(ConfigurationRequest *config)
   config->push_back(CRP("observation_dims", "int.observation_dims", "Number of observation dimensions, taking window into account", CRP::Provided));
   config->push_back(CRP("observation_min", "vector.observation_min", "Lower limit on observations, taking window into account", CRP::Provided));
   config->push_back(CRP("observation_max", "vector.observation_max", "Upper limit on observations, taking window into account", CRP::Provided));
+  config->push_back(CRP("action_dims", "int.action_dims", "Number of action dimensions", CRP::Provided));
+  config->push_back(CRP("action_min", "vector.action_min", "Lower limit on actions", CRP::Provided));
+  config->push_back(CRP("action_max", "vector.action_max", "Upper limit on actions", CRP::Provided));
+  config->push_back(CRP("reward_min", "vector.reward_min", "Lower limit on immediate reward", CRP::Provided));
+  config->push_back(CRP("reward_max", "vector.reward_max", "Upper limit on immediate reward", CRP::Provided));
 }
 
 void ModeledEnvironment::configure(Configuration &config)
@@ -74,6 +79,13 @@ void ModeledEnvironment::configure(Configuration &config)
   config.set("observation_dims", ((double)(*this)["task/observation_dims"]) * window_);
   config.set("observation_min",  observation_min);
   config.set("observation_max",  observation_max);
+  
+  // Forward other task parameters
+  config.set("action_dims", (double)(*this)["task/action_dims"]);
+  config.set("action_min", (*this)["task/action_min"].v());
+  config.set("action_max", (*this)["task/action_max"].v());
+  config.set("reward_min", (double)(*this)["task/reward_min"]);
+  config.set("reward_max", (double)(*this)["task/reward_max"]);
 }
 
 void ModeledEnvironment::reconfigure(const Configuration &config)
