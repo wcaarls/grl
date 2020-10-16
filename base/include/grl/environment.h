@@ -302,6 +302,7 @@ class ModeledEnvironment : public Environment
     Task *task_;
     Vector state_, actuation_;
     Observation obs_;
+    Vector action_min_, action_max_;
     VectorSignal *state_obj_, *action_obj_;
     Exporter *exporter_;
     
@@ -310,6 +311,7 @@ class ModeledEnvironment : public Environment
     double jerk_;
     
     int window_;
+    Vector delta_;
 
   public:
     ModeledEnvironment() : discrete_time_(1), model_(NULL), task_(NULL), state_obj_(NULL), action_obj_(NULL), exporter_(NULL), test_(false), time_test_(0.), time_learn_(0.), jerk_(0.), window_(1) { }

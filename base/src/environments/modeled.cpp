@@ -36,6 +36,7 @@ void ModeledEnvironment::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("discrete_time", "Always report unit step time", discrete_time_, CRP::Configuration, 0, 1));
   config->push_back(CRP("window", "Number of observations to concatenate", window_, CRP::Configuration, 1, 10));
+  config->push_back(CRP("delta", "Action delta for differential actions", delta_, CRP::Configuration));
 
   config->push_back(CRP("model", "model", "Environment model", model_));
   config->push_back(CRP("task", "task", "Task to perform in the environment (should match model)", task_));
@@ -58,6 +59,7 @@ void ModeledEnvironment::configure(Configuration &config)
 {
   discrete_time_ = config["discrete_time"];
   window_ = config["window"];
+  delta_ = config["delta"].v(); 
   model_ = (Model*)config["model"].ptr();
   task_ = (Task*)config["task"].ptr();
   exporter_ = (Exporter*)config["exporter"].ptr();
@@ -76,14 +78,36 @@ void ModeledEnvironment::configure(Configuration &config)
   Vector observation_min = (*this)["task/observation_min"].v().replicate(1, window_);
   Vector observation_max = (*this)["task/observation_max"].v().replicate(1, window_);
   
-  config.set("observation_dims", ((double)(*this)["task/observation_dims"]) * window_);
-  config.set("observation_min",  observation_min);
-  config.set("observation_max",  observation_max);
+  action_min_ = (*this)["task/action_min"].v();
+  action_max_ = (*this)["task/action_max"].v();
+  
+  Vector action_min = action_min_;
+  Vector action_max = action_max_;
+  
+  // Extend observation with action when using differential actions
+  if (delta_.size())
+  {
+   // Using differential actions
+    if (delta_.size() != action_min.size())
+      throw bad_param("environment/modeled:delta");
+  
+    // Extend observation vectors with past action
+    observation_min = extend(observation_min, action_min);
+    observation_max = extend(observation_max, action_max);
+    
+    // Modify action vectors to allowed differential range
+    action_min = -delta_;
+    action_max = delta_;
+  }
+  
+  config.set("observation_dims", observation_min.size());
+  config.set("observation_min", observation_min);
+  config.set("observation_max", observation_max);
   
   // Forward other task parameters
-  config.set("action_dims", (double)(*this)["task/action_dims"]);
-  config.set("action_min", (*this)["task/action_min"].v());
-  config.set("action_max", (*this)["task/action_max"].v());
+  config.set("action_dims", action_min.size());
+  config.set("action_min", action_min);
+  config.set("action_max", action_max);
   config.set("reward_min", (double)(*this)["task/reward_min"]);
   config.set("reward_max", (double)(*this)["task/reward_max"]);
 }
@@ -109,16 +133,11 @@ void ModeledEnvironment::start(int test, Observation *obs)
   int terminal;
 
   task_->start(test, &state_);
-  if (window_ > 1)
-  {
-    Observation this_obs;
-    task_->observe(state_, &this_obs, &terminal);
-    *obs = this_obs;
-    obs->v = ConstantVector(this_obs.size()*window_, 0.);
-    obs->v.tail(this_obs.size()) = this_obs.v;
-  }
-  else
-    task_->observe(state_, obs, &terminal);
+  Observation this_obs;
+  task_->observe(state_, &this_obs, &terminal);
+  *obs = this_obs;
+  obs->v = ConstantVector(this_obs.size()*window_ + action_min_.size()*(delta_.size()>0), 0.);
+  obs->v.segment(this_obs.size()*(window_-1), this_obs.size()) = this_obs.v;
     
   actuation_ = Vector();
   jerk_ = 0;
@@ -137,8 +156,13 @@ double ModeledEnvironment::step(const Action &action, Observation *obs, double *
   Vector state = state_, next, actuation;
   double tau = 0;
   bool done;
+  
+  Action _action = action;
+  if (delta_.size())
 
-  task_->actuate(state_, state, action, &actuation);
+    _action.v = (obs_.v.tail(action_min_.size())+action.v).min(action_max_).max(action_min_);
+
+  task_->actuate(state_, state, _action, &actuation);
   if (!actuation_.size())
     actuation_ = actuation;
 
@@ -150,37 +174,30 @@ double ModeledEnvironment::step(const Action &action, Observation *obs, double *
     actuation_ = actuation;
     
     state = next;
-    done = task_->actuate(state_, state, action, &actuation);
+    done = task_->actuate(state_, state, _action, &actuation);
   } while (!done);
   
-  if (window_ > 1)
-  {
-    Observation this_obs;
-    task_->observe(next, &this_obs, terminal);
-    obs_.v.head(this_obs.size()*(window_-1)) = obs_.v.tail(this_obs.size()*(window_-1));
-    obs_.v.tail(this_obs.size()) = this_obs.v;
-    obs_.u = action.v;
-    *obs = obs_;
-  }
-  else
-  {
-    task_->observe(next, obs, terminal);
-    obs->u = action.v;
-    obs_ = *obs;
-  }
+  Observation this_obs;
+  task_->observe(next, &this_obs, terminal);
+  obs_.v.head(this_obs.size()*(window_-1)) = obs_.v.segment(this_obs.size(), this_obs.size()*(window_-1));
+  obs_.v.segment(this_obs.size()*(window_-1), this_obs.size()) = this_obs.v;
+  if (delta_.size())
+    obs_.v.tail(delta_.size()) = _action.v;
+  obs_.u = _action.v;
+  *obs = obs_;
 
-  task_->evaluate(state_, action, next, reward);
+  task_->evaluate(state_, _action, next, reward);
 
   double &time = test_?time_test_:time_learn_;
   
   if (exporter_)
-    exporter_->write({VectorConstructor(time), state_, *obs, action, VectorConstructor(*reward), VectorConstructor((double)*terminal)});
+    exporter_->write({VectorConstructor(time), state_, *obs, _action, VectorConstructor(*reward), VectorConstructor((double)*terminal)});
 
   time += tau;
 
   state_ = next;
   state_obj_->set(state_);
-  action_obj_->set(action);
+  action_obj_->set(_action);
 
   if (discrete_time_)
     return 1;
