@@ -183,7 +183,7 @@ double ModeledEnvironment::step(const Action &action, Observation *obs, double *
   obs_.v.segment(this_obs.size()*(window_-1), this_obs.size()) = this_obs.v;
   if (delta_.size())
     obs_.v.tail(delta_.size()) = _action.v;
-  obs_.u = _action.v;
+  obs_.u = action.v;
   *obs = obs_;
 
   task_->evaluate(state_, _action, next, reward);
@@ -191,7 +191,7 @@ double ModeledEnvironment::step(const Action &action, Observation *obs, double *
   double &time = test_?time_test_:time_learn_;
   
   if (exporter_)
-    exporter_->write({VectorConstructor(time), state_, *obs, _action, VectorConstructor(*reward), VectorConstructor((double)*terminal)});
+    exporter_->write({VectorConstructor(time), state_, *obs, action, VectorConstructor(*reward), VectorConstructor((double)*terminal)});
 
   time += tau;
 
