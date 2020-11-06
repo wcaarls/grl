@@ -296,12 +296,12 @@ class ModeledEnvironment : public Environment
   public:
     TYPEINFO("environment/modeled", "Environment that uses a state transition model internally")
 
-  public:
+  protected:
     int discrete_time_;
     Model *model_;
     Task *task_;
-    Vector state_, actuation_;
-    Observation obs_;
+    Vector state_, actuation_, action_;
+    std::deque<Vector> buf_;
     Vector action_min_, action_max_;
     VectorSignal *state_obj_, *action_obj_;
     Exporter *exporter_;
@@ -310,11 +310,11 @@ class ModeledEnvironment : public Environment
     double time_test_, time_learn_;
     double jerk_;
     
-    int window_;
+    int window_, stride_;
     Vector delta_;
 
   public:
-    ModeledEnvironment() : discrete_time_(1), model_(NULL), task_(NULL), state_obj_(NULL), action_obj_(NULL), exporter_(NULL), test_(false), time_test_(0.), time_learn_(0.), jerk_(0.), window_(1) { }
+    ModeledEnvironment() : discrete_time_(1), model_(NULL), task_(NULL), state_obj_(NULL), action_obj_(NULL), exporter_(NULL), test_(false), time_test_(0.), time_learn_(0.), jerk_(0.), window_(1), stride_(1) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -326,6 +326,9 @@ class ModeledEnvironment : public Environment
     virtual void start(int test, Observation *obs);
     virtual double step(const Action &action, Observation *obs, double *reward, int *terminal);
     virtual void report(std::ostream &os) const;
+    
+  protected:
+    virtual void fillObservation(Observation *obs) const;
 };
 
 /// Equations of motion.
@@ -366,7 +369,7 @@ class NoiseEnvironment : public Environment
   public:
     TYPEINFO("environment/pre/noise", "Injects noise into an environment")
 
-  public:
+  protected:
     Environment *environment_;
     
     Vector sensor_noise_, actuator_noise_;
@@ -394,7 +397,7 @@ class ShapingEnvironment : public Environment
   public:
     TYPEINFO("environment/pre/shaping", "Adds reward shaping to an environment")
 
-  public:
+  protected:
     Environment *environment_;
     Mapping *shaping_function_;
     double gamma_;
@@ -441,7 +444,7 @@ class SandboxEnvironment : public Environment
   public:
     TYPEINFO("environment/sandbox", "Non-Markov environment")
 
-  public:
+  protected:
     int discrete_time_;
     Sandbox *sandbox_;
     Task *task_;

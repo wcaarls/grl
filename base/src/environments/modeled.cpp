@@ -36,6 +36,7 @@ void ModeledEnvironment::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("discrete_time", "Always report unit step time", discrete_time_, CRP::Configuration, 0, 1));
   config->push_back(CRP("window", "Number of observations to concatenate", window_, CRP::Configuration, 1, 10));
+  config->push_back(CRP("stride", "Time steps between concatenated observations", stride_, CRP::Configuration, 1, 100));
   config->push_back(CRP("delta", "Action delta for differential actions", delta_, CRP::Configuration));
 
   config->push_back(CRP("model", "model", "Environment model", model_));
@@ -59,6 +60,7 @@ void ModeledEnvironment::configure(Configuration &config)
 {
   discrete_time_ = config["discrete_time"];
   window_ = config["window"];
+  stride_ = config["stride"];
   delta_ = config["delta"].v(); 
   model_ = (Model*)config["model"].ptr();
   task_ = (Task*)config["task"].ptr();
@@ -122,7 +124,6 @@ ModeledEnvironment &ModeledEnvironment::copy(const Configurable &obj)
 {
   const ModeledEnvironment& me = dynamic_cast<const ModeledEnvironment&>(obj);
   
-  obs_ = me.obs_;
   test_ = me.test_;
   
   return *this;
@@ -135,14 +136,19 @@ void ModeledEnvironment::start(int test, Observation *obs)
   task_->start(test, &state_);
   Observation this_obs;
   task_->observe(state_, &this_obs, &terminal);
+  action_ = ConstantVector(action_min_.size(), 0.);
+  
+  buf_.clear();
+  for (size_t ii=0; ii != window_*stride_; ++ii)
+    buf_.push_back(this_obs.v);
+
   *obs = this_obs;
-  obs->v = ConstantVector(this_obs.size()*window_ + action_min_.size()*(delta_.size()>0), 0.);
-  obs->v.segment(this_obs.size()*(window_-1), this_obs.size()) = this_obs.v;
+  obs->u = action_;
+  fillObservation(obs);
     
   actuation_ = Vector();
   jerk_ = 0;
 
-  obs_ = *obs;
   state_obj_->set(state_);
   
   test_ = test;
@@ -157,12 +163,12 @@ double ModeledEnvironment::step(const Action &action, Observation *obs, double *
   double tau = 0;
   bool done;
   
-  Action _action = action;
   if (delta_.size())
+    action_ = (action_+action.v).min(action_max_).max(action_min_);
+  else
+    action_ = action;
 
-    _action.v = (obs_.v.tail(action_min_.size())+action.v).min(action_max_).max(action_min_);
-
-  task_->actuate(state_, state, _action, &actuation);
+  task_->actuate(state_, state, action_, &actuation);
   if (!actuation_.size())
     actuation_ = actuation;
 
@@ -174,19 +180,20 @@ double ModeledEnvironment::step(const Action &action, Observation *obs, double *
     actuation_ = actuation;
     
     state = next;
-    done = task_->actuate(state_, state, _action, &actuation);
+    done = task_->actuate(state_, state, action_, &actuation);
   } while (!done);
   
   Observation this_obs;
   task_->observe(next, &this_obs, terminal);
-  obs_.v.head(this_obs.size()*(window_-1)) = obs_.v.segment(this_obs.size(), this_obs.size()*(window_-1));
-  obs_.v.segment(this_obs.size()*(window_-1), this_obs.size()) = this_obs.v;
-  if (delta_.size())
-    obs_.v.tail(delta_.size()) = _action.v;
-  obs_.u = action.v;
-  *obs = obs_;
+  
+  buf_.pop_back();
+  buf_.push_front(this_obs.v);
+  
+  *obs = this_obs;
+  obs->u = action.v;
+  fillObservation(obs);
 
-  task_->evaluate(state_, _action, next, reward);
+  task_->evaluate(state_, action_, next, reward);
 
   double &time = test_?time_test_:time_learn_;
   
@@ -197,7 +204,7 @@ double ModeledEnvironment::step(const Action &action, Observation *obs, double *
 
   state_ = next;
   state_obj_->set(state_);
-  action_obj_->set(_action);
+  action_obj_->set(action_);
 
   if (discrete_time_)
     return 1;
@@ -210,6 +217,18 @@ void ModeledEnvironment::report(std::ostream &os) const
   os << std::setw(15) << time_learn_ << std::setw(15) << jerk_;
   model_->report(os, state_);
   task_->report(os, state_);
+}
+
+void ModeledEnvironment::fillObservation(Observation *obs) const
+{
+  size_t sz = buf_.front().size();
+  obs->v.resize(sz*window_+(delta_.size()>0)*action_min_.size());
+  
+  for (size_t ii=0; ii != window_; ++ii)
+    obs->v.segment(ii*sz, sz) = buf_[ii*stride_];
+  
+  if (delta_.size() > 0)
+    obs->v.tail(action_min_.size()) = action_; 
 }
 
 void DynamicalModel::request(ConfigurationRequest *config)
