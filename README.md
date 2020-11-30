@@ -73,7 +73,7 @@ Install Python 3.7 from ppa or from source, e.g.
 ```
 sudo add-apt-repository ppa:deadsnakes/ppa
 sudo apt-get update
-sudo apt-get install python3.7
+sudo apt-get install python3.7 python3.7-dev
 ```
 
 Install Tensorflow for Python 1.14.0
