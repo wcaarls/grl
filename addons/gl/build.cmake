@@ -26,6 +26,7 @@ if (GRL_BUILD_GL)
               ${SRC}/pgl.cpp
               ${SRC}/quadcopter.cpp
               ${SRC}/pendulum.cpp
+              ${SRC}/cart_pole.cpp
              )
 
   # Add dependencies
