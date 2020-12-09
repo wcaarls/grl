@@ -1,5 +1,5 @@
 # grl
-[![Build Status](https://travis-ci.com/wcaarls/grl.svg?branch=master)](https://travis-ci.com/wcaarls/grl)
+[![Build # Status](https://github.com/wcaarls/grl/workflows/CMake/badge.svg)](https://github.com/wcaarls/grl/actions?query=workflow%3ACMake)
 
 Generic Reinforcement Learning Library
 
