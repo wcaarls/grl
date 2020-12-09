@@ -40,7 +40,7 @@ class PGLCartPoleVisualization : public PGLVisualization
     TYPEINFO("visualization/pgl/cart_pole", "PGL-based cart-pole visualization")
 
   protected:
-    pgl::Primitive *cart_, *pole_;
+    pgl::Object *cart_, *pole_;
   
   public:
     PGLCartPoleVisualization() : cart_(NULL), pole_(NULL) { }

@@ -34,17 +34,18 @@ REGISTER_CONFIGURABLE(PGLCartPoleVisualization)
 void PGLCartPoleVisualization::createScene()
 {
   cart_ = scene_->attach(new pgl::Box({0.2, 0.1, 0.1}));
-  pole_ = cart_->attach(new pgl::Cylinder(0.5, 0.01));
-  pole_->color = {0, 0, 1};
+  pole_ = cart_->attach(new pgl::Object());
+  pole_->attach(new pgl::Cylinder({0, 0, 0}, {0, 0, 0.5}, 0.01))->color = {0, 0, 1};
   
-  scene_->attach(new pgl::Box({2.4, 0.1, 0.01}, {0, 0, -0.055}))->color = {1, 0, 0};
-  scene_->attach(new pgl::Box({0.01, 0.2, 0.011}, {0, 0, -0.055}))->color = {0, 1, 0};
+  scene_->attach(new pgl::Box({4.8, 0.1, 0.01}, {0, 0, -0.055}))->color = {0.5, 0, 0};
+  scene_->attach(new pgl::Box({2.4, 0.1, 0.011}, {0, 0, -0.055}))->color = {1, 0, 0};
+  scene_->attach(new pgl::Box({0.01, 0.2, 0.012}, {0, 0, -0.055}))->color = {0, 1, 0};
   
-  controller_->view(0.5, 0.5, 3);
+  controller_->view(0, 0.5, 3);
 }
 
 void PGLCartPoleVisualization::updateScene(const Vector &state)
 {    
   cart_->transform = pgl::Translation({state[0], 0, 0});
-  pole_->transform = pgl::Transform({0, -1, 0}, state[0], {0, -0.06, 0.25});
+  pole_->transform = pgl::Transform({0, 1, 0}, state[1], {0, -0.06, 0});
 }
