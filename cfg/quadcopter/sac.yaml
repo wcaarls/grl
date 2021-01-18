@@ -2,10 +2,11 @@ experiment:
   type: experiment/online_learning
   runs: 10
   run_offset: 0
-  trials: 10000
-  steps: 0
+  trials: 0
+  steps: 3000000
   rate: 0
   test_interval: 10
+  test_trials: 10
   output: quadcopter_sac
   environment: 
     type: environment/modeled
@@ -18,58 +19,54 @@ experiment:
     task: 
       type: task/quadcopter/regulator
       timeout: 60
+      limit_penalty: 10
+      q: [ 1.0, 1.0, 1.0, 0, 0, 0, 0.1, 0.1, 0.5, 0, 0, 0 ]
+      r: [ 0, 0, 0, 0 ]
     exporter:
       type: exporter/csv
       file: quadcopter_sac_signals
+      enabled: 0
   agent: 
     type: agent/replay
-    memory_size: 100000
-    replay_steps: 64
-    batch_size: 16
-    observation_steps: 1000
+    memory_size: 1000000
+    replay_steps: 1024
+    batch_size: 256
+    observation_steps: 10000
     threads: 0
     policy: 
-      type: mapping/policy/post/noise
-      sigma: [0.05]
-      theta: [0.15]
-      decay_rate: 0.999
-      decay_min: 0.1
-      output_min: experiment/environment/task/action_min
-      output_max: experiment/environment/task/action_max
+      type: mapping/policy/filtering
+      observation_idx: 0--12
+      action_idx: 1--5
       policy: 
-        type: mapping/policy/filtering
-        observation_idx: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-        action_idx: [1, 2, 3, 4]
-        policy: 
-          type: mapping/policy/action
-          sigma: []
-          theta: []
-          decay_rate: 1
-          decay_min: 0
-          renormalize: 1
-          output_min: 0++experiment/environment/task/action_min
-          output_max: 0++experiment/environment/task/action_max
+        type: mapping/policy/action
+        sigma: []
+        theta: []
+        decay_rate: 1
+        decay_min: 0
+        renormalize: 1
+        output_min: 0++experiment/environment/task/action_min
+        output_max: 0++experiment/environment/task/action_max
+        projector: 
+          type: projector/pre/normalizing
+          signed: 1
+          input_min: experiment/environment/task/observation_min
+          input_max: experiment/environment/task/observation_max
           projector: 
-            type: projector/pre/normalizing
-            signed: 1
-            input_min: experiment/environment/task/observation_min
-            input_max: experiment/environment/task/observation_max
+            type: projector/pre/geometric
+            angles: [0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0]
+            normalized: 1
             projector: 
-              type: projector/pre/geometric
-              angles: [0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0]
-              normalized: 1
-              projector: 
-                type: projector/identity
-          representation: 
-            type: representation/parameterized/tensorflow
-            interval: 100
-            tau: 0.01
-            file: $@/../4layer_tanh_sac.py ../../projector/projector/memory experiment/environment/task/action_dims
-            memory: 0.1
-            input_layer: s_in, a_in
-            output_layer: v, a_out
-            init_node: init
-            update_node: update
+              type: projector/identity
+        representation: 
+          type: representation/parameterized/tensorflow
+          interval: 10
+          tau: 0.01
+          file: $@/../4layer_tanh_sac.py ../../projector/projector/memory experiment/environment/task/action_dims
+          memory: 0.1
+          input_layer: s_in, a_in
+          output_layer: v, a_out
+          init_node: init
+          update_node: update
     predictor: 
       type: predictor/ddpg
       gamma: 0.99
@@ -82,7 +79,7 @@ experiment:
       target: target
       critic_update: update
       actor_update: a_update
-      obs_projector: experiment/agent/policy/policy/policy/projector
+      obs_projector: experiment/agent/policy/policy/projector
       action_projector: 
         type: projector/pre/normalizing
         signed: 1
@@ -90,13 +87,13 @@ experiment:
         input_max: experiment/environment/task/action_max
         projector: 
           type: projector/identity
-      representation: experiment/agent/policy/policy/policy/representation
+      representation: experiment/agent/policy/policy/representation
   test_agent: 
     type: agent/fixed
     policy: 
       type: mapping/policy/filtering
-      observation_idx: experiment/agent/policy/policy/observation_idx
-      action_idx: experiment/agent/policy/policy/action_idx
+      observation_idx: experiment/agent/policy/observation_idx
+      action_idx: experiment/agent/policy/action_idx
       policy: 
         type: mapping/policy/action
         sigma: []
@@ -104,10 +101,10 @@ experiment:
         decay_rate: 1
         decay_min: 0
         renormalize: 1
-        output_min: experiment/agent/policy/policy/policy/output_min
-        output_max: experiment/agent/policy/policy/policy/output_max
-        projector: experiment/agent/policy/policy/policy/projector
-        representation: experiment/agent/policy/policy/policy/representation
+        output_min: experiment/agent/policy/policy/output_min
+        output_max: experiment/agent/policy/policy/output_max
+        projector: experiment/agent/policy/policy/projector
+        representation: experiment/agent/policy/policy/representation
   save_every: never
 visualizer: 
   type: visualizer/glut

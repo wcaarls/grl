@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/local/bin/python3.7
 #
 # NOTE: Actions are defined on [-1, 1], so they need to be
 # normalized on input (with a signed projector/pre/normalized) and
@@ -12,9 +12,9 @@ import time, sys
 
 layer1_size = 400
 layer2_size = 300
-log_std_min = -20
-log_std_max = 2
-h = -10
+log_std_min = -7
+log_std_max = 0
+h = -1
 
 if len(sys.argv) < 4:
   print("Usage:")
