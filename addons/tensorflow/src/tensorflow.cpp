@@ -257,10 +257,20 @@ void TensorFlowRepresentation::configure(Configuration &config)
     if (learning_phase_.empty() && n.name().find("learning_phase") != std::string::npos)
       learning_phase_ = n.name();
 
+    // TF 1.14.0
     if (n.op() == "Assign" && n.input_size() == 2 && n.input(1).find("Placeholder") != std::string::npos)
     {
       weights_node_.push_back(n.name());
       weights_read_.push_back(n.input(0) + "/read");
+      weights_write_.push_back(n.input(1));
+    }
+
+    // TF 2.4.1
+    if (n.op() == "AssignVariableOp" && n.input_size() == 2 && n.input(1).find("Placeholder") != std::string::npos)
+    {
+      weights_node_.push_back(n.name());
+      std::string readname = n.name();
+      weights_read_.push_back("Read" + readname.substr(16) + "/ReadVariableOp");
       weights_write_.push_back(n.input(1));
     }
   }
