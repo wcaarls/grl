@@ -45,6 +45,39 @@ sudo apt-get install python3-yaml python3-tk
 ```
 
 ### For the tensorflow addon, additionall install
+
+#### Tensorflow 2
+
+```
+# Tensorflow C API 2.4.0
+wget https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-gpu-linux-x86_64-2.4.0.tar.gz
+sudo tar zxvf libtensorflow-gpu-linux-x86_64-2.4.0.tar.gz -C /usr/local
+
+# CUDA Toolkit 11.0
+sudo apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/7fa2af80.pub
+sudo bash -c 'echo "deb http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64 /" > /etc/apt/sources.list.d/cuda.list'
+sudo bash -c 'echo "deb http://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1804/x86_64 /" > /etc/apt/sources.list.d/cuda_learn.list'
+sudo apt update
+sudo apt install cuda-11-0
+sudo apt install libcudnn8
+```
+
+Then edit `~/.bashrc` to include the following, and open a new terminal
+```
+export PATH=$PATH:/usr/local/cuda-11.0/bin
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-11.0/lib64
+```
+
+Install Tensorflow 2 for Python
+
+```
+sudo -H python3 -m pip install tensorflow
+```
+
+#### Tensorflow 1
+
+Tensorflow 1 is deprecated. Consider swithing to Tensorflow 2 (see above).
+
 ```
 # Tensorflow C API 1.14.0
 wget https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-gpu-linux-x86_64-1.14.0.tar.gz
@@ -89,6 +122,7 @@ If there are errors relating to Python loading
 `libtensorflow_framework.so.1`, it is because it comes with its own version,
 and it finds the version from the C API. Consider adding the path of the
 Python version to `LD_LIBRARY_PATH`, before the C version.
+
 
 ## Ubuntu 16.04
 ```

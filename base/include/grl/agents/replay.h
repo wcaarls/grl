@@ -59,7 +59,7 @@ class ReplayAgent : public Agent
     TYPEINFO("agent/replay", "Agent that learns from batches of stored transitions")
 
   protected:
-    Policy *policy_;
+    Policy *observation_policy_, *policy_;
     Predictor *predictor_;
     int memory_size_, replay_steps_, batch_size_, observation_steps_;
     int threads_;
@@ -75,7 +75,7 @@ class ReplayAgent : public Agent
     itc::SharedVariable<bool> replay_signal_, done_signal_;
     
   public:
-    ReplayAgent() : policy_(NULL), predictor_(NULL), memory_size_(100000), replay_steps_(1), batch_size_(1), observation_steps_(1), threads_(0), time_(0.), total_control_steps_(0), total_replay_steps_(0), total_transitions_(0) { }
+    ReplayAgent() : observation_policy_(NULL), policy_(NULL), predictor_(NULL), memory_size_(100000), replay_steps_(1), batch_size_(1), observation_steps_(1), threads_(0), time_(0.), total_control_steps_(0), total_replay_steps_(0), total_transitions_(0) { }
     ~ReplayAgent()
     {
       stopThreads();

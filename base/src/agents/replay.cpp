@@ -48,12 +48,14 @@ void ReplayAgent::request(ConfigurationRequest *config)
   config->push_back(CRP("observation_steps", "Number of steps to wait before starting replay", observation_steps_, CRP::Configuration, 1));
   config->push_back(CRP("threads", "Threads used for replay (0 = synchronous replay. >0 requires reentrant predictor)", threads_, CRP::Configuration, 0, INT_MAX));
   
+  config->push_back(CRP("observation_policy", "mapping/policy", "Control policy for observation steps", observation_policy_, true));
   config->push_back(CRP("policy", "mapping/policy", "Control policy", policy_));
   config->push_back(CRP("predictor", "predictor", "Value function predictor", predictor_));
 }
 
 void ReplayAgent::configure(Configuration &config)
 {
+  observation_policy_ = (Policy*)config["observation_policy"].ptr();
   policy_ = (Policy*)config["policy"].ptr();
   predictor_ = (Predictor*)config["predictor"].ptr();
 
@@ -81,7 +83,10 @@ void ReplayAgent::reconfigure(const Configuration &config)
 void ReplayAgent::start(const Observation &obs, Action *action)
 {
   time_= 0.;
-  policy_->act(time_, obs, action);
+  if (total_control_steps_ < observation_steps_ && observation_policy_)
+    observation_policy_->act(time_, obs, action);
+  else
+    policy_->act(time_, obs, action);
   
   prev_obs_ = obs;
   prev_action_ = *action;
@@ -93,7 +98,10 @@ void ReplayAgent::start(const Observation &obs, Action *action)
 void ReplayAgent::step(double tau, const Observation &obs, double reward, Action *action)
 {
   time_ += tau;
-  policy_->act(time_, obs, action);
+  if (total_control_steps_ < observation_steps_ && observation_policy_)
+    observation_policy_->act(time_, obs, action);
+  else
+    policy_->act(time_, obs, action);
   
   // Add new transition to replay memory
   if (transitions_.size() < memory_size_)

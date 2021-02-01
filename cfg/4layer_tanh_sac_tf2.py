@@ -6,9 +6,13 @@
 
 from __future__ import print_function
 
-import numpy as np
-import tensorflow as tf
 import time, sys
+import numpy as np
+import tensorflow as tf2
+import tensorflow.compat.v1 as tf
+
+tf2.config.set_visible_devices([], 'GPU')
+tf.disable_eager_execution()
 
 layer1_size = 400
 layer2_size = 300
@@ -27,10 +31,6 @@ if len(sys.argv) > 4:
   h = int(sys.argv[3])
 
 print("Generating model", obs, "->", actions, "with target entropy", h)
-
-config = tf.ConfigProto()
-config.gpu_options.per_process_gpu_memory_fraction = 0.1
-session = tf.Session(config=config)
 
 # Temperature
 log_alpha = tf.get_variable(name='log_alpha', dtype=tf.float32, initializer=0.)
@@ -96,12 +96,13 @@ alpha_optimize = tf.train.AdamOptimizer(3e-4).minimize(alpha_loss)
 
 a_update = tf.group([pi_optimize, alpha_optimize], name='a_update')
 
-# Create weight assign placeholders
+# Create global variable initializer
+tf.global_variables_initializer()
+
+# Create weight read and assign placeholders
 vars = tf.trainable_variables()
 for v in vars:
+  v.read_value()
   tf.assign(v, tf.placeholder(tf.float32, shape=v.shape))
 
-# Create init node
-init = tf.group([tf.global_variables_initializer()], name='init')
-
-tf.train.write_graph(session.graph.as_graph_def(), './', sys.argv[-1], as_text=False)
+tf.train.write_graph(tf.get_default_graph().as_graph_def(), './', sys.argv[3], as_text=False)
