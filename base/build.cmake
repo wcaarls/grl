@@ -57,6 +57,7 @@ add_library(${TARGET} SHARED
             ${SRC}/experiments/batch_learning.cpp
             ${SRC}/experiments/rpc_env.cpp
             ${SRC}/experiments/multi.cpp
+            ${SRC}/experiments/replay.cpp
             ${SRC}/exporters/csv.cpp
             ${SRC}/importers/csv.cpp
             ${SRC}/mappings/multisine.cpp
