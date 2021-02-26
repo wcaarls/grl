@@ -66,33 +66,31 @@ void PIDPolicy::configure(Configuration &config)
     throw bad_param("policy/pid:{action_min,action_max,outputs}");
 
   p_ = config["p"].v();
-  if (!p_.size())
-    p_ = ConstantLargeVector(setpoint_.size()*outputs_, 0.);
-  if (p_.size() != setpoint_.size()*outputs_)
+  if (p_.size() && p_.size() != setpoint_.size()*outputs_)
   {
     ERROR("Proportional gain size " << p_.size() << ", expected " << setpoint_.size()*outputs_);
     throw bad_param("policy/pid:p");
   }
 
   i_ = config["i"].v();
-  if (!i_.size())
-    i_ = ConstantLargeVector(setpoint_.size()*outputs_, 0.);
-  if (i_.size() != setpoint_.size()*outputs_)
+  if (i_.size() && i_.size() != setpoint_.size()*outputs_)
     throw bad_param("policy/pid:i");
 
   d_ = config["d"].v();
-  if (!d_.size())
-    d_ = ConstantLargeVector(setpoint_.size()*outputs_, 0.);
-  if (d_.size() != setpoint_.size()*outputs_)
+  if (d_.size() && d_.size() != setpoint_.size()*outputs_)
     throw bad_param("policy/pid:d");
 
   il_ = config["il"].v();
-  if (!il_.size())
-    il_ = ConstantLargeVector(setpoint_.size()*outputs_, std::numeric_limits<double>::infinity());
-  if (il_.size() != setpoint_.size()*outputs_)
+  if (il_.size() && il_.size() != setpoint_.size()*outputs_)
     throw bad_param("policy/pid:il");
 
   params_ = extend(extend(extend(p_, i_), d_), il_);
+  
+  if (!params_.size())
+  {
+    ERROR("Must specify at least one gain type");
+    throw bad_param("policy/pid:{p,i,d,il}");
+  }
 
   reset();
 }
@@ -118,9 +116,13 @@ void PIDPolicy::act(const Observation &in, Action *out) const
     {
       double err = setpoint_[ii] - in[ii];
       
+      if (p_.size())
+        u += p_[P(ii, oo)]*err;
+
       // Autonomous policy assumes no accumulated errors or differences, but
       // integration happens before applying the gains.
-      u += (params_[P(ii, oo)]+params_[I(ii, oo)])*err;
+      if (i_.size())
+        u += i_[P(ii, oo)]*err;
     }
 
     (*out)[oo] = fmin(action_max_[oo], fmax(u, action_min_[oo]));
@@ -146,18 +148,61 @@ void PIDPolicy::act(double time, const Observation &in, Action *out)
     for (size_t ii=0; ii < setpoint_.size(); ++ii)
     {
       double err = setpoint_[ii] - in[ii];
-      double acc = fmin(ival_[ii*outputs_+oo] + err, params_[IL(ii, oo)]);
-      double diff = in[ii] - prev_in_[ii];
       
-      u += params_[P(ii, oo)]*err + params_[I(ii, oo)]*acc + params_[D(ii, oo)]*diff;
+      if (p_.size())
+        u += p_[P(ii, oo)]*err;
+        
+      if (i_.size())
+      {
+        double acc = ival_[ii*outputs_+oo] + err;
+        if (il_.size())
+          acc = fmin(acc, il_[P(ii, oo)]);
+        u += i_[P(ii, oo)]*acc;
+        ival_[ii*outputs_+oo] = acc;
+      }
       
-      ival_[ii*outputs_+oo] = acc;
+      if (d_.size())
+      {
+        double diff = in[ii] - prev_in_[ii];
+        u += d_[P(ii, oo)]*diff;
+      }
     }
     
     (*out)[oo] = fmin(action_max_[oo], fmax(u, action_min_[oo]));
   }
   
   prev_in_ = in;
+}
+
+const LargeVector &PIDPolicy::params() const
+{
+  size_t ii = 0, bs = setpoint_.size()*outputs_;
+  
+  if (p_.size())
+    params_.segment(ii++*bs, bs) = p_;
+  if (i_.size())
+    params_.segment(ii++*bs, bs) = i_;
+  if (d_.size())
+    params_.segment(ii++*bs, bs) = d_;
+  if (il_.size())
+    params_.segment(ii++*bs, bs) = il_;
+
+  return params_;
+}
+
+void PIDPolicy::setParams(const LargeVector &params)
+{
+  size_t ii = 0, bs = setpoint_.size()*outputs_;
+  
+  params_ = params;
+  if (p_.size())
+    p_ = params_.segment(ii++*bs, bs);
+  if (i_.size())
+    i_ = params_.segment(ii++*bs, bs);
+  if (d_.size())
+    d_ = params_.segment(ii++*bs, bs);
+  if (il_.size())
+    il_ = params_.segment(ii++*bs, bs);
 }
 
 ////////////////////////////////////////////////

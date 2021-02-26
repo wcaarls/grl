@@ -7,15 +7,25 @@ experiment:
   test_interval: 10
   environment: 
     type: environment/modeled
+    discrete_time: 0
     model: 
       type: model/dynamical
-      control_step: 0.05
-      integration_steps: 5
-      dynamics: 
-        type: dynamics/cart_pole
-    task: 
-      type: task/cart_pole/balancing
-      timeout: 9.99
+      control_step: 3
+      integration_steps: 1
+      dynamics:
+        type: dynamics/tennessee
+    task:
+      type: task/tennessee/regulation
+      timeout: 3600
+      randomization: 0.2
+      control_step: experiment/environment/model/control_step
+      action_step: ../control_step
+      observation_idx: [8, 20]
+      action_idx: [9]
+      terminal_penalty: 10000
+    exporter:
+      type: exporter/csv
+      file: baseline_signals
   agent: 
     type: agent/black_box
     episodes: 10
@@ -25,10 +35,10 @@ experiment:
       sigma: [ 1 ]
       policy: 
         type: mapping/policy/parameterized/pid
-        setpoint: [0, 0, 0, 0]
+        setpoint: [120.4, 94.6]
         outputs: experiment/environment/task/action_dims
-        p: [0, 0, 0, 0]
-        i: []
+        p: [0, 0]
+        i: [0, 0]
         d: []
         il: []
         action_min: experiment/environment/task/action_min

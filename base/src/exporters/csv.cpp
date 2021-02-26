@@ -41,6 +41,7 @@ void CSVExporter::request(ConfigurationRequest *config)
   config->push_back(CRP("style", "Header style", style_, CRP::Configuration, {"none", "line", "meshup"}));
   config->push_back(CRP("variant", "Variant to export", variant_, CRP::Configuration, {"test", "learn", "all"}));
   config->push_back(CRP("enabled", "Enable writing to output file", enabled_, CRP::Online, 0, 1));
+  config->push_back(CRP("offset", "Start of numbering", offset_));
 }
 
 void CSVExporter::configure(Configuration &config)
@@ -50,6 +51,7 @@ void CSVExporter::configure(Configuration &config)
   style_   = config["style"].str();
   variant_ = config["variant"].str();
   enabled_ = config["enabled"];
+  offset_  = config["offset"];
   
   if (file_.empty())
     throw bad_param("exporter/csv:file");
@@ -129,6 +131,9 @@ void CSVExporter::open(const std::string &variant, bool append)
   std::string file = file_;
   if (!variant.empty())
     file = file_ + "-" + variant;
+    
+  if (run_counter_[file] == 0)
+    run_counter_[file] = offset_;
 
   // Append run
   if (!append)
