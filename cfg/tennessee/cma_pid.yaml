@@ -22,6 +22,7 @@ experiment:
       action_step: ../control_step
       observation_idx: [8, 20]
       action_idx: [9]
+      control: action
       terminal_penalty: 10000
     exporter:
       type: exporter/csv
