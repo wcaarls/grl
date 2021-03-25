@@ -58,10 +58,10 @@ class TennesseeEastmanTask : public Task
     double tau_, action_tau_;
     std::string control_;
     Vector observation_idx_, action_idx_;
-    double terminal_penalty_;
+    double terminal_penalty_, time_reward_;
   
   public:
-    TennesseeEastmanTask() : T_(7200), randomization_(0.), tau_(1.), action_tau_(0.), control_("setpoint"), terminal_penalty_(1000) { }
+    TennesseeEastmanTask() : T_(7200), randomization_(0.), tau_(1.), action_tau_(0.), control_("setpoint"), terminal_penalty_(1000), time_reward_(0) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);

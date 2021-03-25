@@ -106,6 +106,7 @@ void TennesseeEastmanTask::request(ConfigurationRequest *config)
   config->push_back(CRP("observation_idx", "Which variables (XMEAS) the RL policy observes", observation_idx_, CRP::Configuration));
   config->push_back(CRP("action_idx", "Which variables (SETPT or XMV) the RL policy controls", action_idx_, CRP::Configuration));
   config->push_back(CRP("terminal_penalty", "Penalty applied when simulation terminates prematurely", terminal_penalty_, CRP::Configuration, 0., DBL_MAX));
+  config->push_back(CRP("time_reward", "Base reward given per timestep", time_reward_, CRP::Configuration, 0., DBL_MAX));
 }
 
 void TennesseeEastmanTask::configure(Configuration &config)
@@ -118,6 +119,7 @@ void TennesseeEastmanTask::configure(Configuration &config)
   observation_idx_ = config["observation_idx"].v();
   action_idx_ = config["action_idx"].v();
   terminal_penalty_ = config["terminal_penalty"];
+  time_reward_ = config["time_reward"];
   
   if (!action_tau_)
     action_tau_ = tau_;
@@ -205,8 +207,16 @@ void TennesseeEastmanTask::start(int test, Vector *state)
   ctrlall_.DELTAT = tau_ / 3600.;
   teinct_();
 
-  // TODO: Do some randomization on initial state
-    
+  double state_min[] = {
+    8.324 ,3.491 ,6.056 ,0.338 ,19.324 ,2.354 ,123.502 ,127.349 ,2.247 ,51.005 ,21.392 ,37.108 ,0.197 ,12.164 ,1.482 ,41.957 ,32.963 ,0.456 ,0.344 ,0.006 ,0.724 ,0.013 ,0.601 ,0.071 ,38.622 ,31.508 ,0.300 ,86.205 ,23.818 ,70.660 ,18.431 ,50.287 ,4.437 ,9.538 ,4.444 ,0.737 ,75.679 ,61.838 ,50.442 ,43.184 ,19.715 ,49.042 ,17.768 ,32.051 ,30.480 ,37.227 ,37.957 ,32.885 ,14.491 ,40.000
+  };
+
+  double state_max[] = {
+    12.486 ,5.237 ,9.084 ,0.508 ,28.986 ,3.531 ,185.252 ,191.024 ,3.370 ,76.507 ,32.088 ,55.662 ,0.296 ,18.246 ,2.223 ,62.936 ,49.445 ,0.684 ,0.517 ,0.010 ,1.087 ,0.019 ,0.901 ,0.106 ,57.933 ,47.262 ,0.451 ,129.308 ,35.727 ,105.990 ,27.647 ,75.430 ,6.656 ,14.307 ,6.667 ,1.106 ,113.519 ,92.756 ,75.663 ,64.776 ,29.572 ,73.562 ,26.652 ,48.076 ,45.720 ,55.841 ,56.935 ,49.327 ,21.736 ,60.000
+  };
+
+  for (int ii=0; ii < 50; ii++)
+    (*state)[ii] = std::min(std::max((*state)[ii] + RandGen::get()*(test == 0)*randomization_*(state_max[ii]-state_min[ii]), state_min[ii]), state_max[ii]);
   (*state)[50] = 0;
 }
 
@@ -317,5 +327,17 @@ void TennesseeEastmanTask::evaluate(const Vector &state, const Action &action, c
 
 double TennesseeEastmanRegulationTask::calculateReward(const double *XMEAS, const Action &action) const
 {
-  return -abs(XMEAS[14] - 50);
+  Eigen::VectorXd gan1 = VectorConstructor(0.0318, 0.0536);
+  Eigen::VectorXd gan2 = VectorConstructor(2.209, 6.177, 22.06, 14.56, 17.89, 30.44, 22.94);
+  Eigen::VectorXd gan3 = VectorConstructor(0.2206, 0.1456, 0.1789);
+  
+  Eigen::Map<const Eigen::VectorXd > XMEASv(XMEAS, 41);
+  
+  double c1 = XMEASv.segment(18,2).dot(gan1);
+  double c2 = XMEASv.segment(28,7).dot(gan2);
+  double c3 = XMEASv.segment(36,3).dot(gan3);
+  
+  double cost = (c1 + c2*XMEAS[9]*0.44791 + c3*action[7]*4.451)/3600;
+  
+  return time_reward_ - cost;
 }

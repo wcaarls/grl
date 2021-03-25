@@ -1,0 +1,55 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 0
+  steps: 0
+  rate: 0
+  test_interval: 10
+  environment: 
+    type: environment/modeled
+    discrete_time: 0
+    model: 
+      type: model/dynamical
+      control_step: 3
+      integration_steps: 1
+      dynamics:
+        type: dynamics/tennessee
+    task:
+      type: task/tennessee/regulation
+      timeout: 14400
+      randomization: 0.2
+      control_step: experiment/environment/model/control_step
+      action_step: ../control_step
+      control: action
+      terminal_penalty: 0
+      time_reward: 1
+    exporter:
+      type: exporter/csv
+      file: baseline_signals
+  agent: 
+    type: agent/black_box
+    episodes: 20
+    optimizer: 
+      type: optimizer/cma
+      population: 0
+      sigma: [ 1 ]
+      policy: 
+        type: mapping/policy/parameterized/action
+        output_min: experiment/environment/task/action_min
+        output_max: experiment/environment/task/action_max
+        projector:
+          type: projector/pre/normalizing
+          signed: 1
+          input_min: experiment/environment/task/observation_min
+          input_max: experiment/environment/task/observation_max
+          projector:
+            type: projector/identity 
+        representation:
+          type: representation/parameterized/ann
+          inputs: experiment/environment/task/observation_dims
+          outputs: experiment/environment/task/action_dims
+          hiddens: [50, 50]
+  test_agent: 
+    type: agent/fixed
+    policy: experiment/agent/optimizer/policy
+  save_every: never
