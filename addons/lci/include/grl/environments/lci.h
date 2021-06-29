@@ -47,6 +47,37 @@ class Serial
     void write(const unsigned char *buf, int sz);
 };
 
+/// LCI Pendulum environment
+class LCIPendulumEnvironment : public Environment
+{
+public:
+  TYPEINFO("environment/lci_pendulum", "LCI Pendulum environment")
+
+public:
+  std::string port_;
+  int bps_;
+  Serial serial_;
+  timer timer_;
+  double time_, timeout_;
+  Vector prev_state_;
+
+public:
+  LCIPendulumEnvironment() : port_("i:0x2341:0x0042"), bps_(115200), time_(0), timeout_(10) { }
+
+  // From Configurable
+  virtual void request(ConfigurationRequest* config);
+  virtual void configure(Configuration& config);
+  virtual void reconfigure(const Configuration& config);
+
+  // From Environment
+  virtual void start(int test, Observation* obs);
+  virtual double step(const Action& action, Observation* obs, double* reward, int* terminal);
+
+protected:
+  virtual Vector readState();
+  virtual void writeControls(const Vector& u);
+};
+
 /// LCI Cart-Pole environment
 class LCICartPoleEnvironment : public Environment
 {
