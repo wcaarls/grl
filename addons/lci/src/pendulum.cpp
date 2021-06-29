@@ -71,19 +71,28 @@ void LCIPendulumEnvironment::configure(Configuration &config)
 void LCIPendulumEnvironment::reconfigure(const Configuration &config)
 {
 }
+
+template <typename T> int sgn(T val) {
+    return (T(0) < val) - (val < T(0));
+}
     
 void LCIPendulumEnvironment::start(int test, Observation *obs)
 {
   NOTICE("Moving to down position");
   
-  Vector state, action(1);
+  Vector state, prev_state = readState(), action(1);
+  double I = 0;
   do
   {
-    // TODO: deal with wrapping
     state = readState();
-    action[0] = 0.6*state[0];
+    if (sgn(prev_state[0]) != sgn(state[0]))
+      I = 0;
+    else
+      I += state[0];
+    action[0] = copysign(0.05, state[0]) + 0.1*state[0] + 0.02*I;
     writeControls(action);
-  } while (fabs(state[0]) > 0.01);
+    prev_state = state;
+  } while (fabs(state[0]) > 0.1 || fabs(state[1]) > 0.1);
 
   action[0] = 0;
   writeControls(action);
@@ -102,16 +111,11 @@ double LCIPendulumEnvironment::step(const Action &action, Observation *obs, doub
   double tau = timer_.elapsed();
   timer_.restart();
   
-//  NOTICE("tau: " << tau);
-
   if (tau > 0.1)
-    WARNING("Failed deadline (" << tau << ")");
+    WARNING("Failed deadline (" << tau << "s)");
     
-  if (tau < 0.025)
-  {
-    WARNING("Buffered input (" << tau << ")");
-    tau = 0.005;
-  }
+  if (tau < 0.01)
+    WARNING("Buffered input (" << tau << "s)");
 
   // Convert to [0, 2pi] with pi at top
   state[0] = fmod(fabs(state[0] + 2*M_PI), 2 * M_PI);
@@ -148,28 +152,19 @@ Vector LCIPendulumEnvironment::readState()
     len = serial_.read(buf, 8);
   } while (len != 8);
 
-//  for (int ii = 0; ii != len; ++ii)  
-//    NOTICE("buf[" << ii << "]: " << (int)buf[ii]);
-    
-//  long int ang = be32tohl(*((uint32_t*)&buf[0])),
-//           vel = be32tohl(*((uint32_t*)&buf[4]));
   long int ang = *((int32_t*)&buf[0]),
            vel = *((int32_t*)&buf[4]);
            
-//  NOTICE("ang: " << ang << ", vel: " << vel);
-
   // 1000ppr encoder, quadrature decoding
   Vector state = VectorConstructor(2*M_PI*ang/4000.,
                                    2*M_PI*vel/4000.);
                                    
-//  NOTICE("State: " << state);
-  
   return state;
 }
 
 void LCIPendulumEnvironment::writeControls(const Vector &u)
 {
-  char pwm = (char) (u[0] * 127);
+  char pwm = (char) (std::min(std::max(u[0], -1.), 1.) * 127);
   
   serial_.write((unsigned char*)&pwm, 1);
 }

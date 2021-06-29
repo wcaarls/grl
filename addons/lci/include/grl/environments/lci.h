@@ -59,7 +59,6 @@ public:
   Serial serial_;
   timer timer_;
   double time_, timeout_;
-  Vector prev_state_;
 
 public:
   LCIPendulumEnvironment() : port_("i:0x2341:0x0042"), bps_(115200), time_(0), timeout_(10) { }

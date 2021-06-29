@@ -17,10 +17,12 @@ void setup() {
 
 void loop() {
   static long int prev_angle = encoder.count();
+  static unsigned int missed = 0;
 
   unsigned long int last = millis();
   long int angle = encoder.count();
   long int vel   = (angle-prev_angle) * 20;
+  bool received = false;
 
   // Lowest possible speed is 200s / revolution
   // 4000 ppr, 50ms per step
@@ -37,8 +39,12 @@ void loop() {
         motor.go(CCW, pwm);
       else
         motor.go(CW, -pwm);
+      received = true;
     }
   }
 
+  if (!received && missed++ > 10)
+      motor.stop();
+  
   prev_angle = angle;
 }
