@@ -1,10 +1,14 @@
-#define PIN_ENCODER0_A 21
-#define PIN_ENCODER0_B 20
-#define PIN_ENCODER0_Z 19
+// WARNING:
+// Arduino Mega2560 has 10k pull-up on pins 21 and 20. Remove for
+// optimal performance.
 
-#define PIN_ENCODER1_A 18
-#define PIN_ENCODER1_B 2
-#define PIN_ENCODER1_Z 3
+#define PIN_ENCODER0_A 21 // PD0
+#define PIN_ENCODER0_B 20 // PD1
+#define PIN_ENCODER0_Z 19 // PD2
+
+#define PIN_ENCODER1_A 18 // PD3
+#define PIN_ENCODER1_B 2  // PE4
+#define PIN_ENCODER1_Z 3  // PE5
 
 static int encApin[2] = {PIN_ENCODER0_A, PIN_ENCODER1_A};
 static int encBpin[2] = {PIN_ENCODER0_B, PIN_ENCODER1_B};
@@ -21,17 +25,17 @@ static int *zero__[2] = {&encoder0_zero__, &encoder1_zero__};
 
 void encoder0A()
 {
-  bool PastA = digitalRead(PIN_ENCODER0_A) == HIGH;
-  bool PastB = digitalRead(PIN_ENCODER0_B) == HIGH;
-  
+  bool PastA = (PIND & 1) == 1; // digitalRead(PIN_ENCODER0_A) == HIGH;
+  bool PastB = (PIND & 2) == 2; // digitalRead(PIN_ENCODER0_B) == HIGH;
+
   encoder0_count__ += (PastA != PastB) ? +1 : -1;
 }
 
 void encoder0B()
 {
-  bool PastA = digitalRead(PIN_ENCODER0_A) == HIGH;
-  bool PastB = digitalRead(PIN_ENCODER0_B) == HIGH;
-  
+  bool PastA = (PIND & 1) == 1; // digitalRead(PIN_ENCODER0_A) == HIGH;
+  bool PastB = (PIND & 2) == 2; // digitalRead(PIN_ENCODER0_B) == HIGH;
+
   encoder0_count__ += (PastA != PastB) ? -1 : +1;
 }
 
@@ -42,17 +46,17 @@ void encoder0Z()
 
 void encoder1A()
 {
-  bool PastA = digitalRead(PIN_ENCODER1_A) == HIGH;
-  bool PastB = digitalRead(PIN_ENCODER1_B) == HIGH;
+  bool PastA = (PIND & 8) == 8;   // digitalRead(PIN_ENCODER1_A) == HIGH;
+  bool PastB = (PINE & 16) == 16; // digitalRead(PIN_ENCODER1_B) == HIGH;
   
   encoder1_count__ += (PastA != PastB) ? +1 : -1;
 }
 
 void encoder1B()
 {
-  bool PastA = digitalRead(PIN_ENCODER1_A) == HIGH;
-  bool PastB = digitalRead(PIN_ENCODER1_B) == HIGH;
-  
+  bool PastA = (PIND & 8) == 8;   // digitalRead(PIN_ENCODER1_A) == HIGH;
+  bool PastB = (PINE & 16) == 16; // digitalRead(PIN_ENCODER1_B) == HIGH;
+
   encoder1_count__ += (PastA != PastB) ? -1 : +1;
 }
 
