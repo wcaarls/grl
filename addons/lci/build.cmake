@@ -7,6 +7,7 @@ message("** Building LCI addon")
 add_library(${TARGET} SHARED
             ${SRC}/serial.cpp
             ${SRC}/cartpole.cpp
+            ${SRC}/pendulum.cpp
            )
 
 # Add dependencies

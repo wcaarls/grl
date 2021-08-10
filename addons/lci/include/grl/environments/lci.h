@@ -55,13 +55,13 @@ public:
 
 public:
   std::string port_;
-  int bps_;
+  int bps_, offset_;
   Serial serial_;
   timer timer_;
   double time_, timeout_;
 
 public:
-  LCIPendulumEnvironment() : port_("i:0x2341:0x0042"), bps_(115200), time_(0), timeout_(10) { }
+  LCIPendulumEnvironment() : port_("i:0x2341:0x0042"), bps_(115200), offset_(0), time_(0), timeout_(10) { }
 
   // From Configurable
   virtual void request(ConfigurationRequest* config);

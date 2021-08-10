@@ -37,6 +37,7 @@ void LCIPendulumEnvironment::request(ConfigurationRequest *config)
   config->push_back(CRP("port", "Serial port of Arduino MEGA", port_, CRP::Configuration));
   config->push_back(CRP("bps", "Bit rate", bps_, CRP::Configuration));
   
+  config->push_back(CRP("offset", "Encoder offset from down position (counts)", offset_, CRP::Configuration));
   config->push_back(CRP("timeout", "Timeout", timeout_, CRP::Configuration, 0., 3600.));
 }
 
@@ -44,6 +45,7 @@ void LCIPendulumEnvironment::configure(Configuration &config)
 {
   port_ = config["port"].str();
   bps_ = config["bps"];
+  offset_ = config["offset"];
   timeout_ = config["timeout"];
 
   while (serial_.open(port_, B115200) < 0)
@@ -81,16 +83,11 @@ void LCIPendulumEnvironment::start(int test, Observation *obs)
   NOTICE("Moving to down position");
   
   Vector state, prev_state = readState(), action(1);
-  double I = 0;
   do
   {
     state = readState();
-    if (sgn(prev_state[0]) != sgn(state[0]))
-      I = 0;
-    else
-      I += state[0];
-    action[0] = copysign(0.05, state[0]) + 0.1*state[0] + 0.02*I;
-    writeControls(action);
+    action[0] = copysign(0.05, state[0]) + state[0] + 0.1*state[1];
+    writeControls(-action);
     prev_state = state;
   } while (fabs(state[0]) > 0.1 || fabs(state[1]) > 0.1);
 
@@ -152,12 +149,15 @@ Vector LCIPendulumEnvironment::readState()
     len = serial_.read(buf, 8);
   } while (len != 8);
 
-  long int ang = *((int32_t*)&buf[0]),
+  long int ang = *((int32_t*)&buf[0]) - offset_,
            vel = *((int32_t*)&buf[4]);
            
   // 1000ppr encoder, quadrature decoding
   Vector state = VectorConstructor(2*M_PI*ang/4000.,
                                    2*M_PI*vel/4000.);
+                                   
+  // Limit to [-pi, pi]
+  state[0] = fmod(state[0]+M_PI, 2*M_PI) - M_PI;
                                    
   return state;
 }
