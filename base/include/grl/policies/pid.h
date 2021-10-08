@@ -41,7 +41,7 @@ class PIDPolicy : public ParameterizedPolicy
     TYPEINFO("mapping/policy/parameterized/pid", "Parameterized policy based on a proportional-integral-derivative controller")
 
   protected:
-    Vector setpoint_;
+    Vector setpoint_, setpoint_idx_;
     size_t outputs_;
     
     LargeVector p_, i_, d_, il_, ival_;
@@ -66,6 +66,9 @@ class PIDPolicy : public ParameterizedPolicy
     virtual size_t size() const { return params_.size(); }
     virtual const LargeVector &params() const;
     virtual void setParams(const LargeVector &params);
+    
+  protected:
+    double setpoint(size_t idx, const Observation &in) const;
 };
 
 /// PID trajectory policy

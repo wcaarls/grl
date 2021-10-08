@@ -40,6 +40,7 @@ REGISTER_CONFIGURABLE(PIDTrajectoryPolicy)
 void PIDPolicy::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("setpoint", "Setpoint", setpoint_, CRP::Online));
+  config->push_back(CRP("setpoint_idx", "Which setpoint values are actually observation vector indices", setpoint_idx_, CRP::Online));
   config->push_back(CRP("outputs", "int.action_dims", "Number of outputs", (int)outputs_, CRP::System, 1));
   
   config->push_back(CRP("p", "P gains ([out1_in1, ..., out1_inN, ..., outN_in1, ..., outN_inN])", p_, CRP::Online));
@@ -59,6 +60,9 @@ void PIDPolicy::configure(Configuration &config)
   setpoint_ = config["setpoint"].v();
   if (!setpoint_.size())
     throw bad_param("policy/pid:setpoint");
+  setpoint_idx_ = config["setpoint_idx"].v();
+  if (setpoint_idx_.size() && setpoint_idx_.size() != setpoint_.size())
+    throw bad_param("policy/pid:setpoint_idx");
     
   outputs_ = config["outputs"];
 
@@ -114,7 +118,7 @@ void PIDPolicy::act(const Observation &in, Action *out) const
     
     for (size_t ii=0; ii < setpoint_.size(); ++ii)
     {
-      double err = setpoint_[ii] - in[ii];
+      double err = setpoint(ii, in) - in[ii];
       
       if (p_.size())
         u += p_[P(ii, oo)]*err;
@@ -147,7 +151,7 @@ void PIDPolicy::act(double time, const Observation &in, Action *out)
     
     for (size_t ii=0; ii < setpoint_.size(); ++ii)
     {
-      double err = setpoint_[ii] - in[ii];
+      double err = setpoint(ii, in) - in[ii];
       
       if (p_.size())
         u += p_[P(ii, oo)]*err;
@@ -203,6 +207,24 @@ void PIDPolicy::setParams(const LargeVector &params)
     d_ = params_.segment(ii++*bs, bs);
   if (il_.size())
     il_ = params_.segment(ii++*bs, bs);
+}
+
+double PIDPolicy::setpoint(size_t idx, const Observation &in) const
+{
+  if (setpoint_idx_.size() && setpoint_idx_[idx])
+  {
+    // Configuration file specifies setpoint index in observation vector,
+    // not actual setpoint.
+    if (setpoint_[idx] < 0 || setpoint_[idx] >= in.size())
+    {
+      ERROR("Setpoint index " << setpoint_[idx] << " is out of observation vector range");
+      throw bad_param("policy/pid:{setpoint, setpoint_idx}");
+    }
+    else
+      return in[(int)setpoint_[idx]];
+  }
+  else
+    return setpoint_[idx];
 }
 
 ////////////////////////////////////////////////
