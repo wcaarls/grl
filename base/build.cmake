@@ -106,6 +106,7 @@ add_library(${TARGET} SHARED
             ${SRC}/projectors/peaked.cpp
             ${SRC}/projectors/scaling.cpp
             ${SRC}/projectors/tile_coding.cpp
+            ${SRC}/projectors/n_tuple.cpp
             ${SRC}/projectors/fourier.cpp
             ${SRC}/projectors/monomial.cpp
             ${SRC}/projectors/grid.cpp

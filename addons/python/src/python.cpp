@@ -34,6 +34,7 @@ REGISTER_CONFIGURABLE(GymEnvironment)
 void GymEnvironment::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("id", "OpenAI Gym environment Id", id_));
+  config->push_back(CRP("imports", "Comma-separated list of extra Python modules to import", imports_));
   config->push_back(CRP("render", "Render interval (0=no rendering)", interval_));
   config->push_back(CRP("exporter", "exporter", "Optional exporter for transition log (supports observation, action, reward, terminal)", exporter_, true));
 }
@@ -57,6 +58,16 @@ void GymEnvironment::configure(Configuration &config)
     throw Exception("Couldn't import gym module");
   }
   
+  imports_ = config["imports"].str();
+  std::vector<std::string> imports = cutLongStr(imports_);
+  
+  for (size_t ii=0; ii != imports.size(); ++ii)
+    if (!PyImport_Import(PyUnicode_DecodeFSDefault(imports[ii].c_str())))
+    {
+      PyErr_Print();
+      throw Exception("Couldn't import requested module");
+    }
+
   PyObject *make = PyObject_GetAttrString(module, "make");
   if (!make || !PyCallable_Check(make))
   {

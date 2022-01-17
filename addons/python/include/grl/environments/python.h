@@ -40,7 +40,7 @@ class GymEnvironment : public Environment
     TYPEINFO("environment/gym", "OpenAI Gym environment")
 
   protected:
-    std::string id_;
+    std::string id_, imports_;
     int interval_;
     Exporter *exporter_;
     

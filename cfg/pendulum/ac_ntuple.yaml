@@ -1,0 +1,92 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 0
+  steps: 0
+  rate: 0
+  test_interval: 10
+  environment: 
+    type: environment/modeled
+    model: 
+      type: model/dynamical
+      control_step: 0.03
+      integration_steps: 5
+      dynamics: 
+        type: dynamics/pendulum
+    task: 
+      type: task/pendulum/swingup
+      timeout: 2.99
+  agent: 
+    type: agent/td
+    policy: 
+      type: mapping/policy/action
+      sigma: [1]
+      output_min: experiment/environment/task/action_min
+      output_max: experiment/environment/task/action_max
+      projector: 
+        type: projector/n_tuple
+        tuple_size: 64
+        memory: 8388608
+        safe: 0
+        resolution: 256
+        input_min: experiment/environment/task/observation_min
+        input_max: experiment/environment/task/observation_max
+      representation: 
+        type: representation/parameterized/linear
+        init_min: [0]
+        init_max: [1]
+        memory: experiment/agent/policy/projector/memory
+        outputs: experiment/environment/task/action_dims
+        output_min: experiment/environment/task/action_min
+        output_max: experiment/environment/task/action_max
+    predictor: 
+      type: predictor/ac/action
+      alpha: 0.01
+      critic:
+        type: predictor/critic/td
+        alpha: 0.2
+        gamma: 0.97
+        lambda: 0.65
+        projector: experiment/agent/policy/projector
+        representation: 
+          type: representation/parameterized/linear
+          init_min: [0]
+          init_max: [1]
+          memory: experiment/agent/predictor/critic/projector/memory
+          outputs: 1
+          output_min: []
+          output_max: []
+        trace: 
+          type: trace/enumerated/replacing
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+  test_agent: 
+    type: agent/fixed
+    policy: 
+      type: mapping/policy/action
+      sigma: []
+      output_min: experiment/environment/task/action_min
+      output_max: experiment/environment/task/action_max
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+visualizer: 
+  type: visualizer/glut
+visualization: 
+  type: visualization/field/mapping
+  field_dims: [ 0, 1 ]
+  input_min: experiment/environment/task/observation_min
+  input_max: experiment/environment/task/observation_max
+  points: 65536
+  projection: mean
+  mapping: experiment/test_agent/policy
+  output_dim: 0
+visualization2: 
+  type: visualization/field/value
+  field_dims: [0, 1]
+  input_min: experiment/environment/task/observation_min
+  input_max: experiment/environment/task/observation_max
+  points: 65536
+  projection: mean
+  output_dim: 0
+  projector: experiment/agent/predictor/critic/projector
+  representation: experiment/agent/predictor/critic/representation
