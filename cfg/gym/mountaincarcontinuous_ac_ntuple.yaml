@@ -1,0 +1,85 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 10
+  trials: 2200
+  steps: 0
+  rate: 0
+  test_interval: 10
+  output: mountaincar_ac_ntuple
+  environment: 
+    type: environment/gym
+    id: MountainCarContinuous-v0
+    render: 0
+  agent: 
+    type: agent/td
+    policy: 
+      type: mapping/policy/action
+      sigma: [1]
+      output_min: -1
+      output_max: 1
+      projector: 
+        type: projector/n_tuple
+        tuple_size: 32
+        memory: 8388608
+        resolution: [ 128, 128 ]
+        input_min: [ -1.2, -0.07 ] 
+        input_max: [  0.6,  0.07 ]
+      representation: 
+        type: representation/parameterized/linear
+        init_min: [0]
+        init_max: [1]
+        memory: experiment/agent/policy/projector/memory
+        outputs: 1
+        output_min: -1
+        output_max: 1
+    predictor: 
+      type: predictor/ac/action
+      alpha: 0.01
+      critic:
+        type: predictor/critic/td
+        alpha: 0.2
+        gamma: 0.97
+        lambda: 0.65
+        projector: experiment/agent/policy/projector
+        representation: 
+          type: representation/parameterized/linear
+          init_min: [0]
+          init_max: [1]
+          memory: experiment/agent/predictor/critic/projector/memory
+          outputs: 1
+          output_min: []
+          output_max: []
+        trace: 
+          type: trace/enumerated/replacing
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+  test_agent: 
+    type: agent/fixed
+    policy: 
+      type: mapping/policy/action
+      sigma: []
+      output_min: -1 
+      output_max: 1
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+visualizer: 
+  type: visualizer/glut
+visualization: 
+  type: visualization/field/mapping
+  field_dims: [ 0, 1 ]
+  input_min: [ -1.2, -0.07 ]
+  input_max: [ 0.6, 0.07 ]
+  points: 65536
+  projection: mean
+  mapping: experiment/test_agent/policy
+  output_dim: 0
+visualization2: 
+  type: visualization/field/value
+  field_dims: [0, 1]
+  input_min: /visualization/input_min
+  input_max: /visualization/input_max
+  points: 65536
+  projection: mean
+  output_dim: 0
+  projector: experiment/agent/predictor/critic/projector
+  representation: experiment/agent/predictor/critic/representation

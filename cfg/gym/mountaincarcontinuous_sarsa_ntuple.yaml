@@ -1,0 +1,70 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 10
+  trials: 2200
+  steps: 0
+  rate: 0
+  test_interval: 10
+  output: mountaincar_sarsa_ntuple
+  environment: 
+    type: environment/gym
+    id: MountainCarContinuous-v0
+    render: 0
+  agent: 
+    type: agent/td
+    policy: 
+      type: policy/discrete/value/q
+      discretizer: 
+        type: discretizer/uniform
+        min: -1
+        max: 1
+        steps: [ 3 ]
+      projector: 
+        type: projector/n_tuple
+        tuple_size: 32
+        memory: 8388608
+        resolution: [ 128, 128, 128 ]
+        input_min: [ -1.2, -0.07, -1 ] 
+        input_max: [  0.6,  0.07,  1 ]
+      representation: 
+        type: representation/parameterized/linear
+        init_min: [ 0 ]
+        init_max: [ 1 ]
+        memory: experiment/agent/policy/projector/memory
+        outputs: 1
+        output_min: [  ]
+        output_max: [  ]
+      sampler: 
+        type: sampler/epsilon_greedy
+        epsilon: 1
+        decay_rate: 0.995
+        decay_min: 0.1
+    predictor: 
+      type: predictor/critic/sarsa
+      alpha: 0.2
+      gamma: 0.97
+      lambda: 0.65
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+      trace: 
+        type: trace/enumerated/replacing
+  test_agent: 
+    type: agent/fixed
+    policy: 
+      type: policy/discrete/value/q
+      discretizer: experiment/agent/policy/discretizer
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+      sampler: 
+        type: sampler/greedy
+visualizer: 
+  type: visualizer/glut
+visualization: 
+  type: visualization/field/policy/value
+  field_dims: [0, 1]
+  input_min: [ -1.2, -0.07 ]
+  input_max: [  0.6,  0.07 ]
+  points: 65536
+  savepoints: 1048576
+  projection: mean
+  policy: experiment/test_agent/policy
