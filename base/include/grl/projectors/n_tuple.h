@@ -44,7 +44,7 @@ class NTupleProjector : public Projector
     Vector min_, max_, resolution_;
     mutable int32_t *indices_, pressure_;
     Eigen::ArrayXi map_;
-    int tuples_, input_size_;
+    int tuples_, input_size_, splits_;
     
   public:
     NTupleProjector() : tuple_size_(16), memory_(8*1024*1024), safe_(0), indices_(NULL), pressure_(0), tuples_(0), input_size_(0) { }

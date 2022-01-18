@@ -5,7 +5,7 @@ experiment:
   steps: 0
   rate: 0
   test_interval: 10
-  output: mountaincar_sarsa_ntuple
+  output: results_mountaincar_sarsa_ntuple
   environment: 
     type: environment/gym
     id: MountainCarContinuous-v0
@@ -23,7 +23,7 @@ experiment:
         type: projector/n_tuple
         tuple_size: 32
         memory: 8388608
-        resolution: [ 128, 128, 128 ]
+        resolution: [ 128, 128, 0 ]
         input_min: [ -1.2, -0.07, -1 ] 
         input_max: [  0.6,  0.07,  1 ]
       representation: 
@@ -37,7 +37,7 @@ experiment:
       sampler: 
         type: sampler/epsilon_greedy
         epsilon: 1
-        decay_rate: 0.995
+        decay_rate: 0.999
         decay_min: 0.1
     predictor: 
       type: predictor/critic/sarsa

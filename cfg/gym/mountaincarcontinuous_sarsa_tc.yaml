@@ -5,7 +5,7 @@ experiment:
   steps: 0
   rate: 0
   test_interval: 10
-  output: mountaincar_sarsa_tc
+  output: results_mountaincar_sarsa_tc
   environment: 
     type: environment/gym
     id: MountainCarContinuous-v0
@@ -22,8 +22,8 @@ experiment:
       projector: 
         type: projector/tile_coding
         tilings: 16
-        memory: 67108864
-        resolution: [ 0.1, 0.01, 100 ]
+        memory: 8388608
+        resolution: [ 0.1, 0.01, 1 ]
       representation: 
         type: representation/parameterized/linear
         init_min: [ 0 ]
@@ -34,7 +34,9 @@ experiment:
         output_max: [  ]
       sampler: 
         type: sampler/epsilon_greedy
-        epsilon: 0.05
+        epsilon: 1
+        decay_rate: 0.999
+        decay_min: 0.1
     predictor: 
       type: predictor/critic/sarsa
       alpha: 0.2

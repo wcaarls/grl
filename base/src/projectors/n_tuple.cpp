@@ -37,7 +37,7 @@ void NTupleProjector::request(const std::string &role, ConfigurationRequest *con
   config->push_back(CRP("tuple_size", "Tuple size", tuple_size_));
   config->push_back(CRP("memory", "int.memory", "Hash table size", memory_));
   config->push_back(CRP("safe", "Collision detection (0=off, 1=claim on write, 2=claim always)", safe_, CRP::Configuration, 0, 2));
-  config->push_back(CRP("resolution", "Size of encodings", resolution_));
+  config->push_back(CRP("resolution", "Size of encodings (0=split discriminators on dimension)", resolution_));
   
   if (role == "observation")
   {
@@ -89,12 +89,17 @@ void NTupleProjector::configure(Configuration &config)
  
   // Find total input size
   input_size_ = 0;
+  splits_ = 0;
   for (size_t ii=0; ii != resolution_.size(); ++ii)
+  {
     input_size_ += resolution_[ii];
+    if (!resolution_[ii])
+      splits_++;
+  }
     
   tuples_ = ceil(input_size_ / (double)tuple_size_);
   
-  NOTICE("Total retina size is " << input_size_ << " split into " << tuples_ << " tuples");
+  NOTICE("Total retina size is " << input_size_ << " split into " << tuples_ << " tuples, with " << splits_ << " splitting dimension(s)");
 
   // Create permutation vector
   map_.resize(input_size_);
@@ -112,9 +117,20 @@ void NTupleProjector::reconfigure(const Configuration &config)
 {
   if (config.has("action"))
     if (config["action"].str() == "reset")
+    {
+      // Unclaim all hash table entries
       if (indices_)
         for (size_t ii=0; ii < memory_; ++ii)
           indices_[ii] = -1;
+          
+      // Randomize permutation vector
+      for (size_t ii=0; ii != input_size_; ++ii)
+      {
+        int temp = map_[ii], rnd = RandGen::getInteger(input_size_);
+        map_[ii] = map_[rnd];
+        map_[rnd] = temp;
+      }
+    }
 }
 
 NTupleProjector &NTupleProjector::copy(const Configurable &obj)
@@ -127,10 +143,13 @@ NTupleProjector &NTupleProjector::copy(const Configurable &obj)
   return *this;
 }
 
-#define MAX_NUM_VARS 32
-
 ProjectionPtr NTupleProjector::_project(const Vector &in, bool claim) const
 {
+  int blocks = ceil(tuple_size_/32.);
+  int rest = tuple_size_%32;
+  if (!rest) rest = 32;
+  int coordinates[blocks + splits_ + 1];
+
   if (in.size() != resolution_.size())
   {
     ERROR("Input vector " << in << " does not match resolution vector " << resolution_);
@@ -139,31 +158,39 @@ ProjectionPtr NTupleProjector::_project(const Vector &in, bool claim) const
   
   // Create retina
   Eigen::ArrayXi retina = Eigen::ArrayXi::Constant(input_size_, 0);
-  for (int ii = 0, nn = 0; ii < in.size(); nn += resolution_[ii], ++ii)
+  for (int ii = 0, nn = 0, ss = 0; ii < in.size(); nn += resolution_[ii], ++ii)
   {
-    // Quantize
-    int v = (int) floor(resolution_[ii]*(in[ii] - min_[ii])/(max_[ii]-min_[ii]));
+    if (resolution_[ii])
+    { 
+      // Quantize
+      int v = (int) floor(resolution_[ii]*(in[ii] - min_[ii])/(max_[ii]-min_[ii]));
     
-    // Avoid under- and overflow
-    v = std::min(std::max(v, 0), (int)resolution_[ii]);
+      // Avoid under- and overflow
+      v = std::min(std::max(v, 0), (int)resolution_[ii]);
     
-    // Fill retina (thermometer)
-    for (int jj=0; jj != v; ++jj)
-      retina[nn+jj] = 1;
+      // Fill retina (thermometer)
+      for (int jj=0; jj != v; ++jj)
+        retina[nn+jj] = 1;
+    }
+    else
+    {
+      // Make sure different values in this dimension get hashed
+      // in different elements, splitting the discriminator
+      union {
+        float f;
+        int i;
+      } inu = { .f = (float)in[ii] };
+      
+      coordinates[ss++] = inu.i;
+    }
   }
   
   IndexProjection *p = new IndexProjection();
   p->indices.resize(tuples_);
   
   // Loop over tuples
-  int blocks = ceil(tuple_size_/32.);
-  int rest = tuple_size_%32;
-  if (!rest) rest = 32;
-  
   for (int ii=0, bb=0; ii < tuples_; ++ii)
   {
-    int coordinates[blocks + 1];
-    
     // Loop over blocks within tuple, as hashing uses 32-bit integers
     for (int jj = 0; jj < blocks; ++jj)
     {
@@ -175,11 +202,11 @@ ProjectionPtr NTupleProjector::_project(const Vector &in, bool claim) const
       for (int kk=0; kk < 32 && bb < input_size_ && (jj != blocks-1 || kk < rest); ++kk)
         v = (v<<1) + retina[map_[bb++]];
         
-      coordinates[jj] = v;
+      coordinates[splits_ + jj] = v;
     }
 
     // Add tuple number so different tuples are hashed in different elements
-    coordinates[blocks] = ii;
+    coordinates[splits_ + blocks] = ii;
     p->indices[ii] = getFeatureLocation(coordinates, blocks+1, claim);
   }
   
