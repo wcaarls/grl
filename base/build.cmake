@@ -25,6 +25,7 @@ add_library(${TARGET} SHARED
             ${SRC}/agents/filtering.cpp
             ${SRC}/agents/communicator.cpp
             ${SRC}/agents/remapping.cpp
+            ${SRC}/agents/dsp.cpp
             ${SRC}/discretizers/uniform.cpp
             ${SRC}/discretizers/peaked.cpp
             ${SRC}/discretizers/split.cpp
@@ -137,6 +138,7 @@ add_library(${TARGET} SHARED
             ${SRC}/visualizations/windy.cpp
             ${SRC}/visualizations/swimmer.cpp
             ${SRC}/visualizations/flyer2d.cpp
+            ${SRC}/filters/butterworth.cpp
            )
 
 # Dependencies
