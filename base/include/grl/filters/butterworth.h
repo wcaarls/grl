@@ -43,9 +43,10 @@ class ButterworthFilter : public Configurable
     TYPEINFO("filter/butterworth", "Third order Butterworth filter")
 
     int order_;
-    double sampling_frequency_, cutoff_frequency_;
-    Vector kout_, // kout_[0] is not used; it is the output
-           kin_;
+    double sampling_frequency_;
+    Vector cutoff_frequency_;
+    std::vector<Vector> kout_, // kout_[0] is not used; it is the output
+                        kin_;
            
     std::vector<Vector> samplebuffer_,
                         filterbuffer_; // Element 0  is the most recent; element 1 is 1 update old, etc.
@@ -53,7 +54,7 @@ class ButterworthFilter : public Configurable
     bool first_;
 
   public:
-    ButterworthFilter() : order_(3), sampling_frequency_(1.), cutoff_frequency_(0.5), first_(true) { }
+    ButterworthFilter() : order_(3), sampling_frequency_(1.), first_(true) { }
 
     // From Configurable
     virtual void request(ConfigurationRequest *config);

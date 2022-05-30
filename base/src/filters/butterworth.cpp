@@ -36,17 +36,17 @@ void ButterworthFilter::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("order", "Filter order", order_, CRP::Configuration));
   config->push_back(CRP("sampling_frequency", "Sampling frequency", sampling_frequency_, CRP::Configuration, 0., 1000.));
-  config->push_back(CRP("cutoff_frequency", "Cutoff frequency", cutoff_frequency_, CRP::Configuration, 0., 1000.));
+  config->push_back(CRP("cutoff_frequency", "Cutoff frequencies per dimension", cutoff_frequency_, CRP::Configuration));
 }
 
 void ButterworthFilter::configure(Configuration &config)
 {
   order_ = config["order"];
   sampling_frequency_ = config["sampling_frequency"];
-  cutoff_frequency_ = config["cutoff_frequency"];
+  cutoff_frequency_ = config["cutoff_frequency"].v();
   
-  kin_ = ConstantVector(order_+1, 0.);
-  kout_ = ConstantVector(order_+1, 0.);
+  kin_  = std::vector<Vector>(order_+1);
+  kout_ = std::vector<Vector>(order_+1);
 
   /*
    * The transfer function of a continuous-time third order Butterworth filter is as follows:
@@ -78,13 +78,13 @@ void ButterworthFilter::configure(Configuration &config)
   // Take the cutoff frequency into account by using s/w_c instead of s.
   // When using Tustin, this becomes s/w_c = (2/(T*w_c))*((z-1)/(z+1)).
   // Therefore, whenever T appears in the formulas, we use T*w_c = T*2*pi*f_c = (1/f_s)*2*pi*f_c.
-  double T = 2.0*M_PI*cutoff_frequency_/sampling_frequency_;
+  Vector T = 2.0*M_PI*cutoff_frequency_/sampling_frequency_;
 
   switch(order_)
   {
     case 1:
       {
-        double normalizeOutput  = T + 2.0;
+        Vector normalizeOutput  = T + 2.0;
         kout_[1]  = (T - 2.0)/normalizeOutput;
 
         kin_[0]   = T/normalizeOutput;
@@ -93,7 +93,7 @@ void ButterworthFilter::configure(Configuration &config)
       break;
     case 2:
       {
-        double normalizeOutput  = T*T + 2.0*sqrt(2.0)*T + 4.0;
+        Vector normalizeOutput  = T*T + 2.0*sqrt(2.0)*T + 4.0;
         kout_[1]  = (2.0*T*T                   - 8.0)/normalizeOutput;
         kout_[2]  = (    T*T - 2.0*sqrt(2.0)*T + 4.0)/normalizeOutput;
 
@@ -104,7 +104,7 @@ void ButterworthFilter::configure(Configuration &config)
       break;
     case 3:
       {
-        double normalizeOutput = T*T*T + 4.0*T*T + 8.0*T + 8.0;
+        Vector normalizeOutput = T*T*T + 4.0*T*T + 8.0*T + 8.0;
         kout_[1]  = (3.0*T*T*T + 4.0*T*T - 8.0*T - 24.0)/normalizeOutput;
         kout_[2]  = (3.0*T*T*T - 4.0*T*T - 8.0*T + 24.0)/normalizeOutput;
         kout_[3]  = (    T*T*T - 4.0*T*T + 8.0*T -  8.0)/normalizeOutput;

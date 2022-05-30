@@ -42,11 +42,13 @@ class DSPAgent : public Agent
     TYPEINFO("agent/dsp", "DSP filtering agent")
 
   protected:
-    Agent *agent_;
+    Vector wrapping_;
     TypedConfigurableList<Filter> input_filters_;
     TypedConfigurableList<Filter> output_filters_;
+    Agent *agent_;
     
     VectorSignal *state_, *action_;
+    Vector prev_obs_;
     
   public:
     DSPAgent() : agent_(NULL), state_(NULL), action_(NULL) { }
@@ -63,7 +65,13 @@ class DSPAgent : public Agent
     
   protected:
     /// Apply a filter stack to a sample
-    Vector apply(TypedConfigurableList<Filter> &filters, Vector sample, bool reset=false);
+    Vector apply(TypedConfigurableList<Filter> &filters, Vector sample, bool wrapping, bool reset=false);
+    
+    /// Positive modulo
+    double wrap(double x, double w)
+    {
+      return fmod(fmod(x, w) + w, w);
+    }
 };
 
 }
