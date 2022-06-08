@@ -6,15 +6,17 @@
 
 from __future__ import print_function
 
-import numpy as np
-import tensorflow as tf
 import time, sys
+import numpy as np
+import tensorflow as tf2
+import tensorflow.compat.v1 as tf
 
-from keras.models import Model
-from keras.layers.core import Dense, Lambda
-from keras.layers.merge import Concatenate
-from keras.layers.normalization import BatchNormalization
-from keras.backend import get_session, set_session
+from tensorflow.keras.layers import Dense, Lambda
+from tensorflow.keras.layers import Concatenate
+from tensorflow.keras.layers import BatchNormalization
+
+tf2.config.set_visible_devices([], 'GPU')
+tf.disable_eager_execution()
 
 if len(sys.argv) != 4:
   print("Usage:")
@@ -27,11 +29,6 @@ normalization = False
 share_weights = False
 layer1_size = 400
 layer2_size = 300
-
-config = tf.ConfigProto()
-config.gpu_options.per_process_gpu_memory_fraction = 0.1
-session = tf.Session(config=config)
-set_session(session)
 
 # Actor network definition
 s_in = tf.placeholder(tf.float32, shape=(None,obs), name='s_in')
@@ -88,9 +85,13 @@ dq_dtheta = tf.gradients(a_out, theta, -dq_da, name='dq_dtheta')
 
 a_update = tf.train.AdamOptimizer(0.0001).apply_gradients(zip(dq_dtheta, theta), name='a_update')
 
-# Create weight assign placeholders
+# Create global variable initializer
+tf.global_variables_initializer()
+
+# Create weight read and assign placeholders
 vars = tf.trainable_variables()
 for v in vars:
+  v.read_value()
   tf.assign(v, tf.placeholder(tf.float32, shape=v.shape))
 
-tf.train.write_graph(get_session().graph.as_graph_def(), './', sys.argv[3], as_text=False)
+tf.train.write_graph(tf.get_default_graph().as_graph_def(), './', sys.argv[3], as_text=False)

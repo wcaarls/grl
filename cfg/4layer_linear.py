@@ -1,11 +1,12 @@
 #!/usr/bin/python3
-
-import numpy as np
-import tensorflow as tf
 import sys
+import numpy as np
+import tensorflow as tf2
+import tensorflow.compat.v1 as tf
+from tensorflow.keras.layers import Dense
 
-from keras.layers.core import Dense
-from keras.backend import get_session
+tf2.config.set_visible_devices([], 'GPU')
+tf.disable_eager_execution()
 
 if len(sys.argv) != 4:
   print("Usage:")
@@ -29,9 +30,13 @@ target = tf.placeholder(tf.float32, shape=(None, outputs), name='target')
 loss = tf.losses.mean_squared_error(target, outp)
 update = tf.train.AdamOptimizer(0.001).minimize(loss, name='update')
 
-# Create weight assign placeholders
+# Create global variable initializer
+tf.global_variables_initializer()
+
+# Create weight read and assign placeholders
 vars = tf.trainable_variables()
 for v in vars:
+  v.read_value()
   tf.assign(v, tf.placeholder(tf.float32, shape=v.shape))
 
-tf.train.write_graph(get_session().graph.as_graph_def(), './', sys.argv[3], as_text=False)
+tf.train.write_graph(tf.get_default_graph().as_graph_def(), './', sys.argv[3], as_text=False)

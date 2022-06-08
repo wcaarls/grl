@@ -313,7 +313,7 @@ bool QuadcopterRegulatorTask::invert(const Observation &obs, Vector *state, doub
   return true;
 }
 
-Vector QuadcopterRegulatorTask::wrap(const Vector &state) const
+grl::Vector QuadcopterRegulatorTask::wrap(const Vector &state) const
 {
   Vector _state = state;
 

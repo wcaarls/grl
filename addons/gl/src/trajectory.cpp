@@ -124,7 +124,7 @@ void TrajectoryVisualization::draw()
     
       glBegin(GL_LINE_STRIP);
       for (size_t ii=0; ii < traj.cols(); ++ii)
-        glVertex2f(ii*dx, (traj(dims_[dd], ii)-min_[dims_[dd]])/(max_[dims_[dd]]-min_[dims_[dd]]));
+        glVertex2f(ii*dx, (traj((int)dims_[dd], ii)-min_[dims_[dd]])/(max_[dims_[dd]]-min_[dims_[dd]]));
       glEnd();
     }
   }
