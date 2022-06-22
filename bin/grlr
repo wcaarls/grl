@@ -119,12 +119,12 @@ def fuzz(name, conf, e, dry):
       # Save configuration  
       global counter
       stream = open(name + '_' + str(counter) + '.yaml', 'w')
-      stream.write(yaml.dump(conf))
+      stream.write(writeconf(conf))
       stream.close()
       counter = counter + 1
     else:
       # Enqueue job
-      yield yaml.dump(conf)
+      yield writeconf(conf)
     
     if hasparams:
       # Increment

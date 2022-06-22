@@ -33,7 +33,7 @@ def line_search(base, spec, conf, param, values, repetitions, regret):
   for v in values:
     newconf = copy.deepcopy(conf)
     setconf(newconf, param, v)
-    confstr = yaml.dump(newconf)
+    confstr = writeconf(newconf)
     
     vworkers[v] = [srv.submit(confstr, getoutput(base, spec, newconf)) for r in range(repetitions)]
     
@@ -74,7 +74,7 @@ def replacement_optimize(base, spec, conf):
         setconf(newconf, p["name"], p["values"][random.randrange(len(p["values"]))])
       pop.append((newconf, 0, 0))
     
-    workers = [srv.submit(yaml.dump(c), getoutput(base, spec, c)) for (c, n, a) in pop]
+    workers = [srv.submit(writeconf(c), getoutput(base, spec, c)) for (c, n, a) in pop]
     
     print("Gathering results")
     
@@ -96,7 +96,7 @@ def replacement_optimize(base, spec, conf):
           
       outfile = base + '-' + str(p) + '.yaml'
       stream = open(outfile, 'w')
-      yaml.dump(c, stream)
+      writeconf(c, stream)
       stream.close()
 
 # http://web.archive.org/web/20141202110307/https://www.seor.gmu.edu/~cchen9/ocbacode.txt
@@ -200,7 +200,7 @@ def linlee_optimize(base, spec, conf):
     print("Submitting jobs for", base, "round", round, "of", spec["rounds"])
   
     # Submit jobs
-    jobs = [(c, [srv.submit(yaml.dump(c), getoutput(base, spec, c)) for i in range(a)]) for (c, (t0, t1, t2, a)) in pop.items()]
+    jobs = [(c, [srv.submit(writeconf(c), getoutput(base, spec, c)) for i in range(a)]) for (c, (t0, t1, t2, a)) in pop.items()]
     
     print("Gathering results")
 
@@ -240,7 +240,7 @@ def linlee_optimize(base, spec, conf):
     # Write out best configuration        
     outfile = base + '-' + str(round) + '.yaml'
     stream = open(outfile, 'w')
-    yaml.dump(saveconf, stream)
+    writeconf(saveconf, stream)
     stream.close()
 
     # Write out population
@@ -311,7 +311,7 @@ def ucb1_optimize(base, spec, conf):
     print("Submitting first", spec["repetitions"], "evaluations")
     
     # Submit jobs
-    workers = [(c, srv.submit(yaml.dump(c), getoutput(base, spec, c))) for c in pop]
+    workers = [(c, srv.submit(writeconf(c), getoutput(base, spec, c))) for c in pop]
       
     print("Gathering results")
     
@@ -343,7 +343,7 @@ def ucb1_optimize(base, spec, conf):
         bi = max(xrange(len(ucb)), key=ucb.__getitem__)
         
         # Evaluate
-        workers.append((bi, srv.submit(yaml.dump(pop[bi][0]), getoutput(base, spec, c))))
+        workers.append((bi, srv.submit(writeconf(pop[bi][0]), getoutput(base, spec, c))))
         
         # Simulate getting mean for that configuration
         (c, n, a) = newpop[bi]
@@ -358,7 +358,7 @@ def ucb1_optimize(base, spec, conf):
           pop[i] = (c, n+1, (n*a+w.read(spec["regret"]))/(n+1))
         except:
           print("Cannot read worker for configuration", i)
-          print(yaml.dump(c))
+          print(writeconf(c))
           raise
         
       pop = sorted(pop, key=select_average)
@@ -374,7 +374,7 @@ def ucb1_optimize(base, spec, conf):
           
       outfile = base + '-' + str(round) + '-' + str(t0) + '.yaml'
       stream = open(outfile, 'w')
-      yaml.dump(c, stream)
+      writeconf(c, stream)
       stream.close()
       
       t0 += batch
@@ -404,7 +404,7 @@ def staged_optimize(base, spec, conf):
       print("Submitting", repetitions, "configurations with", runs, "runs each")
     
       # Submit jobs
-      workers = [(c, [srv.submit(yaml.dump(c), getoutput(base, spec, c)) for r in range(runs)]) for c in pop]
+      workers = [(c, [srv.submit(writeconf(c), getoutput(base, spec, c)) for r in range(runs)]) for c in pop]
       
       print("Gathering results")
 
@@ -434,7 +434,7 @@ def staged_optimize(base, spec, conf):
         
         outfile = base + '-' + str(round) + '-' + str(runs) + '-' + str(len(results)-1) + '.yaml'
         stream = open(outfile, 'w')
-        yaml.dump(c, stream)
+        writeconf(c, stream)
         stream.close()
         
       # Sieve
@@ -467,7 +467,7 @@ def random_optimize(base, spec, conf):
       newconf = copy.deepcopy(conf)
       for p in spec["parameters"]:
         setconf(newconf, p["name"], p["values"][random.randrange(len(p["values"]))])
-      confstr = yaml.dump(newconf)
+      confstr = writeconf(newconf)
       
       print("Submitting new configuration")
       workers.append((newconf, [srv.submit(confstr, getoutput(base, spec, newconf)) for r in range(spec["repetitions"])]))
@@ -487,7 +487,7 @@ def random_optimize(base, spec, conf):
       
       outfile = base + '-' + str(it) + '.yaml'
       stream = open(outfile, 'w')
-      yaml.dump(c, stream)
+      writeconf(c, stream)
       stream.close()
       
       score = avg-1.96*stderr
@@ -496,7 +496,7 @@ def random_optimize(base, spec, conf):
         print("Found new best lower confidence margin", score)
         bestscore = score
         stream = open(bestout, 'w')
-        yaml.dump(c, stream)
+        writeconf(c, stream)
         stream.close()
 
       it += 1
@@ -533,7 +533,7 @@ def line_optimize(base, spec, conf):
       
       outfile = base + '-' + str(it) + '.yaml'
       stream = open(outfile, 'w')
-      yaml.dump(conf, stream)
+      writeconf(conf, stream)
       stream.close()
       it += 1
     

@@ -271,4 +271,6 @@ def _readconf(conf, path):
       conf[k] = _readconf(v, path)
     
   return conf
-  
+
+def writeconf(conf, stream=None):
+  return yaml.dump(conf, stream, default_flow_style=None, sort_keys=False)

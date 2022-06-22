@@ -2,7 +2,7 @@
 set(TARGET addon_tensorflow)
 
 find_package(Protobuf)
-find_path(TENSORFLOW_INCLUDE_DIRS tensorflow/c/c_api.h)
+find_path(TENSORFLOW_INCLUDE_DIRS tensorflow/c/c_api.h PATH_SUFFIXES include HINTS ENV HOME /usr/local)
 
 if (PROTOBUF_FOUND AND TENSORFLOW_INCLUDE_DIRS)
   set(GRL_BUILD_TENSORFLOW ON CACHE BOOL "Build TensorFlow addon")
