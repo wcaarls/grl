@@ -6,9 +6,9 @@ set(WORKSPACE_DIR ${SRC}/../../../externals/odesim)
 find_package(PkgConfig)
 
 SET(QT_USE_QTOPENGL TRUE)
-find_package(Qt4 COMPONENTS QtCore QtGui QtOpenGL)
+find_package(Qt5 COMPONENTS Core Gui Widgets OpenGL)
 
-if (PKG_CONFIG_FOUND AND QT4_FOUND)
+if (PKG_CONFIG_FOUND AND Qt5OpenGL_DIR)
   pkg_check_modules(TINYXML tinyxml)
   pkg_check_modules(MUPARSER muparser)
   pkg_check_modules(ODE ode)
@@ -19,7 +19,7 @@ if (PKG_CONFIG_FOUND AND QT4_FOUND)
     message("** Cannot build odesim addon: missing one of {tinyxml, muparser, ode}")
   endif()
 else()
-  message("** Cannot build odesim addon: missing one of {pkgconfig, qt4}")
+  message("** Cannot build odesim addon: missing one of {pkgconfig, qt5}")
 endif()
 
 if (GRL_BUILD_ODESIM)
@@ -28,14 +28,13 @@ if (GRL_BUILD_ODESIM)
   # ODE floating point precision definition
   ADD_DEFINITIONS(-DdDOUBLE -DODESIM_TEXTURE_DIR="${SRC}/../textures")
 
-  include(${QT_USE_FILE})
-  INCLUDE_DIRECTORIES(${QT_INCLUDE_DIR} ${TINYXML_INCLUDE_DIRS} ${MUPARSER_INCLUDE_DIRS})
+  INCLUDE_DIRECTORIES(${TINYXML_INCLUDE_DIRS} ${MUPARSER_INCLUDE_DIRS})
 
   SET(QT_FORMS_UI ${SRC}/../ui/odesim_dialog.ui)
   SET(QT_MOC_HDRS ${SRC}/../include/grl/environments/odesim/dialog.h ${SRC}/../include/grl/environments/odesim/environment.h)
 
-  QT4_WRAP_UI(QT_FORMS_ODESIM ${QT_FORMS_UI})
-  QT4_WRAP_CPP(QT_MOC_ODESIM  ${QT_MOC_HDRS})
+  QT5_WRAP_UI(QT_FORMS_ODESIM ${QT_FORMS_UI})
+  QT5_WRAP_CPP(QT_MOC_ODESIM  ${QT_MOC_HDRS})
 
   get_filename_component(QT_FORMS_INCLUDE_DIR ${QT_FORMS_ODESIM} PATH)
   INCLUDE_DIRECTORIES(${QT_FORMS_INCLUDE_DIR})
@@ -57,7 +56,7 @@ if (GRL_BUILD_ODESIM)
 
   # Add dependencies
   grl_link_libraries(${TARGET} base)
-  target_link_libraries(${TARGET} ${QT_LIBRARIES} ${TINYXML_LIBRARIES} ${MUPARSER_LIBRARIES} ${ODE_LIBRARIES})
+  target_link_libraries(${TARGET} ${QT_LIBRARIES} ${TINYXML_LIBRARIES} ${MUPARSER_LIBRARIES} ${ODE_LIBRARIES} Qt5::Core Qt5::Gui Qt5::Widgets Qt5::OpenGL)
   install(TARGETS ${TARGET} DESTINATION ${GRL_LIB_DESTINATION})
   install(DIRECTORY ${SRC}/../include/grl DESTINATION ${GRL_INCLUDE_DESTINATION} FILES_MATCHING PATTERN "*.h")
 endif()

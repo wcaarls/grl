@@ -1,0 +1,98 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  run_offset: 0
+  trials: 0
+  steps: 0
+  rate: 0
+  test_interval: -1
+  test_trials: 1
+  environment: 
+    type: environment/ode
+    xml: leo2_learning.xml
+    randomize: 0
+    visualize: 1
+  agent: 
+    type: agent/replay
+    memory_size: 100000
+    replay_steps: 64
+    batch_size: 16
+    observation_steps: 1000
+    threads: 0
+    policy: 
+      type: mapping/policy/post/noise
+      sigma: [0.5]
+      theta: [0.15]
+      decay_rate: 0.999
+      decay_min: 0.1
+      output_min: experiment/environment/action_min
+      output_max: experiment/environment/action_max
+      policy: 
+        type: mapping/policy/filtering
+        observation_idx: 0--12
+        action_idx: 1--5
+        policy: 
+          type: mapping/policy/action
+          sigma: []
+          theta: []
+          decay_rate: 1
+          decay_min: 0
+          renormalize: 1
+          output_min: 0++experiment/environment/action_min
+          output_max: 0++experiment/environment/action_max
+          projector: 
+            type: projector/pre/normalizing
+            signed: 1
+            input_min: experiment/environment/observation_min
+            input_max: experiment/environment/observation_max
+            projector: 
+              type: projector/identity
+          representation: 
+            type: representation/parameterized/tensorflow
+            interval: 100
+            tau: 0.01
+            file: $@/../4layer_tanh_td3.py experiment/environment/observation_dims experiment/environment/action_dims
+            memory: 0.1
+            input_layer: s_in, a_in
+            output_layer: q, a_out
+            init_node: init
+            update_node: update
+    predictor: 
+      type: predictor/ddpg
+      gamma: 0.99
+      reward_scale: [1]
+      observation: s_in
+      action_in: a_in
+      action_out: a_out
+      value: q
+      target: target
+      critic_update: update
+      actor_update: a_update
+      obs_projector: experiment/agent/policy/policy/policy/projector
+      action_projector: 
+        type: projector/pre/normalizing
+        signed: 1
+        input_min: experiment/environment/action_min
+        input_max: experiment/environment/action_max
+        projector: 
+          type: projector/identity
+      representation: experiment/agent/policy/policy/policy/representation
+  test_agent: 
+    type: agent/fixed
+    policy: 
+      type: mapping/policy/filtering
+      observation_idx: experiment/agent/policy/policy/observation_idx
+      action_idx: experiment/agent/policy/policy/action_idx
+      policy: 
+        type: mapping/policy/action
+        sigma: []
+        theta: []
+        decay_rate: 1
+        decay_min: 0
+        renormalize: 1
+        output_min: experiment/agent/policy/policy/policy/output_min
+        output_max: experiment/agent/policy/policy/policy/output_max
+        projector: experiment/agent/policy/policy/policy/projector
+        representation: experiment/agent/policy/policy/policy/representation
+  save_every: never
+  

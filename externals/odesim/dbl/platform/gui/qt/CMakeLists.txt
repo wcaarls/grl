@@ -16,18 +16,11 @@ SET(TARGET dbl_qt)
 
 # Qt stuff
 SET(QT_USE_QTOPENGL TRUE)
-find_package(Qt4 REQUIRED)
-
-IF(QT4_FOUND)  
-  include(${QT_USE_FILE})
-  INCLUDE_DIRECTORIES(
-  ${QT_INCLUDE_DIR}      
-  )
-ENDIF(QT4_FOUND)
+find_package(Qt5 COMPONENTS Core Gui Widgets OpenGL REQUIRED)
 
 SET(qt_MOC_HDRS ${BASE_DIR}/GLWidget.h)
 
-QT4_WRAP_CPP(qt_MOC_SRCS ${qt_MOC_HDRS})
+QT5_WRAP_CPP(qt_MOC_SRCS ${qt_MOC_HDRS})
 
 INCLUDE (${WORKSPACE_DIR}/dbl/platform/include.cmake)
 
@@ -35,3 +28,5 @@ INCLUDE (${WORKSPACE_DIR}/dbl/platform/include.cmake)
 ADD_LIBRARY(${TARGET} STATIC ${BASE_DIR}/GLWidget.cpp
                       ${qt_MOC_SRCS}
            )
+
+target_link_libraries(${TARGET} Qt5::Core Qt5::Gui Qt5::Widgets Qt5::OpenGL)

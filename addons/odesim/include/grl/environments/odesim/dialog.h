@@ -1,7 +1,7 @@
 #ifndef ODESIM_DIALOG_H_
 #define ODESIM_DIALOG_H_
 
-#include <QtGui/QDialog>
+#include <QDialog>
 
 #include "ui_odesim_dialog.h"
 

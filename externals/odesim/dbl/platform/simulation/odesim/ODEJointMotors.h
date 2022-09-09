@@ -117,7 +117,7 @@ class CODEDynamixel: public CODEServoMotor
 
 // Simple motor that outputs the torque that you want.
 // Extra options: linear damping (proportional to the joint velocity)
-class CODETorqueMotor: public CODEServoMotor //CODEJointMotor
+class CODETorqueMotor: public CODEJointMotor
 {
   protected:
     double	mTorque;

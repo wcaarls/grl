@@ -35,10 +35,10 @@ bool CODEJointMotor::readConfig(const CConfigSection &configSection)
 }
 
 CODETorqueMotor::CODETorqueMotor(CODEJoint* joint):
-  CODEServoMotor(joint),
+  CODEJointMotor(joint),
 	mTorque(0.0),
   mLinearDamping(0.0),
-  mStallTorque(3.0)
+  mStallTorque(0.0)
 {
 
 }
@@ -51,10 +51,14 @@ void CODETorqueMotor::setTorque(double torque)
 void CODETorqueMotor::update(double stepTime)
 {
   double clippedTorque = mTorque;
-  if (clippedTorque > mStallTorque)
-    clippedTorque = mStallTorque;
-  if (clippedTorque < -mStallTorque)
-    clippedTorque = -mStallTorque;
+  
+  if (mStallTorque)
+  {
+    if (clippedTorque > mStallTorque)
+      clippedTorque = mStallTorque;
+    if (clippedTorque < -mStallTorque)
+      clippedTorque = -mStallTorque;
+  }
 
 //  mLinearDamping = 0.5;
 
@@ -79,11 +83,11 @@ void CODETorqueMotor::update(double stepTime)
 bool CODETorqueMotor::readConfig(const CConfigSection &configSection)
 {
 	bool configresult = true;
-  configresult &= CODEServoMotor::readConfig(configSection);
+  configresult &= CODEJointMotor::readConfig(configSection);
 
   // Parameters specific to torque control
   configSection.get("lineardamping", &mLinearDamping);  // Not necessary to define damping; in that case, 0 is assumed (see constructor)
-  configresult &= mLogAssert(configSection.get("stalltorque", &mStallTorque));
+  configSection.get("stalltorque", &mStallTorque); // Not necessary to define stall torque; in that case, no limit is applied
 
 	return configresult;
 }

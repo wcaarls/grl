@@ -262,6 +262,11 @@ class CLog2
     	mStream(gLogFactory().getLog(name)),
     	mName(name)
     	{ }
+    CLog2(const CLog2 &obj) :
+        mStream(obj.mStream),
+        mName(obj.mName)
+        { }
+    	
     CLog2& operator=(const CLog2 &obj) { return *this; }
 
     CLogStream &operator()(ELogLevel level)
