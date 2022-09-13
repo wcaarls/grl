@@ -38,8 +38,8 @@
         <tthigh>rthigh - inrthigh</tthigh>
         <tshin>rshin - inrshin</tshin>
         
-        <damping>0</damping>
-        <dryfriction>0.2</dryfriction>
+        <damping>0.1</damping>
+        <dryfriction>0</dryfriction>
        
         <!-- irrelevant -->
 		<irrelevantmass>0.001*scale</irrelevantmass>
@@ -47,9 +47,9 @@
 		
 	<!-- policy -->
 	<fallheight>(lthigh+lshin/2)</fallheight>
-	<maxtorque>0.5</maxtorque>
-	<timereward>0</timereward>
-	<fallreward>-100</fallreward>
+	<maxtorque>1</maxtorque>
+	<timereward>-0.1</timereward>
+	<fallreward>-10</fallreward>
 	<velreward>1</velreward>
 	<posereward>0</posereward>
         <terminal>((fallheight > robot.waist.z) ||
@@ -68,7 +68,7 @@
  			<expression>terminal</expression>
 		</termination>
 		<reward>
-			<expression>timereward + 
+			<expression>timereward * (robot.geomleftShin.contact * robot.geomrightShin.contact) + 
 			            velreward * robot.world_body.anglerate +
 			            fallreward * terminal -
 			            posereward * abs(robot.bindArm_waist.angle)^2
@@ -172,8 +172,8 @@
 		<globalK>3.3E6</globalK>
 		<globalD>300</globalD>
 		<gravityZ>-9.81</gravityZ>
-		<steptime>0.01</steptime>
-		<subsamplingfactor>100</subsamplingfactor>
+		<steptime>0.033</steptime>
+		<subsamplingfactor>167</subsamplingfactor>
         
         <!-- World anchor -->
 		<anchor>
@@ -639,10 +639,6 @@
                 <axisX>0</axisX>
 				<axisY>0</axisY>
 				<axisZ>1</axisZ>
-				<motor>
-					<type>torque</type>
-					<lineardamping>damping</lineardamping>
-				</motor>
             </joint>
             
             <!-- 1: body-mainArm -->
@@ -733,10 +729,6 @@
                 <axisX>0</axisX>
 				<axisY>1</axisY>
 				<axisZ>0</axisZ>
-				<motor>
-					<type>torque</type>
-					<lineardamping>0.01</lineardamping>
-				</motor>
 		    </joint>
             
             <!-- 7: waist_rightThigh -->
@@ -803,7 +795,7 @@
 					<type>torque</type>
 					<lineardamping>damping</lineardamping>
 				</motor>
-				<lowerlimit>0</lowerlimit>
+				<!--lowerlimit>0</lowerlimit-->
                 <!--upperlimit>lbody</upperlimit-->
 		    </joint>
             
@@ -827,7 +819,7 @@
 					<type>torque</type>
 					<lineardamping>damping</lineardamping>
 				</motor>
-				<lowerlimit>0</lowerlimit>
+				<!--lowerlimit>0</lowerlimit-->
                 <!--upperlimit>lbody</upperlimit-->
 		    </joint>
             

@@ -1,12 +1,13 @@
 experiment: 
   type: experiment/online_learning
-  runs: 1
+  runs: 10
   run_offset: 0
-  trials: 0
+  trials: 10000
   steps: 0
   rate: 0
-  test_interval: -1
+  test_interval: 10
   test_trials: 1
+  output: leo2_sac
   environment: 
     type: environment/ode
     xml: leo2_learning.xml
@@ -15,16 +16,16 @@ experiment:
   agent: 
     type: agent/replay
     memory_size: 100000
-    replay_steps: 64
-    batch_size: 16
+    replay_steps: 256
+    batch_size: 64
     observation_steps: 1000
     threads: 0
     policy: 
       type: mapping/policy/post/noise
-      sigma: [0.5]
-      theta: [0.15]
-      decay_rate: 0.999
-      decay_min: 0.1
+      sigma: []
+      theta: []
+      decay_rate: 0.9996
+      decay_min: 0.2
       output_min: experiment/environment/action_min
       output_max: experiment/environment/action_max
       policy: 
@@ -50,21 +51,22 @@ experiment:
           representation: 
             type: representation/parameterized/tensorflow
             interval: 100
-            tau: 0.01
-            file: $@/../4layer_tanh_td3.py experiment/environment/observation_dims experiment/environment/action_dims
+            tau: 0.1
+            file: $@/../4layer_tanh_sac.py experiment/environment/observation_dims experiment/environment/action_dims
             memory: 0.1
             input_layer: s_in, a_in
-            output_layer: q, a_out
+            output_layer: v, a_out
             init_node: init
             update_node: update
     predictor: 
       type: predictor/ddpg
-      gamma: 0.99
+      gamma: 0.9
       reward_scale: [1]
+      use_target_actor: 0
       observation: s_in
       action_in: a_in
       action_out: a_out
-      value: q
+      value: v
       target: target
       critic_update: update
       actor_update: a_update
