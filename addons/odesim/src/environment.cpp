@@ -182,6 +182,11 @@ void ODESTGEnvironment::start(int test, Observation *obs)
   obs->v.resize(sensors_.size());
   for (size_t ii=0; ii < sensors_.size(); ++ii)
     (*obs)[ii] = sensors_[ii].evaluate(listener_.getState());
+
+  // Initialize all variables so we can calculate previous values
+  // already in the first timestep
+  reward_.evaluate(listener_.getState());
+  termination_.evaluate(listener_.getState());
     
   start_time_ = simulator_.getAbsTime();
 

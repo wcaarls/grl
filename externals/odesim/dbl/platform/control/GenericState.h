@@ -58,12 +58,13 @@ class CGenericSensorValue : public CSTGLoggable
   private:
     std::string mName;
     int mIndex;
-    double *mValue;
+    double *mValue, *mPrevValue;
 
   public:
     CGenericSensorValue(const std::string &name="unnamed", ISTGGenericSensing *iface=NULL) : mName(name), mIndex(-1)
     {
       mValue = new double(0);
+      mPrevValue = new double(0);
       if (iface)
         resolve(iface);
     }
@@ -88,6 +89,7 @@ class CGenericSensorValue : public CSTGLoggable
     {
       if (mIndex >= 0)
       {
+        (*mPrevValue) = *mValue;
         (*mValue) = state->var[mIndex];
         logCrawlLn(mStgLog, "SensorValue " << mName << " (" << mIndex << ") has value " << (*mValue));
       }
@@ -95,6 +97,7 @@ class CGenericSensorValue : public CSTGLoggable
       {
         logWarningLn(mStgLog, "Trying to get unresolved sensor value " << mName);
         (*mValue) = 0;
+        (*mPrevValue) = 0;
       }
 
       return (*mValue);
@@ -103,6 +106,7 @@ class CGenericSensorValue : public CSTGLoggable
     void RegisterParserVariable(mu::Parser &parser)
     {
       parser.DefineVar(mName, mValue);
+      parser.DefineVar(mName + "~", mPrevValue);
     }
 };
 

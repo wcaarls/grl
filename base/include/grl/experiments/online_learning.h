@@ -30,6 +30,7 @@
 
 #include <grl/agent.h>
 #include <grl/environment.h>
+#include <grl/exporter.h>
 #include <grl/experiment.h>
 
 namespace grl
@@ -44,6 +45,7 @@ class OnlineLearningExperiment : public Experiment
   protected:
     Agent *agent_, *test_agent_;
     Environment *environment_;
+    Exporter *exporter_;
     VectorSignal *state_, *action_, *reward_, *test_action_, *curve_;
 
     size_t runs_, run_offset_, trials_, steps_;

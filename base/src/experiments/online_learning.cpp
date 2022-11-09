@@ -51,6 +51,7 @@ void OnlineLearningExperiment::request(ConfigurationRequest *config)
   config->push_back(CRP("environment", "environment", "Environment in which the agent acts", environment_));
   config->push_back(CRP("agent", "agent", "Agent", agent_));
   config->push_back(CRP("test_agent", "agent", "Agent to use in test trials", agent_, true));
+  config->push_back(CRP("exporter", "exporter", "Optional exporter for transition log (supports time, observation, action, reward, terminal)", exporter_, true));
   
   config->push_back(CRP("state", "signal/vector.observation", "Current observed state of the environment", CRP::Provided));
   config->push_back(CRP("action", "signal/vector.action", "Last action applied to the environment", CRP::Provided));
@@ -67,6 +68,11 @@ void OnlineLearningExperiment::configure(Configuration &config)
   agent_ = (Agent*)config["agent"].ptr();
   test_agent_ = (Agent*)config["test_agent"].ptr();
   environment_ = (Environment*)config["environment"].ptr();
+  exporter_ = (Exporter*)config["exporter"].ptr();
+
+  // Register fields to be exported
+  if (exporter_)
+    exporter_->init({"time", "observation", "action", "reward", "terminal"});
   
   runs_ = config["runs"];
   run_offset_ = config["run_offset"];
@@ -118,6 +124,11 @@ LargeVector OnlineLearningExperiment::run()
   for (size_t rr=run_offset_; rr < runs_+run_offset_; ++rr)
   {
     curve.clear();
+    if (exporter_)
+    {
+      exporter_->open("test", false);
+      exporter_->open("learn", false);
+    }
 
     if (!output_.empty())
     {
@@ -149,6 +160,9 @@ LargeVector OnlineLearningExperiment::run()
       int test = (test_interval_ >= 0 && tt%(test_interval_+1) == test_interval_) * (rr+1);
       size_t subtrials = test?test_trials_:1;
       timer step_timer;
+      
+      if (exporter_)
+        exporter_->open(test?"test":"learn", true);
 
       Agent *agent = agent_;      
       if (test) agent = test_agent_;
@@ -165,6 +179,9 @@ LargeVector OnlineLearningExperiment::run()
         action_->set(action.v);
         if (test)
           test_action_->set(action.v);
+
+        if (exporter_)
+          exporter_->write({VectorConstructor(total_time), obs, action, VectorConstructor(0.), VectorConstructor(0.)});
 
         do
         {
@@ -184,6 +201,9 @@ LargeVector OnlineLearningExperiment::run()
           
           total_reward += reward;
           total_time += tau;
+
+          if (exporter_)
+            exporter_->write({VectorConstructor(total_time), obs, action, VectorConstructor(reward), VectorConstructor((double)terminal)});
 
           if (obs.size())
           {

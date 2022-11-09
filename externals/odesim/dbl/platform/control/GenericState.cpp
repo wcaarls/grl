@@ -25,7 +25,7 @@ using std::endl;
 
 static void DefineNameChars(mu::Parser &parser)
 {
-  parser.DefineNameChars("0123456789_.@"
+  parser.DefineNameChars("0123456789_.@~"
                          "abcdefghijklmnopqrstuvwxyz"
                          "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
 }

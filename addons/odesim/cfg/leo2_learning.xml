@@ -16,7 +16,7 @@
         <mwaist>      408.64 *scale </mwaist>
         <mthigh>      162.13 *scale </mthigh>
         <mshin>       70.78  *scale </mshin>
-        
+
         <!-- lenght -->
         <lbody>       (52.36+103.92+78.07) *scale </lbody>
         <lmainArm>    (484+19.38)          *scale </lmainArm>
@@ -185,7 +185,7 @@
 		
         <object>
             <name>robot</name>
-            <drawbodies>false</drawbodies>
+            <drawbodies>true</drawbodies>
 			<drawcoms>false</drawcoms>
 			<drawgeoms>true</drawgeoms>
 			
@@ -484,23 +484,16 @@
 					<z>0</z>
                 </anchor>
                 <drawinfo>
-                    <cylinder>
+                    <box>
                         <color>
 							<r>0.3</r>
 							<g>0.3</g>
 							<b>0.3</b>
 						</color>
-                        <radius>radius</radius>
-                        <length>lwaist</length>
-                        <rotation>
-                            <axis>
-                                <x>1</x>
-                                <y>0</y>
-                                <z>0</z>
-                            </axis>
-                            <angle>0.5*_pi</angle>
-                        </rotation>
-                    </cylinder>
+                        <dx>radius</dx>
+                        <dy>lwaist</dy>
+                        <dz>lwaist</dz>
+                    </box>
                 </drawinfo>  
             </body>
            
@@ -795,7 +788,7 @@
 					<type>torque</type>
 					<lineardamping>damping</lineardamping>
 				</motor>
-				<!--lowerlimit>0</lowerlimit-->
+				<lowerlimit>0</lowerlimit>
                 <!--upperlimit>lbody</upperlimit-->
 		    </joint>
             
@@ -819,7 +812,7 @@
 					<type>torque</type>
 					<lineardamping>damping</lineardamping>
 				</motor>
-				<!--lowerlimit>0</lowerlimit-->
+				<lowerlimit>0</lowerlimit>
                 <!--upperlimit>lbody</upperlimit-->
 		    </joint>
             
