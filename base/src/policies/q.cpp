@@ -30,6 +30,7 @@
 using namespace grl;
 
 REGISTER_CONFIGURABLE(QPolicy)
+REGISTER_CONFIGURABLE(QVectorPolicy)
 
 void QPolicy::request(ConfigurationRequest *config)
 {
@@ -120,4 +121,21 @@ void QPolicy::distribution(const Observation &in, const Action &prev, LargeVecto
 
   values(in, &qvalues);
   sampler_->distribution(qvalues, out);
+}
+
+void QVectorPolicy::request(ConfigurationRequest *config)
+{
+  config->push_back(CRP("discretizer", "discretizer.action", "Action discretizer", discretizer_));
+  config->push_back(CRP("projector", "projector.state", "Projects observations onto representation space", projector_));
+  config->push_back(CRP("representation", "representation.value/actions", "Action-value vector representation", representation_));
+  config->push_back(CRP("sampler", "sampler", "Samples actions from action-values", sampler_));
+}
+
+void QVectorPolicy::values(const Observation &in, LargeVector *out) const
+{
+  Vector tmp;
+
+  representation_->read(projector_->project(in), &tmp);
+  
+  *out = tmp;
 }

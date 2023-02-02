@@ -71,6 +71,21 @@ class QPolicy : public ValuePolicy
     virtual void values(const Observation &in, LargeVector *out) const;
 };
 
+/// Policy based on a vectorized action-value Representation.
+class QVectorPolicy : public QPolicy
+{
+  public:
+    TYPEINFO("mapping/policy/discrete/value/qvector", "Vectorized Q-value based policy")
+    
+  public:
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+
+  protected:
+    // From QPolicy
+    virtual void values(const Observation &in, LargeVector *out) const;
+};
+
 }
 
 #endif /* GRL_Q_POLICY_H_ */
