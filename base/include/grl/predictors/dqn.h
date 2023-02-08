@@ -33,24 +33,27 @@
 #include <grl/discretizer.h>
 #include <grl/projector.h>
 #include <grl/representation.h>
+#include <grl/policy.h>
 
 namespace grl
 {
 
-/// Q-learning predictor using action Q-vectors.
+/// Q value predictor using action Q-vectors.
 class DQNPredictor : public Predictor
 {
   public:
-    TYPEINFO("predictor/dqn", "Deep Q-learning off-policy value function predictor")
+    TYPEINFO("predictor/dqn", "Deep Q network value function predictor")
 
   protected:
     double gamma_;
+    int double_;
     Discretizer *discretizer_;
     Projector *projector_;
     Representation *representation_;
+    ValuePolicy *policy_;
 
   public:
-    DQNPredictor() : gamma_(0.97), discretizer_(NULL), projector_(NULL), representation_(NULL) { }
+    DQNPredictor() : gamma_(0.97), discretizer_(NULL), projector_(NULL), representation_(NULL), policy_(NULL) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);

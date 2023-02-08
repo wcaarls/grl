@@ -63,12 +63,15 @@ class QPolicy : public ValuePolicy
     
     // From DiscretePolicy
     virtual void distribution(const Observation &in, const Action &prev, LargeVector *out) const;
+    virtual void distribution(std::vector<const Observation*> &in, std::vector<const Action*> &prev, Matrix *out) const;
     
     // From ValuePolicy
     virtual double value(const Observation &in) const;
+    virtual void value(std::vector<const Observation*> &in, std::vector<const Action*> &prev, LargeVector *out) const;
     
   protected:
     virtual void values(const Observation &in, LargeVector *out) const;
+    virtual void values(std::vector<const Observation*> &in, Matrix *out) const;
 };
 
 /// Policy based on a vectorized action-value Representation.
@@ -84,6 +87,7 @@ class QVectorPolicy : public QPolicy
   protected:
     // From QPolicy
     virtual void values(const Observation &in, LargeVector *out) const;
+    virtual void values(std::vector<const Observation*> &in, Matrix *out) const;
 };
 
 }

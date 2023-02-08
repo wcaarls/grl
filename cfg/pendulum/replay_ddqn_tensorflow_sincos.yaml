@@ -50,6 +50,7 @@ experiment:
     predictor: 
       type: predictor/dqn
       gamma: 0.97
+      double: 1
       discretizer: experiment/agent/policy/discretizer
       projector: experiment/agent/policy/projector
       representation: experiment/agent/policy/representation
@@ -57,18 +58,12 @@ experiment:
         type: mapping/policy/discrete/value/qvector
         discretizer: experiment/agent/policy/discretizer
         projector: experiment/agent/policy/projector
-        representation: experiment/agent/policy/representation/target
+        representation: experiment/agent/policy/representation
         sampler: 
           type: sampler/greedy
   test_agent: 
     type: agent/fixed
-    policy: 
-      type: mapping/policy/discrete/value/qvector
-      discretizer: experiment/agent/policy/discretizer
-      projector: experiment/agent/policy/projector
-      representation: experiment/agent/policy/representation
-      sampler: 
-        type: sampler/greedy
+    policy: experiment/agent/predictor/policy
   save_every: never
 visualizer: 
   type: visualizer/glut

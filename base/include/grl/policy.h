@@ -82,6 +82,21 @@ class DiscretePolicy : public Policy
   public:
     /// Returns the probability of taking a discrete policy's actions in a certain state.
     virtual void distribution(const Observation &in, const Action &prev, LargeVector *out) const = 0;
+
+    virtual void distribution(std::vector<const Observation*> &in, std::vector<const Action*> &prev, Matrix *out) const
+    {
+      LargeVector out1;
+      
+      distribution(*in[0], *prev[0], &out1);
+      out->resize(in.size(), out1.size());
+      out->row(0) = out1;
+      
+      for (size_t ii=1; ii != in.size(); ++ii)
+      {
+        distribution(*in[ii], *prev[ii], &out1);
+        out->row(ii) = out1;
+      }
+    }
 };
 
 /// A policy based on Q or V values.
@@ -90,6 +105,18 @@ class ValuePolicy : public DiscretePolicy
   public:
     /// Returns the expected value of the action taken in state 'in'
     virtual double value(const Observation &in) const = 0;
+    
+    virtual double value(const Observation &in, const Action &prev) const
+    {
+      return value(in);
+    }
+    
+    virtual void value(std::vector<const Observation*> &in, std::vector<const Action*> &prev, LargeVector *out) const
+    {
+      out->resize(in.size());
+      for (size_t ii=0; ii != in.size(); ++ii)
+        (*out)[ii] = value(*in[ii], *prev[ii]);
+    }
 };
 
 /// A parameterized Policy.

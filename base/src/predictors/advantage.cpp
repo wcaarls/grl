@@ -125,6 +125,7 @@ LargeVector QPredictor::criticize(const std::vector<const Transition*> &transiti
     if (!transitions[ii]->obs.absorbing)
       qs += vs;
     
+  // Get Q'(s', *)
   representation_->target()->batchRead(qs);
   for (size_t ii=0; ii < transitions.size(); ++ii)
     if (!transitions[ii]->obs.absorbing)
@@ -139,6 +140,7 @@ LargeVector QPredictor::criticize(const std::vector<const Transition*> &transiti
     
   if (actions.size())
   {
+    // Get Q(s, a)
     representation_->batchRead(transitions.size());
     for (size_t ii=0; ii < transitions.size(); ++ii)
       representation_->enqueue(projector_->project(transitions[ii]->prev_obs, *actions[ii]));

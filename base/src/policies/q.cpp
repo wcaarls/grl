@@ -67,6 +67,25 @@ double QPolicy::value(const Observation &in) const
   return v;
 }
 
+void QPolicy::value(std::vector<const Observation*> &in, std::vector<const Action*> &prev, LargeVector *out) const
+{
+  Matrix qvalues;
+  LargeVector dist;
+
+  values(in, &qvalues);
+  out->resize(in.size());
+  
+  for (size_t ii=0; ii < in.size(); ++ii)
+  {
+    double v = 0;
+    
+    sampler_->distribution(qvalues.row(ii), &dist);
+    for (size_t jj=0; jj < dist.size(); ++jj)
+      v += qvalues(ii,jj)*dist[jj];
+    (*out)[ii] = v;
+  }
+}
+
 /**
  * @brief QPolicy::values calculates Q(s,a) values for provided state 'in' and for all actions 'a'
  * @param in: state
@@ -85,6 +104,26 @@ void QPolicy::values(const Observation &in, LargeVector *out) const
   Vector value;
   for (size_t ii=0; ii < variants.size(); ++ii)
     (*out)[ii] = representation_->read(projections[ii], &value); // reading approximated values
+}
+
+void QPolicy::values(std::vector<const Observation*> &in, Matrix *out) const
+{
+  std::vector<Vector> variants;
+  std::vector<ProjectionPtr> projections;
+
+  representation_->batchRead(in.size()*variants.size());
+  for (size_t ii=0; ii != in.size(); ++ii)
+  {
+    discretizer_->options(*in[ii], &variants);
+    projector_->project(*in[ii], variants, &projections);
+    for (size_t jj=0; jj < variants.size(); ++jj)
+      representation_->enqueue(projections[jj]);
+  }
+  
+  representation_->read(out);
+  
+  *out = out->col(0);
+  out->resize(in.size(), variants.size());
 }
 
 void QPolicy::act(const Observation &in, Action *out) const
@@ -123,6 +162,20 @@ void QPolicy::distribution(const Observation &in, const Action &prev, LargeVecto
   sampler_->distribution(qvalues, out);
 }
 
+void QPolicy::distribution(std::vector<const Observation*> &in, std::vector<const Action*> &prev, Matrix *out) const
+{
+  Matrix qvalues;
+  LargeVector row;
+  
+  values(in, &qvalues);
+  out->resize(qvalues.rows(), qvalues.cols());
+  for (size_t ii=0; ii != in.size(); ++ii)
+  {
+    sampler_->distribution(qvalues.row(ii), &row);
+    out->row(ii) = row;
+  }
+}
+
 void QVectorPolicy::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("discretizer", "discretizer.action", "Action discretizer", discretizer_));
@@ -138,4 +191,12 @@ void QVectorPolicy::values(const Observation &in, LargeVector *out) const
   representation_->read(projector_->project(in), &tmp);
   
   *out = tmp;
+}
+
+void QVectorPolicy::values(std::vector<const Observation*> &in, Matrix *out) const
+{
+  representation_->batchRead(in.size());
+  for (size_t ii=0; ii != in.size(); ++ii)
+    representation_->enqueue(projector_->project(*in[ii]));
+  representation_->read(out);
 }
