@@ -92,7 +92,7 @@ class TensorFlowRepresentation : public ParameterizedRepresentation
     virtual void batchRead(size_t sz);
     virtual void batchWrite(size_t sz);
     virtual void enqueue(const ProjectionPtr &projection);
-    virtual void enqueue(const ProjectionPtr &projection, const Vector &target);
+    virtual void enqueue(const ProjectionPtr &projection, const LargeVector &target);
     virtual void read(Matrix *out);
     virtual void write();
     

@@ -113,7 +113,7 @@ class Representation : public Configurable
     }
 
     /// Enqueues a batch write operation, to be executed later.
-    virtual void enqueue(const ProjectionPtr &projection, const Vector &target)
+    virtual void enqueue(const ProjectionPtr &projection, const LargeVector &target)
     {
       // Assume write is not reentrant for regular representations
       write(projection, target);

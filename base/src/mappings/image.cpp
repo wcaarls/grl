@@ -63,7 +63,7 @@ void ImageMapping::configure(Configuration &config)
     
   Ics_DataType dt;
   int ndims;
-  size_t dims[GRL_STATIC_VECTOR_SIZE];
+  size_t dims[64];
   
   IcsGetLayout(ics, &dt, &ndims, dims);
   if (dt != Ics_real64)

@@ -1,0 +1,95 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 0
+  steps: 0
+  rate: 0
+  test_interval: 10
+  environment: 
+    type: environment/modeled
+    model: 
+      type: model/dynamical
+      control_step: 0.03
+      integration_steps: 5
+      dynamics: 
+        type: dynamics/pendulum
+    task: 
+      type: task/pendulum/swingup
+      timeout: 2.99
+      randomization: 0
+  agent: 
+    type: agent/replay
+    replay_steps: 64
+    batch_size: 16
+    threads: 0
+    policy: 
+      type: mapping/policy/discrete/value/qvector
+      discretizer:
+        type: discretizer/uniform
+        min: experiment/environment/task/action_min
+        max: experiment/environment/task/action_max
+        steps: [3]
+      projector:
+        type: projector/pre/normalizing
+        input_min: experiment/environment/task/observation_min
+        input_max: experiment/environment/task/observation_max
+        projector: 
+          type: projector/pre/geometric
+          angles: [1, 0]
+          normalized: 1
+          projector:
+            type: projector/identity
+      representation:
+        interval: 1000
+        memory: 0.1
+        type: representation/parameterized/tensorflow
+        file: $@/../4layer_dueling.py experiment/agent/policy/projector/projector/memory 3
+      sampler: 
+        type: sampler/epsilon_greedy
+        epsilon: 0.05
+    predictor: 
+      type: predictor/dqn
+      gamma: 0.97
+      double: 1
+      discretizer: experiment/agent/policy/discretizer
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+      policy:
+        type: mapping/policy/discrete/value/qvector
+        discretizer: experiment/agent/policy/discretizer
+        projector: experiment/agent/policy/projector
+        representation: experiment/agent/policy/representation
+        sampler: 
+          type: sampler/greedy
+  test_agent: 
+    type: agent/fixed
+    policy: experiment/agent/predictor/policy
+  save_every: never
+visualizer: 
+  type: visualizer/glut
+visualization: 
+  type: visualization/slice
+  field_dims: [0, 1]
+  input_min: experiment/environment/task/observation_min
+  input_max: experiment/environment/task/observation_max
+  points: 65536
+  savepoints: 1048576
+  projection: mean
+  mapping:
+    type: mapping/represented
+    projector: experiment/agent/policy/projector
+    representation: experiment/agent/policy/representation
+  delay: 0.5
+target_visualization: 
+  type: visualization/slice
+  field_dims: [0, 1]
+  input_min: experiment/environment/task/observation_min
+  input_max: experiment/environment/task/observation_max
+  points: 65536
+  savepoints: 1048576
+  projection: mean
+  mapping:
+    type: mapping/represented
+    projector: experiment/agent/policy/projector
+    representation: experiment/agent/policy/representation/target
+  delay: 0.5

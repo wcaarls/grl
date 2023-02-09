@@ -209,6 +209,7 @@ inline bool convert(const std::string& str, Vector *obj)
   return iss.eof();
 }
 
+#ifndef GRL_VECTOR_IS_LARGE_VECTOR
 /// Read a string as a vector.
 inline bool convert(const std::string& str, LargeVector *obj)
 {
@@ -220,6 +221,7 @@ inline bool convert(const std::string& str, LargeVector *obj)
   
   return iss.eof();
 }
+#endif
 
 /// Sample from distribution
 inline size_t sample(const LargeVector &dist, double sum)

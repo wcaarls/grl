@@ -29,6 +29,7 @@
 #define GRL_VECTOR_H_
 
 #define GRL_EIGEN_VECTOR
+//#define GRL_VECTOR_IS_LARGE_VECTOR
 
 #ifdef GRL_EIGEN_VECTOR
 #include <Eigen/Dense>
@@ -113,7 +114,11 @@ using ::operator >>;
 using ::operator <<;
 
 #ifdef GRL_EIGEN_VECTOR
-#define GRL_STATIC_VECTOR_SIZE 64
+#ifdef GRL_VECTOR_IS_LARGE_VECTOR
+  #define GRL_STATIC_VECTOR_SIZE Eigen::Dynamic
+#else
+  #define GRL_STATIC_VECTOR_SIZE 64
+#endif
 
 typedef Eigen::Array<double,1,Eigen::Dynamic> LargeVector;
 typedef Eigen::Array<double,1,Eigen::Dynamic,Eigen::RowMajor,1,GRL_STATIC_VECTOR_SIZE> Vector;
@@ -370,6 +375,7 @@ inline Vector extend(const Vector &a, const Vector &b)
   return c;
 }
 
+#ifndef GRL_VECTOR_IS_LARGE_VECTOR
 inline LargeVector extend(const Vector &a, const LargeVector &b)
 {
   LargeVector c(a.size()+b.size());
@@ -405,6 +411,7 @@ inline LargeVector extend(const LargeVector &a, const LargeVector &b)
 
   return c;
 }
+#endif
 
 template <class T>
 inline void fromVector(const Vector &vector, T &to)
@@ -422,6 +429,7 @@ inline void toVector(const T &from, Vector &vector)
     vector[ii] = from[ii];
 }
 
+#ifndef GRL_VECTOR_IS_LARGE_VECTOR
 template <class T>
 inline void fromVector(const LargeVector &vector, T &to)
 {
@@ -437,6 +445,7 @@ inline void toVector(const T &from, LargeVector &vector)
   for (size_t ii = 0; ii < from.size(); ++ii)
     vector[ii] = from[ii];
 }
+#endif
 
 #ifdef GRL_EIGEN_VECTOR
 typedef Eigen::MatrixXd Matrix;

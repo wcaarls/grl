@@ -104,6 +104,7 @@ class ConfigurationParameter
       value_ = oss.str();
     }
     
+#ifndef GRL_VECTOR_IS_LARGE_VECTOR
     ConfigurationParameter(LargeVector value)
     {
       std::ostringstream oss;
@@ -112,6 +113,7 @@ class ConfigurationParameter
       oss << v_out;
       value_ = oss.str();
     }
+#endif
     
     ConfigurationParameter(const ConfigurationParameter &other)
     {
@@ -152,6 +154,7 @@ class ConfigurationParameter
       }
     }
 
+#ifndef GRL_VECTOR_IS_LARGE_VECTOR
     // Specialization for LargeVector that goes through a std::vector<double>
     bool get(LargeVector &value) const
     {
@@ -169,6 +172,7 @@ class ConfigurationParameter
         return !iss.fail();
       }
     }
+#endif
     
     template<class T>
     operator T() const { return as<T>(); }

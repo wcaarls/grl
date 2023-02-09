@@ -665,7 +665,7 @@ void TensorFlowRepresentation::enqueue(const ProjectionPtr &projection)
     throw Exception("representation/tensorflow requires a projector returning a VectorProjection");
 }
 
-void TensorFlowRepresentation::enqueue(const ProjectionPtr &projection, const Vector &target)
+void TensorFlowRepresentation::enqueue(const ProjectionPtr &projection, const LargeVector &target)
 {
 //  CRAWL("enqueue write");
   

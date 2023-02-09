@@ -223,6 +223,7 @@ struct CRP
       value = oss.str();
     }
     
+#ifndef GRL_VECTOR_IS_LARGE_VECTOR
     /// Sets the value member to a string description of the given vector parameter.
     void setValue(const LargeVector& v)
     {
@@ -232,6 +233,7 @@ struct CRP
       oss << v_out;
       value = oss.str();
     }
+#endif
 };
 
 /// Set of requested parameters.

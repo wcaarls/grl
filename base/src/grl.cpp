@@ -54,7 +54,9 @@ DECLARE_TYPE_NAME(long long unsigned int)
 DECLARE_TYPE_NAME(float)
 DECLARE_TYPE_NAME(double)
 DECLARE_TYPE_NAME(Vector)
+#ifndef GRL_VECTOR_IS_LARGE_VECTOR
 DECLARE_TYPE_NAME(LargeVector)
+#endif
 DECLARE_TYPE_NAME(std::string)
 
 ReadWriteLock SampleStore::rwlock_;

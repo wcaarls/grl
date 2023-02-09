@@ -186,11 +186,20 @@ void QVectorPolicy::request(ConfigurationRequest *config)
 
 void QVectorPolicy::values(const Observation &in, LargeVector *out) const
 {
+#ifdef GRL_VECTOR_IS_LARGE_VECTOR
   Vector tmp;
 
   representation_->read(projector_->project(in), &tmp);
   
   *out = tmp;
+#else
+  Matrix qvalues;
+
+  representation_->batchRead(1);
+  representation_->enqueue(projector_->project(in));
+  representation_->read(&qvalues);
+  *out = qvalues.row(0);
+#endif
 }
 
 void QVectorPolicy::values(std::vector<const Observation*> &in, Matrix *out) const
