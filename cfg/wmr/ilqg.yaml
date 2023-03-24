@@ -1,0 +1,55 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  run_offset: 0
+  trials: 100
+  steps: 0
+  rate: 0
+  test_interval: -1
+  environment: 
+    type: environment/modeled
+    discrete_time: 0
+    model: 
+      type: model/dynamical
+      control_step: 0.05
+      integration_steps: 5
+      dynamics: 
+        type: dynamics/wmr
+    task: 
+      type: task/wmr/regulator
+  agent: 
+    type: agent/solver
+    interval: 1
+    policy: 
+      type: mapping/policy/sample_feedback
+      output_min: experiment/environment/task/action_min
+      output_max: experiment/environment/task/action_max
+    solver: 
+      type: solver/policy/ilqg
+      horizon: 200
+      iterations: 5
+      stddev: 0.1*experiment/environment/task/action_max
+      regularization: state
+      model: 
+        type: observation_model/fixed
+        jacobian_step: 0.001
+        discrete_time: experiment/environment/discrete_time
+        model: 
+          type: model/dynamical
+          control_step: 0.01
+          integration_steps: 1
+          dynamics: experiment/environment/model/dynamics
+        task: experiment/environment/task
+      policy: experiment/agent/policy
+  save_every: never
+visualizer: 
+  type: visualizer/glut
+model_visualization: 
+  type: visualization/wmr
+  state: experiment/environment/state
+trajectory_visualization: 
+  type: visualization/trajectory
+  input_dims: [0, 1, 2]
+  input_min: experiment/environment/task/observation_min
+  input_max: experiment/environment/task/observation_max
+  trajectory: experiment/agent/solver/trajectory

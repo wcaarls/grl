@@ -45,6 +45,7 @@ void ILQGSolver::request(ConfigurationRequest *config)
 {
   config->push_back(CRP("horizon", "Horizon", (int)horizon_));
   config->push_back(CRP("iterations", "Maximum number of iterations", (int)maxiter_));
+  config->push_back(CRP("mean", "Mean of initial random action sequence", mean_));
   config->push_back(CRP("stddev", "Standard deviation of initial random action sequence", stddev_));
   
   std::vector<std::string> options;
@@ -65,7 +66,11 @@ void ILQGSolver::configure(Configuration &config)
   policy_ = (SampleFeedbackPolicy*)config["policy"].ptr();
   
   horizon_ = config["horizon"];
+  mean_ = config["mean"].v();
   stddev_ = config["stddev"].v();
+  if (!mean_.size())
+    mean_ = ConstantVector(stddev_.size(), 0.);
+  
   maxiter_ = config["iterations"];
   regularization_ = config["regularization"].str();
   
@@ -136,7 +141,7 @@ bool ILQGSolver::resolve(double t, const Vector &xt)
 
     for (size_t ii=0; ii < u_.rows(); ++ii)
       for (size_t jj=0; jj < u_.cols(); ++jj)
-        u_(ii, jj) = RandGen::getNormal(0, stddev_[ii]);
+        u_(ii, jj) = RandGen::getNormal(mean_[ii], stddev_[ii]);
   }    
 
   size_t start = round((t-t0_)/step_);
@@ -177,7 +182,7 @@ bool ILQGSolver::resolve(double t, const Vector &xt)
     u_ = Matrix();
     return false;
   }
-
+  
   Matrix3D J(N+1), // Dynamics and cost Jacobian, (n+1) x (n+m) x (N+1)
            H(N+1); // Cost Hessian,               (n+m) x (n+m) x (N+1)
   Matrix l;        // Action gradient, m x N

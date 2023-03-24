@@ -61,7 +61,7 @@ class ILQGSolver : public PolicySolver
     MatrixSignal *trajectory_;
     size_t horizon_, maxiter_;
     double lambda_min_, lambda_max_, lambda_factor_, tolerance_;
-    Vector stddev_;
+    Vector mean_, stddev_;
     std::string regularization_;
 
     double t0_, step_;

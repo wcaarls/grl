@@ -1,0 +1,39 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  run_offset: 0
+  trials: 100
+  steps: 0
+  rate: 20
+  test_interval: -1
+  environment: 
+    type: environment/modeled
+    discrete_time: 0
+    model: 
+      type: model/dynamical
+      control_step: 0.05
+      integration_steps: 5
+      dynamics: 
+        type: dynamics/wmr
+        caster: 1
+    task: 
+      type: task/wmr/caster_regulator
+      timeout: 1000
+  agent: 
+    type: agent/fixed
+    policy:
+      type: policy/post/noise
+      sigma: 0.2
+      theta: 0.05
+      output_min: experiment/environment/action_min
+      output_max: experiment/environment/action_max
+      policy:
+        type: policy/random
+        output_min: [0.5, 0]
+        output_max: [0.5, 0]
+  save_every: never
+visualizer: 
+  type: visualizer/glut
+model_visualization: 
+  type: visualization/wmr
+  state: experiment/environment/state

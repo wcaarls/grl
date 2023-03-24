@@ -1,0 +1,31 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  run_offset: 0
+  trials: 100
+  steps: 0
+  rate: 20
+  test_interval: -1
+  environment: 
+    type: environment/modeled
+    discrete_time: 0
+    model: 
+      type: model/dynamical
+      control_step: 0.05
+      integration_steps: 5
+      dynamics: 
+        type: dynamics/wmr
+    task: 
+      type: task/wmr/regulator
+  agent: 
+    type: agent/fixed
+    policy:
+      type: policy/random
+      output_min: [1, 0]
+      output_max: [1, 0]
+  save_every: never
+visualizer: 
+  type: visualizer/glut
+model_visualization: 
+  type: visualization/wmr
+  state: experiment/environment/state
