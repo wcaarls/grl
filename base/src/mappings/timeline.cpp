@@ -100,7 +100,11 @@ double TimelineMapping::read(const Vector &in, Vector *result) const
   for (; idx < data_.size() && data_[idx][0] <= time; ++idx);
   
   Vector v;
-  if (idx < data_.size())
+  if (idx == 0)
+  {
+    v = data_.front();
+  }
+  else if (idx < data_.size())
   {
     if (interpolate_)
     {

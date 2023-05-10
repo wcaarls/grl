@@ -61,7 +61,7 @@ class ILQGSolver : public PolicySolver
     MatrixSignal *trajectory_;
     size_t horizon_, maxiter_;
     double lambda_min_, lambda_max_, lambda_factor_, tolerance_;
-    Vector mean_, stddev_;
+    Vector mean_, stddev_, action_min_, action_max_;
     std::string regularization_;
 
     double t0_, step_;
@@ -69,7 +69,7 @@ class ILQGSolver : public PolicySolver
     Matrix3D L_;
 
   public:
-    ILQGSolver() : model_(NULL), policy_(NULL), trajectory_(NULL), horizon_(100), maxiter_(100), lambda_min_(1e-6), lambda_max_(1e10), lambda_factor_(1.6), tolerance_(1e-5), regularization_("state"), t0_(0), step_(0) { }
+    ILQGSolver() : model_(NULL), policy_(NULL), trajectory_(NULL), horizon_(100), maxiter_(100), lambda_min_(1e-6), lambda_max_(1e10), lambda_factor_(1.6), tolerance_(1e-10), regularization_("state"), t0_(0), step_(0) { }
 
     // From Configurable 
     virtual void request(ConfigurationRequest *config);

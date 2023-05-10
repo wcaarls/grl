@@ -120,12 +120,13 @@ class Task : public Configurable
 class RegulatorTask : public Task
 {
   protected:
-    Vector start_, goal_, stddev_, q_, r_;
+    Vector start_, goal_, goal_action_, stddev_, q_, r_;
     Vector min_, max_;
     double timeout_;
     std::string q_function_, r_function_;
     double p_;
     Rand rand_;
+    Vector state_scaling_, action_scaling_;
 
   public:
     RegulatorTask() : timeout_(10), q_function_("quadratic"), r_function_("quadratic"), p_(0.01) { }
@@ -136,6 +137,7 @@ class RegulatorTask : public Task
       
       config->push_back(CRP("start", "Starting state", start_));
       config->push_back(CRP("goal", "Goal state", goal_));
+      config->push_back(CRP("goal_action", "Goal action", goal_action_));
       config->push_back(CRP("stddev", "Starting state standard deviation", stddev_));
       config->push_back(CRP("q", "Q (state cost) matrix diagonal", q_));
       config->push_back(CRP("r", "R (action cost) matrix diagonal", r_));
@@ -145,12 +147,15 @@ class RegulatorTask : public Task
       config->push_back(CRP("function", "Cost function style", q_function_, CRP::Configuration, {"quadratic", "absolute", "sqrt"}));
       config->push_back(CRP("r_function", "R cost function style", r_function_, CRP::Configuration, {"quadratic", "absolute", "sqrt"}));
       config->push_back(CRP("smoothing", "Cost function smoothing parameter", p_));
+      config->push_back(CRP("state_scaling", "State scaling for cost calculation", state_scaling_));
+      config->push_back(CRP("action_scaling", "Action scaling for cost calculation", action_scaling_));
     }
 
     void configure(Configuration &config)
     {
       start_ = config["start"].v();
       goal_ = config["goal"].v();
+      goal_action_ = config["goal_action"].v();
       stddev_ = config["stddev"].v();
       q_ = config["q"].v();
       r_ = config["r"].v();
@@ -160,6 +165,19 @@ class RegulatorTask : public Task
       q_function_ = config["function"].str();
       r_function_ = config["r_function"].str();
       p_ = config["smoothing"];
+      
+      state_scaling_ = config["state_scaling"].v();
+      action_scaling_ = config["action_scaling"].v();
+      
+      if (!state_scaling_.size())
+        state_scaling_ = ConstantVector(q_.size(), 1.);
+      if (!action_scaling_.size())
+        action_scaling_ = ConstantVector(r_.size(), 1.);
+        
+      if (state_scaling_.size() != q_.size())
+        throw bad_param("task/regulator:state_scaling");
+      if (action_scaling_.size() != r_.size())
+        throw bad_param("task/regulator:action_scaling");
 
       if (!start_.size())
         throw bad_param("task/regulator:start");
@@ -184,6 +202,12 @@ class RegulatorTask : public Task
         
       if (min_.size() && min_.size() != start_.size())
         throw bad_param("task/regulator:{min, max}");
+        
+      if (!goal_action_.size())
+        goal_action_ = ConstantVector(r_.size(), 0.);
+        
+      if (goal_action_.size() != r_.size())
+        throw bad_param("task/regulator:goal_action");
       
       config.set("observation_dims", q_.size());
       config.set("action_dims", r_.size());
@@ -218,42 +242,42 @@ class RegulatorTask : public Task
       {
         // Quadratic
         for (size_t ii=0; ii < q_.size(); ++ii)
-          *reward -= 0.5*q_[ii]*pow(state[ii]-goal_[ii], 2);
+          *reward -= 0.5*q_[ii]*pow((state[ii]-goal_[ii])*state_scaling_[ii], 2);
       }
       else if (q_function_[0] == 'a')
       {
         // Absolute
         // Smooth: (x^2 + p^2)^(1/2) - p
         for (size_t ii=0; ii < q_.size(); ++ii)
-          *reward -= q_[ii]*(sqrt(pow(state[ii]-goal_[ii], 2) + p_*p_) - p_);
+          *reward -= q_[ii]*(sqrt(pow((state[ii]-goal_[ii])*state_scaling_[ii], 2) + p_*p_) - p_);
       }
       else
       {
         // Square root
         // Smooth: (x^2 + p^2)^(1/4) - p^(1/2)
         for (size_t ii=0; ii < q_.size(); ++ii)
-          *reward -= q_[ii]*(sqrt(sqrt(pow(state[ii]-goal_[ii], 2) + p_*p_)) - sqrt(p_));
+          *reward -= q_[ii]*(sqrt(sqrt(pow((state[ii]-goal_[ii])*state_scaling_[ii], 2) + p_*p_)) - sqrt(p_));
       }
 
       if (r_function_[0] == 'q')
       {
         // Quadratic
         for (size_t ii=0; ii < r_.size(); ++ii)
-          *reward -= 0.5*r_[ii]*pow(action[ii], 2);
+          *reward -= 0.5*r_[ii]*pow((action[ii]-goal_action_[ii])*action_scaling_[ii], 2);
       }
       else if (r_function_[0] == 'a')
       {
         // Absolute
         // Smooth: (x^2 + p^2)^(1/2) - p
         for (size_t ii=0; ii < r_.size(); ++ii)
-          *reward -= r_[ii]*(sqrt(pow(action[ii], 2) + p_*p_) - p_);
+          *reward -= r_[ii]*(sqrt(pow((action[ii]-goal_action_[ii])*action_scaling_[ii], 2) + p_*p_) - p_);
       }
       else
       {
         // Square root
         // Smooth: (x^2 + p^2)^(1/4) - p^(1/2)
         for (size_t ii=0; ii < r_.size(); ++ii)
-          *reward -= r_[ii]*(sqrt(sqrt(pow(action[ii], 2) + p_*p_)) - sqrt(p_));
+          *reward -= r_[ii]*(sqrt(sqrt(pow((action[ii]-goal_action_[ii])*action_scaling_[ii], 2) + p_*p_)) - sqrt(p_));
       }
     }
     
@@ -268,7 +292,14 @@ class RegulatorTask : public Task
     Matrix rewardHessian(const Vector &state, const Action &action) const
     {
       if (q_function_[0] == 'q' && r_function_[0] == 'q')
-        return diagonal(-extend(q_, r_));
+      {
+        Vector qr = -extend(q_, r_);
+        for (size_t ii=0; ii != q_.size(); ++ii)
+          qr[ii] *= state_scaling_[ii] * state_scaling_[ii];
+        for (size_t ii=0; ii != r_.size(); ++ii)
+          qr[q_.size() + ii] *= action_scaling_[ii] * action_scaling_[ii];
+        return diagonal(qr);
+      }
       else
         return Matrix();
     }

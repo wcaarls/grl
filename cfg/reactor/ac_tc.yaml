@@ -12,7 +12,7 @@ experiment:
     discrete_time: 1
     model: 
       type: model/dynamical
-      control_step: 60
+      control_step: 30
       integration_steps: 600
       dynamics: 
         type: dynamics/reactor

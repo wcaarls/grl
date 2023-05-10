@@ -102,15 +102,17 @@ class ReactorTrackingTask : public ReactorTask
     TYPEINFO("task/reactor/tracking", "Track Fb setpoint")
   
   public:
+    int mpc_;
     double min_, max_;
     int setpoints_;
     Mapping *profile_;
+    double fin_weight_;
     
     Matrix timeline_;
     int test_;
   
   public:
-    ReactorTrackingTask() : min_(100), max_(600), setpoints_(3), profile_(NULL) { }
+    ReactorTrackingTask() : mpc_(0), min_(100), max_(600), setpoints_(3), profile_(NULL), fin_weight_(0.1) { }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -120,6 +122,8 @@ class ReactorTrackingTask : public ReactorTask
     virtual void start(int test, Vector *state);
     virtual void observe(const Vector &state, Observation *obs, int *terminal) const;
     virtual void evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const;
+    virtual bool invert(const Observation &obs, Vector *state, double time=0.) const;
+    virtual Matrix rewardHessian(const Vector &state, const Action &action) const;
     
   protected:
     double setpoint(double time) const;

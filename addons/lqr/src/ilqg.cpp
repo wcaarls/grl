@@ -47,6 +47,8 @@ void ILQGSolver::request(ConfigurationRequest *config)
   config->push_back(CRP("iterations", "Maximum number of iterations", (int)maxiter_));
   config->push_back(CRP("mean", "Mean of initial random action sequence", mean_));
   config->push_back(CRP("stddev", "Standard deviation of initial random action sequence", stddev_));
+  config->push_back(CRP("action_min", "Minimum action limit", action_min_));
+  config->push_back(CRP("action_max", "Maximum action limit", action_max_));
   
   std::vector<std::string> options;
   options.push_back("none");
@@ -70,6 +72,13 @@ void ILQGSolver::configure(Configuration &config)
   stddev_ = config["stddev"].v();
   if (!mean_.size())
     mean_ = ConstantVector(stddev_.size(), 0.);
+  action_min_ = config["action_min"].v();
+  action_max_ = config["action_max"].v();
+  
+  if (action_min_.size() && action_min_.size() != stddev_.size())
+    throw bad_param("solver/ilqg:action_min");
+  if (action_max_.size() && action_max_.size() != stddev_.size())
+    throw bad_param("solver/ilqg:action_max");
   
   maxiter_ = config["iterations"];
   regularization_ = config["regularization"].str();
@@ -153,7 +162,24 @@ bool ILQGSolver::resolve(double t, const Vector &xt)
     size_t Nx = std::max(std::min((size_t)x_.cols(), N), start);
     size_t NL = std::max(std::min((size_t)L_.size(), N), start);
     grl_assert(u_.cols() == N);
-  
+    
+    if ((xt.matrix()-x_.col(start)).norm() > 0.1)
+    {
+      WARNING("Expected: " << x_.col(0).transpose() << ", " << u_.col(0).transpose() << " -> " << x_.col(start).transpose());
+      WARNING("Got " << xt << " after " << t-t0_ << "s");
+      
+      Observation next;
+      double reward;
+      int terminal;
+
+      Observation obs; obs.v = x_.col(0).transpose();
+      Action action; action.v = u_.col(0).transpose();
+
+      double tau = model_->step(obs, action, &next, &reward, &terminal);
+      
+      WARNING("Modeled next state is " << next.v << " after " << tau << "s");
+    }
+    
     // Throw away solution before t
     u_.leftCols(N-start) = u_.rightCols(N-start).eval();
     x_ = x_.block(0, start, n, Nx-start).eval();
@@ -164,7 +190,15 @@ bool ILQGSolver::resolve(double t, const Vector &xt)
     // Pad actions with last action
     for (size_t ii=N-start; ii < N; ++ii)
       u_.col(ii) = u_.col(N-1);
-
+      
+    // Limit actions
+    if (action_min_.size())
+      for (size_t ii=0; ii < N; ++ii)
+        u_.col(ii) = u_.col(ii).cwiseMax(action_min_.matrix()); 
+    if (action_max_.size())
+      for (size_t ii=0; ii < N; ++ii)
+        u_.col(ii) = u_.col(ii).cwiseMin(action_max_.matrix()); 
+        
     trajectory_->set(x_);
   }
   
@@ -260,7 +294,7 @@ bool ILQGSolver::resolve(double t, const Vector &xt)
     for (size_t ff = 0; ff < 8; ++ff)
     {
       double alpha = pow(10, -0.4286*ff);
-    
+      
       if (!forwardPass(x.col(0), x, u+l*alpha, L, &xnew, &unew, &costnew))
       {
         WARNING("Could not complete forward pass");
@@ -301,12 +335,6 @@ bool ILQGSolver::resolve(double t, const Vector &xt)
 
       CRAWL(iteration << ": accepted; cost " << costsum);
       
-      if ((total_cost - costsum) < tolerance_)
-      {
-        TRACE("iLQG converged after " << iteration << " iterations (cost change)");
-        break;
-      }
-      
       // Decrease regularization parameter
       dlambda   = fmin(dlambda / lambda_factor_, 1./lambda_factor_);
       lambda    = lambda * dlambda * (lambda > lambda_min_);
@@ -321,6 +349,12 @@ bool ILQGSolver::resolve(double t, const Vector &xt)
       policy_->clear();
       for (size_t ii=0; ii < N; ++ii)
         policy_->push(SampleFeedbackPolicy::Sample(x_.col(ii).transpose(), u_.col(ii).transpose(), L_[ii]));
+
+      if ((total_cost - costsum) < tolerance_)
+      {
+        TRACE("iLQG converged after " << iteration << " iterations (cost change " << total_cost - costsum << ")");
+        break;
+      }
     }
     else
     {

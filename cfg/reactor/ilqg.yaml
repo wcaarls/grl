@@ -1,0 +1,68 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 0
+  steps: 0
+  rate: 0
+  test_interval: 0
+  environment: 
+    type: environment/modeled
+    discrete_time: 1
+    model: 
+      type: model/dynamical
+      control_step: 30
+      integration_steps: 600
+      dynamics: 
+        type: dynamics/reactor
+    task: 
+      type: task/reactor/tracking
+      timeout: 2100
+      randomization: 0.6
+      mpc: 1
+      min: 0.8
+      max: 1.2
+      setpoints: 2
+      fin_weight: 0.1
+      profile:
+        type: mapping/timeline
+        interpolate: 0
+        importer:
+          type: importer/csv
+          file: reactor_setpoints
+    exporter: 
+      type: exporter/csv
+      file: reactor_tracking_ilqg_signals
+      style: line
+      variant: test
+      enabled: 1
+  agent: 
+    type: agent/solver
+    interval: 1
+    policy: 
+      type: mapping/policy/sample_feedback
+      output_min: experiment/environment/task/action_min
+      output_max: experiment/environment/task/action_max
+    solver: 
+      type: solver/policy/ilqg
+      horizon: 50
+      iterations: 100
+      mean: [350, 200]
+      stddev: [50, 50]
+      action_min: experiment/environment/task/action_min
+      action_max: experiment/environment/task/action_max
+      regularization: controls
+      model: 
+        type: observation_model/fixed
+        jacobian_step: 0.0001
+        model: experiment/environment/model
+        task: experiment/environment/task
+      policy: experiment/agent/policy
+  test_agent: experiment/agent
+visualizer: 
+  type: visualizer/glut
+visualization2: 
+  type: visualization/trajectory
+  input_dims: [0, 1]
+  input_min: experiment/environment/task/observation_min
+  input_max: experiment/environment/task/observation_max
+  trajectory: experiment/agent/solver/trajectory

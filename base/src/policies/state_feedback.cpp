@@ -154,6 +154,7 @@ void SampleFeedbackPolicy::act(const Observation &in, Action *out) const
     WARNING("Applying default action");
     *out = (max_-min_)/2;
     out->type = atGreedy;
+    return;
   }
 
   if (in.size() != samples_.front().x.size())

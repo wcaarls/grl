@@ -58,8 +58,8 @@ void ReactorDynamics::configure(Configuration &config)
   
   Cain_ = 5.1; // 3.3-5.5             // [mol/L]               Input concentration of A
   Cbin_ = 0.0;                        // [mol/L]               Input concentration of B
-  Tin_  = 380; // ???-???             // [K]                   Temperature of reactor input
-  Tkf_  = 318; // 303-333             // [K]                   Temperature of jacket input
+  Tin_  = 400; // ???-???             // [K]                   Temperature of reactor input
+  Tkf_  = 298; // 303-333             // [K]                   Temperature of jacket input
   Vk_   = 5;                          // [L]                   Volume of the jacket
 }
 
@@ -136,10 +136,10 @@ void ReactorTask::reconfigure(const Configuration &config)
 void ReactorTask::start(int test, Vector *state)
 {
   state->resize(5);
-  (*state)[0] = 5.1  + randomization_*0.4*(RandGen::get()*2-1);
-  (*state)[1] = 0    + randomization_*1.0*(RandGen::get());
-  (*state)[2] = 380  + randomization_*50.*(RandGen::get()*2-1);;
-  (*state)[3] = 380  + randomization_*50.*(RandGen::get()*2-1);;
+  (*state)[0] = 5.1  + (test==0)*randomization_*0.4*(RandGen::get()*2-1);
+  (*state)[1] = 0    + (test==0)*randomization_*1.0*(RandGen::get());
+  (*state)[2] = 380  + (test==0)*randomization_*50.*(RandGen::get()*2-1);;
+  (*state)[3] = 380  + (test==0)*randomization_*50.*(RandGen::get()*2-1);;
   (*state)[4] = 0;
 }
 
@@ -222,26 +222,39 @@ void ReactorTrackingTask::request(ConfigurationRequest *config)
 {
   ReactorTask::request(config);
 
+  config->push_back(CRP("mpc", "MPC mode: observe time and use quadratic rewards", mpc_, CRP::Configuration, 0, 1));
   config->push_back(CRP("min", "Minimum Fb setpoint", min_, CRP::Configuration, 0., DBL_MAX));
   config->push_back(CRP("max", "Minimum Fb setpoint", max_, CRP::Configuration, 0., DBL_MAX));
   config->push_back(CRP("setpoints", "Number of random setpoints for training", setpoints_, CRP::Configuration, 1));
 
   config->push_back(CRP("profile", "mapping", "Setpoint profile for testing", profile_));
+
+  config->push_back(CRP("fin_weight", "Relative weight of Fin maximization", fin_weight_, CRP::Configuration, 0., DBL_MAX));
+  
 }
 
 void ReactorTrackingTask::configure(Configuration &config)
 {
   ReactorTask::configure(config);
 
+  mpc_ = config["mpc"];
   min_ = config["min"];
   max_ = config["max"];
   setpoints_ = config["setpoints"];
   
   profile_ = (Mapping*)config["profile"].ptr();
+  fin_weight_ = config["fin_weight"];
 
-  config.set("observation_dims", 5);
+  config.set("observation_dims", 5+mpc_);
   config.set("observation_min", extend(config["observation_min"].v(), VectorConstructor(min_)));
   config.set("observation_max", extend(config["observation_max"].v(), VectorConstructor(max_)));
+  
+  if (mpc_)
+  {
+    config.set("observation_min", extend(config["observation_min"].v(), VectorConstructor(0.)));
+    config.set("observation_max", extend(config["observation_max"].v(), VectorConstructor(T_)));
+  }
+  
   config.set("reward_min", -sqrt(570));
   config.set("reward_max", 1.3);
 }
@@ -273,13 +286,16 @@ void ReactorTrackingTask::start(int test, Vector *state)
 void ReactorTrackingTask::evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const
 {
   if (state.size() != 5 || action.size() != 2 || next.size() != 5)
+  {
+    ERROR("Got dimensionality " << state.size() << ", " << action.size() << ", " << next.size() << ", expected 5, 2, 5");
     throw Exception("task/reactor/tracking requires dynamics/reactor");
+  }
 
-  // Fb in [mol/h]
-  double Fb = action[0]*(state[1]+next[1])/2;
-  
-  // Maximize Cb while keeping Fb at setpoint  
-  *reward = state[1] - 0.1*sqrt(abs(Fb - setpoint(state[4])));
+  // Maximize Fin while keeping Cb at setpoint  
+  if (mpc_)
+    *reward = -fin_weight_*pow(1-action[0]/700., 2) - (1-fin_weight_)*pow(setpoint(state[4])-state[1], 2) - 1e-10*pow(action[1], 2);
+  else
+    *reward = fin_weight_*(action[0]/700.) - (1-fin_weight_)*fabs(setpoint(state[4])-state[1]);
   
   // Normalize reward per timestep.
   *reward *= (next[4]-state[4]);
@@ -288,14 +304,19 @@ void ReactorTrackingTask::evaluate(const Vector &state, const Action &action, co
 void ReactorTrackingTask::observe(const Vector &state, Observation *obs, int *terminal) const
 {
   if (state.size() != 5)
+  {
+    ERROR("Got " << state.size() << " state dimensions, expected 5");
     throw Exception("task/reactor/tracking requires dynamics/reactor");
+  }
 
-  obs->v.resize(5);
+  obs->v.resize(5 + mpc_);
   (*obs)[0] = state[0];
   (*obs)[1] = state[1];
   (*obs)[2] = state[2];
   (*obs)[3] = state[3];
   (*obs)[4] = setpoint(state[4]);
+  if (mpc_)
+    (*obs)[5] = state[4];
 
   obs->absorbing = false;
   
@@ -303,6 +324,21 @@ void ReactorTrackingTask::observe(const Vector &state, Observation *obs, int *te
     *terminal = 1;
   else
     *terminal = 0;
+}
+
+bool ReactorTrackingTask::invert(const Observation &obs, Vector *state, double time) const
+{
+  state->resize(5);
+  (*state)[0] = obs[0];
+  (*state)[1] = obs[1];
+  (*state)[2] = obs[2];
+  (*state)[3] = obs[3];
+  if (mpc_)
+    (*state)[4] = obs[5];
+  else    
+    (*state)[4] = time;
+
+  return true;
 }
 
 double ReactorTrackingTask::setpoint(double time) const
@@ -318,6 +354,12 @@ double ReactorTrackingTask::setpoint(double time) const
     for (idx=1; idx < timeline_.rows() && timeline_(idx, 0) < time; ++idx);
     return timeline_(idx-1, 1);
   }
+}
+
+Matrix ReactorTrackingTask::rewardHessian(const Vector &state, const Action &action) const
+{
+  Vector qr = -VectorConstructor(0, (1-fin_weight_), 0, 0, 0, 0, fin_weight_*pow(1./700, 2), 1e-10);
+  return diagonal(qr);
 }
 
 // ReactorMaximizationTask
