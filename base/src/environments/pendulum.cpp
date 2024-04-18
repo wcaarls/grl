@@ -186,6 +186,12 @@ void PendulumRegulatorTask::reconfigure(const Configuration &config)
   RegulatorTask::reconfigure(config);
 }
 
+bool PendulumRegulatorTask::actuate(const Vector &prev, const Vector &state, const Action &action, Vector *actuation) const
+{
+  *actuation = VectorConstructor(fmin(fmax(action[0], -3), 3));
+  return true;
+}
+
 void PendulumRegulatorTask::observe(const Vector &state, Observation *obs, int *terminal) const
 {
   RegulatorTask::observe(state, obs, terminal);

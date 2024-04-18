@@ -54,6 +54,7 @@ add_library(${TARGET} SHARED
             ${SRC}/environments/quadcopter.cpp
             ${SRC}/environments/tlm.cpp
             ${SRC}/environments/wmr.cpp
+            ${SRC}/environments/maglev.cpp
             ${SRC}/experiments/approx_test.cpp
             ${SRC}/experiments/online_learning.cpp
             ${SRC}/experiments/batch_learning.cpp
