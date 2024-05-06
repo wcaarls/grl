@@ -40,11 +40,11 @@ class WMRDynamics : public Dynamics
     TYPEINFO("dynamics/wmr", "Wheeled mobile robot kinematics")
 
   public:
-    double t_, r_, l_, b_;
+    double t_, r_, b_, l_;
     int caster_;
   
   public:
-    WMRDynamics() : caster_(0){ }
+    WMRDynamics() : t_(1.0), r_(0.1), b_(1.0), l_(0.2), caster_(0){ }
   
     // From Configurable
     virtual void request(ConfigurationRequest *config);
@@ -112,6 +112,35 @@ class WMRCasterRegulatorTask : public RegulatorTask
     virtual void reconfigure(const Configuration &config);
 
     // From Task
+    virtual void evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const;
+    virtual void observe(const Vector &state, Observation *obs, int *terminal) const;
+    virtual bool invert(const Observation &obs, Vector *state, double time=0.) const;
+};
+
+class WMRTrajectoryTask : public Task
+{
+  public:
+    TYPEINFO("task/wmr/trajectory", "Wheeled mobile robot trajectory following task")
+    
+  protected:
+    double v_linear_, v_angular_;
+    double sensor_pos_, sensor_width_;
+    int sensor_elements_;
+
+    Mapping *trajectory_;
+
+  public:
+    WMRTrajectoryTask() : v_linear_(1.0), v_angular_(1.0), sensor_pos_(0.1), sensor_width_(0.1), sensor_elements_(10), trajectory_(NULL)
+    {
+    }
+  
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+
+    // From Task
+    virtual void start(int test, Vector *state);
     virtual void evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const;
     virtual void observe(const Vector &state, Observation *obs, int *terminal) const;
     virtual bool invert(const Observation &obs, Vector *state, double time=0.) const;

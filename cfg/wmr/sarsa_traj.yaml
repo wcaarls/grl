@@ -1,0 +1,110 @@
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  run_offset: 0
+  trials: 0
+  steps: 0
+  rate: 0
+  test_interval: 10
+  test_trials: 1
+  environment: 
+    type: environment/modeled
+    discrete_time: 1
+    window: 1
+    stride: 1
+    delta: []
+    model: 
+      type: model/dynamical
+      control_step: 0.01
+      integration_steps: 1
+      dynamics: 
+        type: dynamics/wmr
+        track: 0.1
+        radius: 0.02
+        base: 0
+        length: 0
+        caster: 0
+    task: 
+      type: task/wmr/trajectory
+      v_linear: 1
+      v_angular: 6.28
+      sensor_pos: 0.1
+      sensor_width: 0.1
+      sensor_elements: 10
+      trajectory: 
+        type: mapping/image
+        file: circle.ics
+        min: [0, 0]
+        max: [1, 1]
+  agent: 
+    type: agent/td
+    policy: 
+      type: mapping/policy/discrete/value/q
+      discretizer: 
+        type: discretizer/uniform
+        min: experiment/environment/task/action_min
+        max: experiment/environment/task/action_max
+        steps: [3, 3]
+      projector: 
+        type: projector/tile_coding
+        tilings: 16
+        memory: 8388608
+        safe: 0
+        resolution: [0.1, 0.2, 1.0]
+        wrapping: []
+      representation: 
+        type: representation/parameterized/linear
+        interval: 0
+        tau: 1
+        init_min: [0]
+        init_max: [1]
+        memory: experiment/agent/policy/projector/memory
+        outputs: 1
+        output_min: []
+        output_max: []
+        limit: 1
+      sampler: 
+        type: sampler/epsilon_greedy
+        epsilon: [0.05]
+        decay_rate: 1
+        decay_min: 0
+    predictor: 
+      type: predictor/critic/sarsa
+      alpha: 0.2
+      gamma: 0.97
+      lambda: 0.65
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+      trace: 
+        type: trace/enumerated/replacing
+  test_agent: 
+    type: agent/fixed
+    policy: 
+      type: mapping/policy/discrete/value/q
+      discretizer: experiment/agent/policy/discretizer
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+      sampler: 
+        type: sampler/greedy
+  save_every: never
+visualizer: 
+  type: visualizer/glut
+visualization: 
+  type: visualization/wmr
+  state: experiment/environment/state
+  track: experiment/environment/model/dynamics/track
+  base: experiment/environment/model/dynamics/base
+  length: experiment/environment/model/dynamics/length
+  trajectory: experiment/environment/task/trajectory
+visualization2:
+  type: visualization/field/mapping
+  field_dims: [ 0, 1 ]
+  input_min: [ 0, 0 ]
+  input_max: [ 1, 1 ]
+  points: 65536
+  savepoints: 1048576
+  projection: mean
+  mapping: experiment/environment/task/trajectory
+  output_dim: 0
+  state: experiment/environment/state
+  

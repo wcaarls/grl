@@ -33,7 +33,12 @@ REGISTER_CONFIGURABLE(WMRVisualization)
 
 void WMRVisualization::request(ConfigurationRequest *config)
 {
+  config->push_back(CRP("track", "Vehicle track (horizontal size)", t_));
+  config->push_back(CRP("base", "Wheel base (front to back distance)", b_));
+  config->push_back(CRP("length", "Caster wheel support length", l_));
+
   config->push_back(CRP("state", "signal/vector", "Wheeled mobile robot state to visualize", state_));
+  config->push_back(CRP("trajectory", "mapping", "Image containing trajectory to follow", trajectory_, true));
 }
 
 void WMRVisualization::configure(Configuration &config)
@@ -41,11 +46,12 @@ void WMRVisualization::configure(Configuration &config)
   if (!Visualizer::instance())
     throw Exception("visualization/wmr requires a configured visualizer to run");
 
-  state_ = (VectorSignal*)config["state"].ptr();
+  t_ = config["track"];
+  b_ = config["base"];
+  l_ = config["length"];
   
-  t_ = 1.0; // Track (horizontal size)
-  l_ = 0.2; // Caster wheel support length
-  b_ = 1.0; // Wheelbase (front to back distance)
+  state_ = (VectorSignal*)config["state"].ptr();
+  trajectory_ = (Mapping*)config["trajectory"].ptr();
 
   // Create window  
   create("Wheeled mobile robot");
@@ -57,7 +63,10 @@ void WMRVisualization::reconfigure(const Configuration &config)
 
 void WMRVisualization::reshape(int width, int height)
 {
-  initProjection(-10.1, 10.1, -10.1, 10.1);
+  if (trajectory_)
+    initProjection(-0.1, 1.1, -0.1, 1.1);
+  else
+    initProjection(-10.1, 10.1, -10.1, 10.1);
 }
 
 void WMRVisualization::idle()

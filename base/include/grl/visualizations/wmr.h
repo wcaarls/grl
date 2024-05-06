@@ -29,6 +29,7 @@
 #define GRL_WMR_VISUALIZATION_H_
 
 #include <grl/signal.h>
+#include <grl/mapping.h>
 #include <grl/visualization.h>
 
 namespace grl
@@ -41,11 +42,12 @@ class WMRVisualization : public Visualization
     TYPEINFO("visualization/wmr", "Wheeled mobile robot visualization")
 
   protected:
+    double t_, b_, l_;
     VectorSignal *state_;
-    double t_, l_, b_;
+    Mapping *trajectory_;
   
   public:
-    WMRVisualization() : state_(NULL) { }
+    WMRVisualization() : t_(1.0), b_(1.0), l_(0.2), state_(NULL), trajectory_(NULL) { }
     
     // From Configurable
     virtual void request(ConfigurationRequest *config);

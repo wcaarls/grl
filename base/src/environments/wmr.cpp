@@ -32,18 +32,23 @@ using namespace grl;
 REGISTER_CONFIGURABLE(WMRDynamics)
 REGISTER_CONFIGURABLE(WMRRegulatorTask)
 REGISTER_CONFIGURABLE(WMRCasterRegulatorTask)
+REGISTER_CONFIGURABLE(WMRTrajectoryTask)
 
 void WMRDynamics::request(ConfigurationRequest *config)
 {
-  config->push_back(CRP("caster", "Include caster wheels", caster_, CRP::Configuration, 0, 1));
+  config->push_back(CRP("track", "Vehicle track (horizontal size)", t_));
+  config->push_back(CRP("radius", "Wheel radius", r_));
+  config->push_back(CRP("base", "Wheel base (front to back distance)", b_));
+  config->push_back(CRP("length", "Caster wheel support length", l_));
+  config->push_back(CRP("caster", "Include caster wheels in state", caster_, CRP::Configuration, 0, 1));
 }
 
 void WMRDynamics::configure(Configuration &config)
 {
-  t_ = 1.0; // Track (horizontal size)
-  r_ = 0.1; // Wheel radius
-  l_ = 0.2; // Caster wheel support length
-  b_ = 1.0; // Wheelbase (front to back distance)
+  t_ = config["track"];
+  r_ = config["radius"];
+  b_ = config["base"];
+  l_ = config["length"];
 
   caster_ = config["caster"];
 }
@@ -55,7 +60,10 @@ void WMRDynamics::reconfigure(const Configuration &config)
 void WMRDynamics::eom(const Vector &state, const Vector &actuation, Vector *xd) const
 {
   if (state.size() != 4 + 2*caster_ || actuation.size() != 2)
+  {
+    ERROR("State " << state << " or actuation " << actuation << " do not have correct size " << 4 + 2*caster_ << " / 2");
     throw Exception("dynamics/wmr requires a compatible task/wmr subclass");
+  }
     
   xd->resize(4 + 2*caster_);
   (*xd)[0] = actuation[0]*cos(state[2]);
@@ -247,4 +255,127 @@ bool WMRCasterRegulatorTask::invert(const Observation &obs, Vector *state, doubl
   *state = extend(obs, VectorConstructor(time));
   
   return true;
+}
+
+// WMRTrajectoryTask
+
+void WMRTrajectoryTask::request(ConfigurationRequest *config)
+{
+  Task::request(config);
+
+  config->push_back(CRP("v_linear", "Maximum linear velocity", v_linear_, CRP::Configuration, 0., 10.));
+  config->push_back(CRP("v_angular", "Maximum angular velocity", v_angular_, CRP::Configuration, 0., 2*M_PI));
+  config->push_back(CRP("sensor_pos", "Position of sensor bar w.r.t wheels", sensor_pos_, CRP::Configuration));
+  config->push_back(CRP("sensor_width", "Width of sensor bar", sensor_width_, CRP::Configuration));
+  config->push_back(CRP("sensor_elements", "Number of sensing elements on sensor bar", sensor_elements_, CRP::Configuration));
+
+  config->push_back(CRP("trajectory", "mapping", "Image containing trajectory to follow", trajectory_));
+}
+
+void WMRTrajectoryTask::configure(Configuration &config)
+{
+  trajectory_ = (Mapping*)config["trajectory"].ptr();
+  v_linear_ = config["v_linear"];
+  v_angular_ = config["v_angular"];
+  sensor_pos_ = config["sensor_pos"];
+  sensor_width_ = config["sensor_width"];
+  sensor_elements_ = config["sensor_elements"];
+  
+  config.set("observation_dims", 1);
+  config.set("observation_min", VectorConstructor(-sensor_width_/2));
+  config.set("observation_max", VectorConstructor( sensor_width_/2));
+  config.set("action_dims", 2);
+  config.set("action_min", VectorConstructor(-v_linear_ , -v_angular_));
+  config.set("action_max", VectorConstructor( v_linear_ ,  v_angular_));
+  config.set("reward_min", -sensor_width_/2-10);
+  config.set("reward_max", v_linear_);
+}
+
+void WMRTrajectoryTask::reconfigure(const Configuration &config)
+{
+}
+
+void WMRTrajectoryTask::start(int test, Vector *state)
+{
+  state->resize(4);
+  
+  (*state)[0] = 0.049  + (test==0)*RandGen::getNormal(0, 0.01);
+  (*state)[1] = 0.5    + (test==0)*RandGen::getNormal(0, 0.01);
+  (*state)[2] = M_PI/2 + (test==0)*RandGen::getNormal(0, 0.1);
+  (*state)[3] = 0;
+}
+
+void WMRTrajectoryTask::evaluate(const Vector &state, const Action &action, const Vector &next, double *reward) const
+{
+  Observation obs;
+  int terminal;
+  
+  observe(next, &obs, &terminal);
+  
+  // Reward is linear velocity - distance to sensor 0 position
+  *reward = action[0] - fabs(obs[0]);
+  
+  if (terminal)
+    *reward -= 10;
+}
+
+void WMRTrajectoryTask::observe(const Vector &state, Observation *obs, int *terminal) const
+{
+  if (state.size() != 4)
+  {
+    ERROR("State " << state << " is not of expected size 4");
+    throw Exception("task/wmr/trajectory requires compatible dynamics/wmr");
+  }
+  
+  double theta = state[2];
+  Eigen::Matrix2d rtheta(2, 2);
+  rtheta << cos(theta), -sin(theta),
+            sin(theta),  cos(theta);
+  
+  Eigen::Vector2d cur(2), pos(2);
+  cur << state[0], state[1];
+  
+  pos[0] = sensor_pos_;
+    
+  //ERROR("robot: " << cur);
+  double detect = 0, total = 0;
+  for (size_t ii=0; ii < sensor_elements_; ++ii)
+  {
+    pos[1] = -sensor_width_/2 + ii*sensor_width_/(sensor_elements_-1);
+    Vector world = cur + rtheta * pos;
+    
+    //ERROR(world);
+    
+    // Read mapping at world coordinate.
+    Vector res; 
+    double d = trajectory_->read(world, &res);
+    detect += pos[1] * d;
+    total += d;
+  }
+  detect /= sensor_elements_;
+  
+  obs->v.resize(1);
+  obs->v[0] = detect;
+  
+  // Terminal if sensor leaves track completely
+  if (total == 0)
+  {
+    obs->absorbing = true;
+    *terminal = 1;
+  }
+  else if (state[3] > 10)
+  {
+    obs->absorbing = false;
+    *terminal = 1;
+  }
+  else
+  {
+    obs->absorbing = false;
+    *terminal = false;
+  }
+}
+
+bool WMRTrajectoryTask::invert(const Observation &obs, Vector *state, double time) const
+{
+  return false;
 }
