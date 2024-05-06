@@ -26,11 +26,12 @@ experiment:
         caster: 0
     task: 
       type: task/wmr/trajectory
-      v_linear: 1
+      v_linear: 2
       v_angular: 6.28
       sensor_pos: 0.1
       sensor_width: 0.1
       sensor_elements: 10
+      start: [ 0.049000000000000002, 0.5, 1.5707963267948966 ]
       trajectory: 
         type: mapping/image
         file: circle.ics
@@ -44,13 +45,13 @@ experiment:
         type: discretizer/uniform
         min: experiment/environment/task/action_min
         max: experiment/environment/task/action_max
-        steps: [3, 3]
+        steps: [5, 5]
       projector: 
         type: projector/tile_coding
         tilings: 16
         memory: 8388608
         safe: 0
-        resolution: [0.1, 0.2, 1.0]
+        resolution: [0.02, 0.5, 3.1415]
         wrapping: []
       representation: 
         type: representation/parameterized/linear
@@ -91,20 +92,19 @@ visualizer:
   type: visualizer/glut
 visualization: 
   type: visualization/wmr
-  state: experiment/environment/state
   track: experiment/environment/model/dynamics/track
   base: experiment/environment/model/dynamics/base
   length: experiment/environment/model/dynamics/length
+  state: experiment/environment/state
   trajectory: experiment/environment/task/trajectory
-visualization2:
+visualization2: 
   type: visualization/field/mapping
-  field_dims: [ 0, 1 ]
-  input_min: [ 0, 0 ]
-  input_max: [ 1, 1 ]
+  field_dims: [0, 1]
+  input_min: experiment/environment/task/trajectory/min
+  input_max: experiment/environment/task/trajectory/max
   points: 65536
   savepoints: 1048576
+  state: experiment/environment/state
   projection: mean
   mapping: experiment/environment/task/trajectory
   output_dim: 0
-  state: experiment/environment/state
-  

@@ -126,12 +126,14 @@ class WMRTrajectoryTask : public Task
     double v_linear_, v_angular_;
     double sensor_pos_, sensor_width_;
     int sensor_elements_;
+    Vector start_;
 
     Mapping *trajectory_;
 
   public:
     WMRTrajectoryTask() : v_linear_(1.0), v_angular_(1.0), sensor_pos_(0.1), sensor_width_(0.1), sensor_elements_(10), trajectory_(NULL)
     {
+      start_ = VectorConstructor(0.049, 0.5, M_PI/2);
     }
   
     // From Configurable

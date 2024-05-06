@@ -268,6 +268,7 @@ void WMRTrajectoryTask::request(ConfigurationRequest *config)
   config->push_back(CRP("sensor_pos", "Position of sensor bar w.r.t wheels", sensor_pos_, CRP::Configuration));
   config->push_back(CRP("sensor_width", "Width of sensor bar", sensor_width_, CRP::Configuration));
   config->push_back(CRP("sensor_elements", "Number of sensing elements on sensor bar", sensor_elements_, CRP::Configuration));
+  config->push_back(CRP("start", "Starting position", start_, CRP::Configuration));
 
   config->push_back(CRP("trajectory", "mapping", "Image containing trajectory to follow", trajectory_));
 }
@@ -280,12 +281,16 @@ void WMRTrajectoryTask::configure(Configuration &config)
   sensor_pos_ = config["sensor_pos"];
   sensor_width_ = config["sensor_width"];
   sensor_elements_ = config["sensor_elements"];
+  start_ = config["start"].v();
+  
+  if (start_.size() != 3)
+    throw bad_param("task/wmr/trajectory:start");
   
   config.set("observation_dims", 1);
   config.set("observation_min", VectorConstructor(-sensor_width_/2));
   config.set("observation_max", VectorConstructor( sensor_width_/2));
   config.set("action_dims", 2);
-  config.set("action_min", VectorConstructor(-v_linear_ , -v_angular_));
+  config.set("action_min", VectorConstructor( 0.        , -v_angular_));
   config.set("action_max", VectorConstructor( v_linear_ ,  v_angular_));
   config.set("reward_min", -sensor_width_/2-10);
   config.set("reward_max", v_linear_);
@@ -299,9 +304,9 @@ void WMRTrajectoryTask::start(int test, Vector *state)
 {
   state->resize(4);
   
-  (*state)[0] = 0.049  + (test==0)*RandGen::getNormal(0, 0.01);
-  (*state)[1] = 0.5    + (test==0)*RandGen::getNormal(0, 0.01);
-  (*state)[2] = M_PI/2 + (test==0)*RandGen::getNormal(0, 0.1);
+  (*state)[0] = start_[0] + (test==0)*RandGen::getNormal(0, 0.01);
+  (*state)[1] = start_[1] + (test==0)*RandGen::getNormal(0, 0.01);
+  (*state)[2] = start_[2] + (test==0)*RandGen::getNormal(0, 0.1);
   (*state)[3] = 0;
 }
 
@@ -352,7 +357,9 @@ void WMRTrajectoryTask::observe(const Vector &state, Observation *obs, int *term
     detect += pos[1] * d;
     total += d;
   }
-  detect /= sensor_elements_;
+  
+  if (total != 0)
+    detect /= total;
   
   obs->v.resize(1);
   obs->v[0] = detect;
