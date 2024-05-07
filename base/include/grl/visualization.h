@@ -82,6 +82,9 @@ class Visualization : public Configurable
     /// Draw a surface. May only be called from draw() callback.
     void drawSurface(double x1, double x2, double y1, double y2, double r=1, double g=1, double b=1);
 
+    /// Draw a texture. May only be called from draw() callback.
+    void drawTexture(double x1, double y1, double x2, double y2, unsigned char *data, int width, int height, bool colored=false);
+
     /// Callback that draws the visualization.
     virtual void draw() { }
     
@@ -151,6 +154,9 @@ class Visualizer : public Configurable
 
     /// Called by a Visualization to draw a surface.
     virtual void drawSurface(double x1, double y1, double x2, double y2, double r=1, double g=1, double b=1) = 0;
+
+    /// Called by a Visualization to draw a texture.
+    virtual void drawTexture(double x1, double y1, double x2, double y2, unsigned char *data, int width, int height, bool colored=false) = 0;
 };
 
 inline Visualization::~Visualization()
@@ -213,6 +219,12 @@ inline void Visualization::drawSurface(double x1, double y1, double x2, double y
 {
   Visualizer::instance()->drawSurface(x1, y1, x2, y2, r, g, b);
 }
+
+inline void Visualization::drawTexture(double x1, double y1, double x2, double y2, unsigned char *data, int width, int height, bool colored)
+{
+  Visualizer::instance()->drawTexture(x1, y1, x2, y2, data, width, height, colored);
+}
+
 
 } /* namespace grl */
 

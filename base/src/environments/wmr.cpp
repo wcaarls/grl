@@ -264,7 +264,7 @@ void WMRTrajectoryTask::request(ConfigurationRequest *config)
   Task::request(config);
 
   config->push_back(CRP("v_linear", "Maximum linear velocity", v_linear_, CRP::Configuration, 0., 10.));
-  config->push_back(CRP("v_angular", "Maximum angular velocity", v_angular_, CRP::Configuration, 0., 2*M_PI));
+  config->push_back(CRP("v_angular", "Maximum angular velocity", v_angular_, CRP::Configuration, 0., 10*M_PI));
   config->push_back(CRP("sensor_pos", "Position of sensor bar w.r.t wheels", sensor_pos_, CRP::Configuration));
   config->push_back(CRP("sensor_width", "Width of sensor bar", sensor_width_, CRP::Configuration));
   config->push_back(CRP("sensor_elements", "Number of sensing elements on sensor bar", sensor_elements_, CRP::Configuration));
@@ -321,7 +321,7 @@ void WMRTrajectoryTask::evaluate(const Vector &state, const Action &action, cons
   *reward = action[0] - fabs(obs[0]);
   
   if (terminal)
-    *reward -= 10;
+    *reward -= 100;
 }
 
 void WMRTrajectoryTask::observe(const Vector &state, Observation *obs, int *terminal) const
@@ -349,7 +349,6 @@ void WMRTrajectoryTask::observe(const Vector &state, Observation *obs, int *term
     pos[1] = -sensor_width_/2 + ii*sensor_width_/(sensor_elements_-1);
     Vector world = cur + rtheta * pos;
     
-    //ERROR(world);
     
     // Read mapping at world coordinate.
     Vector res; 

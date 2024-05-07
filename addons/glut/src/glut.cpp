@@ -161,6 +161,35 @@ void GLUTVisualizer::drawSurface(double x1, double y1, double x2, double y2, dou
      glVertex2f(x1, y2);
    glEnd();  
 }
+
+void GLUTVisualizer::drawTexture(double x1, double y1, double x2, double y2, unsigned char *data, int width, int height, bool colored)
+{
+  GLuint texture;
+  glGenTextures(1, &texture);
+
+  glBindTexture( GL_TEXTURE_2D, texture );
+  glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE );
+  glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST );
+  glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+  glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+  glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+
+  if (colored)
+    gluBuild2DMipmaps( GL_TEXTURE_2D, 3, width, height, GL_RGB, GL_UNSIGNED_BYTE, data );
+  else
+    gluBuild2DMipmaps( GL_TEXTURE_2D, 1, width, height, GL_LUMINANCE, GL_UNSIGNED_BYTE, data );
+
+  glEnable(GL_TEXTURE_2D);
+  glBegin(GL_QUADS);
+    glTexCoord2d(0.0,0.0); glVertex2d(x1, y1);
+    glTexCoord2d(1.0,0.0); glVertex2d(x2, y1);
+    glTexCoord2d(1.0,1.0); glVertex2d(x2, y2);
+    glTexCoord2d(0.0,1.0); glVertex2d(x1, y2);
+  glEnd();
+  glDisable(GL_TEXTURE_2D);
+  
+  glDeleteTextures(1, &texture);
+}
     
 void GLUTVisualizer::run()
 {

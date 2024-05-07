@@ -36,9 +36,11 @@ void WMRVisualization::request(ConfigurationRequest *config)
   config->push_back(CRP("track", "Vehicle track (horizontal size)", t_));
   config->push_back(CRP("base", "Wheel base (front to back distance)", b_));
   config->push_back(CRP("length", "Caster wheel support length", l_));
+  config->push_back(CRP("sensor_pos", "Position of sensor bar w.r.t wheels", sensor_pos_, CRP::Configuration));
+  config->push_back(CRP("sensor_width", "Width of sensor bar", sensor_width_, CRP::Configuration));
 
   config->push_back(CRP("state", "signal/vector", "Wheeled mobile robot state to visualize", state_));
-  config->push_back(CRP("trajectory", "mapping", "Image containing trajectory to follow", trajectory_, true));
+  config->push_back(CRP("trajectory", "mapping/image", "Image containing trajectory to follow", trajectory_, true));
 }
 
 void WMRVisualization::configure(Configuration &config)
@@ -49,9 +51,30 @@ void WMRVisualization::configure(Configuration &config)
   t_ = config["track"];
   b_ = config["base"];
   l_ = config["length"];
+  sensor_pos_ = config["sensor_pos"];
+  sensor_width_ = config["sensor_width"];
   
   state_ = (VectorSignal*)config["state"].ptr();
   trajectory_ = (Mapping*)config["trajectory"].ptr();
+  
+  if (trajectory_)
+  {
+    min_ = (*this)["trajectory/min"].v(),
+    max_ = (*this)["trajectory/max"].v();
+    
+    data_ = new unsigned char[1000000];
+    for (size_t yy=0; yy != 1000; ++yy)
+      for (size_t xx=0; xx != 1000; ++xx)
+      {
+        Vector res;
+        data_[yy*1000+xx] = 255*trajectory_->read(min_ + VectorConstructor(xx/1000., yy/1000.)*(max_-min_), &res);
+      }
+  }
+  else
+  {
+    min_ = VectorConstructor(-10.1, -10.1);
+    max_ = VectorConstructor( 10.1,  10.1);
+  }
 
   // Create window  
   create("Wheeled mobile robot");
@@ -63,10 +86,7 @@ void WMRVisualization::reconfigure(const Configuration &config)
 
 void WMRVisualization::reshape(int width, int height)
 {
-  if (trajectory_)
-    initProjection(-0.1, 1.1, -0.1, 1.1);
-  else
-    initProjection(-10.1, 10.1, -10.1, 10.1);
+  initProjection(min_[0], max_[0], min_[1], max_[1]);
 }
 
 void WMRVisualization::idle()
@@ -103,9 +123,19 @@ void WMRVisualization::draw()
   if (state.size())
   {
     Eigen::Matrix3d bl = T(state[0], state[1])*R(state[2]);
+
+    if (trajectory_)
+    {
+      drawTexture(0, 0, 1, 1, data_, 1000, 1000, false);
+      
+      Eigen::Vector3d leftsensor  = bl*Eigen::Vector3d(sensor_pos_,  sensor_width_/2, 1),
+                      rightsensor = bl*Eigen::Vector3d(sensor_pos_, -sensor_width_/2, 1);
+
+      drawLink(leftsensor[0], leftsensor[1], rightsensor[0], rightsensor[1]);
+    }
+  
     Eigen::Vector3d leftwheel  = bl*Eigen::Vector3d(0,  t_/2, 1),
                     rightwheel = bl*Eigen::Vector3d(0, -t_/2, 1);
-                    
     drawLink(leftwheel[0], leftwheel[1], rightwheel[0], rightwheel[1]);
     drawMass(state[0], state[1]);
     

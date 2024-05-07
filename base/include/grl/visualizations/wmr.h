@@ -43,11 +43,23 @@ class WMRVisualization : public Visualization
 
   protected:
     double t_, b_, l_;
+    double sensor_pos_, sensor_width_;
     VectorSignal *state_;
     Mapping *trajectory_;
+    Vector min_, max_;
+    unsigned char *data_;
   
   public:
-    WMRVisualization() : t_(1.0), b_(1.0), l_(0.2), state_(NULL), trajectory_(NULL) { }
+    WMRVisualization() : t_(1.0), b_(1.0), l_(0.2), sensor_pos_(0.1), sensor_width_(0.1), state_(NULL), trajectory_(NULL), data_(NULL) { }
+    
+    ~WMRVisualization()
+    {
+      if (data_)
+      {
+        delete data_;
+        data_ = NULL;
+      }
+    }
     
     // From Configurable
     virtual void request(ConfigurationRequest *config);

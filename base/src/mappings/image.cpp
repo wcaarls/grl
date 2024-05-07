@@ -85,11 +85,10 @@ void ImageMapping::configure(Configuration &config)
     throw bad_param("mapping/image:file");
   }
   
+  IcsClose(ics);
+
   if (min_.size() != max_.size())
-  {
-    IcsClose(ics);
     throw bad_param("mapping/image:{min,max}");
-  }
   
   // TODO: relax
   if (min_.size() != 2)
