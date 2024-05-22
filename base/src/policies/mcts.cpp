@@ -134,8 +134,8 @@ void MCTSPolicy::act(double time, const Observation &in, Action *out)
 
     do
     {
-      node->update(reward);
       reward = pow(gamma_, node->tau())*reward + node->reward();
+      node->update(reward);
     } while ((node = node->parent()));
     
     searches++;

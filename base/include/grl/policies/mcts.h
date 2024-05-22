@@ -51,6 +51,8 @@ class MCTSNode
   
     size_t action() const            { return action_; }
     double tau() const               { return tau_; }
+    
+    // Q(parent_.state_, action_)
     double q() const                 { return q_; }
     size_t visits() const            { return visits_; }
     size_t children() const          { return num_children_; } 
@@ -124,7 +126,7 @@ class MCTSNode
       size_t lastid=id;
       std::ostringstream oss;
     
-      out << "  node_" << id << "[label=\"" << state_ << ", " << q_/visits_ << " (" << visits_ << ")\"];" << std::endl;
+      out << "  node_" << id << "[label=\"" << state_ << "; " << q_/visits_ << " (" << visits_ << ")\"];" << std::endl;
       
       if (maxdepth == 1)
         return lastid;
@@ -132,7 +134,7 @@ class MCTSNode
       for (size_t ii=0; ii < num_children_; ++ii)
       {
         oss << " node_" << lastid+1;
-        out << "  node_" << id << " -> node_" << lastid+1 << " [label=\"" << ii << "\"];" << std::endl;
+        out << "  node_" << id << " -> node_" << lastid+1 << " [label=\"" << ii << " (" << children_[ii].reward() << ")\"];" << std::endl;
         lastid = children_[ii].print(out, maxdepth?maxdepth-1:maxdepth, lastid+1);
       }
       

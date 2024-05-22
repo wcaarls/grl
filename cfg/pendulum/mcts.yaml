@@ -5,6 +5,7 @@ experiment:
   steps: 0
   rate: 0
   test_interval: 0
+  output: pendulum-mcts
   environment: 
     type: environment/modeled
     model: 
@@ -30,8 +31,8 @@ experiment:
         min: experiment/environment/task/action_min
         max: experiment/environment/task/action_max
         steps: [3]
-      epsilon: 0.05
-      horizon: 20
+      epsilon: 0.1 
+      horizon: 40
       budget: 0.05
   test_agent: experiment/agent
 visualizer: 
