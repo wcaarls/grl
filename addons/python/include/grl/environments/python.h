@@ -65,6 +65,33 @@ class GymEnvironment : public Environment
     void PyObjectToObservation(PyObject *obj, Observation *obs) const;
 };
 
+class PythonRewardEnvironment : public Environment
+{
+  public:
+    TYPEINFO("environment/python", "Python reward environment")
+
+  protected:
+    Environment *env_;
+    std::string reward_function_str_;
+    
+    PyObject *reward_function_;
+  
+  public:
+    PythonRewardEnvironment() : env_(NULL), reward_function_(NULL) { }
+    
+    // From Configurable
+    virtual void request(ConfigurationRequest *config);
+    virtual void configure(Configuration &config);
+    virtual void reconfigure(const Configuration &config);
+
+    // From Environment
+    virtual void start(int test, Observation *obs);
+    virtual double step(const Action &action, Observation *obs, double *reward, int *terminal);
+    
+  protected:
+    PyObject *VectorToPyObject(const Vector &v) const;
+};
+
 }
 
 #endif // GRL_PYTHON_ENVIRONMENT_H_

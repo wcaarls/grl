@@ -392,6 +392,11 @@ std::string ParameterConfigurator::str() const
 {
   std::string v = value_, id, expv;
   
+  // Expressions starting with @ are not evaluated. For literal
+  // @ at the beginning of an expression, use @@.
+  if (!value_.empty() && v[0] == '@')
+    return value_.substr(1);
+  
   // Resolve references
   for (size_t ii=0; ii < v.size(); ++ii)
   {

@@ -30,6 +30,7 @@
 using namespace grl;
 
 REGISTER_CONFIGURABLE(GymEnvironment)
+REGISTER_CONFIGURABLE(PythonRewardEnvironment)
 
 void GymEnvironment::request(ConfigurationRequest *config)
 {
@@ -182,4 +183,117 @@ void GymEnvironment::PyObjectToObservation(PyObject *obj, Observation *obs) cons
     (*obs)[ii] = PyFloat_AsDouble(val);
     Py_XDECREF(val);
   }
+}
+
+// PythonRewardEnvironment ***
+
+void PythonRewardEnvironment::request(ConfigurationRequest *config)
+{
+  config->push_back(CRP("reward", "Python string specifying reward function", reward_function_str_));
+  config->push_back(CRP("environment", "environment", "Downstream environment", env_));
+}
+
+bool printPyList(PyObject* arr) {
+  PyObject *iter;
+  PyObject *item;
+  if ((iter = PyObject_GetIter(arr)) == NULL) {
+    printf("List is Empty.\n");
+    return false;
+  }
+  while ((item = PyIter_Next(iter)) != NULL) {
+    if (PyLong_Check(item)) {
+      long long_item = PyLong_AsLong(item);
+      printf("%ld\n", long_item);
+    }
+    if (PyFloat_Check(item)) {
+      float float_item = PyFloat_AsDouble(item);
+      printf("%f\n", float_item);
+    }
+    if (PyUnicode_Check(item)) {
+      const char *unicode_item = PyUnicode_AsUTF8(item);
+      printf("%s\n", unicode_item);
+    }
+    Py_DECREF(item);
+  }
+  Py_DECREF(iter);  
+  return true;
+}
+
+void PythonRewardEnvironment::configure(Configuration &config)
+{
+  reward_function_str_ = config["reward"].str();
+  env_ = (Environment*)config["environment"].ptr();
+  
+  Py_Initialize();
+  
+  PyObject *filename = PyUnicode_DecodeFSDefault("<internal>");
+  PyObject *code = Py_CompileStringObject(reward_function_str_.c_str(), filename, Py_file_input, NULL, 0);
+  if (!code)
+  {
+    PyErr_Print();
+    ERROR(reward_function_str_);
+    throw Exception("Couldn't compile reward function");
+  }
+  Py_DECREF(filename);
+  
+  PyObject* main = PyImport_AddModule("__main__");
+  PyObject* globals = PyModule_GetDict(main);
+  PyObject *ret = PyEval_EvalCode(code, globals, globals);
+  if (!ret)
+  {
+    PyErr_Print();
+    throw Exception("Couldn't define reward function");
+  }
+  Py_DECREF(ret);
+  
+  reward_function_ = PyDict_GetItemString(globals, "reward");
+  if (!reward_function_)
+  {
+    PyErr_Print();
+    throw Exception("Reward function 'reward' not defined");
+  }
+
+  Py_DECREF(globals);
+}
+
+void PythonRewardEnvironment::reconfigure(const Configuration &config)
+{
+}
+
+
+void PythonRewardEnvironment::start(int test, Observation *obs)
+{
+  env_->start(test, obs);
+}
+
+double PythonRewardEnvironment::step(const Action &action, Observation *obs, double *reward, int *terminal)
+{
+  double tau = env_->step(action, obs, reward, terminal);
+  
+  // Do step
+  PyObject *args = PyTuple_New(2);
+  PyTuple_SetItem(args, 0, VectorToPyObject(action));
+  PyTuple_SetItem(args, 1, VectorToPyObject(*obs));
+  
+  PyObject *ret = PyObject_CallObject(reward_function_, args);
+  if (!ret)
+  {
+    PyErr_Print();
+    throw Exception("Couldn't evaluate reward function");
+  }
+  
+  Py_DECREF(args);
+  *reward = PyFloat_AsDouble(ret);
+  Py_DECREF(ret);
+  
+  return tau;
+}
+
+PyObject *PythonRewardEnvironment::VectorToPyObject(const Vector &v) const
+{
+  PyObject *obj = PyTuple_New(v.size());
+  for (size_t ii=0; ii != v.size(); ++ii)
+    PyTuple_SetItem(obj, ii, PyFloat_FromDouble(v[ii]));
+    
+  return obj;
 }

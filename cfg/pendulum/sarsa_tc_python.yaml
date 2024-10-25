@@ -1,0 +1,87 @@
+reward:
+  |
+  @import math
+  def reward(action, obs):
+    a = obs[0] - math.pi
+    return -5*a**2 -0.1*obs[1]**2 -action[0]**2
+experiment: 
+  type: experiment/online_learning
+  runs: 1
+  trials: 0
+  steps: 0
+  rate: 0
+  test_interval: 10
+  environment: 
+    type: environment/python
+    reward: /reward
+    environment:
+      type: environment/modeled
+      model: 
+        type: model/dynamical
+        control_step: 0.03
+        integration_steps: 5
+        dynamics: 
+          type: dynamics/pendulum
+      task: 
+        type: task/pendulum/swingup
+        timeout: 2.99
+        randomization: 0
+  agent: 
+    type: agent/td
+    policy: 
+      type: mapping/policy/discrete/value/q
+      discretizer: 
+        type: discretizer/uniform
+        min: experiment/environment/environment/task/action_min
+        max: experiment/environment/environment/task/action_max
+        steps: [3]
+      projector: 
+        type: projector/tile_coding
+        tilings: 16
+        memory: 8388608
+        safe: 0
+        resolution: [0.31415, 3.1415, 3]
+        wrapping: [6.283, 0, 0]
+      representation: 
+        type: representation/parameterized/linear
+        init_min: [0]
+        init_max: [1]
+        memory: experiment/agent/policy/projector/memory
+        outputs: 1
+        output_min: []
+        output_max: []
+      sampler: 
+        type: sampler/epsilon_greedy
+        rand_max: 0
+        epsilon: 0.05
+    predictor: 
+      type: predictor/critic/sarsa
+      alpha: 0.2
+      gamma: 0.97
+      lambda: 0.65
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+      trace: 
+        type: trace/enumerated/replacing
+  test_agent: 
+    type: agent/fixed
+    policy: 
+      type: mapping/policy/discrete/value/q
+      discretizer: experiment/agent/policy/discretizer
+      projector: experiment/agent/policy/projector
+      representation: experiment/agent/policy/representation
+      sampler: 
+        type: sampler/greedy
+        rand_max: 0
+  save_every: never
+visualizer: 
+  type: visualizer/glut
+visualization: 
+  type: visualization/field/policy/value
+  field_dims: [0, 1]
+  input_min: experiment/environment/environment/task/observation_min
+  input_max: experiment/environment/environment/task/observation_max
+  points: 65536
+  savepoints: 1048576
+  projection: mean
+  policy: experiment/test_agent/policy
