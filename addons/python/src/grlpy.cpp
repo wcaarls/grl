@@ -94,6 +94,9 @@ PYBIND11_MODULE(grlpy, m) {
         mycfg.set(item.first.attr("__str__")().cast<std::string>(), item.second.attr("__str__")().cast<std::string>());
   
         conf.reconfigure(mycfg);
+      })
+    .def("reset", [](Configurable &conf) {
+        conf.reset();
       });
 
   // Experiment
