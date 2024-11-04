@@ -60,6 +60,10 @@ ASTNodePtr parseExpression(const std::string &str);
 
 inline std::string evaluateExpression(const std::string &str)
 {
+  // Expressions starting with @ are not evaluated.
+  if (!str.empty() && str[0] == '@')
+    return str;
+
   ASTNodePtr ast = parseExpression(str);
   return ast->evaluate();
 }

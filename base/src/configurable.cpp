@@ -390,12 +390,11 @@ std::string ParameterConfigurator::localize(const std::string &id, const Configu
 
 std::string ParameterConfigurator::str() const
 {
+  // Expressions starting with @ are not evaluated.
+  if (!value_.empty() && value_[0] == '@')
+    return value_;
+
   std::string v = value_, id, expv;
-  
-  // Expressions starting with @ are not evaluated. For literal
-  // @ at the beginning of an expression, use @@.
-  if (!value_.empty() && v[0] == '@')
-    return value_.substr(1);
   
   // Resolve references
   for (size_t ii=0; ii < v.size(); ++ii)
@@ -465,6 +464,10 @@ ParameterConfigurator *ParameterConfigurator::instantiate(Configurator *parent) 
 
   if (!parent)
     parent = parent_;
+
+  // Expressions starting with @ are not evaluated.
+  if (!value_.empty() && value_[0] == '@')
+    return new ParameterConfigurator(element_, value_, parent);
 
   std::string v = value_, id, expv;
 

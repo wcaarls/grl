@@ -222,6 +222,9 @@ bool printPyList(PyObject* arr) {
 void PythonRewardEnvironment::configure(Configuration &config)
 {
   reward_function_str_ = config["reward"].str();
+  if (!reward_function_str_.empty() && reward_function_str_[0] == '@')
+    reward_function_str_ = reward_function_str_.substr(1);
+  
   env_ = (Environment*)config["environment"].ptr();
   
   Py_Initialize();
